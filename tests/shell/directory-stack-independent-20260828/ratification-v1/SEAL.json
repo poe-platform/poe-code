@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "files": [
+    "ratification-v1/BINDING.json",
+    "ratification-v1/HANDOFF.md",
+    "ratification-v1/SEAL.json",
+    "ratification-v1/STATIC-ATTEMPTS.json",
+    "ratification-v1/verify.mjs"
+  ],
+  "sha256": {
+    "ratification-v1/BINDING.json": "2150662c897abbde9f570c2cdfeaa1d7fe147ffbe6d6a70978292e06cbb1bfa4",
+    "ratification-v1/HANDOFF.md": "61f8f69235f999cf631401c419482aad22411a671d3a8cc678b41a13d1709306",
+    "ratification-v1/STATIC-ATTEMPTS.json": "3136c9dbf3b2fab2ff5979d9fd75e1a6ff40bcdf88ae0df23eb7e69a47fae677",
+    "ratification-v1/verify.mjs": "4a3cd74dceba2b9745b044261534c65e3799c047078acf36fb02cfe90dfc657c"
+  },
+  "selfAuthentication": "SEAL.json and full14-file scope authenticated by explicit additive Git commit; original9 also independently bound to302351279c8ca6122c618e72768782c8ad118878"
+}

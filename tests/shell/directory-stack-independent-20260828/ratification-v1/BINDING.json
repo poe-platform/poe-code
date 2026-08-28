@@ -1,0 +1,468 @@
+{
+  "version": 1,
+  "kind": "additive-exact-ratification-static-only",
+  "authorityCommit": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+  "originalFreezeCommit": "302351279c8ca6122c618e72768782c8ad118878",
+  "packetCommit": "053505fcb5b63d8872991eb09655bc927dd7080d",
+  "firstRecordedClock": "2026-08-28T07:33:29Z",
+  "preparedAt": "2026-08-28T07:36:23.231Z",
+  "semanticReview": {
+    "result": "no-substantive-contradiction",
+    "role": "manual comparison; verifier authenticates references/mappings, not automated semantic equivalence",
+    "comparisons": [
+      {
+        "id": "R01",
+        "authority": "ROOT-RATIFICATION section2; fresh exec/process",
+        "frozen": [
+          "S02",
+          "S03",
+          "S12",
+          "S13",
+          "I02"
+        ],
+        "finding": "Consistent: fresh cwd/env semantics imply fresh empty tail/stamp; no Shell persistence."
+      },
+      {
+        "id": "R02",
+        "authority": "section2; all clone/share boundaries",
+        "frozen": [
+          "S04",
+          "S05",
+          "S06",
+          "S07",
+          "S08",
+          "S09",
+          "S10",
+          "S11",
+          "I03",
+          "I04",
+          "I21"
+        ],
+        "finding": "Consistent: functions/source/eval/braces share; child and spread paths copy object and array before override; no mutable aliases."
+      },
+      {
+        "id": "R03",
+        "authority": "section3; actual assignment before checked PWD",
+        "frozen": [
+          "M06",
+          "M07",
+          "F05",
+          "F06",
+          "I05"
+        ],
+        "finding": "Consistent: new private Symbol after actual cwd including same-path/readonly-PWD; no lookup/OLDPWD/-n/dirs/ordinary-cd stamp."
+      },
+      {
+        "id": "R04",
+        "authority": "section3; enclosing middleware trace",
+        "frozen": [
+          "M01",
+          "M02",
+          "M03",
+          "M04",
+          "M05",
+          "M08",
+          "I06"
+        ],
+        "finding": "Consistent: saved-stamp condition supplements, not replaces, existing restore branch; later ordinary cd cannot erase stack publication; child-only stamp has no parent effect."
+      },
+      {
+        "id": "R05",
+        "authority": "section4 R2; packet sections3-7",
+        "frozen": [
+          "G01",
+          "G09",
+          "G14",
+          "G15",
+          "G23",
+          "G24",
+          "G29",
+          "G30",
+          "G32",
+          "G34",
+          "I12",
+          "I13"
+        ],
+        "finding": "Consistent: entire grammar/profile remains normative, including separate flags, early/late range, signed64 and help/extreme-overflow qualifications."
+      },
+      {
+        "id": "R06",
+        "authority": "section4 R3; admission/work",
+        "frozen": [
+          "L01",
+          "L07",
+          "L09",
+          "L11",
+          "L13",
+          "L15",
+          "I07",
+          "I08",
+          "I09",
+          "I10",
+          "I11",
+          "I19"
+        ],
+        "finding": "Consistent: inserted cwd admission, reached-only scans, used HOME, exact units/final flush, separate counters and unchanged shared budgets."
+      },
+      {
+        "id": "R07",
+        "authority": "section4 R3/R4; output and publication",
+        "frozen": [
+          "F02",
+          "F03",
+          "F05",
+          "F08",
+          "F09",
+          "F10",
+          "C04",
+          "C07",
+          "C10",
+          "I14",
+          "I15",
+          "I17",
+          "I18"
+        ],
+        "finding": "Consistent: pre-cd swap/rotation versus after-complete-cd push/pop, including required print; combined display and no rollback."
+      },
+      {
+        "id": "R08",
+        "authority": "section4 R4; diagnostic boundary",
+        "frozen": [
+          "I16",
+          "I24"
+        ],
+        "finding": "Consistent:65792-byte owned payload,65780 scalar prefix plus12-byte suffix; unchanged shell envelope and parent accounting."
+      },
+      {
+        "id": "R09",
+        "authority": "sections2/4/5; no-new-types and product scope",
+        "frozen": [
+          "A01",
+          "A02",
+          "A04",
+          "I01",
+          "I20",
+          "I22",
+          "TN01",
+          "TN05"
+        ],
+        "finding": "Consistent restriction: existing private State fields only; no new State-wrapper to hide fields, types.ts/API/parser/provider/export/package/default-count change. Private tail representation is not permission for an extra State wrapper."
+      },
+      {
+        "id": "R10",
+        "authority": "section6; unchanged evidence",
+        "frozen": [
+          "I23",
+          "I24"
+        ],
+        "finding": "Consistent:0of34+4+8 preserved; CD L24 scripted actual runtime evidence and historical L07-after61/L24-blocked retained; private source proofs stay source proofs."
+      },
+      {
+        "id": "R11",
+        "authority": "section5 and LOCKE-HANDOFF scheduling",
+        "frozen": [
+          "I02",
+          "I17",
+          "I19",
+          "I21",
+          "I22"
+        ],
+        "finding": "Gate refinement, not behavior change: durable ratification now bound; LET-first is mandatory scheduling, exact accepted CD+LET base and fresh stack GO/window still required. Original may-precede wording remains historical."
+      },
+      {
+        "id": "R12",
+        "authority": "LOCKE-HANDOFF independent targets/authentication",
+        "frozen": [
+          "I03",
+          "I08",
+          "I16",
+          "I24",
+          "TP01",
+          "TN01"
+        ],
+        "finding": "Consistent: dynamic/source roles, legitimate public types, source/installed/moved loads and existing CD/getopts/invoke/owned-output preservation stay gated; no new cohort or execution."
+      }
+    ]
+  },
+  "resolvedGate": {
+    "durableAuthorRatification": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+    "ratified": [
+      "R1",
+      "R2",
+      "R3",
+      "R4"
+    ],
+    "originalFilesModified": false
+  },
+  "runtimeGates": {
+    "acceptedLetBinding": null,
+    "exactAcceptedCdLetBase": null,
+    "exactStackCandidate": null,
+    "freshRootStackGo": false,
+    "stackRuntimeWindowReleased": false,
+    "authorIdleWindowRelease": "LET-first-only-not-stack-authorization",
+    "driverAndTypePreseals": "still-required",
+    "sourceInstalledMovedAuthentication": "still-required"
+  },
+  "unchangedCounts": {
+    "declarativeRows": 138,
+    "sourceInvariants": 24,
+    "positiveTypes": 8,
+    "negativeTypes": 8,
+    "frozenStaticNegatives": 16,
+    "futureMutationFamilies": 16,
+    "futureImportNegativeFamilies": 6
+  },
+  "history": {
+    "nativeOriginal": 34,
+    "virtualOriginal": 34,
+    "virtualMatches": 0,
+    "topologyNativeOnly": 4,
+    "grammarNativeOnly": 8,
+    "grammarVirtualRuns": 0
+  },
+  "staticScope": {
+    "originalFiles": 9,
+    "appendixFiles": 5,
+    "ratificationArtifacts": 4,
+    "parentHistoricalArtifacts": 10,
+    "pinnedSourceBlobs": 5,
+    "comparisonAreas": 12,
+    "newGuardNegatives": 8,
+    "independentRecheck": "All5 pinned source+10 historical artifact hashes independently rechecked from exact Git inputs only; no author verifier execution or product inspection",
+    "notRerun": "Original25-reference verification and16 negatives are preserved; no cohort, product/native/provider/type execution",
+    "appendAwareness": "full ownership root exactly original9 plus authorized appendix5; reject added files/directories/symlinks before and after"
+  },
+  "originalFreeze": [
+    {
+      "commit": "302351279c8ca6122c618e72768782c8ad118878",
+      "path": "tests/shell/directory-stack-independent-20260828/README.md",
+      "mode": "100644",
+      "blob": "138c2f9e2372195daecbff291f81ad15da92aa7e",
+      "sha256": "3cd42dafd7bf2bd49b2ea070a0b97cbf9587d88a5adbddfa92116971e2983f40",
+      "bytes": 1290
+    },
+    {
+      "commit": "302351279c8ca6122c618e72768782c8ad118878",
+      "path": "tests/shell/directory-stack-independent-20260828/freeze-v1/BINDING.json",
+      "mode": "100644",
+      "blob": "001147beec9dca7bbdfca218dce6fec4d3f48159",
+      "sha256": "4aed58fe6f965bf01b7bc03d8e4aaed46947574892c8be96d980f863c1aae5f2",
+      "bytes": 12104
+    },
+    {
+      "commit": "302351279c8ca6122c618e72768782c8ad118878",
+      "path": "tests/shell/directory-stack-independent-20260828/freeze-v1/CONTRACT.md",
+      "mode": "100644",
+      "blob": "6073a5c41d3473c831db92d1322d0cb737a09ef5",
+      "sha256": "24cb53d6fcbc2fcccb86fd722b568a56ed5650897bb33fff155554f39709ef78",
+      "bytes": 12137
+    },
+    {
+      "commit": "302351279c8ca6122c618e72768782c8ad118878",
+      "path": "tests/shell/directory-stack-independent-20260828/freeze-v1/SEAL.json",
+      "mode": "100644",
+      "blob": "4008ef5e9e89d66b2a7fe5d2ca23a15c41cd5dad",
+      "sha256": "6ffff33033027db30c196aa2f153d6a7b7a23f304503008fd62afa649a4811f5",
+      "bytes": 1361
+    },
+    {
+      "commit": "302351279c8ca6122c618e72768782c8ad118878",
+      "path": "tests/shell/directory-stack-independent-20260828/freeze-v1/STATIC-ATTEMPTS.json",
+      "mode": "100644",
+      "blob": "399bb9d954c31b86fc6432763c3f206e7868953a",
+      "sha256": "36c552ae74a5f2a4cb4767b7a85d512eea8dfa0415b8a49d28554a36f39d4fa4",
+      "bytes": 6460
+    },
+    {
+      "commit": "302351279c8ca6122c618e72768782c8ad118878",
+      "path": "tests/shell/directory-stack-independent-20260828/freeze-v1/cases.json",
+      "mode": "100644",
+      "blob": "2e96680eb18a217126582187d516e0bdeff2417c",
+      "sha256": "6221e26160ebc3fbab38e6ab2e037a201693eb6c9ab00acd0394398003a817c1",
+      "bytes": 27475
+    },
+    {
+      "commit": "302351279c8ca6122c618e72768782c8ad118878",
+      "path": "tests/shell/directory-stack-independent-20260828/freeze-v1/controls.json",
+      "mode": "100644",
+      "blob": "3d6b3e2eaae0915fd9fcefdcfa0dd4ab4e86e129",
+      "sha256": "28c64f21f1ee1b10ecdef21195b211dc53ca176e1c26190185a355285b85ab5f",
+      "bytes": 6380
+    },
+    {
+      "commit": "302351279c8ca6122c618e72768782c8ad118878",
+      "path": "tests/shell/directory-stack-independent-20260828/freeze-v1/proofs.json",
+      "mode": "100644",
+      "blob": "29417f400aee0ffa13b35bc7deb1007f0926a9aa",
+      "sha256": "4eeb9f7a1cb70d16a0ad50cae41f8c283ed91fa13d7d10c0f03c80a2f6c2f080",
+      "bytes": 14570
+    },
+    {
+      "commit": "302351279c8ca6122c618e72768782c8ad118878",
+      "path": "tests/shell/directory-stack-independent-20260828/freeze-v1/verify.mjs",
+      "mode": "100644",
+      "blob": "89634b57ad859a7402a805b8277d5b2f00ad14f0",
+      "sha256": "57916891df7ee80f57f8c677f24c3e8b9647a3ffe3bff1d3347fcc4093e5de45",
+      "bytes": 16591
+    }
+  ],
+  "ratificationArtifacts": [
+    {
+      "commit": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/ratification-v1/ROOT-RATIFICATION.md",
+      "mode": "100644",
+      "blob": "4dc9dff79da1d3bd541c3727e6d73c848a941ed7",
+      "sha256": "65708d2adcf5e5b6c434e8fc2741a07ac15d5e575584091f1d65561c210f6476",
+      "bytes": 9846
+    },
+    {
+      "commit": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/ratification-v1/LOCKE-HANDOFF.md",
+      "mode": "100644",
+      "blob": "ce12374f3f5aba4a7c12978409680238ff38b556",
+      "sha256": "beef09914738d5e31b7e70924efc1852f34cdf285a96c652c2e3ff3be07c55c1",
+      "bytes": 4121
+    },
+    {
+      "commit": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/ratification-v1/SEAL.json",
+      "mode": "100644",
+      "blob": "01e30ed031bb5407783a046977f38a25658d3107",
+      "sha256": "1e8f3dffe89bdfdd79ca28d08551e2e09c5c5b9008090348845b9adaacdfbbbc",
+      "bytes": 1723
+    },
+    {
+      "commit": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/ratification-v1/verify.mjs",
+      "mode": "100644",
+      "blob": "152650a73af1b50000e901b127ed232cc7946895",
+      "sha256": "c10f7e0d00234c0113a3e5091e0fa6d4a6127ddb53a1d205df0f4a357ea02637",
+      "bytes": 2156
+    }
+  ],
+  "parentArtifacts": [
+    {
+      "commit": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/BINDING.json",
+      "mode": "100644",
+      "blob": "20f6231b6ac49029e41c15d3e13efcf3995a4ce2",
+      "sha256": "f95018c2963df8b5bfd3f60560ef8ec14effeea6c151e117caafc050568d3d2c",
+      "bytes": 3835
+    },
+    {
+      "commit": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/GRAMMAR-FREEZE.json",
+      "mode": "100644",
+      "blob": "9ccb23d7ff69dffd23caaba1ec84e4c828ff6955",
+      "sha256": "929f0504d8d05fde877af5265607d405dbb02cf7d6b0a79ef269086473181fcb",
+      "bytes": 1459
+    },
+    {
+      "commit": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/HANDOFF.md",
+      "mode": "100644",
+      "blob": "4f4c4f3eeb42a43ca40477fb9c70b9d415169ad9",
+      "sha256": "d864c0865c58813400e8206e4df25d03fc93145078b66b1d2db51f366cc716d0",
+      "bytes": 6331
+    },
+    {
+      "commit": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/PACKET.md",
+      "mode": "100644",
+      "blob": "53de7c3431add78bca800e3a0c96334b7a6845b3",
+      "sha256": "af77d8b26ddcbc26ec933d3678f07ac4a0777ed9e5f871ace2dcd067eb1006b9",
+      "bytes": 22316
+    },
+    {
+      "commit": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/grammar-cases.json",
+      "mode": "100644",
+      "blob": "42f5ea767e2994ad0480df5876cf1bb140e1d01f",
+      "sha256": "3fc1561c03e8f52c23236818618d398ecf55401e598576cfa811b85a2cd58cb2",
+      "bytes": 2416
+    },
+    {
+      "commit": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/grammar-observations-01.json.gz.base64",
+      "mode": "100644",
+      "blob": "2e6f20892ecab4d7f4090213130eef7394fe434e",
+      "sha256": "211e3c926df5651e5342e03b8a3fe530bbdab00b1b4db4b00e09158b4db79e19",
+      "bytes": 5129
+    },
+    {
+      "commit": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/grammar.mjs",
+      "mode": "100644",
+      "blob": "5f4025a6efab746e6818e3149cf137d3b8a2f58e",
+      "sha256": "bc488f01a41716a2ab48956f1757d2ce7196f4ec206c0b7fd23661cd1fca701c",
+      "bytes": 4777
+    },
+    {
+      "commit": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+      "path": "tests/shell/directory-stack-design-20260828/final-v1/verify.mjs",
+      "mode": "100644",
+      "blob": "a6d0352d65e9ace123e32a54ede797431723ecc7",
+      "sha256": "4fc5d4f06f4299a3b889692ec4db0a88936dff360ab95b68ae8043c89d7a4f73",
+      "bytes": 3332
+    },
+    {
+      "commit": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+      "path": "tests/shell/directory-stack-design-20260828/observations-01.json.gz.base64",
+      "mode": "100644",
+      "blob": "0e326d740ef9a87409099120f3daa0413a7c4770",
+      "sha256": "179d48ba3dbfe8cc81e6280df7dcbc5d49c84c5a2297b9ed8ca05f04e90cbaf2",
+      "bytes": 584233
+    },
+    {
+      "commit": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+      "path": "tests/shell/directory-stack-design-20260828/supplemental-observations-01.json.gz.base64",
+      "mode": "100644",
+      "blob": "a0ca28a6d42bda80a5dc5100196d7b00fbe4a1c1",
+      "sha256": "ecb8bd5f8653a4dad2aaa8eb22a496466a45a3e9e5229441c926b422cac680c8",
+      "bytes": 2873
+    }
+  ],
+  "pinnedSources": [
+    {
+      "commit": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+      "path": "src/shell/runtime.ts",
+      "mode": "100644",
+      "blob": "d32239c31e5b4cdf11fd7863a407283119a209ec",
+      "sha256": "93c06908aec9d5d61d801657f99ab75122cadb6688f038e1941c587b4a8d4ed3",
+      "bytes": 137389
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/shell.ts",
+      "mode": "100644",
+      "blob": "0b96a82f4ec29da4dbdd447806cca6a2f514311a",
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24",
+      "bytes": 15002
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/types.ts",
+      "mode": "100644",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "bytes": 2223
+    },
+    {
+      "commit": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "path": "src/fs/webdav/webdav.ts",
+      "mode": "100644",
+      "blob": "cb5454597ff3ee2d87f55b18c467d947020ed677",
+      "sha256": "cf65b82429bd92ca52b73490e1d6c1070545b5912fbddaba7037e01c57cc21f5",
+      "bytes": 54400
+    },
+    {
+      "commit": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "path": "src/fs/webdav/README.md",
+      "mode": "100644",
+      "blob": "94f6f2e6d83d76cbf5f0bd8b38994ca3f4e81e78",
+      "sha256": "b931ac0545c709d3be2bd7d8e328fe9b1137cdb6514dfd8e9975c64c1fecb7bd",
+      "bytes": 43172
+    }
+  ]
+}

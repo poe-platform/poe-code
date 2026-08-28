@@ -1,0 +1,12 @@
+{
+  "authorized": true,
+  "phase": "compile-only",
+  "oneShot": true,
+  "runId": "PUBLIC98-COMPILE-V4-01",
+  "recipeSha256": "edafdfa33c252ed1e34a661bc65c4fe691b370f48afcd678759d4c115ac66e5c",
+  "sourceInputs": 95,
+  "workers": 0,
+  "engines": 0,
+  "review": "5fb0b295e3206386f25ddc95c03d9fc4b3696aa3",
+  "authority": "ROOT current compiler-only GO after committed preseal"
+}

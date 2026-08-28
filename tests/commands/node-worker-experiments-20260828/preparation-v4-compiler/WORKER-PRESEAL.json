@@ -1,0 +1,40 @@
+{
+  "schema": "worker-source-overlay-v4-held",
+  "parentSourceCommit": "10f498874769e4c37d3648f5e9b657414218a4f1",
+  "parentEvidence": "f90e63c1028285c4d720332f0fdb79d704bbaa73",
+  "review": "5fb0b295e3206386f25ddc95c03d9fc4b3696aa3",
+  "maximumWorkers": 11,
+  "maximumGuestEvaluations": 10,
+  "peakWorkers": 1,
+  "executions": 0,
+  "sourceOverlay": [
+    "PROFILE.json",
+    "parent-entry.mjs",
+    "outcome-judge.mjs"
+  ],
+  "unchangedCasesSha256": "b0fbc97d3fd653a3a669528358c6b6603be1581e241d8313730865663ae6859c",
+  "controls": {
+    "recipes": 12,
+    "independentEligibleGroupsPassed": 10,
+    "sourceDataOnly": [
+      "S5",
+      "L08"
+    ],
+    "newControlsRun": 0
+  },
+  "publicSourceFiles": 98,
+  "coreSourceFiles": 94,
+  "sourceRuntimeReachable": 93,
+  "compilerInputRecipe": 95,
+  "actualRuntimeLoaded": null,
+  "moduleManifestStatus": "held; emission receipt after compiler and explicit builtin authority require different review; no automatic promotion",
+  "blockers": [
+    "K1 frozen literal fixture only, no general descriptor-safe CLI qualification",
+    "K2 actual ordinary bridge/postcopy/error identities and Shell mapping unrun",
+    "K3 runtime reservation/reference lifetime unrun; source fixes not whole-guest memory proof",
+    "K4 emitted hashes awaiting compiler-only result and different review; missing builtin authority unapproved; Worker outer containment still held"
+  ],
+  "F05": "DEFERRED; d831fcd4 0/34 unchanged; no env probe",
+  "NP1": "original HOLD unchanged",
+  "outcomes": "Source judge checks exact channels/effects/status/retirement; L08 normal completion rejected; L06b intentional cleanup failure remains not clean and raw reason mapping outside Shell unqualified"
+}

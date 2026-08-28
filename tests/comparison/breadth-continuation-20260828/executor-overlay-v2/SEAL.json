@@ -1,0 +1,124 @@
+{
+  "schema": "pre-execution-static-response-overlay-v2",
+  "sealedAt": "2026-08-28T09:34:18.744Z",
+  "originalManifestSha256": "19526e0eb11478107b73026bdcc5d3b309f4cfb38c57a93c7cfea1672e75e923",
+  "peerReview": "157eb678f8bcb9ed18fd308a21771aa4d6a032ce",
+  "files": [
+    {
+      "path": "ADAPTER-DELTA.json",
+      "bytes": 3492,
+      "mode": 420,
+      "sha256": "f0ce3c4d09120ad50dd044952e8ee7417577ce9d1e7e405cbd676e1fd31af2de"
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 6089,
+      "mode": 420,
+      "sha256": "f9bb5bc4dc210a6fb7a96c097dd08c95a6d7f657eb24ffcb524aa054c4a4839b"
+    },
+    {
+      "path": "CONTROL-DELTA.json",
+      "bytes": 5404,
+      "mode": 420,
+      "sha256": "5d6a23683f2807d60e410c627fad6e594fe73fa5835925bb03de0932c574f713"
+    },
+    {
+      "path": "NAMESPACES.json",
+      "bytes": 42136,
+      "mode": 420,
+      "sha256": "16f77d58e1aebda21bc47d0630930cfd37f527b99e85342937fb6d046a669815"
+    },
+    {
+      "path": "README.md",
+      "bytes": 6186,
+      "mode": 420,
+      "sha256": "d1118b4bb5f78037f011e0e71d4503cef1e384485f4de69defe1ee3cff4d20fe"
+    },
+    {
+      "path": "TELEMETRY.json",
+      "bytes": 1943,
+      "mode": 420,
+      "sha256": "9e1023d8e91f4e5a2beada8a68099a71db84c278edca693b5a20c0a55909afc7"
+    },
+    {
+      "path": "adapter.mjs",
+      "bytes": 6971,
+      "mode": 420,
+      "sha256": "e2c3900dc4f3738074521e7302b45e08386e8c93161d9169e1c5eea7f52022a9"
+    },
+    {
+      "path": "admission.mjs",
+      "bytes": 1246,
+      "mode": 420,
+      "sha256": "97640961781a18443565c1abbd20c26fda77205a9788884e9aa5489c191b9a89"
+    },
+    {
+      "path": "control-extensions.mjs",
+      "bytes": 3323,
+      "mode": 420,
+      "sha256": "7854066f46f5520eb425c17f39913533e2ced38071f5cff42eb7faf308f32011"
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 10792,
+      "mode": 420,
+      "sha256": "79ca5a1de555592a71f4e7941b0d38fb08c720d2b8019a3232599df46c85218c"
+    },
+    {
+      "path": "namespace.mjs",
+      "bytes": 5503,
+      "mode": 420,
+      "sha256": "dad33a3f181fa1d06d06240f5b6d0ece3d125383606d8bda9485f526572f813f"
+    },
+    {
+      "path": "predicates.mjs",
+      "bytes": 1391,
+      "mode": 420,
+      "sha256": "59d1a0ba7a9d0aada9f9f2399d7050572e803dbb0a57b4c7cf02e222879be465"
+    },
+    {
+      "path": "telemetry.mjs",
+      "bytes": 3403,
+      "mode": 420,
+      "sha256": "5917ff201f2949e42415f10ee7e01fa619e4c7aa812773f19d407272340535ea"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 7214,
+      "mode": 420,
+      "sha256": "7689724cd0067174b25f5d0534078b29fe647dd2566be53b97e35ced8e006cd1"
+    }
+  ],
+  "parentManifests": [
+    {
+      "path": "RECIPE-SEAL.json",
+      "sha256": "663352445702f9280976e195374296be4404cc99c6c813d03fec6bba7f09e337"
+    },
+    {
+      "path": "EVIDENCE-MANIFEST.json",
+      "sha256": "556d8ca160057d49070c3a1c2c505c1d953d476e06d683b9d4423d67c28cb4b8"
+    }
+  ],
+  "tools": [
+    {
+      "role": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "role": "git",
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "excluded": [
+    "SEAL.json self",
+    "VALIDATION.json data-only receipt declaration"
+  ],
+  "actualAuthorization": false,
+  "qualification": "Immutable concrete code for different review; no actual product/comparator/control/native/timing run authorized or performed."
+}

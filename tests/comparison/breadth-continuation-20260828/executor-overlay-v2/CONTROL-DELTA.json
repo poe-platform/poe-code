@@ -1,0 +1,97 @@
+{
+  "schema": "v2-immutable-control-membership",
+  "familyIds": [
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06",
+    "C07",
+    "C08",
+    "C09",
+    "C10",
+    "C11",
+    "C12"
+  ],
+  "familyCount": 12,
+  "executed": 0,
+  "base": {
+    "path": "../executor-preparation-v1/controls.mjs",
+    "sha256": "f94da5b3a51e304cf2799d78a475daccd1704bde84f214aaa8fb222d52021be1"
+  },
+  "patched": {
+    "path": "controls.mjs",
+    "sha256": "79ca5a1de555592a71f4e7941b0d38fb08c720d2b8019a3232599df46c85218c"
+  },
+  "changes": [
+    {
+      "before": "from './core.mjs';",
+      "after": "from '../executor-preparation-v1/core.mjs';"
+    },
+    {
+      "before": "import { assessWorkflow, admissionBarrier } from './predicates.mjs';",
+      "after": "import { assessWorkflow } from './predicates.mjs';\nimport { namespaceCountercontrols, actualAdmissionCountercontrol } from './control-extensions.mjs';"
+    },
+    {
+      "before": "from './supervisor.mjs';",
+      "after": "from '../executor-preparation-v1/supervisor.mjs';"
+    },
+    {
+      "before": "syntheticControls(directory, root, node, guard)",
+      "after": "controlsV2(directory, root, node, guard, namespaces, library, authorization)"
+    },
+    {
+      "before": "  const workflows =",
+      "after": "  const harnessDirectory = resolve(directory, '../executor-preparation-v1');\n  const workflows ="
+    },
+    {
+      "before": "resolve(directory, 'synthetic-child.mjs'), mode], directory)",
+      "after": "resolve(harnessDirectory, 'synthetic-child.mjs'), mode], harnessDirectory)"
+    },
+    {
+      "replaceAllBefore": "resolve(directory, 'fixtures/expected.mjs')",
+      "replaceAllAfter": "resolve(harnessDirectory, 'fixtures/expected.mjs')",
+      "expectedCount": 2
+    },
+    {
+      "before": "    const row = workflows.find(value => value.id === 'W03'); const report = syntheticReport(row);\n    assert(assessWorkflow(row, report).pass);",
+      "after": "    const row = workflows.find(value => value.id === 'W03'); const report = syntheticReport(row);\n    assert(assessWorkflow(row, report).sharedSemanticsPass);\n    assert.equal(assessWorkflow(row, report).pass, null);"
+    },
+    {
+      "before": "      caughtCode(() => checkInventory(expected, [{ ...actual[0], type: 'symlink' }]), 'ENTRY_TYPE'),",
+      "after": "      caughtCode(() => checkInventory(expected, [{ ...actual[0], type: 'symlink' }]), 'ENTRY_TYPE'),\n      ...namespaceCountercontrols(namespaces['just-bash']),\n      ...namespaceCountercontrols(namespaces['virtual-bash']),"
+    },
+    {
+      "before": "  await control('C11', async () => {\n    let release;\n    const gate = new Promise(resolveGate => { release = resolveGate; });\n    const names = [];\n    const events = [];\n    const host = { commands: { list: () => names.map(name => ({ name })) } };\n    const model = { ready: Promise.resolve(), use(plugin) { this.ready = this.ready.then(() => plugin.setup(host)); return this; } };\n    model.use({ setup: async () => { await gate; names.push('test-only'); } });\n    const observed = admissionBarrier(model, ['test-only'], event => events.push(event));\n    await Promise.resolve(); assert.equal(events.length, 0);\n    release(); await observed; await model.ready; assert.equal(events.length, 1);\n    const marker = new Error('synthetic prior setup rejected');\n    const rejected = { ready: Promise.resolve(), use(plugin) { this.ready = this.ready.then(() => plugin.setup(host)); return this; } };\n    rejected.use({ setup: () => { throw marker; } });\n    const caught = await rejected.ready.then(() => null, error => error); assert.equal(caught, marker);\n    return { modelOnly: true, pendingBeforeRelease: true, priorSetupReasonIdentity: true, productC11Executed: false, qualification: 'Model exposes ready; actual public Shell does not. Real early rejection observation remains a blocker.' };\n  });\n",
+      "after": "  await control('C11', async () => actualAdmissionCountercontrol(library, authorization));\n"
+    },
+    {
+      "before": "kind: 'synthetic-executor-mechanisms-not-product-cohort'",
+      "after": "kind: 'versioned-twelve-controls-requires-separate-root-control-go'"
+    },
+    {
+      "before": "actualProductImports: 0, actualComparatorImports: 0",
+      "after": "productLibraryInjectedForC11: true, actualComparatorImports: 0"
+    },
+    {
+      "before": "  const harnessDirectory = resolve(directory, '../executor-preparation-v1');",
+      "after": "  if (authorization?.rootGo !== true || !authorization?.differentFreeze || authorization.loadedCandidate !== '67eab12e315054907ef4ef435c6bbca2f59e0c36') throw Object.assign(new Error('ROOT_GO_REQUIRED: controls-v2 not authorized'), { code: 'ROOT_GO_REQUIRED' });\n  const harnessDirectory = resolve(directory, '../executor-preparation-v1');"
+    }
+  ],
+  "unchangedClassifications": [
+    "C01 identity",
+    "C02 recipe",
+    "C03 fallback",
+    "C04 actual selected load",
+    "C05 new entry/mode/link plus explicit namespace-bound subchecks",
+    "C06 byte mutation",
+    "C07 status/stderr",
+    "C08 namespace/preservation",
+    "C09 lifecycle",
+    "C10 continuation",
+    "C11 actual admission instead of prior model",
+    "C12 no-op substitution"
+  ],
+  "qualification": "v1 synthetic12/12 is retained, not a v2 result. C11 now requires actual loaded candidate and separate control GO; no controls execute in this preparation."
+}

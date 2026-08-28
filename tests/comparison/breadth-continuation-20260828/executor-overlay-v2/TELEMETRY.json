@@ -1,0 +1,52 @@
+{
+  "schema": "per-engine-w03-capabilities-v2",
+  "caseId": "W03",
+  "originalWorkflowSha256": "4be803cc6e9bf5c48a67307d5af51dcd1b988e0b05478517093f624c09af2b9e",
+  "sharedExpectations": {
+    "exitCode": 0,
+    "stdoutBase64": "AP9BCg2AAA==",
+    "stderrBase64": "",
+    "preserveInitialBytesAndPermissionBits": true,
+    "addedFiles": {
+      "copied": {
+        "base64": "AP9BCg2AAA=="
+      }
+    },
+    "absent": [],
+    "exactFinalNamespace": true,
+    "compareNewFileModes": false
+  },
+  "sharedExpectationSha256": "750f649f1b3911f26cec7f212723dec0b0a6098044f182527b39ff709e35757d",
+  "sharedStdinBase64": "AP9BCg2AAA==",
+  "sharedScript": "timeout 0 cat | tee copied",
+  "profileAmendment": "Byte-tagged baseline ByteString is legitimate explicit byte admission, not ordinary UTF-8 string fallback. Four chunks are a target-only observation.",
+  "engines": {
+    "virtual-bash": {
+      "stdin": "owned AsyncIterable<Uint8Array>",
+      "chunkLengths": [
+        1,
+        2,
+        1,
+        3
+      ],
+      "chunks": "OBSERVABLE_UNEXECUTED",
+      "dispatch": "OBSERVABLE_UNEXECUTED via public middleware",
+      "iteratorCleanup": "OBSERVABLE_UNEXECUTED for supplied producer only",
+      "timers": "UNQUALIFIED default scheduler not instrumented"
+    },
+    "just-bash": {
+      "stdin": "Latin-1 ByteString with stdinKind=bytes/rawScript=true; stdoutAsBytes; stderr remains derived UTF-8 text",
+      "chunks": "UNQUALIFIED",
+      "dispatch": "UNQUALIFIED",
+      "iteratorCleanup": "UNQUALIFIED",
+      "timers": "UNQUALIFIED"
+    }
+  },
+  "rules": [
+    "Exact shared byte/exit/filesystem oracle never changes.",
+    "Unsupported observations retain UNQUALIFIED, not pass/zero/not-applicable disappearance.",
+    "A supported FAILED observation fails its component even if shared bytes match.",
+    "Passing shared semantics is not full telemetry, streaming equivalence or a composite old score."
+  ],
+  "executions": 0
+}

@@ -1,0 +1,167 @@
+{
+  "schema": "breadth-static-overlay-v2",
+  "originalPacket": "a045139b62164dbae923475bdca93ef109b926ff",
+  "priorRecipe": "29f7f3f0074dbaf41b99e69581364d0c6f1021ae",
+  "priorEvidence": "b2baa225",
+  "peerReview": "157eb678f8bcb9ed18fd308a21771aa4d6a032ce",
+  "peerHistory": {
+    "latest": {
+      "assertions": 402,
+      "passed": 400,
+      "failed": 2,
+      "reason": "original exact-live-directory membership rejected the then-unsealed peer executor directory"
+    },
+    "first": {
+      "assertions": 394,
+      "passed": 391,
+      "failed": 3
+    },
+    "unchanged": true,
+    "rerun": false,
+    "seal": {
+      "schema": "independent-static-review-artifact-seal-v1",
+      "sealedAt": "2026-08-28T09:18:47.307473+00:00",
+      "authorCommit": "a045139b62164dbae923475bdca93ef109b926ff",
+      "authorManifestSha256": "19526e0eb11478107b73026bdcc5d3b309f4cfb38c57a93c7cfea1672e75e923",
+      "verdict": "PRECODE_HOLD_B1_B2_B3_NOT_EXECUTION_ACCEPTANCE",
+      "files": [
+        {
+          "path": "README.md",
+          "bytes": 17730,
+          "mode": 420,
+          "sha256": "76cfac6b6833e0479b7fb09ebad3d4c97ab80cef5883c98d8bd38c7c15f9fc78"
+        },
+        {
+          "path": "static-review.py",
+          "bytes": 18511,
+          "mode": 420,
+          "sha256": "148069de79478a5504c2ea721adb27e57d18064304187884610c520b73dcdd90"
+        },
+        {
+          "path": "static-review-v1.py.data",
+          "bytes": 17587,
+          "mode": 420,
+          "sha256": "ea668fb60f7dded7dd0f7b02c1574dc6d6d9be7e300d238c3df449325c542020"
+        },
+        {
+          "path": "evidence-v1/RESULT.json",
+          "bytes": 1780719,
+          "mode": 420,
+          "sha256": "6f16cdf15664df2d21d7865efda3bc948f18b2837de111d1faecd7e755a7939e"
+        },
+        {
+          "path": "evidence-v2/RESULT.json",
+          "bytes": 1783288,
+          "mode": 420,
+          "sha256": "cd482c40a7877b2137430ff04e5dd9f07c2681fb36ff2382707a5a55bc03c0b6"
+        }
+      ],
+      "selfExcluded": true,
+      "runtimeExecutions": 0,
+      "qualification": "Data-only results and report; no cohort authorization; historical/live boundaries and failed checker attempts retained."
+    }
+  },
+  "references": [
+    {
+      "commit": "157eb678f8bcb9ed18fd308a21771aa4d6a032ce",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/README.md",
+      "bytes": 17730,
+      "sha256": "76cfac6b6833e0479b7fb09ebad3d4c97ab80cef5883c98d8bd38c7c15f9fc78"
+    },
+    {
+      "commit": "157eb678f8bcb9ed18fd308a21771aa4d6a032ce",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/SEAL.json",
+      "bytes": 1413,
+      "sha256": "7625b706c3d70c9fd4ff50db49069e9a72bcef6138d91f89ac9384579b791e6c"
+    },
+    {
+      "commit": "17735a5eabf65a6398a64aef81e67fee2405733e",
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/historical-breadth.json",
+      "bytes": 550134,
+      "sha256": "c4e322ce7a81c7909cd54121e4a435152c4a2eb9e1b2f69b5c09ba0f858e396a"
+    },
+    {
+      "commit": "e0325b590b593fbe5fd17b2b1b778fe8badb25f0",
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/getopts-positive.ours.json",
+      "bytes": 325373,
+      "sha256": "435aa6de7f6890eceddcbeb2cfedd927d4a6fc0feef4d4756c622603f8befdf5"
+    },
+    {
+      "commit": "e0325b590b593fbe5fd17b2b1b778fe8badb25f0",
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/getopts-positive.baseline.json",
+      "bytes": 279874,
+      "sha256": "9e11ca0a2018893112dcca9032d89bdb9245b8e7cdaebcd8e8f8bfa857221a77"
+    },
+    {
+      "commit": "e0325b590b593fbe5fd17b2b1b778fe8badb25f0",
+      "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/column-positive.baseline.json",
+      "bytes": 276421,
+      "sha256": "8814f11108169c7941f57c248fa389e6b0bf714bb8c600849707feba20ecf75a"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/shell/shell.ts",
+      "bytes": 15002,
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/contracts/command.ts",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/commands/timeout/scheduler.ts",
+      "bytes": 3480,
+      "sha256": "fa542007183e5f097c105c70b7a9502f2fa26bd801430e899f9f1bddd7962af3"
+    }
+  ],
+  "namespaceCrossChecks": [
+    {
+      "case": "column-positive",
+      "engine": "just-bash",
+      "beforeEntries": 193,
+      "scaffoldingEntries": 191,
+      "equalToGetoptsScaffold": true,
+      "provenance": {
+        "revision": "e0325b590b593fbe5fd17b2b1b778fe8badb25f0",
+        "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/column-positive.baseline.json",
+        "gitBlob": "7ed1659c3ad0583199b69adc1f22ba506a52fe5b",
+        "fileSha256": "8814f11108169c7941f57c248fa389e6b0bf714bb8c600849707feba20ecf75a",
+        "pointer": ""
+      }
+    }
+  ],
+  "originalCounts": {
+    "selected": 23,
+    "unselected": 31,
+    "newWorkflows": 10,
+    "controlFamilies": 12,
+    "changed": false
+  },
+  "executionCounts": {
+    "product": 0,
+    "comparator": 0,
+    "native": 0,
+    "timing": 0,
+    "controls": 0
+  },
+  "setupAmendment": {
+    "targetEmptyExecPerSemanticCase": 1,
+    "targetSetupExecCeiling": 66,
+    "semanticInvocations": 99,
+    "extraC11SetupExecs": 2,
+    "noCountersReset": true,
+    "requiresDifferentFreezeAndRootGo": true
+  },
+  "instructionMetadataOnly": {
+    "path": "benchmarks/node_modules/just-bash/dist/AGENTS.md",
+    "bytes": 9231,
+    "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979",
+    "contentRead": false,
+    "copy": false,
+    "load": false,
+    "qualification": "3843 matching regular files is availability, not complete staged closure admission."
+  }
+}

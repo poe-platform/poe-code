@@ -1,0 +1,1382 @@
+{
+  "schema": "bounded-exact-scaffold-contract-v2",
+  "engines": {
+    "virtual-bash": {
+      "scope": "workflow-owned=/fixture including root; everything else exact prebound scaffold",
+      "scaffolding": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/home",
+          "type": "directory",
+          "mode": 511
+        },
+        {
+          "path": "/home/user",
+          "type": "directory",
+          "mode": 511
+        },
+        {
+          "path": "/tmp",
+          "type": "directory",
+          "mode": 511
+        }
+      ],
+      "scaffoldingBytes": 0,
+      "maxWorkflowEntries": 64,
+      "maxWorkflowBytes": 65536,
+      "maxTotalEntries": 68,
+      "maxTotalReadBytes": 65536,
+      "maxDepth": 32,
+      "maxSnapshotMetadataBytes": 131072,
+      "historicalGetoptsBeforeEntries": 5,
+      "provenance": {
+        "revision": "e0325b590b593fbe5fd17b2b1b778fe8badb25f0",
+        "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/getopts-positive.ours.json",
+        "gitBlob": "455c1ce6859967a785a5f37a977dd235ffc2bad3",
+        "fileSha256": "435aa6de7f6890eceddcbeb2cfedd927d4a6fc0feef4d4756c622603f8befdf5",
+        "pointer": "/report/before/entries"
+      },
+      "qualification": "Historical structural expectation only; candidate admission must independently match before and after. No scaffold created by harness except declared /tmp and /home/user setup."
+    },
+    "just-bash": {
+      "scope": "workflow-owned=/fixture including root; everything else exact prebound scaffold",
+      "scaffolding": [
+        {
+          "path": "/",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/bin",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/bin/alias",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "4a58fa678de9b13ca6ca4a0080a18e00a3a678efb08057247502409d8712d99d"
+        },
+        {
+          "path": "/bin/awk",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "0325e715683687d385120a18e5f32b9751f6a99e50ed0e59bb9a82d8467ac0fd"
+        },
+        {
+          "path": "/bin/base64",
+          "type": "file",
+          "mode": 420,
+          "size": 39,
+          "sha256": "cad240baaf711f70122831fd42a1074bbef2f6b9e191dc3394e38ec4eb764717"
+        },
+        {
+          "path": "/bin/basename",
+          "type": "file",
+          "mode": 420,
+          "size": 41,
+          "sha256": "e3d795175c75c3b32028310a084c8f5395fbb9861e4aa922f55a9945fb4ca3d3"
+        },
+        {
+          "path": "/bin/bash",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "4bd3c1fea5e06326a8effdab081dbcf14ad91225c47e215eefe77121f868ca76"
+        },
+        {
+          "path": "/bin/cat",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "e852498c76a8654a04b5fec169ce5459a85240476a3572f5e4eb83b066d68845"
+        },
+        {
+          "path": "/bin/chmod",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "b634e5c9975e4aec55d6f2e1ecc403009b2d7c0380ef1a77c072bea1de986b93"
+        },
+        {
+          "path": "/bin/clear",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "a30513f48ebd35a9bcb09e150ef8677765491b3aa731a331e5e5b9ed171106b6"
+        },
+        {
+          "path": "/bin/column",
+          "type": "file",
+          "mode": 420,
+          "size": 39,
+          "sha256": "47611f17dfacd068328ef596d76d6fc3aaa02ec48313267db2c56f4f08cbe4b5"
+        },
+        {
+          "path": "/bin/comm",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "363d0c1ee691cdb18b3033e0f1550cc0a8243f8094c856311186682f6c2ef795"
+        },
+        {
+          "path": "/bin/cp",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "f6fc1615ea70119fc28a5a8a9b015015ecf9dc6bc3fb2191eae030fad0a1217e"
+        },
+        {
+          "path": "/bin/cut",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "59426568871f576cf943f4380404c9077d5e52cd42f2b6eabddcb852aa0e98aa"
+        },
+        {
+          "path": "/bin/date",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "e6a1163e7eb98cbaa986e23e36d700ad0f65e4ad8269c80527eb232b6fe07234"
+        },
+        {
+          "path": "/bin/diff",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "945d5fbb1bb99aa4693aacc15a00f24c16382decd23a5a51468ab2951200f21d"
+        },
+        {
+          "path": "/bin/dirname",
+          "type": "file",
+          "mode": 420,
+          "size": 40,
+          "sha256": "5287fecc7bd15b843f90e720aa23dadd972c04ea593fbf06d2986c29f92eca66"
+        },
+        {
+          "path": "/bin/du",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "7aaecad35a9cc2bc5d105d1ce6aa04cbc99398f87f4ab27317e835809630bfe6"
+        },
+        {
+          "path": "/bin/echo",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "7f6bd1aeb0ad3b872d6cb26302d9df18f7d1f4226be908ea657dada0c52cf6ce"
+        },
+        {
+          "path": "/bin/egrep",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "e151b5275e4c73699480ba090bf5661e2ae0bf0c9b339fba52224f5706c792c1"
+        },
+        {
+          "path": "/bin/env",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "3e563a34632a2d411d13aedb5b4a69f9b4b8b0b82ea9eb49644a3f8e3bbdecb9"
+        },
+        {
+          "path": "/bin/expand",
+          "type": "file",
+          "mode": 420,
+          "size": 39,
+          "sha256": "2d32d68ceb99d3a445aab8f59515d0d332ad949c6c6028f96b247785539742d5"
+        },
+        {
+          "path": "/bin/expr",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "058c10f8a796259721ddfcd5fb14c56c44dc076340661692462af48a95dd7d26"
+        },
+        {
+          "path": "/bin/false",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "040d079e9ea9d45f597827dd83bb1c62a0996c694d14461e4993b61f2650220f"
+        },
+        {
+          "path": "/bin/fgrep",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "5aeb88d34acaf57ca5f3de2e25c3b08d65741331c8f5d05f394742765880564f"
+        },
+        {
+          "path": "/bin/file",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "2637f7e904cc363340e2e1da3a828473130dfc917111e5dac8a6812135567b53"
+        },
+        {
+          "path": "/bin/find",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "fcb049f04db8fd4a70ec324f7c566e7b7bee60e1c359c0d9d46bc07036ed2b61"
+        },
+        {
+          "path": "/bin/fold",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "3140b4b25a1edb883bca258fc75c9d1c4213296f53560a1dd89451450add7b2c"
+        },
+        {
+          "path": "/bin/grep",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "7d25e1e6e01163e262d619fb67d7ec3624784aac4c6022e49ccd0039dd9b9b38"
+        },
+        {
+          "path": "/bin/gunzip",
+          "type": "file",
+          "mode": 420,
+          "size": 39,
+          "sha256": "fef450e526d64f8684eb641fe2e93f30fe234832c79d072fb12fe05bdebabf2f"
+        },
+        {
+          "path": "/bin/gzip",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "dbefe96fe9a1d5193db37015506d92092ef5a7a467740dc9e8f88b38a5fe8c62"
+        },
+        {
+          "path": "/bin/head",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "27f5681cb47c08a23fcfcdf1f4f91b104f7237b38dc3544b09d8f3623d205b14"
+        },
+        {
+          "path": "/bin/help",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "867fbb86a8769a42cc1b7fed13c101edaff9f0a4b11567612adbf9a58fe74063"
+        },
+        {
+          "path": "/bin/history",
+          "type": "file",
+          "mode": 420,
+          "size": 40,
+          "sha256": "47dad5ee71be8fed00fbe565cba3453aa05f463b83a7d0ac945f7b9270487a6b"
+        },
+        {
+          "path": "/bin/hostname",
+          "type": "file",
+          "mode": 420,
+          "size": 41,
+          "sha256": "88004db4c3e97b389d9f326483b38e5463135b671cbf7a8bdc4743958f4aa3c3"
+        },
+        {
+          "path": "/bin/html-to-markdown",
+          "type": "file",
+          "mode": 420,
+          "size": 49,
+          "sha256": "408f5a8d64358d456a28dc2bc8781c2ec9126dbdd79b864c0259256a4d5758bd"
+        },
+        {
+          "path": "/bin/join",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "29f47e3b3c713527e96a3f767093e4e49c203cf53f84539a7659b65e0cbc2d19"
+        },
+        {
+          "path": "/bin/jq",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "29b94d583980b73dc34a589335745355dd89f0a6e1dfee90079e500e3e093815"
+        },
+        {
+          "path": "/bin/ln",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "97ca77b206f9823e4e6b9626aedf7f09b16e59e52466b090bde1e435029d631e"
+        },
+        {
+          "path": "/bin/ls",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "d2d1f3628a54f63fae64a17595524b22cda3017bcbe0e111b166f754aaf49c25"
+        },
+        {
+          "path": "/bin/md5sum",
+          "type": "file",
+          "mode": 420,
+          "size": 39,
+          "sha256": "fb62987cf8ffb85ee64002a51ff587bf9fdad85b7e64212f838f0137f3ca0781"
+        },
+        {
+          "path": "/bin/mkdir",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "e38cf5d23204d79f0b6c46902f2fd2683994d856a761deb1ef36cd531fe27028"
+        },
+        {
+          "path": "/bin/mv",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "c1f2e3a6d57875e2a99b2bd1c17c393ad2f4cdfd91d681bf460a1322d2fe984a"
+        },
+        {
+          "path": "/bin/nl",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "3d6a6c79fa13a9fa76d203f75ed34b97f993114288841d426337b187e7f7ebf7"
+        },
+        {
+          "path": "/bin/od",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "d7856b0804b58f0a4140e7b20c840adff49bbd24e68e89c74d87e43b91212d2e"
+        },
+        {
+          "path": "/bin/paste",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "47239efa371ca526f4ae525ef9068f174384a8ec0d68a88a9bd358953b26f205"
+        },
+        {
+          "path": "/bin/printenv",
+          "type": "file",
+          "mode": 420,
+          "size": 41,
+          "sha256": "b97a6d2f437bf3cb5b92c66fe8ea8561f7c29d0eea4f6116ad7d818829b9e800"
+        },
+        {
+          "path": "/bin/printf",
+          "type": "file",
+          "mode": 420,
+          "size": 39,
+          "sha256": "75812fa4ef3fdad4506c4725c18155fa2e7120b479389bbca270d52634e29e5f"
+        },
+        {
+          "path": "/bin/pwd",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "aa08b5541bd78b151ddc709d228ef45007fe9c31b392d03f2fcca4c9ad4d1b47"
+        },
+        {
+          "path": "/bin/readlink",
+          "type": "file",
+          "mode": 420,
+          "size": 41,
+          "sha256": "2a6d087dbfcec019ed28e443a90af23f706a869089a781de2397e5833bbb226f"
+        },
+        {
+          "path": "/bin/rev",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "593263874d752c5cf87653588f1eed08cf3ab58040fc04e2624d1e2333908039"
+        },
+        {
+          "path": "/bin/rg",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "09821169f708cd35d3a4f2088b7e28baefc73e0238dac1cf79335dc7016a67d5"
+        },
+        {
+          "path": "/bin/rm",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "36166d4f354fadf710932c0ea615404af84e1228fb2571e4c676c23b3b764d36"
+        },
+        {
+          "path": "/bin/rmdir",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "61620dac980ca7da393e14d4db93e36f3ac62862835dca3e99ff1bec6b107984"
+        },
+        {
+          "path": "/bin/sed",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "9d7fdd722d008854dcaa14c6f98a37ed98b5b31b91b87cb0deb8cca87bb722fb"
+        },
+        {
+          "path": "/bin/seq",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "b58e38ee971b5636e2924e4d33aff0198f9dbbd979f5f9dada16847c38b4e12c"
+        },
+        {
+          "path": "/bin/sh",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "1c35618e9135b30d3866121de7062cc358029de9b645c18bae7c297712866d5e"
+        },
+        {
+          "path": "/bin/sha1sum",
+          "type": "file",
+          "mode": 420,
+          "size": 40,
+          "sha256": "308fa2d452130427d54eafb0bd079816dd92e1a988d8842fd23e0bf780ac1d3e"
+        },
+        {
+          "path": "/bin/sha256sum",
+          "type": "file",
+          "mode": 420,
+          "size": 42,
+          "sha256": "fcd9e6378581c83a9bc89f8132380cc405843c6dbe74455073f0c3f89f92be7d"
+        },
+        {
+          "path": "/bin/sleep",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "7f2c8ee87f19c1680b26f0b814b932fd6bebf9e107583e89d95d96043544cdca"
+        },
+        {
+          "path": "/bin/sort",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "36c0974888e0676167131fc996f44dc06e88e846bcc2e24eb6cdc810c0cb3c2d"
+        },
+        {
+          "path": "/bin/split",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "7f1bcf06b2b4c9471b88dc3c2cf9c4c2c59a07aee1e14a6a59f0e9c867a449fa"
+        },
+        {
+          "path": "/bin/sqlite3",
+          "type": "file",
+          "mode": 420,
+          "size": 40,
+          "sha256": "2026313ecb2e9d9e4bed59c6e1e0605957e1ff3364a059b8ce39fe09ac81fb0a"
+        },
+        {
+          "path": "/bin/stat",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "e2d85b021ac1d29028eff70836aa8c49818c53f970067bc77a3acc881c7768f3"
+        },
+        {
+          "path": "/bin/strings",
+          "type": "file",
+          "mode": 420,
+          "size": 40,
+          "sha256": "769489065e4e50f74a1bc3958f726f65fb5057bd4ca6a038c8c0491ed8a4d70a"
+        },
+        {
+          "path": "/bin/tac",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "3ae542dda462af0072069d1d29ced44a67e1679e7e8afd450c633ce272d98028"
+        },
+        {
+          "path": "/bin/tail",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "f5cea67079637c3c9ac217b31b3be56264a3fbd05f3379d19aacc7ca8c815c6e"
+        },
+        {
+          "path": "/bin/tar",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "15b2d650f903d10ec71d55abd94ba73089512fadc767af3ac037be35bf2565a8"
+        },
+        {
+          "path": "/bin/tee",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "eed74dcfe1d88b884590f40ac36215d1f639de992e26cc6657af63f5f6d37953"
+        },
+        {
+          "path": "/bin/time",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "f4a4cccccb3241de2f6e3ea72937761b62b5f81b253bde22f412b00fcde24989"
+        },
+        {
+          "path": "/bin/timeout",
+          "type": "file",
+          "mode": 420,
+          "size": 40,
+          "sha256": "b1ae3262518fe0fbeeaf668e943debe1139daaea15b26ab5ac574177f1dd7bb9"
+        },
+        {
+          "path": "/bin/touch",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "d29139c592943e5de5396f62fcc19cbc48f4eed6bb3f22f99213618dbec40e43"
+        },
+        {
+          "path": "/bin/tr",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "8fb81b953becb542ffc70e4d44c2df9ed386f711f0bb025851f7b287f91ffbe1"
+        },
+        {
+          "path": "/bin/tree",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "4283faefbd8a64b2816c6eeb89db8edddf8298053cfd8bfe48de72bc2a5b6a38"
+        },
+        {
+          "path": "/bin/true",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "0b66b17acc0c106ddf1a367139f03880ede3de904023400135984615117231ec"
+        },
+        {
+          "path": "/bin/unalias",
+          "type": "file",
+          "mode": 420,
+          "size": 40,
+          "sha256": "eeb3bfe95eea5b91ade5e416c6228b8fb579dc781e7d7fdd4eb50a815ce388ed"
+        },
+        {
+          "path": "/bin/unexpand",
+          "type": "file",
+          "mode": 420,
+          "size": 41,
+          "sha256": "f8116ea4a0c92b1a9bfd9637ecf440ccf3af5b543f597b1cd008eda4162f6e54"
+        },
+        {
+          "path": "/bin/uniq",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "285d160f1b9490880ad92ce9104ee973246de485070b724a7ca88b251c63cf1f"
+        },
+        {
+          "path": "/bin/wc",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "3c6df3bfbfa9406eeb77917846e15dd7082e2e2c218ed9f34c598878d257a736"
+        },
+        {
+          "path": "/bin/which",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "fd57a60b5ec905f142ff9af45c2b0c5c5e39118ffb50994c381701c02c34d077"
+        },
+        {
+          "path": "/bin/whoami",
+          "type": "file",
+          "mode": 420,
+          "size": 39,
+          "sha256": "591b554ea2d7cdad489daa393a7bd3c5af131e1db8a3f8b81d8791a2b4cbee0d"
+        },
+        {
+          "path": "/bin/xan",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "41c85ed65d27be226a6bdba2ce1cfdea0802eb6697b894ac3e65a12f2ee76e41"
+        },
+        {
+          "path": "/bin/xargs",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "ca515debf0924d4e341d2c750873fe1fd5071a3cd22484dda91ea86a79e3a3ed"
+        },
+        {
+          "path": "/bin/yq",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "a82004b6c020ecde86783effbf1832337ab6a8f5ca8e62c7ef4a96fee7a8e609"
+        },
+        {
+          "path": "/bin/zcat",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "6c422bcd7107d9fc517ca58f17cb1732be4e32bb695deef6476af01b53d6a276"
+        },
+        {
+          "path": "/dev",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/dev/fd",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/dev/null",
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/dev/stderr",
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/dev/stdin",
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/dev/stdout",
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/dev/zero",
+          "type": "file",
+          "mode": 420,
+          "size": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/home",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/home/user",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/proc",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/proc/self",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/proc/self/cmdline",
+          "type": "file",
+          "mode": 420,
+          "size": 5,
+          "sha256": "db131d99db4790229bcf9d178183cfe8b88aa65d06d7e961eed4a5802db1fa6e"
+        },
+        {
+          "path": "/proc/self/comm",
+          "type": "file",
+          "mode": 420,
+          "size": 5,
+          "sha256": "7f2899874b54240c9710dcfc7392d4a03dd3f4b7cd84ba7b05e7d8642dc468b5"
+        },
+        {
+          "path": "/proc/self/exe",
+          "type": "file",
+          "mode": 420,
+          "size": 9,
+          "sha256": "b1fd29aea4dad2af84fad34e1f3c7fc8e2b7844731f14944381baeb581c333b6"
+        },
+        {
+          "path": "/proc/self/fd",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/proc/self/fd/0",
+          "type": "file",
+          "mode": 420,
+          "size": 10,
+          "sha256": "afae486da59bd58606b861a76a31a6ff0ae36575c728caf4db9b0a3520cfd275"
+        },
+        {
+          "path": "/proc/self/fd/1",
+          "type": "file",
+          "mode": 420,
+          "size": 11,
+          "sha256": "a42f55fdbff72a2220f0a695106fdbe8388a4e55c68f2095f22212d813748cc9"
+        },
+        {
+          "path": "/proc/self/fd/2",
+          "type": "file",
+          "mode": 420,
+          "size": 11,
+          "sha256": "b92b6a2a24f7a509da761ec6f200f7f0387612c0ffda8f6633b665971633e3a7"
+        },
+        {
+          "path": "/proc/self/status",
+          "type": "file",
+          "mode": 420,
+          "size": 95,
+          "sha256": "5229faf0dff998d07aceac1ef1071c4fcbfce4cbb6f2689531697af401b3ea3b"
+        },
+        {
+          "path": "/proc/version",
+          "type": "file",
+          "mode": 420,
+          "size": 56,
+          "sha256": "e849a5397c674d027f7f688069d7636056fe374b16b04354fe8d443bf76794ef"
+        },
+        {
+          "path": "/tmp",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin",
+          "type": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin/alias",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "4a58fa678de9b13ca6ca4a0080a18e00a3a678efb08057247502409d8712d99d"
+        },
+        {
+          "path": "/usr/bin/awk",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "0325e715683687d385120a18e5f32b9751f6a99e50ed0e59bb9a82d8467ac0fd"
+        },
+        {
+          "path": "/usr/bin/base64",
+          "type": "file",
+          "mode": 420,
+          "size": 39,
+          "sha256": "cad240baaf711f70122831fd42a1074bbef2f6b9e191dc3394e38ec4eb764717"
+        },
+        {
+          "path": "/usr/bin/basename",
+          "type": "file",
+          "mode": 420,
+          "size": 41,
+          "sha256": "e3d795175c75c3b32028310a084c8f5395fbb9861e4aa922f55a9945fb4ca3d3"
+        },
+        {
+          "path": "/usr/bin/bash",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "4bd3c1fea5e06326a8effdab081dbcf14ad91225c47e215eefe77121f868ca76"
+        },
+        {
+          "path": "/usr/bin/cat",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "e852498c76a8654a04b5fec169ce5459a85240476a3572f5e4eb83b066d68845"
+        },
+        {
+          "path": "/usr/bin/chmod",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "b634e5c9975e4aec55d6f2e1ecc403009b2d7c0380ef1a77c072bea1de986b93"
+        },
+        {
+          "path": "/usr/bin/clear",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "a30513f48ebd35a9bcb09e150ef8677765491b3aa731a331e5e5b9ed171106b6"
+        },
+        {
+          "path": "/usr/bin/column",
+          "type": "file",
+          "mode": 420,
+          "size": 39,
+          "sha256": "47611f17dfacd068328ef596d76d6fc3aaa02ec48313267db2c56f4f08cbe4b5"
+        },
+        {
+          "path": "/usr/bin/comm",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "363d0c1ee691cdb18b3033e0f1550cc0a8243f8094c856311186682f6c2ef795"
+        },
+        {
+          "path": "/usr/bin/cp",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "f6fc1615ea70119fc28a5a8a9b015015ecf9dc6bc3fb2191eae030fad0a1217e"
+        },
+        {
+          "path": "/usr/bin/cut",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "59426568871f576cf943f4380404c9077d5e52cd42f2b6eabddcb852aa0e98aa"
+        },
+        {
+          "path": "/usr/bin/date",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "e6a1163e7eb98cbaa986e23e36d700ad0f65e4ad8269c80527eb232b6fe07234"
+        },
+        {
+          "path": "/usr/bin/diff",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "945d5fbb1bb99aa4693aacc15a00f24c16382decd23a5a51468ab2951200f21d"
+        },
+        {
+          "path": "/usr/bin/dirname",
+          "type": "file",
+          "mode": 420,
+          "size": 40,
+          "sha256": "5287fecc7bd15b843f90e720aa23dadd972c04ea593fbf06d2986c29f92eca66"
+        },
+        {
+          "path": "/usr/bin/du",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "7aaecad35a9cc2bc5d105d1ce6aa04cbc99398f87f4ab27317e835809630bfe6"
+        },
+        {
+          "path": "/usr/bin/echo",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "7f6bd1aeb0ad3b872d6cb26302d9df18f7d1f4226be908ea657dada0c52cf6ce"
+        },
+        {
+          "path": "/usr/bin/egrep",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "e151b5275e4c73699480ba090bf5661e2ae0bf0c9b339fba52224f5706c792c1"
+        },
+        {
+          "path": "/usr/bin/env",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "3e563a34632a2d411d13aedb5b4a69f9b4b8b0b82ea9eb49644a3f8e3bbdecb9"
+        },
+        {
+          "path": "/usr/bin/expand",
+          "type": "file",
+          "mode": 420,
+          "size": 39,
+          "sha256": "2d32d68ceb99d3a445aab8f59515d0d332ad949c6c6028f96b247785539742d5"
+        },
+        {
+          "path": "/usr/bin/expr",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "058c10f8a796259721ddfcd5fb14c56c44dc076340661692462af48a95dd7d26"
+        },
+        {
+          "path": "/usr/bin/false",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "040d079e9ea9d45f597827dd83bb1c62a0996c694d14461e4993b61f2650220f"
+        },
+        {
+          "path": "/usr/bin/fgrep",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "5aeb88d34acaf57ca5f3de2e25c3b08d65741331c8f5d05f394742765880564f"
+        },
+        {
+          "path": "/usr/bin/file",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "2637f7e904cc363340e2e1da3a828473130dfc917111e5dac8a6812135567b53"
+        },
+        {
+          "path": "/usr/bin/find",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "fcb049f04db8fd4a70ec324f7c566e7b7bee60e1c359c0d9d46bc07036ed2b61"
+        },
+        {
+          "path": "/usr/bin/fold",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "3140b4b25a1edb883bca258fc75c9d1c4213296f53560a1dd89451450add7b2c"
+        },
+        {
+          "path": "/usr/bin/grep",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "7d25e1e6e01163e262d619fb67d7ec3624784aac4c6022e49ccd0039dd9b9b38"
+        },
+        {
+          "path": "/usr/bin/gunzip",
+          "type": "file",
+          "mode": 420,
+          "size": 39,
+          "sha256": "fef450e526d64f8684eb641fe2e93f30fe234832c79d072fb12fe05bdebabf2f"
+        },
+        {
+          "path": "/usr/bin/gzip",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "dbefe96fe9a1d5193db37015506d92092ef5a7a467740dc9e8f88b38a5fe8c62"
+        },
+        {
+          "path": "/usr/bin/head",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "27f5681cb47c08a23fcfcdf1f4f91b104f7237b38dc3544b09d8f3623d205b14"
+        },
+        {
+          "path": "/usr/bin/help",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "867fbb86a8769a42cc1b7fed13c101edaff9f0a4b11567612adbf9a58fe74063"
+        },
+        {
+          "path": "/usr/bin/history",
+          "type": "file",
+          "mode": 420,
+          "size": 40,
+          "sha256": "47dad5ee71be8fed00fbe565cba3453aa05f463b83a7d0ac945f7b9270487a6b"
+        },
+        {
+          "path": "/usr/bin/hostname",
+          "type": "file",
+          "mode": 420,
+          "size": 41,
+          "sha256": "88004db4c3e97b389d9f326483b38e5463135b671cbf7a8bdc4743958f4aa3c3"
+        },
+        {
+          "path": "/usr/bin/html-to-markdown",
+          "type": "file",
+          "mode": 420,
+          "size": 49,
+          "sha256": "408f5a8d64358d456a28dc2bc8781c2ec9126dbdd79b864c0259256a4d5758bd"
+        },
+        {
+          "path": "/usr/bin/join",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "29f47e3b3c713527e96a3f767093e4e49c203cf53f84539a7659b65e0cbc2d19"
+        },
+        {
+          "path": "/usr/bin/jq",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "29b94d583980b73dc34a589335745355dd89f0a6e1dfee90079e500e3e093815"
+        },
+        {
+          "path": "/usr/bin/ln",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "97ca77b206f9823e4e6b9626aedf7f09b16e59e52466b090bde1e435029d631e"
+        },
+        {
+          "path": "/usr/bin/ls",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "d2d1f3628a54f63fae64a17595524b22cda3017bcbe0e111b166f754aaf49c25"
+        },
+        {
+          "path": "/usr/bin/md5sum",
+          "type": "file",
+          "mode": 420,
+          "size": 39,
+          "sha256": "fb62987cf8ffb85ee64002a51ff587bf9fdad85b7e64212f838f0137f3ca0781"
+        },
+        {
+          "path": "/usr/bin/mkdir",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "e38cf5d23204d79f0b6c46902f2fd2683994d856a761deb1ef36cd531fe27028"
+        },
+        {
+          "path": "/usr/bin/mv",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "c1f2e3a6d57875e2a99b2bd1c17c393ad2f4cdfd91d681bf460a1322d2fe984a"
+        },
+        {
+          "path": "/usr/bin/nl",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "3d6a6c79fa13a9fa76d203f75ed34b97f993114288841d426337b187e7f7ebf7"
+        },
+        {
+          "path": "/usr/bin/od",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "d7856b0804b58f0a4140e7b20c840adff49bbd24e68e89c74d87e43b91212d2e"
+        },
+        {
+          "path": "/usr/bin/paste",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "47239efa371ca526f4ae525ef9068f174384a8ec0d68a88a9bd358953b26f205"
+        },
+        {
+          "path": "/usr/bin/printenv",
+          "type": "file",
+          "mode": 420,
+          "size": 41,
+          "sha256": "b97a6d2f437bf3cb5b92c66fe8ea8561f7c29d0eea4f6116ad7d818829b9e800"
+        },
+        {
+          "path": "/usr/bin/printf",
+          "type": "file",
+          "mode": 420,
+          "size": 39,
+          "sha256": "75812fa4ef3fdad4506c4725c18155fa2e7120b479389bbca270d52634e29e5f"
+        },
+        {
+          "path": "/usr/bin/pwd",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "aa08b5541bd78b151ddc709d228ef45007fe9c31b392d03f2fcca4c9ad4d1b47"
+        },
+        {
+          "path": "/usr/bin/readlink",
+          "type": "file",
+          "mode": 420,
+          "size": 41,
+          "sha256": "2a6d087dbfcec019ed28e443a90af23f706a869089a781de2397e5833bbb226f"
+        },
+        {
+          "path": "/usr/bin/rev",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "593263874d752c5cf87653588f1eed08cf3ab58040fc04e2624d1e2333908039"
+        },
+        {
+          "path": "/usr/bin/rg",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "09821169f708cd35d3a4f2088b7e28baefc73e0238dac1cf79335dc7016a67d5"
+        },
+        {
+          "path": "/usr/bin/rm",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "36166d4f354fadf710932c0ea615404af84e1228fb2571e4c676c23b3b764d36"
+        },
+        {
+          "path": "/usr/bin/rmdir",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "61620dac980ca7da393e14d4db93e36f3ac62862835dca3e99ff1bec6b107984"
+        },
+        {
+          "path": "/usr/bin/sed",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "9d7fdd722d008854dcaa14c6f98a37ed98b5b31b91b87cb0deb8cca87bb722fb"
+        },
+        {
+          "path": "/usr/bin/seq",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "b58e38ee971b5636e2924e4d33aff0198f9dbbd979f5f9dada16847c38b4e12c"
+        },
+        {
+          "path": "/usr/bin/sh",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "1c35618e9135b30d3866121de7062cc358029de9b645c18bae7c297712866d5e"
+        },
+        {
+          "path": "/usr/bin/sha1sum",
+          "type": "file",
+          "mode": 420,
+          "size": 40,
+          "sha256": "308fa2d452130427d54eafb0bd079816dd92e1a988d8842fd23e0bf780ac1d3e"
+        },
+        {
+          "path": "/usr/bin/sha256sum",
+          "type": "file",
+          "mode": 420,
+          "size": 42,
+          "sha256": "fcd9e6378581c83a9bc89f8132380cc405843c6dbe74455073f0c3f89f92be7d"
+        },
+        {
+          "path": "/usr/bin/sleep",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "7f2c8ee87f19c1680b26f0b814b932fd6bebf9e107583e89d95d96043544cdca"
+        },
+        {
+          "path": "/usr/bin/sort",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "36c0974888e0676167131fc996f44dc06e88e846bcc2e24eb6cdc810c0cb3c2d"
+        },
+        {
+          "path": "/usr/bin/split",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "7f1bcf06b2b4c9471b88dc3c2cf9c4c2c59a07aee1e14a6a59f0e9c867a449fa"
+        },
+        {
+          "path": "/usr/bin/sqlite3",
+          "type": "file",
+          "mode": 420,
+          "size": 40,
+          "sha256": "2026313ecb2e9d9e4bed59c6e1e0605957e1ff3364a059b8ce39fe09ac81fb0a"
+        },
+        {
+          "path": "/usr/bin/stat",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "e2d85b021ac1d29028eff70836aa8c49818c53f970067bc77a3acc881c7768f3"
+        },
+        {
+          "path": "/usr/bin/strings",
+          "type": "file",
+          "mode": 420,
+          "size": 40,
+          "sha256": "769489065e4e50f74a1bc3958f726f65fb5057bd4ca6a038c8c0491ed8a4d70a"
+        },
+        {
+          "path": "/usr/bin/tac",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "3ae542dda462af0072069d1d29ced44a67e1679e7e8afd450c633ce272d98028"
+        },
+        {
+          "path": "/usr/bin/tail",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "f5cea67079637c3c9ac217b31b3be56264a3fbd05f3379d19aacc7ca8c815c6e"
+        },
+        {
+          "path": "/usr/bin/tar",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "15b2d650f903d10ec71d55abd94ba73089512fadc767af3ac037be35bf2565a8"
+        },
+        {
+          "path": "/usr/bin/tee",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "eed74dcfe1d88b884590f40ac36215d1f639de992e26cc6657af63f5f6d37953"
+        },
+        {
+          "path": "/usr/bin/time",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "f4a4cccccb3241de2f6e3ea72937761b62b5f81b253bde22f412b00fcde24989"
+        },
+        {
+          "path": "/usr/bin/timeout",
+          "type": "file",
+          "mode": 420,
+          "size": 40,
+          "sha256": "b1ae3262518fe0fbeeaf668e943debe1139daaea15b26ab5ac574177f1dd7bb9"
+        },
+        {
+          "path": "/usr/bin/touch",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "d29139c592943e5de5396f62fcc19cbc48f4eed6bb3f22f99213618dbec40e43"
+        },
+        {
+          "path": "/usr/bin/tr",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "8fb81b953becb542ffc70e4d44c2df9ed386f711f0bb025851f7b287f91ffbe1"
+        },
+        {
+          "path": "/usr/bin/tree",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "4283faefbd8a64b2816c6eeb89db8edddf8298053cfd8bfe48de72bc2a5b6a38"
+        },
+        {
+          "path": "/usr/bin/true",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "0b66b17acc0c106ddf1a367139f03880ede3de904023400135984615117231ec"
+        },
+        {
+          "path": "/usr/bin/unalias",
+          "type": "file",
+          "mode": 420,
+          "size": 40,
+          "sha256": "eeb3bfe95eea5b91ade5e416c6228b8fb579dc781e7d7fdd4eb50a815ce388ed"
+        },
+        {
+          "path": "/usr/bin/unexpand",
+          "type": "file",
+          "mode": 420,
+          "size": 41,
+          "sha256": "f8116ea4a0c92b1a9bfd9637ecf440ccf3af5b543f597b1cd008eda4162f6e54"
+        },
+        {
+          "path": "/usr/bin/uniq",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "285d160f1b9490880ad92ce9104ee973246de485070b724a7ca88b251c63cf1f"
+        },
+        {
+          "path": "/usr/bin/wc",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "3c6df3bfbfa9406eeb77917846e15dd7082e2e2c218ed9f34c598878d257a736"
+        },
+        {
+          "path": "/usr/bin/which",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "fd57a60b5ec905f142ff9af45c2b0c5c5e39118ffb50994c381701c02c34d077"
+        },
+        {
+          "path": "/usr/bin/whoami",
+          "type": "file",
+          "mode": 420,
+          "size": 39,
+          "sha256": "591b554ea2d7cdad489daa393a7bd3c5af131e1db8a3f8b81d8791a2b4cbee0d"
+        },
+        {
+          "path": "/usr/bin/xan",
+          "type": "file",
+          "mode": 420,
+          "size": 36,
+          "sha256": "41c85ed65d27be226a6bdba2ce1cfdea0802eb6697b894ac3e65a12f2ee76e41"
+        },
+        {
+          "path": "/usr/bin/xargs",
+          "type": "file",
+          "mode": 420,
+          "size": 38,
+          "sha256": "ca515debf0924d4e341d2c750873fe1fd5071a3cd22484dda91ea86a79e3a3ed"
+        },
+        {
+          "path": "/usr/bin/yq",
+          "type": "file",
+          "mode": 420,
+          "size": 35,
+          "sha256": "a82004b6c020ecde86783effbf1832337ab6a8f5ca8e62c7ef4a96fee7a8e609"
+        },
+        {
+          "path": "/usr/bin/zcat",
+          "type": "file",
+          "mode": 420,
+          "size": 37,
+          "sha256": "6c422bcd7107d9fc517ca58f17cb1732be4e32bb695deef6476af01b53d6a276"
+        }
+      ],
+      "scaffoldingBytes": 6436,
+      "maxWorkflowEntries": 64,
+      "maxWorkflowBytes": 65536,
+      "maxTotalEntries": 255,
+      "maxTotalReadBytes": 71972,
+      "maxDepth": 32,
+      "maxSnapshotMetadataBytes": 131072,
+      "historicalGetoptsBeforeEntries": 192,
+      "provenance": {
+        "revision": "e0325b590b593fbe5fd17b2b1b778fe8badb25f0",
+        "path": "benchmarks/reports/baseline-only-20260827/coverage-review/measured/continuation/raw/getopts-positive.baseline.json",
+        "gitBlob": "425a4e99b12e7898cc78b517200e704bf3ffcbff",
+        "fileSha256": "9e11ca0a2018893112dcca9032d89bdb9245b8e7cdaebcd8e8f8bfa857221a77",
+        "pointer": "/report/before/entries"
+      },
+      "qualification": "Historical structural expectation only; candidate admission must independently match before and after. No scaffold created by harness except declared /tmp and /home/user setup."
+    }
+  },
+  "liveCensusExecutions": 0,
+  "rule": "No root path is excluded from enumeration. Names outside /fixture must exactly match these records. Symlinks are metadata only and never followed by census. Timestamps/opaque identities are recorded historically but not normative."
+}

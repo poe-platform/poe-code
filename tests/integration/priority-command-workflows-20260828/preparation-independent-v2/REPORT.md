@@ -1,9 +1,10 @@
 # Independent preparation repair review v2
 
 August 28, 2026. **STATIC/DATA closure of the original F1–F4 repair
-rootcauses, with an F3 reporting qualification; no product GO.** Root has
-routed that narrow reporting follow-up. This record preserves the exact
-candidate below before any successor and does not certify later live edits.
+rootcauses, with an F3 reporting qualification; no product GO.** Root's final
+choice accepts that documented qualification: no metric successor or extra
+tests are needed. This record covers only the exact candidate below, not live
+edits. `ROOT-CLOSURE.json` preserves the final coordination decision.
 
 ## Bound inputs
 
@@ -85,8 +86,12 @@ metric sums only cleanly authenticated reservations. This is not a cap-return
 failure. The final sealed `REPAIR-PREPARATION-v3.md` explicitly documents that
 narrow metric meaning; its SHA256 is
 `ddadbb773e6dd2c7f1859f1900cae537470f88ad084600a6d4e00758e4d730b6`.
-Root chose to route a narrow reporting correction. That successor is not covered
-by this candidate record; the full-reservation withholding must remain intact.
+Root initially routed a narrow reporting correction, then explicitly chose to
+retain exact v3 with this documented qualification, without v4 or extra tests.
+The author will preserve started, unexecuted edits as nonexecutable DATA and
+restore exact v3; root owns the later restoration metadata check. This review
+does not certify those edits or claim restoration already occurred. The
+full-reservation withholding remains intact in the reviewed candidate.
 
 ### F4 — Terminal storage and deadline accounting: repaired in scope
 

@@ -1,0 +1,20 @@
+{
+  "schema": "priority-preparation-independent-v2-root-closure",
+  "date": "2026-08-28",
+  "role": "STATIC_DATA_FINAL_COORDINATION_NO_NEW_EXECUTION",
+  "priorIndependentEvidenceCommit": "a6ccff89d06eab34d09838ac06db6b7a2f9c548f",
+  "dataResultsSha256": "b2fcafb18c2404d64242139f88b2374746075045017849b2f69aa3dc26f222fa",
+  "codeCommit": "2a63780fd8ddd8bd97b6f2ad31ac33e969da5bae",
+  "finalEvidenceCommit": "a63169d1d84f4d81812cafa3b58c1e0624090c3e",
+  "preparationSealSha256": "00ee97d8617eb75a4ac47bf383b19c186a12a8fcd4144096fd08a54d2f2d45ea",
+  "orderedCodeSetSha256": "8d1cd6efee03426e726751175c1c2439323a24c82203b2d70b3da482527b0261",
+  "rootResponseSha256": "804907f5cc2acbc0e88f80c9159d70d388c8e486ea6be687e4aa7b2039e3d921",
+  "rootResponse": "Final repair source2a63780fd8ddd8bd97b6f2ad31ac33e969da5bae; evidence/seal a63169d1d84f4d81812cafa3b58c1e0624090c3e. PREPARATION-SEAL-v3 SHA00ee97d8617eb75a4ac47bf383b19c186a12a8fcd4144096fd08a54d2f2d45ea; codeset8d1cd6efee03426e726751175c1c2439323a24c82203b2d70b3da482527b0261. F4 closure received, fourfixes nowqualified within your scope. FINALrootchoice: do NOT need metric successor; author will preserve already-started unexecuted edits/helper in NONEXECUTABLEDATA archive and apply_patch restore exactv3 code. No v4 or extra tests. Report exactv3 with documentedmetric qualification, commit bounded independent closure now; restoration receipt can be checked by root metadata afterward. No product GO/93calls remainunexecuted; no new broader audit needed.\n",
+  "disposition": "Bounded original F1-F4 preparation repair closure with documented F3 metric qualification. Final root choice requires no successor or extra tests.",
+  "restoration": "Root will check author restoration metadata later; no restoration success claimed by this verifier.",
+  "futureGo": false,
+  "productCallsUnexecuted": 93,
+  "additionalSubjectExecutions": 0,
+  "additionalWorkers": 0,
+  "additionalControlCohorts": 0
+}

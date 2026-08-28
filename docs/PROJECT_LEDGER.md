@@ -3358,3 +3358,57 @@ that any implementation, command, fixture, or test currently exists.
   Dirac metadata review and FRESH ROOT authorization remain required; no GO
   transfers. No product/default/limit/permission changes or failed-root mutation.
   Command and template: `tests/integration/full-gate-20260827/unified76-driver/release-packet-v4-qualified-h11/LAUNCH.md`.
+
+### 2026-08-28T13:52Z — ROOT accepts actual coherent78 SafeJS workflows
+
+- ROOT scoped acceptancef199787165ed3cfba82152cde31c5b794e03fad0 follows grant
+  5b4649ddd643a631b7c92b1520a415baa35200be and sole executor activation
+  6d7159e35a1cd92b0ede967d3fe428d54a74d4bd. Installed and physically moved
+  G01/G02/G03 give six actual engine evaluations, guest entries, bound-context
+  bridges and public execs,30 semantic assertions. Six Shells/cleanups settle;
+  recorded final resources0. This updates the earlier pending follow-up, not
+  the accepted coherent78 or historical guest denominators.
+- G01 covers source/function/pipes, stack/CDPATH/dotglob/LET/getopts with status0.
+  G02 injected curl reaches body-next before manual deadline; public settlement,
+  engine/bridge/disposal/cleanup remain pending while cleanup is held. After
+  controlled release, transport cleanup/disposal/bridge/engine/wrapper/invocation
+  cleanup precede public status124. G03 guest error/read-only FS/state isolation
+  returns expected1. Expected124/1 are workflow outcomes, NOT negative-control
+  passes. No new mutant/fault-injection cohort or caller-priority collision.
+- Raw engine Error("{}") and bridge [object Object] serialization are retained;
+  no actual reason-identity, host-abort-as-retirement or global cleanup guarantee.
+  Step10000/shared-shell128 are enforced caps, not separately observed consumed
+  units. Run timestamps provide metadata bounds, not a latency measurement.
+- Whole858 package6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e
+  and installed manifest484c1dd76c63f126376cff810b445c8185e791825ec83fd94e996691b2b1eb5d
+  inherit633f6c82 source qualification/selected8437e4ed. Fresh source proof is
+  43/268 paths with35 missing descendant trees, NOT full reconstruction or a
+  product rebuild. This Node22.22.2/darwin-arm64 cohort is separate from the
+  held fixed76 Node24 gate; no currentHEAD composition is inferred.
+- Actual enginebb23ec270aaaf1d394b00d330fbf1aa6ccb2952e uses63 regular selected
+  source files copied outside private. Each workflow authenticates210 product
+  modules,63 engine modules and one compiler module;378 engine emissions match.
+  Offline scripts-disabled install observes562 unique npm modules within the
+  approved808-file static envelope, NOT a dynamically minimal dependency set.
+- All11 direct children naturally settle0,12 processes including supervisor.
+  This is bounded owned-child evidence, not a universal process census. Private
+  pre/post bounded guards remain equal: src257,refs57,metadata9 plus declared
+  tools/references; no private status/index refresh or writes. Other packages,
+  dist/node_modules/caches/logs/reflogs/object-store membership/atime/tool-sibling
+  additions are outside those guards. No blanket whole-private unchanged claim.
+  Twenty-nine original guard records are archived; immediate cleanup checks use
+  successful sealed CLOSURE/final hash, not separately retained event records.
+- Preserve metadata-only PATH127: a zsh loop variable named path changed that
+  inspection's PATH, preventing cat/find; only metadata reads were repeated with
+  filename. No executor/import/install/guest ran in the failed inspection.
+  Original7600/6d7159 artifacts, historical counts/failures, STACK136/C06partial/
+  S13unsupported and composed DOTGLOB qualifications remain. No native oracle,
+  external HTTP, broad arrays/YQ/XAN, private approval, full gate or superiority
+  claim. One-shot grant is spent; no retry follows this documentation update.
+- Report: `tests/integration/coherent78-safejs-independent-20260828/execution-checkpoints/c78-safejs-20260828-01/REPORT.md`.
+  The curl README example/current root exports/types were inspected only:
+  networkCommands requires authorize, accepts an optional mock/real transport,
+  remains opt-in and uses the existing TypeScript ESM zero-runtime-dependency
+  package in safe-bash. No implementation, build, runtime test or root wiring
+  occurred for this documentation task. Packet69f5cc1b remains pending metadata
+  review/FRESH ROOT release; no gate authorization is implied.

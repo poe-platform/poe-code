@@ -606,6 +606,13 @@ open. The upstream
 proposal 0c1bfe2 is not approved; isolated patched runs do not establish accepted integration, guest
 lifecycle success or replay durability. See the ledger for separate cohorts.
 
+A separate [accepted coherent78 checkpoint](tests/integration/coherent78-safejs-independent-20260828/execution-checkpoints/c78-safejs-20260828-01/REPORT.md)
+executes three actual-engine guest workflows in each of installed and moved
+packages: six evaluations and30 semantic assertions, including injected curl.
+Its controlled deadline returns124 only after held cleanup is released. This is
+scoped package evidence, not fresh full-source reconstruction, caller-priority,
+reason-identity, global-cleanup or whole-release acceptance.
+
 ## Validate
 
 ```sh

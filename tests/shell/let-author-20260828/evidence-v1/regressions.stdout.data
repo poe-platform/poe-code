@@ -1,0 +1,1012 @@
+TAP version 13
+# Subtest: borrowed forms preserve the parent signal without cancellation resources
+ok 1 - borrowed forms preserve the parent signal without cancellation resources
+  ---
+  duration_ms: 7.773125
+  type: 'test'
+  ...
+# Subtest: admission rejects before a child scope and reads the signal getter once
+ok 2 - admission rejects before a child scope and reads the signal getter once
+  ---
+  duration_ms: 0.836
+  type: 'test'
+  ...
+# Subtest: local cancellation settles after cleanup, detaches, and leaves parent live
+ok 3 - local cancellation settles after cleanup, detaches, and leaves parent live
+  ---
+  duration_ms: 4.226792
+  type: 'test'
+  ...
+# Subtest: mapped child rejection returns outer status one and does not poison the wrapper
+ok 4 - mapped child rejection returns outer status one and does not poison the wrapper
+  ---
+  duration_ms: 2.204083
+  type: 'test'
+  ...
+# Subtest: root caller outranks execution and exact cleanup failures at the final barrier
+ok 5 - root caller outranks execution and exact cleanup failures at the final barrier
+  ---
+  duration_ms: 0.900709
+  type: 'test'
+  ...
+# Subtest: ordered search "/one:/two"
+ok 6 - ordered search "/one:/two"
+  ---
+  duration_ms: 7.152958
+  type: 'test'
+  ...
+# Subtest: ordered search "/two:/one"
+ok 7 - ordered search "/two:/one"
+  ---
+  duration_ms: 1.103834
+  type: 'test'
+  ...
+# Subtest: ordered search ":/one"
+ok 8 - ordered search ":/one"
+  ---
+  duration_ms: 2.974
+  type: 'test'
+  ...
+# Subtest: ordered search "/absent::/one"
+ok 9 - ordered search "/absent::/one"
+  ---
+  duration_ms: 1.03425
+  type: 'test'
+  ...
+# Subtest: ordered search "/absent:"
+ok 10 - ordered search "/absent:"
+  ---
+  duration_ms: 0.9045
+  type: 'test'
+  ...
+# Subtest: ordered search ""
+ok 11 - ordered search ""
+  ---
+  duration_ms: 1.109541
+  type: 'test'
+  ...
+# Subtest: ordered search "/absent"
+ok 12 - ordered search "/absent"
+  ---
+  duration_ms: 1.1355
+  type: 'test'
+  ...
+# Subtest: ordered search "rel"
+ok 13 - ordered search "rel"
+  ---
+  duration_ms: 0.667708
+  type: 'test'
+  ...
+# Subtest: oversized CDPATH bypass "/one/target"
+ok 14 - oversized CDPATH bypass "/one/target"
+  ---
+  duration_ms: 1.76775
+  type: 'test'
+  ...
+# Subtest: oversized CDPATH bypass "./target"
+ok 15 - oversized CDPATH bypass "./target"
+  ---
+  duration_ms: 1.120584
+  type: 'test'
+  ...
+# Subtest: oversized CDPATH bypass "../one/target"
+ok 16 - oversized CDPATH bypass "../one/target"
+  ---
+  duration_ms: 0.53825
+  type: 'test'
+  ...
+# Subtest: oversized CDPATH bypass "."
+ok 17 - oversized CDPATH bypass "."
+  ---
+  duration_ms: 0.4575
+  type: 'test'
+  ...
+# Subtest: oversized CDPATH bypass ".."
+ok 18 - oversized CDPATH bypass ".."
+  ---
+  duration_ms: 0.402875
+  type: 'test'
+  ...
+# Subtest: oversized CDPATH bypass ""
+ok 19 - oversized CDPATH bypass ""
+  ---
+  duration_ms: 0.353792
+  type: 'test'
+  ...
+# Subtest: relative HOME and relative OLDPWD each print exactly once
+ok 20 - relative HOME and relative OLDPWD each print exactly once
+  ---
+  duration_ms: 1.04725
+  type: 'test'
+  ...
+# Subtest: typed search failure ENOENT
+ok 21 - typed search failure ENOENT
+  ---
+  duration_ms: 0.5235
+  type: 'test'
+  ...
+# Subtest: typed search failure ENOTDIR
+ok 22 - typed search failure ENOTDIR
+  ---
+  duration_ms: 1.768333
+  type: 'test'
+  ...
+# Subtest: typed search failure EACCES
+ok 23 - typed search failure EACCES
+  ---
+  duration_ms: 0.703209
+  type: 'test'
+  ...
+# Subtest: typed search failure EPERM
+ok 24 - typed search failure EPERM
+  ---
+  duration_ms: 0.960166
+  type: 'test'
+  ...
+# Subtest: typed search failure ELOOP
+ok 25 - typed search failure ELOOP
+  ---
+  duration_ms: 0.791791
+  type: 'test'
+  ...
+# Subtest: typed search failure ENOTSUP
+ok 26 - typed search failure ENOTSUP
+  ---
+  duration_ms: 0.517416
+  type: 'test'
+  ...
+# Subtest: typed search failure EIO
+ok 27 - typed search failure EIO
+  ---
+  duration_ms: 0.364042
+  type: 'test'
+  ...
+# Subtest: typed search failure ECANCELED
+ok 28 - typed search failure ECANCELED
+  ---
+  duration_ms: 0.707083
+  type: 'test'
+  ...
+# Subtest: duck-typed errno is fatal, not a lookup miss
+ok 29 - duck-typed errno is fatal, not a lookup miss
+  ---
+  duration_ms: 0.773542
+  type: 'test'
+  ...
+# Subtest: non-directory skips access and fallback error determines diagnostic
+ok 30 - non-directory skips access and fallback error determines diagnostic
+  ---
+  duration_ms: 0.556375
+  type: 'test'
+  ...
+# Subtest: empty duplicate components and equivalent final fallback are fresh
+ok 31 - empty duplicate components and equivalent final fallback are fresh
+  ---
+  duration_ms: 0.346833
+  type: 'test'
+  ...
+# Subtest: delegated X_OK denial precedes checked state writes
+ok 32 - delegated X_OK denial precedes checked state writes
+  ---
+  duration_ms: 1.355042
+  type: 'test'
+  ...
+# Subtest: checked OLDPWD preserves earlier writes only
+ok 33 - checked OLDPWD preserves earlier writes only
+  ---
+  duration_ms: 0.888792
+  type: 'test'
+  ...
+# Subtest: checked PWD preserves earlier writes only
+ok 34 - checked PWD preserves earlier writes only
+  ---
+  duration_ms: 0.599916
+  type: 'test'
+  ...
+# Subtest: subshell/pipeline cwd isolation false
+ok 35 - subshell/pipeline cwd isolation false
+  ---
+  duration_ms: 0.542042
+  type: 'test'
+  ...
+# Subtest: subshell/pipeline cwd isolation true
+ok 36 - subshell/pipeline cwd isolation true
+  ---
+  duration_ms: 4.066209
+  type: 'test'
+  ...
+# Subtest: prefix bindings restore while successful cwd remains
+ok 37 - prefix bindings restore while successful cwd remains
+  ---
+  duration_ms: 0.795334
+  type: 'test'
+  ...
+# Subtest: host invoke cd leaves parent and getopts cursor unchanged
+ok 38 - host invoke cd leaves parent and getopts cursor unchanged
+  ---
+  duration_ms: 13.363834
+  type: 'test'
+  ...
+# Subtest: awaited output failure does not roll back, EPIPE=false
+ok 39 - awaited output failure does not roll back, EPIPE=false
+  ---
+  duration_ms: 1.058167
+  type: 'test'
+  ...
+# Subtest: awaited output failure does not roll back, EPIPE=true
+ok 40 - awaited output failure does not roll back, EPIPE=true
+  ---
+  duration_ms: 0.624875
+  type: 'test'
+  ...
+# Subtest: caller abort wins over lookup miss false
+ok 41 - caller abort wins over lookup miss false
+  ---
+  duration_ms: 0.812875
+  type: 'test'
+  ...
+# Subtest: caller abort wins over lookup miss 0
+ok 42 - caller abort wins over lookup miss 0
+  ---
+  duration_ms: 0.563625
+  type: 'test'
+  ...
+# Subtest: caller abort wins over lookup miss 
+ok 43 - caller abort wins over lookup miss 
+  ---
+  duration_ms: 0.625041
+  type: 'test'
+  ...
+# Subtest: caller abort wins over lookup miss FsError: ENOENT: no such file or directory
+ok 44 - caller abort wins over lookup miss FsError: ENOENT: no such file or directory
+  ---
+  duration_ms: 0.545708
+  type: 'test'
+  ...
+# Subtest: scan yields to caller cancellation before any provider call
+ok 45 - scan yields to caller cancellation before any provider call
+  ---
+  duration_ms: 1.4985
+  type: 'test'
+  ...
+# Subtest: CDPATH preflight 65537/65536 UTF-8 bytes
+ok 46 - CDPATH preflight 65537/65536 UTF-8 bytes
+  ---
+  duration_ms: 71.499792
+  type: 'test'
+  ...
+# Subtest: CDPATH preflight 4096/4096 components
+ok 47 - CDPATH preflight 4096/4096 components
+  ---
+  duration_ms: 3.47625
+  type: 'test'
+  ...
+# Subtest: CDPATH preflight 32769/65536 UTF-8 bytes
+ok 48 - CDPATH preflight 32769/65536 UTF-8 bytes
+  ---
+  duration_ms: 44.181917
+  type: 'test'
+  ...
+# Subtest: 4096 slots followed by fresh fallback make 4097 stat probes
+ok 49 - 4096 slots followed by fresh fallback make 4097 stat probes
+  ---
+  duration_ms: 153.413416
+  type: 'test'
+  ...
+# Subtest: raw path cap rejects before normalization can shorten it
+ok 50 - raw path cap rejects before normalization can shorten it
+  ---
+  duration_ms: 77.687292
+  type: 'test'
+  ...
+# Subtest: absolute 65536-byte target admitted, next byte refused
+ok 51 - absolute 65536-byte target admitted, next byte refused
+  ---
+  duration_ms: 295.913917
+  type: 'test'
+  ...
+# Subtest: local helper-work failure has ordinary status and leaves subsequent command usable
+ok 52 - local helper-work failure has ordinary status and leaves subsequent command usable
+  ---
+  duration_ms: 3783.213041
+  type: 'test'
+  ...
+# Subtest: argument/missing-variable precedence unset HOME; cd
+ok 53 - argument/missing-variable precedence unset HOME; cd
+  ---
+  duration_ms: 0.793125
+  type: 'test'
+  ...
+# Subtest: argument/missing-variable precedence unset OLDPWD; cd -
+ok 54 - argument/missing-variable precedence unset OLDPWD; cd -
+  ---
+  duration_ms: 0.313084
+  type: 'test'
+  ...
+# Subtest: argument/missing-variable precedence cd one two
+ok 55 - argument/missing-variable precedence cd one two
+  ---
+  duration_ms: 0.375167
+  type: 'test'
+  ...
+# Subtest: diagnostic payload ASCII boundary 65792
+ok 56 - diagnostic payload ASCII boundary 65792
+  ---
+  duration_ms: 2.57825
+  type: 'test'
+  ...
+# Subtest: diagnostic payload ASCII boundary 65793
+ok 57 - diagnostic payload ASCII boundary 65793
+  ---
+  duration_ms: 1.080666
+  type: 'test'
+  ...
+# Subtest: multibyte diagnostic keeps scalar boundary and exact suffix
+ok 58 - multibyte diagnostic keeps scalar boundary and exact suffix
+  ---
+  duration_ms: 1.523125
+  type: 'test'
+  ...
+# Subtest: parent output budget remains authoritative for diagnostic writes
+ok 59 - parent output budget remains authoritative for diagnostic writes
+  ---
+  duration_ms: 1.24475
+  type: 'test'
+  ...
+# Subtest: public memory cd search and metadata-only delegation
+ok 60 - public memory cd search and metadata-only delegation
+  ---
+  duration_ms: 3.143084
+  type: 'test'
+  ...
+# Subtest: public real cd search and metadata-only delegation
+ok 61 - public real cd search and metadata-only delegation
+  ---
+  duration_ms: 3.661791
+  type: 'test'
+  ...
+# Subtest: public readonly cd search and metadata-only delegation
+ok 62 - public readonly cd search and metadata-only delegation
+  ---
+  duration_ms: 0.9305
+  type: 'test'
+  ...
+# Subtest: public s3 cd search and metadata-only delegation
+ok 63 - public s3 cd search and metadata-only delegation
+  ---
+  duration_ms: 5.240458
+  type: 'test'
+  ...
+# Subtest: public webdav cd search and metadata-only delegation
+ok 64 - public webdav cd search and metadata-only delegation
+  ---
+  duration_ms: 9.808458
+  type: 'test'
+  ...
+# Subtest: quotes, escaped syntax, comments and empty arguments
+ok 65 - quotes, escaped syntax, comments and empty arguments
+  ---
+  duration_ms: 5.4865
+  type: 'test'
+  ...
+# Subtest: splitting expands only unquoted substitutions and joins adjacent parts
+ok 66 - splitting expands only unquoted substitutions and joins adjacent parts
+  ---
+  duration_ms: 1.84375
+  type: 'test'
+  ...
+# Subtest: variables, defaults, assignments, export and unset
+ok 67 - variables, defaults, assignments, export and unset
+  ---
+  duration_ms: 5.055292
+  type: 'test'
+  ...
+# Subtest: status, negation, and-or lists are left associative
+ok 68 - status, negation, and-or lists are left associative
+  ---
+  duration_ms: 8.692542
+  type: 'test'
+  ...
+# Subtest: command substitution handles nested syntax and removes only trailing newlines
+ok 69 - command substitution handles nested syntax and removes only trailing newlines
+  ---
+  duration_ms: 3.423167
+  type: 'test'
+  ...
+# Subtest: parse whole script including substitutions before any command or redirect
+ok 70 - parse whole script including substitutions before any command or redirect
+  ---
+  duration_ms: 3.979959
+  type: 'test'
+  ...
+# Subtest: redirects truncate, append, consume stdin and preserve byte data
+ok 71 - redirects truncate, append, consume stdin and preserve byte data
+  ---
+  duration_ms: 3.289084
+  type: 'test'
+  ...
+# Subtest: descriptor duplicates are snapshots applied left to right
+ok 72 - descriptor duplicates are snapshots applied left to right
+  ---
+  duration_ms: 1.546833
+  type: 'test'
+  ...
+# Subtest: cwd, environment and pipeline state isolate across executions
+ok 73 - cwd, environment and pipeline state isolate across executions
+  ---
+  duration_ms: 2.6465
+  type: 'test'
+  ...
+# Subtest: if, elif, loops, break and continue
+ok 74 - if, elif, loops, break and continue
+  ---
+  duration_ms: 3.085958
+  type: 'test'
+  ...
+# Subtest: functions, positional arguments, groups, returns and exits
+ok 75 - functions, positional arguments, groups, returns and exits
+  ---
+  duration_ms: 2.457291
+  type: 'test'
+  ...
+# Subtest: pathname expansion respects quotes, hidden entries and missing patterns
+ok 76 - pathname expansion respects quotes, hidden entries and missing patterns
+  ---
+  duration_ms: 0.877875
+  type: 'test'
+  ...
+# Subtest: missing commands and invalid statuses are diagnosed
+ok 77 - missing commands and invalid statuses are diagnosed
+  ---
+  duration_ms: 0.709583
+  type: 'test'
+  ...
+# Subtest: D01 readonly OPTIND stops before OPTARG/name but retains hidden progress
+ok 78 - D01 readonly OPTIND stops before OPTARG/name but retains hidden progress
+  ---
+  duration_ms: 11.561583
+  type: 'test'
+  ...
+# Subtest: D01/N13 readonly OPTARG retains value and attribute for set, no-arg and EOF
+ok 79 - D01/N13 readonly OPTARG retains value and attribute for set, no-arg and EOF
+  ---
+  duration_ms: 4.805084
+  type: 'test'
+  ...
+# Subtest: late name validation preserves OPTIND/OPTARG and does not execute name syntax
+ok 80 - late name validation preserves OPTIND/OPTARG and does not execute name syntax
+  ---
+  duration_ms: 3.431291
+  type: 'test'
+  ...
+# Subtest: readonly result name fails after checked index/argument, including EOF
+ok 81 - readonly result name fails after checked index/argument, including EOF
+  ---
+  duration_ms: 2.5595
+  type: 'test'
+  ...
+# Subtest: D01 failed setter does not reset cursor: export OPTIND=1
+ok 82 - D01 failed setter does not reset cursor: export OPTIND=1
+  ---
+  duration_ms: 2.942875
+  type: 'test'
+  ...
+# Subtest: D01 failed setter does not reset cursor: read OPTIND <<< 1
+ok 83 - D01 failed setter does not reset cursor: read OPTIND <<< 1
+  ---
+  duration_ms: 1.554125
+  type: 'test'
+  ...
+# Subtest: D01 failed setter does not reset cursor: OPTIND=1 :
+ok 84 - D01 failed setter does not reset cursor: OPTIND=1 :
+  ---
+  duration_ms: 1.004917
+  type: 'test'
+  ...
+# Subtest: D01 failed setter does not reset cursor: f() { local OPTIND=1; }; f
+ok 85 - D01 failed setter does not reset cursor: f() { local OPTIND=1; }; f
+  ---
+  duration_ms: 1.303583
+  type: 'test'
+  ...
+# Subtest: parser sink rejection preserves only hidden state, existing mapping Error: sink refusal
+ok 86 - parser sink rejection preserves only hidden state, existing mapping Error: sink refusal
+  ---
+  duration_ms: 1.797375
+  type: 'test'
+  ...
+# Subtest: parser sink rejection preserves only hidden state, existing mapping false
+ok 87 - parser sink rejection preserves only hidden state, existing mapping false
+  ---
+  duration_ms: 2.39525
+  type: 'test'
+  ...
+# Subtest: parser sink rejection preserves only hidden state, existing mapping 0
+ok 88 - parser sink rejection preserves only hidden state, existing mapping 0
+  ---
+  duration_ms: 3.687584
+  type: 'test'
+  ...
+# Subtest: parser sink rejection preserves only hidden state, existing mapping 
+ok 89 - parser sink rejection preserves only hidden state, existing mapping 
+  ---
+  duration_ms: 1.343041
+  type: 'test'
+  ...
+# Subtest: parser sink rejection preserves only hidden state, existing mapping null
+ok 90 - parser sink rejection preserves only hidden state, existing mapping null
+  ---
+  duration_ms: 1.0435
+  type: 'test'
+  ...
+# Subtest: parser sink rejection preserves only hidden state, existing mapping undefined
+ok 91 - parser sink rejection preserves only hidden state, existing mapping undefined
+  ---
+  duration_ms: 0.778792
+  type: 'test'
+  ...
+# Subtest: EPIPE diagnostic failure uses existing141 mapping, not usage2
+ok 92 - EPIPE diagnostic failure uses existing141 mapping, not usage2
+  ---
+  duration_ms: 0.5225
+  type: 'test'
+  ...
+# Subtest: caller abort during parser diagnostic keeps reason identity and prevents late stores: false
+ok 93 - caller abort during parser diagnostic keeps reason identity and prevents late stores: false
+  ---
+  duration_ms: 1.170542
+  type: 'test'
+  ...
+# Subtest: caller abort during parser diagnostic keeps reason identity and prevents late stores: 0
+ok 94 - caller abort during parser diagnostic keeps reason identity and prevents late stores: 0
+  ---
+  duration_ms: 0.721667
+  type: 'test'
+  ...
+# Subtest: caller abort during parser diagnostic keeps reason identity and prevents late stores: 
+ok 95 - caller abort during parser diagnostic keeps reason identity and prevents late stores: 
+  ---
+  duration_ms: 1.032375
+  type: 'test'
+  ...
+# Subtest: caller abort during parser diagnostic keeps reason identity and prevents late stores: null
+ok 96 - caller abort during parser diagnostic keeps reason identity and prevents late stores: null
+  ---
+  duration_ms: 0.946041
+  type: 'test'
+  ...
+# Subtest: caller abort during parser diagnostic keeps reason identity and prevents late stores: undefined
+ok 97 - caller abort during parser diagnostic keeps reason identity and prevents late stores: undefined
+  ---
+  duration_ms: 0.658167
+  type: 'test'
+  ...
+# Subtest: D01 prefix restoration restores exact binding and hidden state on abort
+ok 98 - D01 prefix restoration restores exact binding and hidden state on abort
+  ---
+  duration_ms: 2.000833
+  type: 'test'
+  ...
+# Subtest: silent mode and OPTERR suppression perform zero parser writes
+ok 99 - silent mode and OPTERR suppression perform zero parser writes
+  ---
+  duration_ms: 0.998
+  type: 'test'
+  ...
+# Subtest: frozen nonfailure stdout profile N01, not native diagnostic byte parity
+ok 100 - frozen nonfailure stdout profile N01, not native diagnostic byte parity
+  ---
+  duration_ms: 18.885917
+  type: 'test'
+  ...
+# Subtest: frozen nonfailure stdout profile N02, not native diagnostic byte parity
+ok 101 - frozen nonfailure stdout profile N02, not native diagnostic byte parity
+  ---
+  duration_ms: 6.774
+  type: 'test'
+  ...
+# Subtest: frozen nonfailure stdout profile N03, not native diagnostic byte parity
+ok 102 - frozen nonfailure stdout profile N03, not native diagnostic byte parity
+  ---
+  duration_ms: 13.272291
+  type: 'test'
+  ...
+# Subtest: frozen nonfailure stdout profile N06, not native diagnostic byte parity
+ok 103 - frozen nonfailure stdout profile N06, not native diagnostic byte parity
+  ---
+  duration_ms: 5.132709
+  type: 'test'
+  ...
+# Subtest: frozen nonfailure stdout profile N07, not native diagnostic byte parity
+ok 104 - frozen nonfailure stdout profile N07, not native diagnostic byte parity
+  ---
+  duration_ms: 9.983083
+  type: 'test'
+  ...
+# Subtest: frozen nonfailure stdout profile N08, not native diagnostic byte parity
+ok 105 - frozen nonfailure stdout profile N08, not native diagnostic byte parity
+  ---
+  duration_ms: 3.852083
+  type: 'test'
+  ...
+# Subtest: frozen nonfailure stdout profile N09, not native diagnostic byte parity
+ok 106 - frozen nonfailure stdout profile N09, not native diagnostic byte parity
+  ---
+  duration_ms: 3.218125
+  type: 'test'
+  ...
+# Subtest: frozen nonfailure stdout profile N10, not native diagnostic byte parity
+ok 107 - frozen nonfailure stdout profile N10, not native diagnostic byte parity
+  ---
+  duration_ms: 2.471375
+  type: 'test'
+  ...
+# Subtest: frozen nonfailure stdout profile N11, not native diagnostic byte parity
+ok 108 - frozen nonfailure stdout profile N11, not native diagnostic byte parity
+  ---
+  duration_ms: 5.11425
+  type: 'test'
+  ...
+# Subtest: frozen nonfailure stdout profile N16, not native diagnostic byte parity
+ok 109 - frozen nonfailure stdout profile N16, not native diagnostic byte parity
+  ---
+  duration_ms: 2.724167
+  type: 'test'
+  ...
+# Subtest: D01 exact temporary prefix restoration deliberately differs from native N04
+ok 110 - D01 exact temporary prefix restoration deliberately differs from native N04
+  ---
+  duration_ms: 1.860375
+  type: 'test'
+  ...
+# Subtest: N05 correction retains function-entry snapshot and repeated local reset
+ok 111 - N05 correction retains function-entry snapshot and repeated local reset
+  ---
+  duration_ms: 6.214584
+  type: 'test'
+  ...
+# Subtest: successful origin synchronizes after store: OPTIND=1
+ok 112 - successful origin synchronizes after store: OPTIND=1
+  ---
+  duration_ms: 0.750542
+  type: 'test'
+  ...
+# Subtest: successful origin synchronizes after store: OPTIND=$OPTIND
+ok 113 - successful origin synchronizes after store: OPTIND=$OPTIND
+  ---
+  duration_ms: 0.641625
+  type: 'test'
+  ...
+# Subtest: successful origin synchronizes after store: export OPTIND=1
+ok 114 - successful origin synchronizes after store: export OPTIND=1
+  ---
+  duration_ms: 0.552208
+  type: 'test'
+  ...
+# Subtest: successful origin synchronizes after store: readonly OPTIND=1
+ok 115 - successful origin synchronizes after store: readonly OPTIND=1
+  ---
+  duration_ms: 1.063459
+  type: 'test'
+  ...
+# Subtest: successful origin synchronizes after store: read OPTIND <<< 1
+ok 116 - successful origin synchronizes after store: read OPTIND <<< 1
+  ---
+  duration_ms: 0.788083
+  type: 'test'
+  ...
+# Subtest: successful origin synchronizes after store: read -r OPTIND <<< 1
+ok 117 - successful origin synchronizes after store: read -r OPTIND <<< 1
+  ---
+  duration_ms: 0.64775
+  type: 'test'
+  ...
+# Subtest: successful origin synchronizes after store: for OPTIND in 1; do :; done
+ok 118 - successful origin synchronizes after store: for OPTIND in 1; do :; done
+  ---
+  duration_ms: 0.751875
+  type: 'test'
+  ...
+# Subtest: successful origin synchronizes after store: ((OPTIND=1))
+ok 119 - successful origin synchronizes after store: ((OPTIND=1))
+  ---
+  duration_ms: 0.840583
+  type: 'test'
+  ...
+# Subtest: successful origin synchronizes after store: : $((OPTIND=1))
+ok 120 - successful origin synchronizes after store: : $((OPTIND=1))
+  ---
+  duration_ms: 1.247834
+  type: 'test'
+  ...
+# Subtest: successful origin synchronizes after store: unset OPTIND; : "${OPTIND:=1}"
+ok 121 - successful origin synchronizes after store: unset OPTIND; : "${OPTIND:=1}"
+  ---
+  duration_ms: 0.942
+  type: 'test'
+  ...
+# Subtest: successful EOF read store resets even though read returns one
+ok 122 - successful EOF read store resets even though read returns one
+  ---
+  duration_ms: 1.655333
+  type: 'test'
+  ...
+# Subtest: scalar integer binding is fresh, lost by unset/local, and restored afterward
+ok 123 - scalar integer binding is fresh, lost by unset/local, and restored afterward
+  ---
+  duration_ms: 2.264208
+  type: 'test'
+  ...
+# Subtest: integer index profile 0
+ok 124 - integer index profile 0
+  ---
+  duration_ms: 0.869625
+  type: 'test'
+  ...
+# Subtest: integer index profile -1
+ok 125 - integer index profile -1
+  ---
+  duration_ms: 5.07925
+  type: 'test'
+  ...
+# Subtest: integer index profile 0x2
+ok 126 - integer index profile 0x2
+  ---
+  duration_ms: 0.81575
+  type: 'test'
+  ...
+# Subtest: integer index profile 4294967297
+ok 127 - integer index profile 4294967297
+  ---
+  duration_ms: 0.94375
+  type: 'test'
+  ...
+# Subtest: integer index profile 99
+ok 128 - integer index profile 99
+  ---
+  duration_ms: 0.987916
+  type: 'test'
+  ...
+# Subtest: invalid octal assignment is fatal without inventing a general declare builtin
+ok 129 - invalid octal assignment is fatal without inventing a general declare builtin
+  ---
+  duration_ms: 1.00975
+  type: 'test'
+  ...
+# Subtest: fresh defaults preserve inherited export bits while clones do not initialize
+ok 130 - fresh defaults preserve inherited export bits while clones do not initialize
+  ---
+  duration_ms: 2.319416
+  type: 'test'
+  ...
+# Subtest: registry collision, functions and command bypass retain regular builtin discovery
+ok 131 - registry collision, functions and command bypass retain regular builtin discovery
+  ---
+  duration_ms: 1.653583
+  type: 'test'
+  ...
+# Subtest: groups/source/eval share state while pipelines, substitutions and subshells clone
+ok 132 - groups/source/eval share state while pipelines, substitutions and subshells clone
+  ---
+  duration_ms: 2.559042
+  type: 'test'
+  ...
+# Subtest: prefix function redirection scratch and substitution installation isolate metadata
+ok 133 - prefix function redirection scratch and substitution installation isolate metadata
+  ---
+  duration_ms: 1.676417
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=false, failure=false
+ok 134 - early downstream closure drains both owners; pipefail=false, failure=false
+  ---
+  duration_ms: 39.545208
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=false, failure=true
+ok 135 - early downstream closure drains both owners; pipefail=false, failure=true
+  ---
+  duration_ms: 36.059
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=true, failure=false
+ok 136 - early downstream closure drains both owners; pipefail=true, failure=false
+  ---
+  duration_ms: 37.502292
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=true, failure=true
+ok 137 - early downstream closure drains both owners; pipefail=true, failure=true
+  ---
+  duration_ms: 35.6385
+  type: 'test'
+  ...
+# Subtest: pipeline abort drains nested owners even when every handler remains opaque
+ok 138 - pipeline abort drains nested owners even when every handler remains opaque
+  ---
+  duration_ms: 18.656625
+  type: 'test'
+  ...
+# Subtest: opaque pending input and iterator return do not delay owned cleanup on cancel
+ok 139 - opaque pending input and iterator return do not delay owned cleanup on cancel
+  ---
+  duration_ms: 18.594875
+  type: 'test'
+  ...
+# Subtest: opaque sink rejection is observed without skipping cleanup or altering captured bytes
+ok 140 - opaque sink rejection is observed without skipping cleanup or altering captured bytes
+  ---
+  duration_ms: 33.489333
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows owned | pass
+ok 141 - registered cleanup follows owned | pass
+  ---
+  duration_ms: 18.609833
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows (owned)
+ok 142 - registered cleanup follows (owned)
+  ---
+  duration_ms: 16.47625
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows f() { owned; }; f
+ok 143 - registered cleanup follows f() { owned; }; f
+  ---
+  duration_ms: 15.519833
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows eval owned
+ok 144 - registered cleanup follows eval owned
+  ---
+  duration_ms: 16.853542
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows . /owned.sh
+ok 145 - registered cleanup follows . /owned.sh
+  ---
+  duration_ms: 18.314875
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows source /owned.sh
+ok 146 - registered cleanup follows source /owned.sh
+  ---
+  duration_ms: 16.301334
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows say $(owned)
+ok 147 - registered cleanup follows say $(owned)
+  ---
+  duration_ms: 16.906042
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows bash -c owned
+ok 148 - registered cleanup follows bash -c owned
+  ---
+  duration_ms: 17.017792
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows command owned
+ok 149 - registered cleanup follows command owned
+  ---
+  duration_ms: 17.62625
+  type: 'test'
+  ...
+# Subtest: pipeline output and shared output accounting preserve exact bytes after delayed drain
+ok 150 - pipeline output and shared output accounting preserve exact bytes after delayed drain
+  ---
+  duration_ms: 34.359792
+  type: 'test'
+  ...
+# Subtest: cleanup is registered before acquisition and delays normal public settlement
+ok 151 - cleanup is registered before acquisition and delays normal public settlement
+  ---
+  duration_ms: 6.156917
+  type: 'test'
+  ...
+# Subtest: caller cancellation drains middleware hooks without waiting opaque next
+ok 152 - caller cancellation drains middleware hooks without waiting opaque next
+  ---
+  duration_ms: 1.751291
+  type: 'test'
+  ...
+# Subtest: normal completion seals saved registration and invoke before input acquisition
+ok 153 - normal completion seals saved registration and invoke before input acquisition
+  ---
+  duration_ms: 1.043917
+  type: 'test'
+  ...
+# Subtest: all cleanup failures survive undefined and null without hiding nonzero results
+ok 154 - all cleanup failures survive undefined and null without hiding nonzero results
+  ---
+  duration_ms: 1.187917
+  type: 'test'
+  ...
+# Subtest: dispose closes admissions and shares the active cleanup barrier before plugins
+ok 155 - dispose closes admissions and shares the active cleanup barrier before plugins
+  ---
+  duration_ms: 2.993959
+  type: 'test'
+  ...
+# Subtest: synchronous cancellation observes already-rejected command promises
+ok 156 - synchronous cancellation observes already-rejected command promises
+  ---
+  duration_ms: 6.324041
+  type: 'test'
+  ...
+# Subtest: synchronous cancellation observes already-rejected input promises
+ok 157 - synchronous cancellation observes already-rejected input promises
+  ---
+  duration_ms: 2.420417
+  type: 'test'
+  ...
+# Subtest: blocked upstream reads require caller cancellation, not consumer completion
+ok 158 - blocked upstream reads require caller cancellation, not consumer completion
+  ---
+  duration_ms: 94.910917
+  type: 'test'
+  ...
+# Subtest: broken-pipe writes cancel signal-waiting upstream commands
+ok 159 - broken-pipe writes cancel signal-waiting upstream commands
+  ---
+  duration_ms: 4.160417
+  type: 'test'
+  ...
+# Subtest: redirected input resources close after partial, zero and failed consumption
+ok 160 - redirected input resources close after partial, zero and failed consumption
+  ---
+  duration_ms: 3.966209
+  type: 'test'
+  ...
+# Subtest: independent truncate descriptors maintain offsets, duplicated descriptors share them
+ok 161 - independent truncate descriptors maintain offsets, duplicated descriptors share them
+  ---
+  duration_ms: 4.450584
+  type: 'test'
+  ...
+# Subtest: redirection failure diagnostics honor descriptors already established
+ok 162 - redirection failure diagnostics honor descriptors already established
+  ---
+  duration_ms: 1.859333
+  type: 'test'
+  ...
+# Subtest: declarations preserve expanded whitespace and functions export prefix values
+ok 163 - declarations preserve expanded whitespace and functions export prefix values
+  ---
+  duration_ms: 2.630166
+  type: 'test'
+  ...
+# Subtest: builtins honor middleware cwd and environment overlays
+ok 164 - builtins honor middleware cwd and environment overlays
+  ---
+  duration_ms: 1.259333
+  type: 'test'
+  ...
+# Subtest: read and repeated commands share one non-replayable stdin offset
+ok 165 - read and repeated commands share one non-replayable stdin offset
+  ---
+  duration_ms: 4.030542
+  type: 'test'
+  ...
+# Subtest: syntax validation does not even initialize inherited input
+ok 166 - syntax validation does not even initialize inherited input
+  ---
+  duration_ms: 0.241125
+  type: 'test'
+  ...
+# Subtest: arithmetic stays bounded and handles short circuit, updates and overflow
+ok 167 - arithmetic stays bounded and handles short circuit, updates and overflow
+  ---
+  duration_ms: 2.080917
+  type: 'test'
+  ...
+1..167
+# tests 167
+# suites 0
+# pass 167
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7371.513667

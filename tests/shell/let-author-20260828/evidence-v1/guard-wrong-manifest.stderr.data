@@ -1,0 +1,23 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ '0317ae5534b5f8c28c1283eb7d0e25183af065b7cea78caa35f4c873e7a7374a'
+- '0000000000000000000000000000000000000000000000000000000000000000'
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/load-hook.mjs:10:8
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:112:9) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: '0317ae5534b5f8c28c1283eb7d0e25183af065b7cea78caa35f4c873e7a7374a',
+  expected: '0000000000000000000000000000000000000000000000000000000000000000',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

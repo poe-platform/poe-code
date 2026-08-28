@@ -1,0 +1,5082 @@
+{
+  "schema": "let-author-run-v1",
+  "candidate": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+  "started": "2026-08-28T07:32:49.851Z",
+  "source": {
+    "receipt": {
+      "code": 1
+    },
+    "summary": {
+      "layout": "source",
+      "loaded": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/selected-source/dist/index.js",
+      "cases": 103,
+      "pass": 100,
+      "failed": [
+        "P39",
+        "P58",
+        "A23-child-drain"
+      ],
+      "createdShells": 103,
+      "disposedShells": 103,
+      "nativeExecutions": 0
+    },
+    "binding": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/evidence-v1/source.binding.json",
+    "observations": [
+      {
+        "id": "P01",
+        "detail": {
+          "result": {
+            "stdout": "let is a shell builtin\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P02",
+        "detail": {
+          "result": {
+            "stdout": "shadow\n6\n0:5\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P03",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P04",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P05",
+        "detail": {
+          "result": {
+            "stdout": "0:4\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P06",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P07",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: expression expected\n",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P08",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: expression expected\n",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P09",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P10",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P11",
+        "detail": {
+          "result": {
+            "stdout": "0:3\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P12",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: --help: unsupported option\n",
+            "exitCode": 2
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P13",
+        "detail": {
+          "result": {
+            "stdout": "0:2\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P14",
+        "detail": {
+          "result": {
+            "stdout": "0:2\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P15",
+        "detail": {
+          "result": {
+            "stdout": "0:2\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P16",
+        "detail": {
+          "result": {
+            "stdout": "1:4\n",
+            "stderr": "shell: line 1: let: =: arithmetic syntax error: operand expected (error token is \"=\")\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P17",
+        "detail": {
+          "result": {
+            "stdout": "0:8\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P18",
+        "detail": {
+          "result": {
+            "stdout": "9:2\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P19",
+        "detail": {
+          "result": {
+            "stdout": "2:4:10\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P20",
+        "detail": {
+          "result": {
+            "stdout": "15:2\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P21",
+        "detail": {
+          "result": {
+            "stdout": "1:7:0\n",
+            "stderr": "shell: line 1: let: 1+: arithmetic syntax error: operand expected (error token is \"+\")\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P22",
+        "detail": {
+          "result": {
+            "stdout": "1:0\n",
+            "stderr": "shell: line 1: let: (value=7),1+: arithmetic syntax error: operand expected (error token is \"+\")\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P23",
+        "detail": {
+          "result": {
+            "stdout": "1:6:0\n",
+            "stderr": "shell: line 1: let: (value=6),8/0: division by 0 (error token is \"0\")\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P24",
+        "detail": {
+          "result": {
+            "stdout": "1:4\n",
+            "stderr": "shell: line 1: let: (value=4),3%0: division by 0 (error token is \"0\")\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P25",
+        "detail": {
+          "result": {
+            "stdout": "0:5\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P26",
+        "detail": {
+          "result": {
+            "stdout": "1:0\n",
+            "stderr": "shell: line 1: let: (value=7),0 && (1+): arithmetic syntax error: operand expected (error token is \")\")\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P27",
+        "detail": {
+          "result": {
+            "stdout": "255:63:63:62:35\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P28",
+        "detail": {
+          "result": {
+            "stdout": "-9223372036854775808:-9223372036854775808:2:-4\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P29",
+        "detail": {
+          "result": {
+            "stdout": "4:512:-2:-1\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P30",
+        "detail": {
+          "result": {
+            "stdout": "12:1:14\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P31",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: value=08: arithmetic syntax error: operand expected (error token is \"8\")\n",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P32",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: value=2**-1: exponent less than 0 (error token is \"-1\")\n",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P33",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: Arithmetic variable recursion\n",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P34",
+        "detail": {
+          "result": {
+            "stdout": "8\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P35",
+        "detail": {
+          "result": {
+            "stdout": "1:2:6:0\n",
+            "stderr": "shell: line 1: let: locked: readonly variable\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P36",
+        "detail": {
+          "result": {
+            "stdout": "1:2\n1:2\n",
+            "stderr": "shell: line 1: let: locked: readonly variable\nshell: line 1: let: locked: readonly variable\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P37",
+        "detail": {
+          "result": {
+            "stdout": "a:1\na:1\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P38",
+        "detail": {
+          "result": {
+            "stdout": "b:2\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P39",
+        "detail": {
+          "result": {
+            "stdout": "?\nb\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": false,
+        "disposed": 1,
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n'?\\nb\\n' !== 'a\\nb\\n'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'?\\nb\\n' !== 'a\\nb\\n'\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:37:10)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+        },
+        "created": 1
+      },
+      {
+        "id": "P40",
+        "detail": {
+          "result": {
+            "stdout": "0:2:8\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P41",
+        "detail": {
+          "result": {
+            "stdout": "1:2:5\n",
+            "stderr": "shell: line 1: let: 1/0: division by 0 (error token is \"0\")\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P42",
+        "detail": {
+          "result": {
+            "stdout": "7\n10\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P43",
+        "detail": {
+          "result": {
+            "stdout": "8\n2\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P44",
+        "detail": {
+          "result": {
+            "stdout": "if-zero\nbefore\n",
+            "stderr": "",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P45",
+        "detail": {
+          "result": {
+            "stdout": "or\n1\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P46",
+        "detail": {
+          "result": {
+            "stdout": "7\n1\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P47",
+        "detail": {
+          "result": {
+            "stdout": "1:0\n",
+            "stderr": "shell: line 1: let: value=$(printf 9): arithmetic syntax error in expression (error token is \"$(printf 9)\")\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P48",
+        "detail": {
+          "result": {
+            "stdout": "0:9\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P49",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: items[0]=3: arithmetic syntax error in expression (error token is \"[0]=3\")\n",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P50",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: value=1.5: arithmetic syntax error in expression (error token is \".5\")\n",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P51",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: value=1;printf 9: arithmetic syntax error in expression (error token is \";printf 9\")\n",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P52",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P53",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P54",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P55",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P56",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P57",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P58",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "set: unsupported shell option; supported forms are -e, +e, -- arguments and -o/+o pipefail or errexit\n",
+            "exitCode": 2
+          }
+        },
+        "pass": false,
+        "disposed": 1,
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'set: unsupported shell option; supported forms are -e, +e, -- arguments and -o/+o pipefail or errexit\\n'\n- ''\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'set: unsupported shell option; supported forms are -e, +e, -- arguments and -o/+o pipefail or errexit\\n'\n- ''\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:37:51)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+        },
+        "created": 1
+      },
+      {
+        "id": "A01-registry",
+        "detail": {
+          "setup": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "result": {
+            "stdout": "let is a shell builtin\n",
+            "stderr": "",
+            "stdoutBytes": {
+              "0": 108,
+              "1": 101,
+              "2": 116,
+              "3": 32,
+              "4": 105,
+              "5": 115,
+              "6": 32,
+              "7": 97,
+              "8": 32,
+              "9": 115,
+              "10": 104,
+              "11": 101,
+              "12": 108,
+              "13": 108,
+              "14": 32,
+              "15": 98,
+              "16": 117,
+              "17": 105,
+              "18": 108,
+              "19": 116,
+              "20": 105,
+              "21": 110,
+              "22": 10
+            },
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "pluginCalls": 0,
+          "defaultNames": [
+            "[",
+            "awk",
+            "base32",
+            "base64",
+            "basename",
+            "cat",
+            "chmod",
+            "cksum",
+            "column",
+            "comm",
+            "cp",
+            "cut",
+            "date",
+            "diff",
+            "dirname",
+            "du",
+            "echo",
+            "egrep",
+            "env",
+            "expand",
+            "expr",
+            "false",
+            "fgrep",
+            "file",
+            "find",
+            "fold",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "html-to-markdown",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mktemp",
+            "mv",
+            "nl",
+            "od",
+            "paste",
+            "patch",
+            "printenv",
+            "printf",
+            "pwd",
+            "readlink",
+            "realpath",
+            "rev",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "seq",
+            "sha1sum",
+            "sha256sum",
+            "sleep",
+            "sort",
+            "split",
+            "stat",
+            "strings",
+            "tac",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "touch",
+            "tr",
+            "tree",
+            "true",
+            "unexpand",
+            "uniq",
+            "wc",
+            "which",
+            "xargs",
+            "xxd",
+            "zcat"
+          ]
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A02-stores",
+        "detail": {
+          "writes": [
+            [
+              "n",
+              "2",
+              "arithmetic"
+            ],
+            [
+              "n",
+              "3",
+              "arithmetic"
+            ],
+            [
+              "old",
+              "2",
+              "arithmetic"
+            ],
+            [
+              "n",
+              "6",
+              "arithmetic"
+            ]
+          ],
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A03-readonly-cursor",
+        "detail": {
+          "before": {
+            "cursor": {
+              "index": 1,
+              "active": {
+                "argument": 0,
+                "offset": 2
+              }
+            },
+            "integer": true
+          },
+          "after": {
+            "cursor": {
+              "index": 1,
+              "active": {
+                "argument": 0,
+                "offset": 2
+              }
+            },
+            "integer": true
+          },
+          "readonly": true,
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: OPTIND: readonly variable\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 79,
+              "21": 80,
+              "22": 84,
+              "23": 73,
+              "24": 78,
+              "25": 68,
+              "26": 58,
+              "27": 32,
+              "28": 114,
+              "29": 101,
+              "30": 97,
+              "31": 100,
+              "32": 111,
+              "33": 110,
+              "34": 108,
+              "35": 121,
+              "36": 32,
+              "37": 118,
+              "38": 97,
+              "39": 114,
+              "40": 105,
+              "41": 97,
+              "42": 98,
+              "43": 108,
+              "44": 101,
+              "45": 10
+            },
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A04-invoke-isolation",
+        "detail": {
+          "calls": [
+            {
+              "exitCode": 0
+            },
+            {
+              "exitCode": 1
+            }
+          ],
+          "result": {
+            "stdout": "2\n",
+            "stderr": "shell: line 1: let: value=$(printf 9): arithmetic syntax error in expression (error token is \"$(printf 9)\")\n",
+            "stdoutBytes": {
+              "0": 50,
+              "1": 10
+            },
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 118,
+              "21": 97,
+              "22": 108,
+              "23": 117,
+              "24": 101,
+              "25": 61,
+              "26": 36,
+              "27": 40,
+              "28": 112,
+              "29": 114,
+              "30": 105,
+              "31": 110,
+              "32": 116,
+              "33": 102,
+              "34": 32,
+              "35": 57,
+              "36": 41,
+              "37": 58,
+              "38": 32,
+              "39": 97,
+              "40": 114,
+              "41": 105,
+              "42": 116,
+              "43": 104,
+              "44": 109,
+              "45": 101,
+              "46": 116,
+              "47": 105,
+              "48": 99,
+              "49": 32,
+              "50": 115,
+              "51": 121,
+              "52": 110,
+              "53": 116,
+              "54": 97,
+              "55": 120,
+              "56": 32,
+              "57": 101,
+              "58": 114,
+              "59": 114,
+              "60": 111,
+              "61": 114,
+              "62": 32,
+              "63": 105,
+              "64": 110,
+              "65": 32,
+              "66": 101,
+              "67": 120,
+              "68": 112,
+              "69": 114,
+              "70": 101,
+              "71": 115,
+              "72": 115,
+              "73": 105,
+              "74": 111,
+              "75": 110,
+              "76": 32,
+              "77": 40,
+              "78": 101,
+              "79": 114,
+              "80": 114,
+              "81": 111,
+              "82": 114,
+              "83": 32,
+              "84": 116,
+              "85": 111,
+              "86": 107,
+              "87": 101,
+              "88": 110,
+              "89": 32,
+              "90": 105,
+              "91": 115,
+              "92": 32,
+              "93": 34,
+              "94": 36,
+              "95": 40,
+              "96": 112,
+              "97": 114,
+              "98": 105,
+              "99": 110,
+              "100": 116,
+              "101": 102,
+              "102": 32,
+              "103": 57,
+              "104": 41,
+              "105": 34,
+              "106": 41,
+              "107": 10
+            },
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A05-invoke-number",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "raw": {
+            "kind": "throw",
+            "name": "TypeError",
+            "message": "invoke requires a command and literal string arguments without NUL"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A05-invoke-nul",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "raw": {
+            "kind": "throw",
+            "name": "TypeError",
+            "message": "invoke requires a command and literal string arguments without NUL"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A05-invoke-nonarray",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "raw": {
+            "kind": "throw",
+            "name": "TypeError",
+            "message": "invoke requires a command and literal string arguments without NUL"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A06-commands",
+        "detail": {
+          "outcome": {
+            "kind": "throw",
+            "name": "ShellLimitError",
+            "limit": "maxCommands"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A06-source",
+        "detail": {
+          "outcome": {
+            "kind": "throw",
+            "name": "ShellLimitError",
+            "limit": "maxSourceBytes"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A06-fields",
+        "detail": {
+          "outcome": {
+            "kind": "throw",
+            "name": "ShellLimitError",
+            "limit": "maxExpansionFields"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A06-diagnostic-output",
+        "detail": {
+          "outcome": {
+            "kind": "throw",
+            "name": "ShellLimitError",
+            "limit": "maxOutputBytes"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A07-shared-child-budget",
+        "detail": {
+          "first": {
+            "exitCode": 0
+          },
+          "outcome": {
+            "kind": "throw",
+            "name": "ShellLimitError",
+            "limit": "maxCommands"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A08-forward-fields",
+        "detail": {
+          "outcome": {
+            "kind": "throw",
+            "name": "ShellLimitError",
+            "limit": "maxExpansionFields"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A09-forward-bytes",
+        "detail": {
+          "outcome": {
+            "kind": "throw",
+            "name": "ShellLimitError",
+            "limit": "maxExpansionBytes"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A10-per-operand",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A11-forward-number",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: arguments must be strings without NUL\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 97,
+              "21": 114,
+              "22": 103,
+              "23": 117,
+              "24": 109,
+              "25": 101,
+              "26": 110,
+              "27": 116,
+              "28": 115,
+              "29": 32,
+              "30": 109,
+              "31": 117,
+              "32": 115,
+              "33": 116,
+              "34": 32,
+              "35": 98,
+              "36": 101,
+              "37": 32,
+              "38": 115,
+              "39": 116,
+              "40": 114,
+              "41": 105,
+              "42": 110,
+              "43": 103,
+              "44": 115,
+              "45": 32,
+              "46": 119,
+              "47": 105,
+              "48": 116,
+              "49": 104,
+              "50": 111,
+              "51": 117,
+              "52": 116,
+              "53": 32,
+              "54": 78,
+              "55": 85,
+              "56": 76,
+              "57": 10
+            },
+            "exitCode": 2
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A11-forward-nul",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: arguments must be strings without NUL\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 97,
+              "21": 114,
+              "22": 103,
+              "23": 117,
+              "24": 109,
+              "25": 101,
+              "26": 110,
+              "27": 116,
+              "28": 115,
+              "29": 32,
+              "30": 109,
+              "31": 117,
+              "32": 115,
+              "33": 116,
+              "34": 32,
+              "35": 98,
+              "36": 101,
+              "37": 32,
+              "38": 115,
+              "39": 116,
+              "40": 114,
+              "41": 105,
+              "42": 110,
+              "43": 103,
+              "44": 115,
+              "45": 32,
+              "46": 119,
+              "47": 105,
+              "48": 116,
+              "49": 104,
+              "50": 111,
+              "51": 117,
+              "52": 116,
+              "53": 32,
+              "54": 78,
+              "55": 85,
+              "56": 76,
+              "57": 10
+            },
+            "exitCode": 2
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A11-forward-nonarray",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: argument array required\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 97,
+              "21": 114,
+              "22": 103,
+              "23": 117,
+              "24": 109,
+              "25": 101,
+              "26": 110,
+              "27": 116,
+              "28": 32,
+              "29": 97,
+              "30": 114,
+              "31": 114,
+              "32": 97,
+              "33": 121,
+              "34": 32,
+              "35": 114,
+              "36": 101,
+              "37": 113,
+              "38": 117,
+              "39": 105,
+              "40": 114,
+              "41": 101,
+              "42": 100,
+              "43": 10
+            },
+            "exitCode": 2
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A12-recursive-negative",
+        "detail": {
+          "outcome": {
+            "kind": "throw",
+            "name": "ShellLimitError",
+            "limit": "maxExpansionBytes"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A12-recursive-positive",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A13-recursion-64",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A13-recursion-65",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: Arithmetic variable recursion\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 65,
+              "21": 114,
+              "22": 105,
+              "23": 116,
+              "24": 104,
+              "25": 109,
+              "26": 101,
+              "27": 116,
+              "28": 105,
+              "29": 99,
+              "30": 32,
+              "31": 118,
+              "32": 97,
+              "33": 114,
+              "34": 105,
+              "35": 97,
+              "36": 98,
+              "37": 108,
+              "38": 101,
+              "39": 32,
+              "40": 114,
+              "41": 101,
+              "42": 99,
+              "43": 117,
+              "44": 114,
+              "45": 115,
+              "46": 105,
+              "47": 111,
+              "48": 110,
+              "49": 10
+            },
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A14-steps-11",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A14-steps-12",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: Arithmetic operation limit exceeded\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 65,
+              "21": 114,
+              "22": 105,
+              "23": 116,
+              "24": 104,
+              "25": 109,
+              "26": 101,
+              "27": 116,
+              "28": 105,
+              "29": 99,
+              "30": 32,
+              "31": 111,
+              "32": 112,
+              "33": 101,
+              "34": 114,
+              "35": 97,
+              "36": 116,
+              "37": 105,
+              "38": 111,
+              "39": 110,
+              "40": 32,
+              "41": 108,
+              "42": 105,
+              "43": 109,
+              "44": 105,
+              "45": 116,
+              "46": 32,
+              "47": 101,
+              "48": 120,
+              "49": 99,
+              "50": 101,
+              "51": 101,
+              "52": 100,
+              "53": 101,
+              "54": 100,
+              "55": 10
+            },
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A15-structural-63",
+        "detail": {
+          "result": {
+            "stdout": "decoy",
+            "stderr": "",
+            "stdoutBytes": {
+              "0": 100,
+              "1": 101,
+              "2": 99,
+              "3": 111,
+              "4": 121
+            },
+            "stderrBytes": {},
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A15-structural-64",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: Arithmetic nesting exceeds 64 at offset 64\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 65,
+              "8": 114,
+              "9": 105,
+              "10": 116,
+              "11": 104,
+              "12": 109,
+              "13": 101,
+              "14": 116,
+              "15": 105,
+              "16": 99,
+              "17": 32,
+              "18": 110,
+              "19": 101,
+              "20": 115,
+              "21": 116,
+              "22": 105,
+              "23": 110,
+              "24": 103,
+              "25": 32,
+              "26": 101,
+              "27": 120,
+              "28": 99,
+              "29": 101,
+              "30": 101,
+              "31": 100,
+              "32": 115,
+              "33": 32,
+              "34": 54,
+              "35": 52,
+              "36": 32,
+              "37": 97,
+              "38": 116,
+              "39": 32,
+              "40": 111,
+              "41": 102,
+              "42": 102,
+              "43": 115,
+              "44": 101,
+              "45": 116,
+              "46": 32,
+              "47": 54,
+              "48": 52,
+              "49": 10
+            },
+            "exitCode": 2
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A16-preabort-object",
+        "detail": {
+          "kind": "throw",
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A16-preabort-fs",
+        "detail": {
+          "kind": "throw",
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A16-preabort-null",
+        "detail": {
+          "kind": "throw",
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A16-preabort-false",
+        "detail": {
+          "kind": "throw",
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A16-preabort-zero",
+        "detail": {
+          "kind": "throw",
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A16-preabort-empty",
+        "detail": {
+          "kind": "throw",
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A16-preabort-symbol",
+        "detail": {
+          "kind": "throw",
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A17-checkpoint-1",
+        "detail": {
+          "scheduled": 1,
+          "kind": "throw",
+          "identity": true,
+          "state": {
+            "count": "0",
+            "value": "2"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A17-checkpoint-2",
+        "detail": {
+          "scheduled": 2,
+          "kind": "throw",
+          "identity": true,
+          "state": {
+            "count": "128",
+            "value": "2"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A18-caller-cleanup-priority",
+        "detail": {
+          "events": [
+            "abort",
+            "throw",
+            "cleanup"
+          ],
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A19-raw-boundary-false",
+        "detail": {
+          "rawIdentity": true,
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A19-raw-boundary-true",
+        "detail": {
+          "rawIdentity": true,
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: same-marker\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 115,
+              "16": 97,
+              "17": 109,
+              "18": 101,
+              "19": 45,
+              "20": 109,
+              "21": 97,
+              "22": 114,
+              "23": 107,
+              "24": 101,
+              "25": 114,
+              "26": 10
+            },
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A20-diagnostic-backpressure",
+        "detail": {
+          "pendingBeforeRelease": true,
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: 1/0: division by 0 (error token is \"0\")\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 49,
+              "21": 47,
+              "22": 48,
+              "23": 58,
+              "24": 32,
+              "25": 100,
+              "26": 105,
+              "27": 118,
+              "28": 105,
+              "29": 115,
+              "30": 105,
+              "31": 111,
+              "32": 110,
+              "33": 32,
+              "34": 98,
+              "35": 121,
+              "36": 32,
+              "37": 48,
+              "38": 32,
+              "39": 40,
+              "40": 101,
+              "41": 114,
+              "42": 114,
+              "43": 111,
+              "44": 114,
+              "45": 32,
+              "46": 116,
+              "47": 111,
+              "48": 107,
+              "49": 101,
+              "50": 110,
+              "51": 32,
+              "52": 105,
+              "53": 115,
+              "54": 32,
+              "55": 34,
+              "56": 48,
+              "57": 34,
+              "58": 41,
+              "59": 10
+            },
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A21-owned-cleanup",
+        "detail": {
+          "pendingBeforeRelease": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A22-cleanup-rejection",
+        "detail": {
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A23-child-drain",
+        "detail": {
+          "pendingBeforeRelease": true,
+          "child": {
+            "kind": "throw",
+            "reason": {}
+          },
+          "root": {
+            "kind": "return",
+            "value": {
+              "stdout": "",
+              "stderr": "",
+              "stdoutBytes": {},
+              "stderrBytes": {},
+              "exitCode": 0
+            }
+          }
+        },
+        "pass": false,
+        "disposed": 1,
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n'throw' !== 'return'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'throw' !== 'return'\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:210:224)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+        },
+        "created": 1
+      },
+      {
+        "id": "A24-stdin-let 1",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "counts": {
+            "acquire": 1,
+            "next": 0,
+            "returned": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A24-stdin-let 1/0",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: 1/0: division by 0 (error token is \"0\")\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 49,
+              "21": 47,
+              "22": 48,
+              "23": 58,
+              "24": 32,
+              "25": 100,
+              "26": 105,
+              "27": 118,
+              "28": 105,
+              "29": 115,
+              "30": 105,
+              "31": 111,
+              "32": 110,
+              "33": 32,
+              "34": 98,
+              "35": 121,
+              "36": 32,
+              "37": 48,
+              "38": 32,
+              "39": 40,
+              "40": 101,
+              "41": 114,
+              "42": 114,
+              "43": 111,
+              "44": 114,
+              "45": 32,
+              "46": 116,
+              "47": 111,
+              "48": 107,
+              "49": 101,
+              "50": 110,
+              "51": 32,
+              "52": 105,
+              "53": 115,
+              "54": 32,
+              "55": 34,
+              "56": 48,
+              "57": 34,
+              "58": 41,
+              "59": 10
+            },
+            "exitCode": 1
+          },
+          "counts": {
+            "acquire": 1,
+            "next": 0,
+            "returned": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A25-pipe",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      }
+    ],
+    "loadCount": 208
+  },
+  "moved": {
+    "receipt": {
+      "code": 1
+    },
+    "summary": {
+      "layout": "moved",
+      "loaded": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/consumer-moved/node_modules/virtual-bash/dist/index.js",
+      "cases": 103,
+      "pass": 100,
+      "failed": [
+        "P39",
+        "P58",
+        "A23-child-drain"
+      ],
+      "createdShells": 103,
+      "disposedShells": 103,
+      "nativeExecutions": 0
+    },
+    "binding": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/evidence-v1/moved.binding.json",
+    "observations": [
+      {
+        "id": "P01",
+        "detail": {
+          "result": {
+            "stdout": "let is a shell builtin\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P02",
+        "detail": {
+          "result": {
+            "stdout": "shadow\n6\n0:5\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P03",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P04",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P05",
+        "detail": {
+          "result": {
+            "stdout": "0:4\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P06",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P07",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: expression expected\n",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P08",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: expression expected\n",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P09",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P10",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P11",
+        "detail": {
+          "result": {
+            "stdout": "0:3\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P12",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: --help: unsupported option\n",
+            "exitCode": 2
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P13",
+        "detail": {
+          "result": {
+            "stdout": "0:2\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P14",
+        "detail": {
+          "result": {
+            "stdout": "0:2\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P15",
+        "detail": {
+          "result": {
+            "stdout": "0:2\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P16",
+        "detail": {
+          "result": {
+            "stdout": "1:4\n",
+            "stderr": "shell: line 1: let: =: arithmetic syntax error: operand expected (error token is \"=\")\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P17",
+        "detail": {
+          "result": {
+            "stdout": "0:8\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P18",
+        "detail": {
+          "result": {
+            "stdout": "9:2\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P19",
+        "detail": {
+          "result": {
+            "stdout": "2:4:10\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P20",
+        "detail": {
+          "result": {
+            "stdout": "15:2\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P21",
+        "detail": {
+          "result": {
+            "stdout": "1:7:0\n",
+            "stderr": "shell: line 1: let: 1+: arithmetic syntax error: operand expected (error token is \"+\")\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P22",
+        "detail": {
+          "result": {
+            "stdout": "1:0\n",
+            "stderr": "shell: line 1: let: (value=7),1+: arithmetic syntax error: operand expected (error token is \"+\")\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P23",
+        "detail": {
+          "result": {
+            "stdout": "1:6:0\n",
+            "stderr": "shell: line 1: let: (value=6),8/0: division by 0 (error token is \"0\")\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P24",
+        "detail": {
+          "result": {
+            "stdout": "1:4\n",
+            "stderr": "shell: line 1: let: (value=4),3%0: division by 0 (error token is \"0\")\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P25",
+        "detail": {
+          "result": {
+            "stdout": "0:5\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P26",
+        "detail": {
+          "result": {
+            "stdout": "1:0\n",
+            "stderr": "shell: line 1: let: (value=7),0 && (1+): arithmetic syntax error: operand expected (error token is \")\")\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P27",
+        "detail": {
+          "result": {
+            "stdout": "255:63:63:62:35\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P28",
+        "detail": {
+          "result": {
+            "stdout": "-9223372036854775808:-9223372036854775808:2:-4\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P29",
+        "detail": {
+          "result": {
+            "stdout": "4:512:-2:-1\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P30",
+        "detail": {
+          "result": {
+            "stdout": "12:1:14\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P31",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: value=08: arithmetic syntax error: operand expected (error token is \"8\")\n",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P32",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: value=2**-1: exponent less than 0 (error token is \"-1\")\n",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P33",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: Arithmetic variable recursion\n",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P34",
+        "detail": {
+          "result": {
+            "stdout": "8\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P35",
+        "detail": {
+          "result": {
+            "stdout": "1:2:6:0\n",
+            "stderr": "shell: line 1: let: locked: readonly variable\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P36",
+        "detail": {
+          "result": {
+            "stdout": "1:2\n1:2\n",
+            "stderr": "shell: line 1: let: locked: readonly variable\nshell: line 1: let: locked: readonly variable\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P37",
+        "detail": {
+          "result": {
+            "stdout": "a:1\na:1\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P38",
+        "detail": {
+          "result": {
+            "stdout": "b:2\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P39",
+        "detail": {
+          "result": {
+            "stdout": "?\nb\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": false,
+        "disposed": 1,
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n'?\\nb\\n' !== 'a\\nb\\n'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'?\\nb\\n' !== 'a\\nb\\n'\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/consumer-moved/checks.mjs:37:10)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/consumer-moved/checks.mjs:225:9"
+        },
+        "created": 1
+      },
+      {
+        "id": "P40",
+        "detail": {
+          "result": {
+            "stdout": "0:2:8\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P41",
+        "detail": {
+          "result": {
+            "stdout": "1:2:5\n",
+            "stderr": "shell: line 1: let: 1/0: division by 0 (error token is \"0\")\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P42",
+        "detail": {
+          "result": {
+            "stdout": "7\n10\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P43",
+        "detail": {
+          "result": {
+            "stdout": "8\n2\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P44",
+        "detail": {
+          "result": {
+            "stdout": "if-zero\nbefore\n",
+            "stderr": "",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P45",
+        "detail": {
+          "result": {
+            "stdout": "or\n1\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P46",
+        "detail": {
+          "result": {
+            "stdout": "7\n1\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P47",
+        "detail": {
+          "result": {
+            "stdout": "1:0\n",
+            "stderr": "shell: line 1: let: value=$(printf 9): arithmetic syntax error in expression (error token is \"$(printf 9)\")\n",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P48",
+        "detail": {
+          "result": {
+            "stdout": "0:9\n",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P49",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: items[0]=3: arithmetic syntax error in expression (error token is \"[0]=3\")\n",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P50",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: value=1.5: arithmetic syntax error in expression (error token is \".5\")\n",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P51",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: value=1;printf 9: arithmetic syntax error in expression (error token is \";printf 9\")\n",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P52",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P53",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P54",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P55",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P56",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P57",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "P58",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "set: unsupported shell option; supported forms are -e, +e, -- arguments and -o/+o pipefail or errexit\n",
+            "exitCode": 2
+          }
+        },
+        "pass": false,
+        "disposed": 1,
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'set: unsupported shell option; supported forms are -e, +e, -- arguments and -o/+o pipefail or errexit\\n'\n- ''\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'set: unsupported shell option; supported forms are -e, +e, -- arguments and -o/+o pipefail or errexit\\n'\n- ''\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/consumer-moved/checks.mjs:37:51)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/consumer-moved/checks.mjs:225:9"
+        },
+        "created": 1
+      },
+      {
+        "id": "A01-registry",
+        "detail": {
+          "setup": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "result": {
+            "stdout": "let is a shell builtin\n",
+            "stderr": "",
+            "stdoutBytes": {
+              "0": 108,
+              "1": 101,
+              "2": 116,
+              "3": 32,
+              "4": 105,
+              "5": 115,
+              "6": 32,
+              "7": 97,
+              "8": 32,
+              "9": 115,
+              "10": 104,
+              "11": 101,
+              "12": 108,
+              "13": 108,
+              "14": 32,
+              "15": 98,
+              "16": 117,
+              "17": 105,
+              "18": 108,
+              "19": 116,
+              "20": 105,
+              "21": 110,
+              "22": 10
+            },
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "pluginCalls": 0,
+          "defaultNames": [
+            "[",
+            "awk",
+            "base32",
+            "base64",
+            "basename",
+            "cat",
+            "chmod",
+            "cksum",
+            "column",
+            "comm",
+            "cp",
+            "cut",
+            "date",
+            "diff",
+            "dirname",
+            "du",
+            "echo",
+            "egrep",
+            "env",
+            "expand",
+            "expr",
+            "false",
+            "fgrep",
+            "file",
+            "find",
+            "fold",
+            "grep",
+            "gunzip",
+            "gzip",
+            "head",
+            "html-to-markdown",
+            "join",
+            "jq",
+            "ln",
+            "ls",
+            "md5sum",
+            "mkdir",
+            "mktemp",
+            "mv",
+            "nl",
+            "od",
+            "paste",
+            "patch",
+            "printenv",
+            "printf",
+            "pwd",
+            "readlink",
+            "realpath",
+            "rev",
+            "rg",
+            "rm",
+            "rmdir",
+            "sed",
+            "seq",
+            "sha1sum",
+            "sha256sum",
+            "sleep",
+            "sort",
+            "split",
+            "stat",
+            "strings",
+            "tac",
+            "tail",
+            "tar",
+            "tee",
+            "test",
+            "touch",
+            "tr",
+            "tree",
+            "true",
+            "unexpand",
+            "uniq",
+            "wc",
+            "which",
+            "xargs",
+            "xxd",
+            "zcat"
+          ]
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A02-stores",
+        "detail": {
+          "writes": [
+            [
+              "n",
+              "2",
+              "arithmetic"
+            ],
+            [
+              "n",
+              "3",
+              "arithmetic"
+            ],
+            [
+              "old",
+              "2",
+              "arithmetic"
+            ],
+            [
+              "n",
+              "6",
+              "arithmetic"
+            ]
+          ],
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A03-readonly-cursor",
+        "detail": {
+          "before": {
+            "cursor": {
+              "index": 1,
+              "active": {
+                "argument": 0,
+                "offset": 2
+              }
+            },
+            "integer": true
+          },
+          "after": {
+            "cursor": {
+              "index": 1,
+              "active": {
+                "argument": 0,
+                "offset": 2
+              }
+            },
+            "integer": true
+          },
+          "readonly": true,
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: OPTIND: readonly variable\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 79,
+              "21": 80,
+              "22": 84,
+              "23": 73,
+              "24": 78,
+              "25": 68,
+              "26": 58,
+              "27": 32,
+              "28": 114,
+              "29": 101,
+              "30": 97,
+              "31": 100,
+              "32": 111,
+              "33": 110,
+              "34": 108,
+              "35": 121,
+              "36": 32,
+              "37": 118,
+              "38": 97,
+              "39": 114,
+              "40": 105,
+              "41": 97,
+              "42": 98,
+              "43": 108,
+              "44": 101,
+              "45": 10
+            },
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A04-invoke-isolation",
+        "detail": {
+          "calls": [
+            {
+              "exitCode": 0
+            },
+            {
+              "exitCode": 1
+            }
+          ],
+          "result": {
+            "stdout": "2\n",
+            "stderr": "shell: line 1: let: value=$(printf 9): arithmetic syntax error in expression (error token is \"$(printf 9)\")\n",
+            "stdoutBytes": {
+              "0": 50,
+              "1": 10
+            },
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 118,
+              "21": 97,
+              "22": 108,
+              "23": 117,
+              "24": 101,
+              "25": 61,
+              "26": 36,
+              "27": 40,
+              "28": 112,
+              "29": 114,
+              "30": 105,
+              "31": 110,
+              "32": 116,
+              "33": 102,
+              "34": 32,
+              "35": 57,
+              "36": 41,
+              "37": 58,
+              "38": 32,
+              "39": 97,
+              "40": 114,
+              "41": 105,
+              "42": 116,
+              "43": 104,
+              "44": 109,
+              "45": 101,
+              "46": 116,
+              "47": 105,
+              "48": 99,
+              "49": 32,
+              "50": 115,
+              "51": 121,
+              "52": 110,
+              "53": 116,
+              "54": 97,
+              "55": 120,
+              "56": 32,
+              "57": 101,
+              "58": 114,
+              "59": 114,
+              "60": 111,
+              "61": 114,
+              "62": 32,
+              "63": 105,
+              "64": 110,
+              "65": 32,
+              "66": 101,
+              "67": 120,
+              "68": 112,
+              "69": 114,
+              "70": 101,
+              "71": 115,
+              "72": 115,
+              "73": 105,
+              "74": 111,
+              "75": 110,
+              "76": 32,
+              "77": 40,
+              "78": 101,
+              "79": 114,
+              "80": 114,
+              "81": 111,
+              "82": 114,
+              "83": 32,
+              "84": 116,
+              "85": 111,
+              "86": 107,
+              "87": 101,
+              "88": 110,
+              "89": 32,
+              "90": 105,
+              "91": 115,
+              "92": 32,
+              "93": 34,
+              "94": 36,
+              "95": 40,
+              "96": 112,
+              "97": 114,
+              "98": 105,
+              "99": 110,
+              "100": 116,
+              "101": 102,
+              "102": 32,
+              "103": 57,
+              "104": 41,
+              "105": 34,
+              "106": 41,
+              "107": 10
+            },
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A05-invoke-number",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "raw": {
+            "kind": "throw",
+            "name": "TypeError",
+            "message": "invoke requires a command and literal string arguments without NUL"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A05-invoke-nul",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "raw": {
+            "kind": "throw",
+            "name": "TypeError",
+            "message": "invoke requires a command and literal string arguments without NUL"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A05-invoke-nonarray",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "raw": {
+            "kind": "throw",
+            "name": "TypeError",
+            "message": "invoke requires a command and literal string arguments without NUL"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A06-commands",
+        "detail": {
+          "outcome": {
+            "kind": "throw",
+            "name": "ShellLimitError",
+            "limit": "maxCommands"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A06-source",
+        "detail": {
+          "outcome": {
+            "kind": "throw",
+            "name": "ShellLimitError",
+            "limit": "maxSourceBytes"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A06-fields",
+        "detail": {
+          "outcome": {
+            "kind": "throw",
+            "name": "ShellLimitError",
+            "limit": "maxExpansionFields"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A06-diagnostic-output",
+        "detail": {
+          "outcome": {
+            "kind": "throw",
+            "name": "ShellLimitError",
+            "limit": "maxOutputBytes"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A07-shared-child-budget",
+        "detail": {
+          "first": {
+            "exitCode": 0
+          },
+          "outcome": {
+            "kind": "throw",
+            "name": "ShellLimitError",
+            "limit": "maxCommands"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A08-forward-fields",
+        "detail": {
+          "outcome": {
+            "kind": "throw",
+            "name": "ShellLimitError",
+            "limit": "maxExpansionFields"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A09-forward-bytes",
+        "detail": {
+          "outcome": {
+            "kind": "throw",
+            "name": "ShellLimitError",
+            "limit": "maxExpansionBytes"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A10-per-operand",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A11-forward-number",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: arguments must be strings without NUL\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 97,
+              "21": 114,
+              "22": 103,
+              "23": 117,
+              "24": 109,
+              "25": 101,
+              "26": 110,
+              "27": 116,
+              "28": 115,
+              "29": 32,
+              "30": 109,
+              "31": 117,
+              "32": 115,
+              "33": 116,
+              "34": 32,
+              "35": 98,
+              "36": 101,
+              "37": 32,
+              "38": 115,
+              "39": 116,
+              "40": 114,
+              "41": 105,
+              "42": 110,
+              "43": 103,
+              "44": 115,
+              "45": 32,
+              "46": 119,
+              "47": 105,
+              "48": 116,
+              "49": 104,
+              "50": 111,
+              "51": 117,
+              "52": 116,
+              "53": 32,
+              "54": 78,
+              "55": 85,
+              "56": 76,
+              "57": 10
+            },
+            "exitCode": 2
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A11-forward-nul",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: arguments must be strings without NUL\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 97,
+              "21": 114,
+              "22": 103,
+              "23": 117,
+              "24": 109,
+              "25": 101,
+              "26": 110,
+              "27": 116,
+              "28": 115,
+              "29": 32,
+              "30": 109,
+              "31": 117,
+              "32": 115,
+              "33": 116,
+              "34": 32,
+              "35": 98,
+              "36": 101,
+              "37": 32,
+              "38": 115,
+              "39": 116,
+              "40": 114,
+              "41": 105,
+              "42": 110,
+              "43": 103,
+              "44": 115,
+              "45": 32,
+              "46": 119,
+              "47": 105,
+              "48": 116,
+              "49": 104,
+              "50": 111,
+              "51": 117,
+              "52": 116,
+              "53": 32,
+              "54": 78,
+              "55": 85,
+              "56": 76,
+              "57": 10
+            },
+            "exitCode": 2
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A11-forward-nonarray",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: argument array required\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 97,
+              "21": 114,
+              "22": 103,
+              "23": 117,
+              "24": 109,
+              "25": 101,
+              "26": 110,
+              "27": 116,
+              "28": 32,
+              "29": 97,
+              "30": 114,
+              "31": 114,
+              "32": 97,
+              "33": 121,
+              "34": 32,
+              "35": 114,
+              "36": 101,
+              "37": 113,
+              "38": 117,
+              "39": 105,
+              "40": 114,
+              "41": 101,
+              "42": 100,
+              "43": 10
+            },
+            "exitCode": 2
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A12-recursive-negative",
+        "detail": {
+          "outcome": {
+            "kind": "throw",
+            "name": "ShellLimitError",
+            "limit": "maxExpansionBytes"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A12-recursive-positive",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A13-recursion-64",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A13-recursion-65",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: Arithmetic variable recursion\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 65,
+              "21": 114,
+              "22": 105,
+              "23": 116,
+              "24": 104,
+              "25": 109,
+              "26": 101,
+              "27": 116,
+              "28": 105,
+              "29": 99,
+              "30": 32,
+              "31": 118,
+              "32": 97,
+              "33": 114,
+              "34": 105,
+              "35": 97,
+              "36": 98,
+              "37": 108,
+              "38": 101,
+              "39": 32,
+              "40": 114,
+              "41": 101,
+              "42": 99,
+              "43": 117,
+              "44": 114,
+              "45": 115,
+              "46": 105,
+              "47": 111,
+              "48": 110,
+              "49": 10
+            },
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A14-steps-11",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A14-steps-12",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: Arithmetic operation limit exceeded\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 65,
+              "21": 114,
+              "22": 105,
+              "23": 116,
+              "24": 104,
+              "25": 109,
+              "26": 101,
+              "27": 116,
+              "28": 105,
+              "29": 99,
+              "30": 32,
+              "31": 111,
+              "32": 112,
+              "33": 101,
+              "34": 114,
+              "35": 97,
+              "36": 116,
+              "37": 105,
+              "38": 111,
+              "39": 110,
+              "40": 32,
+              "41": 108,
+              "42": 105,
+              "43": 109,
+              "44": 105,
+              "45": 116,
+              "46": 32,
+              "47": 101,
+              "48": 120,
+              "49": 99,
+              "50": 101,
+              "51": 101,
+              "52": 100,
+              "53": 101,
+              "54": 100,
+              "55": 10
+            },
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A15-structural-63",
+        "detail": {
+          "result": {
+            "stdout": "decoy",
+            "stderr": "",
+            "stdoutBytes": {
+              "0": 100,
+              "1": 101,
+              "2": 99,
+              "3": 111,
+              "4": 121
+            },
+            "stderrBytes": {},
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A15-structural-64",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: Arithmetic nesting exceeds 64 at offset 64\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 65,
+              "8": 114,
+              "9": 105,
+              "10": 116,
+              "11": 104,
+              "12": 109,
+              "13": 101,
+              "14": 116,
+              "15": 105,
+              "16": 99,
+              "17": 32,
+              "18": 110,
+              "19": 101,
+              "20": 115,
+              "21": 116,
+              "22": 105,
+              "23": 110,
+              "24": 103,
+              "25": 32,
+              "26": 101,
+              "27": 120,
+              "28": 99,
+              "29": 101,
+              "30": 101,
+              "31": 100,
+              "32": 115,
+              "33": 32,
+              "34": 54,
+              "35": 52,
+              "36": 32,
+              "37": 97,
+              "38": 116,
+              "39": 32,
+              "40": 111,
+              "41": 102,
+              "42": 102,
+              "43": 115,
+              "44": 101,
+              "45": 116,
+              "46": 32,
+              "47": 54,
+              "48": 52,
+              "49": 10
+            },
+            "exitCode": 2
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A16-preabort-object",
+        "detail": {
+          "kind": "throw",
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A16-preabort-fs",
+        "detail": {
+          "kind": "throw",
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A16-preabort-null",
+        "detail": {
+          "kind": "throw",
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A16-preabort-false",
+        "detail": {
+          "kind": "throw",
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A16-preabort-zero",
+        "detail": {
+          "kind": "throw",
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A16-preabort-empty",
+        "detail": {
+          "kind": "throw",
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A16-preabort-symbol",
+        "detail": {
+          "kind": "throw",
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A17-checkpoint-1",
+        "detail": {
+          "scheduled": 1,
+          "kind": "throw",
+          "identity": true,
+          "state": {
+            "count": "0",
+            "value": "2"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A17-checkpoint-2",
+        "detail": {
+          "scheduled": 2,
+          "kind": "throw",
+          "identity": true,
+          "state": {
+            "count": "128",
+            "value": "2"
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A18-caller-cleanup-priority",
+        "detail": {
+          "events": [
+            "abort",
+            "throw",
+            "cleanup"
+          ],
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A19-raw-boundary-false",
+        "detail": {
+          "rawIdentity": true,
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A19-raw-boundary-true",
+        "detail": {
+          "rawIdentity": true,
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: same-marker\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 115,
+              "16": 97,
+              "17": 109,
+              "18": 101,
+              "19": 45,
+              "20": 109,
+              "21": 97,
+              "22": 114,
+              "23": 107,
+              "24": 101,
+              "25": 114,
+              "26": 10
+            },
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A20-diagnostic-backpressure",
+        "detail": {
+          "pendingBeforeRelease": true,
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: 1/0: division by 0 (error token is \"0\")\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 49,
+              "21": 47,
+              "22": 48,
+              "23": 58,
+              "24": 32,
+              "25": 100,
+              "26": 105,
+              "27": 118,
+              "28": 105,
+              "29": 115,
+              "30": 105,
+              "31": 111,
+              "32": 110,
+              "33": 32,
+              "34": 98,
+              "35": 121,
+              "36": 32,
+              "37": 48,
+              "38": 32,
+              "39": 40,
+              "40": 101,
+              "41": 114,
+              "42": 114,
+              "43": 111,
+              "44": 114,
+              "45": 32,
+              "46": 116,
+              "47": 111,
+              "48": 107,
+              "49": 101,
+              "50": 110,
+              "51": 32,
+              "52": 105,
+              "53": 115,
+              "54": 32,
+              "55": 34,
+              "56": 48,
+              "57": 34,
+              "58": 41,
+              "59": 10
+            },
+            "exitCode": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A21-owned-cleanup",
+        "detail": {
+          "pendingBeforeRelease": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A22-cleanup-rejection",
+        "detail": {
+          "identity": true
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A23-child-drain",
+        "detail": {
+          "pendingBeforeRelease": true,
+          "child": {
+            "kind": "throw",
+            "reason": {}
+          },
+          "root": {
+            "kind": "return",
+            "value": {
+              "stdout": "",
+              "stderr": "",
+              "stdoutBytes": {},
+              "stderrBytes": {},
+              "exitCode": 0
+            }
+          }
+        },
+        "pass": false,
+        "disposed": 1,
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n'throw' !== 'return'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'throw' !== 'return'\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/consumer-moved/checks.mjs:210:224)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/consumer-moved/checks.mjs:225:9"
+        },
+        "created": 1
+      },
+      {
+        "id": "A24-stdin-let 1",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "counts": {
+            "acquire": 1,
+            "next": 0,
+            "returned": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A24-stdin-let 1/0",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: let: 1/0: division by 0 (error token is \"0\")\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 108,
+              "16": 101,
+              "17": 116,
+              "18": 58,
+              "19": 32,
+              "20": 49,
+              "21": 47,
+              "22": 48,
+              "23": 58,
+              "24": 32,
+              "25": 100,
+              "26": 105,
+              "27": 118,
+              "28": 105,
+              "29": 115,
+              "30": 105,
+              "31": 111,
+              "32": 110,
+              "33": 32,
+              "34": 98,
+              "35": 121,
+              "36": 32,
+              "37": 48,
+              "38": 32,
+              "39": 40,
+              "40": 101,
+              "41": 114,
+              "42": 114,
+              "43": 111,
+              "44": 114,
+              "45": 32,
+              "46": 116,
+              "47": 111,
+              "48": 107,
+              "49": 101,
+              "50": 110,
+              "51": 32,
+              "52": 105,
+              "53": 115,
+              "54": 32,
+              "55": 34,
+              "56": 48,
+              "57": 34,
+              "58": 41,
+              "59": 10
+            },
+            "exitCode": 1
+          },
+          "counts": {
+            "acquire": 1,
+            "next": 0,
+            "returned": 1
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      },
+      {
+        "id": "A25-pipe",
+        "detail": {
+          "result": {
+            "stdout": "",
+            "stderr": "",
+            "stdoutBytes": {},
+            "stderrBytes": {},
+            "exitCode": 0
+          }
+        },
+        "pass": true,
+        "disposed": 1,
+        "created": 1
+      }
+    ],
+    "loadCount": 208
+  },
+  "regressions": {
+    "code": 0,
+    "tail": "test'\n  ...\n# Subtest: broken-pipe writes cancel signal-waiting upstream commands\nok 159 - broken-pipe writes cancel signal-waiting upstream commands\n  ---\n  duration_ms: 4.160417\n  type: 'test'\n  ...\n# Subtest: redirected input resources close after partial, zero and failed consumption\nok 160 - redirected input resources close after partial, zero and failed consumption\n  ---\n  duration_ms: 3.966209\n  type: 'test'\n  ...\n# Subtest: independent truncate descriptors maintain offsets, duplicated descriptors share them\nok 161 - independent truncate descriptors maintain offsets, duplicated descriptors share them\n  ---\n  duration_ms: 4.450584\n  type: 'test'\n  ...\n# Subtest: redirection failure diagnostics honor descriptors already established\nok 162 - redirection failure diagnostics honor descriptors already established\n  ---\n  duration_ms: 1.859333\n  type: 'test'\n  ...\n# Subtest: declarations preserve expanded whitespace and functions export prefix values\nok 163 - declarations preserve expanded whitespace and functions export prefix values\n  ---\n  duration_ms: 2.630166\n  type: 'test'\n  ...\n# Subtest: builtins honor middleware cwd and environment overlays\nok 164 - builtins honor middleware cwd and environment overlays\n  ---\n  duration_ms: 1.259333\n  type: 'test'\n  ...\n# Subtest: read and repeated commands share one non-replayable stdin offset\nok 165 - read and repeated commands share one non-replayable stdin offset\n  ---\n  duration_ms: 4.030542\n  type: 'test'\n  ...\n# Subtest: syntax validation does not even initialize inherited input\nok 166 - syntax validation does not even initialize inherited input\n  ---\n  duration_ms: 0.241125\n  type: 'test'\n  ...\n# Subtest: arithmetic stays bounded and handles short circuit, updates and overflow\nok 167 - arithmetic stays bounded and handles short circuit, updates and overflow\n  ---\n  duration_ms: 2.080917\n  type: 'test'\n  ...\n1..167\n# tests 167\n# suites 0\n# pass 167\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 7371.513667\n"
+  },
+  "types": [
+    {
+      "name": "positive",
+      "pass": true,
+      "code": 0,
+      "diagnostics": [],
+      "rootDeclaration": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/consumer-moved/node_modules/virtual-bash/dist/index.d.ts",
+      "sha256": "d3e61ecf6b1db842cdfb51c137242c86d03fcf1d4678c4e210ab0ee923aa09f1"
+    },
+    {
+      "name": "negative-api",
+      "pass": false,
+      "code": 2,
+      "diagnostics": [
+        "negative-api.mts(1,10): error TS2724: '\"virtual-bash\"' has no exported member named 'createLetCommands'. Did you mean 'createFileCommands'?"
+      ],
+      "rootDeclaration": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/consumer-moved/node_modules/virtual-bash/dist/index.d.ts",
+      "sha256": "d3e61ecf6b1db842cdfb51c137242c86d03fcf1d4678c4e210ab0ee923aa09f1"
+    },
+    {
+      "name": "negative-limit",
+      "pass": true,
+      "code": 2,
+      "diagnostics": [
+        "negative-limit.mts(2,32): error TS2322: Type 'string' is not assignable to type 'number'."
+      ],
+      "rootDeclaration": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/consumer-moved/node_modules/virtual-bash/dist/index.d.ts",
+      "sha256": "d3e61ecf6b1db842cdfb51c137242c86d03fcf1d4678c4e210ab0ee923aa09f1"
+    },
+    {
+      "name": "api-inversion",
+      "pass": true,
+      "code": 0,
+      "diagnostics": [],
+      "rootDeclaration": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/consumer-moved/node_modules/virtual-bash/dist/index.d.ts",
+      "sha256": "d3e61ecf6b1db842cdfb51c137242c86d03fcf1d4678c4e210ab0ee923aa09f1"
+    },
+    {
+      "name": "limit-inversion",
+      "pass": true,
+      "code": 0,
+      "diagnostics": [],
+      "rootDeclaration": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/consumer-moved/node_modules/virtual-bash/dist/index.d.ts",
+      "sha256": "d3e61ecf6b1db842cdfb51c137242c86d03fcf1d4678c4e210ab0ee923aa09f1"
+    }
+  ],
+  "mutants": [
+    {
+      "id": "M0",
+      "killed": true,
+      "sourceSHA256": "93c06908aec9d5d61d801657f99ab75122cadb6688f038e1941c587b4a8d4ed3",
+      "runtimeSHA256": "3fc1b65c477cb69007bf8e4d0ab6729ff53c38feb8ed880c8efdbe1e2ba99190",
+      "receipt": {
+        "code": 1
+      },
+      "summary": {
+        "layout": "mechanism-mutant",
+        "loaded": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/mutant-M0/dist/index.js",
+        "cases": 3,
+        "pass": 0,
+        "failed": [
+          "P01",
+          "P04",
+          "P07"
+        ],
+        "createdShells": 3,
+        "disposedShells": 3,
+        "nativeExecutions": 0
+      },
+      "binding": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/evidence-v1/mutant-M0.binding.json",
+      "observations": [
+        {
+          "id": "P01",
+          "detail": {
+            "result": {
+              "stdout": "",
+              "stderr": "shell: line 1: type: let: not found\n",
+              "exitCode": 1
+            }
+          },
+          "pass": false,
+          "disposed": 1,
+          "failure": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'let is a shell builtin\\n'\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'let is a shell builtin\\n'\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:37:10)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+          },
+          "created": 1
+        },
+        {
+          "id": "P04",
+          "detail": {
+            "result": {
+              "stdout": "",
+              "stderr": "shell: line 1: let: command not found\n",
+              "exitCode": 127
+            }
+          },
+          "pass": false,
+          "disposed": 1,
+          "failure": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'shell: line 1: let: command not found\\n'\n- ''\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'shell: line 1: let: command not found\\n'\n- ''\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:37:51)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+          },
+          "created": 1
+        },
+        {
+          "id": "P07",
+          "detail": {
+            "result": {
+              "stdout": "",
+              "stderr": "shell: line 1: let: command not found\n",
+              "exitCode": 127
+            }
+          },
+          "pass": false,
+          "disposed": 1,
+          "failure": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'shell: line 1: let: command not found\\n'\n- 'shell: line 1: let: expression expected\\n'\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'shell: line 1: let: command not found\\n'\n- 'shell: line 1: let: expression expected\\n'\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:37:51)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+          },
+          "created": 1
+        }
+      ],
+      "loadCount": 208
+    },
+    {
+      "id": "M1",
+      "killed": true,
+      "sourceSHA256": "be48ecc72b8e33bdec9d93c0accff617fb005af240495559a730fc7a599455c6",
+      "runtimeSHA256": "cb9fef5ba73f5f1f33d4227723e859ef978450a0f8b281cee1dd3299c1001a7c",
+      "receipt": {
+        "code": 1
+      },
+      "summary": {
+        "layout": "mechanism-mutant",
+        "loaded": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/mutant-M1/dist/index.js",
+        "cases": 3,
+        "pass": 0,
+        "failed": [
+          "P35",
+          "P36",
+          "A03-readonly-cursor"
+        ],
+        "createdShells": 3,
+        "disposedShells": 3,
+        "nativeExecutions": 0
+      },
+      "binding": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/evidence-v1/mutant-M1.binding.json",
+      "observations": [
+        {
+          "id": "P35",
+          "detail": {
+            "result": {
+              "stdout": "0:6:6:9\n",
+              "stderr": "",
+              "exitCode": 0
+            }
+          },
+          "pass": false,
+          "disposed": 1,
+          "failure": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '0:6:6:9\\n'\n- '1:2:6:0\\n'\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '0:6:6:9\\n'\n- '1:2:6:0\\n'\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:37:10)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+          },
+          "created": 1
+        },
+        {
+          "id": "P36",
+          "detail": {
+            "result": {
+              "stdout": "0:3\n0:6\n",
+              "stderr": "",
+              "exitCode": 0
+            }
+          },
+          "pass": false,
+          "disposed": 1,
+          "failure": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '0:3\\n0:6\\n'\n- '1:2\\n1:2\\n'\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '0:3\\n0:6\\n'\n- '1:2\\n1:2\\n'\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:37:10)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+          },
+          "created": 1
+        },
+        {
+          "id": "A03-readonly-cursor",
+          "detail": {
+            "before": {
+              "cursor": {
+                "index": 1,
+                "active": {
+                  "argument": 0,
+                  "offset": 2
+                }
+              },
+              "integer": true
+            },
+            "after": {
+              "cursor": {
+                "index": 1,
+                "active": {
+                  "argument": 0,
+                  "offset": 2
+                }
+              },
+              "integer": true
+            },
+            "readonly": true,
+            "result": {
+              "stdout": "",
+              "stderr": "",
+              "stdoutBytes": {},
+              "stderrBytes": {},
+              "exitCode": 0
+            }
+          },
+          "pass": false,
+          "disposed": 1,
+          "failure": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n\n0 !== 1\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:76:12)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+          },
+          "created": 1
+        }
+      ],
+      "loadCount": 208
+    },
+    {
+      "id": "M2",
+      "killed": true,
+      "sourceSHA256": "79cc5fd060c00fdbc01e00a75422b2ce54ac910ad3cd007adeb9faaed47ca804",
+      "runtimeSHA256": "ea9ec816b9552a1a1853d7f157b0d9bea148a0259ea37f5832e4c5e3a67539e5",
+      "receipt": {
+        "code": 1
+      },
+      "summary": {
+        "layout": "mechanism-mutant",
+        "loaded": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/mutant-M2/dist/index.js",
+        "cases": 2,
+        "pass": 0,
+        "failed": [
+          "P16",
+          "P21"
+        ],
+        "createdShells": 2,
+        "disposedShells": 2,
+        "nativeExecutions": 0
+      },
+      "binding": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/evidence-v1/mutant-M2.binding.json",
+      "observations": [
+        {
+          "id": "P16",
+          "detail": {
+            "result": {
+              "stdout": "0:8\n",
+              "stderr": "",
+              "exitCode": 0
+            }
+          },
+          "pass": false,
+          "disposed": 1,
+          "failure": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n\n'0:8\\n' !== '1:4\\n'\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'0:8\\n' !== '1:4\\n'\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:37:10)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+          },
+          "created": 1
+        },
+        {
+          "id": "P21",
+          "detail": {
+            "result": {
+              "stdout": "1:0:0\n",
+              "stderr": "shell: line 1: let: value=7 1+ tail=9: arithmetic syntax error in expression (error token is \"1+ tail=9\")\n",
+              "exitCode": 0
+            }
+          },
+          "pass": false,
+          "disposed": 1,
+          "failure": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '1:0:0\\n'\n- '1:7:0\\n'\n     ^\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '1:0:0\\n'\n- '1:7:0\\n'\n     ^\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:37:10)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+          },
+          "created": 1
+        }
+      ],
+      "loadCount": 208
+    },
+    {
+      "id": "M3",
+      "killed": true,
+      "sourceSHA256": "481a0bd940ed1d908298a956ff586d325d54045a0c1b5030dc4f19278ddfa94e",
+      "runtimeSHA256": "b094ac24305a60ea931dc28d6ecbe43d43c97b7d47c6ad72f6d773a4c1b38177",
+      "receipt": {
+        "code": 1
+      },
+      "summary": {
+        "layout": "mechanism-mutant",
+        "loaded": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/mutant-M3/dist/index.js",
+        "cases": 1,
+        "pass": 0,
+        "failed": [
+          "P21"
+        ],
+        "createdShells": 1,
+        "disposedShells": 1,
+        "nativeExecutions": 0
+      },
+      "binding": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/evidence-v1/mutant-M3.binding.json",
+      "observations": [
+        {
+          "id": "P21",
+          "detail": {
+            "result": {
+              "stdout": "1:0:0\n",
+              "stderr": "shell: line 1: let: Invalid arithmetic operand at offset 2\n",
+              "exitCode": 0
+            }
+          },
+          "pass": false,
+          "disposed": 1,
+          "failure": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '1:0:0\\n'\n- '1:7:0\\n'\n     ^\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '1:0:0\\n'\n- '1:7:0\\n'\n     ^\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:37:10)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+          },
+          "created": 1
+        }
+      ],
+      "loadCount": 208
+    },
+    {
+      "id": "M4",
+      "killed": true,
+      "sourceSHA256": "571bf2a342049962fb8f1b48c50fb9ebc554e89218268473ab4cff96dbab4b95",
+      "runtimeSHA256": "0d136ab687afd8b281595a6b212fde8b947da5bc8714a709c78ceb1988783ce5",
+      "receipt": {
+        "code": 1
+      },
+      "summary": {
+        "layout": "mechanism-mutant",
+        "loaded": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/mutant-M4/dist/index.js",
+        "cases": 3,
+        "pass": 0,
+        "failed": [
+          "P03",
+          "P04",
+          "P06"
+        ],
+        "createdShells": 3,
+        "disposedShells": 3,
+        "nativeExecutions": 0
+      },
+      "binding": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/evidence-v1/mutant-M4.binding.json",
+      "observations": [
+        {
+          "id": "P03",
+          "detail": {
+            "result": {
+              "stdout": "",
+              "stderr": "",
+              "exitCode": 0
+            }
+          },
+          "pass": false,
+          "disposed": 1,
+          "failure": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n\n0 !== 1\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:37:92)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+          },
+          "created": 1
+        },
+        {
+          "id": "P04",
+          "detail": {
+            "result": {
+              "stdout": "",
+              "stderr": "",
+              "exitCode": 1
+            }
+          },
+          "pass": false,
+          "disposed": 1,
+          "failure": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n\n1 !== 0\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:37:92)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+          },
+          "created": 1
+        },
+        {
+          "id": "P06",
+          "detail": {
+            "result": {
+              "stdout": "",
+              "stderr": "",
+              "exitCode": 0
+            }
+          },
+          "pass": false,
+          "disposed": 1,
+          "failure": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n\n0 !== 1\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:37:92)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+          },
+          "created": 1
+        }
+      ],
+      "loadCount": 208
+    },
+    {
+      "id": "M5",
+      "killed": true,
+      "sourceSHA256": "9091fe4807ccefa772be251b579c0390b9cb5c9fa3e0f4898ded1d8bda3e858e",
+      "runtimeSHA256": "a023c3058433d892bf02471e96342337c0d958e5c71ef472da2e9a265605e6ec",
+      "receipt": {
+        "code": 1
+      },
+      "summary": {
+        "layout": "mechanism-mutant",
+        "loaded": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/mutant-M5/dist/index.js",
+        "cases": 2,
+        "pass": 0,
+        "failed": [
+          "A08-forward-fields",
+          "A09-forward-bytes"
+        ],
+        "createdShells": 2,
+        "disposedShells": 2,
+        "nativeExecutions": 0
+      },
+      "binding": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/evidence-v1/mutant-M5.binding.json",
+      "observations": [
+        {
+          "id": "A08-forward-fields",
+          "detail": {
+            "outcome": {
+              "kind": "return"
+            }
+          },
+          "pass": false,
+          "disposed": 1,
+          "failure": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n\n'return' !== 'throw'\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'return' !== 'throw'\n\n    at expectLimit (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:29:10)\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:114:41)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+          },
+          "created": 1
+        },
+        {
+          "id": "A09-forward-bytes",
+          "detail": {
+            "outcome": {
+              "kind": "return"
+            }
+          },
+          "pass": false,
+          "disposed": 1,
+          "failure": {
+            "name": "AssertionError",
+            "message": "Expected values to be strictly equal:\n\n'return' !== 'throw'\n",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'return' !== 'throw'\n\n    at expectLimit (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:29:10)\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:115:40)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+          },
+          "created": 1
+        }
+      ],
+      "loadCount": 208
+    },
+    {
+      "id": "M6",
+      "killed": true,
+      "sourceSHA256": "cfb7369c044bdf65e3c3a9b0ef0229b4ea5b758e92e4a67b0db855b4fddc8eed",
+      "runtimeSHA256": "c94256e621562eeda3171e79944e9f585c6ef39fc4707ad7f97bde759d1588cd",
+      "receipt": {
+        "code": 1
+      },
+      "summary": {
+        "layout": "mechanism-mutant",
+        "loaded": "file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/work/node_modules/mutant-M6/dist/index.js",
+        "cases": 1,
+        "pass": 0,
+        "failed": [
+          "A17-checkpoint-2"
+        ],
+        "createdShells": 1,
+        "disposedShells": 1,
+        "nativeExecutions": 0
+      },
+      "binding": "/Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/evidence-v1/mutant-M6.binding.json",
+      "observations": [
+        {
+          "id": "A17-checkpoint-2",
+          "detail": {
+            "scheduled": 1,
+            "kind": "return",
+            "identity": false,
+            "state": {
+              "count": "130",
+              "value": "2"
+            }
+          },
+          "pass": false,
+          "disposed": 1,
+          "failure": {
+            "name": "AssertionError",
+            "message": "ACTUAL_CHECKPOINT\n\n1 !== 2\n",
+            "stack": "AssertionError [ERR_ASSERTION]: ACTUAL_CHECKPOINT\n\n1 !== 2\n\n    at Object.execute (file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:165:12)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-author-20260828/checks.mjs:225:9"
+          },
+          "created": 1
+        }
+      ],
+      "loadCount": 208
+    }
+  ],
+  "controls": [
+    {
+      "name": "intact",
+      "pass": true,
+      "code": 0
+    },
+    {
+      "name": "wrong-manifest",
+      "pass": true,
+      "code": 1
+    },
+    {
+      "name": "wrong-root",
+      "pass": true,
+      "code": 1
+    },
+    {
+      "name": "source-fallback",
+      "pass": true,
+      "code": 1
+    },
+    {
+      "name": "wrong-runtime-hash",
+      "pass": true,
+      "code": 1
+    }
+  ],
+  "failures": [
+    {
+      "phase": "source",
+      "cases": [
+        "P39",
+        "P58",
+        "A23-child-drain"
+      ]
+    },
+    {
+      "phase": "moved",
+      "cases": [
+        "P39",
+        "P58",
+        "A23-child-drain"
+      ]
+    },
+    {
+      "phase": "types",
+      "name": "negative-api"
+    }
+  ],
+  "nativeExecutions": 0,
+  "pack": {
+    "sha256": "21c4858e6e4b857cd5e0d526159667621bcd206b4f1fd1ce1f84b54ad7abbace",
+    "repeatedSHA256": "21c4858e6e4b857cd5e0d526159667621bcd206b4f1fd1ce1f84b54ad7abbace",
+    "members": 846,
+    "readmeIncluded": true
+  },
+  "installed": {
+    "packageFiles": 846,
+    "exact": true
+  },
+  "archive": {
+    "sha256": "f97b3a776bbc4c79fafd152c7348425b8d3cff594368f7b6c612390cedc262db",
+    "inputs": 265,
+    "profile": "selected committed inputs only, not whole history"
+  },
+  "postGuards": "passed",
+  "finished": "2026-08-28T07:33:37.275Z",
+  "commands": 32,
+  "naturalGroups": 32
+}

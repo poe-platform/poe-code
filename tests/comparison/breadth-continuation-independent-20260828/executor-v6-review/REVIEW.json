@@ -1,0 +1,109 @@
+{
+  "role": "different-reviewer",
+  "verdict": "PREEXECUTION_ACCEPTED",
+  "date": "2026-08-28",
+  "recipeSha256": "937f5551b242c5388febd085aa18905095150f846c9e3005e766db7b39c979a0",
+  "recipeCommit": "931b8e07114b8f69fa50f35e798a7a619f578cdb",
+  "authorEvidenceCommit": "5420fa35ffd4a7085f0df0a60b3bfc4608a7acd1",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+  "scope": "Independent BODY/DATA/SYNTHETIC review of exact V6 entry-parent fix; positive review input only, not root authorization/admission.",
+  "sourcePreseals": [
+    {
+      "commit": "d36449e8ac4ea35bf19c26adc7923b8629ca1014",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/PRESEAL.json",
+      "sha256": "6d3aa08e99a12dfda6189112b6e0820dbd386e1203c1050453f1956095c8ae1a"
+    },
+    {
+      "commit": "84530bf4240d582a5e5c96fd7a29b26b75332a26",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/CORRECTION-PRESEAL.json",
+      "sha256": "39803e6f2900c8ae34fbffe01c1ccf2f496ac6ff41aade3eaa818bf48fc0aec1"
+    }
+  ],
+  "F1": {
+    "status": "TESTED_ENTRY_EDGE_CLOSED",
+    "originalIntermediateBytes": 54,
+    "originalIntermediateSha256": "b1e46a689f8795b93f4702a4d8a356e3ad0a2d278f4e30c8f7e74fe2c0c9d184",
+    "actualCode": "CONSUMER_ENTRY_PARENT",
+    "intermediateSources": 1,
+    "consumerSources": 0,
+    "targetSources": 0,
+    "evaluations": 0,
+    "receipt": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/capture-01/entry-parent-denied.json",
+    "receiptSha256": "7349f34f1117e35ebb399bcc4c4a3aec85eed941f25ad4ac65601e0aec2bc751"
+  },
+  "counts": {
+    "original15": {
+      "passed": 15,
+      "total": 15,
+      "category": "SYNTHETIC"
+    },
+    "firstSupplemental10": {
+      "passed": 9,
+      "total": 10,
+      "invalidHarnessControls": 1,
+      "rawFindingPreserved": true
+    },
+    "correctedForwarding": {
+      "passed": 2,
+      "total": 2,
+      "newPreseal": true
+    },
+    "helpers": {
+      "passed": 14,
+      "total": 14,
+      "DATA": 3,
+      "SYNTHETIC": 11
+    },
+    "syntaxOnly": {
+      "passed": 14,
+      "processes": 14,
+      "distinctFiles": 13
+    },
+    "fixtureChildren": 27,
+    "helperChildren": 1,
+    "closedChildren": 28,
+    "driverInvocations": 2,
+    "actualImportAttempts": 20,
+    "actualStubEvaluations": 5,
+    "intendedPositiveEvaluations": 4,
+    "invalidControlEvaluation": 1,
+    "actualRefusals": 22,
+    "importRefusals": 15,
+    "constructorRefusals": 7
+  },
+  "invalidControl": {
+    "id": "parent-absent",
+    "capture": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/capture-01/parent-absent.json",
+    "sha256": "c8acdbce1bcd3fe6d177eafc45138c5a3b3c04e6f2c1b8dc584267c26736e124",
+    "status": "INVALID_FORWARDING_CONTROL_NOT_CANDIDATE_BYPASS",
+    "explanation": "Spread-copy deletion did not remove Node hook context parent. Guard observed authentic worker parent. Original failed assertion retained. Separately frozen same-context deletion and explicit undefined both genuinely reach guard and refuse before source loading."
+  },
+  "sourceStability": {
+    "candidateSealEntries": 245,
+    "authenticatedInputs": 266,
+    "immutableGitBytes": true,
+    "beforeAfterEqual": true,
+    "protectedNamespaceNewEntriesChecked": true,
+    "exclusion": "designated runs descendants"
+  },
+  "productionAuthorityEvidence": "Static exact body/role/operation/claim/import order only; independent stub worker URL is not production authority.",
+  "inheritedSafety": "Twelve exact V4 body hashes and unchanged V5 forwarding/projections. C12, strict transport/offline/W07 retain prior dynamic evidence; fresh helper coverage explicitly separated in README.",
+  "actualAdmission": false,
+  "rootGo": false,
+  "usableGrantIssued": false,
+  "productImports": 0,
+  "comparatorImports": 0,
+  "archiveStaging": 0,
+  "archiveExtraction": 0,
+  "C11": 0,
+  "semanticCalls": 0,
+  "nativeRuns": 0,
+  "timingRuns": 0,
+  "network": 0,
+  "install": 0,
+  "XAN": 0,
+  "report": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/README.md",
+  "admissionInterface": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/ADMISSION-INTERFACE.json",
+  "historicalScoresUnchanged": true
+}

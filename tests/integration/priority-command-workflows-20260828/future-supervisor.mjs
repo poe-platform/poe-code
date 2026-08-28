@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
-import { sha, readJson, writeJson, inventory, directory, repository, bounds, requireGrant, runtimeFiles, ids, validateRetirement } from './admission.mjs';
+import { sha, readJson, writeJson, inventory, directory, repository, bounds, requireGrant, runtimeFiles, ids, requireCleanSafety, reserveWorkerStarts, settleWorkerStarts, terminalReceiptBytes, accountTerminal } from './admission.mjs';
 import { authenticateArchive } from './source-auth.mjs';
 
-const sealPath = path.join(directory, 'PREPARATION-SEAL.json');
+const sealPath = path.join(directory, 'PREPARATION-SEAL-v3.json');
 const arguments_ = process.argv.slice(2);
 assert.deepEqual(arguments_, ['--grant', path.join(directory, 'GO.json'), '--budget', path.join(directory, 'PARENT-BUDGET.json')], 'EXACT_COMMAND_REQUIRED_NO_SETUP');
 const sealBytes = fs.readFileSync(sealPath);
@@ -27,6 +27,8 @@ for (const value of Object.values(parentBudget.remaining)) assert.ok(Number.isSa
 const started = Date.now(), deadline = Math.min(parentBudget.deadlineEpochMs, started + bounds.windowMs);
 assert.ok(deadline > started, 'PARENT_DEADLINE_EXPIRED');
 const remaining = structuredClone(parentBudget.remaining);
+const storageLimit = Math.min(bounds.scratchBytes, remaining.scratchBytes);
+assert.ok(storageLimit > terminalReceiptBytes, 'TERMINAL_RESERVATION_REQUIRED');
 const { raw, selected, bindings } = authenticateArchive();
 const stored = readJson(path.join(directory, 'SOURCE-AUTH.json'));
 assert.equal(stored.packet, grant.packet); assert.equal(stored.composition, grant.composition); assert.equal(stored.pass, true);
@@ -38,12 +40,18 @@ const root = grant.root, tools = path.join(root, 'tools'), source = grant.layout
 fs.mkdirSync(root);
 for (const name of ['tools', 'source', 'outside', 'home', 'tmp', 'cache', 'receipts', 'admissions', 'logs', 'packs']) fs.mkdirSync(path.join(root, name));
 for (const name of ['npmrc', 'global-npmrc']) fs.writeFileSync(path.join(root, name), '', { flag: 'wx' });
-const evidence = { role: 'FUTURE_GRANTED_REAL_PUBLIC_API', packet: grant.packet, grantSha256: sha(grantBytes), parentBudget, started, commands: [], rows: [], failures: [], safetyStops: [], tools: {}, source: {}, resources: { childStarts: 0, productWorkerStarts: 0, loaderThreadStarts: 0, capturedBytes: 0 }, unexecuted: grant.layouts.flatMap(layout => ids.map(id => `${layout.name}:${id}`)) };
+const evidence = { role: 'FUTURE_GRANTED_REAL_PUBLIC_API', packet: grant.packet, grantSha256: sha(grantBytes), parentBudget, started, commands: [], rows: [], failures: [], safetyStops: [], tools: {}, source: {}, workerReservations: [], resources: { childStarts: 0, productWorkerStarts: 0, loaderThreadStarts: 0, capturedBytes: 0 }, unexecuted: grant.layouts.flatMap(layout => ids.map(id => `${layout.name}:${id}`)) };
 let protectedRoots = [], activeChild;
 const copiedNode = path.join(tools, 'node');
 const environment = { PATH: `${tools}:/usr/bin:/bin`, HOME: path.join(root, 'home'), TMPDIR: path.join(root, 'tmp'), npm_config_cache: path.join(root, 'cache'), npm_config_userconfig: path.join(root, 'npmrc'), npm_config_globalconfig: path.join(root, 'global-npmrc'), npm_config_offline: 'true', npm_config_audit: 'false', npm_config_fund: 'false', npm_config_update_notifier: 'false', NO_COLOR: '1' };
 const diskUsage = () => Object.values(inventory(root)).reduce((sum, row) => sum + (row.bytes ?? 0), 0);
-const assertStorage = () => assert.ok(diskUsage() <= Math.min(bounds.scratchBytes, remaining.scratchBytes), 'SCRATCH_BOUND');
+const assertStorage = () => assert.ok(diskUsage() <= storageLimit - terminalReceiptBytes, 'SCRATCH_BOUND_WITH_TERMINAL_RESERVATION');
+const writeReceipt = (filename, value) => {
+  const bytes = Buffer.from(JSON.stringify(value, null, 2) + '\n');
+  assert.ok(diskUsage() + bytes.length <= storageLimit - terminalReceiptBytes, 'RECEIPT_STORAGE_STOP');
+  fs.writeFileSync(filename, bytes, { flag: 'wx' });
+  assertStorage(); assert.ok(Date.now() < deadline, 'RECEIPT_DEADLINE_STOP');
+};
 const logsBytes = logs => logs.reduce((sum, name) => sum + (fs.existsSync(name) ? fs.statSync(name).size : 0), 0);
 async function command(label, args, cwd, extraEnv = {}, { setup = false, loader = false, logs = [] } = {}) {
   assert.equal(activeChild, undefined, 'CONCURRENT_CHILD_REFUSED');
@@ -78,7 +86,7 @@ async function command(label, args, cwd, extraEnv = {}, { setup = false, loader 
   row.reaped = row.exitObserved && row.closeObserved;
   row.loaderThreadDisposition = loader ? 'Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation' : 'not-requested';
   evidence.commands.push(row);
-  writeJson(path.join(root, 'receipts', `${String(row.number).padStart(3, '0')}.json`), row);
+  writeReceipt(path.join(root, 'receipts', `${String(row.number).padStart(3, '0')}.json`), row);
   assert.equal(row.reaped, true, 'CHILD_UNREAPED_STOP'); assert.equal(row.signal, null, 'ABNORMAL_CHILD_STOP'); assert.equal(row.errors.length, 0, 'CHILD_ERROR_STOP');
   assert.ok(remaining.captureBytes >= 0 && row.capturedBytes <= bounds.captureBytes, 'CAPTURE_BOUND');
   for (const [root, before] of guards) assert.deepEqual(inventory(root), before, `APPEND_DETECTING_INTEGRITY:${root}`);
@@ -189,18 +197,19 @@ try {
       const tag = `${layout.name}-${id}`, log = path.join(root, 'logs', tag + '.parent.jsonl'), workerLog = path.join(root, 'logs', tag + '.worker.jsonl'), workerParentLog = path.join(root, 'logs', tag + '.worker-parent.jsonl');
       const config = path.join(root, 'admissions', tag + '.runtime.json');
       writeJson(config, { grant: arguments_[1], seal: sealPath, grantSha256: sha(grantBytes), layout: layout.name, id, specifier: layout.specifier, workerLog, workerParentLog, workerStartsRemaining: remaining.workerStarts, workerCaptureBytes: 262144 });
+      const reservation = reserveWorkerStarts(remaining, tag);
+      evidence.workerReservations.push(reservation);
       const result = await command(tag, ['--loader', path.join(layout.appParent, 'loader.mjs'), '--import', path.join(layout.appParent, 'guard.mjs'), path.join(layout.appParent, 'runtime-entry.mjs')], outside, { ADMISSION: admitted.filename, LOAD_LOG: log, RUN_CONFIGURATION: config }, { loader: true, logs: [log, workerLog, workerParentLog] });
       const parentLoads = jsonLines(log), childLoads = jsonLines(workerLog), workerEvents = jsonLines(workerParentLog);
       const starts = workerEvents.filter(row => row.action === 'start');
-      remaining.workerStarts -= starts.length; evidence.resources.productWorkerStarts += starts.length;
-      assert.ok(starts.length <= bounds.workerStartsPerChild && remaining.workerStarts >= 0 && evidence.resources.productWorkerStarts <= bounds.workerStarts);
+      assert.ok(starts.length <= bounds.workerStartsPerChild && remaining.workerStarts >= 0);
       const record = JSON.parse(Buffer.from(result.stdoutBase64, 'base64').toString().trim());
       evidence.rows.push({ layout: layout.name, id, result: record, parentLoads, childLoads, workerEvents });
       evidence.unexecuted.splice(evidence.unexecuted.indexOf(`${layout.name}:${id}`), 1);
+      writeReceipt(path.join(root, 'receipts', tag + '.observed.json'), evidence.rows.at(-1));
       assert.equal(record.id, id); assert.equal(record.layout, layout.name);
-      assert.deepEqual(record.workerAdmissionRefusals, [], 'WORKER_ADMISSION_STOP');
+      requireCleanSafety(record, childLoads);
       assert.equal(starts.length, record.workers.length, 'WORKER_ACCOUNTING_UNKNOWN_STOP');
-      validateRetirement(record.workers);
       for (const start of starts) {
         const loaded = childLoads.filter(row => row.token === start.token && row.threadId === start.threadId && row.pid === start.pid);
         assert.equal(loaded.filter(row => row.event === 'preload').length, 1, 'MISSING_WORKER_PRELOAD_RECEIPT');
@@ -212,18 +221,38 @@ try {
       }
       for (const loaded of childLoads) assert.ok(starts.some(row => row.token === loaded.token && row.threadId === loaded.threadId && row.pid === loaded.pid), 'UNKNOWN_WORKER_LOAD_STOP');
       assert.ok(parentLoads.some(row => row.relative === 'dist/index.js'), 'NO_PUBLIC_API_LOAD');
+      settleWorkerStarts(remaining, reservation, workerEvents, record.workers);
       if (!record.pass || result.status !== 0) evidence.failures.push({ layout: layout.name, id, status: result.status, failures: record.failures });
-      writeJson(path.join(root, 'receipts', tag + '.observed.json'), evidence.rows.at(-1));
     }
   }
   assert.equal(evidence.resources.childStarts, 100); assert.equal(evidence.rows.length, 93);
 } catch (error) { evidence.safetyStops.push({ message: String(error), stack: error?.stack }); process.exitCode = 1; }
 finally {
-  assert.equal(activeChild, undefined, 'SUPERVISOR_OWNED_CHILD_UNREAPED');
-  evidence.finished = Date.now(); evidence.remainingParentBudget = remaining;
+  if (activeChild !== undefined) evidence.safetyStops.push({ code: 'SUPERVISOR_OWNED_CHILD_UNREAPED' });
+  evidence.remainingParentBudget = remaining;
+  evidence.resources.productWorkerStartsKnown = evidence.workerReservations.reduce((sum, row) => sum + (row.starts ?? 0), 0);
+  evidence.resources.productWorkerStarts = evidence.workerReservations.some(row => row.accounting === 'unknown') ? null : evidence.resources.productWorkerStartsKnown;
+  evidence.resources.workerStartsWithheld = evidence.workerReservations.filter(row => row.accounting === 'unknown').reduce((sum, row) => sum + row.charged, 0);
   evidence.allOwnedOsChildrenReaped = evidence.commands.every(row => row.reaped);
-  evidence.status = evidence.safetyStops.length ? 'STOP' : evidence.failures.length ? 'FAIL' : 'PASS';
+  const filename = path.join(root, 'RESULTS.json');
+  evidence.terminalReceiptBytes = terminalReceiptBytes;
+  evidence.terminalAccounting = 'Fixed-size terminal reservation; post-write logical storage and deadline sample; bounded STOP correction is receipt cleanup, not additional subjects. No quota/RSS/preemption claim.';
+  accountTerminal(evidence, remaining, diskUsage() + terminalReceiptBytes, storageLimit, deadline, Date.now());
+  const terminalBytes = () => {
+    let bytes = Buffer.from(JSON.stringify(evidence, null, 2) + '\n');
+    if (bytes.length > terminalReceiptBytes) {
+      evidence.safetyStops.push({ code: 'TERMINAL_RECEIPT_BOUND_STOP' }); evidence.status = 'STOP';
+      bytes = Buffer.from(JSON.stringify({ status: 'STOP', safetyStops: evidence.safetyStops, resources: evidence.resources, workerReservations: evidence.workerReservations, remainingParentBudget: remaining, retainedScratchBytes: evidence.retainedScratchBytes, allOwnedOsChildrenReaped: evidence.allOwnedOsChildrenReaped, detail: 'Per-command and per-case receipts retained separately; aggregate exceeded terminal bound.' }) + '\n');
+    }
+    assert.ok(bytes.length <= terminalReceiptBytes, 'TERMINAL_STOP_RECEIPT_BOUND');
+    const padded = Buffer.alloc(terminalReceiptBytes, 32); bytes.copy(padded); return padded;
+  };
+  fs.writeFileSync(filename, terminalBytes(), { flag: 'wx' });
+  accountTerminal(evidence, remaining, diskUsage(), storageLimit, deadline, Date.now());
+  fs.writeFileSync(filename, terminalBytes());
+  const priorStatus = evidence.status;
+  accountTerminal(evidence, remaining, diskUsage(), storageLimit, deadline, Date.now());
+  if (evidence.status !== priorStatus) fs.writeFileSync(filename, terminalBytes());
   if (evidence.status !== 'PASS') process.exitCode = 1;
-  writeJson(path.join(root, 'RESULTS.json'), evidence);
   console.log(JSON.stringify({ status: evidence.status, executed: evidence.rows.length, unexecuted: evidence.unexecuted.length, children: evidence.resources.childStarts }));
 }

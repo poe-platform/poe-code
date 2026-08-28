@@ -9,10 +9,12 @@ export function observeWorkers(configuration) {
   const rows = [], admissionRefusals = [], outstanding = new Set();
   let closed = false, closing, active = 0, captured = 0, attempts = 0;
   const emit = value => {
+    try {
     const bytes = Buffer.from(JSON.stringify({ pid: process.pid, event: 'worker-parent', ...value }) + '\n');
     captured += bytes.length;
     assert.ok(captured <= configuration.captureBytes, 'PARENT_WORKER_CAPTURE_STOP');
     fs.appendFileSync(configuration.parentLog, bytes);
+    } catch (error) { admissionRefusals.push('WORKER_RECEIPT_STOP:' + String(error)); throw error; }
   };
   const requested = { execArgv: [], resourceLimits: { maxOldGenerationSizeMb: 128, stackSizeMb: 4 } };
   const effective = { ...requested, execArgv: ['--import', configuration.preload] };
@@ -32,7 +34,9 @@ export function observeWorkers(configuration) {
       const token = `${configuration.token}:${rows.length + 1}`;
       const row = { token, entry: url.href, requested, effective, exited: false, exitCode: null, terminatePending: 0, terminateErrors: [], emergency: false, productTerminateCalls: 0, errors: [] };
       const prior = workers.getEnvironmentData('priority-worker-observation-v1');
-      workers.setEnvironmentData('priority-worker-observation-v1', { ...configuration, token, requested, effective });
+      const refusalState = new SharedArrayBuffer(4);
+      Object.defineProperty(row, 'refusalState', { value: new Int32Array(refusalState) });
+      workers.setEnvironmentData('priority-worker-observation-v1', { ...configuration, token, requested, effective, refusalState });
       attempts++; emit({ action: 'constructor-attempt', token, entry: url.href, requested, effective });
       try { super(url, effective); }
       catch (error) { admissionRefusals.push('CONSTRUCTOR_ACQUISITION_UNKNOWN_STOP:' + String(error)); emit({ action: 'constructor-error', token, error: String(error) }); throw error; }
@@ -46,7 +50,7 @@ export function observeWorkers(configuration) {
       emit({ action: 'start', token, threadId: row.threadId, entry: row.entry, requested, effective, resourceLimits: row.resourceLimits });
       this.on('online', () => { row.online = true; emit({ action: 'online', token, threadId: row.threadId }); });
       this.on('error', error => { row.errors.push(String(error)); emit({ action: 'error', token, error: String(error) }); });
-      this.once('exit', code => { active--; row.exited = true; row.exitCode = code; emit({ action: 'exit', token, code }); exited(); });
+      this.once('exit', code => { active--; row.exited = true; row.exitCode = code; row.childAdmissionRefused = Atomics.load(row.refusalState, 0) !== 0; emit({ action: 'exit', token, code, childAdmissionRefused: row.childAdmissionRefused }); exited(); });
       this.terminate = () => terminate(row, 'product');
     }
   }

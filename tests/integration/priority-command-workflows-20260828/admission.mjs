@@ -93,3 +93,48 @@ export function validateRetirement(rows) {
     assert.equal(row.emergency, false, 'EMERGENCY_RETIREMENT_STOP');
   }
 }
+
+export function requireCleanSafety(record, childLoads = []) {
+  exact(record.safetyStops, [], 'ADAPTER_SAFETY_STOP');
+  exact(record.workerAdmissionRefusals, [], 'WORKER_ADMISSION_STOP');
+  assert.equal(childLoads.some(row => row.event === 'admission-refused'), false, 'CHILD_LOAD_ADMISSION_STOP');
+  for (const row of record.workers) assert.equal(row.childAdmissionRefused, false, 'CHILD_LOAD_ADMISSION_STOP');
+  validateRetirement(record.workers);
+}
+
+export function reserveWorkerStarts(remaining, tag) {
+  assert.ok(remaining.workerStarts >= bounds.workerStartsPerChild, 'WORKER_RESERVATION_EXHAUSTED');
+  remaining.workerStarts -= bounds.workerStartsPerChild;
+  return { tag, reserved: bounds.workerStartsPerChild, charged: bounds.workerStartsPerChild, accounting: 'unknown', attempts: null, starts: null };
+}
+
+export function settleWorkerStarts(remaining, reservation, events, rows) {
+  assert.equal(reservation.accounting, 'unknown', 'DUPLICATE_WORKER_SETTLEMENT_STOP');
+  const attempts = events.filter(row => row.action === 'constructor-attempt');
+  const starts = events.filter(row => row.action === 'start');
+  assert.ok(attempts.length <= reservation.reserved, 'WORKER_RESERVATION_EXCEEDED');
+  assert.equal(new Set(attempts.map(row => row.token)).size, attempts.length, 'DUPLICATE_WORKER_ATTEMPT');
+  exact(starts.map(row => row.token), attempts.map(row => row.token), 'UNKNOWN_WORKER_CONSTRUCTOR_STOP');
+  exact(rows.map(row => row.token), starts.map(row => row.token), 'UNKNOWN_WORKER_ACCOUNTING_STOP');
+  validateRetirement(rows);
+  for (const start of starts) {
+    const exits = events.filter(row => row.action === 'exit' && row.token === start.token);
+    assert.equal(exits.length, 1, 'UNKNOWN_WORKER_EXIT_STOP');
+    assert.equal(exits[0].code, rows.find(row => row.token === start.token).exitCode);
+  }
+  reservation.accounting = 'complete'; reservation.attempts = attempts.length; reservation.starts = starts.length; reservation.charged = attempts.length;
+  remaining.workerStarts += reservation.reserved - reservation.charged;
+}
+
+export const terminalReceiptBytes = 16777216;
+
+export function accountTerminal(evidence, remaining, retainedBytes, storageLimit, deadline, now) {
+  for (const [code, refused] of [['FINAL_SCRATCH_STOP', retainedBytes > storageLimit], ['FINAL_DEADLINE_STOP', now >= deadline]]) {
+    if (refused && !evidence.safetyStops.some(row => row.code === code)) evidence.safetyStops.push({ code });
+  }
+  evidence.retainedScratchBytes = retainedBytes;
+  evidence.scratchBudgetExceeded = retainedBytes > storageLimit;
+  remaining.scratchBytes = Math.max(0, evidence.parentBudget.remaining.scratchBytes - retainedBytes);
+  evidence.finished = now;
+  evidence.status = evidence.safetyStops.length ? 'STOP' : evidence.failures.length ? 'FAIL' : 'PASS';
+}

@@ -31,13 +31,13 @@ try {
   const api = await import(configuration.specifier);
   const row = [...cases.workflows, ...cases.controls].find(row => row.id === configuration.id);
   observation = await runCase(api, row, fixtures.rows.find(row => row.id === configuration.id), cases.defaults, fixtures.networkLimits);
-} catch (error) { observation = { id: configuration.id, pass: false, failures: [{ kind: 'runtime', message: String(error), stack: error?.stack }] }; }
+} catch (error) { observation = { id: configuration.id, pass: false, safetyStops: [{ code: 'RUNTIME_SETUP_OR_TRACE_STOP', message: String(error) }], failures: [{ kind: 'runtime', message: String(error), stack: error?.stack }] }; }
 finally {
   try { observation.workers = await observer.close(); }
-  catch (error) { observation.pass = false; observation.failures.push({ kind: 'worker-cleanup', message: String(error) }); observation.workers = observer.rows.map(({ reaped, ...row }) => row); }
+  catch (error) { observation.pass = false; observation.safetyStops.push({ code: 'WORKER_CLEANUP_STOP', message: String(error) }); observation.failures.push({ kind: 'worker-cleanup', message: String(error) }); observation.workers = observer.rows.map(({ reaped, ...row }) => row); }
 }
 observation.layout = configuration.layout;
 observation.workerAdmissionRefusals = observer.admissionRefusals;
-if (observer.admissionRefusals.length) observation.pass = false;
+if (observer.admissionRefusals.length || observation.workers.some(row => row.childAdmissionRefused)) observation.pass = false;
 console.log(JSON.stringify(observation));
 if (!observation.pass) process.exitCode = 1;

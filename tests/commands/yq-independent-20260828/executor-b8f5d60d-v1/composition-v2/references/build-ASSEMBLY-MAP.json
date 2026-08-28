@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "status": "STATIC_COMPONENT_PROJECTION_NOT_COMPOUND_SEAL_OR_GO",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "sourceScope": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build",
+  "targetRoot": "FRESH_ASSEMBLY_ROOT",
+  "entry": "workers/build-worker.mjs",
+  "export": "runWorker",
+  "entries": [
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-worker.mjs",
+      "target": "workers/build-worker.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 21275,
+      "sha256": "3ad2268b34242f2ae5f58e0be611e77dd43c3387fe19139fc52ab31e85fbfbf4"
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-fs.mjs",
+      "target": "workers/build-fs.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7894,
+      "sha256": "a2fda10264dec281c808336c7bf1ee3e1ce5547d03eb6b69d9406947d914ad21"
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-outputs.mjs",
+      "target": "workers/build-outputs.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7266,
+      "sha256": "0e258aedc60788440caf0a2216d360b9c05fe592418c1d932b11984d7741fe1a"
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-plan.json",
+      "target": "workers/build-plan.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 170411,
+      "sha256": "364115ed79bb648ab174d602a7e153e5de59c2753ba97ab3a4206a04a2241ec1"
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-source-manifest.json",
+      "target": "workers/build-source-manifest.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 47504,
+      "sha256": "413432105677fcef5454d5f273d2b1dcb72ce014a52bf3e13e172af3a0a31286"
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-package-manifest.json",
+      "target": "workers/build-package-manifest.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 152021,
+      "sha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7"
+    }
+  ],
+  "dataBindings": {
+    "buildPlan": "workers/build-plan.json",
+    "sourceManifest": "workers/build-source-manifest.json",
+    "packageManifest": "workers/build-package-manifest.json",
+    "toolManifest": "ROOT_GO_FRESH_PATH_MANIFEST_REQUIRED"
+  },
+  "relativeImports": {
+    "workers/build-worker.mjs": [
+      "workers/build-fs.mjs",
+      "workers/build-outputs.mjs"
+    ],
+    "workers/build-outputs.mjs": [
+      "workers/build-fs.mjs"
+    ],
+    "workers/build-fs.mjs": []
+  },
+  "allowedBuiltins": [
+    "node:crypto",
+    "node:fs/promises",
+    "node:path",
+    "node:zlib"
+  ],
+  "outsideImports": [],
+  "sourceMembership": "Authenticate FINAL-SEAL.json for this scope independently; do not enlarge the old workers global membership seal.",
+  "targetMembership": "Core owner must seal exact full fresh assembly union and regular path/mode/hash provenance; this map alone grants no loading.",
+  "parentIntegration": "INTEGRATION.md and BUILD-RESULT-SCHEMA.json",
+  "proofRole": "SOURCE_AND_DATA_PRESEAL_ONLY_NO_COMPILED_PROOF"
+}

@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 1,
+  "status": "FROZEN_FUTURE_CONTROLS_NOT_RUN",
+  "executionRequires": "Separate future explicit synthetic replay authorization and authenticated v2/successor assertion modules; this preparation is not that authorization",
+  "caseCount": 31,
+  "baselineFile": "CONTROL-BASES.json",
+  "bindingFile": "CMD22-BINDING.json",
+  "mutationPolicy": "Every case starts from an independent structured clone. Receipt/input/bytes/status/ordered operations are compared before/after assertion invocation; only listed input mutations are introduced.",
+  "cases": [
+    {
+      "id": "CMD22-original-literal-contrast",
+      "route": "original-v2",
+      "expected": "FAIL",
+      "qualification": "Historical comparison stays failed; no historical verdict is rewritten"
+    },
+    {
+      "id": "CMD22-successor-resolved-contrast",
+      "route": "successor",
+      "expected": "PROJECTION_MATCH",
+      "qualification": "Only a future synthetic assertion expectation, not a new product run"
+    },
+    {
+      "id": "CMD22-literal-observation",
+      "route": "successor",
+      "mutation": "literal-observation",
+      "expected": "FAIL"
+    },
+    {
+      "id": "CMD22-wrong-cwd-observation",
+      "route": "successor",
+      "mutation": "wrong-cwd-observation",
+      "expected": "FAIL"
+    },
+    {
+      "id": "CMD22-sibling-basename",
+      "route": "successor",
+      "mutation": "sibling-basename",
+      "expected": "FAIL"
+    },
+    {
+      "id": "CMD22-extra-read",
+      "route": "successor",
+      "mutation": "extra-read",
+      "expected": "FAIL"
+    },
+    {
+      "id": "CMD22-missing-read",
+      "route": "successor",
+      "mutation": "missing-read",
+      "expected": "FAIL"
+    },
+    {
+      "id": "CMD22-mutated-file-path",
+      "route": "successor",
+      "mutation": "mutated-file-path",
+      "expected": "INCOMPLETE"
+    },
+    {
+      "id": "CMD22-mutated-argv-path",
+      "route": "successor",
+      "mutation": "mutated-argv-path",
+      "expected": "INCOMPLETE"
+    },
+    {
+      "id": "CMD22-missing-reads-binding",
+      "route": "successor",
+      "mutation": "missing-reads-binding",
+      "expected": "INCOMPLETE"
+    },
+    {
+      "id": "CMD22-wrong-bytes",
+      "route": "successor",
+      "mutation": "wrong-bytes",
+      "expected": "FAIL"
+    },
+    {
+      "id": "CMD22-wrong-status",
+      "route": "successor",
+      "mutation": "wrong-status",
+      "expected": "FAIL"
+    },
+    {
+      "id": "CMD22-stderr-bytes",
+      "route": "successor",
+      "mutation": "stderr-bytes",
+      "expected": "FAIL"
+    },
+    {
+      "id": "CMD22-changed-effects",
+      "route": "successor",
+      "mutation": "changed-effects",
+      "expected": "FAIL"
+    },
+    {
+      "id": "CMD22-extra-operation",
+      "route": "successor",
+      "mutation": "extra-operation",
+      "expected": "FAIL"
+    },
+    {
+      "id": "CMD22-wrong-signal",
+      "route": "successor",
+      "mutation": "wrong-signal",
+      "expected": "FAIL"
+    },
+    {
+      "id": "CMD22-unknown-obligation",
+      "route": "successor",
+      "mutation": "unknown-obligation",
+      "expected": "INCOMPLETE"
+    },
+    {
+      "id": "CMD22-missing-binding",
+      "route": "binding-predicate",
+      "mutation": "missing-binding",
+      "expected": "INCOMPLETE"
+    },
+    {
+      "id": "CMD22-wrong-cwd-binding",
+      "route": "binding-predicate",
+      "mutation": "wrong-cwd-binding",
+      "expected": "INCOMPLETE"
+    },
+    {
+      "id": "FS05-unchanged-unknown-obligation",
+      "base": "fs05",
+      "route": "successor",
+      "expected": "INCOMPLETE",
+      "qualification": "Absolute read list is unchanged; its frozen natural-language assertion is not waived"
+    },
+    {
+      "id": "RESOLVER-relative",
+      "route": "resolver-only",
+      "operand": "-name",
+      "resolved": "/v/-name",
+      "expected": "RESOLVER_VALUE",
+      "qualification": "Lexical path profile only; not another executable CMD22 argv/file variant or a filesystem acceptance claim"
+    },
+    {
+      "id": "RESOLVER-absolute",
+      "route": "resolver-only",
+      "operand": "/v/-name",
+      "resolved": "/v/-name",
+      "expected": "RESOLVER_VALUE",
+      "qualification": "Lexical path profile only; not another executable CMD22 argv/file variant or a filesystem acceptance claim"
+    },
+    {
+      "id": "RESOLVER-dot",
+      "route": "resolver-only",
+      "operand": "./-name",
+      "resolved": "/v/-name",
+      "expected": "RESOLVER_VALUE",
+      "qualification": "Lexical path profile only; not another executable CMD22 argv/file variant or a filesystem acceptance claim"
+    },
+    {
+      "id": "RESOLVER-dotdot",
+      "route": "resolver-only",
+      "operand": "../v/-name",
+      "resolved": "/v/-name",
+      "expected": "RESOLVER_VALUE",
+      "qualification": "Lexical path profile only; not another executable CMD22 argv/file variant or a filesystem acceptance claim"
+    },
+    {
+      "id": "RESOLVER-trailing-lexical-only",
+      "route": "resolver-only",
+      "operand": "-name/",
+      "resolved": "/v/-name",
+      "expected": "RESOLVER_VALUE",
+      "qualification": "Lexical path profile only; not another executable CMD22 argv/file variant or a filesystem acceptance claim"
+    },
+    {
+      "id": "RESOLVER-outside-lexical-only",
+      "route": "resolver-only",
+      "operand": "/other/-name",
+      "resolved": "/other/-name",
+      "expected": "RESOLVER_VALUE",
+      "qualification": "Lexical path profile only; not another executable CMD22 argv/file variant or a filesystem acceptance claim"
+    },
+    {
+      "id": "RESOLVER-wrong-cwd",
+      "route": "resolver-only",
+      "profileChanges": {
+        "cwd": "/other"
+      },
+      "operand": "-name",
+      "expected": "FAIL"
+    },
+    {
+      "id": "RESOLVER-relative-cwd",
+      "route": "resolver-only",
+      "profileChanges": {
+        "cwd": "v"
+      },
+      "operand": "-name",
+      "expected": "FAIL"
+    },
+    {
+      "id": "RESOLVER-missing-profile",
+      "route": "resolver-only",
+      "missingProfile": true,
+      "operand": "-name",
+      "expected": "FAIL"
+    },
+    {
+      "id": "RESOLVER-nul-operand",
+      "route": "resolver-only",
+      "operand": "-na\u0000me",
+      "expected": "FAIL"
+    },
+    {
+      "id": "RESOLVER-nonstring-operand",
+      "route": "resolver-only",
+      "operand": 22,
+      "expected": "FAIL"
+    }
+  ],
+  "syntheticControlsExecuted": 0,
+  "syntheticPasses": 0,
+  "productExecutions": 0,
+  "semanticPasses": 0
+}

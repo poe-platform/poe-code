@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "references": [
+    {
+      "commit": "49afeb86ddea10acc5dfcb1df9bb7f1e27ae6308",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/bound-plan-review-v2/REVIEW.md",
+      "sha256": "ee59eee867c525b72f396367a32eed8896d4376afad1b3c7b65298ae7a3661ee",
+      "role": "COMPLETED_STATIC_PLAN_MODE_REVIEW_NOT_NEW_CODE_ACCEPTANCE",
+      "bytes": 13582,
+      "contentAuthenticated": true
+    },
+    {
+      "commit": "73578f6c24a77d0e52bd91b9a445cda0954ce499",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/concrete-workers-review-v1/REVIEW.md",
+      "sha256": "b20ad633331155a7da24048003602d9d38356e61c5387becfffe140a9968d139",
+      "role": "COMPLETED_STATIC_WORKER_FINDINGS_NOT_COMPOSITION_ACCEPTANCE",
+      "bytes": 13497,
+      "contentAuthenticated": true
+    },
+    {
+      "commit": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FINAL-SEAL.json",
+      "sha256": "26d8efbb48aed8e93a54b325e832c5350139da4fe1269b2288fbf5afde707678",
+      "role": "SOURCE_ARTIFACT_DATA_REFERENCE_OLD_GLOBAL_HISTORY_DENY_IMMUTABLE",
+      "bytes": 6776,
+      "contentAuthenticated": true
+    }
+  ],
+  "newCompositionAccepted": false,
+  "RootGO": false
+}

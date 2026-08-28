@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { lstatSync, readFileSync, realpathSync } from "node:fs";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -47,10 +49,22 @@ export function expectedBytes(files: Files) {
 }
 
 export function native(root: string, tool: "diff" | "patch" | "git", args: readonly string[], input = "") {
-  const result = spawnSync(tool === "git" ? "/usr/bin/git" : oraclePath(tool), [...args], {
+  const git = "/Applications/Xcode.app/Contents/Developer/usr/bin/git";
+  const gitCore = "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core";
+  if (tool === "git") {
+    const stat = lstatSync(git);
+    assert(stat.isFile() && !stat.isSymbolicLink());
+    assert.equal(realpathSync(git), git);
+    assert.equal(stat.size, 3704880);
+    assert.equal(stat.mode & 0o777, 0o755);
+    assert.equal(createHash("sha256").update(readFileSync(git)).digest("hex"), "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9");
+    assert.equal(realpathSync(gitCore), gitCore);
+  }
+  const result = spawnSync(tool === "git" ? git : oraclePath(tool), [...args], {
     cwd: root, input, timeout: 3000, maxBuffer: 1024 * 1024, shell: false,
     env: { PATH: "/usr/bin:/bin", LC_ALL: "C", LANG: "C", HOME: root, TMPDIR: root,
       XDG_CONFIG_HOME: root, GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null",
+      GIT_EXEC_PATH: gitCore, GIT_OPTIONAL_LOCKS: "0",
       GIT_CEILING_DIRECTORIES: dirname(root), GIT_TERMINAL_PROMPT: "0" },
   });
   if (result.error) throw result.error;

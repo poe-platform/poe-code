@@ -4,7 +4,7 @@ import test from "node:test";
 import { bounded, directory, native, text, virtual, type Probe } from "./harness.js";
 
 test("isolated cancellation and iterator lifecycle checks", () => {
-  const result = bounded(process.execPath, ["--import", "tsx", "--test", join(directory, "safety-cases.ts")], "", directory, 5000);
+  const result = bounded(process.execPath, ["--import", "tsx", "--test", "--test-reporter=tap", join(directory, "safety-cases.ts")], "", directory, 5000);
   assert.equal(result.code, 0, text(result.stdout) + text(result.stderr));
   assert.match(text(result.stdout), /# pass 10\b/u);
 });

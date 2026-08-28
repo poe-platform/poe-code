@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdtemp, readFile, readdir, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { Shell } from "../../../src/shell/index.js";
 import { standardCommands } from "../../../src/commands/index.js";
@@ -50,18 +51,22 @@ export async function verifyOracle(): Promise<void> {
   }
 }
 export async function native(fixture: Fixture): Promise<Row> {
-  const cwd = await mkdtemp(`${directory}/.native-`);
-  await writeFile(`${cwd}/sentinel`, "independent-table-text-owned");
-  for (const [name, hex] of Object.entries(fixture.files)) await writeFile(`${cwd}/${name}`, Buffer.from(hex, "hex"));
-  const result = spawnSync(`${oracle}/src/${fixture.command}`, fixture.args, { cwd, input: Buffer.from(fixture.stdinHex, "hex"), env: { LC_ALL: "C", PATH: "/usr/bin:/bin" }, timeout: 5000, maxBuffer: 16 * 1024 * 1024 });
-  assert.equal(result.error, undefined);
-  assert.equal(result.signal, null);
-  assert.notEqual(result.status, null);
-  const files: Record<string, string> = {};
-  for (const name of Object.keys(fixture.files)) files[name] = (await readFile(`${cwd}/${name}`)).toString("hex");
-  assert.deepEqual((await readdir(cwd)).sort(), [...Object.keys(files), "sentinel"].sort());
-  assert.equal(await readFile(`${cwd}/sentinel`, "utf8"), "independent-table-text-owned");
-  return { exitCode: result.status!, stdoutHex: result.stdout.toString("hex"), stderrHex: result.stderr.toString("hex"), files };
+  const cwd = await mkdtemp(`${tmpdir()}/safe-bash-table-native-`);
+  try {
+    await writeFile(`${cwd}/sentinel`, "independent-table-text-owned");
+    for (const [name, hex] of Object.entries(fixture.files)) await writeFile(`${cwd}/${name}`, Buffer.from(hex, "hex"));
+    const result = spawnSync(`${oracle}/src/${fixture.command}`, fixture.args, { cwd, input: Buffer.from(fixture.stdinHex, "hex"), env: { LC_ALL: "C", PATH: "/usr/bin:/bin" }, timeout: 5000, maxBuffer: 16 * 1024 * 1024 });
+    assert.equal(result.error, undefined);
+    assert.equal(result.signal, null);
+    assert.notEqual(result.status, null);
+    const files: Record<string, string> = {};
+    for (const name of Object.keys(fixture.files)) files[name] = (await readFile(`${cwd}/${name}`)).toString("hex");
+    assert.deepEqual((await readdir(cwd)).sort(), [...Object.keys(files), "sentinel"].sort());
+    assert.equal(await readFile(`${cwd}/sentinel`, "utf8"), "independent-table-text-owned");
+    return { exitCode: result.status!, stdoutHex: result.stdout.toString("hex"), stderrHex: result.stderr.toString("hex"), files };
+  } finally {
+    await rm(cwd, { recursive: true });
+  }
 }
 export async function product(fixture: Fixture, pipeline = true): Promise<Row> {
   const fs = createMemoryFileSystem();

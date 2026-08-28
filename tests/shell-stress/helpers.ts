@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdtempSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { ChildRequest, Observation, Snapshot, StressCase } from "./model.js";
 import { isolatedSpawn } from "./process.js";
@@ -73,7 +73,14 @@ function hostSnapshot(directory: string, prefix = ""): Snapshot {
 
 export async function runBash(fixture: StressCase): Promise<Observation> {
   const directory = mkdtempSync(join(tmpdir(), "virtual-bash-shell-stress-"));
+  let temporary: string | undefined;
   try {
+    const base = realpathSync(tmpdir());
+    if (process.env.FULL_GATE_ROOT) {
+      const owned = realpathSync(process.env.FULL_GATE_ROOT);
+      assert(base === owned || base.startsWith(owned + sep), "native scratch is outside the admitted gate root");
+    }
+    temporary = mkdtempSync(join(base, "safe-bash-shell-scratch-"));
     for (const [name, content] of Object.entries(fixture.initialFiles ?? {})) {
       const path = resolve(directory, name);
       assert.ok(path.startsWith(`${directory}/`), `Unsafe fixture path: ${name}`);
@@ -85,7 +92,7 @@ export async function runBash(fixture: StressCase): Promise<Observation> {
     }
     const result = await isolatedSpawn(bashPath, ["--noprofile", "--norc", "-c", fixture.script, "shell-stress"], {
       cwd: directory,
-      env: { ...environment(directory), ...fixture.env },
+      env: { ...environment(directory), TMPDIR: temporary, ...fixture.env },
       input: fixture.stdin ?? "",
       timeout: hardDeadlineMs, maxBuffer,
     });
@@ -96,7 +103,8 @@ export async function runBash(fixture: StressCase): Promise<Observation> {
       exitCode: result.status!, files: hostSnapshot(directory),
     };
   } finally {
-    rmSync(directory, { recursive: true, force: true });
+    try { rmSync(directory, { recursive: true, force: true }); }
+    finally { if (temporary !== undefined) rmSync(temporary, { recursive: true }); }
   }
 }
 

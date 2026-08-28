@@ -24,6 +24,22 @@ import {createPhaseRunner} from './phase-runner.mjs';
 import {assertNoInstructionCopyTree} from './projection.mjs';
 import {createPrerequisiteReceipt,prerequisites as maintainedPrerequisites} from './maintained-prerequisites.mjs';
 
+export function benchmarkTypeInvocation(source){
+  const records=externalReceipt().report.directories.main.entries;
+  const bindings=[];
+  for(const path of ['typescript/package.json','typescript/bin/tsc','typescript/lib/tsc.js','typescript/lib/_tsc.js']){
+    const expected=records.find(entry=>entry.path===path&&entry.kind==='file');
+    assert.ok(expected,'benchmark compiler lacks admitted root dependency: '+path);
+    const file=join(source,'node_modules',path),stat=lstatSync(file);
+    assert.ok(stat.isFile()&&!stat.isSymbolicLink());assert.equal(realpathSync(file),file);
+    assert.equal(stat.size,expected.bytes);assert.ok(stat.size<=8*1024*1024);
+    assert.equal(stat.mode&0o777,expected.mode);assert.equal(sha(readFileSync(file)),expected.sha256);
+    bindings.push({path:file,sha256:expected.sha256});
+  }
+  assert.equal(JSON.parse(readFileSync(join(source,'node_modules/typescript/package.json'))).version,'5.9.3');
+  return{args:[join(source,'node_modules/typescript/bin/tsc'),'--noEmit','-p','tsconfig.json'],cwd:join(source,'benchmarks'),bindings};
+}
+
 export async function execute(options,scope){
 let output,report,temporary,source,privateModule,sourceGuard,helperRoute,exitCode=0,totalOutput=0;
 const completed=[];
@@ -109,7 +125,8 @@ try{
   writeFileSync(consumerDriver,renderConsumerEntry(externalRunner,consumerInput,join(consumerDirectory,'REPORT.json')),{flag:'wx'});
   report.externalConsumerBinding={...transformed,source:undefined,entrySha256:sha(readFileSync(consumerDriver)),inputSha256:sha(readFileSync(consumerInput)),driverManagedBuilds:1};
   const consumerHarnessGuard=await createTreeGuard(join(temporary,'harness'));
-  await phase('benchmark-types',[join(source,'benchmarks/node_modules/typescript/bin/tsc'),'--noEmit','-p','tsconfig.json'],join(source,'benchmarks'));
+  const benchmark=benchmarkTypeInvocation(source);report.benchmarkCompiler=benchmark.bindings;
+  await phase('benchmark-types',benchmark.args,benchmark.cwd);
   await phase('env-source-binding',['--import','tsx','--input-type=module','-e',"await import('./src/commands/execution.ts');await import('./src/commands/env-split.ts');console.log('candidate env source loaded')"]);
   const args=canonicalArguments(profile);requireCanonicalArguments(args,profile);report.fullGateLaunched=true;const canonical=await phase('canonical',args,source,0,3600000);
   report.canonical=canonical.accounting;

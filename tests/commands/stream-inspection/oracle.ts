@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { execFileSync, spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { join, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { nativeCases, appleDifferenceCases } from "./cases.js";
 import { type Fixture } from "./helpers.js";
@@ -22,12 +23,22 @@ export function identity(executable: string) {
 
 export function capture(specimen: Fixture, executable: string, argv0 = executable) {
   const folder = mkdtempSync(fileURLToPath(new URL("./author-native-", import.meta.url)));
+  let temporary: string | undefined;
   try {
+    const base = realpathSync(tmpdir());
+    if (process.env.FULL_GATE_ROOT) {
+      const owned = realpathSync(process.env.FULL_GATE_ROOT);
+      assert(base === owned || base.startsWith(owned + sep), "native scratch is outside the admitted gate root");
+    }
+    temporary = mkdtempSync(join(base, "safe-bash-stream-scratch-"));
     for (const [name, hex] of Object.entries(specimen.files ?? {})) writeFileSync(join(folder, name), Buffer.from(hex, "hex"));
-    const result = spawnSync(executable, specimen.args, { argv0, cwd: folder, input: Buffer.from(specimen.stdinHex, "hex"), timeout: 5000, maxBuffer: 8 * 1024 * 1024, env: { LC_ALL: "C", LANG: "C", TZ: "UTC", PATH: "/usr/bin:/bin" } });
+    const result = spawnSync(executable, specimen.args, { argv0, cwd: folder, input: Buffer.from(specimen.stdinHex, "hex"), timeout: 5000, maxBuffer: 8 * 1024 * 1024, env: { LC_ALL: "C", LANG: "C", TZ: "UTC", PATH: "/usr/bin:/bin", TMPDIR: temporary } });
     if (result.error) throw result.error;
     return { id: specimen.id, command: specimen.command, fixtureSha256: createHash("sha256").update(JSON.stringify(specimen)).digest("hex"), status: result.status, signal: result.signal, stdoutHex: result.stdout.toString("hex"), stderrHex: result.stderr.toString("hex") };
-  } finally { rmSync(folder, { recursive: true }); }
+  } finally {
+    try { rmSync(folder, { recursive: true }); }
+    finally { if (temporary !== undefined) rmSync(temporary, { recursive: true }); }
+  }
 }
 
 export function captureAll() {

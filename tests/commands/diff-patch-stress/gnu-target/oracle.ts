@@ -1,8 +1,20 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { accessSync, constants, readFileSync, realpathSync, statSync } from "node:fs";
-import { isAbsolute } from "node:path";
+import { accessSync, constants, mkdtempSync, readFileSync, realpathSync, rmSync, statSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { isAbsolute, join, sep } from "node:path";
+
+export function withNativeScratch<Value>(operation: (temporary: string) => Value): Value {
+  const base = realpathSync(tmpdir());
+  if (process.env.FULL_GATE_ROOT) {
+    const owned = realpathSync(process.env.FULL_GATE_ROOT);
+    assert(base === owned || base.startsWith(owned + sep), "native scratch is outside the admitted gate root");
+  }
+  const temporary = mkdtempSync(join(base, "safe-bash-patch-scratch-"));
+  try { return operation(temporary); }
+  finally { rmSync(temporary, { recursive: true }); }
+}
 
 export type OracleTool = "diff" | "patch";
 export type OracleProfile = "gnu" | "apple-calibration";
@@ -34,10 +46,10 @@ export function oracleIdentity(tool: OracleTool, profile: OracleProfile = "gnu")
   if (cached) return cached;
   const sha256 = createHash("sha256").update(readFileSync(canonical)).digest("hex");
   assert.equal(sha256, pin.sha256, `${variable}: pinned executable SHA-256 mismatch; new builds require independently reviewed proof`);
-  const result = spawnSync(canonical, ["--version"], {
+  const result = withNativeScratch(temporary => spawnSync(canonical, ["--version"], {
     encoding: "utf8", shell: false, timeout: 3000, killSignal: "SIGKILL", maxBuffer: 65_536,
-    env: { PATH: "/usr/bin:/bin", LANG: "C", LC_ALL: "C", TZ: "UTC" },
-  });
+    env: { PATH: "/usr/bin:/bin", LANG: "C", LC_ALL: "C", TZ: "UTC", TMPDIR: temporary },
+  }));
   assert.ifError(result.error);
   assert.equal(result.signal, null);
   assert.equal(result.status, 0, result.stderr);

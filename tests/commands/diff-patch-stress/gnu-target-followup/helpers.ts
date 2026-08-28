@@ -5,7 +5,7 @@ import { lstat, mkdir, mkdtemp, readFile, readdir, readlink, rm, writeFile } fro
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { FileSystem } from "../../../../src/contracts/index.js";
-import { oracleIdentity } from "../gnu-target/oracle.js";
+import { oracleIdentity, withNativeScratch } from "../gnu-target/oracle.js";
 import { cwd, instrument, invoke, memory } from "../safety/helpers.js";
 
 export const owned = fileURLToPath(new URL("./", import.meta.url));
@@ -57,11 +57,11 @@ export async function nativeProbe(probe: Probe) {
       await writeFile(join(directory, path), data);
     }
     const before = await nativeNamespace(directory);
-    const result = spawnSync(identity.path, [...probe.args], {
+    const result = withNativeScratch(temporary => spawnSync(identity.path, [...probe.args], {
       cwd: join(directory, cwd), input: probe.input, encoding: "utf8", shell: false,
       timeout: 3000, killSignal: "SIGKILL", maxBuffer: 1_048_576,
-      env: { PATH: "/usr/bin:/bin", LANG: "C", LC_ALL: "C", TZ: "UTC" },
-    });
+      env: { PATH: "/usr/bin:/bin", LANG: "C", LC_ALL: "C", TZ: "UTC", TMPDIR: temporary },
+    }));
     assert.ifError(result.error);
     assert.equal(result.signal, null);
     assert.notEqual(result.status, null);

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, rmdir } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import test from "node:test";
-import { fileURLToPath } from "node:url";
 import { FsError } from "../../../../../src/contracts/errors.js";
 import type { EntryComparison, FileSystem } from "../../../../../src/contracts/filesystem.js";
 import { createMemoryFileSystem } from "../../../../../src/fs/memory/index.js";
@@ -34,10 +34,13 @@ test("public wrapper comparison over memory: independent stores are distinct, al
 });
 
 test("public wrapper comparison over real: different roots and clients preserve shared native identity", async context => {
-  const scratch = fileURLToPath(new URL("./.runs/", import.meta.url));
-  await mkdir(scratch, { recursive: true });
-  const directory = await mkdtemp(`${scratch}native-`);
-  context.after(() => rm(directory, { recursive: true }));
+  const scratch = await mkdtemp(`${tmpdir()}/safe-bash-identity-comparison-`);
+  let directory: string | undefined;
+  context.after(async () => {
+    try { if (directory !== undefined) await rm(directory, { recursive: true }); }
+    finally { await rmdir(scratch); }
+  });
+  directory = await mkdtemp(`${scratch}/native-`);
   await mkdir(`${directory}/nested`);
   const outer = await createRealFileSystem({ root: directory });
   const inner = await createRealFileSystem({ root: `${directory}/nested` });

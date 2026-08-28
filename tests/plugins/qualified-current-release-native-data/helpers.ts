@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { copyFileSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -26,7 +27,19 @@ export function createCopy() {
 export function run(directory: string, command: string, args: string[]) {
   const env = { ...process.env };
   delete env.NODE_TEST_CONTEXT;
-  const result = spawnSync(command, args, { cwd: directory, env, encoding: "utf8", timeout: 60000, maxBuffer: 4 * 1024 * 1024 });
+  let executable = command, arguments_ = args;
+  if (command === "npm") {
+    const cli = "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js";
+    const stat = lstatSync(cli);
+    assert(stat.isFile() && !stat.isSymbolicLink());
+    assert.equal(realpathSync(cli), cli);
+    assert.equal(stat.size, 54);
+    assert.equal(stat.mode & 0o777, 0o755);
+    assert.equal(createHash("sha256").update(readFileSync(cli)).digest("hex"), "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7");
+    executable = process.execPath;
+    arguments_ = [cli, ...args];
+  }
+  const result = spawnSync(executable, arguments_, { cwd: directory, env, encoding: "utf8", timeout: 60000, maxBuffer: 4 * 1024 * 1024 });
   assert.equal(result.error, undefined);
   assert.equal(result.signal, null);
   return result;

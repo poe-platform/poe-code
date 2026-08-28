@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { toByteSource } from "../../../../src/contracts/index.js";
 import { createDiffPatchCommands } from "../../../../src/commands/diff-patch/index.js";
 import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
-import { oracleIdentity } from "../gnu-target/oracle.js";
+import { oracleIdentity, withNativeScratch } from "../gnu-target/oracle.js";
 import { replacement, type Fixture } from "./fixtures.js";
 
 export const directory = fileURLToPath(new URL("./", import.meta.url));
@@ -98,11 +98,11 @@ export async function probe(fixture: Fixture, atomic = false) {
     const virtualIdentityBefore = await virtualSnapshot(fs, true);
     const input = fixture.input ?? replacement();
     const nativeArgs = ["--batch", ...(fixture.args ?? []).map(arg => expand(arg, root))];
-    const result = spawnSync(identity.realpath, nativeArgs, {
+    const result = withNativeScratch(temporary => spawnSync(identity.realpath, nativeArgs, {
       cwd: join(root, "work"), input: expand(input, root), encoding: "utf8", shell: false,
       timeout: 3000, killSignal: "SIGKILL", maxBuffer: 262_144,
-      env: { PATH: "/usr/bin:/bin", LANG: "C", LC_ALL: "C", TZ: "UTC", PATCH_GET: "0" },
-    });
+      env: { PATH: "/usr/bin:/bin", LANG: "C", LC_ALL: "C", TZ: "UTC", PATCH_GET: "0", TMPDIR: temporary },
+    }));
     assert.ifError(result.error);
     assert.equal(result.signal, null);
     const nativeAfter = await nativeSnapshot(root);

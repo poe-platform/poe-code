@@ -17,7 +17,9 @@ const tempRoot = realpathSync(mkdtempSync(join(tmpdir(), "safe-bash-http-exports
 const snapshot = join(tempRoot, "snapshot");
 const consumer = join(tempRoot, "consumer");
 const environment = {
-  PATH: `${dirname(process.execPath)}:/usr/bin:/bin`,
+  PATH: process.env.PATH ?? "",
+  GIT_EXEC_PATH: "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+  GIT_OPTIONAL_LOCKS: "0",
   HOME: join(tempRoot, "home"), TMPDIR: join(tempRoot, "tmp"),
   npm_config_cache: join(tempRoot, "npm-cache"),
   npm_config_userconfig: join(tempRoot, "empty.npmrc"),
@@ -42,10 +44,32 @@ function digest(bytes) {
 
 function run(label, command, args, cwd = repository, expectedStatus = 0) {
   const started = performance.now();
-  const result = spawnSync(command, args, {
+  let executable = command, executionArgs = args;
+  if (command === "git") {
+    executable = "/Applications/Xcode.app/Contents/Developer/usr/bin/git";
+    const stat = lstatSync(executable);
+    assert(stat.isFile() && !stat.isSymbolicLink());
+    assert.equal(realpathSync(executable), executable);
+    assert.equal(stat.size, 3704880);
+    assert.equal(stat.mode & 0o777, 0o755);
+    assert.equal(digest(readFileSync(executable)), "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9");
+    assert.equal(realpathSync(environment.GIT_EXEC_PATH), environment.GIT_EXEC_PATH);
+  }
+  if (command === "npm") {
+    const cli = "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js";
+    const stat = lstatSync(cli);
+    assert(stat.isFile() && !stat.isSymbolicLink());
+    assert.equal(realpathSync(cli), cli);
+    assert.equal(stat.size, 54);
+    assert.equal(stat.mode & 0o777, 0o755);
+    assert.equal(digest(readFileSync(cli)), "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7");
+    executable = process.execPath;
+    executionArgs = [cli, ...args];
+  }
+  const result = spawnSync(executable, executionArgs, {
     cwd, env: environment, encoding: "utf8", timeout: 90_000, maxBuffer: 16 * 1024 * 1024,
   });
-  steps.push({ label, command, args, cwd, status: result.status, signal: result.signal,
+  steps.push({ label, command, executable, args, executionArgs, cwd, status: result.status, signal: result.signal,
     durationMs: Math.round(performance.now() - started), stdout: result.stdout, stderr: result.stderr });
   assert.ifError(result.error);
   assert.equal(result.signal, null, `${label} terminated by signal`);

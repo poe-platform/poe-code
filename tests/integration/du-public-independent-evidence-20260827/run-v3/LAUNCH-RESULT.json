@@ -1,0 +1,13 @@
+{
+  "commit": "436173fcec6787f17f167e03a3b789bf6485e9e5",
+  "manifestSha256": "1ca6554a66e0c4160dca6da399229208719f8721ad19331b3daa30fd8c5afa79",
+  "startedAt": "2026-08-28T00:04:05.283Z",
+  "childrenStarted": 81,
+  "childrenClosed": 81,
+  "childProcessesActive": 0,
+  "handedToExecutor": true,
+  "failure": null,
+  "protected37Authenticated": true,
+  "overlayFilesAuthenticated": 6,
+  "finishedAt": "2026-08-28T00:04:06.254Z"
+}

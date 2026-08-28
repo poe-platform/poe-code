@@ -1,0 +1,10 @@
+{
+  "label": "build",
+  "pid": 41749,
+  "status": 0,
+  "signal": null,
+  "outputBytes": 0,
+  "watchdogFailure": null,
+  "spawnError": null,
+  "closed": true
+}

@@ -1,0 +1,20 @@
+{
+  "liveStatusSha256": "b2c496816fb1003aa8e839413af600834dea2fd6f4bfe946961f4f1fd6e0511b",
+  "statusEntries": [
+    " M tests/integration/native-data-tap-independent-20260827/replay.mjs",
+    "?? src/commands/which/index.ts",
+    "?? src/commands/which/options.ts",
+    "?? src/commands/which/which.ts",
+    "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/",
+    "?? tests/commands/search-stress/.native-1m4O1e/",
+    "?? tests/commands/which/",
+    "?? tests/integration/du-public-independent-evidence-20260827/run-v3/",
+    "?? tests/integration/full-gate-20260827/unified76-driver/CANDIDATE.json",
+    "?? tests/integration/full-gate-20260827/unified76-driver/assemble.mjs",
+    "?? tests/integration/full-gate-20260827/unified76-driver/reconstruct.mjs",
+    "?? tests/integration/native-data-tap-independent-20260827/audit.mjs"
+  ],
+  "foreignIndexNames": [],
+  "liveBytesConsumedForBuild": 0,
+  "indexMutatedByControl": false
+}

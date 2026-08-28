@@ -1,0 +1,26 @@
+[
+  {
+    "name": "protected37-and-recipes",
+    "status": "PASS"
+  },
+  {
+    "name": "full-tool-closure",
+    "status": "PASS"
+  },
+  {
+    "name": "complete-pinned-Git-selection",
+    "status": "PASS"
+  },
+  {
+    "name": "author-pack",
+    "status": "PASS"
+  },
+  {
+    "name": "fresh-staged-tools",
+    "status": "PASS"
+  },
+  {
+    "name": "complete-fresh-candidate",
+    "status": "PASS"
+  }
+]

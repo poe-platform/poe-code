@@ -1,0 +1,337 @@
+{
+  "schemaVersion": 3,
+  "role": "standalone post-run seal verification, not reexecution or old-run repair",
+  "checkedAt": "2026-08-28T00:06:09.561Z",
+  "recipeCommit": "436173fcec6787f17f167e03a3b789bf6485e9e5",
+  "recipeManifestSha256": "1ca6554a66e0c4160dca6da399229208719f8721ad19331b3daa30fd8c5afa79",
+  "original37Files": [
+    {
+      "path": "tests/integration/du-public-independent-20260827/MANIFEST.json",
+      "sha256": "b180b9a384bdc3d257b243d315027a59ae792865a572b877dbe547f99149f6ff",
+      "gitBlob": "84bf97a61b147be4f7bd408d480cb28fa0242552",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/README.md",
+      "sha256": "7bc16552cf2b232d83f56bb94f628383dbae2af0cf3908e389aa09b62ac83f6e",
+      "gitBlob": "ee4afd2d7e38dbfd20fba25621104d80340bff70",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/binding-contract.mjs",
+      "sha256": "6b0f3c6c58eeab74d069c3f1934c88683e3d317c663c201a00101e623365c58d",
+      "gitBlob": "b472a69c33f4740b7ddd7b52ca6fe23733c9bed3",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/bindings.template.json",
+      "sha256": "a2bd39ebe66c22bea3397a3a336227ef3c4ecb91e474edbae96cd1f6bdec71b5",
+      "gitBlob": "f2930971b34dcc61c51fa7d6f25847dbf930bd0d",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/cases.json",
+      "sha256": "c4bd0156197d8902839e4c1e24f261aeefcc52307537fa9aff05efca1b36efb2",
+      "gitBlob": "5776a1d59a623ac92bfd673fdfe6711e939b9cee",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/consumers/negative-limits.ts.data",
+      "sha256": "7e5f00d6d0e51932cec4d4c5923b7513767ae8378574a88f905eb77c4da5be5a",
+      "gitBlob": "cd9859b006f64f913c975f3fe1525bfe719d0ed9",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/consumers/negative-options.ts.data",
+      "sha256": "236b464bb11091248ea87eaa745b203a6a5400718070adcba9ac0c0f351e7ffd",
+      "gitBlob": "da424fdcbc572e0a48a41b95a989ba410549961d",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/consumers/negative-readonly.ts.data",
+      "sha256": "fd6b0ce1b0438f342187e7a223871d2a96c66893223798e189e66d5cd080cb37",
+      "gitBlob": "2fbd69d2b710ab7f79e8fe52f90608387a59dfdf",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/consumers/positive.ts.data",
+      "sha256": "d1d5860c82394788b51b138bf21d180a3f03471d5a9ceb3feef09c914ef0f415",
+      "gitBlob": "d6be6ffbfbca416fd3849d4be08a33e1971db1ca",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/inspection.json",
+      "sha256": "cbbe8c1663aa1950c706d558591596ade1717d29e390a843d3beff62437d2053",
+      "gitBlob": "5f22d3d822323f7f4f98ba0fd7135609200bd9a7",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/lifecycle.json",
+      "sha256": "f4c2141aa37be991b2afcebabc1f36eda1d0947655c313a383e047982dd6437e",
+      "gitBlob": "df883ce0a09a24994a3704135f60c3208b3c300b",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/load-proof-hook.mjs",
+      "sha256": "5f31d3ff8f41988656dc792a0b62cc83878923302c088820d5233ed36626213b",
+      "gitBlob": "1897c32368e5b68967871aff1631c8b50d4553bc",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/public-cases.mjs",
+      "sha256": "5620dbc46f39cd5cbee3d4a0e1eed8bd4544af21715d60c15643c619ea162d3e",
+      "gitBlob": "a6980ef7189a8ee4316f0b1a7d8897e609204b71",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/type-controls.json",
+      "sha256": "e896fb046ef9221761fb27509414ae1ba956b5804e247c1dfa1001d53cd85007",
+      "gitBlob": "47fa3595c8f1482bcebbb9b1f7baf6054233b7c7",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-20260827/verify-static.mjs",
+      "sha256": "cb0036b9cce877363280de5b1968d47b3856064c833c256536fe1206015b51f6",
+      "gitBlob": "baf1a30d89528ae7a49560d9c6b9e94b97a5d4e2",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/ADMISSION-ADDENDUM.v1.md",
+      "sha256": "eeaaf4cc8414e8fc56d2cf77b489eced2288502a8c6ca54f9d9e02e111a29e28",
+      "gitBlob": "14ab832b829b57af923d25f42f7eb289deab0db7",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/MANIFEST.json",
+      "sha256": "60ccba645eb197746cd13ff2bd92d1b213affce9a896c275913e531a55b21763",
+      "gitBlob": "3f589ab2cb1535f6d17ce6e20768bdf18460b4a1",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/README.md",
+      "sha256": "4a46fcc4cc8d5241afdb4e7672d9a7cb363edf6da9852aea064b229ec14958c9",
+      "gitBlob": "f89ff396acb0e1d3e086184c9316796d19365fa7",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/controls.v1.json",
+      "sha256": "a269a6cc4bd45c087a4e84d49cafb3077d1e55efc527d3ef6531d7c0fe7ced4b",
+      "gitBlob": "13d9afd69c694bfb88af78338298274b17c0dc97",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/preparation.v1.json",
+      "sha256": "537fb72f69c409578180f57a91087b5028f625676a07d37c4cbde36d0c8e8b23",
+      "gitBlob": "9723ce7960db41adee20a0bf8c4fdc4a7777c4c1",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/wrapper.v1.mjs",
+      "sha256": "d360ece50f93a6caccb2973183b343c827fd7d035fd13e07d9ee2512cfe1d1ea",
+      "gitBlob": "2f4c26bc22ea812f5c7234198377a2c75db21ec3",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/admission-v2/MANIFEST.json",
+      "sha256": "420da89268b544b466dda8aa3cc214dab668338233e557b3efe45dee84b6ccd7",
+      "gitBlob": "cab07e8f8d81d17a38a81de70fcdb9c84014ce72",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/admission-v2/README.md",
+      "sha256": "4d710c4aeae55d9e9fb2a7a728eb368d1a3700d6ba5cba7a73951021de90edf8",
+      "gitBlob": "fedf2146d1d4fe06beb5799096ebc4552ee7b5f8",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/admission-v2/closure.json",
+      "sha256": "b4263e32e6b2ea91a7f8eccceb1133a04ef09d614adca2c8021737572dbd0ad7",
+      "gitBlob": "2500cde69c93619c3cb25b13578c1b1ab70380a0",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/admission-v2/common.mjs",
+      "sha256": "ec2204441e048d09b46d4233bd1ce16a6dc67026dbf04c44459a29e77b130756",
+      "gitBlob": "1fe62c23b55472ba482b156e842fc93b671a9b13",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/admission-v2/executor.mjs",
+      "sha256": "dca165bf823cd099d8b4e8dd50e6cd029a79c811f0444b2609eb7dcc8edaf6e7",
+      "gitBlob": "015a10b974a23dcf992fffb3ecee3251bd04aa03",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/admission-v2/launch.mjs",
+      "sha256": "f940d7c0c5fe6aa4f1d07336400c8be2a50ed834e042bd02d4a7b3255fee2dd7",
+      "gitBlob": "16e00b09a7f95a8b6f7d832a4980ef799841a9e9",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/admission-v2/recipe.json",
+      "sha256": "e96c1c8c2d0fd286bb1cc84dda7f2ac09b25f45962604b476900bc528ded3d30",
+      "gitBlob": "061467c88ae83c80bc097ef31f48e6dbbd3037fb",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/admission-v2/registry.json",
+      "sha256": "c8f7e303d609eca35e7905c302b304f5493a35a70130c9b137fe32b1c8dae2af",
+      "gitBlob": "ff228c252ff45e26f7610ada98ad3e72bb27751f",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/admission-v2/seal.mjs",
+      "sha256": "7dc6e5de66c1b71b86f88b494e0068c23d9c4448a4a4fe2a05ed3f898b7e7462",
+      "gitBlob": "9a36d731768c4c5c712ac973eb7a6cd14b00e910",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/admission-v2/tool-observer.cjs",
+      "sha256": "e54414c43a22733b31c21bf7f9c7b5fbbf34da629bb34df338e91211c7ee78ac",
+      "gitBlob": "c5ffc7f08338c0a2abe909aa3b809b3cd051e438",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/admission-v2-evidence-manifest.json",
+      "sha256": "4ebdf11aace1e93c26ae7f5a5dfb2173031ca61aae19c62701429312a478ccef",
+      "gitBlob": "566c32b9f61589b2578e8d813ff520490947121e",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/admission-v2-outcome.md",
+      "sha256": "b754db4e1a4ff2f0e40c49b7afbed1ab62715b8b0304a8f39b74aa1bf759c09c",
+      "gitBlob": "f222f1f4ebd9ef1c7d75666ecd1f06543b7b77d2",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/post-run-original-bindings.json",
+      "sha256": "93bfab141dff4eb911b81b570f513a6fe42e5e3ed1e092c18870b85bcfd6e9fe",
+      "gitBlob": "c70f1bc251ea9d5283ab0d1ac7c4e758e34c63c9",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/run-v2/EVIDENCE-MANIFEST.json",
+      "sha256": "7571013470b55eae25634932ff024bed3eebe33a5c109b4af8aed820a8ca5d0b",
+      "gitBlob": "4a866623790055c89074e3d7548523a477627361",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/run-v2/RESULT.json",
+      "sha256": "6c7eb1fa420cab84fd23aa48b51d1231c01dfccc45a030ed72269db0de041b3b",
+      "gitBlob": "fb649e487a4461f10f5778afb25ced4551b0d994",
+      "status": "UNCHANGED"
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/run-v2/events.jsonl",
+      "sha256": "f359f77a479908d09ec840fb0ef1176d5522e1af450fef0dff92ff764a76c333",
+      "gitBlob": "8245ef70ba67a933e92cffd724c39346970cf916",
+      "status": "UNCHANGED"
+    }
+  ],
+  "originalFailureUnchanged": true,
+  "originalFailureExactPath": "NOT_RETAINED; not reconstructed",
+  "originalCompletePlannedPrePost": "FAILED unchanged",
+  "newRecipeFilesVerified": 6,
+  "recipeCommitDiffOnlyOwnedAdditions": true,
+  "runManifestSha256": "2528124ae7a9d099af2f448c3e55d9142fcc25beac70caa1c3773d1e37858e48",
+  "rawFilesVerified": 25,
+  "rawRunNamespaceExact": true,
+  "namespaceScope": "Only fresh run-v3 and exact admission-v3 namespace; no whole owner-root/live-checkout assertion",
+  "normalAttemptPostGuards": [
+    {
+      "name": "protected37-and-recipes",
+      "status": "PASS"
+    },
+    {
+      "name": "full-tool-closure",
+      "status": "PASS"
+    },
+    {
+      "name": "complete-pinned-Git-selection",
+      "status": "PASS"
+    },
+    {
+      "name": "author-pack",
+      "status": "PASS"
+    },
+    {
+      "name": "fresh-staged-tools",
+      "status": "PASS"
+    },
+    {
+      "name": "complete-fresh-candidate",
+      "status": "PASS"
+    }
+  ],
+  "normalAttemptPostQualification": "PASS scoped Git selection/protected files/tool closure/fresh candidate; no old-run composite",
+  "toolClosure": [
+    {
+      "name": "npm",
+      "version": "10.9.7",
+      "regularFiles": 2027,
+      "metadataOnlyAliases": 12
+    },
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "regularFiles": 132,
+      "metadataOnlyAliases": 0
+    },
+    {
+      "name": "@types/node",
+      "version": "22.20.1",
+      "regularFiles": 74,
+      "metadataOnlyAliases": 0
+    },
+    {
+      "name": "undici-types",
+      "version": "6.21.0",
+      "regularFiles": 41,
+      "metadataOnlyAliases": 0
+    }
+  ],
+  "actualToolLoadProofs": [
+    {
+      "label": "build",
+      "moduleCompiles": 3,
+      "actualFileReads": 383,
+      "productModuleCompiles": 0,
+      "entryObserved": true,
+      "exitObserved": true,
+      "uniqueCompiledPaths": 3
+    },
+    {
+      "label": "pack",
+      "moduleCompiles": 541,
+      "actualFileReads": 561,
+      "productModuleCompiles": 0,
+      "entryObserved": true,
+      "exitObserved": true,
+      "uniqueCompiledPaths": 541
+    }
+  ],
+  "resourceClosure": {
+    "childrenStarted": 2966,
+    "childrenNaturallyClosed": 2966,
+    "gitChildren": 2964,
+    "toolChildren": 2,
+    "launcherGitChildren": 81,
+    "activeChildren": 0,
+    "watchdogs": 0,
+    "scratchRemoved": true,
+    "elapsedMs": 30161,
+    "peakObservedDiskBytes": 58843478,
+    "peakChildOutputBytes": 93950
+  },
+  "unexecuted": [
+    "A06 accepted-HTML/root eligibility",
+    "P03 public install/move/load/type/29 replay",
+    "DU29",
+    "HTML74",
+    "DU behavior/private-helper runtime acceptance",
+    "other cohorts/native/RSS"
+  ],
+  "remainingBlocker": "DU29 held pending accepted HTML74 and separately authenticated public executor/root eligibility",
+  "semanticAttempts": 1,
+  "semanticRetries": 0
+}

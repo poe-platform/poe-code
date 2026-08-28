@@ -2,7 +2,7 @@
 
 Status: Frozen audit criteria, 2026-08-28; no execution authority
 
-Implemented Through: `0e8ee2900e7810b911f1335b0d3f05f23ce740c5` (prior static closure only)
+Implemented Through: `0e8ee2900e7810b911f1335b0d3f05f23ce740c5`
 
 Purpose: Qualify frozen coverage and the one-run launch interface without changing semantic policy or granting execution.
 
@@ -30,7 +30,7 @@ WRK-06/07/13/17, all eight overlays, CARRY guards and all ten loaded slots MUST 
 
 The audit MUST derive required root fields and CLI arguments from sealed schema and actual admission. It MUST separate current staged tools/archive data from future candidate trees, root-supplied authority from fixed bindings, and prelaunch implementation requirements from post-GO observations. Root alone can authorize a finite run. Existing nonzero, capture, integrity, reap, absolute deadline and evidence-retention rules MUST remain unchanged.
 
-## 6. Validation Matrix
+## 6. Test and Validation Matrix
 
 | Claim | Required static evidence |
 | --- | --- |

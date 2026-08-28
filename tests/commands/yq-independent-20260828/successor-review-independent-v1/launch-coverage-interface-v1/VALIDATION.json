@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "classification": "PURE_STATIC_DATA_JOIN_AND_SPEC_FORMAT_CHECKS_NOT_CONTROL_EXECUTION",
+  "jsonDocumentsChecked": 17,
+  "duplicateJsonKeys": 0,
+  "records": 194,
+  "gapEntries": 135,
+  "gapUniqueRecords": 80,
+  "extraUnsupportedIds": [
+    "CMD-04",
+    "CMD-05",
+    "CMD-06",
+    "ENC-07",
+    "FS-01",
+    "FS-05",
+    "NUM-14",
+    "QUE-07",
+    "UTF-12",
+    "UTF-22"
+  ],
+  "structuralOrUnsupportedIds": 90,
+  "projectionsPerProfile": 149,
+  "fragmentsPerProfile": 371,
+  "outerReservations": 336,
+  "overlays": 8,
+  "loadedSlots": 10,
+  "typeFixtureTemplates": 11,
+  "exactExpectedPointerValueJoinsPreviouslyVerified": 371,
+  "originalRecordInputDefaultHashesPreviouslyVerified": 194,
+  "groupInputsAndRecordHashesPreviouslyVerified": 5,
+  "phaseTotalMs": 24165000,
+  "reservationBytes": 24964497408,
+  "rootHandoffWords": 476,
+  "ownedRegularMode": 420,
+  "priorPreparationErrorsPreserved": 3,
+  "specCheckerFinalExit": 0,
+  "executionCounts": {
+    "product": 0,
+    "compiler": 0,
+    "authoredHelpers": 0,
+    "copiedTools": 0,
+    "controls": 0
+  },
+  "semanticPasses": 0,
+  "controlPasses": 0,
+  "newRootGo": false,
+  "limitations": [
+    "Static primitive key recognition is not classifier execution or full-record eligibility.",
+    "Current physical data metadata refreshed, content hashing inherited explicitly from authenticated9925 proof; future actual admission rehash required.",
+    "Change-and-restore between integrity checkpoints not proven."
+  ]
+}

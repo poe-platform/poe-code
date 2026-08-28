@@ -9,13 +9,17 @@ import {verifyToolFile} from '../launcher-v3/tool-routing.mjs';
 
 const here=dirname(fileURLToPath(import.meta.url)),launcher=resolve(here,'../launcher-v3');
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+export function resultExitCode(report){
+  const expected=report.status==='AUTHOR_FOCUSED_PASS'?1:report.status==='AUTHOR_PASS'?10:0;
+  return expected&&report.groups.length===expected&&report.passed===expected&&report.failed===0&&report.notExecuted===10-expected&&report.groups.every(row=>row.passed&&row.status===0&&row.signal===null&&row.closed&&!row.violation&&!row.spawnError&&row.signals.length===0)?0:1;
+}
 export async function run({focused=false}={}){
   const node='/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node';
   const receipt=JSON.parse(readFileSync(join(launcher,'EXTERNAL-RECEIPT.json'))),encoded=readFileSync(join(launcher,'EXTERNAL.json.gz.base64'));
   assert.equal(digest(encoded),receipt.encodedSha256);const decoded=gunzipSync(Buffer.from(encoded.toString().trim(),'base64'));assert.equal(digest(decoded),receipt.sha256);
   const record=JSON.parse(decoded).tools.find(row=>row.origin===node);assert.ok(record);verifyToolFile(record);
   const root=realpathSync(mkdtempSync('/tmp/unified76-inherited-author-'));
-  const binding=JSON.parse(readFileSync(join(here,focused?'AUTHOR-BINDING-V2.json':'AUTHOR-BINDING.json')));
+  const binding=JSON.parse(readFileSync(join(here,'REPLAY-BINDING.json')));
   const verify=()=>{for(const[file,hash]of Object.entries(binding.files))assert.equal(digest(readFileSync(resolve(here,file))),hash,file);};verify();
   const report={startedAt:new Date().toISOString(),root,binding,node:record,groups:[],status:'RUNNING',policy:'Ten presealed author groups only; no gate/prerequisites/private engine/A10; no old attempt rescore.'};
   writeFileSync(join(root,'START.json'),JSON.stringify(report,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({root,startedAt:report.startedAt}));
@@ -41,6 +45,6 @@ export async function run({focused=false}={}){
   verify();report.finishedAt=new Date().toISOString();report.passed=report.groups.filter(row=>row.passed).length;report.failed=report.groups.filter(row=>!row.passed).length;report.notExecuted=10-report.groups.length;report.status=report.passed===(focused?1:10)?(focused?'AUTHOR_FOCUSED_PASS':'AUTHOR_PASS'):'AUTHOR_NONPASS';
   report.qualification='Natural worker close and bounded synchronous Git completion; no universal detached-child/kernel-drain claim. Retained new roots, no failed-root mutation.';
   writeFileSync(join(root,'REPORT.json'),JSON.stringify(report,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({root,status:report.status,passed:report.passed,failed:report.failed,notExecuted:report.notExecuted}));
-  return report.status==='AUTHOR_PASS'?0:1;
+  return resultExitCode(report);
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){assert.equal(process.argv.length,3);assert.ok(['--run','--run-g09-v2'].includes(process.argv[2]));process.exitCode=await run({focused:process.argv[2]==='--run-g09-v2'});}

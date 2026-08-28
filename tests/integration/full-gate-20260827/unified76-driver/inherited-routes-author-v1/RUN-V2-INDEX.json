@@ -1,0 +1,62 @@
+{
+  "root": "/private/tmp/unified76-inherited-author-P7D602",
+  "bodySha256": "6a154d9060327c85a3e786dd63355cfba2cd7516d6c6ef018cecc195ee1a54e6",
+  "encoding": "gzip-base64",
+  "entries": [
+    {
+      "name": "G09.json",
+      "bytes": 4578,
+      "sha256": "66d4c84bbd3bc892838c1e1230f700961f474236046ae5a6d24b83e8dd1301b6"
+    },
+    {
+      "name": "G09/git-1-after.json",
+      "bytes": 999,
+      "sha256": "9a0c77881fc2e3eb981e24f309231322edd0ee0d9825c5238200bbabc3723ca2"
+    },
+    {
+      "name": "G09/git-1-before.json",
+      "bytes": 948,
+      "sha256": "1f6b93ca1d783573f7d7f481d8c002a54e71c9f7320d5a9b9b9185a6c10ccaba"
+    },
+    {
+      "name": "G09/git-2-after.json",
+      "bytes": 1001,
+      "sha256": "a766caa26799f5df677575633992b81e99f21bfe52304e8d2d4c73f8169acd54"
+    },
+    {
+      "name": "G09/git-2-before.json",
+      "bytes": 950,
+      "sha256": "994394891dbaf76c04edf8c037c9edc78b22309d088f49a98071064551480e7d"
+    },
+    {
+      "name": "G09/git-3-after.json",
+      "bytes": 948,
+      "sha256": "76cad978b8745f477a3cd6ad31c1aa170041aef87e940a8ca327d964c75f3321"
+    },
+    {
+      "name": "G09/git-3-before.json",
+      "bytes": 897,
+      "sha256": "8cbf65e195d119907bdcb2b4d2ce8e81731a88f01a7044c9032f71c3ea4508fb"
+    },
+    {
+      "name": "G09/git-4-after.json",
+      "bytes": 950,
+      "sha256": "fd651fd68bff1db04d08e59dd75d17c008126cc730d7e1ede0f3785e84e97538"
+    },
+    {
+      "name": "G09/git-4-before.json",
+      "bytes": 899,
+      "sha256": "107da87aa3e1b7b79a4e3f0ae63c1ed79ac435613466f9401f5b478de9b9fedf"
+    },
+    {
+      "name": "REPORT.json",
+      "bytes": 16507,
+      "sha256": "c4959e8252a4af828fb169c020513e52830c96dcd120b9d75998a2841c871599"
+    },
+    {
+      "name": "START.json",
+      "bytes": 5940,
+      "sha256": "4277ada2e8e1b846bee2183c95be42f9edae9809fd591212685286563af0ffe4"
+    }
+  ]
+}

@@ -22,16 +22,16 @@ function host(commands = new CommandRegistry()): PluginHost {
   return { commands, use() { throw new Error("Unexpected middleware"); }, registerFileSystem() { throw new Error("Unexpected filesystem"); } };
 }
 
-test("root family exports preserve four inspection definitions in the 73-command aggregate", async () => {
+test("root family exports preserve four inspection definitions in the 76-command aggregate", async () => {
   const limits: Partial<StreamInspectionLimits> = { maxInputBytes: 1024 };
   const options: StreamInspectionCommandsOptions = { limits };
   const aggregate: AgentCommandsOptions = { streamInspection: options };
   assert.deepEqual(createStreamInspectionCommands(options).map(command => command.name), names);
   const definitions = createAgentCommands(aggregate).map(command => command.name);
   assert.equal(definitions.length, 76);
-  assert.equal(new Set(definitions).size, 73);
+  assert.equal(new Set(definitions).size, 76);
   assert.deepEqual(definitions.slice(56, 60), names);
-  assert.deepEqual(definitions.slice(60), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column"]);
+  assert.deepEqual(definitions.slice(60), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr"]);
   const target = host();
   await agentCommands(aggregate).setup(target);
   assert.deepEqual(target.commands.list().map(command => command.name), definitions);

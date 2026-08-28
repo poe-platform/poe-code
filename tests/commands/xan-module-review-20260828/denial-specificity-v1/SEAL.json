@@ -1,0 +1,187 @@
+{
+  "classification": "BOUNDED_READ_ONLY_EVIDENCE_REVIEW_NO_PRODUCT_EXECUTION_NO_RESCORE",
+  "date": "2026-08-28",
+  "namespace": "tests/commands/xan-module-review-20260828/denial-specificity-v1/",
+  "entries": [
+    {
+      "path": "CASE-EVIDENCE.json",
+      "bytes": 163969,
+      "sha256": "3d6f412d8d7f46a78d57833de8c02b04f6a42ab4e9974a6d4a474763546845f9"
+    },
+    {
+      "path": "LOG-EXCERPTS.json",
+      "bytes": 13354,
+      "sha256": "639e379c28b0879f67716065ba17de55632d2a37e546be027e47028f3e4272e7"
+    },
+    {
+      "path": "ORIGINAL-REQUEST.txt",
+      "bytes": 6737,
+      "sha256": "253747e33b24988a80cb00e090d5e83b953462ef09d81667b45db1b4cc5eba5d"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 14885,
+      "sha256": "cc5cdfc5f88633454ac840f19f906925c67c2492495f80de4a5ce6209d3e6a1a"
+    }
+  ],
+  "namespaceExcludesOnly": [
+    "SEAL.json"
+  ],
+  "appendAware": true,
+  "scope": "Only this new evidence/report namespace; git commit limited to explicit owned paths.",
+  "inputs": [
+    {
+      "revision": "04fae50ae2ac224eba32cdb6ed84c43d2ee671ea",
+      "path": "tests/commands/xan-module-review-20260828/diagnosis-v1/BINDINGS.json",
+      "bytes": 64888,
+      "sha256": "99db2bb6b32ce5437b800c012b85c4ae6b397585c6f7fb5e171e2ddc245f2d9b"
+    },
+    {
+      "revision": "04fae50ae2ac224eba32cdb6ed84c43d2ee671ea",
+      "path": "tests/commands/xan-module-review-20260828/diagnosis-v1/CASES.json",
+      "bytes": 806662,
+      "sha256": "a06d2279cebad1cd5806909918197cb73e2f94a3f5f10e7a6447b31791d0137b"
+    },
+    {
+      "revision": "04fae50ae2ac224eba32cdb6ed84c43d2ee671ea",
+      "path": "tests/commands/xan-module-review-20260828/diagnosis-v1/RESULT-SEAL.json",
+      "bytes": 3981,
+      "sha256": "1155f77cce223c78f8ca08b6f102e5a2348d7645fbb442da64f4018b4e7a0593"
+    },
+    {
+      "revision": "04fae50ae2ac224eba32cdb6ed84c43d2ee671ea",
+      "path": "tests/commands/xan-module-review-20260828/diagnosis-v1/HANDOFF.md",
+      "bytes": 3470,
+      "sha256": "649547f7f4d78fd85887e8e9e1fd27153b2103686f41637518924a7c10925e70"
+    },
+    {
+      "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/FINAL-CONTRACT-V4.md",
+      "bytes": 7335,
+      "sha256": "130d9877dcca4a560b064c827adec95258baad14efc5dc00737a3ff39f4a0a61"
+    },
+    {
+      "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "bytes": 10936,
+      "sha256": "e4fff14cdfd5407429bcd57846978c34b6be893884a961833152e52e4d605c62"
+    },
+    {
+      "revision": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+      "path": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "bytes": 8271,
+      "sha256": "b632cca2f185f3b222062fc4bdc091a6a95861a8743a209608d40dff947d54de"
+    },
+    {
+      "revision": "08dd69d06a2f40edd31263631605ae153a9cf318",
+      "path": "tests/commands/xan-module-review-20260828/static-repros-v1/PRE-SEAL.json",
+      "bytes": 2165548,
+      "sha256": "fae62845e4754eadd1bb2b7c42ebe81e29f59484e8adef0dc0b0540bc993aa33"
+    },
+    {
+      "revision": "06bfa5c918bf66ad36b106d4586d3dafa59f6f82",
+      "path": "tests/commands/xan-module-review-20260828/static-repros-interruption-v1/AUDIT.md",
+      "bytes": 5809,
+      "sha256": "4695e51b71460be98ce40399f85b56a1e0547ce17dee81a7fa80c1d5834ee055"
+    },
+    {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+      "bytes": 23229158,
+      "sha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8"
+    },
+    {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/HANDOFF.md",
+      "bytes": 9125,
+      "sha256": "3fe0582843eb4240d169a3a6be2567908738b50ee3ebc980be63dea7c1f1eae9"
+    },
+    {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs",
+      "bytes": 5857,
+      "sha256": "2fe49b9294e8c0a14f6eb04b54883142fe8898e4f22d8ac53c47514762a5d215"
+    },
+    {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs",
+      "bytes": 7854,
+      "sha256": "158fbcc7202eb3a9b878a3e66c314f51b21aa8e975a1675306d97d3ae44a0562"
+    },
+    {
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "tests/commands/xan-module-review-20260828/preparation-v2/scenarios.mjs",
+      "bytes": 12695,
+      "sha256": "60a6c203fba8a0918f4c3b43d1b7b03f1ffecb162c0564da5a08ad2855b2cae3"
+    }
+  ],
+  "originalLog": {
+    "path": "/tmp/xan-static-minimal-repros.UsFC5y/session.log",
+    "bytes": 422801,
+    "lines": 5735,
+    "sha256": "67289f6a3b7b184b285f3b297082ad5982b693f1499c9fd717a2947f5ed06096",
+    "unchangedAfterArtifactReview": true,
+    "fullLogCopied": false
+  },
+  "verification": {
+    "diagnosisNamespaceEntries": 22,
+    "diagnosisCommittedMembershipExact": true,
+    "heldCasesPerLayout": 15,
+    "heldRawObservationsAndFailuresAuthenticated": 30,
+    "heldRawFilesAuthenticated": 6,
+    "archivedJobFilesUsed": 6,
+    "exactArgvMatchedAgainstBothLayouts": true,
+    "frozenObligationSubtreeHashesMatched": true,
+    "sourceMovedDiagnosticBytePairsEqual": 15,
+    "separateEquivalentObservationsAuthenticated": 20,
+    "separateEquivalentPairsEqual": 10,
+    "originalRequestBytes": 6737,
+    "originalRequestLogLines": [
+      13,
+      32
+    ],
+    "originalRequestSha256": "253747e33b24988a80cb00e090d5e83b953462ef09d81667b45db1b4cc5eba5d",
+    "denialOccurrences": [
+      5732,
+      5733
+    ],
+    "rejectedToolCommandRecorded": false,
+    "osPermissionDenialAtInterruptionEvidenced": false
+  },
+  "limits": {
+    "plannedMinimalObservations": 28,
+    "plannedMinimalObservationStatus": "UNEXECUTED",
+    "sourceClaimsStatus": "STATIC_ONLY",
+    "productExecutions": 0,
+    "productImports": 0,
+    "builds": 0,
+    "typechecks": 0,
+    "nativeOracles": 0,
+    "probes": 0,
+    "retries": 0,
+    "networkRequests": 0,
+    "matcherOrSyntheticVerifierRuns": 0,
+    "oldRescores": 0,
+    "newPolicyOrAcceptance": false,
+    "F11Changes": false
+  },
+  "preservedOriginalResults": {
+    "SOURCE": {
+      "PASS": 569,
+      "FAIL": 79,
+      "BLOCKED": 19
+    },
+    "INSTALLED_MOVED": {
+      "PASS": 570,
+      "FAIL": 79,
+      "BLOCKED": 18
+    },
+    "passingReferencesPerLayout": 88,
+    "firstCompilerFailure": "880 TS5033",
+    "compilerAttempts": 2,
+    "runtimeCohorts": 1,
+    "candidateCaseRetries": 0,
+    "historicalRecordedChildrenClosed": "169/169",
+    "status": "Historical authenticated report statements; not newly executed or rescored"
+  }
+}

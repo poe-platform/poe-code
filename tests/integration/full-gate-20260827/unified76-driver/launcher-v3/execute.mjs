@@ -13,6 +13,7 @@ import {capture,createTreeGuard,requireBuildDelta,verifyArchive} from './invento
 import {BOUNDS,gateVerdict,enforceCharge} from './policy.mjs';
 import {extractCommitted,transferHistory,cleanGitEnvironment} from './transport.mjs';
 import {verifyExternal,externalReceipt} from './external-admission.mjs';
+import {createToolPath,verifyToolPath} from './tool-routing.mjs';
 import {fileIdentity} from './external.mjs';
 import {renderBuiltConsumerRunner,renderConsumerEntry} from './built-consumers.mjs';
 import {accountFile} from './tap.mjs';
@@ -46,9 +47,11 @@ try{
   const {stageNative,verifyNativeStaging}=await supportModule('preflight-repair/preflight.mjs');
   const {probeGuardedRuntime}=await supportModule('runtime-profile-20260827/profile.mjs');
   privateModule=await supportModule('combined-8670ebe8/prerequisites.mjs');
-  const environment={PATH:`${join(temporary,'native')}:${dirname(node24)}:/usr/bin:/bin:/usr/sbin:/sbin`,HOME:join(temporary,'home'),TMPDIR:join(temporary,'tmp'),TMP:join(temporary,'tmp'),TEMP:join(temporary,'tmp'),LANG:'C',LC_ALL:'C',TZ:'UTC',NO_COLOR:'1',GIT_OPTIONAL_LOCKS:'0',TSX_DISABLE_CACHE:'1',RIPGREP_CONFIG_PATH:'',npm_config_cache:join(temporary,'npm-cache'),npm_config_userconfig:join(temporary,'npmrc'),npm_config_globalconfig:join(temporary,'global-npmrc'),npm_config_registry:'http://127.0.0.1:1',npm_config_offline:'true',npm_config_ignore_scripts:'true',npm_config_audit:'false',npm_config_fund:'false'};
+  report.toolRoutes=createToolPath(temporary);
+  const environment={PATH:`${join(temporary,'native')}:${report.toolRoutes.path}`,HOME:join(temporary,'home'),TMPDIR:join(temporary,'tmp'),TMP:join(temporary,'tmp'),TEMP:join(temporary,'tmp'),LANG:'C',LC_ALL:'C',TZ:'UTC',NO_COLOR:'1',GIT_OPTIONAL_LOCKS:'0',TSX_DISABLE_CACHE:'1',RIPGREP_CONFIG_PATH:'',npm_config_cache:join(temporary,'npm-cache'),npm_config_userconfig:join(temporary,'npmrc'),npm_config_globalconfig:join(temporary,'global-npmrc'),npm_config_registry:'http://127.0.0.1:1',npm_config_offline:'true',npm_config_ignore_scripts:'true',npm_config_audit:'false',npm_config_fund:'false'};
   writeFileSync(environment.npm_config_userconfig,'');writeFileSync(environment.npm_config_globalconfig,'');
   Object.assign(environment,cleanGitEnvironment(environment));
+  environment.GIT_EXEC_PATH=report.toolRoutes.gitCore.origin;verifyToolPath(report.toolRoutes,environment,join(temporary,'native'));
   report.archiveTransport=await extractCommitted({git:'/Applications/Xcode.app/Contents/Developer/usr/bin/git',repository,candidate:candidate.candidate,entries:profile.scopeInputs,destination:source,environment,observer:scope.observer});
   report.archive=await verifyArchive(source,profile.scopeInputs,report.archiveTransport);assert.equal(report.archive.logical.count,profile.scopeInputs.length);
   const consumerSelection=await verifyConsumerSelection(source,profile);report.consumerInventory={counts:consumerSelection.counts,selectedTests:consumerSelection.tests.length,qualification:consumerSelection.qualification};
@@ -85,7 +88,7 @@ try{
   const beforeAuthorizedBuild=await capture(source);
   const tracked=async()=>{if(sourceGuard)assert.deepEqual((await sourceGuard.check()).changes,[]);};
   report.npmCli={path:npm,sha256:sha(readFileSync(npm))};
-  const verify=async()=>{await verifyExternal();if(sourceGuard)assert.deepEqual((await sourceGuard.check()).changes,[],'source additions/removals/content/type/mode changed after setup');else for(const entry of protectedInputs)assert.deepEqual((await entry.guard.check()).changes,[],entry.name);verifyNativeStaging(report.nativeStaged);assert.equal(sha(readFileSync(node24)),preflight.runtime.identity.sha256);assert.equal(sha(readFileSync(npm)),report.npmCli.sha256);assert.equal(sha(readFileSync(cleanup)),sha(JSON.stringify(profile.cleanup,null,2)+'\n'));verifyDriverSeal();};
+  const verify=async()=>{await verifyExternal();verifyToolPath(report.toolRoutes,environment,join(temporary,'native'));if(sourceGuard)assert.deepEqual((await sourceGuard.check()).changes,[],'source additions/removals/content/type/mode changed after setup');else for(const entry of protectedInputs)assert.deepEqual((await entry.guard.check()).changes,[],entry.name);verifyNativeStaging(report.nativeStaged);assert.equal(sha(readFileSync(node24)),preflight.runtime.identity.sha256);assert.equal(sha(readFileSync(npm)),report.npmCli.sha256);assert.equal(sha(readFileSync(cleanup)),sha(JSON.stringify(profile.cleanup,null,2)+'\n'));verifyDriverSeal();};
   const artifactGuard=await createTreeGuard(support);const privateGuard=await createTreeGuard(report.prerequisites.safejs.copiedRoot);
   save(join(output,'SETUP-COMPLETE.json'),{candidate:candidate.candidate,archiveFiles:report.archive.count,logicalArchiveFiles:report.archive.logical.count,instructionProjection:report.archive.projection,dependencyProjection:report.dependencyProjection,external:report.external.sha256});
   const audit=createBuildAudit(source,temporary);

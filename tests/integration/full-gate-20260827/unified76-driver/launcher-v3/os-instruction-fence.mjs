@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync} from 'node:fs';
 import {basename, dirname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {inspectLinkage,toolRoutes} from './tool-routing.mjs';
 
 const directory=dirname(fileURLToPath(import.meta.url));
 export const INSTRUCTION_COMPONENT='(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)';
@@ -20,12 +20,12 @@ export function verifyInstructionFenceExternal(){
     const stat=lstatSync(SANDBOX_EXEC);assert.ok(stat.isFile()&&!stat.isSymbolicLink());
     assert.equal(stat.size,expected.binary.bytes);assert.equal(stat.mode&0o777,expected.binary.mode);
     assert.equal(digest(readFileSync(SANDBOX_EXEC)),expected.binary.sha256);
-    const run=(file,args)=>{const result=spawnSync(file,args,{encoding:'utf8',timeout:10000,maxBuffer:1024*1024});assert.equal(result.status,0);assert.equal(result.signal,null);return result.stdout;};
-    assert.equal(run('/usr/bin/sw_vers',[]),expected.host);
-    assert.equal(run('/usr/bin/otool',['-L',SANDBOX_EXEC]),expected.linkage);
+    const inspection=inspectLinkage(SANDBOX_EXEC);
+    assert.equal(inspection.invocation.receipt.host,expected.host);
+    assert.equal(inspection.stdout,expected.linkage);
     assert.deepEqual(expected.systemReferences,[[SANDBOX_EXEC,'/usr/lib/libsandbox.1.dylib'],[SANDBOX_EXEC,'/usr/lib/libSystem.B.dylib']]);
     for(const [,file]of expected.systemReferences){let absent=false;try{lstatSync(file);}catch(error){assert.equal(error.code,'ENOENT');absent=true;}assert.equal(absent,true,'readable library needs an explicit new hash binding');}
-    return{manifestSha256:digest(JSON.stringify(expected)),binary:expected.binary,host:expected.host,systemReferences:expected.systemReferences,qualification:expected.qualification};
+    return{manifestSha256:digest(JSON.stringify(expected)),binary:expected.binary,host:expected.host,systemReferences:expected.systemReferences,qualification:expected.qualification,inspection};
   }catch(error){throw fail('OS instruction fence identity unavailable or changed: '+error.message);}
 }
 
@@ -43,7 +43,8 @@ export function renderInstructionFence(envelope){
   assert.match(root,/^\/private\/tmp\/unified76-os-write-[A-Za-z0-9]+$/u);
   assert.match(output,/^\/private\/tmp\/(?:full-gate-unified76|unified76-build-types-review)-[A-Za-z0-9_-]+$/u);
   assert.notEqual(root,output);
-  return `(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath ${JSON.stringify(root)}) (subpath ${JSON.stringify(output)}))\n(allow file-write-data (literal "/dev/null"))\n(deny file-write* file-link (regex #"${INSTRUCTION_COMPONENT}"))\n`;
+  const selectors=toolRoutes().deniedSelectorExecutables.map(path=>`(deny process-exec (literal ${JSON.stringify(path)}))\n`).join('');
+  return `(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath ${JSON.stringify(root)}) (subpath ${JSON.stringify(output)}))\n(allow file-write-data (literal "/dev/null"))\n(deny file-write* file-link (regex #"${INSTRUCTION_COMPONENT}"))\n${selectors}`;
 }
 
 export function createInstructionFence(output){

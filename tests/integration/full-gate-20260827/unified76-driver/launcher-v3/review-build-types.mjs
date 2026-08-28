@@ -13,6 +13,7 @@ import {createBuildAudit,runBuildTypes,readBuildAudit} from './build-types.mjs';
 import {createPhaseRunner} from './phase-runner.mjs';
 import {BOUNDS,PRODUCT} from './policy.mjs';
 import {superviseFencedWorker} from './fenced-supervisor.mjs';
+import {createToolPath,verifyToolPath} from './tool-routing.mjs';
 
 export function parseReviewArgs(args){
   assert.equal(args.length,4,'explicit candidate and --review-build-types/output required');
@@ -33,8 +34,10 @@ export async function reviewBuildTypes(options,scope){
     qualification:'Actual shared cold/typecheck-all implementation, guards and receipt only; not a full-gate verdict or independent acceptance'};
   let sourceGuard;
   try{
-    const environment=cleanGitEnvironment({PATH:`${dirname(node24)}:/usr/bin:/bin:/usr/sbin:/sbin`,HOME:join(temporary,'home'),TMPDIR:join(temporary,'tmp'),TMP:join(temporary,'tmp'),TEMP:join(temporary,'tmp'),
+    report.toolRoutes=createToolPath(temporary);
+    const environment=cleanGitEnvironment({PATH:report.toolRoutes.path,HOME:join(temporary,'home'),TMPDIR:join(temporary,'tmp'),TMP:join(temporary,'tmp'),TEMP:join(temporary,'tmp'),
       LANG:'C',LC_ALL:'C',TZ:'UTC',NO_COLOR:'1',TSX_DISABLE_CACHE:'1',npm_config_cache:join(temporary,'npm-cache'),npm_config_userconfig:join(temporary,'npmrc'),npm_config_globalconfig:join(temporary,'global-npmrc'),npm_config_offline:'true',npm_config_ignore_scripts:'true',npm_config_audit:'false',npm_config_fund:'false',npm_config_registry:'http://127.0.0.1:1'});
+    environment.GIT_EXEC_PATH=report.toolRoutes.gitCore.origin;verifyToolPath(report.toolRoutes,environment);
     for(const path of [environment.npm_config_userconfig,environment.npm_config_globalconfig])writeFileSync(path,'',{flag:'wx'});
     report.archiveTransport=await extractCommitted({git:'/Applications/Xcode.app/Contents/Developer/usr/bin/git',repository,candidate:PRODUCT,entries:profile.scopeInputs,destination:source,environment,observer:scope.observer});
     report.archive=await verifyArchive(source,profile.scopeInputs,report.archiveTransport);
@@ -53,6 +56,7 @@ export async function reviewBuildTypes(options,scope){
     const audit=createBuildAudit(source,temporary),harnessGuard=await createTreeGuard(join(temporary,'harness'));
     const verify=async()=>{
       verifyDriverSeal();await verifyExternal();
+      verifyToolPath(report.toolRoutes,environment);
       if(sourceGuard)assert.deepEqual((await sourceGuard.check()).changes,[]);
       else for(const entry of protectedInputs)assert.deepEqual((await entry.guard.check()).changes,[],entry.name);
     };

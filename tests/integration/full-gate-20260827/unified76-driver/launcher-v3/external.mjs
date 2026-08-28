@@ -8,6 +8,7 @@ import {tmpdir} from 'node:os';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {gunzipSync} from 'node:zlib';
 import {PRODUCT,BOUNDS,enforceCharge} from './policy.mjs';
+import {inspectLinkage} from './tool-routing.mjs';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 export async function fileIdentity(path) {
@@ -54,7 +55,7 @@ export async function captureExternal() {
   const host=spawnSync('/usr/bin/sw_vers',[],{encoding:'utf8',timeout:10000,maxBuffer:BOUNDS.setupStderrBytes});assert.equal(host.status,0);assert.equal(host.signal,null);
   const linkage=[];
   for(const origin of ['/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node','/Applications/Xcode.app/Contents/Developer/usr/bin/git','/usr/bin/tar']){
-    const result=spawnSync('/usr/bin/otool',['-L',origin],{encoding:'utf8',timeout:10000,maxBuffer:BOUNDS.setupStderrBytes});assert.equal(result.status,0);assert.equal(result.signal,null);
+    const result=inspectLinkage(origin);
     const dependencies=[];
     for(const line of result.stdout.split('\n').slice(1).filter(line=>line.trim())){
       const path=line.trim().split(' (compatibility version ')[0];

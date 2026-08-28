@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "phase": "BEFORE_FIRST_SYNTHETIC_EXECUTION",
+  "date": "2026-08-28",
+  "originalPresealCommit": "21ad8c589d7f138064616e8f37e748e6a2e7c200",
+  "files": {
+    "PRESEAL.json": "96f51db6ea5641d181a4213fd8716d712154d1bba4809d34e0e31cba93bdfdd2",
+    "PRETEST-CLARIFICATIONS.md": "e8b680ed25d4c45f9165ec5a4218f5d4fb123b9f4f6398c9ea7d3af586346ee1",
+    "guards.mjs": "6715f0f0d4d8f81052aa9e73211d75013621cf212bbb8e75ceec6d98b74a63b0",
+    "type-worker.mjs": "e185c28607c3db8396cec2a379c1653fc237adb74b7baf90b03592d2007858da",
+    "synthetic-check.mjs": "5a96a3c2242d89b8b0c7c4df29d13487f55d2577991ff3739ddd32819883a32c"
+  },
+  "executions": {
+    "synthetic": 0,
+    "product": 0,
+    "build": 0,
+    "typeCompile": 0,
+    "import": 0,
+    "packReplay": 0
+  }
+}

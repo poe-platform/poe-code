@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "CONSUMER_PREPARATION_SEALED_ACTUAL_CANDIDATE_PENDING",
+  "presealCommit": "21ad8c589d7f138064616e8f37e748e6a2e7c200",
+  "ownership": "consumers/** only; no product/root/runtime worker edits",
+  "finalSyntheticCapture": "evidence/synthetic-gUFE3w/RESULTS.json",
+  "synthetic": {
+    "declaredControls": 36,
+    "acceptedControls": 3,
+    "expectedRefusals": 33,
+    "runs": 3,
+    "qualification": "Repeated guard-only runs; not 108 semantic tests. Earlier hashes and scope expansions preserved.",
+    "captures": [
+      {
+        "path": "evidence/synthetic-haZ8gs/RESULTS.json",
+        "sha256": "f4d5e96c5c02d275c22a82d59d5eb0bda952a608821e50c673002f39e3ae7412",
+        "declared": 36,
+        "matched": 36,
+        "productExecution": 0,
+        "helperHashes": {
+          "guards.mjs": "6715f0f0d4d8f81052aa9e73211d75013621cf212bbb8e75ceec6d98b74a63b0",
+          "type-worker.mjs": "e185c28607c3db8396cec2a379c1653fc237adb74b7baf90b03592d2007858da",
+          "synthetic-check.mjs": "5a96a3c2242d89b8b0c7c4df29d13487f55d2577991ff3739ddd32819883a32c",
+          "PRESEAL.json": "96f51db6ea5641d181a4213fd8716d712154d1bba4809d34e0e31cba93bdfdd2",
+          "PRETEST-CLARIFICATIONS.md": "e8b680ed25d4c45f9165ec5a4218f5d4fb123b9f4f6398c9ea7d3af586346ee1"
+        }
+      },
+      {
+        "path": "evidence/synthetic-sJmXGN/RESULTS.json",
+        "sha256": "2069756b991f3cce866d17fc668b71c5ccb18c1123d1dc27f48643e5f72ff12e",
+        "declared": 36,
+        "matched": 36,
+        "productExecution": 0,
+        "helperHashes": {
+          "guards.mjs": "1e2b81083c7b2d478aebb64a477f337bf7765640c53bb5f181149d81477579fa",
+          "type-worker.mjs": "4d13c831fe7c24654c0e776e07f538493ff06717bdfa92028a72cc01fa4b7358",
+          "synthetic-check.mjs": "f57e491d21ec87d8f292aa9290b768d7dd4482c13613d1f4260e395a0c680f64",
+          "PRESEAL.json": "96f51db6ea5641d181a4213fd8716d712154d1bba4809d34e0e31cba93bdfdd2",
+          "PRETEST-CLARIFICATIONS.md": "e8b680ed25d4c45f9165ec5a4218f5d4fb123b9f4f6398c9ea7d3af586346ee1"
+        }
+      },
+      {
+        "path": "evidence/synthetic-gUFE3w/RESULTS.json",
+        "sha256": "75b07427a0071a326b3cf441d41aa5439d212edde81585f6c10d703dc1c3f234",
+        "declared": 36,
+        "matched": 36,
+        "productExecution": 0,
+        "helperHashes": {
+          "guards.mjs": "47715566b179d65b5bd9501d667634c8957ba7a5e29b43246fa77824f5d4cd91",
+          "type-worker.mjs": "4693cba528b03fd8dfebe44837b57c443712a6e95f9383d1f6c7404fb9db81bd",
+          "synthetic-check.mjs": "f57e491d21ec87d8f292aa9290b768d7dd4482c13613d1f4260e395a0c680f64",
+          "PRESEAL.json": "96f51db6ea5641d181a4213fd8716d712154d1bba4809d34e0e31cba93bdfdd2",
+          "PRETEST-CLARIFICATIONS.md": "e8b680ed25d4c45f9165ec5a4218f5d4fb123b9f4f6398c9ea7d3af586346ee1"
+        }
+      }
+    ]
+  },
+  "checks": {
+    "nodeHarnessSyntaxFiles": 4,
+    "writeSpecErrors": 0,
+    "writeSpecWarnings": 0,
+    "selectedImmutableInputs": 9,
+    "baselinePackageFiles": 846,
+    "commonPackageFiles": 845,
+    "sourceBaseFiles": 264,
+    "classifiedFreezeIds": [
+      "MOV-01",
+      "MOV-02",
+      "MOV-03",
+      "TYP-01",
+      "TYP-02",
+      "TYP-03",
+      "TYP-04",
+      "TYP-05",
+      "TYP-06",
+      "TYP-07",
+      "TYP-08"
+    ],
+    "fixtureCompilerJobs": 11,
+    "directCompilerJobsDeferred": 6,
+    "publicOnlyCompilerJobsDeferred": 5,
+    "compilerToolTreesStaticallyAuthenticated": 3
+  },
+  "publicExportGap": "Baseline root has no createYqCommand/createYqCommands/yqCommands or YQ package subpath; direct module proof never closes public TYPE/MOV-02 admission. Root integration independently owned.",
+  "readme": {
+    "path": "README.md",
+    "sourceRevision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "sourceBlob": "c3df8bd958d07298f5df85e0a81ec73589123742",
+    "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1",
+    "bytes": 36273,
+    "mode": 420
+  },
+  "prerequisites": [
+    "Externally authenticate accepted helper commit/verifier and RECIPE-SEAL digest.",
+    "Root-route immutable candidate source receipt: exact baseline + accepted length + explicit NEW YQ/private adapter write-set.",
+    "Before/after any root-owned future build authenticate copied source tree outside workspace; artifacts outside guarded source.",
+    "Supply full receipt with complete baseline + authorized emitted additions, full package directory map, explicit YQ/contracts entry bindings, builtin allowlist and trusted source/output build receipt.",
+    "Use fresh outside-workspace copied-then-renamed package and fresh evidence directory; no symlinks or live source fallback.",
+    "Use pinned Node/TypeScript/type trees; preserve every compiler result and worker aggregate exit.",
+    "Route independent framework review separately; current public export integration requires new accepted authority before public jobs."
+  ],
+  "knownLimits": [
+    "Synthetic trees and fabricated compiler-result records only; no actual compiler/import/build execution.",
+    "Guard snapshots are not transactions, hard RSS enforcement, or detection of equivocation between checks.",
+    "No sandbox for trusted host JavaScript/builtins or arbitrary escaped callback work.",
+    "Manifest authentication/build attestation does not independently reproduce compiler provenance.",
+    "TYP-05/06 runtime, TYP-08 private semantics, and MOV-03 jq runtime regressions remain separate proof roles."
+  ],
+  "execution": {
+    "product": 0,
+    "productImports": 0,
+    "liveYqLoads": 0,
+    "builds": 0,
+    "typeCompiles": 0,
+    "packReplays": 0,
+    "nativeOracles": 0
+  },
+  "semanticResults": []
+}

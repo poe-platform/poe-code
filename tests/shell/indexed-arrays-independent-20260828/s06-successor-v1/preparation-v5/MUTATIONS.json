@@ -1,0 +1,29 @@
+[
+  {
+    "id": "FORMAT",
+    "file": "composition-bad-format.mjs",
+    "case": "C01",
+    "before": "return objectHash('tree', body);",
+    "after": "return objectHash('blob', body);",
+    "originalSha256": "348c67680dc4731871475f71187165958404c6a0a4749b1a956d745c31074056",
+    "sha256": "1844e3ee39a1ed3ec5acf22739063e3ac3728226edb1a8bf49cb4c46e494afad"
+  },
+  {
+    "id": "BLOB",
+    "file": "composition-no-blob-check.mjs",
+    "case": "C21",
+    "before": "assert.ok(bytes.length === entry.bytes && sha256(bytes) === entry.sha256 && objectHash('blob', bytes) === entry.blob, 'actual source blob validation');",
+    "after": "void bytes;",
+    "originalSha256": "348c67680dc4731871475f71187165958404c6a0a4749b1a956d745c31074056",
+    "sha256": "ec2b5f504a41cc465a8b9ccfd77855a0b095b2a3dfe991d3dbd99fd6adfa0df2"
+  },
+  {
+    "id": "MANIFEST",
+    "file": "composition-no-manifest-check.mjs",
+    "case": "C02",
+    "before": "assert.equal(sha256(scopeBytes), binding.scopeSha256, 'fixed manifest byte binding');",
+    "after": "void scopeBytes;",
+    "originalSha256": "348c67680dc4731871475f71187165958404c6a0a4749b1a956d745c31074056",
+    "sha256": "665b99dfc3a18812f6c2bd423ad403f9f2b0a35c38b77dd95075b92e093fc002"
+  }
+]

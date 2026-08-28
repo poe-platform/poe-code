@@ -1,0 +1,143 @@
+{
+  "date": "2026-08-28",
+  "authority": "Root user ratifies exact author PROFILE plus mandatory wildcard . and .. omission ON and OFF; no product implementation authorized by this freeze.",
+  "author": "3771cdb6a557b10dd43947e1b5133826dd809064",
+  "evidence": [
+    {
+      "revision": "3771cdb6a557b10dd43947e1b5133826dd809064",
+      "path": "tests/shell/dotglob-precode-20260828/REPORT.md",
+      "bytes": 3673,
+      "sha256": "2266f62302f5e7e0fff32fe14ee3d009d39ae5f247278ccdb26f5b414e1a7c90"
+    },
+    {
+      "revision": "3771cdb6a557b10dd43947e1b5133826dd809064",
+      "path": "tests/shell/dotglob-precode-20260828/PROFILE.md",
+      "bytes": 7282,
+      "sha256": "61596a7defd6644f581f549dbb4e801f2ed360fa7269640d1a9bc1f9232a206b"
+    },
+    {
+      "revision": "3771cdb6a557b10dd43947e1b5133826dd809064",
+      "path": "tests/shell/dotglob-precode-20260828/FUTURE-CASES.md",
+      "bytes": 2920,
+      "sha256": "65de0159bab64af17c8af92f64e6001f0ac277331bb1f5400dc6a972470de013"
+    },
+    {
+      "revision": "3771cdb6a557b10dd43947e1b5133826dd809064",
+      "path": "tests/shell/dotglob-precode-20260828/BINDINGS-v1.json",
+      "bytes": 6253,
+      "sha256": "9949ccde5852fa5cf7fb08034f7cca90b5dce8c9984457cf43929da5905ead34"
+    },
+    {
+      "revision": "3771cdb6a557b10dd43947e1b5133826dd809064",
+      "path": "tests/shell/dotglob-precode-20260828/EXACT-NATIVE-TUPLES.json",
+      "bytes": 21860,
+      "sha256": "41e84ba303a2adc79820a09da71ad73cc29e2a861f3d82ffb0975e9c573617f6"
+    },
+    {
+      "revision": "3771cdb6a557b10dd43947e1b5133826dd809064",
+      "path": "tests/shell/dotglob-precode-20260828/RESULTS.json",
+      "bytes": 53838,
+      "sha256": "8b9643bc3fd901abc3455dc3fed7d885b43cbc7e999ddfdae5eb158748661c9c"
+    },
+    {
+      "revision": "3771cdb6a557b10dd43947e1b5133826dd809064",
+      "path": "tests/shell/dotglob-precode-20260828/DECISIONS.md",
+      "bytes": 13627,
+      "sha256": "4696e6fec7fbf7cd0510a251d297140bcaf7fb32394256d244ac5c9f8df406a5"
+    },
+    {
+      "revision": "3771cdb6a557b10dd43947e1b5133826dd809064",
+      "path": "tests/shell/dotglob-precode-20260828/PROTOCOL-v1.md",
+      "bytes": 4193,
+      "sha256": "1ec6c2674c16e5a9beecab5fc2804efd8bd513a53eeebcea0e2c0aa278a3e983"
+    }
+  ],
+  "inspected": [
+    {
+      "revision": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+      "path": "src/shell/runtime.ts",
+      "bytes": 139761,
+      "sha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+      "role": "stable pre-STACK inspection only; not future candidate base"
+    },
+    {
+      "revision": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+      "path": "src/shell/shell.ts",
+      "bytes": 15002,
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24",
+      "role": "stable pre-STACK inspection only; not future candidate base"
+    },
+    {
+      "revision": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+      "path": "src/shell/pattern.ts",
+      "bytes": 4863,
+      "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "role": "stable pre-STACK inspection only; not future candidate base"
+    },
+    {
+      "revision": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+      "path": "src/shell/parser.ts",
+      "bytes": 36304,
+      "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+      "role": "stable pre-STACK inspection only; not future candidate base"
+    },
+    {
+      "revision": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+      "path": "src/shell/types.ts",
+      "bytes": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "role": "stable pre-STACK inspection only; not future candidate base"
+    },
+    {
+      "revision": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+      "path": "src/contracts/command.md",
+      "bytes": 9253,
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "role": "stable pre-STACK inspection only; not future candidate base"
+    },
+    {
+      "revision": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+      "path": "src/contracts/filesystem.md",
+      "bytes": 20876,
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "role": "stable pre-STACK inspection only; not future candidate base"
+    }
+  ],
+  "native": {
+    "preseal": "f01b393b32cf624f6a832c591a6a84f1c5e7a407",
+    "observationCommit": "47b1bc5c",
+    "calls": 24,
+    "observations": 72,
+    "statusCounts": {
+      "0": 43,
+      "1": 27,
+      "2": 2
+    },
+    "passCount": null,
+    "bashSha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+    "profile": "GNU Bash5.3.0(1), aarch64-apple-darwin25.4.0; inherited observations, zero new native calls"
+  },
+  "futureBinding": {
+    "status": "HELD until root accepts STACK and names exact source/package/tools composition",
+    "required": "5137 + accepted two DAV blobs + CD + LET + accepted STACK; explicit committed regular-file composition, never moving HEAD",
+    "productionAllowlist": [
+      "src/shell/runtime.ts",
+      "src/shell/shell.ts"
+    ],
+    "runtimeWindow": "Poincare exclusively owns STACK; Faraday has no implementation GO from this freeze"
+  },
+  "pendingDecision": {
+    "id": "GAP-TOKEN",
+    "question": "For an invalid character in a leading cluster such as -sz, is diagnostic TOKEN the entire argv token -sz or the offending character rendered -z?",
+    "fixedAssertions": [
+      "exit2",
+      "stdout empty",
+      "no state mutation",
+      "invalid flag precedes s/u conflict",
+      "exact usage line"
+    ],
+    "heldAssertion": "only diagnostic TOKEN bytes; do not infer from native getopt or author code"
+  },
+  "productExecutions": 0,
+  "nativeExecutions": 0
+}

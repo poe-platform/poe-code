@@ -1,0 +1,4 @@
+import { MemoryFileSystem } from 'virtual-bash';
+import type { ShellOptions } from 'virtual-bash';
+const options: ShellOptions = { fs: new MemoryFileSystem(), dotglob: true };
+void options;

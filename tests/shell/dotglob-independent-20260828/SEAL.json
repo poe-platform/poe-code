@@ -1,0 +1,15 @@
+{
+  "BINDINGS.json": "c51fb00674ed5ce3bcdbc764553d466d96df2fb6afeb4deaf4919dbb4690387d",
+  "PROTOCOL.md": "0d50aa2efb4d8391eea8fa8dcb5eb698fce29570b6807346890f47b1095554c7",
+  "README.md": "8bdacecb52dbd247af6dd7366755c1b68d31e86342f63b3ad26a19e957ea16b4",
+  "command-cases.json": "4b6983d2b01d6954c1b08fd4fa72d2550ff6041136a225e87fb28bc0e93eb875",
+  "consumer.mts.fixture": "ad55526f5633074f474b1916a42c2654a826bc188487a58dd50b4be70ae0d6d9",
+  "glob-cases.json": "19ee987b233f3e2311f6cdfd5f94b76150439f489d7b2fb07024e46c8cd1a74f",
+  "glob-fixtures.json": "b3a6de71a083b1df4f9f4deaab54fd88ecc8590864015ca5cd07ae5a6f96d90a",
+  "negative-api.mts.fixture": "80b282bba69755d525b9063b3995fc73cc755c868d7af16a31635e5d098d478b",
+  "negative-option.mts.fixture": "3e456d64e5106e1bfd33d2f64be2561722ae7c18d288a9661315a796b0b7c82b",
+  "procedures.json": "78888381a41994031dde725ed8f08e6abb9068b29a700f0120e301639c8a045a",
+  "state-cases.json": "7c2f3c74ec0aa959608f7de272296a38dfd2d39efe78930c6c8b34521276c422",
+  "unsupported-names.json": "d1b895861c0bdba9827031e6bedeafea0880cb530969da5d731c0d0bddc4cd23",
+  "verify-freeze.mjs": "588f88c1c6843f4ca87c4f5f06b47f28061f3027844f0e6089784ff8cf7b0130"
+}

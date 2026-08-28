@@ -1,0 +1,59 @@
+{
+  "basic": {
+    "cwd": "/g",
+    "directories": [
+      "/g",
+      "/g/dir",
+      "/g/.dir"
+    ],
+    "files": {
+      "/g/visible": "",
+      "/g/v": "",
+      "/g/.hidden": "",
+      "/g/.x": "",
+      "/g/.雪": "",
+      "/g/雪": "",
+      "/g/dir/plain": "",
+      "/g/dir/.inner": "",
+      "/g/.dir/plain": "",
+      "/g/.dir/.inner": ""
+    }
+  },
+  "dot-entries": {
+    "cwd": "/g",
+    "directories": [
+      "/g"
+    ],
+    "files": {
+      "/g/visible": "",
+      "/g/.hidden": "",
+      "/g/..keep": ""
+    },
+    "readdirOverride": {
+      "path": "/g",
+      "entryNames": [
+        "..",
+        "visible",
+        ".hidden",
+        ".",
+        "..keep"
+      ]
+    },
+    "stat": "delegate to real underlying MemoryFileSystem including existing / and /g; record calls without changing identity/content binding"
+  },
+  "empty-dot-entries": {
+    "cwd": "/g",
+    "directories": [
+      "/g"
+    ],
+    "files": {},
+    "readdirOverride": {
+      "path": "/g",
+      "entryNames": [
+        ".",
+        ".."
+      ]
+    },
+    "stat": "delegate to real underlying MemoryFileSystem"
+  }
+}

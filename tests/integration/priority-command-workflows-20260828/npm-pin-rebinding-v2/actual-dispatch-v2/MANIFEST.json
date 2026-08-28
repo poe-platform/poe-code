@@ -1,0 +1,1435 @@
+{
+  "schema": "priority-actual-dispatch-v2-evidence-manifest",
+  "createdAt": "2026-08-28T20:48:34.016Z",
+  "status": "STOP_NO_RETRY",
+  "grantCommit": "8f0a9fdaa84d7bae59040617577e2b0ee028d29b",
+  "authorization": {
+    "go": {
+      "bytes": 3534,
+      "sha256": "5d37bb0ff2f321624783c0b6e3abc027031d98a15aaa3ec2aab31c96169273d9",
+      "deltaKeys": [
+        "decision"
+      ],
+      "oldValue": "PREPARATION_ONLY_NOT_A_GRANT",
+      "newValue": "GO",
+      "rawReplacementExact": true
+    },
+    "rootRecordBytes": 8642,
+    "rootRecordSha256": "dabb954161fc10903a02d4b457e53285a87ed2af0c40c42cd724427c43c7d9bb"
+  },
+  "originalRunRoot": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01",
+  "originalRootInventorySha256": "0d5f11f69402293bc50601d3d1f9b9a8999648f948acf47f12e209a7650911fb",
+  "sourceAndToolsRetainedInPlaceNotStaged": true,
+  "originalEvidenceFiles": 117,
+  "leafFilesBeforeManifest": 83,
+  "files": [
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/RESULTS.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 16777216,
+      "sha256": "4851193778874cd65ffbfc99b3ab70beed37c4060f3acf86cec6b28440c0d420"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/admission-base.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 69817,
+      "sha256": "dfd94dce4ca5685b69203133611e53ab347cdae621dea50c413128126385e17f"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/missing-entry.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 69527,
+      "sha256": "675b7fb6f6256666abe1035be8a8e71c22421550b565f159922bd3194a9f223e"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/outside-file.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 69817,
+      "sha256": "dfd94dce4ca5685b69203133611e53ab347cdae621dea50c413128126385e17f"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P01.runtime.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "26d4f030f15017571740adf61c1c069b6e4d5ffccdd5890fe3a79a62747d6620"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P02.runtime.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "5e2773a3fbe5ec06ff087fb661b637237f045bf505a7c205ec2c76ce60003061"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P03.runtime.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "653e521220268ce2f1aaf1b9571e1035f32a4ed21e51c62752ca8882ccfbd2da"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P04.runtime.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "e19d05589a348317a0afcbc1b708e81248a5ee1ddb61d8fdbe5c28d5ff339c15"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P05.runtime.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "7a5fdec77802e3ee46c35a76bd15009eaad96f676be705365d2a5236fbf215ae"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P06.runtime.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "e85afc55e2b3d970eb3a316864bdd4193801ba5632d56624fcfc5ec2ea4ddc1a"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P07.runtime.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "e15e9c011a5b1b210d7b3978cae249bd77d94bba8fd8ddb1881fc29a9889edfb"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P08.runtime.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "a61a01daa4635f57988e62da18c855ecf6282763926f4329af9987cd568ac257"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P09.runtime.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "7bd0558e5be4c684a006944da3a4f705a731a03658f8b0d76a6656005b5f4384"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P10.runtime.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "be0c1ca220ae68ef01be5ef6703b803dd2fdb500c7c1447867c0bfafea507fa5"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P11.runtime.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "7230099dc11bc12148c18c7148e778bb9d32a2da5ec77d9bef5249aab366d70d"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P12.runtime.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "827000b0cee5dfd4d50bc07dafe835c9ab511a8c068aaa4ddd3774e7ae836ae8"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P13.runtime.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "4a804e32eebde1fe3e5ac89031db5be51e13551205554d4b2a805ae6a43e2fa0"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P14.runtime.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "03fbd0ecf67e117f6e8f893f692e6b3f991374a2c4fd8105173917b0792188e1"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P15.runtime.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "58939d45389747a464c1bdb5f1182bc7ce9a361cdba884a87e07c298432dee18"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build-P16.runtime.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "d98363ef2be3e0595cc89f3ba3bdec4bc9460f8255d1c5f323837e1185f16e8d"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/source-build.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 69817,
+      "sha256": "dfd94dce4ca5685b69203133611e53ab347cdae621dea50c413128126385e17f"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/sourcefallback.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 69817,
+      "sha256": "dfd94dce4ca5685b69203133611e53ab347cdae621dea50c413128126385e17f"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/admissions/wrong-digest.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 69817,
+      "sha256": "cc48c5bf791a1e0072e2d204774cd4430f75d720bafdc7892ae461b4eb666979"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/cache/_logs/2026-08-28T20_40_57_861Z-debug-0.log",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 1777,
+      "sha256": "7d322c98e5eedf10fac5959a318d13503ca19a407e90c666cc19391aebfc92d5"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/cache/_logs/2026-08-28T20_41_01_074Z-debug-0.log",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 2400,
+      "sha256": "02ca69fb20a4df0e1e33283ced1817df76f6cc6db9981f0350f19a930110696f"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/missing-entry.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 250,
+      "sha256": "3407dc0dd9ecef42c81854e2fdd00e0f257b6f40ec3645403444f2311a938a11"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/outside-file.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 250,
+      "sha256": "3407dc0dd9ecef42c81854e2fdd00e0f257b6f40ec3645403444f2311a938a11"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P01.parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 62802,
+      "sha256": "2bf71191cf7932f0ba12e35a1fc84067a5c7ac76ccb4cb4a7f94da31c47a5282"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P01.worker-parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 1754,
+      "sha256": "cb5b976f1096fc0d7e81cee32838618c5bfe5799bfe423bf5154cbeda13e5a35"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P01.worker.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 3781,
+      "sha256": "a5b8663e08ecd1cc3ba03b33699b3ceda0499cd1a4a8c030ddcde5ab8f6aa5b6"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P02.parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 62802,
+      "sha256": "c3a11bb2fd45e7c9c7ea8d8d485d3a0adc77a3113925211e0c7b09077f230f31"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P02.worker-parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 1754,
+      "sha256": "3bb2a4cbcb735d18da583b5727eabdcac2e445e0b2bdcadcb21fef33a858d34e"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P02.worker.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 3781,
+      "sha256": "9055b96d589dc0bdfaa5de91fc28071980c218be495bf409aee4160106646077"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P03.parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 62802,
+      "sha256": "051c9124d2afe331d6185d5792e256e2593b67253d007b26bbc1c9eb4c9daa4e"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P03.worker-parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 1754,
+      "sha256": "6b533f18e4f92c56377c0ca62925abd6af9f102c5eff4336ad1b6a9297ff2cf2"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P03.worker.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 3781,
+      "sha256": "e66dfadf3224cf245887173549cec88395469cd4562ffda349b28078e4c3f49f"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P04.parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 62802,
+      "sha256": "fd52815a7192142beb485466bef5c3be0871e6d3cedf4e267c22ee0641d0b569"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P04.worker-parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 1754,
+      "sha256": "22ff6bcf5bebca39e88203d24d7cd3f336cc92c3c88799feb2df385304b9232f"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P04.worker.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 3781,
+      "sha256": "3a8adf36b3165260e790ab1561c2d06e64dba1dba12d219f305c57775409a784"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P05.parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 62802,
+      "sha256": "b55622688c1c64c65cc2c5ca59a899577255b27f2b6bb6350ea010669be4d91c"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P05.worker-parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 1754,
+      "sha256": "2fe9f934ef15c6962654cdf05d323999c2385faa27fe78789c8710b38ab1d8d9"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P05.worker.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 3781,
+      "sha256": "0aced6e144a6157d0b65a6febdf06169721b01f925602895277d64b63d7ca479"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P06.parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 62802,
+      "sha256": "45d1ecb6399c390a1611b8e4e4d8eb6d56a29e5ed97b70709e8c81dda487c40a"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P06.worker-parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 1754,
+      "sha256": "0c38227d70e13e33d51a34aac48af694ed7fd93f6e9bbe88c7a3cef07fc2a2b3"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P06.worker.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 3781,
+      "sha256": "3bd597a454470804506470f28e28af0d6364aee643987e3871ce765906ef7723"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P07.parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 62802,
+      "sha256": "d9d3b5e08811fb4662297385a0deab9ae3b9b2a9ab02ec87e460d30a6468656c"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P07.worker-parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 1754,
+      "sha256": "fb9549e9afb18284ff8791d19859e59a1ac9d2fe0169111536c1678212837786"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P07.worker.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 3781,
+      "sha256": "c1fffe9eed905db74a17709a2398c852bc2ed96f50716cc76e167d8df9eb1812"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P08.parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 62802,
+      "sha256": "af00f0789f5f3e1e25b2d7613a030159161c9a9dc688929c2bd94368e869ccb1"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P08.worker-parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 1754,
+      "sha256": "f788491c6bb6c04e427f6785d291f31d9beb4ce8def0d478e9a26df2cf8acb61"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P08.worker.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 3781,
+      "sha256": "cef34787a5f01c25363a40867edebc49cfdbba4b4d86a0996985fef33147670d"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P09.parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 62802,
+      "sha256": "f283b2a3d4018708b7daedf4c0e18086bcf8eb7a0691ac41e2f5ccdc62d2d53c"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P09.worker-parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 1754,
+      "sha256": "c7cea342685f2f5ee7e8fee83707254b9ef4bcc3e44a6241bf38a75d03d264c1"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P09.worker.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 3781,
+      "sha256": "cf3871a44a8c4038b22dcaeeba42add20e3caff92602888203cd82d1a29d7ef0"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P10.parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 62802,
+      "sha256": "04d0723e7724a059cedff004d742596f0e9071c32606afdbb8acd3b5824ef50e"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P10.worker-parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 1754,
+      "sha256": "0114f7acefeb3ca71c73330b9004268e5f41c049e8a8d2def48673f4657a6b87"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P10.worker.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 3781,
+      "sha256": "65c4cb3ea407ee6328e483f33cffb6bfb7f3103983471a665a0f664a7918e83f"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P11.parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 62802,
+      "sha256": "3356c8d1dced58e8528eb66fd1d4d1d8bca21c73a7f4fdadd25a56b3f354999b"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P11.worker-parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 1754,
+      "sha256": "47124f4ec4b4a5cfdb9ae861fa2accea8f506d20a4b356761815c484ca995691"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P11.worker.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 3781,
+      "sha256": "c50dfb5c2999ab03f1ce214a5727f6c524875025225b6ee3adb8c76801ae194a"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P12.parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 62802,
+      "sha256": "15c74a4fd267ee8b675ea79932eafd6a64ba0527286a82f81b48ff580ab0a193"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P12.worker-parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 1754,
+      "sha256": "b26e67b3f63ce34c7fa5d355a97b800e2fe27929b08631141cc2acf188366e13"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P12.worker.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 3781,
+      "sha256": "c309ab3beee01c75fe6ffd37bc3166176cfdd549a630b71207e5951c3c62a6fa"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P13.parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 62802,
+      "sha256": "bbe26662ee2cd76ebfbf8ec38dd2d138a6ffb7630e437a2e93cf020a717bd1d0"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P13.worker-parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 1754,
+      "sha256": "bba4b10643927be677ebf238ea3afb73245c041c2155f63e2e31a63ee0381d87"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P13.worker.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 3781,
+      "sha256": "8391d6bca5f8a0d074fcef6e78a5c87211f54ac026d192421a9c312328f5f631"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P14.parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 62802,
+      "sha256": "3e3dafffbc93c1decc235877d1b9b0bcc333d36e942f926a84ec90d3d31c7c52"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P14.worker-parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 1754,
+      "sha256": "668cf385e3f9b4da64d1132e3984cfaea3c95f46dfdc59d836bdd0e74dc55e5e"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P14.worker.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 3781,
+      "sha256": "c2d559a13b9d837700a10b81958227f727723405efea89912202b89c831c3bb2"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P15.parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 62802,
+      "sha256": "464d40a3996dce2745b2689d5d0cf6440e21f3f7ed5feb4773eb89b69006d47c"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P15.worker-parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 1754,
+      "sha256": "8f761840a0286be6b7137490425756c165b72d45a9afe5099e37dd24b7e2fae7"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P15.worker.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 3781,
+      "sha256": "fbb3e5cec5a413018c19b64ff028d298e63f22ce6ce23e84d579a2ab06844fee"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P16.parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 62802,
+      "sha256": "cedf8215e12f31c80d1b75737b572340f99d01578d87f656cfdde42f96eddaeb"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P16.worker-parent.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 3508,
+      "sha256": "23f545ec55863aea52af9ff31572241008fab7754ea2243faa0bb83b34cc9946"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/source-build-P16.worker.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 7562,
+      "sha256": "06cc870decd8705ebf9291df4b497db15a37a48d225486548417607d2f07c765"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/sourcefallback.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 250,
+      "sha256": "3407dc0dd9ecef42c81854e2fdd00e0f257b6f40ec3645403444f2311a938a11"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/logs/wrong-digest.jsonl",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 250,
+      "sha256": "3407dc0dd9ecef42c81854e2fdd00e0f257b6f40ec3645403444f2311a938a11"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/packs/virtual-bash-0.0.0.tgz",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 759089,
+      "sha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/001.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 2125,
+      "sha256": "4cc97f994c084cef9daeb2e05096c0b7dc27b09cef0178cf8750f01e0a9c4ca1"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/002.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 131045,
+      "sha256": "f37ed6dec2de6a6c69ea936e2485a7e933e688935c5d0d0f458e67a05efe9c99"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/003.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 2283,
+      "sha256": "48955e6c7285ea696ac5f8a898a4113a7256a7a8d0b5275fab464c26d6b17058"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/004.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 4376,
+      "sha256": "94e0efc7b442eb768730fb8e07e2d9d54bbc2ad5c17e1b5af4840bbd9b0dd826"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/005.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 4573,
+      "sha256": "9c1418836d0c5af1a0fe5a07c9a59daad5a979029e1cb5184081746d97e1afef"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/006.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 4218,
+      "sha256": "c6e0f400dce3dd5795505ddae156e598f02a57a4da037a5bfcf9f8ab74f4c071"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/007.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 4360,
+      "sha256": "6ae10d03ee8381447f118bfdcf26fbfdfdf2c9cce07b6f0e29602a4026289909"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/008.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 6680,
+      "sha256": "caca3df08f3117b67e0bced8c95fa817ab2666f3023c4e8e1ec32b0215481c31"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/009.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 6568,
+      "sha256": "17afca27b2ae3fa1fca20656fb4ad5be5aa2282b8ece4ec46d9e58256abb6bb1"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/010.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 6501,
+      "sha256": "d703299689b57fc69c6bf21026cd50a0f38e63dea531869120d08e053275b655"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/011.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 6405,
+      "sha256": "c013dcaf294c85e8885486ef6a135a2adb20970023e9866939c4a4744957c975"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/012.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 6513,
+      "sha256": "7778f035e6291f9f34d72ba4c8e8e9b102b034694afab7fd78a3d9b6998ac45e"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/013.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 6805,
+      "sha256": "89d98f4ccfabaacc236d1684802a378af20fbedfcdfa02ec39005f8d1c4f2829"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/014.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 7517,
+      "sha256": "cf015b1ac5bbe455e9243c78c9d764a04ba048b923e070e51bdddad2f19de900"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/015.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 6805,
+      "sha256": "4bf90994d838c475019623d8e78358de27e755f744852787cda5f01c6ec4c5f1"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/016.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 6469,
+      "sha256": "c4d1704d3674415fb3fb3b0d23dbff352d0df286210eaad776964b032d7d57dc"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/017.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 6561,
+      "sha256": "a830598f95f08040f963cb45eade68eb0b422a81c89e8df026c40d1c61dab310"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/018.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 6497,
+      "sha256": "3287ebe2818cf5bb0a04b648381f0394ad8f062d97c057494caf8f3ff42e1f9c"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/019.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 6421,
+      "sha256": "d5c62de6cc9d3bfb833616e2a8448aeadc444242cd6b4305cc6a9827ca1d8baf"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/020.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 7269,
+      "sha256": "e7c72b4ad14cdebcc41620f4342df4248ef91070493e16e34cdb3ab75988b6fa"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/021.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 8865,
+      "sha256": "53e9b688f680880644d23afae3216d106b37ecc15fc8fff936d6e0aa1ba48709"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/022.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 10573,
+      "sha256": "86771a704f32b8bb11cbcb3351decef8458f26ae02b47cfc898a14842ce76f94"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/023.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 10153,
+      "sha256": "787b00b5aafc8b8a369edd1df86c09a775f84c6e85bb69000d9accc5a01f9fe7"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P01.observed.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 83278,
+      "sha256": "ee477bb5751b335199c76ef2db83cf1a2cf3de73dfc4c36073ddef5ff1f37d9b"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P02.observed.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 83064,
+      "sha256": "3b9150e2c6dc67423025ca6e9e3d3941a29fc1e11901fb082bbd2563580e4219"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P03.observed.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 83004,
+      "sha256": "7281ee72bfe0a97c6e45022245739e19f7e2637446ad19bd9bc3d0396eb0a567"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P04.observed.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 82930,
+      "sha256": "6fb1d90903af0618c8b651011f4479e82e75a07fbec150500cbc34645932f871"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P05.observed.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 83024,
+      "sha256": "51e21f545da35e053a41278e1525cb9c16e0991338c63404db2205b529088a57"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P06.observed.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 83442,
+      "sha256": "22ca992961aed5d49dfd094178f42499ec10c53b232b8a15344c6d271166845f"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P07.observed.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 84557,
+      "sha256": "d44f944266019a3daf1714c9eec2db8d03f14c93f5c664f7a135ac7f944191b2"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P08.observed.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 83511,
+      "sha256": "94403fd4a0e97209d42e9d540dfc26f7192083d42b7130d1136f5d9080b7f854"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P09.observed.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 82989,
+      "sha256": "f87813411d132f5e42bd807b7f40632152b12207cd4263f48ae35cbe7521e610"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P10.observed.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 83069,
+      "sha256": "57d7ac6570a630d8c136d1783d92380a1bc39462e7875ba1f0fce0f24c1c7e06"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P11.observed.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 83010,
+      "sha256": "4c84f4ce4a826c3ebd50b95e37c562687d2205a272494991ce8192820b19aa5a"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P12.observed.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 82955,
+      "sha256": "9b65d5f034b5bafab3d7b854973dcb3b66bf888d4e821530dd1fd453f2a71794"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P13.observed.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 84289,
+      "sha256": "ed3608f1c6236bc7ff1fd8ce5209149da8e3ca396bfabaaa681f7b983d70861f"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P14.observed.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 86266,
+      "sha256": "f62fa760e5053b895437a0f6276003dde7d2e76f0011ce8c31a80e231cba6cfa"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P15.observed.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 88852,
+      "sha256": "2d9793ba4a1d9e9192ee9907c8cf6f9ce853464f3b01864aad7142470d25eaca"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-run-01/receipts/source-build-P16.observed.json",
+      "role": "ORIGINAL_FROZEN_ACTUAL_CAPTURE",
+      "mode": 420,
+      "bytes": 94881,
+      "sha256": "c6ba115f588cc8cc82f031d32eb15025dbd9a7276819e3d29deb93e3b19a13dd"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/ACCOUNTING.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 8289,
+      "sha256": "7a46d1358a9947c7bce4742a16ac3d66be861187077ec352d5b06e79def2b850"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/COMMIT-PATHS.nul",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 21838,
+      "sha256": "b9566a8c67a10ba9ffb129841e1ac5d678e6e727cd9843d6b80695914e211c73"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/DISPATCH-INTENT.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 158,
+      "sha256": "2bddc82613ca225ee29b6a7a14fe673ee6a9fdca4c1bfe6690b3edc2ea116082"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/FINAL-ADMISSION.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 112740,
+      "sha256": "a8b9eae353275a88e3ed292c24e5b65b120a77ac2bc31487fe078e04e93bfe87"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/OUTER-SESSION.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 793,
+      "sha256": "106831b4d91bf2eaae5010bea1d41ac2c3c095917ea4d3d9768dd5e526759164"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/POSTCHECKS.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 112693,
+      "sha256": "bd9715db961733397b2186fd9e3bd841a2671532436ea3cd66968bb033bca919"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/PREAUTH.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 229706,
+      "sha256": "104eeb2deba5c5be99fc11c4506841644845028efc93e1ab47054da9185289fd"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/README.md",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 1273,
+      "sha256": "aa57d5383ef01ad799d15e520bbf3793eda07a2cd8dae9415424978e6e0602b3"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/RECONCILIATION.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 123187,
+      "sha256": "9770fe7dc7a468f693488e3a95ff929cb365db20fd35a3c3fa05db8a1a825828"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/RESULT.md",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 7007,
+      "sha256": "8fd6e5969231ebdf782c36f8ecafbd237a05e77dc834b06995f53c0a13d92dea"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/RUN-ROOT-INVENTORY.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 1153759,
+      "sha256": "0d5f11f69402293bc50601d3d1f9b9a8999648f948acf47f12e209a7650911fb"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/SUPERVISOR-PID.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 66,
+      "sha256": "26fd98ea4865c27446e4067a30197f084d4c2888c5abfc864ac2930029b77781"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/001.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/001.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/002.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/002.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 96639,
+      "sha256": "ed461880e31d7a9e465f88088cd22ab6764a8a47e9919e83209b5df4a7d2f4b1"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/003.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/003.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 23,
+      "sha256": "a941066d38162d18c88ea4b096d8cf11d19b0d46b973f6d916e2f9b8794e1f36"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/004.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 1342,
+      "sha256": "a7e5d6f00b953b545517febb56fb94a6dcd6ed19c84f553aa0a6e08b4cb21a35"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/004.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/005.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 1494,
+      "sha256": "2f3bcd8319d04efab33935bc8338a8f5f46205290842c70f8f2571787dc5e8c6"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/005.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/006.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 1226,
+      "sha256": "04ef07f009424284409e8f16de39d4f7f769e223409e7bb6711cb9fef2148a96"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/006.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/007.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 1337,
+      "sha256": "85bccbebeb64da4f3dc7af5a1098e3641e1713a830b30f70965066eddb8eb187"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/007.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/008.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "792fa1a124df70753ec8de16a8787d911720f7bcaace0163721c33ff73ee168f"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/008.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 2480,
+      "sha256": "3439ecc14fe8e93206f76346de7ee14f423ed1a25d3275ae4f75579d5b86c9f8"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/009.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "61945e967a4d42a3abe3d446416ac003b4fef5dcbb76d8dcf16a5bc763fe4136"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/009.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 2395,
+      "sha256": "2127228bfa01a32aa8c2d37b78f70972269bf1e6f0498bbbd32a2930c7f27bdd"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/010.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "bebc261e505deee95b05a7d5d5c29cbd045460aad380344979d8124d21bd5992"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/010.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 2346,
+      "sha256": "8f0ba1e3dff57e24a71c63dae03432efab461eb3d2c028f589c93566edd0940d"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/011.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "d1a4bf405ecc084bff7c07eb86323e388a047b8fd6e05bcbce5910ceaadd58a4"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/011.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 2272,
+      "sha256": "730fbadf49c793bfdb1ddebeed9819d69f14b9bedeab8f0cafa00e7158b80a5e"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/012.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "f8abc08e9caa758f01a4f2b983a3d9c7d101deb6afb4fcd50953da593053433d"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/012.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 2355,
+      "sha256": "658ffe841d05bd899a78d492225e3c8d1c5da2e008f07fe606b8a25e6b813c79"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/013.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "784d1d3af8fd080136509000210c82245a51fcf36d986c07c5f6f49807089584"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/013.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 2572,
+      "sha256": "155e6efff5509a70a7021ee2cc12465bb21f155cd0a40bf7ac8a1cdb7a77aa17"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/014.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "1ebabd8bfcc02365e43dceee9ba16dab26cf96cb407462cb0d3eed4aab066919"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/014.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 3108,
+      "sha256": "c11f6a59f7cf46916da1bda6e2c5a2ffc7d2bb8d9f4b99b67d2f1b823eb7a18c"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/015.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "75075c848fbc344a16e3fd17b23fe0cee760a28b4a85d6a16ac8fea4aa9e4cef"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/015.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 2573,
+      "sha256": "2e749d389005353be6cb35a8d36e93ca09476c02cd5437297e683628723fddb4"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/016.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "1bb66a4bdbfe76d2c0013be15491ce752b1f7dfb483f99a73e95269e206aee93"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/016.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 2320,
+      "sha256": "1c18160a01a05981defbaddeb23df552d0bbf66220dc277178ec9bea1c40a1cd"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/017.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "16ba004dd0cb679feb2a1fdc1c5f7e13d85343ab06ceb0d7b5827ad28d96e935"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/017.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 2389,
+      "sha256": "1422e7249bc1e5d3bcdcdd0508881dfe66462af145284c240f7ae57a8c769c53"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/018.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "3d14e22db124055c101ac0720a9a593a05bfa184bdfe3e0afffd3dbca67e82d2"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/018.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 2341,
+      "sha256": "521efb8a6706d7bf2a53175bbe204c4d1246fe0219cabdbf496f825e1011e680"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/019.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "79dc15ab6584207cbf77647213d7571b67c67fadcbe532c44ccdbd656996a68c"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/019.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 2286,
+      "sha256": "1e3936da2c3c0e5d0ff9c0d0385ea5f9beddb634a58a58a29a389b650365956e"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/020.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "db7ea90236328c53a62d1b199d78f401276bab60c115ca10d8f568754970d7ab"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/020.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 2920,
+      "sha256": "e3f0ac30c3169247955aaf115b99b8e617b35fca8079ade731f0f09e515bb7f4"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/021.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "ea3c3670df30a47c0175e32537212d1ad7c4794288fba2298a37ea4e6eadb38d"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/021.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 4118,
+      "sha256": "13161e807ed0310d9e1642ef53dd9a39a00ab268b487a054636461265ca053fa"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/022.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "16855a946e09f125d2e9fdc1e8c5c12930cb762027e9299ea373036fddcc9653"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/022.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 5399,
+      "sha256": "c7023bc6f90a1283908410d64aa35b8288a373c338cde9e5a5f3f20bee3f2e13"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/023.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 453,
+      "sha256": "669bb951a8816433c0650e6a38ee6f481a5d63c01533a08aeed5f1d9b5341d95"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/child-raw/023.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 5083,
+      "sha256": "1fb4590d22cf44c6340864e71b1be7f4ec815e2d48bccccf135664776d668e0a"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/git-preauth.status.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 508,
+      "sha256": "fd0ce45d9673bf2ea7c29cdeab3a7380353254328680fc8957742530aafb3899"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/git-preauth.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/git-preauth.stdin",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 26941,
+      "sha256": "50938999e70ff587db229a8131398297de2e0d453f9f1eace641e8403fbfb720"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/git-preauth.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 9988326,
+      "sha256": "40ad6ba1a59f49d847bff276a173c7907853dc0255e3da25cc248dd547e6ef00"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/grant-commit.status.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 13,
+      "sha256": "a570bcf4494f671c5b57805cd66f0c61ace157ea3de5d4e3a29c3cc3e7b84a82"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/grant-commit.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/grant-commit.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 343,
+      "sha256": "6012ae956b01a69150a7f5027f1a1df39eb3af3fd3e1935b22d21e03a303f965"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/grant-object.status.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 285,
+      "sha256": "6857e85d91524872a1a26e7b8afe9532ce720d00a912638db33e65d5631d1e4f"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/grant-object.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/grant-object.stdin",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 271,
+      "sha256": "84c27589fc2f378aa1ef59db7c65eaaa5fff0147ec76ce5ca0d8c768ee83478b"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/grant-object.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 12280,
+      "sha256": "19c5092257edfedae8cdcfb8e596e8c50baf93cf7b06ac5deccae4f1b1cc1e41"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/npm-final-originalRows.canonical.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 249034,
+      "sha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/npm-originalRows.canonical.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 249034,
+      "sha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/npm-post-originalRows.canonical.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 249034,
+      "sha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/supervisor.status.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 82,
+      "sha256": "02958a7a498ba3d0fb40ff178513ec694a88d4e0ca095c4f91273778041d4135"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/supervisor.stderr",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/supervisor.stdout",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 62,
+      "sha256": "b8417e46ac90c96bbc35c6f22e9548ae378092d28363ef3f42bfcef39c3984a0"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/types-node-final-originalRows.canonical.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 7159,
+      "sha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/types-node-originalRows.canonical.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 7159,
+      "sha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/types-node-post-originalRows.canonical.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 7159,
+      "sha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/typescript-final-originalRows.canonical.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 14134,
+      "sha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/typescript-originalRows.canonical.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 14134,
+      "sha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/typescript-post-originalRows.canonical.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 14134,
+      "sha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/undici-types-final-originalRows.canonical.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 3876,
+      "sha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/undici-types-originalRows.canonical.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 3876,
+      "sha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/undici-types-post-originalRows.canonical.json",
+      "role": "LEAF_PREAUTH_RAW_CAPTURE_OR_ACCOUNTING",
+      "mode": 420,
+      "bytes": 3876,
+      "sha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986"
+    }
+  ],
+  "selfExclusion": "This manifest cannot include its own hash. Its exact bytes are authenticated by the explicit-path evidence commit and subsequent finalization record. Commit-administration receipts created afterward are separate named finalization evidence; they are not silently included here."
+}

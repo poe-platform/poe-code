@@ -1,0 +1,2547 @@
+{
+  "schema": "priority-actual-dispatch-v2-final-admission",
+  "started": "2026-08-28T20:40:14.297Z",
+  "status": "PASS_READY_FOR_SINGLE_DISPATCH",
+  "grantCommit": "8f0a9fdaa84d7bae59040617577e2b0ee028d29b",
+  "dispatches": 0,
+  "files": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/PARENT-BUDGET.json",
+      "sha256": "86e8f86c74aad9f721b266ce49c6799285daeb8e56577da180017844a81f3dd0",
+      "bytes": 301,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/GO-v3.template.json",
+      "sha256": "6f155760db46aef36e511e15a40a29690ce929c9a78c59366ef6d2cd2d9d47fb",
+      "bytes": 3560,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/PREPARATION-SEAL-v3.json",
+      "sha256": "ab4fb40a7c4f73ddc9a34dba1ebc8a081b214f7fbec549a8b34539b241b39812",
+      "bytes": 22727,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/admission.mjs",
+      "sha256": "a9cd8a7e95a17184822de2f9bd626c5cd3f633cc2c4d30ce781ab07a2f244ae0",
+      "bytes": 8891,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/source-auth.mjs",
+      "sha256": "f6bd3d4946591b60ceb9e14e168ae4910edaa7c5770cb2f24617347963d8d706",
+      "bytes": 6808,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-supervisor.mjs",
+      "sha256": "9d8c3843a7fbb777fc85f5b2e7d3766a7f9b22f057765c62754ed6c4de227a3e",
+      "bytes": 23719,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-adapter.mjs",
+      "sha256": "3966636b7f00e1b1c9fe151c47bc9ea8f0e6c988a868784d0c2d2451995ed3cf",
+      "bytes": 24859,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/runtime-entry.mjs",
+      "sha256": "334086221de316da8b937af9d0a28b824fc88ffca2ea4a5635aa87da8546e6c0",
+      "bytes": 3074,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-observer.mjs",
+      "sha256": "3ab091998e802533844494c07f74adfaa2f14de5e6f570588db3d16b99c56ed9",
+      "bytes": 5646,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-preload.mjs",
+      "sha256": "2df3bf2cfaa2ace0b6dba3852aad9208ef55b0e39ee0e0e2c2b2bd500d0a62db",
+      "bytes": 2105,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-controls.mjs",
+      "sha256": "e976a629f3e8535facc6fe0cf760025d0fe2d7b8fa313bab8edf90488d7e6a21",
+      "bytes": 10816,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+      "sha256": "c8d111fc46a7f9feb0cf20cf3ae1272429bcb2fd5d14e4f92e0ded87329d826e",
+      "bytes": 4148,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+      "sha256": "ed5947d01667f281a26fe1f98d4e587a4d1c9a7022c188c8dd170c7e91784e7b",
+      "bytes": 786,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-dependency.mjs",
+      "sha256": "198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84",
+      "bytes": 53,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-guard.mjs",
+      "sha256": "aff310d837860b406a29d3863a6cb069d1740030412ff9a7b5b18f7447fda5b2",
+      "bytes": 622,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/verify.mjs",
+      "sha256": "5cfa86b17d4384da8a75cda0d78990b79da009e41d25046f4bc64ffd6e08e6c6",
+      "bytes": 8822,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/CASES.json",
+      "sha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da",
+      "bytes": 47429,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/FIXTURES.json",
+      "sha256": "2784e925e57619b9e0a1285c890f09293345ea414fee27a8d9aa507bfe0e00f1",
+      "bytes": 15139,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/BINDINGS.json",
+      "sha256": "17a976b5644a8a0c4cfb6b1ff69789939dc67b2954a1aaec86ba0da06e8fea00",
+      "bytes": 30714,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/MANIFEST.json",
+      "sha256": "45bc9f53e43ca53062fbb556a829b9ba58ea31ac170cabc025c7160568611968",
+      "bytes": 1542,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SCHEMA.json",
+      "sha256": "ee85c9c3d519a20fe427962504a222ee1abba1cc558f19b65d4b491129b54298",
+      "bytes": 3969,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/EXECUTION-RECIPE.md",
+      "sha256": "3ba556ed591da4abd2d7adfcb020e0ab895e5928fc77e7e50d3a81ae9428519d",
+      "bytes": 11958,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/READY.md",
+      "sha256": "2810bc898e6368c87e3431396845358f9b13f3bf0d991141fdc966f59387b9f7",
+      "bytes": 11419,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/STUB-PROTOCOL.json",
+      "sha256": "e093f1fdef530675f3273291c6624249640656983857a25ffe039ba2e4a22b4d",
+      "bytes": 4516,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/STUB-PROTOCOL-v2.json",
+      "sha256": "aacd3cb7feb32a8507a1259f503a8abaa4f9c7f5c5a3cdc6cde82891bfa76cc4",
+      "bytes": 5166,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SOURCE-AUTH.json",
+      "sha256": "c20bcfbe0fb5e8686081d074a45c667a0c67a03d27ea0575f5dd79d03ac50ccf",
+      "bytes": 99543,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/CALLS.json",
+      "sha256": "efd7eaf42422360c3a441887671018d37641283a78fc0e3e8704904a1143e76d",
+      "bytes": 67637,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/PREPARATION.md",
+      "sha256": "bed4c29f237e3390ada45bfce377bf39c8cab4f54934e4da2186d8996e2e6b00",
+      "bytes": 8292,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/FINAL-PREPARATION.md",
+      "sha256": "e6c60c5ad2636b58faa9e5034f3d1c90fea46e8843ccfb522c0958cf84f91777",
+      "bytes": 6329,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/RESULTS.json",
+      "sha256": "d57c8e02b98fc8cae8abb50675a421d4ab95a682169dc5d4613e65d9dcdc75d9",
+      "bytes": 40103,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/SOURCE-AUTH.json",
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b",
+      "bytes": 99375,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.child.json",
+      "sha256": "844a049bab1b3f6ee98564c83e62beaa22e1bfeaf07e19a68ebdbfa1405fd7ca",
+      "bytes": 2735,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.parent.jsonl",
+      "sha256": "5edcf468b80def2bfacddda31232c283154659289e0143353cec2c682be84686",
+      "bytes": 2136,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.worker.jsonl",
+      "sha256": "12cce30a194ebbdde1182437469a3f59fd4c6a1630859bc6e22a38a147a2cf5e",
+      "bytes": 4728,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.child.json",
+      "sha256": "9d96bfe343a6c98cc1a62bb4a6b1dee5f6d2da40456ef8fea20a1051bc13d8a0",
+      "bytes": 4679,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.parent.jsonl",
+      "sha256": "8dfd42a776327c47e8865c4060934d8eaaf55637c71868c18da8624563b33fbf",
+      "bytes": 3328,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.worker.jsonl",
+      "sha256": "cab3dad4fc1225c00be746815abf73e0cc028ea75a7020bf5af56f46eb3ea173",
+      "bytes": 9824,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.child.json",
+      "sha256": "e22d0f077cd4e1b293e1125d10dd06df95e96994d0dbb7a49eb6fc4c03850a70",
+      "bytes": 1741,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.parent.jsonl",
+      "sha256": "c4b28043886d7687679cd4282d914ec076ce30b65f794a65e178769000f10ecd",
+      "bytes": 1051,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.worker.jsonl",
+      "sha256": "f86fdd5e090dfe070681c2db9efbf2d11677a6ca18ff49d06fa4e82b1eaa28b4",
+      "bytes": 2301,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.child.json",
+      "sha256": "9d795d66b755c4e75e815d7a129e67348f840a70cd989c2790b55c695f5be9a9",
+      "bytes": 1713,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.parent.jsonl",
+      "sha256": "5659b7f933878b07f45e19efd97e90646b8c7a0e0ea936eaaca4c8a717b1ff87",
+      "bytes": 919,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.worker.jsonl",
+      "sha256": "34d1359437177505be2077948fb31429ffb41264ee2a58cc29722f1fae420061",
+      "bytes": 2346,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/late-acquisition.child.json",
+      "sha256": "c56c9caca56b9f6b4aa90ccd398ef5169ea4af7f09c03f4940c6691e6e0688e1",
+      "bytes": 811,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.child.json",
+      "sha256": "4bbffaca3d044e44f982af0b646f87c135113f47ca1f5446c470ad791c6a8568",
+      "bytes": 2107,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.parent.jsonl",
+      "sha256": "c8d8b50dca1d303aa08121678555f51c133475f6da263b3793feed12f6d886dd",
+      "bytes": 1217,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.worker.jsonl",
+      "sha256": "b899401d5999947d6aa466bb40607d24d2b49b479f058200ae2e3918aab17cc0",
+      "bytes": 1953,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.child.json",
+      "sha256": "e5e496b194c21afff045777955b728c0730c42127a752c643b3db9de6346b00a",
+      "bytes": 1673,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.parent.jsonl",
+      "sha256": "e4e7ca7c2b1ebde15117a852b24af1fda5762420a7d890b6fa36a7b092a9bb48",
+      "bytes": 805,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.worker.jsonl",
+      "sha256": "d7be58c018caaaf6587f23cfdef3a7dff0336d26889db34b631306c3db80b3b9",
+      "bytes": 2366,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/no-go-no-setup.child.json",
+      "sha256": "1514e5720f07ee9ceeaf80152a0bdaa486ae851be3ab067e659167d8d5f3bc9f",
+      "bytes": 2016,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.child.json",
+      "sha256": "819f7b7433336e244311f4bdca2ca9121659d199c74cc8981ca23d1897a36437",
+      "bytes": 1703,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.parent.jsonl",
+      "sha256": "5f666ae49a67aa6e475418b4dd694f4ffee6ef3a3ad573785e31c7f2d3ec65e0",
+      "bytes": 1058,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.worker.jsonl",
+      "sha256": "50b37a39371c92c137eb10c5f9a8998a3d4639f68da8a5722c66a65864e82609",
+      "bytes": 2346,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/stored-object-data.child.json",
+      "sha256": "e7e020c7955f8d57b57539ea81756e6a3d109ac89cc804580e2d22b09b58314a",
+      "bytes": 290,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/RESULTS.json",
+      "sha256": "a3438ab5049a07f14c138b57a92d137f68ce59849b7328f385d1df69456f29a8",
+      "bytes": 41150,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/SOURCE-AUTH.json",
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b",
+      "bytes": 99375,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.child.json",
+      "sha256": "d5721a446c2e6ab6f32fad872f66bb29e3a42d5545a01e361460f4c0147a9148",
+      "bytes": 2835,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.parent.jsonl",
+      "sha256": "c6b42be207074c0454e85842793cf541e5b0f5f03a89ddff0d275da14042436a",
+      "bytes": 3320,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.worker.jsonl",
+      "sha256": "21e9eea2ab92bf1e9ec65f893780f19bcae582d7261d29e61da91da2a4f7eb72",
+      "bytes": 4728,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.child.json",
+      "sha256": "a6a765abdb7b9cd0e076219a25c567de9c447bd20d3724f70c656112d45c5acb",
+      "bytes": 4779,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.parent.jsonl",
+      "sha256": "cd96258d9859b2020378e24d232e32a3d7f29a3f60bdf368f3b3be88d1dd102a",
+      "bytes": 5568,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.worker.jsonl",
+      "sha256": "2bd7c6b16dd9bc8948d128f8b470503dd6676a9cf4b9126eabd3618bec5f69f2",
+      "bytes": 9824,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.child.json",
+      "sha256": "772c8d293757db3fc276dd18341f3deab8768b703742ec8e65375f20adb16f80",
+      "bytes": 1773,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.parent.jsonl",
+      "sha256": "05244cc2974e6da1bb39908c0e1ee5c7d4058bc86c3ddff93be5e66484f504e8",
+      "bytes": 1572,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.worker.jsonl",
+      "sha256": "3992671260f4ac946f80e95825252cea91b4995dc40f1a7cc5eebe0e8d6f2e20",
+      "bytes": 2301,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.child.json",
+      "sha256": "c1e949d4a8e702a2cdb420b03da88a2f55dc2b468aec5797ce029fd601caceca",
+      "bytes": 1745,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.parent.jsonl",
+      "sha256": "620a965285eeb2f59e23f0bf4892d45d1c6137bee087936cc5ec2fbf427a2f72",
+      "bytes": 1436,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.worker.jsonl",
+      "sha256": "16da06bcbdbf94d094ea0d5371bec14d7d75e609fe3cddc3099deaeb845c5109",
+      "bytes": 2346,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/late-acquisition.child.json",
+      "sha256": "47bff20fc6f8f6f69aa58626a88f5114dc58bcf26c1b6e298b24d69f01486607",
+      "bytes": 951,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/late-acquisition.parent.jsonl",
+      "sha256": "4cfac42258569c9ca6138aa8f3ea1e9756b2911bb8c2bfe7b4d45a98c5a44c1e",
+      "bytes": 158,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.child.json",
+      "sha256": "717e72e7f1e1950eefaf9575f3cfc5a2d23dee164fbe9e311450a3b2c5cccb65",
+      "bytes": 2135,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.parent.jsonl",
+      "sha256": "1be3970ed38bdbf23702b2636b485c316068b8888f48bd731938788e5bfda150",
+      "bytes": 1741,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.worker.jsonl",
+      "sha256": "88d3ee965fd849b07eec3fadfea8c1212c35341497ba16096a005ecd7e563a71",
+      "bytes": 1953,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.child.json",
+      "sha256": "09e2458889b6e81f697b6438e8f65ad3843658b85ef51314dee9d329c7630fe5",
+      "bytes": 1701,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.parent.jsonl",
+      "sha256": "6615a03343407dd13ff52b0fe546fefc1a4b7ba28cc0ed250f6a86be4a893ce0",
+      "bytes": 1324,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.worker.jsonl",
+      "sha256": "8b6e8e900eb334330ce1792c61398c96a187151e42b5f8eed9a33f43d208ce6d",
+      "bytes": 2366,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/no-go-no-setup.child.json",
+      "sha256": "b5652067a65ae98e69e867f85d333e242ba46037009f7e31829dda973c61fad0",
+      "bytes": 2016,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/no-start.jsonl",
+      "sha256": "4b37d708f663f8b8e23ba5c5ad3e90d18d73c5cc34d3f3ba178ce8524e2b25bf",
+      "bytes": 442,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.child.json",
+      "sha256": "9e78a8afb9d7d603a7f8c5d89ec07ded21cdf6a3eca3af6631be9181595045b9",
+      "bytes": 1735,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.parent.jsonl",
+      "sha256": "4113d6309ec90e1e6d56832e5f7c998858fb267b6d8ffe240a080ff5b20f9170",
+      "bytes": 1584,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.worker.jsonl",
+      "sha256": "06bc8ad9bf6e58267830843f0552b19c97913fa070c09b61bc30f02765770fa4",
+      "bytes": 2346,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/stored-object-data.child.json",
+      "sha256": "829854a11113059a9092159f4c58d906146e78f26deae0f576798285a68f55e7",
+      "bytes": 290,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/PREPARATION-SEAL.json",
+      "sha256": "4561e4e3d6ea34ff3c7803ce02294cc2ce61e127c6dddd427e1aef79d253341f",
+      "bytes": 15814,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/GO.template.json",
+      "sha256": "9761ab8463b22157b201670fe10012ade1d9ef30bf89482dc920e64aa23c50ae",
+      "bytes": 3518,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/REPAIR-PROTOCOL-v3.json",
+      "sha256": "38f63ee90570cfc9602c6e3f4239458dbd177f9749bdae9db985013f618b70d4",
+      "bytes": 6899,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/REPAIR-PREPARATION-v3.md",
+      "sha256": "ddadbb773e6dd2c7f1859f1900cae537470f88ad084600a6d4e00758e4d730b6",
+      "bytes": 8095,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-controls.mjs",
+      "sha256": "b17544310f479f4e7ce15ce93a4a7a1b63dacd65a73e248844af846ce16ad211",
+      "bytes": 12505,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-child.mjs",
+      "sha256": "97a4cb3688922ff4efb70aef845dc6f5840a3e8a172710ead28ceca9a10fc104",
+      "bytes": 4821,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/RESULTS.json",
+      "sha256": "ca08842002325ee7ea896b1a212c9216b0e943cc290a7a54849a486ae31c04ed",
+      "bytes": 9641,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.child.json",
+      "sha256": "fc6998d8a1d7a80c627869448b743e9525f4f237888b8c3fc73759614be120f3",
+      "bytes": 1562,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.parent.jsonl",
+      "sha256": "e09b2cf20d44c29e29a99f64a82d5b230ec1903bc31c49d3e572db716600cf14",
+      "bytes": 1369,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.worker.jsonl",
+      "sha256": "b67b734774e59f93ddcec9d65020bdb6ee5ce82afed08bc8f65ca353d5d59d30",
+      "bytes": 2480,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.child.json",
+      "sha256": "5b857664de10093c060afd6e9311c5a94b0e1182128367b37abe8b6f1c9eed66",
+      "bytes": 1309,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.parent.jsonl",
+      "sha256": "806f276072c1a497cd879dde506d5367c2dcc1d52e87bf06a91df8745ca210dd",
+      "bytes": 1770,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.worker.jsonl",
+      "sha256": "761b6f6ae5a2a0fafa62ca96399828da6b7d75c043053b15ce1c76f8aa4c36f4",
+      "bytes": 2391,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.child.json",
+      "sha256": "61c60d9343beebfb8cf9aed0705de6c0826b6e7bea1ec75b6fdfd76699a34b23",
+      "bytes": 1896,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.parent.jsonl",
+      "sha256": "6d027c4321fef396a775daa92cedee675d54f2eabf3d175b5a7e880340451823",
+      "bytes": 1765,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.worker.jsonl",
+      "sha256": "a68595e0b3a1f44bf757e89a4f067293ad0e90cf9b20b2957391dbc877b8dbc7",
+      "bytes": 2480,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.child.json",
+      "sha256": "99ef531ecabfa8a2406099cd3dff7e4457a023b7d6351503be9c4a54a9b4a6d5",
+      "bytes": 1221,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.parent.jsonl",
+      "sha256": "022584980bdd0b6e5c932cd80328e54a582f99c07feaded69e579391537c01ce",
+      "bytes": 1354,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.worker.jsonl",
+      "sha256": "39a4d9ff667258bf20547b20ad3d76c4a3e41d72e283d0dc9635d39b3afd16f3",
+      "bytes": 2366,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/PREPARATION-SEAL-v3.json",
+      "sha256": "00ee97d8617eb75a4ac47bf383b19c186a12a8fcd4144096fd08a54d2f2d45ea",
+      "bytes": 20766,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/admission.mjs",
+      "sha256": "a9cd8a7e95a17184822de2f9bd626c5cd3f633cc2c4d30ce781ab07a2f244ae0",
+      "bytes": 8891,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/source-auth.mjs",
+      "sha256": "f6bd3d4946591b60ceb9e14e168ae4910edaa7c5770cb2f24617347963d8d706",
+      "bytes": 6808,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-supervisor.mjs",
+      "sha256": "9d8c3843a7fbb777fc85f5b2e7d3766a7f9b22f057765c62754ed6c4de227a3e",
+      "bytes": 23719,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-adapter.mjs",
+      "sha256": "3966636b7f00e1b1c9fe151c47bc9ea8f0e6c988a868784d0c2d2451995ed3cf",
+      "bytes": 24859,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/runtime-entry.mjs",
+      "sha256": "334086221de316da8b937af9d0a28b824fc88ffca2ea4a5635aa87da8546e6c0",
+      "bytes": 3074,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-observer.mjs",
+      "sha256": "3ab091998e802533844494c07f74adfaa2f14de5e6f570588db3d16b99c56ed9",
+      "bytes": 5646,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-preload.mjs",
+      "sha256": "2df3bf2cfaa2ace0b6dba3852aad9208ef55b0e39ee0e0e2c2b2bd500d0a62db",
+      "bytes": 2105,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-controls.mjs",
+      "sha256": "e976a629f3e8535facc6fe0cf760025d0fe2d7b8fa313bab8edf90488d7e6a21",
+      "bytes": 10816,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+      "sha256": "c8d111fc46a7f9feb0cf20cf3ae1272429bcb2fd5d14e4f92e0ded87329d826e",
+      "bytes": 4148,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+      "sha256": "ed5947d01667f281a26fe1f98d4e587a4d1c9a7022c188c8dd170c7e91784e7b",
+      "bytes": 786,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-dependency.mjs",
+      "sha256": "198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84",
+      "bytes": 53,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-guard.mjs",
+      "sha256": "aff310d837860b406a29d3863a6cb069d1740030412ff9a7b5b18f7447fda5b2",
+      "bytes": 622,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-controls.mjs",
+      "sha256": "b17544310f479f4e7ce15ce93a4a7a1b63dacd65a73e248844af846ce16ad211",
+      "bytes": 12505,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-child.mjs",
+      "sha256": "97a4cb3688922ff4efb70aef845dc6f5840a3e8a172710ead28ceca9a10fc104",
+      "bytes": 4821,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-supervisor.mjs",
+      "sha256": "9d8c3843a7fbb777fc85f5b2e7d3766a7f9b22f057765c62754ed6c4de227a3e",
+      "bytes": 23719,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SOURCE-AUTH.json",
+      "sha256": "c20bcfbe0fb5e8686081d074a45c667a0c67a03d27ea0575f5dd79d03ac50ccf",
+      "bytes": 99543,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/admission.mjs",
+      "sha256": "a9cd8a7e95a17184822de2f9bd626c5cd3f633cc2c4d30ce781ab07a2f244ae0",
+      "bytes": 8891,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/source-auth.mjs",
+      "sha256": "f6bd3d4946591b60ceb9e14e168ae4910edaa7c5770cb2f24617347963d8d706",
+      "bytes": 6808,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-supervisor.mjs",
+      "sha256": "9d8c3843a7fbb777fc85f5b2e7d3766a7f9b22f057765c62754ed6c4de227a3e",
+      "bytes": 23719,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-adapter.mjs",
+      "sha256": "3966636b7f00e1b1c9fe151c47bc9ea8f0e6c988a868784d0c2d2451995ed3cf",
+      "bytes": 24859,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/runtime-entry.mjs",
+      "sha256": "334086221de316da8b937af9d0a28b824fc88ffca2ea4a5635aa87da8546e6c0",
+      "bytes": 3074,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-observer.mjs",
+      "sha256": "3ab091998e802533844494c07f74adfaa2f14de5e6f570588db3d16b99c56ed9",
+      "bytes": 5646,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-preload.mjs",
+      "sha256": "2df3bf2cfaa2ace0b6dba3852aad9208ef55b0e39ee0e0e2c2b2bd500d0a62db",
+      "bytes": 2105,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-controls.mjs",
+      "sha256": "e976a629f3e8535facc6fe0cf760025d0fe2d7b8fa313bab8edf90488d7e6a21",
+      "bytes": 10816,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+      "sha256": "c8d111fc46a7f9feb0cf20cf3ae1272429bcb2fd5d14e4f92e0ded87329d826e",
+      "bytes": 4148,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+      "sha256": "ed5947d01667f281a26fe1f98d4e587a4d1c9a7022c188c8dd170c7e91784e7b",
+      "bytes": 786,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-dependency.mjs",
+      "sha256": "198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84",
+      "bytes": 53,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-guard.mjs",
+      "sha256": "aff310d837860b406a29d3863a6cb069d1740030412ff9a7b5b18f7447fda5b2",
+      "bytes": 622,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/verify.mjs",
+      "sha256": "5cfa86b17d4384da8a75cda0d78990b79da009e41d25046f4bc64ffd6e08e6c6",
+      "bytes": 8822,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/CASES.json",
+      "sha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da",
+      "bytes": 47429,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/FIXTURES.json",
+      "sha256": "2784e925e57619b9e0a1285c890f09293345ea414fee27a8d9aa507bfe0e00f1",
+      "bytes": 15139,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/BINDINGS.json",
+      "sha256": "17a976b5644a8a0c4cfb6b1ff69789939dc67b2954a1aaec86ba0da06e8fea00",
+      "bytes": 30714,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/MANIFEST.json",
+      "sha256": "45bc9f53e43ca53062fbb556a829b9ba58ea31ac170cabc025c7160568611968",
+      "bytes": 1542,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SCHEMA.json",
+      "sha256": "ee85c9c3d519a20fe427962504a222ee1abba1cc558f19b65d4b491129b54298",
+      "bytes": 3969,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/EXECUTION-RECIPE.md",
+      "sha256": "3ba556ed591da4abd2d7adfcb020e0ab895e5928fc77e7e50d3a81ae9428519d",
+      "bytes": 11958,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/READY.md",
+      "sha256": "2810bc898e6368c87e3431396845358f9b13f3bf0d991141fdc966f59387b9f7",
+      "bytes": 11419,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/STUB-PROTOCOL.json",
+      "sha256": "e093f1fdef530675f3273291c6624249640656983857a25ffe039ba2e4a22b4d",
+      "bytes": 4516,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/STUB-PROTOCOL-v2.json",
+      "sha256": "aacd3cb7feb32a8507a1259f503a8abaa4f9c7f5c5a3cdc6cde82891bfa76cc4",
+      "bytes": 5166,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SOURCE-AUTH.json",
+      "sha256": "c20bcfbe0fb5e8686081d074a45c667a0c67a03d27ea0575f5dd79d03ac50ccf",
+      "bytes": 99543,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/CALLS.json",
+      "sha256": "efd7eaf42422360c3a441887671018d37641283a78fc0e3e8704904a1143e76d",
+      "bytes": 67637,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/PREPARATION.md",
+      "sha256": "bed4c29f237e3390ada45bfce377bf39c8cab4f54934e4da2186d8996e2e6b00",
+      "bytes": 8292,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/FINAL-PREPARATION.md",
+      "sha256": "e6c60c5ad2636b58faa9e5034f3d1c90fea46e8843ccfb522c0958cf84f91777",
+      "bytes": 6329,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/RESULTS.json",
+      "sha256": "d57c8e02b98fc8cae8abb50675a421d4ab95a682169dc5d4613e65d9dcdc75d9",
+      "bytes": 40103,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/SOURCE-AUTH.json",
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b",
+      "bytes": 99375,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.child.json",
+      "sha256": "844a049bab1b3f6ee98564c83e62beaa22e1bfeaf07e19a68ebdbfa1405fd7ca",
+      "bytes": 2735,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.parent.jsonl",
+      "sha256": "5edcf468b80def2bfacddda31232c283154659289e0143353cec2c682be84686",
+      "bytes": 2136,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.worker.jsonl",
+      "sha256": "12cce30a194ebbdde1182437469a3f59fd4c6a1630859bc6e22a38a147a2cf5e",
+      "bytes": 4728,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.child.json",
+      "sha256": "9d96bfe343a6c98cc1a62bb4a6b1dee5f6d2da40456ef8fea20a1051bc13d8a0",
+      "bytes": 4679,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.parent.jsonl",
+      "sha256": "8dfd42a776327c47e8865c4060934d8eaaf55637c71868c18da8624563b33fbf",
+      "bytes": 3328,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.worker.jsonl",
+      "sha256": "cab3dad4fc1225c00be746815abf73e0cc028ea75a7020bf5af56f46eb3ea173",
+      "bytes": 9824,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.child.json",
+      "sha256": "e22d0f077cd4e1b293e1125d10dd06df95e96994d0dbb7a49eb6fc4c03850a70",
+      "bytes": 1741,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.parent.jsonl",
+      "sha256": "c4b28043886d7687679cd4282d914ec076ce30b65f794a65e178769000f10ecd",
+      "bytes": 1051,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.worker.jsonl",
+      "sha256": "f86fdd5e090dfe070681c2db9efbf2d11677a6ca18ff49d06fa4e82b1eaa28b4",
+      "bytes": 2301,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.child.json",
+      "sha256": "9d795d66b755c4e75e815d7a129e67348f840a70cd989c2790b55c695f5be9a9",
+      "bytes": 1713,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.parent.jsonl",
+      "sha256": "5659b7f933878b07f45e19efd97e90646b8c7a0e0ea936eaaca4c8a717b1ff87",
+      "bytes": 919,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.worker.jsonl",
+      "sha256": "34d1359437177505be2077948fb31429ffb41264ee2a58cc29722f1fae420061",
+      "bytes": 2346,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/late-acquisition.child.json",
+      "sha256": "c56c9caca56b9f6b4aa90ccd398ef5169ea4af7f09c03f4940c6691e6e0688e1",
+      "bytes": 811,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.child.json",
+      "sha256": "4bbffaca3d044e44f982af0b646f87c135113f47ca1f5446c470ad791c6a8568",
+      "bytes": 2107,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.parent.jsonl",
+      "sha256": "c8d8b50dca1d303aa08121678555f51c133475f6da263b3793feed12f6d886dd",
+      "bytes": 1217,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.worker.jsonl",
+      "sha256": "b899401d5999947d6aa466bb40607d24d2b49b479f058200ae2e3918aab17cc0",
+      "bytes": 1953,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.child.json",
+      "sha256": "e5e496b194c21afff045777955b728c0730c42127a752c643b3db9de6346b00a",
+      "bytes": 1673,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.parent.jsonl",
+      "sha256": "e4e7ca7c2b1ebde15117a852b24af1fda5762420a7d890b6fa36a7b092a9bb48",
+      "bytes": 805,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.worker.jsonl",
+      "sha256": "d7be58c018caaaf6587f23cfdef3a7dff0336d26889db34b631306c3db80b3b9",
+      "bytes": 2366,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/no-go-no-setup.child.json",
+      "sha256": "1514e5720f07ee9ceeaf80152a0bdaa486ae851be3ab067e659167d8d5f3bc9f",
+      "bytes": 2016,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.child.json",
+      "sha256": "819f7b7433336e244311f4bdca2ca9121659d199c74cc8981ca23d1897a36437",
+      "bytes": 1703,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.parent.jsonl",
+      "sha256": "5f666ae49a67aa6e475418b4dd694f4ffee6ef3a3ad573785e31c7f2d3ec65e0",
+      "bytes": 1058,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.worker.jsonl",
+      "sha256": "50b37a39371c92c137eb10c5f9a8998a3d4639f68da8a5722c66a65864e82609",
+      "bytes": 2346,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/stored-object-data.child.json",
+      "sha256": "e7e020c7955f8d57b57539ea81756e6a3d109ac89cc804580e2d22b09b58314a",
+      "bytes": 290,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/RESULTS.json",
+      "sha256": "a3438ab5049a07f14c138b57a92d137f68ce59849b7328f385d1df69456f29a8",
+      "bytes": 41150,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/SOURCE-AUTH.json",
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b",
+      "bytes": 99375,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.child.json",
+      "sha256": "d5721a446c2e6ab6f32fad872f66bb29e3a42d5545a01e361460f4c0147a9148",
+      "bytes": 2835,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.parent.jsonl",
+      "sha256": "c6b42be207074c0454e85842793cf541e5b0f5f03a89ddff0d275da14042436a",
+      "bytes": 3320,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.worker.jsonl",
+      "sha256": "21e9eea2ab92bf1e9ec65f893780f19bcae582d7261d29e61da91da2a4f7eb72",
+      "bytes": 4728,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.child.json",
+      "sha256": "a6a765abdb7b9cd0e076219a25c567de9c447bd20d3724f70c656112d45c5acb",
+      "bytes": 4779,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.parent.jsonl",
+      "sha256": "cd96258d9859b2020378e24d232e32a3d7f29a3f60bdf368f3b3be88d1dd102a",
+      "bytes": 5568,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.worker.jsonl",
+      "sha256": "2bd7c6b16dd9bc8948d128f8b470503dd6676a9cf4b9126eabd3618bec5f69f2",
+      "bytes": 9824,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.child.json",
+      "sha256": "772c8d293757db3fc276dd18341f3deab8768b703742ec8e65375f20adb16f80",
+      "bytes": 1773,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.parent.jsonl",
+      "sha256": "05244cc2974e6da1bb39908c0e1ee5c7d4058bc86c3ddff93be5e66484f504e8",
+      "bytes": 1572,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.worker.jsonl",
+      "sha256": "3992671260f4ac946f80e95825252cea91b4995dc40f1a7cc5eebe0e8d6f2e20",
+      "bytes": 2301,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.child.json",
+      "sha256": "c1e949d4a8e702a2cdb420b03da88a2f55dc2b468aec5797ce029fd601caceca",
+      "bytes": 1745,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.parent.jsonl",
+      "sha256": "620a965285eeb2f59e23f0bf4892d45d1c6137bee087936cc5ec2fbf427a2f72",
+      "bytes": 1436,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.worker.jsonl",
+      "sha256": "16da06bcbdbf94d094ea0d5371bec14d7d75e609fe3cddc3099deaeb845c5109",
+      "bytes": 2346,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/late-acquisition.child.json",
+      "sha256": "47bff20fc6f8f6f69aa58626a88f5114dc58bcf26c1b6e298b24d69f01486607",
+      "bytes": 951,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/late-acquisition.parent.jsonl",
+      "sha256": "4cfac42258569c9ca6138aa8f3ea1e9756b2911bb8c2bfe7b4d45a98c5a44c1e",
+      "bytes": 158,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.child.json",
+      "sha256": "717e72e7f1e1950eefaf9575f3cfc5a2d23dee164fbe9e311450a3b2c5cccb65",
+      "bytes": 2135,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.parent.jsonl",
+      "sha256": "1be3970ed38bdbf23702b2636b485c316068b8888f48bd731938788e5bfda150",
+      "bytes": 1741,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.worker.jsonl",
+      "sha256": "88d3ee965fd849b07eec3fadfea8c1212c35341497ba16096a005ecd7e563a71",
+      "bytes": 1953,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.child.json",
+      "sha256": "09e2458889b6e81f697b6438e8f65ad3843658b85ef51314dee9d329c7630fe5",
+      "bytes": 1701,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.parent.jsonl",
+      "sha256": "6615a03343407dd13ff52b0fe546fefc1a4b7ba28cc0ed250f6a86be4a893ce0",
+      "bytes": 1324,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.worker.jsonl",
+      "sha256": "8b6e8e900eb334330ce1792c61398c96a187151e42b5f8eed9a33f43d208ce6d",
+      "bytes": 2366,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/no-go-no-setup.child.json",
+      "sha256": "b5652067a65ae98e69e867f85d333e242ba46037009f7e31829dda973c61fad0",
+      "bytes": 2016,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/no-start.jsonl",
+      "sha256": "4b37d708f663f8b8e23ba5c5ad3e90d18d73c5cc34d3f3ba178ce8524e2b25bf",
+      "bytes": 442,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.child.json",
+      "sha256": "9e78a8afb9d7d603a7f8c5d89ec07ded21cdf6a3eca3af6631be9181595045b9",
+      "bytes": 1735,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.parent.jsonl",
+      "sha256": "4113d6309ec90e1e6d56832e5f7c998858fb267b6d8ffe240a080ff5b20f9170",
+      "bytes": 1584,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.worker.jsonl",
+      "sha256": "06bc8ad9bf6e58267830843f0552b19c97913fa070c09b61bc30f02765770fa4",
+      "bytes": 2346,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/stored-object-data.child.json",
+      "sha256": "829854a11113059a9092159f4c58d906146e78f26deae0f576798285a68f55e7",
+      "bytes": 290,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/PREPARATION-SEAL.json",
+      "sha256": "4561e4e3d6ea34ff3c7803ce02294cc2ce61e127c6dddd427e1aef79d253341f",
+      "bytes": 15814,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/GO.template.json",
+      "sha256": "9761ab8463b22157b201670fe10012ade1d9ef30bf89482dc920e64aa23c50ae",
+      "bytes": 3518,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/REPAIR-PROTOCOL-v3.json",
+      "sha256": "38f63ee90570cfc9602c6e3f4239458dbd177f9749bdae9db985013f618b70d4",
+      "bytes": 6899,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/REPAIR-PREPARATION-v3.md",
+      "sha256": "ddadbb773e6dd2c7f1859f1900cae537470f88ad084600a6d4e00758e4d730b6",
+      "bytes": 8095,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-controls.mjs",
+      "sha256": "b17544310f479f4e7ce15ce93a4a7a1b63dacd65a73e248844af846ce16ad211",
+      "bytes": 12505,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-child.mjs",
+      "sha256": "97a4cb3688922ff4efb70aef845dc6f5840a3e8a172710ead28ceca9a10fc104",
+      "bytes": 4821,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/RESULTS.json",
+      "sha256": "ca08842002325ee7ea896b1a212c9216b0e943cc290a7a54849a486ae31c04ed",
+      "bytes": 9641,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.child.json",
+      "sha256": "fc6998d8a1d7a80c627869448b743e9525f4f237888b8c3fc73759614be120f3",
+      "bytes": 1562,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.parent.jsonl",
+      "sha256": "e09b2cf20d44c29e29a99f64a82d5b230ec1903bc31c49d3e572db716600cf14",
+      "bytes": 1369,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.worker.jsonl",
+      "sha256": "b67b734774e59f93ddcec9d65020bdb6ee5ce82afed08bc8f65ca353d5d59d30",
+      "bytes": 2480,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.child.json",
+      "sha256": "5b857664de10093c060afd6e9311c5a94b0e1182128367b37abe8b6f1c9eed66",
+      "bytes": 1309,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.parent.jsonl",
+      "sha256": "806f276072c1a497cd879dde506d5367c2dcc1d52e87bf06a91df8745ca210dd",
+      "bytes": 1770,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.worker.jsonl",
+      "sha256": "761b6f6ae5a2a0fafa62ca96399828da6b7d75c043053b15ce1c76f8aa4c36f4",
+      "bytes": 2391,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.child.json",
+      "sha256": "61c60d9343beebfb8cf9aed0705de6c0826b6e7bea1ec75b6fdfd76699a34b23",
+      "bytes": 1896,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.parent.jsonl",
+      "sha256": "6d027c4321fef396a775daa92cedee675d54f2eabf3d175b5a7e880340451823",
+      "bytes": 1765,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.worker.jsonl",
+      "sha256": "a68595e0b3a1f44bf757e89a4f067293ad0e90cf9b20b2957391dbc877b8dbc7",
+      "bytes": 2480,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.child.json",
+      "sha256": "99ef531ecabfa8a2406099cd3dff7e4457a023b7d6351503be9c4a54a9b4a6d5",
+      "bytes": 1221,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.parent.jsonl",
+      "sha256": "022584980bdd0b6e5c932cd80328e54a582f99c07feaded69e579391537c01ce",
+      "bytes": 1354,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.worker.jsonl",
+      "sha256": "39a4d9ff667258bf20547b20ad3d76c4a3e41d72e283d0dc9635d39b3afd16f3",
+      "bytes": 2366,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/admission.mjs",
+      "sha256": "a684eec19da86d10ace4520db1ed3b35cb2ff8a1d72af66db04b1df68bdeb03a",
+      "bytes": 8788,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/source-auth.mjs",
+      "sha256": "e7eecba25e0deec1e727c950105c1a3b767dfb13e0ab0dafc99438752ab6ede9",
+      "bytes": 6787,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-supervisor.mjs",
+      "sha256": "c97b25742f0afdf18b89267e4eb82ad7682a39941838bc54e69f3ecb48071f00",
+      "bytes": 23692,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-adapter.mjs",
+      "sha256": "3966636b7f00e1b1c9fe151c47bc9ea8f0e6c988a868784d0c2d2451995ed3cf",
+      "bytes": 24859,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/runtime-entry.mjs",
+      "sha256": "334086221de316da8b937af9d0a28b824fc88ffca2ea4a5635aa87da8546e6c0",
+      "bytes": 3074,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-observer.mjs",
+      "sha256": "3ab091998e802533844494c07f74adfaa2f14de5e6f570588db3d16b99c56ed9",
+      "bytes": 5646,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs",
+      "sha256": "2df3bf2cfaa2ace0b6dba3852aad9208ef55b0e39ee0e0e2c2b2bd500d0a62db",
+      "bytes": 2105,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-controls.mjs",
+      "sha256": "e976a629f3e8535facc6fe0cf760025d0fe2d7b8fa313bab8edf90488d7e6a21",
+      "bytes": 10816,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+      "sha256": "c8d111fc46a7f9feb0cf20cf3ae1272429bcb2fd5d14e4f92e0ded87329d826e",
+      "bytes": 4148,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+      "sha256": "ed5947d01667f281a26fe1f98d4e587a4d1c9a7022c188c8dd170c7e91784e7b",
+      "bytes": 786,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-dependency.mjs",
+      "sha256": "198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84",
+      "bytes": 53,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-guard.mjs",
+      "sha256": "aff310d837860b406a29d3863a6cb069d1740030412ff9a7b5b18f7447fda5b2",
+      "bytes": 622,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/verify.mjs",
+      "sha256": "5cfa86b17d4384da8a75cda0d78990b79da009e41d25046f4bc64ffd6e08e6c6",
+      "bytes": 8822,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/CASES.json",
+      "sha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da",
+      "bytes": 47429,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/FIXTURES.json",
+      "sha256": "2784e925e57619b9e0a1285c890f09293345ea414fee27a8d9aa507bfe0e00f1",
+      "bytes": 15139,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/BINDINGS.json",
+      "sha256": "95a3a22316c56af800112335a3591dbd8590418f13b7f62525b3d9090193f11a",
+      "bytes": 30714,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/MANIFEST.json",
+      "sha256": "9f37ca652c21fb233923ca7ba2a387325e7a7e34e58ca1e7c620d92551b089a4",
+      "bytes": 1542,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/SCHEMA.json",
+      "sha256": "ee85c9c3d519a20fe427962504a222ee1abba1cc558f19b65d4b491129b54298",
+      "bytes": 3969,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/EXECUTION-RECIPE.md",
+      "sha256": "3ba556ed591da4abd2d7adfcb020e0ab895e5928fc77e7e50d3a81ae9428519d",
+      "bytes": 11958,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/READY.md",
+      "sha256": "2810bc898e6368c87e3431396845358f9b13f3bf0d991141fdc966f59387b9f7",
+      "bytes": 11419,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/STUB-PROTOCOL.json",
+      "sha256": "e093f1fdef530675f3273291c6624249640656983857a25ffe039ba2e4a22b4d",
+      "bytes": 4516,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/STUB-PROTOCOL-v2.json",
+      "sha256": "aacd3cb7feb32a8507a1259f503a8abaa4f9c7f5c5a3cdc6cde82891bfa76cc4",
+      "bytes": 5166,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/SOURCE-AUTH.json",
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b",
+      "bytes": 99375,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/CALLS.json",
+      "sha256": "efd7eaf42422360c3a441887671018d37641283a78fc0e3e8704904a1143e76d",
+      "bytes": 67637,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/PREPARATION.md",
+      "sha256": "bed4c29f237e3390ada45bfce377bf39c8cab4f54934e4da2186d8996e2e6b00",
+      "bytes": 8292,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/FINAL-PREPARATION.md",
+      "sha256": "e6c60c5ad2636b58faa9e5034f3d1c90fea46e8843ccfb522c0958cf84f91777",
+      "bytes": 6329,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/RESULTS.json",
+      "sha256": "d57c8e02b98fc8cae8abb50675a421d4ab95a682169dc5d4613e65d9dcdc75d9",
+      "bytes": 40103,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/SOURCE-AUTH.json",
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b",
+      "bytes": 99375,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.child.json",
+      "sha256": "844a049bab1b3f6ee98564c83e62beaa22e1bfeaf07e19a68ebdbfa1405fd7ca",
+      "bytes": 2735,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.parent.jsonl",
+      "sha256": "5edcf468b80def2bfacddda31232c283154659289e0143353cec2c682be84686",
+      "bytes": 2136,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/concurrent-bound.worker.jsonl",
+      "sha256": "12cce30a194ebbdde1182437469a3f59fd4c6a1630859bc6e22a38a147a2cf5e",
+      "bytes": 4728,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.child.json",
+      "sha256": "9d96bfe343a6c98cc1a62bb4a6b1dee5f6d2da40456ef8fea20a1051bc13d8a0",
+      "bytes": 4679,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.parent.jsonl",
+      "sha256": "8dfd42a776327c47e8865c4060934d8eaaf55637c71868c18da8624563b33fbf",
+      "bytes": 3328,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/cumulative-bound.worker.jsonl",
+      "sha256": "cab3dad4fc1225c00be746815abf73e0cc028ea75a7020bf5af56f46eb3ea173",
+      "bytes": 9824,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.child.json",
+      "sha256": "e22d0f077cd4e1b293e1125d10dd06df95e96994d0dbb7a49eb6fc4c03850a70",
+      "bytes": 1741,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.parent.jsonl",
+      "sha256": "c4b28043886d7687679cd4282d914ec076ce30b65f794a65e178769000f10ecd",
+      "bytes": 1051,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/emergency.worker.jsonl",
+      "sha256": "f86fdd5e090dfe070681c2db9efbf2d11677a6ca18ff49d06fa4e82b1eaa28b4",
+      "bytes": 2301,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.child.json",
+      "sha256": "9d795d66b755c4e75e815d7a129e67348f840a70cd989c2790b55c695f5be9a9",
+      "bytes": 1713,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.parent.jsonl",
+      "sha256": "5659b7f933878b07f45e19efd97e90646b8c7a0e0ea936eaaca4c8a717b1ff87",
+      "bytes": 919,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/error.worker.jsonl",
+      "sha256": "34d1359437177505be2077948fb31429ffb41264ee2a58cc29722f1fae420061",
+      "bytes": 2346,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/late-acquisition.child.json",
+      "sha256": "c56c9caca56b9f6b4aa90ccd398ef5169ea4af7f09c03f4940c6691e6e0688e1",
+      "bytes": 811,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.child.json",
+      "sha256": "4bbffaca3d044e44f982af0b646f87c135113f47ca1f5446c470ad791c6a8568",
+      "bytes": 2107,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.parent.jsonl",
+      "sha256": "c8d8b50dca1d303aa08121678555f51c133475f6da263b3793feed12f6d886dd",
+      "bytes": 1217,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/loader-drift.worker.jsonl",
+      "sha256": "b899401d5999947d6aa466bb40607d24d2b49b479f058200ae2e3918aab17cc0",
+      "bytes": 1953,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.child.json",
+      "sha256": "e5e496b194c21afff045777955b728c0730c42127a752c643b3db9de6346b00a",
+      "bytes": 1673,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.parent.jsonl",
+      "sha256": "e4e7ca7c2b1ebde15117a852b24af1fda5762420a7d890b6fa36a7b092a9bb48",
+      "bytes": 805,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/natural.worker.jsonl",
+      "sha256": "d7be58c018caaaf6587f23cfdef3a7dff0336d26889db34b631306c3db80b3b9",
+      "bytes": 2366,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/no-go-no-setup.child.json",
+      "sha256": "1514e5720f07ee9ceeaf80152a0bdaa486ae851be3ab067e659167d8d5f3bc9f",
+      "bytes": 2016,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.child.json",
+      "sha256": "819f7b7433336e244311f4bdca2ca9121659d199c74cc8981ca23d1897a36437",
+      "bytes": 1703,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.parent.jsonl",
+      "sha256": "5f666ae49a67aa6e475418b4dd694f4ffee6ef3a3ad573785e31c7f2d3ec65e0",
+      "bytes": 1058,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/product-forced.worker.jsonl",
+      "sha256": "50b37a39371c92c137eb10c5f9a8998a3d4639f68da8a5722c66a65864e82609",
+      "bytes": 2346,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1/stored-object-data.child.json",
+      "sha256": "e7e020c7955f8d57b57539ea81756e6a3d109ac89cc804580e2d22b09b58314a",
+      "bytes": 290,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/RESULTS.json",
+      "sha256": "a3438ab5049a07f14c138b57a92d137f68ce59849b7328f385d1df69456f29a8",
+      "bytes": 41150,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/SOURCE-AUTH.json",
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b",
+      "bytes": 99375,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.child.json",
+      "sha256": "d5721a446c2e6ab6f32fad872f66bb29e3a42d5545a01e361460f4c0147a9148",
+      "bytes": 2835,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.parent.jsonl",
+      "sha256": "c6b42be207074c0454e85842793cf541e5b0f5f03a89ddff0d275da14042436a",
+      "bytes": 3320,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/concurrent-bound.worker.jsonl",
+      "sha256": "21e9eea2ab92bf1e9ec65f893780f19bcae582d7261d29e61da91da2a4f7eb72",
+      "bytes": 4728,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.child.json",
+      "sha256": "a6a765abdb7b9cd0e076219a25c567de9c447bd20d3724f70c656112d45c5acb",
+      "bytes": 4779,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.parent.jsonl",
+      "sha256": "cd96258d9859b2020378e24d232e32a3d7f29a3f60bdf368f3b3be88d1dd102a",
+      "bytes": 5568,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/cumulative-bound.worker.jsonl",
+      "sha256": "2bd7c6b16dd9bc8948d128f8b470503dd6676a9cf4b9126eabd3618bec5f69f2",
+      "bytes": 9824,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.child.json",
+      "sha256": "772c8d293757db3fc276dd18341f3deab8768b703742ec8e65375f20adb16f80",
+      "bytes": 1773,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.parent.jsonl",
+      "sha256": "05244cc2974e6da1bb39908c0e1ee5c7d4058bc86c3ddff93be5e66484f504e8",
+      "bytes": 1572,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/emergency.worker.jsonl",
+      "sha256": "3992671260f4ac946f80e95825252cea91b4995dc40f1a7cc5eebe0e8d6f2e20",
+      "bytes": 2301,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.child.json",
+      "sha256": "c1e949d4a8e702a2cdb420b03da88a2f55dc2b468aec5797ce029fd601caceca",
+      "bytes": 1745,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.parent.jsonl",
+      "sha256": "620a965285eeb2f59e23f0bf4892d45d1c6137bee087936cc5ec2fbf427a2f72",
+      "bytes": 1436,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/error.worker.jsonl",
+      "sha256": "16da06bcbdbf94d094ea0d5371bec14d7d75e609fe3cddc3099deaeb845c5109",
+      "bytes": 2346,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/late-acquisition.child.json",
+      "sha256": "47bff20fc6f8f6f69aa58626a88f5114dc58bcf26c1b6e298b24d69f01486607",
+      "bytes": 951,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/late-acquisition.parent.jsonl",
+      "sha256": "4cfac42258569c9ca6138aa8f3ea1e9756b2911bb8c2bfe7b4d45a98c5a44c1e",
+      "bytes": 158,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.child.json",
+      "sha256": "717e72e7f1e1950eefaf9575f3cfc5a2d23dee164fbe9e311450a3b2c5cccb65",
+      "bytes": 2135,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.parent.jsonl",
+      "sha256": "1be3970ed38bdbf23702b2636b485c316068b8888f48bd731938788e5bfda150",
+      "bytes": 1741,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/loader-drift.worker.jsonl",
+      "sha256": "88d3ee965fd849b07eec3fadfea8c1212c35341497ba16096a005ecd7e563a71",
+      "bytes": 1953,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.child.json",
+      "sha256": "09e2458889b6e81f697b6438e8f65ad3843658b85ef51314dee9d329c7630fe5",
+      "bytes": 1701,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.parent.jsonl",
+      "sha256": "6615a03343407dd13ff52b0fe546fefc1a4b7ba28cc0ed250f6a86be4a893ce0",
+      "bytes": 1324,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/natural.worker.jsonl",
+      "sha256": "8b6e8e900eb334330ce1792c61398c96a187151e42b5f8eed9a33f43d208ce6d",
+      "bytes": 2366,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/no-go-no-setup.child.json",
+      "sha256": "b5652067a65ae98e69e867f85d333e242ba46037009f7e31829dda973c61fad0",
+      "bytes": 2016,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/no-start.jsonl",
+      "sha256": "4b37d708f663f8b8e23ba5c5ad3e90d18d73c5cc34d3f3ba178ce8524e2b25bf",
+      "bytes": 442,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.child.json",
+      "sha256": "9e78a8afb9d7d603a7f8c5d89ec07ded21cdf6a3eca3af6631be9181595045b9",
+      "bytes": 1735,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.parent.jsonl",
+      "sha256": "4113d6309ec90e1e6d56832e5f7c998858fb267b6d8ffe240a080ff5b20f9170",
+      "bytes": 1584,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/product-forced.worker.jsonl",
+      "sha256": "06bc8ad9bf6e58267830843f0552b19c97913fa070c09b61bc30f02765770fa4",
+      "bytes": 2346,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2/stored-object-data.child.json",
+      "sha256": "829854a11113059a9092159f4c58d906146e78f26deae0f576798285a68f55e7",
+      "bytes": 290,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/PREPARATION-SEAL.json",
+      "sha256": "4561e4e3d6ea34ff3c7803ce02294cc2ce61e127c6dddd427e1aef79d253341f",
+      "bytes": 15814,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/GO.template.json",
+      "sha256": "9761ab8463b22157b201670fe10012ade1d9ef30bf89482dc920e64aa23c50ae",
+      "bytes": 3518,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/REPAIR-PROTOCOL-v3.json",
+      "sha256": "38f63ee90570cfc9602c6e3f4239458dbd177f9749bdae9db985013f618b70d4",
+      "bytes": 6899,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/REPAIR-PREPARATION-v3.md",
+      "sha256": "ddadbb773e6dd2c7f1859f1900cae537470f88ad084600a6d4e00758e4d730b6",
+      "bytes": 8095,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-controls.mjs",
+      "sha256": "b17544310f479f4e7ce15ce93a4a7a1b63dacd65a73e248844af846ce16ad211",
+      "bytes": 12505,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-child.mjs",
+      "sha256": "97a4cb3688922ff4efb70aef845dc6f5840a3e8a172710ead28ceca9a10fc104",
+      "bytes": 4821,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/RESULTS.json",
+      "sha256": "ca08842002325ee7ea896b1a212c9216b0e943cc290a7a54849a486ae31c04ed",
+      "bytes": 9641,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.child.json",
+      "sha256": "fc6998d8a1d7a80c627869448b743e9525f4f237888b8c3fc73759614be120f3",
+      "bytes": 1562,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.parent.jsonl",
+      "sha256": "e09b2cf20d44c29e29a99f64a82d5b230ec1903bc31c49d3e572db716600cf14",
+      "bytes": 1369,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/caught-load.worker.jsonl",
+      "sha256": "b67b734774e59f93ddcec9d65020bdb6ee5ce82afed08bc8f65ca353d5d59d30",
+      "bytes": 2480,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.child.json",
+      "sha256": "5b857664de10093c060afd6e9311c5a94b0e1182128367b37abe8b6f1c9eed66",
+      "bytes": 1309,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.parent.jsonl",
+      "sha256": "806f276072c1a497cd879dde506d5367c2dcc1d52e87bf06a91df8745ca210dd",
+      "bytes": 1770,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/independent-cleanup.worker.jsonl",
+      "sha256": "761b6f6ae5a2a0fafa62ca96399828da6b7d75c043053b15ce1c76f8aa4c36f4",
+      "bytes": 2391,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.child.json",
+      "sha256": "61c60d9343beebfb8cf9aed0705de6c0826b6e7bea1ec75b6fdfd76699a34b23",
+      "bytes": 1896,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.parent.jsonl",
+      "sha256": "6d027c4321fef396a775daa92cedee675d54f2eabf3d175b5a7e880340451823",
+      "bytes": 1765,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/mapped-load.worker.jsonl",
+      "sha256": "a68595e0b3a1f44bf757e89a4f067293ad0e90cf9b20b2957391dbc877b8dbc7",
+      "bytes": 2480,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.child.json",
+      "sha256": "99ef531ecabfa8a2406099cd3dff7e4457a023b7d6351503be9c4a54a9b4a6d5",
+      "bytes": 1221,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.parent.jsonl",
+      "sha256": "022584980bdd0b6e5c932cd80328e54a582f99c07feaded69e579391537c01ce",
+      "bytes": 1354,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/repair-evidence-v3/natural.worker.jsonl",
+      "sha256": "39a4d9ff667258bf20547b20ad3d76c4a3e41d72e283d0dc9635d39b3afd16f3",
+      "bytes": 2366,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/PREPARATION-SEAL-v3.json",
+      "sha256": "00ee97d8617eb75a4ac47bf383b19c186a12a8fcd4144096fd08a54d2f2d45ea",
+      "bytes": 20766,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/GO-v3.template.json",
+      "sha256": "9f84baf5a92e31e9824abc6a8bba23e1254d45fdf4400f6fa80d7705f67acef9",
+      "bytes": 3518,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/GO.json",
+      "sha256": "5ca5a1e9847c3306cf49f0f4894d8a6bf83dc39e2741ad49067bdc43148b4aa5",
+      "bytes": 3492,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/PARENT-BUDGET.json",
+      "sha256": "86e8f86c74aad9f721b266ce49c6799285daeb8e56577da180017844a81f3dd0",
+      "bytes": 301,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/HOLD-RECEIPT.json",
+      "sha256": "fdf7d97d1a1584de741fe420ceef2a6d2d7ef1e3ffda4b87ee44c2cb0ec1d345",
+      "bytes": 15321,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/MANIFEST.json",
+      "sha256": "8dd5915da752a1dbf1ef7d57881e26306a5f458b4c2fc04b4d82d52cd02294a8",
+      "bytes": 2293,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/NPM-FAILURE.txt",
+      "sha256": "e10718f17ba7572b386f19ad7547630cdc6aee52af4722ccdcbce2e295517b66",
+      "bytes": 163,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/NPM-ORIGINAL-INVENTORY.json",
+      "sha256": "242f6ef74dfaf422c6513707c33187af5bc90297f8479d9a1bec72206afb3f79",
+      "bytes": 301990,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/PREAUTH.json",
+      "sha256": "694033e88e505a182812ef564114c8a1980102e5c62ac47ea6c6ef006a43a4d3",
+      "bytes": 147250,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/ROOT-DISPATCH-CONFIRMATION.md",
+      "sha256": "5266dbdfe7e98f34f29116e1612defb797760f526a31164f4e00492e538f1efc",
+      "bytes": 5408,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/ROOT-HOLD-CONFIRMATION.txt",
+      "sha256": "c1a1748a6ab08492b14049b9108a6da066c57d25f2ecbaebe14e7a5ee49da079",
+      "bytes": 947,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/ADMINISTRATIVE-PATCH.json",
+      "sha256": "ff8b2481c3e5b9dece372cc7450a4843be49f66363aa020747fc25e52341dfcb",
+      "bytes": 468,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/COMPOSED-ROOT.tree.data",
+      "sha256": "6b292c82a39055942f776b79a8b854d6b78e666be41c9397301f46176844e520",
+      "bytes": 449,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/DEPENDENCIES.json",
+      "sha256": "f123bc947f881fcb9ce21a006b7ead75873e622bb406b28291208a6e5fcfb4bc",
+      "bytes": 2876,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/GENERATED-TREES.json",
+      "sha256": "fd19d923722c996a860894c1f532390c33e889938c45f7b81f8fe9ed45ffbab9",
+      "bytes": 16469,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/MEMBERSHIP-268.json",
+      "sha256": "0dfbb2e93a672d40cab0e79004f1c7dcab53bf773d99952be0158e411b8b5750",
+      "bytes": 509186,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/RECIPE.md",
+      "sha256": "c1809bad831367e96c5cad43b8cc390b00136ebdc4119f2d5ca6f2bd94cfa5ba",
+      "bytes": 7942,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/RESULTS.json",
+      "sha256": "4faa7c24a62d4377a5999b8262ff1d13dda012292dfeb00f1e1a75104db9ba94",
+      "bytes": 5096,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/REVIEW.md",
+      "sha256": "2b8b3d6be93122b45d8f885c8f3c116a9946a25eaa95516574b9b3db9bb9cf09",
+      "bytes": 5942,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/ROLEMAP.json",
+      "sha256": "4fbb5cbb00877bae74e0d0109cd4814f9d3c0db35eeda0cd33aa409d2a6d1f33",
+      "bytes": 131350,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/preparation/RECEIPT.json",
+      "sha256": "1eb6048ba9170a5d20ace71c1068f4286d3467c2ce56a825c4b0ec82a1b8e362",
+      "bytes": 1187,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/preparation/ROLEMAP-PATCH-RECEIPT.json",
+      "sha256": "df03bbe48d102ba32f84e5fa5df7a48160104bf7058d63ee274125f2a14713eb",
+      "bytes": 299,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/preparation/SOURCE-PATH-RECEIPT.json",
+      "sha256": "12c326498399c6eb81a69e79318a1ed9e9b551087d4c18aac94d73fa0ef794d8",
+      "bytes": 4409,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/preparation/catalog.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/preparation/catalog.stdout",
+      "sha256": "b9d1c90ce2cc77bd79ae1475625e10fd79eec19b36edca570a9b03df7b38b8b4",
+      "bytes": 218446,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/preparation/source-path-catalog.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/preparation/source-path-catalog.stdout",
+      "sha256": "08fe0123dd64a807f2129cbca87865f87a8fced81f7c9a8a4dd9fb37f5515354",
+      "bytes": 40514,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/proof.mjs",
+      "sha256": "e5c4931fbd8293d75d97d403503a25b2ebe463f5f0d53833f8c265bf9edd932e",
+      "bytes": 22889,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/raw/01.json",
+      "sha256": "8ab34c11caf819cdfed01423f05ff427a48b0a4e2bf1d3b517d6e2ae94204f38",
+      "bytes": 740,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/raw/01.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/raw/01.stdin",
+      "sha256": "9572cd32b911f1e91b476d99e1908fafb4da925666938ccc56a3f32631a53cee",
+      "bytes": 1007,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/raw/01.stdout",
+      "sha256": "cdfc5de2e5f239572cbc83d5d9b26da6fcdb0b8dcf7d12eabb272c3cbf2b63d1",
+      "bytes": 239414,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/raw/02.json",
+      "sha256": "5e2d47a40f2c69c57df56bfb8e4a7b87b3de59684e61de942ee97acc4cb86778",
+      "bytes": 742,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/raw/02.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/raw/02.stdin",
+      "sha256": "14f2f82357b3bb681bf50dfdaf239734dd849805fc6ef262337818b2868fafbf",
+      "bytes": 22493,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/raw/02.stdout",
+      "sha256": "99d9a02bdc47e2dd0bdd239d0c60cb0e8569194324404c6c91df59d6bdb9b6bc",
+      "bytes": 2461226,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/o6-composition-v3/raw/ORIGIN.json",
+      "sha256": "9d19d81ea72e3bb158c51d49b4c3879c311a78b306db802d63746b9cf68c2f28",
+      "bytes": 241,
+      "mode": 420,
+      "regularNonsymlink": true
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "bytes": 112989184,
+      "mode": 493,
+      "regularNonsymlink": true
+    }
+  ],
+  "tools": [
+    {
+      "name": "typescript",
+      "rows": 132,
+      "sha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41"
+    },
+    {
+      "name": "npm",
+      "rows": 2039,
+      "sha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    {
+      "name": "@types/node",
+      "rows": 74,
+      "sha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae"
+    },
+    {
+      "name": "undici-types",
+      "rows": 41,
+      "sha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986"
+    }
+  ],
+  "grantObjects": [
+    {
+      "expression": "8f0a9fdaa84d7bae59040617577e2b0ee028d29b:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/GO.json",
+      "kind": "blob",
+      "sha256": "5d37bb0ff2f321624783c0b6e3abc027031d98a15aaa3ec2aab31c96169273d9",
+      "oid": "c0754cc4a1d265ee0900c2c0bb752faf59799049",
+      "bytes": 3534,
+      "verified": true
+    },
+    {
+      "expression": "8f0a9fdaa84d7bae59040617577e2b0ee028d29b:tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/ROOT-AUTHORIZATION-20260828.md",
+      "kind": "blob",
+      "sha256": "dabb954161fc10903a02d4b457e53285a87ed2af0c40c42cd724427c43c7d9bb",
+      "oid": "75ff0610b71472df72fbb3b833017ce34f146d6e",
+      "bytes": 8642,
+      "verified": true
+    }
+  ],
+  "parent": {
+    "schema": "exclusive-parent-reservation-v1",
+    "id": "priority-command-workflows-20260828/future-run-01",
+    "deadlineEpochMs": 1788026556000,
+    "remaining": {
+      "children": 100,
+      "workerStarts": 372,
+      "loaderThreads": 97,
+      "captureBytes": 419430400,
+      "scratchBytes": 536870912
+    }
+  },
+  "ended": "2026-08-28T20:40:14.917Z"
+}

@@ -1,0 +1,26 @@
+(node:1232) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+AssertionError [ERR_ASSERTION]: LOAD_HASH_REFUSED:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/runtime-entry.mjs
++ actual - expected
+
++ '334086221de316da8b937af9d0a28b824fc88ffca2ea4a5635aa87da8546e6c0'
+- '0000000000000000000000000000000000000000000000000000000000000000'
+
+    at load (file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/source/loader.mjs:21:10)
+    at async nextLoad (node:internal/modules/esm/hooks:748:22)
+    at async Hooks.load (node:internal/modules/esm/hooks:385:20)
+    at async MessagePort.handleMessage (node:internal/modules/esm/worker:199:18) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: '334086221de316da8b937af9d0a28b824fc88ffca2ea4a5635aa87da8546e6c0',
+  expected: '0000000000000000000000000000000000000000000000000000000000000000',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

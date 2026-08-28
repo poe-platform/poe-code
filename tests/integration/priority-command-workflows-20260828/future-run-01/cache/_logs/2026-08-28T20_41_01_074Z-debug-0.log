@@ -1,0 +1,25 @@
+0 verbose cli /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/tools/node /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/tools/npm/bin/npm-cli.js
+1 info using npm@10.9.7
+2 info using node@v22.22.2
+3 silly config load:file:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/tools/npm/npmrc
+4 silly config load:file:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/consumer/.npmrc
+5 silly config load:file:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/npmrc
+6 silly config load:file:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/global-npmrc
+7 verbose title npm install /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/packs/virtual-bash-0.0.0.tgz
+8 verbose argv "install" "--offline" "--ignore-scripts" "--no-audit" "--no-fund" "--package-lock" "false" "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/packs/virtual-bash-0.0.0.tgz"
+9 verbose logfile logs-max:10 dir:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/cache/_logs/2026-08-28T20_41_01_074Z-
+10 verbose logfile /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/cache/_logs/2026-08-28T20_41_01_074Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:4345298944 maxSize:1086324736 maxEntrySize:543162368
+13 silly idealTree buildDeps
+14 silly fetch manifest virtual-bash@file:../packs/virtual-bash-0.0.0.tgz
+15 silly placeDep ROOT virtual-bash@0.0.0 OK for:  want: file:../packs/virtual-bash-0.0.0.tgz
+16 silly reify moves {}
+17 http cache virtual-bash@file:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/packs/virtual-bash-0.0.0.tgz 1ms (cache hit)
+18 silly ADD node_modules/virtual-bash
+19 verbose cwd /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01/consumer
+20 verbose os Darwin 25.4.0
+21 verbose node v22.22.2
+22 verbose npm  v10.9.7
+23 verbose exit 0
+24 info ok

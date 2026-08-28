@@ -1,0 +1,4 @@
+[main 8f0a9fda] docs: authorize one conditional priority workflow v2 dispatch
+ 2 files changed, 192 insertions(+)
+ create mode 100644 tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/GO.json
+ create mode 100644 tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/ROOT-AUTHORIZATION-20260828.md

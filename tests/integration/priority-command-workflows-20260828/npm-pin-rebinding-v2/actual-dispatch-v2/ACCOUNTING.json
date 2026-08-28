@@ -1,0 +1,302 @@
+{
+  "schema": "priority-actual-dispatch-v2-accounting",
+  "recordedAt": "2026-08-28T20:46:06.524Z",
+  "source": "Same single stopped attempt; supplementary DATA accounting only. RECONCILIATION.json preserves its administrative ReferenceError after writing all93 subject memberships and23 raw child streams. No prior capture is overwritten; no supervisor, product or validator is replayed.",
+  "reconciliationPath": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/RECONCILIATION.json",
+  "reconciliationSha256": "9770fe7dc7a468f693488e3a95ff929cb365db20fd35a3c3fa05db8a1a825828",
+  "errors": [],
+  "counts": {
+    "planned": 93,
+    "attempted": 16,
+    "observed": 16,
+    "execAndDisposeCompleted": 16,
+    "pass": 15,
+    "ordinaryFail": 0,
+    "STOP": 1,
+    "unrun": 77
+  },
+  "byLayout": [
+    {
+      "layout": "source-build",
+      "planned": 31,
+      "attempted": 16,
+      "completed": 16,
+      "pass": 15,
+      "ordinaryFail": 0,
+      "STOP": 1,
+      "unrun": 15
+    },
+    {
+      "layout": "offline-installed",
+      "planned": 31,
+      "attempted": 0,
+      "completed": 0,
+      "pass": 0,
+      "ordinaryFail": 0,
+      "STOP": 0,
+      "unrun": 31
+    },
+    {
+      "layout": "physically-moved",
+      "planned": 31,
+      "attempted": 0,
+      "completed": 0,
+      "pass": 0,
+      "ordinaryFail": 0,
+      "STOP": 0,
+      "unrun": 31
+    }
+  ],
+  "capture": {
+    "childStreamBytes": 156266,
+    "originalLogBytes": 1099927,
+    "aggregateChargedBytes": 1256193,
+    "perChildMaximum": 96639,
+    "outerSupervisorStdoutBytes": 62,
+    "outerSupervisorStderrBytes": 0,
+    "outerRole": "Administrative outer capture is distinct from frozen direct-child capture accounting."
+  },
+  "roles": {
+    "setup": {
+      "planned": 3,
+      "attempted": 3,
+      "passed": 3,
+      "reaped": 3
+    },
+    "admission": {
+      "planned": 4,
+      "attempted": 4,
+      "expectedRefusalsPassed": 4,
+      "reaped": 4
+    },
+    "runtime": {
+      "planned": 93,
+      "attempted": 16,
+      "reaped": 16
+    },
+    "directChildStarts": 23,
+    "directChildReaped": 23,
+    "unreapedDirectChildren": 0,
+    "supervisorReapedByOuterWait": true,
+    "supervisorPlusDirectOsLifetimes": 24,
+    "observedPeakSupervisorPlusDirectChild": 2,
+    "osCountQualification": "Only this supervisor and its direct children; administrative metadata/capture processes are separate, not a global OS count.",
+    "parentLoaderRolesRequested": 20,
+    "parentLoaderIndividualExitReceipts": 0
+  },
+  "workers": {
+    "rawConstructorAttempts": 17,
+    "rawStartEvents": 17,
+    "rawExitEvents": 17,
+    "rawPreloads": 17,
+    "rawEntryLoads": 17,
+    "rawProductTerminateCalls": 17,
+    "rawDriverTerminateCalls": 0,
+    "rawEmergencyWorkers": 0,
+    "frozenProductWorkerStarts": null,
+    "frozenCompleteStarts": 15,
+    "frozenStartsWithheld": 4,
+    "frozenReservations": [
+      {
+        "tag": "source-build-P01",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      },
+      {
+        "tag": "source-build-P02",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      },
+      {
+        "tag": "source-build-P03",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      },
+      {
+        "tag": "source-build-P04",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      },
+      {
+        "tag": "source-build-P05",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      },
+      {
+        "tag": "source-build-P06",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      },
+      {
+        "tag": "source-build-P07",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      },
+      {
+        "tag": "source-build-P08",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      },
+      {
+        "tag": "source-build-P09",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      },
+      {
+        "tag": "source-build-P10",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      },
+      {
+        "tag": "source-build-P11",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      },
+      {
+        "tag": "source-build-P12",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      },
+      {
+        "tag": "source-build-P13",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      },
+      {
+        "tag": "source-build-P14",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      },
+      {
+        "tag": "source-build-P15",
+        "reserved": 4,
+        "charged": 1,
+        "accounting": "complete",
+        "attempts": 1,
+        "starts": 1
+      },
+      {
+        "tag": "source-build-P16",
+        "reserved": 4,
+        "charged": 4,
+        "accounting": "unknown",
+        "attempts": null,
+        "starts": null
+      }
+    ],
+    "qualification": "P16 raw records show two starts and exits, but safety STOP preceded frozen settlement. Its four-start reservation remains unknown/withheld; raw observations do not upgrade null aggregate accounting or return escrow."
+  },
+  "reservation": {
+    "original": {
+      "schema": "exclusive-parent-reservation-v1",
+      "id": "priority-command-workflows-20260828/future-run-01",
+      "deadlineEpochMs": 1788026556000,
+      "remaining": {
+        "children": 100,
+        "workerStarts": 372,
+        "loaderThreads": 97,
+        "captureBytes": 419430400,
+        "scratchBytes": 536870912
+      }
+    },
+    "remaining": {
+      "children": 77,
+      "workerStarts": 353,
+      "loaderThreads": 77,
+      "captureBytes": 418174207,
+      "scratchBytes": 347730492
+    },
+    "originalParentSha256": "86e8f86c74aad9f721b266ce49c6799285daeb8e56577da180017844a81f3dd0",
+    "retainedScratchBytes": 189140420,
+    "terminalReceiptBytesInsideScratch": 16777216,
+    "releasedToRoot": false,
+    "releasedCounters": {
+      "children": 0,
+      "workerStarts": 0,
+      "loaderThreads": 0,
+      "captureBytes": 0,
+      "scratchBytes": 0
+    },
+    "disposition": "Retained exclusively; no unused reservation returned because frozen P16 accounting is unknown and this STOP run is not reopened."
+  },
+  "bindings": {
+    "packet": "7ef6e6b816ccc6b2449605c7950ab825d148a529",
+    "codeCommit": "a52819daa6ff2c867187b01a7a5bbbb189f0da02",
+    "composition": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+    "packageSha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e",
+    "selectedInputsAuthenticated": 268,
+    "sourceEmittedSha256": "adadc5ecade3468fdb04d67030228c479d060072599d4198fafb028e7f2c34d6",
+    "offlineInstalledFiles": 858,
+    "offlineInstalledManifestSha256": "484c1dd76c63f126376cff810b445c8185e791825ec83fd94e996691b2b1eb5d",
+    "sourceRuntimeSubjects": 16,
+    "offlineInstalledRuntimeSubjects": 0,
+    "physicallyMovedRuntimeSubjects": 0,
+    "physicalMovePerformed": false,
+    "originalConsumerPresent": true,
+    "movedRootAbsent": true,
+    "postchecksStatus": "PASS_POSTRUN_DATA_INTEGRITY_NOT_RUNTIME_ACCEPTANCE"
+  },
+  "byKind": [
+    {
+      "kind": "workflow",
+      "planned": 72,
+      "attempted": 16,
+      "pass": 15,
+      "ordinaryFail": 0,
+      "STOP": 1,
+      "unrun": 56
+    },
+    {
+      "kind": "control",
+      "planned": 21,
+      "attempted": 0,
+      "pass": 0,
+      "ordinaryFail": 0,
+      "STOP": 0,
+      "unrun": 21
+    }
+  ],
+  "status": "STOP_ACCOUNTED_WITH_UNKNOWN_ESCROW_RETAINED"
+}

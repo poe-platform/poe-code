@@ -1,0 +1,80 @@
+diff --git a/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/inspect-data.mjs b/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/inspect-data.mjs
+index d310a687..cbbc06ad 100644
+--- a/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/inspect-data.mjs
++++ b/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/inspect-data.mjs
+@@ -5,11 +5,12 @@ import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync } from '
+ import { dirname, join, posix, resolve } from 'node:path';
+ import { fileURLToPath } from 'node:url';
+ import { gunzipSync } from 'node:zlib';
++import { loadHistoricalAuthority, modeDataControls, validateGitHistoricalRecord, validateHistoricalRecord } from './historical-modes.mjs';
+ 
+ const own = dirname(fileURLToPath(import.meta.url));
+ const repository = resolve(own, '../../../..');
+ const prefix = 'tests/commands/yq-independent-20260828/';
+-const ownRelative = prefix + 'candidate-b8f5d60d-preseal-v1/';
++const ownRelative = prefix + 'candidate-b8f5d60d-preseal-v2/';
+ const evidenceRoot = 'tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/';
+ const handoffPath = 'tests/commands/yq-author-20260828/repair-allocation-v1/HANDOFF.md';
+ const revisions = {
+@@ -98,7 +99,11 @@ function inspectTar(bytes, packagePrefix) {
+   return entries;
+ }
+ 
++const historicalAuthorities = new Map();
++
+ function snapshotHistory(revision, scope) {
++  const expected = historicalAuthorities.get(revision + ":" + scope);
++  assert(expected, "HISTORICAL_AUTHORITY_MISSING");
+   const rows = tree(revision, [scope], false); const root = join(repository, scope);
+   assert.equal(realpathSync(root), root); const actualFiles = {}; const directories = {};
+   let totalBytes = 0;
+@@ -117,8 +122,20 @@ function snapshotHistory(revision, scope) {
+   };
+   walk('');
+   equal(Object.keys(actualFiles).sort(), rows.map(row => row.path.slice(scope.length + 1)).sort(), `HISTORICAL_MEMBERSHIP: ${scope}`);
+-  for (const row of rows) { const actual = actualFiles[row.path.slice(scope.length + 1)]; assert.equal(row.type, 'blob'); assert.equal(actual.blob, row.blob); assert.equal(actual.mode, Number.parseInt(row.mode, 8) & 4095); }
+-  return { revision, scope, gitTree: git('rev-parse', `${revision}:${scope}`).toString().trim(), files: rows.length, directories: Object.keys(directories).length, bytes: totalBytes, completeSnapshotSha256: hash(canonical({ files: actualFiles, directories })), addedEntriesChecked: true };
++  equal(Object.keys(actualFiles).sort(), Object.keys(expected.files).sort(), 'SEALED_FILE_MEMBERSHIP');
++  equal(directories, expected.directories, 'SEALED_DIRECTORY_MODES_MEMBERSHIP');
++  const modeAuthorityDenials = [];
++  for (const row of rows) {
++    const path = row.path.slice(scope.length + 1); const actual = actualFiles[path]; const authority = expected.files[path];
++    validateGitHistoricalRecord(row, actual);
++    if (authority.mode === null) {
++      assert.throws(() => validateHistoricalRecord(row, actual, authority), error => error.message.includes('MODE_AUTHORITY_MISSING'));
++      assert.equal(actual.sha256, authority.sha256, 'UNRESOLVED_MODE_STILL_CHECK_SHA256');
++      assert.equal(actual.bytes, authority.bytes, 'UNRESOLVED_MODE_STILL_CHECK_BYTES');
++      modeAuthorityDenials.push({ path, reason: 'MODE_AUTHORITY_MISSING', goldenPosixModeVerified: false });
++    } else validateHistoricalRecord(row, actual, authority);
++  }
++  return { revision, scope, gitTree: git('rev-parse', revision + ':' + scope).toString().trim(), files: rows.length, directories: Object.keys(directories).length, bytes: totalBytes, completeSnapshotSha256: hash(canonical({ files: actualFiles, directories })), addedEntriesChecked: true, modeAuthority: expected.references, modeAuthorityDenials, admission: modeAuthorityDenials.length ? 'DENY_MISSING_MODE_AUTHORITY' : 'HISTORICAL_DATA_IDENTITY_BOUND_NOT_EXECUTION_GO' };
+ }
+ 
+ function writeJson(name, value, compact = false) {
+@@ -157,7 +174,14 @@ async function main() {
+   const presealBytes = readFileSync(join(own, 'DATA-PRESEAL.json')); assert.equal(hash(presealBytes), process.argv[2]);
+   for (const [name, expected] of Object.entries(JSON.parse(presealBytes).files)) equal(descriptor(readFileSync(join(own, name)), lstatSync(join(own, name)).mode & 4095), expected, 'DATA_PRESEAL');
+   for (const revision of Object.values(revisions)) assert.equal(git('rev-parse', `${revision}^{commit}`).toString().trim(), revision);
+-  const histories = [[revisions.oldPacket, prefix + 'candidate-35da1854-v1'], [revisions.oldBuild, prefix + 'candidate-35da1854-build-v1'], [revisions.oldActual, prefix + 'actual-35da1854-v1']];
++  const modeBindings = JSON.parse(readFileSync(join(own, 'MODE-AUTHORITY.json')));
++  const definitions = [...modeBindings.scopes, modeBindings.priorFailure];
++  for (const definition of definitions) historicalAuthorities.set(definition.revision + ':' + definition.scope, loadHistoricalAuthority(definition, readGit, (revision, path) => git('rev-parse', revision + ':' + path).toString().trim()));
++  const actualAuthority = historicalAuthorities.get(revisions.oldActual + ':' + prefix + 'actual-35da1854-v1');
++  const compoundPath = 'raw-compound/COMPOUND-RESULT.json';
++  const compoundBlob = git('rev-parse', revisions.oldActual + ':' + prefix + 'actual-35da1854-v1/' + compoundPath).toString().trim();
++  const modeControls = modeDataControls(actualAuthority.files[compoundPath], compoundBlob);
++  const histories = definitions.map(definition => [definition.revision, definition.scope]);
+   const historyBefore = histories.map(([revision, scope]) => snapshotHistory(revision, scope));
+   const priorMapRef = reference(revisions.oldPacket, prefix + 'candidate-35da1854-v1/MAPS.json'); const oldMaps = readJson(priorMapRef.revision, priorMapRef.path);
+   const baseRef = reference(revisions.baselineConsumers, prefix + 'executor-preparation-v1/consumers/SOURCE-BASE.json'); const sourceBase = readJson(baseRef.revision, baseRef.path);
+@@ -216,8 +240,8 @@ async function main() {
+   assert.equal(Object.keys(metadata.dependencies ?? {}).length, 0); assert(!Object.keys(metadata.exports ?? {}).some(key => key.includes('yq')));
+   const historyAfter = histories.map(([revision, scope]) => snapshotHistory(revision, scope)); equal(historyAfter, historyBefore, 'HISTORICAL_BEFORE_AFTER');
+   assert.equal(hash(readGit(revisions.evidence, evidenceRoot + 'SOURCE.tar')), expectedArchive); assert.equal(hash(readGit(revisions.evidence, evidenceRoot + 'package/virtual-bash-0.0.0.tgz')), expectedPackage);
+-  const historyFile = writeJson('HISTORY-PRESERVATION.json', { before: historyBefore, after: historyAfter, unchanged: true, role: 'Byte/mode/membership preservation only; no historical results rescored or invoked', limitations: 'Snapshots detect added entries at observations, not change-and-restore or atomic namespace transactions' });
+-  const result = writeJson('RESULT.json', { date: '2026-08-28', completedAt: new Date().toISOString(), status: 'DATA_BOUND_DENY_PENDING_FRESH_ROOT_GO', revisions, admission: 'DENY', currentGuardObservation: 'Static code inspection: consumers-v2 SOURCE-AUTHORITY pins35da; new candidate would fail selected-origin condition. No guard execution was performed.', ownDataPresealSha256: process.argv[2], handoff: handoffRef, authorManifest: manifestRef, archive: { path: evidenceRoot + 'SOURCE.tar', ...descriptor(archiveRaw) }, package: { path: evidenceRoot + 'package/virtual-bash-0.0.0.tgz', ...descriptor(packageRaw) }, counts: { authorManifest: manifest.files.length, excludedAuthorData: selections.filter(row => row.path.startsWith('tests/')).length, sourceProjection: sourceEntries.length, sourceBase: Object.keys(sourceBase).length, selectedAdditions: additions.length, changedSourcePaths: sourceChanges.length, archive: archive.length, baselinePackage: Object.keys(baselinePackage).length, packageAdditions: emittedNames.length, fullPackage: packed.length, changedPackageFiles: packageChanges.length, wholeProductScope: wholeRows.length }, sourceMapSha256, packageMapSha256, files: { sourceAuthority: authorityFile, sourceReceipt: sourceReceiptFile, fullReceipt: fullReceiptFile, authorArtifactReceipt, composition, wholeGit: wholeFile, toolchain: toolFile, history: historyFile }, authorEvidenceOnly: { report: reference(revisions.evidence, evidenceRoot + 'REPORT.json'), tests: report.tests, captureRoles: report.runs.length, packageClaims: report.package, qualification: report.qualification, notIndependentPasses: true }, observationTiming: '194+8 normative freeze predates candidate; candidate body/data inspection occurred before complete successor executor preseal. This is not an independent precode behavioral holdout.', execution: { productImports: 0, productRuns: 0, builds: 0, compilerRuns: 0, typeConsumers: 0, loadedMutants: 0, nativeYaml: 0, authorScripts: 0, harnessCohorts: 0, syntheticCases: 0, materializations: 0, repacks: 0, dependencies: 0 }, remaining: ['Root/plan-owner exact successor source/consumer/loader/runtime/integration seals and fresh execution GO', 'New independently authenticated scoped source-to-output build', 'Fresh affected source/installed/moved semantic and fixed-public-cap obligations', 'Separately owned runtime-v3-CMD22 result; preserve prior failures and UNRUN', 'Public YQ integration remains absent'] });
++  const historyFile = writeJson('HISTORY-PRESERVATION.json', { before: historyBefore, after: historyAfter, unchanged: true, goldenModeAuthorityComplete: historyAfter.every(scope => scope.modeAuthorityDenials.length === 0), modeControls, preservedV1Failure: modeBindings.retainedFailure, role: 'Byte/mode/membership preservation only; no historical results rescored or invoked', limitations: 'Snapshots detect added entries at observations, not change-and-restore or atomic namespace transactions' });
++  const result = writeJson('RESULT.json', { date: '2026-08-28', completedAt: new Date().toISOString(), status: 'DATA_BOUND_DENY_PENDING_MODE_AUTHORITY_AND_FRESH_ROOT_GO', revisions, admission: 'DENY', currentGuardObservation: 'Static code inspection: consumers-v2 SOURCE-AUTHORITY pins35da; new candidate would fail selected-origin condition. No guard execution was performed.', ownDataPresealSha256: process.argv[2], historicalModeAuthorityDenials: historyAfter.flatMap(scope => scope.modeAuthorityDenials.map(denial => ({ revision: scope.revision, scope: scope.scope, ...denial }))), preservedV1Failure: modeBindings.retainedFailure, modeDataControls: modeControls.length, handoff: handoffRef, authorManifest: manifestRef, archive: { path: evidenceRoot + 'SOURCE.tar', ...descriptor(archiveRaw) }, package: { path: evidenceRoot + 'package/virtual-bash-0.0.0.tgz', ...descriptor(packageRaw) }, counts: { authorManifest: manifest.files.length, excludedAuthorData: selections.filter(row => row.path.startsWith('tests/')).length, sourceProjection: sourceEntries.length, sourceBase: Object.keys(sourceBase).length, selectedAdditions: additions.length, changedSourcePaths: sourceChanges.length, archive: archive.length, baselinePackage: Object.keys(baselinePackage).length, packageAdditions: emittedNames.length, fullPackage: packed.length, changedPackageFiles: packageChanges.length, wholeProductScope: wholeRows.length }, sourceMapSha256, packageMapSha256, files: { sourceAuthority: authorityFile, sourceReceipt: sourceReceiptFile, fullReceipt: fullReceiptFile, authorArtifactReceipt, composition, wholeGit: wholeFile, toolchain: toolFile, history: historyFile }, authorEvidenceOnly: { report: reference(revisions.evidence, evidenceRoot + 'REPORT.json'), tests: report.tests, captureRoles: report.runs.length, packageClaims: report.package, qualification: report.qualification, notIndependentPasses: true }, observationTiming: '194+8 normative freeze predates candidate; candidate body/data inspection occurred before complete successor executor preseal. This is not an independent precode behavioral holdout.', execution: { productImports: 0, productRuns: 0, builds: 0, compilerRuns: 0, typeConsumers: 0, loadedMutants: 0, nativeYaml: 0, authorScripts: 0, harnessCohorts: 0, syntheticCases: 0, staticModeDataControls: modeControls.length, materializations: 0, repacks: 0, dependencies: 0 }, remaining: ['Missing committed POSIX-mode authority for prior v1 self-excluded FINAL-SEAL.json; full golden-mode admission remains DENY, not inferred or waived', 'Root/plan-owner exact successor source/consumer/loader/runtime/integration seals and fresh execution GO', 'New independently authenticated scoped source-to-output build', 'Fresh affected source/installed/moved semantic and fixed-public-cap obligations', 'Separately owned runtime-v3-CMD22 result; preserve prior failures and UNRUN', 'Public YQ integration remains absent'] });
+   writeJson('EXPECTED-HASHES.json', { schema: 1, result, sourceAuthority: authorityFile, sourceReceipt: sourceReceiptFile, fullReceipt: fullReceiptFile, authorArtifactReceipt, composition, wholeGit: wholeFile, toolchain: toolFile, history: historyFile, routing: 'Root must independently authenticate the owned Git seal and raw hashes; proposed receipts and self-reported digests grant no execution permission.' });
+   console.log(JSON.stringify({ result, counts: { authorManifest: manifest.files.length, source: sourceEntries.length, archive: archive.length, package: packed.length, sourceChanged: sourceChanges.length, packageChanged: packageChanges.length }, sourceMapSha256, packageMapSha256, newAuthoritySha256: authorityFile.sha256, packageChanges, admission: 'DENY_PENDING_FRESH_ROOT_GO' }, null, 2));
+ }

@@ -1,0 +1,37 @@
+{
+  "status": "HARNESS_ONLY_4_EXPECTED",
+  "commit": "7885ce6a043653eeacbf4dd885f1c59ee570b5a7",
+  "manifestSha256": "ea975baf71e9586aa45f567ce848863ef45cf1a52df4949069ef47d2d459ec3a",
+  "rows": [
+    {
+      "name": "positive",
+      "expected": 0,
+      "actual": 0,
+      "closed": true
+    },
+    {
+      "name": "natural-exit7",
+      "expected": 7,
+      "actual": 7,
+      "closed": true
+    },
+    {
+      "name": "deadline",
+      "status": "expected supervisor rejection; intentional harness kill, not product settlement",
+      "signals": [
+        {
+          "signal": "SIGTERM",
+          "at": "2026-08-28T01:12:38.520Z"
+        }
+      ]
+    },
+    {
+      "name": "wrong-load-hash",
+      "status": "expected denial before fixture execution"
+    }
+  ],
+  "productLoads": 0,
+  "runtimeCases": 0,
+  "at": "2026-08-28T01:12:38.688Z",
+  "frozenLoaderSha256": "5c1c7332eded8de2830211dcb9176e059ed0d7d4d584f28075a4e1b7ae6e5d31"
+}

@@ -1,0 +1,19 @@
+{
+  "at": "2026-08-28T01:16:43.225Z",
+  "actualChildren": 88,
+  "allClosedNaturally": true,
+  "actualSignals": 0,
+  "remainingRecordedPidsOrGroups": [],
+  "qualificationIntentionalKill": {
+    "name": "deadline",
+    "status": "expected supervisor rejection; intentional harness kill, not product settlement",
+    "signals": [
+      {
+        "signal": "SIGTERM",
+        "at": "2026-08-28T01:12:38.520Z"
+      }
+    ]
+  },
+  "coordinatorExit": 0,
+  "coordinatorExitEvidence": "LAUNCH-RECEIPT.json: observed external tool exit; coordinator PID not captured"
+}

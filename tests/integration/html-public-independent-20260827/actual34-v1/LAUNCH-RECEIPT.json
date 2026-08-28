@@ -1,0 +1,21 @@
+{
+  "schema": "html-actual34-external-launch-receipt/1",
+  "qualification": {
+    "argv": ["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node", "tests/integration/html-public-independent-20260827/actual34-v1/qualify.mjs", "7885ce6a043653eeacbf4dd885f1c59ee570b5a7"],
+    "toolSession": 27297,
+    "observedExit": 0,
+    "stdout": "{\"status\":\"HARNESS_ONLY_4_EXPECTED\",\"productLoads\":0}\n"
+  },
+  "actual": {
+    "argv": ["/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node", "tests/integration/html-public-independent-20260827/actual34-v1/run.mjs", "7885ce6a043653eeacbf4dd885f1c59ee570b5a7"],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "toolSession": 52695,
+    "observedExit": 0,
+    "started": "2026-08-28T01:12:51.968Z",
+    "finished": "2026-08-28T01:13:31.699Z",
+    "invocation": 1,
+    "retries": 0,
+    "stdoutSummary": "FROZEN_ASSERTIONS_PASSED_WITH_ORIGINAL_UNSCORED_LIMITS; runtime68/68, types10/10, control classes10/10; unexpected0",
+    "note": "External Codex tool observed natural coordinator exit0; individual child commands, exact byte stdout/stderr, exits and group checks are retained in captures. Coordinator PID was not captured and is not invented."
+  }
+}

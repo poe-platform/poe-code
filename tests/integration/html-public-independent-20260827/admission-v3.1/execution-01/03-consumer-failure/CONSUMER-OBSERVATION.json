@@ -1,0 +1,79 @@
+{
+  "token": "136d68f5-716e-4acc-9d3c-96f0ed7f0467",
+  "consumerPid": 34638,
+  "producerPid": 34639,
+  "events": [
+    {
+      "sequence": 1,
+      "monotonicNs": "118501252803833",
+      "type": "producer-spawn"
+    },
+    {
+      "sequence": 2,
+      "monotonicNs": "118501318175166",
+      "type": "caller-failure",
+      "token": "136d68f5-716e-4acc-9d3c-96f0ed7f0467",
+      "control": "consumer-failure",
+      "consumerPid": 34638,
+      "producerPid": 34639,
+      "chunks": 16,
+      "code": "V3_CONSUMER_FAILURE",
+      "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+    },
+    {
+      "sequence": 3,
+      "monotonicNs": "118501326140166",
+      "type": "consumer-pipe-close",
+      "destroyed": true
+    },
+    {
+      "sequence": 4,
+      "monotonicNs": "118501338695083",
+      "type": "producer-exit",
+      "status": 1,
+      "signal": null
+    },
+    {
+      "sequence": 5,
+      "monotonicNs": "118501338705333",
+      "type": "producer-close",
+      "status": 1,
+      "signal": null
+    },
+    {
+      "sequence": 6,
+      "monotonicNs": "118501338806708",
+      "type": "core-settled",
+      "stdoutDestroyed": true
+    }
+  ],
+  "caller": {
+    "token": "136d68f5-716e-4acc-9d3c-96f0ed7f0467",
+    "control": "consumer-failure",
+    "consumerPid": 34638,
+    "producerPid": 34639,
+    "chunks": 16,
+    "code": "V3_CONSUMER_FAILURE",
+    "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+  },
+  "sameFailureObject": true,
+  "spawn": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--max-old-space-size=96",
+      "--import",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/producer-observer.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/stream-fixture.mjs",
+      "1073872896",
+      "0"
+    ],
+    "stdio": [
+      "ignore",
+      "pipe",
+      "pipe"
+    ],
+    "pid": 34639,
+    "consumerPid": 34638
+  },
+  "producerAtSettlement": "absent"
+}

@@ -1,0 +1,5 @@
+{
+  "control": "consumer-failure",
+  "outcome": "expected-control-outcome",
+  "productPass": false
+}

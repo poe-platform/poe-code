@@ -1,0 +1,4241 @@
+{
+  "synthetic": true,
+  "note": "Invented predicate inputs only; no process, historical or runtime proof",
+  "inputs": [
+    {
+      "name": "original-SIGTERM",
+      "base": "SIGTERM",
+      "accepted": true,
+      "reason": "original-SIGTERM",
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": null,
+                "signal": "SIGTERM",
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": null,
+                  "signal": "SIGTERM"
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": null,
+                  "signal": "SIGTERM"
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": null,
+            "signal": "SIGTERM",
+            "uncaught": null
+          }
+        }
+      }
+    },
+    {
+      "name": "structured-EPIPE",
+      "accepted": true,
+      "reason": "structured-closed-consumer-EPIPE",
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "substring-only",
+      "accepted": false,
+      "reason": "structured-observation",
+      "changes": [
+        [
+          "producer.value.uncaught",
+          null
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": null
+          }
+        }
+      }
+    },
+    {
+      "name": "counterfeit-code-not-stdout-error",
+      "accepted": false,
+      "reason": "stdout-error-identity",
+      "changes": [
+        [
+          "producer.value.uncaught.stdoutErrorSameObject",
+          false
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": false,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "missing-code",
+      "accepted": false,
+      "reason": "error-code",
+      "changes": [
+        [
+          "producer.value.uncaught.error.code",
+          null
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": null,
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "unrelated-error",
+      "accepted": false,
+      "reason": "error-code",
+      "changes": [
+        [
+          "producer.value.uncaught.error.code",
+          "EIO"
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EIO",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "wrong-syscall",
+      "accepted": false,
+      "reason": "error-syscall",
+      "changes": [
+        [
+          "producer.value.uncaught.error.syscall",
+          "read"
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "read",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "wrong-errno",
+      "accepted": false,
+      "reason": "error-context",
+      "changes": [
+        [
+          "producer.value.uncaught.error.errno",
+          -5
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -5
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "unrelated-exit1",
+      "accepted": false,
+      "reason": "structured-observation",
+      "changes": [
+        [
+          "producer.value.uncaught",
+          null
+        ],
+        [
+          "consumer.value.failure.process.stderr",
+          "unrelated failure"
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "unrelated failure",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": null
+          }
+        }
+      }
+    },
+    {
+      "name": "wrong-exit-status",
+      "accepted": false,
+      "reason": "epipe-exit-status",
+      "changes": [
+        [
+          "producer.value.status",
+          2
+        ],
+        [
+          "consumer.value.failure.process.status",
+          2
+        ],
+        [
+          "consumer.value.consumerObservation.events.3.status",
+          2
+        ],
+        [
+          "consumer.value.consumerObservation.events.4.status",
+          2
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 2,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 2,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 2,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 2,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "status-receipt-mismatch",
+      "accepted": false,
+      "reason": "terminal-status",
+      "changes": [
+        [
+          "consumer.value.failure.process.status",
+          7
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 7,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "mismatched-observer-PID",
+      "accepted": false,
+      "reason": "observer-binding",
+      "changes": [
+        [
+          "producer.value.uncaught.pid",
+          999
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 999,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "mismatched-run-token",
+      "accepted": false,
+      "reason": "observer-binding",
+      "changes": [
+        [
+          "producer.value.uncaught.token",
+          "counterfeit"
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "counterfeit",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "mismatched-consumer-context",
+      "accepted": false,
+      "reason": "closed-consumer-context",
+      "changes": [
+        [
+          "producer.value.uncaught.caller.consumerPid",
+          999
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 999,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "missing-parent-reap",
+      "accepted": false,
+      "reason": "reap-barrier",
+      "changes": [
+        [
+          "closeObserved",
+          false
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": false,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "producer-not-reaped-at-core-settlement",
+      "accepted": false,
+      "reason": "core-barrier",
+      "changes": [
+        [
+          "consumer.value.consumerObservation.producerAtSettlement",
+          "live-or-zombie"
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "live-or-zombie",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "wrong-consumer-reason",
+      "accepted": false,
+      "reason": "exact-caller-failure",
+      "changes": [
+        [
+          "consumer.value.failure.message",
+          "wrong consumer failure"
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "wrong consumer failure",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "wrong-forwarded-reason",
+      "accepted": false,
+      "reason": "exact-caller-failure",
+      "changes": [
+        [
+          "forwardedFailureMessage",
+          "wrong forwarding"
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "wrong forwarding",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "positive-path-EPIPE",
+      "accepted": false,
+      "reason": "case-only",
+      "changes": [
+        [
+          "control",
+          "positive"
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "positive",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "missing-pipe-close",
+      "accepted": false,
+      "reason": "chronology",
+      "changes": [
+        [
+          "consumer.value.consumerObservation.events.2.type",
+          "not-close"
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "not-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "missing-caller-proof",
+      "accepted": false,
+      "reason": "caller-context",
+      "changes": [
+        [
+          "consumer.value.consumerObservation.caller",
+          null
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": null,
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "wrong-producer-parent",
+      "accepted": false,
+      "reason": "pid-binding",
+      "changes": [
+        [
+          "producer.value.ppid",
+          999
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 999,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "not-consumer-pipe",
+      "accepted": false,
+      "reason": "pipe-binding",
+      "changes": [
+        [
+          "consumer.value.consumerObservation.spawn.stdio.1",
+          "inherit"
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "inherit",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "unbounded-settlement",
+      "accepted": false,
+      "reason": "bounded-settlement",
+      "changes": [
+        [
+          "harnessSettlementAt",
+          "2026-08-27T00:01:00.000Z"
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:01:00.000Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "wrong-consumer-exit",
+      "accepted": false,
+      "reason": "consumer-status",
+      "changes": [
+        [
+          "code",
+          1
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 1,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "unreadable-caller-marker",
+      "accepted": false,
+      "reason": "closed-consumer-context",
+      "changes": [
+        [
+          "producer.value.uncaught.callerReadError",
+          {
+            "code": "ENOENT"
+          }
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": {
+                "code": "ENOENT"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "wrong-output-descriptor",
+      "accepted": false,
+      "reason": "stdout-error-identity",
+      "changes": [
+        [
+          "producer.value.uncaught.stdoutFd",
+          2
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": true,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 2,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "replaced-caller-error-object",
+      "accepted": false,
+      "reason": "exact-caller-failure",
+      "changes": [
+        [
+          "consumer.value.consumerObservation.sameFailureObject",
+          false
+        ]
+      ],
+      "record": {
+        "synthetic": true,
+        "control": "consumer-failure",
+        "pid": 101,
+        "producerPid": 102,
+        "started": "2026-08-27T00:00:00.000Z",
+        "harnessSettlementAt": "2026-08-27T00:00:00.010Z",
+        "code": 17,
+        "signal": null,
+        "closeObserved": true,
+        "consumerState": {
+          "pid": 101,
+          "state": "absent"
+        },
+        "producerState": {
+          "pid": 102,
+          "state": "absent"
+        },
+        "membersAtClose": [],
+        "remainingGroupMembers": [],
+        "signalsSent": [],
+        "unexpected": [],
+        "forwardedFailureCode": "V3_CONSUMER_FAILURE",
+        "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+        "consumer": {
+          "value": {
+            "pid": 101,
+            "failure": {
+              "code": "V3_CONSUMER_FAILURE",
+              "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE",
+              "process": {
+                "status": 1,
+                "signal": null,
+                "stderr": "synthetic Error: write EPIPE; NOT historical evidence",
+                "timedOut": false,
+                "stderrOverflow": false
+              }
+            },
+            "flow": {
+              "chunks": 16
+            },
+            "consumerObservation": {
+              "token": "11111111-1111-4111-8111-111111111111",
+              "consumerPid": 101,
+              "producerPid": 102,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "sameFailureObject": false,
+              "producerAtSettlement": "absent",
+              "events": [
+                {
+                  "sequence": 1,
+                  "type": "producer-spawn"
+                },
+                {
+                  "sequence": 2,
+                  "type": "caller-failure",
+                  "token": "11111111-1111-4111-8111-111111111111",
+                  "control": "consumer-failure",
+                  "consumerPid": 101,
+                  "producerPid": 102,
+                  "chunks": 16,
+                  "code": "V3_CONSUMER_FAILURE",
+                  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+                },
+                {
+                  "sequence": 3,
+                  "type": "consumer-pipe-close",
+                  "destroyed": true
+                },
+                {
+                  "sequence": 4,
+                  "type": "producer-exit",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 5,
+                  "type": "producer-close",
+                  "status": 1,
+                  "signal": null
+                },
+                {
+                  "sequence": 6,
+                  "type": "core-settled",
+                  "stdoutDestroyed": true
+                }
+              ],
+              "spawn": {
+                "pid": 102,
+                "consumerPid": 101,
+                "stdio": [
+                  "ignore",
+                  "pipe",
+                  "pipe"
+                ]
+              }
+            }
+          }
+        },
+        "producer": {
+          "value": {
+            "pid": 102,
+            "ppid": 101,
+            "status": 1,
+            "signal": null,
+            "uncaught": {
+              "event": "uncaughtExceptionMonitor",
+              "pid": 102,
+              "ppid": 101,
+              "token": "11111111-1111-4111-8111-111111111111",
+              "origin": "uncaughtException",
+              "error": {
+                "name": "Error",
+                "code": "EPIPE",
+                "syscall": "write",
+                "errno": -32
+              },
+              "stdoutErrorMonitorObserved": true,
+              "stdoutErrorSameObject": true,
+              "stdoutDestroyed": false,
+              "stdoutFd": 1,
+              "caller": {
+                "token": "11111111-1111-4111-8111-111111111111",
+                "control": "consumer-failure",
+                "consumerPid": 101,
+                "producerPid": 102,
+                "chunks": 16,
+                "code": "V3_CONSUMER_FAILURE",
+                "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+              },
+              "callerReadError": null
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,414 @@
+{
+  "freeze": "2461f905416b7260ff02742af87fba8bc31c2977",
+  "manifestSha256": "0974e68b90790ff10296997e0c03c9f3883b87a0e7ec4d68e5fed4ef57cbe4a3",
+  "controlsDeclared": 5,
+  "controlsExecuted": 4,
+  "expectedOutcomes": 3,
+  "unexpectedFailures": 1,
+  "rows": [
+    {
+      "control": "positive",
+      "outcome": "expected-control-outcome",
+      "productPass": "isolated stream only; not admission",
+      "directory": "01-positive",
+      "code": 0,
+      "signal": null,
+      "forcedConsumerTermination": false,
+      "producerStatus": 0,
+      "producerSignal": null
+    },
+    {
+      "control": "producer-exit7",
+      "outcome": "expected-control-outcome",
+      "productPass": false,
+      "directory": "02-producer-exit7",
+      "code": 17,
+      "signal": null,
+      "forcedConsumerTermination": false,
+      "producerStatus": 7,
+      "producerSignal": null
+    },
+    {
+      "control": "consumer-failure",
+      "outcome": "expected-control-outcome",
+      "productPass": false,
+      "directory": "03-consumer-failure",
+      "code": 17,
+      "signal": null,
+      "forcedConsumerTermination": false,
+      "producerStatus": 1,
+      "producerSignal": null
+    },
+    {
+      "control": "timeout",
+      "outcome": "unexpected-control-failure",
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n\nnull !== 'SIGTERM'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nnull !== 'SIGTERM'\n\n    at controlRun (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/coordinator.mjs:219:16)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.1/recipe/coordinator.mjs:249:15",
+        "process": null
+      },
+      "productPass": false,
+      "directory": "04-timeout",
+      "code": 17,
+      "signal": null,
+      "forcedConsumerTermination": false,
+      "producerStatus": 1,
+      "producerSignal": null
+    }
+  ],
+  "unexecuted": [
+    "allocation-mutant"
+  ],
+  "postAuthenticated": true,
+  "actual34": 0,
+  "extraMaterializerControls": 0,
+  "full410BuildPackReconstruction": false,
+  "admission": "HELD pending different independent review",
+  "scope": "fresh stream-component consumer PROCESS current-RSS samples only; supervisor and producer explicitly separate, not total verifier RSS",
+  "synthetic": {
+    "synthetic": true,
+    "declared": 28,
+    "executed": 28,
+    "expectedOutcomes": 28,
+    "unexecuted": [],
+    "allExpected": true,
+    "rows": [
+      {
+        "name": "original-SIGTERM",
+        "expectedAccepted": true,
+        "expectedReason": "original-SIGTERM",
+        "actual": {
+          "accepted": true,
+          "reason": "original-SIGTERM",
+          "terminal": "SIGTERM"
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "structured-EPIPE",
+        "expectedAccepted": true,
+        "expectedReason": "structured-closed-consumer-EPIPE",
+        "actual": {
+          "accepted": true,
+          "reason": "structured-closed-consumer-EPIPE",
+          "terminal": "exit1/EPIPE"
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "substring-only",
+        "expectedAccepted": false,
+        "expectedReason": "structured-observation",
+        "actual": {
+          "accepted": false,
+          "reason": "structured-observation",
+          "detail": "structured-observation",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "counterfeit-code-not-stdout-error",
+        "expectedAccepted": false,
+        "expectedReason": "stdout-error-identity",
+        "actual": {
+          "accepted": false,
+          "reason": "stdout-error-identity",
+          "detail": "stdout-error-identity",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "missing-code",
+        "expectedAccepted": false,
+        "expectedReason": "error-code",
+        "actual": {
+          "accepted": false,
+          "reason": "error-code",
+          "detail": "error-code",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "unrelated-error",
+        "expectedAccepted": false,
+        "expectedReason": "error-code",
+        "actual": {
+          "accepted": false,
+          "reason": "error-code",
+          "detail": "error-code",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "wrong-syscall",
+        "expectedAccepted": false,
+        "expectedReason": "error-syscall",
+        "actual": {
+          "accepted": false,
+          "reason": "error-syscall",
+          "detail": "error-syscall",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "wrong-errno",
+        "expectedAccepted": false,
+        "expectedReason": "error-context",
+        "actual": {
+          "accepted": false,
+          "reason": "error-context",
+          "detail": "error-context",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "unrelated-exit1",
+        "expectedAccepted": false,
+        "expectedReason": "structured-observation",
+        "actual": {
+          "accepted": false,
+          "reason": "structured-observation",
+          "detail": "structured-observation",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "wrong-exit-status",
+        "expectedAccepted": false,
+        "expectedReason": "epipe-exit-status",
+        "actual": {
+          "accepted": false,
+          "reason": "epipe-exit-status",
+          "detail": "epipe-exit-status",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "status-receipt-mismatch",
+        "expectedAccepted": false,
+        "expectedReason": "terminal-status",
+        "actual": {
+          "accepted": false,
+          "reason": "terminal-status",
+          "detail": "terminal-status",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "mismatched-observer-PID",
+        "expectedAccepted": false,
+        "expectedReason": "observer-binding",
+        "actual": {
+          "accepted": false,
+          "reason": "observer-binding",
+          "detail": "observer-binding",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "mismatched-run-token",
+        "expectedAccepted": false,
+        "expectedReason": "observer-binding",
+        "actual": {
+          "accepted": false,
+          "reason": "observer-binding",
+          "detail": "observer-binding",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "mismatched-consumer-context",
+        "expectedAccepted": false,
+        "expectedReason": "closed-consumer-context",
+        "actual": {
+          "accepted": false,
+          "reason": "closed-consumer-context",
+          "detail": "closed-consumer-context",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "missing-parent-reap",
+        "expectedAccepted": false,
+        "expectedReason": "reap-barrier",
+        "actual": {
+          "accepted": false,
+          "reason": "reap-barrier",
+          "detail": "reap-barrier",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "producer-not-reaped-at-core-settlement",
+        "expectedAccepted": false,
+        "expectedReason": "core-barrier",
+        "actual": {
+          "accepted": false,
+          "reason": "core-barrier",
+          "detail": "core-barrier",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "wrong-consumer-reason",
+        "expectedAccepted": false,
+        "expectedReason": "exact-caller-failure",
+        "actual": {
+          "accepted": false,
+          "reason": "exact-caller-failure",
+          "detail": "exact-caller-failure",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "wrong-forwarded-reason",
+        "expectedAccepted": false,
+        "expectedReason": "exact-caller-failure",
+        "actual": {
+          "accepted": false,
+          "reason": "exact-caller-failure",
+          "detail": "exact-caller-failure",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "positive-path-EPIPE",
+        "expectedAccepted": false,
+        "expectedReason": "case-only",
+        "actual": {
+          "accepted": false,
+          "reason": "case-only",
+          "detail": "case-only",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "missing-pipe-close",
+        "expectedAccepted": false,
+        "expectedReason": "chronology",
+        "actual": {
+          "accepted": false,
+          "reason": "chronology",
+          "detail": "chronology",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "missing-caller-proof",
+        "expectedAccepted": false,
+        "expectedReason": "caller-context",
+        "actual": {
+          "accepted": false,
+          "reason": "caller-context",
+          "detail": "caller-context",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "wrong-producer-parent",
+        "expectedAccepted": false,
+        "expectedReason": "pid-binding",
+        "actual": {
+          "accepted": false,
+          "reason": "pid-binding",
+          "detail": "pid-binding",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "not-consumer-pipe",
+        "expectedAccepted": false,
+        "expectedReason": "pipe-binding",
+        "actual": {
+          "accepted": false,
+          "reason": "pipe-binding",
+          "detail": "pipe-binding",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "unbounded-settlement",
+        "expectedAccepted": false,
+        "expectedReason": "bounded-settlement",
+        "actual": {
+          "accepted": false,
+          "reason": "bounded-settlement",
+          "detail": "bounded-settlement",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "wrong-consumer-exit",
+        "expectedAccepted": false,
+        "expectedReason": "consumer-status",
+        "actual": {
+          "accepted": false,
+          "reason": "consumer-status",
+          "detail": "consumer-status",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "unreadable-caller-marker",
+        "expectedAccepted": false,
+        "expectedReason": "closed-consumer-context",
+        "actual": {
+          "accepted": false,
+          "reason": "closed-consumer-context",
+          "detail": "closed-consumer-context",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "wrong-output-descriptor",
+        "expectedAccepted": false,
+        "expectedReason": "stdout-error-identity",
+        "actual": {
+          "accepted": false,
+          "reason": "stdout-error-identity",
+          "detail": "stdout-error-identity",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      },
+      {
+        "name": "replaced-caller-error-object",
+        "expectedAccepted": false,
+        "expectedReason": "exact-caller-failure",
+        "actual": {
+          "accepted": false,
+          "reason": "exact-caller-failure",
+          "detail": "exact-caller-failure",
+          "terminal": null
+        },
+        "expectedOutcome": true
+      }
+    ]
+  }
+}

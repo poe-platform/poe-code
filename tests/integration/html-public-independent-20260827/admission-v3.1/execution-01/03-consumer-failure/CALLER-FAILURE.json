@@ -1,0 +1,9 @@
+{
+  "token": "136d68f5-716e-4acc-9d3c-96f0ed7f0467",
+  "control": "consumer-failure",
+  "consumerPid": 34638,
+  "producerPid": 34639,
+  "chunks": 16,
+  "code": "V3_CONSUMER_FAILURE",
+  "message": "CONTROL_BOUNDARY:V3_CONSUMER_FAILURE"
+}

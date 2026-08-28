@@ -28,9 +28,11 @@ if(mode==='observe'){
     setTimeout(()=>process.exit(0),500);
     await new Promise(()=>{});
   }
-  const operation=scope.supervise(node24,['--input-type=module','-e',source,join(root,'AGENTS.md')],options);
+  const socketSource=mode==='loopback'?"import{createServer}from'node:net';const server=createServer();server.listen(0,'127.0.0.1',()=>setTimeout(()=>server.close(),3000));":"import{createServer}from'node:net';createServer().listen(0,'0.0.0.0');";
+  const operation=scope.supervise(node24,['--input-type=module','-e',['loopback','network'].includes(mode)?socketSource:source,join(root,'AGENTS.md')],options);
   if(['outside','extra','environment'].includes(mode))await assert.rejects(operation);
-  else{const result=await operation;assert.equal(result.status,0);assert.equal(result.clean,true);assert.equal(readFileSync(options.stdout,'utf8'),'restricted phase\n');}
+  else if(mode==='network'){const result=await operation;assert.equal(result.clean,false);assert.match(result.observerError,/Non-loopback owned TCP listener/u);assert.ok(result.signals.length>0);assert.deepEqual(result.survivors,[]);}
+  else{const result=await operation;assert.equal(result.status,0);assert.equal(result.clean,true);if(mode!=='loopback')assert.equal(readFileSync(options.stdout,'utf8'),'restricted phase\n');}
 }
 writeFileSync(join(root,'ordinary-marker'),mode);
 await delay(1);

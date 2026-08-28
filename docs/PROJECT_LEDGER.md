@@ -2727,3 +2727,38 @@ that any implementation, command, fixture, or test currently exists.
   evidence; HANDOFF.md routes source/controls/shared-phase receipt to Dirac.
   This is author proof, not independent A10 closure or a release. Prior dfcb
   zero-build failure, old19/3→21/1 and all historical gate results remain intact.
+
+### 2026-08-28 — Composed Expr prerequisite accepted; unified76 packet held
+
+- Root accepts composed Expr public recipea316d868fd6b330653f893276b8f5970dfe8800f
+  and evidencedc5ca91d8405961784ca40a8b439aa8936ecbba3. Its MATRIX.json retains100
+  runtime groups and qualifies4 correctedR21 groups with16 new boundary outcomes;
+  types compose32 retained plus8 targetedN04 outcomes. Package36/P01/R25/R26/DU29
+  proofs are bound, not rerun. Same44f00b/c109; the author archive binding is not
+  a new independent full-archive proof or original104/40 all-green replay.
+  Restricted expr semantics and original failed cohorts remain unchanged.
+- HTML74, DU75 and Expr76 now have root's separate scoped public acceptances.
+  HTML's candidateaff899aa and evidence9d849033 are distinct identities, not one
+  concatenated commit. These prerequisites do not approve the full product gate.
+- Pending launch packet39dd983bf60c6934d9d8721e39557eae487d88ef binds exact
+  productf5e9fc49/base44 plus the same four fixture paths; unchanged src tree
+  5876c6bf4ad9bc07f22cc46f8dbee99461981862 and expected fullc109 tarball. It is76
+  defaults, not current77: no WHICH77, helper373/578, Stage2fd1, timeout or live
+  product overlay. Existing owned-outputeba/getopts618/helperfbbe remain bound.
+- The packet references e062/3d8d driver, profile8c9363,632 canonical paths,
+  192 classified.mts,256 cleanup inputs, native49+2,61 readable tools/four
+  dependency trees, and the exact approved11-reference macOS boundary. It records
+  all14 ordered phases, expected negative exits, Node24/TAP/concurrency2,
+  one-build reuse, permission/source fences, finite output/time/child bounds and
+  nonzero/HOLD for missing bindings, skips/TODOs, guard or cleanup failures.
+- Static checks verify the four-path assembly,30 driver and10 support hashes,
+  fixed phase order and rejection of the deliberately pending release template.
+  No new source materialization, build, pack, native run, private inspection or
+  full gate occurs. Existing c109 independent pack and e062 author build/type
+  evidence are reused, not repeated. Dirac's e062 acceptance and a subsequent
+  explicit root release remain required; execution-time prerequisites must
+  freshly pass. Old8670/d98b/334, old19/3→21/1 and prior failures are not rescored.
+- Packet and exact launch instructions:
+  tests/integration/full-gate-20260827/unified76-driver/release-packet-v1/LAUNCH.md.
+  The template's pending action/false review/empty authorization fails admission;
+  this documentation is not an executable release or automatic promotion.

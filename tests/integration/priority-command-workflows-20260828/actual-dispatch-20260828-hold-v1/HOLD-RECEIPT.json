@@ -1,0 +1,595 @@
+{
+  "schema": "priority-actual-dispatch-hold-receipt-v1",
+  "recordedAt": "2026-08-28T18:38:17.475Z",
+  "status": "HOLD_BEFORE_EXECUTION",
+  "authorizationCommit": "a38ca0f0ff0788f48ea2ece53f82ff583e549f12",
+  "authorizationSha256": "5ca5a1e9847c3306cf49f0f4894d8a6bf83dc39e2741ad49067bdc43148b4aa5",
+  "authorizationBytes": 3492,
+  "parentBudgetSha256": "86e8f86c74aad9f721b266ce49c6799285daeb8e56577da180017844a81f3dd0",
+  "parentBudgetBytes": 301,
+  "sourceCommit": "2a63780fd8ddd8bd97b6f2ad31ac33e969da5bae",
+  "sealCommit": "a63169d1d84f4d81812cafa3b58c1e0624090c3e",
+  "sealSha256": "00ee97d8617eb75a4ac47bf383b19c186a12a8fcd4144096fd08a54d2f2d45ea",
+  "codeSetSha256": "8d1cd6efee03426e726751175c1c2439323a24c82203b2d70b3da482527b0261",
+  "packet": "5d432becbe385eb323c10feecfa5e982bfd3b099",
+  "composition": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "packageSha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e",
+  "packageFileMembership": 858,
+  "selectedInputs": 268,
+  "grantCommand": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-supervisor.mjs",
+    "--grant",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/GO.json",
+    "--budget",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/PARENT-BUDGET.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "dispatches": 0,
+  "supervisor": {
+    "pid": null,
+    "session": null,
+    "started": null,
+    "stdout": null,
+    "stderr": null,
+    "detail": "Never launched; no supervisor stdout/stderr, trace or RESULTS receipt exists."
+  },
+  "plannedPublicCalls": 93,
+  "executedPublicCalls": 0,
+  "passed": 0,
+  "failed": 0,
+  "stoppedSubjects": 0,
+  "notRun": 93,
+  "skipped": 0,
+  "membership": [
+    {
+      "layout": "source-build",
+      "id": "P01",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P02",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P03",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P04",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P05",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P06",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P07",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P08",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P09",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P10",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P11",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P12",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P13",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P14",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P15",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P16",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P17",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P18",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P19",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P20",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P21",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P22",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P23",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "P24",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "C01",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "C02",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "C03",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "C04",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "C05",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "C06",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "source-build",
+      "id": "C07",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P01",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P02",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P03",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P04",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P05",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P06",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P07",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P08",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P09",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P10",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P11",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P12",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P13",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P14",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P15",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P16",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P17",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P18",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P19",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P20",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P21",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P22",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P23",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P24",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C01",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C02",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C03",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C04",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C05",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C06",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C07",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P01",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P02",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P03",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P04",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P05",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P06",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P07",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P08",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P09",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P10",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P11",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P12",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P13",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P14",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P15",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P16",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P17",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P18",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P19",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P20",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P21",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P22",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P23",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P24",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C01",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C02",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C03",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C04",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C05",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C06",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C07",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    }
+  ],
+  "setup": [
+    {
+      "id": "fresh-build",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "id": "full-npm-pack",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "id": "genuine-offline-install",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    }
+  ],
+  "admissions": [
+    {
+      "id": "missing-entry",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "id": "wrong-digest",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "id": "sourcefallback",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    },
+    {
+      "id": "outside-file",
+      "status": "NOT_RUN_PREAUTH_HOLD"
+    }
+  ],
+  "resources": {
+    "supervisorStarts": 0,
+    "directSupervisedChildStarts": 0,
+    "productWorkerStarts": 0,
+    "productWorkerReservations": 0,
+    "individualWorkerReaped": 0,
+    "naturalChildExits": 0,
+    "forcedChildExits": 0,
+    "emergencyRetirements": 0,
+    "loaderRequests": 0,
+    "loaderIndividualExitsObserved": 0,
+    "captureBytes": 0,
+    "scratchBytes": 0,
+    "executionElapsedMs": 0,
+    "unknownWithheldWorkerSlots": 0
+  },
+  "remainingReservation": {
+    "schema": "exclusive-parent-reservation-v1",
+    "id": "priority-command-workflows-20260828/future-run-01",
+    "deadlineEpochMs": 1788026556000,
+    "remaining": {
+      "children": 100,
+      "workerStarts": 372,
+      "loaderThreads": 97,
+      "captureBytes": 419430400,
+      "scratchBytes": 536870912
+    }
+  },
+  "resourceQualification": "All reservation counters describe the never-started dispatch. DevGit/data-inspection/recording tool processes and additive HOLD evidence are not product execution or sealed-supervisor budget usage. Logical reservation is not OS quota, RSS/all-native-thread bound, or hard post-SIGKILL settlement guarantee.",
+  "retirement": "No dispatch-owned OS children, product Workers, loader requests or cooperative resources acquired. No cleanup performed or required. Metadata reads/edits settled; no background task started.",
+  "futureRunRoot": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-01",
+    "exists": false
+  },
+  "failure": {
+    "kind": "SEALED_TOOL_CLOSURE_HASH_CONTRADICTION",
+    "tool": "npm",
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+    "requiredBy": "future-supervisor.mjs copyTool(): originalRows equality followed by sha(JSON.stringify(rows)) === pin.sha256",
+    "expectedSha256": "dddb66e1a4d791167c74de1226a4a1263be7485302658eeb7d3ce800c0636d9d",
+    "observedCanonicalSha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+    "archivedOriginalRowsCanonicalSha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+    "observedRows": 2039,
+    "archivedOriginalRowsExactlyEqual": true,
+    "encoding": "UTF-8 JSON.stringify of ordered originalRows tuples, no trailing newline",
+    "rawAssertion": "npm\n+ actual - expected\n\n+ '76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55'\n- 'dddb66e1a4d791167c74de1226a4a1263be7485302658eeb7d3ce800c0636d9d'\n",
+    "classification": "Pre-dispatch integrity HOLD, not a product failure and not evidence of live npm drift: observed rows exactly equal the sealed archive originalRows."
+  },
+  "preparationCounters": "42 author / 13 independent checks remain historical; no new preparation/product/control tests.",
+  "sourceChanges": false,
+  "retry": false,
+  "scope": "Exact sealed priority-workflow candidate only. No runtime/product acceptance, superiority, provider, performance or duration claim."
+}

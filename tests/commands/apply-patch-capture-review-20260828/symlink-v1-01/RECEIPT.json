@@ -1,0 +1,1946 @@
+{
+  "schema": "independent-c18-symlink-run-v1",
+  "started": "2026-08-28T19:26:33.714Z",
+  "children": [
+    {
+      "phase": "initial",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-observer.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/SYMLINK-PAYLOAD.json",
+        "initial"
+      ],
+      "pid": 49301,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "stdoutBytes": 44109,
+      "stderrBytes": 0,
+      "fault": null,
+      "code": 0,
+      "signal": null,
+      "stdoutRetained": 44109,
+      "stdoutSha256": "a91a3d1cb1174cd4184a3897da8d28870e6b1a925b65d09eb1b87278784b2e30",
+      "stderrRetained": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "restored",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-observer.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/SYMLINK-PAYLOAD.json",
+        "restored"
+      ],
+      "pid": 49310,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "stdoutBytes": 23620,
+      "stderrBytes": 0,
+      "fault": null,
+      "code": 0,
+      "signal": null,
+      "stdoutRetained": 23620,
+      "stdoutSha256": "33ec72b38434d8227c3c4e28d93a10f54ec818c52f69f8b8e4c54a8ff51c3cd0",
+      "stderrRetained": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "failures": [],
+  "guards": [
+    {
+      "entries": 116,
+      "checked": true
+    },
+    {
+      "entries": 116,
+      "checked": true
+    },
+    {
+      "entries": 116,
+      "checked": true
+    },
+    {
+      "entries": 116,
+      "checked": true
+    }
+  ],
+  "productActual": 0,
+  "symlinkOperations": 1,
+  "preparation": {
+    "link": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json",
+    "target": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic.json",
+    "linkText": "synthetic.json",
+    "targetSha256": "b08e8dbcf473c1c95882749834261859127c52738a28e1f60a05aef7e8ada235",
+    "targetMode": 420,
+    "linkIdentity": {
+      "dev": 16777232,
+      "ino": 182828379,
+      "mode": 493
+    },
+    "observerPermissionsExpanded": false
+  },
+  "observations": [
+    {
+      "schema": "c18-symlink-observation-v1",
+      "phase": "initial",
+      "observerHash": "ec1f1a7bbf9d21d60f4e3246ee99744c645f363342792016409adbb05cd630df",
+      "moduleBindings": [
+        {
+          "path": "capture-membership-v3/capture-io.mjs",
+          "sha256": "5dd92eb174774fd2d847e8ee514bb1e3b084bf4631bae5b874233eafbb745fbb"
+        },
+        {
+          "path": "capture-membership-v3/manifest-bindings.mjs",
+          "sha256": "1c3a339c76a0b3ab73abfbed0523022c658bb94c832af85183e73d15c45901f4"
+        },
+        {
+          "path": "capture-membership-v3/controller-admission.mjs",
+          "sha256": "c2918349890e88d869fe5b88ecfffa183909b9ce2a6eb02c3b9068d7a6ef8773"
+        },
+        {
+          "path": "capture-membership-v3/controller.mjs",
+          "sha256": "4e6df441ed659a776f28b5a539b75c9c8191654968b1658c0c02db99ab4476b1"
+        },
+        {
+          "path": "path-transport-v2/path-bytes.mjs",
+          "sha256": "77d326d80d16be07150722cc589030f09324796c747acaa9f3f83dc08cd04f94"
+        }
+      ],
+      "rows": [
+        {
+          "label": "initial:positive:helper",
+          "profile": "positive",
+          "route": "helper",
+          "caught": false,
+          "events": [
+            {
+              "sequence": 0,
+              "active": "initial:positive:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/positive.json",
+              "symlink": false
+            },
+            {
+              "sequence": 1,
+              "active": "initial:positive:helper",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/positive.json"
+            },
+            {
+              "sequence": 2,
+              "active": "initial:positive:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive",
+              "symlink": false
+            },
+            {
+              "sequence": 3,
+              "active": "initial:positive:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+              "symlink": false
+            },
+            {
+              "sequence": 4,
+              "active": "initial:positive:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01",
+              "symlink": false
+            },
+            {
+              "sequence": 5,
+              "active": "initial:positive:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs",
+              "symlink": false
+            },
+            {
+              "sequence": 6,
+              "active": "initial:positive:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3",
+              "symlink": false
+            },
+            {
+              "sequence": 7,
+              "active": "initial:positive:helper",
+              "operation": "census",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive",
+              "count": 6
+            },
+            {
+              "sequence": 8,
+              "active": "initial:positive:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-0.json",
+              "symlink": false
+            },
+            {
+              "sequence": 9,
+              "active": "initial:positive:helper",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-0.json"
+            },
+            {
+              "sequence": 10,
+              "active": "initial:positive:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-1.json",
+              "symlink": false
+            },
+            {
+              "sequence": 11,
+              "active": "initial:positive:helper",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-1.json"
+            },
+            {
+              "sequence": 12,
+              "active": "initial:positive:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-125.json",
+              "symlink": false
+            },
+            {
+              "sequence": 13,
+              "active": "initial:positive:helper",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-125.json"
+            },
+            {
+              "sequence": 14,
+              "active": "initial:positive:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-17.json",
+              "symlink": false
+            },
+            {
+              "sequence": 15,
+              "active": "initial:positive:helper",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-17.json"
+            },
+            {
+              "sequence": 16,
+              "active": "initial:positive:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-64.json",
+              "symlink": false
+            },
+            {
+              "sequence": 17,
+              "active": "initial:positive:helper",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-64.json"
+            },
+            {
+              "sequence": 18,
+              "active": "initial:positive:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic.json",
+              "symlink": false
+            },
+            {
+              "sequence": 19,
+              "active": "initial:positive:helper",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic.json"
+            }
+          ],
+          "base64": "MTAwNjQ0IGJsb2IgNmUyNGYxNDNmYWFiYWJjMGY2YWIyMWU4OTBkZTQ0ZjZlODYxMTA0OQlkaXIvCgkgY2Fmw6kAMTAwNjQ0IGJsb2IgNmUyNGYxNDNmYWFiYWJjMGY2YWIyMWU4OTBkZTQ0ZjZlODYxMTA0OQkgdGFpbCAA",
+          "sha256": "d4a03c710d81a7fe4e318a143221cb29fbe786750d00d09890efbadf79a93b56",
+          "status": "PASS"
+        },
+        {
+          "label": "initial:positive:shared-controller",
+          "profile": "positive",
+          "route": "shared-controller",
+          "caught": false,
+          "events": [
+            {
+              "sequence": 20,
+              "active": "initial:positive:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/positive.json",
+              "symlink": false
+            },
+            {
+              "sequence": 21,
+              "active": "initial:positive:shared-controller",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/positive.json"
+            },
+            {
+              "sequence": 22,
+              "active": "initial:positive:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive",
+              "symlink": false
+            },
+            {
+              "sequence": 23,
+              "active": "initial:positive:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+              "symlink": false
+            },
+            {
+              "sequence": 24,
+              "active": "initial:positive:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01",
+              "symlink": false
+            },
+            {
+              "sequence": 25,
+              "active": "initial:positive:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs",
+              "symlink": false
+            },
+            {
+              "sequence": 26,
+              "active": "initial:positive:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3",
+              "symlink": false
+            },
+            {
+              "sequence": 27,
+              "active": "initial:positive:shared-controller",
+              "operation": "census",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive",
+              "count": 6
+            },
+            {
+              "sequence": 28,
+              "active": "initial:positive:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-0.json",
+              "symlink": false
+            },
+            {
+              "sequence": 29,
+              "active": "initial:positive:shared-controller",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-0.json"
+            },
+            {
+              "sequence": 30,
+              "active": "initial:positive:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-1.json",
+              "symlink": false
+            },
+            {
+              "sequence": 31,
+              "active": "initial:positive:shared-controller",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-1.json"
+            },
+            {
+              "sequence": 32,
+              "active": "initial:positive:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-125.json",
+              "symlink": false
+            },
+            {
+              "sequence": 33,
+              "active": "initial:positive:shared-controller",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-125.json"
+            },
+            {
+              "sequence": 34,
+              "active": "initial:positive:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-17.json",
+              "symlink": false
+            },
+            {
+              "sequence": 35,
+              "active": "initial:positive:shared-controller",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-17.json"
+            },
+            {
+              "sequence": 36,
+              "active": "initial:positive:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-64.json",
+              "symlink": false
+            },
+            {
+              "sequence": 37,
+              "active": "initial:positive:shared-controller",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-64.json"
+            },
+            {
+              "sequence": 38,
+              "active": "initial:positive:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic.json",
+              "symlink": false
+            },
+            {
+              "sequence": 39,
+              "active": "initial:positive:shared-controller",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic.json"
+            }
+          ],
+          "base64": "MTAwNjQ0IGJsb2IgNmUyNGYxNDNmYWFiYWJjMGY2YWIyMWU4OTBkZTQ0ZjZlODYxMTA0OQlkaXIvCgkgY2Fmw6kAMTAwNjQ0IGJsb2IgNmUyNGYxNDNmYWFiYWJjMGY2YWIyMWU4OTBkZTQ0ZjZlODYxMTA0OQkgdGFpbCAA",
+          "sha256": "d4a03c710d81a7fe4e318a143221cb29fbe786750d00d09890efbadf79a93b56",
+          "entries": [
+            {
+              "mode": "100644",
+              "type": "blob",
+              "oid": "6e24f143faababc0f6ab21e890de44f6e8611049",
+              "pathHex": "6469722f0a0920636166c3a9"
+            },
+            {
+              "mode": "100644",
+              "type": "blob",
+              "oid": "6e24f143faababc0f6ab21e890de44f6e8611049",
+              "pathHex": "207461696c20"
+            }
+          ],
+          "root": "eccc595b9239464cfa3209f0c5f513b7d4d43fdc",
+          "status": "PASS"
+        },
+        {
+          "label": "initial:file-symlink:helper",
+          "profile": "file-symlink",
+          "route": "helper",
+          "caught": true,
+          "reason": {
+            "name": "Error",
+            "code": "CAPTURE_ADMISSION",
+            "message": "regular file required"
+          },
+          "events": [
+            {
+              "sequence": 40,
+              "active": "initial:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json",
+              "symlink": false
+            },
+            {
+              "sequence": 41,
+              "active": "initial:file-symlink:helper",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json"
+            },
+            {
+              "sequence": 42,
+              "active": "initial:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+              "symlink": false
+            },
+            {
+              "sequence": 43,
+              "active": "initial:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+              "symlink": false
+            },
+            {
+              "sequence": 44,
+              "active": "initial:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01",
+              "symlink": false
+            },
+            {
+              "sequence": 45,
+              "active": "initial:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs",
+              "symlink": false
+            },
+            {
+              "sequence": 46,
+              "active": "initial:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3",
+              "symlink": false
+            },
+            {
+              "sequence": 47,
+              "active": "initial:file-symlink:helper",
+              "operation": "census",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+              "count": 6
+            },
+            {
+              "sequence": 48,
+              "active": "initial:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json",
+              "symlink": true
+            }
+          ],
+          "status": "PASS"
+        },
+        {
+          "label": "initial:file-symlink:shared-controller",
+          "profile": "file-symlink",
+          "route": "shared-controller",
+          "caught": true,
+          "reason": {
+            "name": "Error",
+            "code": "CAPTURE_ADMISSION",
+            "message": "regular file required"
+          },
+          "events": [
+            {
+              "sequence": 49,
+              "active": "initial:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json",
+              "symlink": false
+            },
+            {
+              "sequence": 50,
+              "active": "initial:file-symlink:shared-controller",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json"
+            },
+            {
+              "sequence": 51,
+              "active": "initial:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+              "symlink": false
+            },
+            {
+              "sequence": 52,
+              "active": "initial:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+              "symlink": false
+            },
+            {
+              "sequence": 53,
+              "active": "initial:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01",
+              "symlink": false
+            },
+            {
+              "sequence": 54,
+              "active": "initial:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs",
+              "symlink": false
+            },
+            {
+              "sequence": 55,
+              "active": "initial:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3",
+              "symlink": false
+            },
+            {
+              "sequence": 56,
+              "active": "initial:file-symlink:shared-controller",
+              "operation": "census",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+              "count": 6
+            },
+            {
+              "sequence": 57,
+              "active": "initial:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json",
+              "symlink": true
+            }
+          ],
+          "status": "PASS"
+        }
+      ],
+      "controls": [
+        {
+          "id": "actual-target-read",
+          "expected": "READ_BEFORE_TYPE",
+          "rejection": "READ_BEFORE_TYPE\n\ntrue !== false\n",
+          "status": "PASS",
+          "observation": {
+            "label": "control:actual-target-read",
+            "profile": "file-symlink",
+            "route": "helper",
+            "caught": true,
+            "reason": {
+              "name": "Error",
+              "code": "CAPTURE_ADMISSION",
+              "message": "regular file required"
+            },
+            "events": [
+              {
+                "sequence": 58,
+                "active": "control:actual-target-read",
+                "operation": "read",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic.json"
+              },
+              {
+                "sequence": 59,
+                "active": "control:actual-target-read",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json",
+                "symlink": false
+              },
+              {
+                "sequence": 60,
+                "active": "control:actual-target-read",
+                "operation": "read",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json"
+              },
+              {
+                "sequence": 61,
+                "active": "control:actual-target-read",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+                "symlink": false
+              },
+              {
+                "sequence": 62,
+                "active": "control:actual-target-read",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+                "symlink": false
+              },
+              {
+                "sequence": 63,
+                "active": "control:actual-target-read",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01",
+                "symlink": false
+              },
+              {
+                "sequence": 64,
+                "active": "control:actual-target-read",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs",
+                "symlink": false
+              },
+              {
+                "sequence": 65,
+                "active": "control:actual-target-read",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3",
+                "symlink": false
+              },
+              {
+                "sequence": 66,
+                "active": "control:actual-target-read",
+                "operation": "census",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+                "count": 6
+              },
+              {
+                "sequence": 67,
+                "active": "control:actual-target-read",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json",
+                "symlink": true
+              }
+            ]
+          }
+        },
+        {
+          "id": "wrong-code",
+          "expected": "EXACT_CODE",
+          "rejection": "EXACT_CODE\n+ actual - expected\n\n+ 'ERR_ASSERTION'\n- 'CAPTURE_ADMISSION'\n",
+          "status": "PASS",
+          "observation": {
+            "label": "initial:file-symlink:helper",
+            "profile": "file-symlink",
+            "route": "helper",
+            "caught": true,
+            "reason": {
+              "name": "Error",
+              "code": "ERR_ASSERTION",
+              "message": "regular file required"
+            },
+            "events": [
+              {
+                "sequence": 40,
+                "active": "initial:file-symlink:helper",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json",
+                "symlink": false
+              },
+              {
+                "sequence": 41,
+                "active": "initial:file-symlink:helper",
+                "operation": "read",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json"
+              },
+              {
+                "sequence": 42,
+                "active": "initial:file-symlink:helper",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+                "symlink": false
+              },
+              {
+                "sequence": 43,
+                "active": "initial:file-symlink:helper",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+                "symlink": false
+              },
+              {
+                "sequence": 44,
+                "active": "initial:file-symlink:helper",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01",
+                "symlink": false
+              },
+              {
+                "sequence": 45,
+                "active": "initial:file-symlink:helper",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs",
+                "symlink": false
+              },
+              {
+                "sequence": 46,
+                "active": "initial:file-symlink:helper",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3",
+                "symlink": false
+              },
+              {
+                "sequence": 47,
+                "active": "initial:file-symlink:helper",
+                "operation": "census",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+                "count": 6
+              },
+              {
+                "sequence": 48,
+                "active": "initial:file-symlink:helper",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json",
+                "symlink": true
+              }
+            ],
+            "status": "PASS"
+          }
+        },
+        {
+          "id": "census-substitution",
+          "expected": "EXACT_TYPE_REFUSAL",
+          "rejection": "EXACT_TYPE_REFUSAL\n+ actual - expected\n\n+ 'exact capture namespace'\n- 'regular file required'\n",
+          "status": "PASS",
+          "observation": {
+            "label": "initial:file-symlink:helper",
+            "profile": "file-symlink",
+            "route": "helper",
+            "caught": true,
+            "reason": {
+              "name": "Error",
+              "code": "CAPTURE_ADMISSION",
+              "message": "exact capture namespace"
+            },
+            "events": [
+              {
+                "sequence": 40,
+                "active": "initial:file-symlink:helper",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json",
+                "symlink": false
+              },
+              {
+                "sequence": 41,
+                "active": "initial:file-symlink:helper",
+                "operation": "read",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json"
+              },
+              {
+                "sequence": 42,
+                "active": "initial:file-symlink:helper",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+                "symlink": false
+              },
+              {
+                "sequence": 43,
+                "active": "initial:file-symlink:helper",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+                "symlink": false
+              },
+              {
+                "sequence": 44,
+                "active": "initial:file-symlink:helper",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01",
+                "symlink": false
+              },
+              {
+                "sequence": 45,
+                "active": "initial:file-symlink:helper",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs",
+                "symlink": false
+              },
+              {
+                "sequence": 46,
+                "active": "initial:file-symlink:helper",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3",
+                "symlink": false
+              },
+              {
+                "sequence": 47,
+                "active": "initial:file-symlink:helper",
+                "operation": "census",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+                "count": 6
+              },
+              {
+                "sequence": 48,
+                "active": "initial:file-symlink:helper",
+                "operation": "lstat",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json",
+                "symlink": true
+              }
+            ],
+            "status": "PASS"
+          }
+        },
+        {
+          "id": "missing-type-telemetry",
+          "expected": "TYPE_OBSERVATION_REQUIRED",
+          "rejection": "TYPE_OBSERVATION_REQUIRED",
+          "status": "PASS",
+          "observation": {
+            "label": "initial:file-symlink:helper",
+            "profile": "file-symlink",
+            "route": "helper",
+            "caught": true,
+            "reason": {
+              "name": "Error",
+              "code": "CAPTURE_ADMISSION",
+              "message": "regular file required"
+            },
+            "events": [
+              {
+                "sequence": 41,
+                "active": "initial:file-symlink:helper",
+                "operation": "read",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json"
+              },
+              {
+                "sequence": 47,
+                "active": "initial:file-symlink:helper",
+                "operation": "census",
+                "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+                "count": 6
+              }
+            ],
+            "status": "PASS"
+          }
+        }
+      ],
+      "events": [
+        {
+          "sequence": 0,
+          "active": "initial:positive:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/positive.json",
+          "symlink": false
+        },
+        {
+          "sequence": 1,
+          "active": "initial:positive:helper",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/positive.json"
+        },
+        {
+          "sequence": 2,
+          "active": "initial:positive:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive",
+          "symlink": false
+        },
+        {
+          "sequence": 3,
+          "active": "initial:positive:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+          "symlink": false
+        },
+        {
+          "sequence": 4,
+          "active": "initial:positive:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01",
+          "symlink": false
+        },
+        {
+          "sequence": 5,
+          "active": "initial:positive:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs",
+          "symlink": false
+        },
+        {
+          "sequence": 6,
+          "active": "initial:positive:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3",
+          "symlink": false
+        },
+        {
+          "sequence": 7,
+          "active": "initial:positive:helper",
+          "operation": "census",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive",
+          "count": 6
+        },
+        {
+          "sequence": 8,
+          "active": "initial:positive:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-0.json",
+          "symlink": false
+        },
+        {
+          "sequence": 9,
+          "active": "initial:positive:helper",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-0.json"
+        },
+        {
+          "sequence": 10,
+          "active": "initial:positive:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-1.json",
+          "symlink": false
+        },
+        {
+          "sequence": 11,
+          "active": "initial:positive:helper",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-1.json"
+        },
+        {
+          "sequence": 12,
+          "active": "initial:positive:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-125.json",
+          "symlink": false
+        },
+        {
+          "sequence": 13,
+          "active": "initial:positive:helper",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-125.json"
+        },
+        {
+          "sequence": 14,
+          "active": "initial:positive:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-17.json",
+          "symlink": false
+        },
+        {
+          "sequence": 15,
+          "active": "initial:positive:helper",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-17.json"
+        },
+        {
+          "sequence": 16,
+          "active": "initial:positive:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-64.json",
+          "symlink": false
+        },
+        {
+          "sequence": 17,
+          "active": "initial:positive:helper",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-64.json"
+        },
+        {
+          "sequence": 18,
+          "active": "initial:positive:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic.json",
+          "symlink": false
+        },
+        {
+          "sequence": 19,
+          "active": "initial:positive:helper",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic.json"
+        },
+        {
+          "sequence": 20,
+          "active": "initial:positive:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/positive.json",
+          "symlink": false
+        },
+        {
+          "sequence": 21,
+          "active": "initial:positive:shared-controller",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/positive.json"
+        },
+        {
+          "sequence": 22,
+          "active": "initial:positive:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive",
+          "symlink": false
+        },
+        {
+          "sequence": 23,
+          "active": "initial:positive:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+          "symlink": false
+        },
+        {
+          "sequence": 24,
+          "active": "initial:positive:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01",
+          "symlink": false
+        },
+        {
+          "sequence": 25,
+          "active": "initial:positive:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs",
+          "symlink": false
+        },
+        {
+          "sequence": 26,
+          "active": "initial:positive:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3",
+          "symlink": false
+        },
+        {
+          "sequence": 27,
+          "active": "initial:positive:shared-controller",
+          "operation": "census",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive",
+          "count": 6
+        },
+        {
+          "sequence": 28,
+          "active": "initial:positive:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-0.json",
+          "symlink": false
+        },
+        {
+          "sequence": 29,
+          "active": "initial:positive:shared-controller",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-0.json"
+        },
+        {
+          "sequence": 30,
+          "active": "initial:positive:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-1.json",
+          "symlink": false
+        },
+        {
+          "sequence": 31,
+          "active": "initial:positive:shared-controller",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-1.json"
+        },
+        {
+          "sequence": 32,
+          "active": "initial:positive:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-125.json",
+          "symlink": false
+        },
+        {
+          "sequence": 33,
+          "active": "initial:positive:shared-controller",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-125.json"
+        },
+        {
+          "sequence": 34,
+          "active": "initial:positive:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-17.json",
+          "symlink": false
+        },
+        {
+          "sequence": 35,
+          "active": "initial:positive:shared-controller",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-17.json"
+        },
+        {
+          "sequence": 36,
+          "active": "initial:positive:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-64.json",
+          "symlink": false
+        },
+        {
+          "sequence": 37,
+          "active": "initial:positive:shared-controller",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic-stdout-64.json"
+        },
+        {
+          "sequence": 38,
+          "active": "initial:positive:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic.json",
+          "symlink": false
+        },
+        {
+          "sequence": 39,
+          "active": "initial:positive:shared-controller",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/positive/synthetic.json"
+        },
+        {
+          "sequence": 40,
+          "active": "initial:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json",
+          "symlink": false
+        },
+        {
+          "sequence": 41,
+          "active": "initial:file-symlink:helper",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json"
+        },
+        {
+          "sequence": 42,
+          "active": "initial:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+          "symlink": false
+        },
+        {
+          "sequence": 43,
+          "active": "initial:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+          "symlink": false
+        },
+        {
+          "sequence": 44,
+          "active": "initial:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01",
+          "symlink": false
+        },
+        {
+          "sequence": 45,
+          "active": "initial:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs",
+          "symlink": false
+        },
+        {
+          "sequence": 46,
+          "active": "initial:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3",
+          "symlink": false
+        },
+        {
+          "sequence": 47,
+          "active": "initial:file-symlink:helper",
+          "operation": "census",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+          "count": 6
+        },
+        {
+          "sequence": 48,
+          "active": "initial:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json",
+          "symlink": true
+        },
+        {
+          "sequence": 49,
+          "active": "initial:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json",
+          "symlink": false
+        },
+        {
+          "sequence": 50,
+          "active": "initial:file-symlink:shared-controller",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json"
+        },
+        {
+          "sequence": 51,
+          "active": "initial:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+          "symlink": false
+        },
+        {
+          "sequence": 52,
+          "active": "initial:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+          "symlink": false
+        },
+        {
+          "sequence": 53,
+          "active": "initial:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01",
+          "symlink": false
+        },
+        {
+          "sequence": 54,
+          "active": "initial:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs",
+          "symlink": false
+        },
+        {
+          "sequence": 55,
+          "active": "initial:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3",
+          "symlink": false
+        },
+        {
+          "sequence": 56,
+          "active": "initial:file-symlink:shared-controller",
+          "operation": "census",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+          "count": 6
+        },
+        {
+          "sequence": 57,
+          "active": "initial:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json",
+          "symlink": true
+        },
+        {
+          "sequence": 58,
+          "active": "control:actual-target-read",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic.json"
+        },
+        {
+          "sequence": 59,
+          "active": "control:actual-target-read",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json",
+          "symlink": false
+        },
+        {
+          "sequence": 60,
+          "active": "control:actual-target-read",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json"
+        },
+        {
+          "sequence": 61,
+          "active": "control:actual-target-read",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+          "symlink": false
+        },
+        {
+          "sequence": 62,
+          "active": "control:actual-target-read",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+          "symlink": false
+        },
+        {
+          "sequence": 63,
+          "active": "control:actual-target-read",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01",
+          "symlink": false
+        },
+        {
+          "sequence": 64,
+          "active": "control:actual-target-read",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs",
+          "symlink": false
+        },
+        {
+          "sequence": 65,
+          "active": "control:actual-target-read",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3",
+          "symlink": false
+        },
+        {
+          "sequence": 66,
+          "active": "control:actual-target-read",
+          "operation": "census",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+          "count": 6
+        },
+        {
+          "sequence": 67,
+          "active": "control:actual-target-read",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json",
+          "symlink": true
+        }
+      ],
+      "fixtureBodyPreauthentication": false,
+      "productActual": 0
+    },
+    {
+      "schema": "c18-symlink-observation-v1",
+      "phase": "restored",
+      "observerHash": "ec1f1a7bbf9d21d60f4e3246ee99744c645f363342792016409adbb05cd630df",
+      "moduleBindings": [
+        {
+          "path": "capture-membership-v3/capture-io.mjs",
+          "sha256": "5dd92eb174774fd2d847e8ee514bb1e3b084bf4631bae5b874233eafbb745fbb"
+        },
+        {
+          "path": "capture-membership-v3/manifest-bindings.mjs",
+          "sha256": "1c3a339c76a0b3ab73abfbed0523022c658bb94c832af85183e73d15c45901f4"
+        },
+        {
+          "path": "capture-membership-v3/controller-admission.mjs",
+          "sha256": "c2918349890e88d869fe5b88ecfffa183909b9ce2a6eb02c3b9068d7a6ef8773"
+        },
+        {
+          "path": "capture-membership-v3/controller.mjs",
+          "sha256": "4e6df441ed659a776f28b5a539b75c9c8191654968b1658c0c02db99ab4476b1"
+        },
+        {
+          "path": "path-transport-v2/path-bytes.mjs",
+          "sha256": "77d326d80d16be07150722cc589030f09324796c747acaa9f3f83dc08cd04f94"
+        }
+      ],
+      "rows": [
+        {
+          "label": "restored:file-symlink:helper",
+          "profile": "file-symlink",
+          "route": "helper",
+          "caught": false,
+          "events": [
+            {
+              "sequence": 0,
+              "active": "restored:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json",
+              "symlink": false
+            },
+            {
+              "sequence": 1,
+              "active": "restored:file-symlink:helper",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json"
+            },
+            {
+              "sequence": 2,
+              "active": "restored:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+              "symlink": false
+            },
+            {
+              "sequence": 3,
+              "active": "restored:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+              "symlink": false
+            },
+            {
+              "sequence": 4,
+              "active": "restored:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01",
+              "symlink": false
+            },
+            {
+              "sequence": 5,
+              "active": "restored:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs",
+              "symlink": false
+            },
+            {
+              "sequence": 6,
+              "active": "restored:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3",
+              "symlink": false
+            },
+            {
+              "sequence": 7,
+              "active": "restored:file-symlink:helper",
+              "operation": "census",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+              "count": 6
+            },
+            {
+              "sequence": 8,
+              "active": "restored:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json",
+              "symlink": false
+            },
+            {
+              "sequence": 9,
+              "active": "restored:file-symlink:helper",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json"
+            },
+            {
+              "sequence": 10,
+              "active": "restored:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-1.json",
+              "symlink": false
+            },
+            {
+              "sequence": 11,
+              "active": "restored:file-symlink:helper",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-1.json"
+            },
+            {
+              "sequence": 12,
+              "active": "restored:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-125.json",
+              "symlink": false
+            },
+            {
+              "sequence": 13,
+              "active": "restored:file-symlink:helper",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-125.json"
+            },
+            {
+              "sequence": 14,
+              "active": "restored:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-17.json",
+              "symlink": false
+            },
+            {
+              "sequence": 15,
+              "active": "restored:file-symlink:helper",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-17.json"
+            },
+            {
+              "sequence": 16,
+              "active": "restored:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-64.json",
+              "symlink": false
+            },
+            {
+              "sequence": 17,
+              "active": "restored:file-symlink:helper",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-64.json"
+            },
+            {
+              "sequence": 18,
+              "active": "restored:file-symlink:helper",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic.json",
+              "symlink": false
+            },
+            {
+              "sequence": 19,
+              "active": "restored:file-symlink:helper",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic.json"
+            }
+          ],
+          "base64": "MTAwNjQ0IGJsb2IgNmUyNGYxNDNmYWFiYWJjMGY2YWIyMWU4OTBkZTQ0ZjZlODYxMTA0OQlkaXIvCgkgY2Fmw6kAMTAwNjQ0IGJsb2IgNmUyNGYxNDNmYWFiYWJjMGY2YWIyMWU4OTBkZTQ0ZjZlODYxMTA0OQkgdGFpbCAA",
+          "sha256": "d4a03c710d81a7fe4e318a143221cb29fbe786750d00d09890efbadf79a93b56",
+          "status": "PASS"
+        },
+        {
+          "label": "restored:file-symlink:shared-controller",
+          "profile": "file-symlink",
+          "route": "shared-controller",
+          "caught": false,
+          "events": [
+            {
+              "sequence": 20,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json",
+              "symlink": false
+            },
+            {
+              "sequence": 21,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json"
+            },
+            {
+              "sequence": 22,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+              "symlink": false
+            },
+            {
+              "sequence": 23,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+              "symlink": false
+            },
+            {
+              "sequence": 24,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01",
+              "symlink": false
+            },
+            {
+              "sequence": 25,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs",
+              "symlink": false
+            },
+            {
+              "sequence": 26,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3",
+              "symlink": false
+            },
+            {
+              "sequence": 27,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "census",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+              "count": 6
+            },
+            {
+              "sequence": 28,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json",
+              "symlink": false
+            },
+            {
+              "sequence": 29,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json"
+            },
+            {
+              "sequence": 30,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-1.json",
+              "symlink": false
+            },
+            {
+              "sequence": 31,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-1.json"
+            },
+            {
+              "sequence": 32,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-125.json",
+              "symlink": false
+            },
+            {
+              "sequence": 33,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-125.json"
+            },
+            {
+              "sequence": 34,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-17.json",
+              "symlink": false
+            },
+            {
+              "sequence": 35,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-17.json"
+            },
+            {
+              "sequence": 36,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-64.json",
+              "symlink": false
+            },
+            {
+              "sequence": 37,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-64.json"
+            },
+            {
+              "sequence": 38,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "lstat",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic.json",
+              "symlink": false
+            },
+            {
+              "sequence": 39,
+              "active": "restored:file-symlink:shared-controller",
+              "operation": "read",
+              "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic.json"
+            }
+          ],
+          "base64": "MTAwNjQ0IGJsb2IgNmUyNGYxNDNmYWFiYWJjMGY2YWIyMWU4OTBkZTQ0ZjZlODYxMTA0OQlkaXIvCgkgY2Fmw6kAMTAwNjQ0IGJsb2IgNmUyNGYxNDNmYWFiYWJjMGY2YWIyMWU4OTBkZTQ0ZjZlODYxMTA0OQkgdGFpbCAA",
+          "sha256": "d4a03c710d81a7fe4e318a143221cb29fbe786750d00d09890efbadf79a93b56",
+          "entries": [
+            {
+              "mode": "100644",
+              "type": "blob",
+              "oid": "6e24f143faababc0f6ab21e890de44f6e8611049",
+              "pathHex": "6469722f0a0920636166c3a9"
+            },
+            {
+              "mode": "100644",
+              "type": "blob",
+              "oid": "6e24f143faababc0f6ab21e890de44f6e8611049",
+              "pathHex": "207461696c20"
+            }
+          ],
+          "root": "eccc595b9239464cfa3209f0c5f513b7d4d43fdc",
+          "status": "PASS"
+        }
+      ],
+      "controls": [],
+      "events": [
+        {
+          "sequence": 0,
+          "active": "restored:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json",
+          "symlink": false
+        },
+        {
+          "sequence": 1,
+          "active": "restored:file-symlink:helper",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json"
+        },
+        {
+          "sequence": 2,
+          "active": "restored:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+          "symlink": false
+        },
+        {
+          "sequence": 3,
+          "active": "restored:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+          "symlink": false
+        },
+        {
+          "sequence": 4,
+          "active": "restored:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01",
+          "symlink": false
+        },
+        {
+          "sequence": 5,
+          "active": "restored:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs",
+          "symlink": false
+        },
+        {
+          "sequence": 6,
+          "active": "restored:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3",
+          "symlink": false
+        },
+        {
+          "sequence": 7,
+          "active": "restored:file-symlink:helper",
+          "operation": "census",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+          "count": 6
+        },
+        {
+          "sequence": 8,
+          "active": "restored:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json",
+          "symlink": false
+        },
+        {
+          "sequence": 9,
+          "active": "restored:file-symlink:helper",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json"
+        },
+        {
+          "sequence": 10,
+          "active": "restored:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-1.json",
+          "symlink": false
+        },
+        {
+          "sequence": 11,
+          "active": "restored:file-symlink:helper",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-1.json"
+        },
+        {
+          "sequence": 12,
+          "active": "restored:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-125.json",
+          "symlink": false
+        },
+        {
+          "sequence": 13,
+          "active": "restored:file-symlink:helper",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-125.json"
+        },
+        {
+          "sequence": 14,
+          "active": "restored:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-17.json",
+          "symlink": false
+        },
+        {
+          "sequence": 15,
+          "active": "restored:file-symlink:helper",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-17.json"
+        },
+        {
+          "sequence": 16,
+          "active": "restored:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-64.json",
+          "symlink": false
+        },
+        {
+          "sequence": 17,
+          "active": "restored:file-symlink:helper",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-64.json"
+        },
+        {
+          "sequence": 18,
+          "active": "restored:file-symlink:helper",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic.json",
+          "symlink": false
+        },
+        {
+          "sequence": 19,
+          "active": "restored:file-symlink:helper",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic.json"
+        },
+        {
+          "sequence": 20,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json",
+          "symlink": false
+        },
+        {
+          "sequence": 21,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/manifests/file-symlink.json"
+        },
+        {
+          "sequence": 22,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+          "symlink": false
+        },
+        {
+          "sequence": 23,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+          "symlink": false
+        },
+        {
+          "sequence": 24,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01",
+          "symlink": false
+        },
+        {
+          "sequence": 25,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs",
+          "symlink": false
+        },
+        {
+          "sequence": 26,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3",
+          "symlink": false
+        },
+        {
+          "sequence": 27,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "census",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink",
+          "count": 6
+        },
+        {
+          "sequence": 28,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json",
+          "symlink": false
+        },
+        {
+          "sequence": 29,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json"
+        },
+        {
+          "sequence": 30,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-1.json",
+          "symlink": false
+        },
+        {
+          "sequence": 31,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-1.json"
+        },
+        {
+          "sequence": 32,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-125.json",
+          "symlink": false
+        },
+        {
+          "sequence": 33,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-125.json"
+        },
+        {
+          "sequence": 34,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-17.json",
+          "symlink": false
+        },
+        {
+          "sequence": 35,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-17.json"
+        },
+        {
+          "sequence": 36,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-64.json",
+          "symlink": false
+        },
+        {
+          "sequence": 37,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-64.json"
+        },
+        {
+          "sequence": 38,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "lstat",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic.json",
+          "symlink": false
+        },
+        {
+          "sequence": 39,
+          "active": "restored:file-symlink:shared-controller",
+          "operation": "read",
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work/file-symlink/synthetic.json"
+        }
+      ],
+      "fixtureBodyPreauthentication": false,
+      "productActual": 0
+    }
+  ],
+  "restoration": {
+    "afterReaping": true,
+    "regular": true,
+    "targetSha256": "b08e8dbcf473c1c95882749834261859127c52738a28e1f60a05aef7e8ada235"
+  },
+  "finalCensusSha256": "a19f4b420cd4c98d65db556af9d78376310890ddc69c19827699f5181ebffee8",
+  "cleanup": {
+    "scratchAbsent": true,
+    "allChildrenClosed": true
+  },
+  "finished": "2026-08-28T19:26:34.273Z",
+  "elapsedMs": 559,
+  "writtenBytes": 40997,
+  "capturedBytesBeforeReceipt": 67729,
+  "passed": true
+}

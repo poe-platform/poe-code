@@ -1,0 +1,136 @@
+{
+  "schema": "c18-symlink-qualified-v1",
+  "presealCommit": "279d0871531784ee340ec63ad0491ce9ec936bbd",
+  "presealSha256": "d9e7ab9630a56b688a4a72acb050edcf4f263fd4c97c4c1091bf624bfe66906b",
+  "attempts": 1,
+  "observations": 6,
+  "qualified": 6,
+  "countercontrols": 4,
+  "countercontrolsQualified": 4,
+  "negativeAdmissionLinkAndTargetReads": 0,
+  "intentionalActualTargetReadCountercontrol": "separate detected rejection; not zero-global-read claim",
+  "children": [
+    {
+      "phase": "initial",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-observer.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/SYMLINK-PAYLOAD.json",
+        "initial"
+      ],
+      "pid": 49301,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "stdoutBytes": 44109,
+      "stderrBytes": 0,
+      "fault": null,
+      "code": 0,
+      "signal": null,
+      "stdoutRetained": 44109,
+      "stdoutSha256": "a91a3d1cb1174cd4184a3897da8d28870e6b1a925b65d09eb1b87278784b2e30",
+      "stderrRetained": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "phase": "restored",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch/capture-membership-v3/runs/author-01/work",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-observer.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/scratch",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/SYMLINK-PAYLOAD.json",
+        "restored"
+      ],
+      "pid": 49310,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "stdoutBytes": 23620,
+      "stderrBytes": 0,
+      "fault": null,
+      "code": 0,
+      "signal": null,
+      "stdoutRetained": 23620,
+      "stdoutSha256": "33ec72b38434d8227c3c4e28d93a10f54ec818c52f69f8b8e4c54a8ff51c3cd0",
+      "stderrRetained": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "cleanup": {
+    "scratchAbsent": true,
+    "allChildrenClosed": true
+  },
+  "elapsedMs": 559,
+  "workingBytesWritten": 40997,
+  "boundEvidenceBytes": 170276,
+  "futureSealSha256": "ec2f19e1825970b662d60a99f2128158ab7ab494b4161ce2a4b0f121f4dcc8e5",
+  "futureStatus": "SOURCE_COMPATIBLE_UNCHANGED_NOT_EXECUTED_NOT_LAUNCH_GRANT",
+  "regularProof": "4934900a237c6930262a623afe303490fdcf0118",
+  "historyRescored": false,
+  "productActual": 0,
+  "files": [
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/SYMLINK-PRESEAL.json",
+      "bytes": 2941,
+      "mode": 420,
+      "sha256": "d9e7ab9630a56b688a4a72acb050edcf4f263fd4c97c4c1091bf624bfe66906b"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/SYMLINK-REPORT.md",
+      "bytes": 3003,
+      "mode": 420,
+      "sha256": "b4dd53676f48aeb62e8b4fe73e714ca17cec06db7e132ced2cf413bf0e4cae58"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/initial.stdout.raw",
+      "bytes": 44109,
+      "mode": 420,
+      "sha256": "a91a3d1cb1174cd4184a3897da8d28870e6b1a925b65d09eb1b87278784b2e30"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/initial.stderr.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/restored.stdout.raw",
+      "bytes": 23620,
+      "mode": 420,
+      "sha256": "33ec72b38434d8227c3c4e28d93a10f54ec818c52f69f8b8e4c54a8ff51c3cd0"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/restored.stderr.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/symlink-v1-01/RECEIPT.json",
+      "bytes": 96375,
+      "mode": 420,
+      "sha256": "26e9af7475ca8458e4238bd1f2f53f3add1be9b02904bc28b585deb194110107"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/symlink-launch.stdout.raw",
+      "bytes": 228,
+      "mode": 420,
+      "sha256": "707651227e033bc0fcdaf62cf5b7e62efa5cc8a11d128230535903bec63dfa1f"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/symlink-launch.stderr.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

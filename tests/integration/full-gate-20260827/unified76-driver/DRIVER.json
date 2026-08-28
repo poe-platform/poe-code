@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "candidate": "07047e8f7bd577f60350246b1380732712305f58",
+  "profileSha256": "86699f558c53df7e6416819f86acd192cb438a1ec5e77063a212dcb6eb743ee1",
+  "files": {
+    "CANDIDATE.json": "3f12fe731c70840ac7763140770cb8f3e289d5c12eaeb02a5d4052cc33d85769",
+    "PROFILE.json.gz.base64": "adea62d151c64794bb591ce0c414c182ba80acf324438ac4628011144777bec0",
+    "PROFILE-RECEIPT.json": "76c5cd67f4c28d089e38cb2fb3e43cde194b0e871f0d9c58cbd1fda4263eae12",
+    "common.mjs": "697f3d47e4e252911ea7d9f57eca131a6689399a0ed8763756efdd51b7f69ebe",
+    "profile.mjs": "b476e66084ec28688a88fd64137965ba982f94a773eb881667a2385d48db3491",
+    "admission.mjs": "0cce85ae5b383aab16feb417c8ba31ffa371cc7806ce740e50597d7e2a135890",
+    "inventory.mjs": "075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2",
+    "run.mjs": "f7cd826f3da5bac74daf362b4a933fb682dfa3cdfc117183c5f8df55553e0d8a",
+    "public.mjs": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+    "consumer.mts.fixture": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+    "negative.mts.fixture": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3"
+  },
+  "status": "AUTHOR_CANDIDATE_PENDING_DIFFERENT_REVIEW_AND_ROOT_RELEASE",
+  "fullGateLaunched": false
+}

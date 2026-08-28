@@ -1,0 +1,21 @@
+{
+  "candidate": "07047e8f7bd577f60350246b1380732712305f58",
+  "tree": "f2b9afdbaafee930e188fa4d216e6779a2fbed75",
+  "profileSha256": "86699f558c53df7e6416819f86acd192cb438a1ec5e77063a212dcb6eb743ee1",
+  "encodedSha256": "adea62d151c64794bb591ce0c414c182ba80acf324438ac4628011144777bec0",
+  "canonical": 632,
+  "mts": 192,
+  "cleanup": 256,
+  "nativeBase": 49,
+  "nativeExtensions": 2,
+  "sourceFiles": 249,
+  "closure": {
+    "kind": "complete committed-tree conservative runtime-input superset, not compact typing selection",
+    "entries": 37397,
+    "bytes": 2382440287,
+    "storedArchive": false,
+    "streamedAtExecution": true,
+    "qualification": "Historical canonical audits read captured data and Git history. No claim that a smaller static-import selection is complete; all committed tree blobs and ancestor Git objects are retained in isolated temporary storage."
+  },
+  "temporary": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-profile-F6PglS"
+}

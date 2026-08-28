@@ -1,0 +1,4 @@
+import {type AgentCommandsOptions,__missingUnified76Export} from 'virtual-bash';
+const replace:AgentCommandsOptions={expr:{replace:true}};
+const regex:AgentCommandsOptions={expr:{regex:{maxWorkers:1}}};
+void [replace,regex,__missingUnified76Export];

@@ -1,0 +1,78 @@
+{
+  "classification": "AUTHOR_CAPTURE_LOGS_ORIGINAL_BYTES_AS_UTF8_STRINGS",
+  "sourceDirectory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/xan-baseline-harness-20260828-2uQYgk",
+  "logs": [
+    {
+      "name": "baseline-archive.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "baseline-archive.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "baseline-build.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "baseline-build.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "baseline-typecheck.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "baseline-typecheck.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "candidate-build.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "candidate-build.stdout.log",
+      "bytes": 714,
+      "sha256": "da8c0967f8ce07d3ec32b3fc0d32b4289df87a0d365643a205cd844507507c9d",
+      "text": "src/commands/xan/csv.ts(36,7): error TS2322: Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'Uint8Array<ArrayBuffer>'.\n  Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.\n    Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.\n      Types of property '[Symbol.toStringTag]' are incompatible.\n        Type '\"SharedArrayBuffer\"' is not assignable to type '\"ArrayBuffer\"'.\nsrc/commands/xan/csv.ts(104,15): error TS2367: This comparison appears to be unintentional because the types '\"start\"' and '\"quoted\"' have no overlap.\nsrc/commands/xan/csv.ts(113,13): error TS2367: This comparison appears to be unintentional because the types '\"start\"' and '\"quoted\"' have no overlap.\n"
+    },
+    {
+      "name": "candidate-typecheck.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "candidate-typecheck.stdout.log",
+      "bytes": 714,
+      "sha256": "da8c0967f8ce07d3ec32b3fc0d32b4289df87a0d365643a205cd844507507c9d",
+      "text": "src/commands/xan/csv.ts(36,7): error TS2322: Type 'Uint8Array<ArrayBufferLike>' is not assignable to type 'Uint8Array<ArrayBuffer>'.\n  Type 'ArrayBufferLike' is not assignable to type 'ArrayBuffer'.\n    Type 'SharedArrayBuffer' is not assignable to type 'ArrayBuffer'.\n      Types of property '[Symbol.toStringTag]' are incompatible.\n        Type '\"SharedArrayBuffer\"' is not assignable to type '\"ArrayBuffer\"'.\nsrc/commands/xan/csv.ts(104,15): error TS2367: This comparison appears to be unintentional because the types '\"start\"' and '\"quoted\"' have no overlap.\nsrc/commands/xan/csv.ts(113,13): error TS2367: This comparison appears to be unintentional because the types '\"start\"' and '\"quoted\"' have no overlap.\n"
+    },
+    {
+      "name": "tools-archive.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    },
+    {
+      "name": "tools-archive.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "text": ""
+    }
+  ]
+}

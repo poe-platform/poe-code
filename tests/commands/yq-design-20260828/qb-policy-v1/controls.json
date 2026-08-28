@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "state": "PRESEALED_LITERAL_SYNTHETIC_ACCOUNTING_EXPECTATIONS",
+  "window": 1023,
+  "qualification": "Constant-time prospective arithmetic only; no product imports, Budget execution, alias allocation, parser, query, native, or reference proof.",
+  "scheduleRows": [
+    { "id": "S00", "pending": 0, "ordinaryUnits": 0, "checkpoints": 0, "finalPending": 0, "totalCost": 0 },
+    { "id": "S01", "pending": 0, "ordinaryUnits": 1, "checkpoints": 0, "finalPending": 1, "totalCost": 1 },
+    { "id": "S02", "pending": 1022, "ordinaryUnits": 1, "checkpoints": 0, "finalPending": 1023, "totalCost": 1 },
+    { "id": "S03", "pending": 1022, "ordinaryUnits": 2, "checkpoints": 1, "finalPending": 1, "totalCost": 3 },
+    { "id": "S04", "pending": 1023, "ordinaryUnits": 1, "checkpoints": 1, "finalPending": 1, "totalCost": 2 },
+    { "id": "S05", "pending": 0, "ordinaryUnits": 1023, "checkpoints": 0, "finalPending": 1023, "totalCost": 1023 },
+    { "id": "S06", "pending": 0, "ordinaryUnits": 1024, "checkpoints": 1, "finalPending": 1, "totalCost": 1025 }
+  ],
+  "sequenceRows": [
+    {
+      "id": "Q00",
+      "initialPending": 0,
+      "estimateUnits": 1023,
+      "estimateCheckpoints": 0,
+      "postEstimatePending": 1023,
+      "copyUnits": 1,
+      "copyCheckpoints": 1,
+      "copyTotalCost": 2,
+      "finalPending": 1,
+      "note": "Planning from the pre-estimation pending state would underreserve by one checkpoint."
+    },
+    {
+      "id": "Q01",
+      "initialPending": 1022,
+      "estimateUnits": 2,
+      "estimateCheckpoints": 1,
+      "postEstimatePending": 1,
+      "copyUnits": 1023,
+      "copyCheckpoints": 1,
+      "copyTotalCost": 1024,
+      "finalPending": 1,
+      "note": "The estimation walk is separately charged and cooperative."
+    }
+  ],
+  "payloadRows": [
+    { "id": "P00", "operationBytes": [], "payloadUnits": 0, "mergedUnits": 0 },
+    { "id": "P01", "operationBytes": [1], "payloadUnits": 1, "mergedUnits": 1 },
+    { "id": "P02", "operationBytes": [1024], "payloadUnits": 1, "mergedUnits": 1 },
+    { "id": "P03", "operationBytes": [1025], "payloadUnits": 2, "mergedUnits": 2 },
+    { "id": "P04", "operationBytes": [1023, 1], "payloadUnits": 2, "mergedUnits": 1 }
+  ],
+  "fragmentRows": [
+    {
+      "id": "F00",
+      "operationFragments": [[1023, 1]],
+      "payloadUnits": 1,
+      "naivePerFragmentUnits": 2,
+      "finalPartialBytes": [0]
+    },
+    {
+      "id": "F01",
+      "operationFragments": [[1024, 1]],
+      "payloadUnits": 2,
+      "naivePerFragmentUnits": 2,
+      "finalPartialBytes": [1]
+    },
+    {
+      "id": "F02",
+      "operationFragments": [[1023], [1]],
+      "payloadUnits": 2,
+      "naivePerFragmentUnits": 2,
+      "finalPartialBytes": [1023, 1]
+    }
+  ],
+  "admissionRows": [
+    { "id": "A00", "remaining": 1025, "required": 1025, "admitted": true },
+    { "id": "A01", "remaining": 1024, "required": 1025, "admitted": false }
+  ],
+  "stateRows": [
+    {
+      "id": "T00",
+      "kind": "abort-after-reservation",
+      "stepsBefore": 10,
+      "reserved": 3,
+      "stepsAfter": 13,
+      "refund": 0,
+      "published": false
+    },
+    {
+      "id": "T01",
+      "kind": "interleaving",
+      "reservationActive": true,
+      "attempt": "scanner-or-query-budget-use",
+      "classification": "INTERNAL_MISUSE_REJECTED"
+    },
+    {
+      "id": "T02",
+      "kind": "double-tick",
+      "reserved": 3,
+      "extraBudgetTickCharge": 1,
+      "observedBudgetMutation": 4,
+      "classification": "INTERNAL_ACCOUNTING_MISMATCH"
+    },
+    {
+      "id": "T03",
+      "kind": "safe-integer-overflow",
+      "pending": 1023,
+      "ordinaryUnits": 9007199254740991,
+      "classification": "CHECKED_ARITHMETIC_REFUSAL"
+    }
+  ]
+}

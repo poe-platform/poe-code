@@ -19,3 +19,10 @@
   No data/composition checks or owned child admissions followed that failure.
   The suffix moved to a separate paragraph. SEAL.json and its original source
   commit remain historical; SEAL-v2.json binds the corrected documentation.
+- Second validation at validation-iXhPl4kF: protocol passed; data controls were
+  15PASS/1FAIL because this author's redundant full-receipt count said11 rather
+  than the actual ten fields already accepted by the unchanged consumer helper.
+  Exact key/schema validation was not weakened. This preparation-only count
+  and its label/documentation are corrected; original candidate/frozen data and
+  consumer code are unchanged. No materialization child followed this failure.
+  Raw data-check-f2b97135-83c4-40f4-84e2-4d7dc586faaf evidence remains retained.

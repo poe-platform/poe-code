@@ -6,7 +6,7 @@
     "same-selected-origin-no-fake-commit",
     "packet-reference-and-hash-required",
     "independent-build-not-inherited",
-    "exact-eleven-field-consumer-schema",
+    "exact-ten-field-consumer-schema",
     "source-273-versus-271-and-map",
     "full-870-baseline-readme",
     "readonly-fixture-translation-preserved",

@@ -60,7 +60,7 @@ Each reference is exactly `{path,sha256}`, with an absolute path. Packet full an
 RESULT references equal COMPONENTS paths/hashes. Root's independently expected
 raw hash is a CLI input. Framework review is root-routed, not self-acceptance.
 
-Consumer schema1 remains the actual eleven fields: schema,sourceBase,
+Consumer schema1 remains the actual ten fields: schema,sourceBase,
 acceptedLength,candidateCommit,sourceAdditions,packageAdditions,packageDirectories,
 entries,allowedBuiltins,buildReceipt. Source-only schema has five fields. Exactly
 seven additions use `{sha256,bytes,mode:420}`. The packet needs no invented export

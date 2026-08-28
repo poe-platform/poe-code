@@ -58,9 +58,9 @@ const controls = {
     assert.equal(build.rootTrustedBuildReceipt, false);
     assert.throws(() => validateEnvelope({ ...envelope, buildProof: { classification: 'INDEPENDENT_REPRODUCTION_ROOT_ACCEPTED', receipt: fileRef } }, syntheticHash, pins), /Independent compilation/);
   },
-  'exact-eleven-field-consumer-schema': () => {
+  'exact-ten-field-consumer-schema': () => {
     guards.validateReceiptShape(receipt);
-    assert.equal(Object.keys(receipt).length, 11);
+    assert.equal(Object.keys(receipt).length, 10);
     assert.equal(receipt.candidateCommit, pins.author.sourceCommit);
     assert.deepEqual(receipt.buildReceipt, packetRef('buildReceipt'));
     assert.throws(() => guards.validateReceiptShape({ ...receipt, extra: true }), /RECEIPT_SCHEMA/);

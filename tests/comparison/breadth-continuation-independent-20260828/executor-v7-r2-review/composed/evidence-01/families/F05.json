@@ -1,0 +1,24 @@
+{
+  "identifier": "F05",
+  "status": "PASS",
+  "checks": 30,
+  "observation": {
+    "identifier": "positive-before",
+    "qualified": true,
+    "resultReference": {
+      "path": "RESULT.json",
+      "bytes": 5191,
+      "sha256": "6185d36d233c1d0599d0db5683ad258379396bc2aaf3946a9f2b419c11f100db",
+      "mode": 420
+    },
+    "wireSha256": "5a8639ae66ef7304ff900e000368b8ed760efb6b86ee0f7e2d5f0cfdfcbd6b8c",
+    "stdoutSha256": "51f2b64c6b8ddd7bf38a0a65d7b4a395f8d767c503071e2d5964240e855c1751",
+    "outerReference": {
+      "path": "OUTER.json",
+      "bytes": 928,
+      "sha256": "724bdc28a54d01a20e249e6a3498d9fcd3d76cea69ea4feb633bca56fc70a639",
+      "mode": 420
+    },
+    "seedPreserved": true
+  }
+}

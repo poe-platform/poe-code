@@ -1,0 +1,29 @@
+[
+  {
+    "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/evidence-01/configs",
+    "name": "child-001.json",
+    "sha256": "8228e6f48dc42d2dcc161fb82f1890f45d178efdb27b8dfe34dab296a0984a0a",
+    "length": 2097147,
+    "bytes": 2097150,
+    "expectedError": null,
+    "overFixtureGenericStore": false
+  },
+  {
+    "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/evidence-01/configs",
+    "name": "child-002.json",
+    "sha256": "3af5a0552d5d6fd8fa6b846e0fdc6c06cd3d3c02bccde8729323274bc6e6dbeb",
+    "length": 2097148,
+    "bytes": 2097151,
+    "expectedError": null,
+    "overFixtureGenericStore": false
+  },
+  {
+    "root": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/evidence-01/configs",
+    "name": "child-003.json",
+    "sha256": "6f2754fb38432068a7120f03310bc04e70f6ed7ca0b9e20009465903a317a591",
+    "length": 2097149,
+    "bytes": 2097152,
+    "expectedError": "REFERENCE_DOCUMENT",
+    "overFixtureGenericStore": true
+  }
+]

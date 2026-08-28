@@ -1,0 +1,33 @@
+{
+  "identifier": "F09",
+  "status": "PASS",
+  "checks": 34,
+  "observation": {
+    "identifier": "authority-repeated",
+    "qualified": false,
+    "primary": {
+      "phase": "body",
+      "value": {
+        "name": "Error",
+        "message": "COORDINATOR_NOT_QUALIFIED",
+        "code": "COORDINATOR_NOT_QUALIFIED"
+      },
+      "undefinedValue": false
+    },
+    "resultReference": {
+      "path": "RESULT.json",
+      "bytes": 5191,
+      "sha256": "6185d36d233c1d0599d0db5683ad258379396bc2aaf3946a9f2b419c11f100db",
+      "mode": 420
+    },
+    "wireSha256": "cecaf63f634bbc5225234dcb54e13ddb7d43bd2d68feb465d650622ac6361d4f",
+    "stdoutSha256": "51f2b64c6b8ddd7bf38a0a65d7b4a395f8d767c503071e2d5964240e855c1751",
+    "outerReference": {
+      "path": "OUTER.json",
+      "bytes": 1075,
+      "sha256": "291f78fdfa384e5d7632e5d2d9fb4573fbc9572fede9b87776ba67b97a7514d6",
+      "mode": 420
+    },
+    "seedPreserved": true
+  }
+}

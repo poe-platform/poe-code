@@ -1,0 +1,1 @@
+{"sequence":0,"kind":"final","report":{"mode":"admission","runId":"synthetic","status":"UNSAFE_STOP","unsafe":true,"result":{"path":"RESULT.json","bytes":1395,"sha256":"eef852e78af5760f655c9b09189f631828f3a2ace3a4109f023ad65644a4213a","mode":420},"children":0,"allChildrenReaped":true}}

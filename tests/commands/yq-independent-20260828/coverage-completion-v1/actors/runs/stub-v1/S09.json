@@ -1,0 +1,133 @@
+{
+  "role": "NOOP_STUB_NO_BUDGET_OR_PRODUCT_ALGORITHM",
+  "requested": [
+    [
+      "charge",
+      1023
+    ],
+    [
+      "reserve",
+      1
+    ],
+    [
+      "beforeUnit"
+    ],
+    [
+      "abandon"
+    ],
+    [
+      "close"
+    ]
+  ],
+  "result": {
+    "schema": 1,
+    "taskId": "stub/WRK-22/carry-reserve-abort",
+    "capture": {
+      "stdoutHex": "",
+      "stderrHex": "",
+      "status": null,
+      "rejected": false,
+      "rejection": null,
+      "effects": {
+        "before": [],
+        "after": []
+      },
+      "events": [
+        {
+          "index": 0,
+          "kind": "actor-input",
+          "actorKind": "WRK-22/carry-reserve-abort",
+          "executionRole": "SYNTHETIC_STUB_ONLY"
+        },
+        {
+          "index": 1,
+          "kind": "session-created"
+        },
+        {
+          "index": 2,
+          "kind": "declared-prefix-complete",
+          "ordinaryUnitsRequested": 1023,
+          "privatePendingObserved": false
+        },
+        {
+          "index": 3,
+          "kind": "private-call-begin",
+          "tag": "prepaid-before-unit-after-state-change"
+        },
+        {
+          "index": 4,
+          "kind": "private-call-settled",
+          "tag": "prepaid-before-unit-after-state-change",
+          "rejected": false
+        },
+        {
+          "index": 5,
+          "kind": "actor-terminal",
+          "captureComplete": true,
+          "elapsedMs": 0.2065000000000019
+        }
+      ],
+      "cleanupErrors": []
+    },
+    "observations": [
+      {
+        "bindingId": "WRK-22::missing/0",
+        "recordId": "WRK-22",
+        "role": "runtime",
+        "status": "OBSERVED",
+        "facts": {
+          "actorKind": "WRK-22/carry-reserve-abort",
+          "executionRole": "SYNTHETIC_STUB_ONLY",
+          "captureComplete": true,
+          "obligationComplete": false,
+          "scope": "partial actor facts; final original obligation classification belongs to core/assertions",
+          "calls": [
+            {
+              "tag": "prepaid-before-unit-after-state-change",
+              "rejected": false,
+              "rejection": null
+            }
+          ],
+          "privateCountersObserved": false,
+          "sessionCloseAwaited": true,
+          "timerOrBudgetSubstitution": false
+        },
+        "evidenceRefs": [
+          "capture:stub/WRK-22/carry-reserve-abort"
+        ]
+      },
+      {
+        "bindingId": "WRK-22::missing/1",
+        "recordId": "WRK-22",
+        "role": "runtime",
+        "status": "UNOBSERVED",
+        "facts": {
+          "actorKind": "WRK-22/carry-reserve-abort",
+          "executionRole": "SYNTHETIC_STUB_ONLY",
+          "captureComplete": true,
+          "obligationComplete": false,
+          "scope": "partial actor facts; final original obligation classification belongs to core/assertions",
+          "calls": [
+            {
+              "tag": "prepaid-before-unit-after-state-change",
+              "rejected": false,
+              "rejection": null
+            }
+          ],
+          "privateCountersObserved": false,
+          "sessionCloseAwaited": true,
+          "timerOrBudgetSubstitution": false
+        },
+        "evidenceRefs": [
+          "capture:stub/WRK-22/carry-reserve-abort"
+        ]
+      }
+    ],
+    "local": null,
+    "localIdentityFacts": {
+      "selectedIsCaller": false,
+      "selectedIsHost": false,
+      "hasHarnessFailure": false
+    }
+  }
+}

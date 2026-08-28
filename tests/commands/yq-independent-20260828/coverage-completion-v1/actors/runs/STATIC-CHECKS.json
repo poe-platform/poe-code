@@ -1,0 +1,139 @@
+{
+  "schema": 1,
+  "status": "PASS_STATIC_ONLY",
+  "sourceCommit": "8f590e683793eff538e2a28db18921715faf4121",
+  "sourcePresealSha256": "1231f252f450334f42aae228a272fc3c55fbd14aa571a4be8f363036f0f54bcc",
+  "captures": [
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/capture-actor.mjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null,
+      "elapsedNs": "28496041",
+      "role": "SYNTAX_ONLY"
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/capture-host.mjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null,
+      "elapsedNs": "27148792",
+      "role": "SYNTAX_ONLY"
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/catalogue.mjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null,
+      "elapsedNs": "28866125",
+      "role": "SYNTAX_ONLY"
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/fixtures.mjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null,
+      "elapsedNs": "26980500",
+      "role": "SYNTAX_ONLY"
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/own-data.mjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null,
+      "elapsedNs": "27748791",
+      "role": "SYNTAX_ONLY"
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/private-actors.mjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null,
+      "elapsedNs": "26984125",
+      "role": "SYNTAX_ONLY"
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/run-stubs.mjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null,
+      "elapsedNs": "27254709",
+      "role": "SYNTAX_ONLY"
+    },
+    {
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/synthetic-driver.mjs"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "error": null,
+      "elapsedNs": "24955041",
+      "role": "SYNTAX_ONLY"
+    },
+    {
+      "argv": [
+        "python3",
+        "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/SPECIFICATION.md"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "OK: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/SPECIFICATION.md (0 warning(s))\n",
+      "stderr": "",
+      "error": null,
+      "elapsedNs": "98604333",
+      "role": "DOCUMENT_LINT_ONLY"
+    }
+  ],
+  "sourceIntegrity": true,
+  "sourceError": null,
+  "candidateExecutions": 0,
+  "compilerExecutions": 0,
+  "staticChecksAreTargetEvidence": false
+}

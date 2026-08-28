@@ -1,0 +1,175 @@
+{
+  "role": "NOOP_FACTORY_STUB_NOT_PLUGIN_VALIDATION",
+  "optionsKinds": [
+    "object",
+    "object",
+    "object",
+    "null"
+  ],
+  "result": {
+    "schema": 1,
+    "taskId": "stub/TYP-05/options",
+    "capture": {
+      "stdoutHex": "",
+      "stderrHex": "",
+      "status": null,
+      "rejected": false,
+      "rejection": null,
+      "effects": {
+        "before": [],
+        "after": []
+      },
+      "events": [
+        {
+          "index": 0,
+          "kind": "actor-input",
+          "actorKind": "TYP-05/options",
+          "executionRole": "SYNTHETIC_STUB_ONLY"
+        },
+        {
+          "index": 1,
+          "kind": "factory-call-begin",
+          "tag": "getter-true"
+        },
+        {
+          "index": 2,
+          "kind": "factory-call-settled",
+          "tag": "getter-true",
+          "rejected": false
+        },
+        {
+          "index": 3,
+          "kind": "factory-call-begin",
+          "tag": "invalid-replace"
+        },
+        {
+          "index": 4,
+          "kind": "factory-call-settled",
+          "tag": "invalid-replace",
+          "rejected": false
+        },
+        {
+          "index": 5,
+          "kind": "factory-call-begin",
+          "tag": "unknown-own-key"
+        },
+        {
+          "index": 6,
+          "kind": "factory-call-settled",
+          "tag": "unknown-own-key",
+          "rejected": false
+        },
+        {
+          "index": 7,
+          "kind": "factory-call-begin",
+          "tag": "null-options"
+        },
+        {
+          "index": 8,
+          "kind": "factory-call-settled",
+          "tag": "null-options",
+          "rejected": false
+        },
+        {
+          "index": 9,
+          "kind": "actor-terminal",
+          "captureComplete": true,
+          "elapsedMs": 0.10500000000000043
+        }
+      ],
+      "cleanupErrors": []
+    },
+    "observations": [
+      {
+        "bindingId": "TYP-05::missing/0",
+        "recordId": "TYP-05",
+        "role": "runtime",
+        "status": "OBSERVED",
+        "facts": {
+          "actorKind": "TYP-05/options",
+          "executionRole": "SYNTHETIC_STUB_ONLY",
+          "captureComplete": true,
+          "obligationComplete": false,
+          "scope": "partial actor facts; final original obligation classification belongs to core/assertions",
+          "calls": [
+            {
+              "tag": "getter-true",
+              "rejected": false,
+              "rejection": null
+            },
+            {
+              "tag": "invalid-replace",
+              "rejected": false,
+              "rejection": null
+            },
+            {
+              "tag": "unknown-own-key",
+              "rejected": false,
+              "rejection": null
+            },
+            {
+              "tag": "null-options",
+              "rejected": false,
+              "rejection": null
+            }
+          ],
+          "getterReads": 0,
+          "registrations": [],
+          "snapshots": [],
+          "hostRole": "scoped actor registry, not root public export integration"
+        },
+        "evidenceRefs": [
+          "capture:stub/TYP-05/options"
+        ]
+      },
+      {
+        "bindingId": "TYP-05::missing/1",
+        "recordId": "TYP-05",
+        "role": "runtime",
+        "status": "UNOBSERVED",
+        "facts": {
+          "actorKind": "TYP-05/options",
+          "executionRole": "SYNTHETIC_STUB_ONLY",
+          "captureComplete": true,
+          "obligationComplete": false,
+          "scope": "partial actor facts; final original obligation classification belongs to core/assertions",
+          "calls": [
+            {
+              "tag": "getter-true",
+              "rejected": false,
+              "rejection": null
+            },
+            {
+              "tag": "invalid-replace",
+              "rejected": false,
+              "rejection": null
+            },
+            {
+              "tag": "unknown-own-key",
+              "rejected": false,
+              "rejection": null
+            },
+            {
+              "tag": "null-options",
+              "rejected": false,
+              "rejection": null
+            }
+          ],
+          "getterReads": 0,
+          "registrations": [],
+          "snapshots": [],
+          "hostRole": "scoped actor registry, not root public export integration"
+        },
+        "evidenceRefs": [
+          "capture:stub/TYP-05/options"
+        ]
+      }
+    ],
+    "local": null,
+    "localIdentityFacts": {
+      "selectedIsCaller": false,
+      "selectedIsHost": false,
+      "hasHarnessFailure": false
+    }
+  }
+}

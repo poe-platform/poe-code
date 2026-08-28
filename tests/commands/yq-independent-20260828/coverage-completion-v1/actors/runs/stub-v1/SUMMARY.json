@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "status": "PASS_SYNTHETIC_COMPONENT_ONLY",
+  "rows": [
+    {
+      "id": "S01",
+      "status": "PASS_SYNTHETIC_ACTOR_COMPONENT_ONLY"
+    },
+    {
+      "id": "S02",
+      "status": "PASS_SYNTHETIC_ACTOR_COMPONENT_ONLY"
+    },
+    {
+      "id": "S03",
+      "status": "PASS_SYNTHETIC_ACTOR_COMPONENT_ONLY"
+    },
+    {
+      "id": "S04",
+      "status": "PASS_SYNTHETIC_ACTOR_COMPONENT_ONLY"
+    },
+    {
+      "id": "S05",
+      "status": "PASS_SYNTHETIC_ACTOR_COMPONENT_ONLY"
+    },
+    {
+      "id": "S06",
+      "status": "PASS_SYNTHETIC_ACTOR_COMPONENT_ONLY"
+    },
+    {
+      "id": "S07",
+      "status": "PASS_SYNTHETIC_ACTOR_COMPONENT_ONLY"
+    },
+    {
+      "id": "S08",
+      "status": "PASS_SYNTHETIC_ACTOR_COMPONENT_ONLY"
+    },
+    {
+      "id": "S09",
+      "status": "PASS_SYNTHETIC_ACTOR_COMPONENT_ONLY"
+    },
+    {
+      "id": "S10",
+      "status": "PASS_SYNTHETIC_ACTOR_COMPONENT_ONLY"
+    }
+  ],
+  "targetExecutions": 0,
+  "compilerExecutions": 0,
+  "productAlgorithmStubs": 0,
+  "fixtureOrParserClaims": 0
+}

@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "role": "SYNTHETIC_COMPONENT_PARENT_ONLY",
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/synthetic-driver.mjs",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/runs/stub-v1/"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/",
+  "pid": 31285,
+  "exitCode": 0,
+  "signal": null,
+  "error": null,
+  "elapsedNs": "46983875",
+  "synchronousWaitReturned": true,
+  "knownReap": true,
+  "stdout": {
+    "bytes": 37,
+    "sha256": "3761f01e108aa237fdf144a74b1c18a5e8a8e878cf8b238664d3b3ec6be7bc61"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "integrity": true,
+  "integrityError": null,
+  "candidateExecutions": 0,
+  "compilerExecutions": 0,
+  "childDescendantsDeclared": 0
+}

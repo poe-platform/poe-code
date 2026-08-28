@@ -1,0 +1,243 @@
+{
+  "role": "STUB_REUSE_HOST_ONLY_NO_RETENTION_PROOF",
+  "result": {
+    "schema": 1,
+    "taskId": "stub/UTF-22/producer-reuse",
+    "capture": {
+      "stdoutHex": "535455420a",
+      "stderrHex": "",
+      "status": 0,
+      "rejected": false,
+      "rejection": null,
+      "effects": {
+        "before": [],
+        "after": []
+      },
+      "events": [
+        {
+          "index": 0,
+          "kind": "actor-input",
+          "actorKind": "UTF-22/producer-reuse",
+          "executionRole": "SYNTHETIC_STUB_ONLY",
+          "argvEntries": 4,
+          "argvUtf8Bytes": 9,
+          "argvSha256": "a69244e61d6e3f0e483d1a1d065b87f86e3bd11c41a921b9bc913d69f4c71a3d",
+          "inputBytes": 6,
+          "inputSha256": "f109b002d2f351fa534341fcb7d18145d187efd8a47fc21539f8395a7a85d0d6",
+          "chunkBytes": [
+            2,
+            2,
+            2
+          ],
+          "producerReuse": true
+        },
+        {
+          "index": 1,
+          "kind": "factory-call"
+        },
+        {
+          "index": 2,
+          "kind": "command-execute"
+        },
+        {
+          "index": 3,
+          "kind": "iterator-acquire",
+          "name": "<stdin>"
+        },
+        {
+          "index": 4,
+          "kind": "iterator-next",
+          "name": "<stdin>",
+          "offset": 0
+        },
+        {
+          "index": 5,
+          "kind": "producer-overwrite",
+          "name": "<stdin>",
+          "stage": "before-yield",
+          "offset": 0,
+          "hex": "7878"
+        },
+        {
+          "index": 6,
+          "kind": "iterator-next",
+          "name": "<stdin>",
+          "offset": 1
+        },
+        {
+          "index": 7,
+          "kind": "producer-overwrite",
+          "name": "<stdin>",
+          "stage": "before-yield",
+          "offset": 1,
+          "hex": "7878"
+        },
+        {
+          "index": 8,
+          "kind": "iterator-next",
+          "name": "<stdin>",
+          "offset": 2
+        },
+        {
+          "index": 9,
+          "kind": "producer-overwrite",
+          "name": "<stdin>",
+          "stage": "before-yield",
+          "offset": 2,
+          "hex": "7878"
+        },
+        {
+          "index": 10,
+          "kind": "iterator-next",
+          "name": "<stdin>",
+          "offset": 3
+        },
+        {
+          "index": 11,
+          "kind": "producer-overwrite",
+          "name": "<stdin>",
+          "stage": "terminal-next",
+          "hex": "7878"
+        },
+        {
+          "index": 12,
+          "kind": "iterator-return",
+          "name": "<stdin>",
+          "returned": 1
+        },
+        {
+          "index": 13,
+          "kind": "sink-write-begin",
+          "name": "stdout",
+          "bytes": 5
+        },
+        {
+          "index": 14,
+          "kind": "sink-bytes-retained",
+          "name": "stdout",
+          "attempted": 5,
+          "accepted": 5
+        },
+        {
+          "index": 15,
+          "kind": "sink-write-end",
+          "name": "stdout"
+        },
+        {
+          "index": 16,
+          "kind": "command-settled",
+          "rejected": false,
+          "status": 0
+        },
+        {
+          "index": 17,
+          "kind": "actor-terminal",
+          "captureComplete": true,
+          "elapsedMs": 0.3686670000000021
+        }
+      ],
+      "cleanupErrors": []
+    },
+    "observations": [
+      {
+        "bindingId": "UTF-22--whole::expected/status",
+        "recordId": "UTF-22",
+        "role": "runtime",
+        "status": "UNOBSERVED",
+        "facts": {
+          "actorKind": "UTF-22/producer-reuse",
+          "executionRole": "SYNTHETIC_STUB_ONLY",
+          "captureComplete": true,
+          "obligationComplete": false,
+          "scope": "partial actor facts; final original obligation classification belongs to core/assertions",
+          "argvEntries": 4,
+          "argvUtf8Bytes": 9,
+          "argvSha256": "a69244e61d6e3f0e483d1a1d065b87f86e3bd11c41a921b9bc913d69f4c71a3d",
+          "inputBytes": 6,
+          "inputSha256": "f109b002d2f351fa534341fcb7d18145d187efd8a47fc21539f8395a7a85d0d6",
+          "chunkBytes": [
+            2,
+            2,
+            2
+          ],
+          "producerReuse": true,
+          "sameCallerReason": false,
+          "sameHostReason": false,
+          "sameSinkReason": false,
+          "ownershipObserved": false
+        },
+        "evidenceRefs": [
+          "capture:stub/UTF-22/producer-reuse"
+        ]
+      },
+      {
+        "bindingId": "UTF-22--whole::expected/stdoutUtf8",
+        "recordId": "UTF-22",
+        "role": "runtime",
+        "status": "UNOBSERVED",
+        "facts": {
+          "actorKind": "UTF-22/producer-reuse",
+          "executionRole": "SYNTHETIC_STUB_ONLY",
+          "captureComplete": true,
+          "obligationComplete": false,
+          "scope": "partial actor facts; final original obligation classification belongs to core/assertions",
+          "argvEntries": 4,
+          "argvUtf8Bytes": 9,
+          "argvSha256": "a69244e61d6e3f0e483d1a1d065b87f86e3bd11c41a921b9bc913d69f4c71a3d",
+          "inputBytes": 6,
+          "inputSha256": "f109b002d2f351fa534341fcb7d18145d187efd8a47fc21539f8395a7a85d0d6",
+          "chunkBytes": [
+            2,
+            2,
+            2
+          ],
+          "producerReuse": true,
+          "sameCallerReason": false,
+          "sameHostReason": false,
+          "sameSinkReason": false,
+          "ownershipObserved": false
+        },
+        "evidenceRefs": [
+          "capture:stub/UTF-22/producer-reuse"
+        ]
+      },
+      {
+        "bindingId": "UTF-22--whole::expected/assertions/0",
+        "recordId": "UTF-22",
+        "role": "runtime",
+        "status": "UNOBSERVED",
+        "facts": {
+          "actorKind": "UTF-22/producer-reuse",
+          "executionRole": "SYNTHETIC_STUB_ONLY",
+          "captureComplete": true,
+          "obligationComplete": false,
+          "scope": "partial actor facts; final original obligation classification belongs to core/assertions",
+          "argvEntries": 4,
+          "argvUtf8Bytes": 9,
+          "argvSha256": "a69244e61d6e3f0e483d1a1d065b87f86e3bd11c41a921b9bc913d69f4c71a3d",
+          "inputBytes": 6,
+          "inputSha256": "f109b002d2f351fa534341fcb7d18145d187efd8a47fc21539f8395a7a85d0d6",
+          "chunkBytes": [
+            2,
+            2,
+            2
+          ],
+          "producerReuse": true,
+          "sameCallerReason": false,
+          "sameHostReason": false,
+          "sameSinkReason": false,
+          "ownershipObserved": false
+        },
+        "evidenceRefs": [
+          "capture:stub/UTF-22/producer-reuse"
+        ]
+      }
+    ],
+    "local": null,
+    "localIdentityFacts": {
+      "selectedIsCaller": false,
+      "selectedIsHost": false,
+      "hasHarnessFailure": false
+    }
+  }
+}

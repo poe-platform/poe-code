@@ -268,7 +268,8 @@ export async function snapshotState(state: State, clone: () => State, signal: Ab
   let result: StateMonitor | undefined;
   try {
     owner.reserve({ metadata: 512, work: 32, epoch: true });
-    for (const key of Object.keys(state.variables)) {
+    for (const key in state.variables) {
+      if (!Object.hasOwn(state.variables, key)) continue;
       check();
       owner.reserve({ slots: 1, metadata: 32, work: 4 });
       await textToken(owner, key, signal);

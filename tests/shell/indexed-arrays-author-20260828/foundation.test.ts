@@ -204,7 +204,7 @@ test("foundation: actual public zero B/F limits retain scalar-only execution", {
     assert.match(bytes.stderr, /private payload limit/u);
     const fields = await instance.exec("a=()", { limits: { maxExpansionFields: 1 } });
     assert.equal(fields.exitCode, 1);
-    assert.match(fields.stderr, /private metadata limit/u);
+    assert.match(fields.stderr, /private Map slot limit/u);
   } finally { await instance.dispose(); }
 });
 

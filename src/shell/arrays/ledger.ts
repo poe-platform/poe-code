@@ -238,7 +238,11 @@ export class ArrayOwner {
       if (this.#holds) await this.#idle;
       this.#releasing = true;
     }
-    while (this.#firstChild) await this.#firstChild.close();
+    while (this.#firstChild) {
+      await this.#firstChild.close();
+      const checkpoint = this.ledger.checkpoint();
+      if (checkpoint) await checkpoint;
+    }
     while (this.#head) {
       this.#head.release();
       const checkpoint = this.ledger.checkpoint();

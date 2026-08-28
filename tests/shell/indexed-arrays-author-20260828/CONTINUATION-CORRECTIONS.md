@@ -18,3 +18,20 @@ captures are rewritten; these are author development outcomes, not acceptance.
   assignment-only `scalar=` (empty scalar RHS, no command argv); keep the public
   array zero-B/tiny-F assertions unchanged. This is an explicit author expectation
   correction, not a product fix or oracle rebaseline.
+- hwmqBj / d1f79258: 23/23 source groups; installed and physically moved strict
+  public consumers passed six foundation flows each. The inspected readBytes API
+  is an async generator; the consumer uses bounded iteration, not a proposed
+  collector signature. Negative public type controls failed compilation as intended.
+- sAIOg1 / f2bea0ee: 27/27 source groups, 48 public Shell.exec calls; ten actually
+  loaded mutants failed their targeted assertions. Installed/moved consumers and
+  negative public type controls passed their respective expectations.
+- MB5NJY / 8635b0b8: build failed because moving sourceDepth restoration into a
+  closure lost TypeScript's optional-field narrowing. e9acdb17 captures the original
+  scalar depth before publication and restores that identity; no expected output
+  changed and no timeout was increased.
+- l9Y6zk / e9acdb17: build/strict passed; 27/28 groups passed, 49 public exec calls.
+  Newly accounting the private state/proxy WeakMap entries under F makes the
+  maxExpansionFields=1 case refuse at Map-slot admission before metadata admission.
+  Update only that exact expected diagnostic from private metadata to private Map
+  slot. This follows the unchanged seven-counter refusal order and is not a blanket
+  diagnostic relaxation. Preserve the original failing capture.

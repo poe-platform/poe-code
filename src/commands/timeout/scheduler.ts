@@ -8,7 +8,6 @@ export interface SchedulerBinding {
   readonly setTimeout: TimeoutScheduler["setTimeout"];
   readonly clearTimeout: TimeoutScheduler["clearTimeout"];
 }
-
 export const defaultSchedulerBinding: SchedulerBinding = Object.freeze({
   receiver: undefined,
   now: performance.now,
@@ -124,4 +123,3 @@ export function createDeadline(binding: SchedulerBinding, duration: number, maxi
     },
   };
 }
-

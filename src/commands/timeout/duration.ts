@@ -12,7 +12,6 @@ function multiplier(code: number): number | undefined {
   if (code === 100) return 86400000;
   return undefined;
 }
-
 export function parseDuration(token: string): DurationResult {
   const length = token.length;
   const suffixCode = token.charCodeAt(length - 1);
@@ -73,4 +72,3 @@ export function parseDuration(token: string): DurationResult {
   if (fraction > maximumMilliseconds - product) return { kind: "overflow" };
   return { kind: "value", milliseconds: product + fraction };
 }
-

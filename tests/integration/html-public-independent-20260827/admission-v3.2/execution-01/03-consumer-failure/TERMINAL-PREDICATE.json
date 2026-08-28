@@ -1,0 +1,5 @@
+{
+  "accepted": true,
+  "reason": "structured-closed-consumer-EPIPE",
+  "terminal": "exit1/EPIPE"
+}

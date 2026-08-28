@@ -1,0 +1,77 @@
+{
+  "declaration": {
+    "name": "timeout-reason-lost-rejected",
+    "control": "timeout",
+    "mutation": "reason",
+    "expected": false
+  },
+  "record": {
+    "control": "timeout",
+    "forwardedFailureCode": "WRONG_REASON",
+    "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_TIMEOUT",
+    "producer": {
+      "value": {
+        "status": null,
+        "signal": "SIGTERM"
+      }
+    },
+    "consumer": {
+      "value": {
+        "failure": {
+          "code": "V3_TIMEOUT",
+          "message": "CONTROL_BOUNDARY:V3_TIMEOUT",
+          "process": {
+            "status": null,
+            "signal": "SIGTERM"
+          }
+        },
+        "orderedObservation": {
+          "completed": true,
+          "error": null,
+          "sameFailureObject": true,
+          "signalAccepted": true,
+          "exit": {
+            "status": null,
+            "signal": "SIGTERM"
+          },
+          "close": {
+            "status": null,
+            "signal": "SIGTERM"
+          },
+          "events": [
+            {
+              "type": "stop-request",
+              "sequence": 1,
+              "pipeDestroyed": false
+            },
+            {
+              "type": "producer-exit",
+              "sequence": 2,
+              "pipeDestroyed": false
+            },
+            {
+              "type": "owned-pipe-destroy",
+              "sequence": 3,
+              "pipeDestroyed": false
+            },
+            {
+              "type": "producer-close",
+              "sequence": 4,
+              "pipeDestroyed": false
+            },
+            {
+              "type": "throw-original",
+              "sequence": 5,
+              "pipeDestroyed": false
+            },
+            {
+              "type": "core-settled",
+              "sequence": 6,
+              "pipeDestroyed": false
+            }
+          ]
+        }
+      }
+    }
+  }
+}

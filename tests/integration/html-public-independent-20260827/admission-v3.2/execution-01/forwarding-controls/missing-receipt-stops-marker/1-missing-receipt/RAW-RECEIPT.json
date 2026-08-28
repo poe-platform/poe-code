@@ -1,0 +1,31 @@
+{
+  "mode": "missing-receipt",
+  "pid": 87790,
+  "receipt": null,
+  "signals": [],
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "error": null,
+  "startedAt": "2026-08-28T00:16:28.892Z",
+  "assertionState": "not evaluated",
+  "elapsedMs": 36.82658299999821,
+  "closeObserved": true,
+  "pidState": "absent",
+  "groupMembers": [],
+  "receiptError": {
+    "name": "Error",
+    "code": "ENOENT",
+    "message": "ENOENT: no such file or directory, open '/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/execution-01/forwarding-controls/missing-receipt-stops-marker/1-missing-receipt/child.receipt.json'",
+    "stack": "Error: ENOENT: no such file or directory, open '/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/execution-01/forwarding-controls/missing-receipt-stops-marker/1-missing-receipt/child.receipt.json'\n    at readFileSync (node:fs:440:20)\n    at readJson (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/telemetry.mjs:19:44)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-controls.mjs:54:27\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async runIndependent (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/aggregation.mjs:10:17)\n    at async runForwardingControls (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-controls.mjs:18:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/coordinator.mjs:24:20",
+    "process": null
+  },
+  "bindingHash": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+  "originalBindingHash": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+  "markerPresent": false
+}

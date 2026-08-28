@@ -1,0 +1,19 @@
+{
+  "at": "2026-08-28T00:15:58.249Z",
+  "authorityDate": "2026-08-27",
+  "freeze": "e27a62c40a317deae83fc1ef9d41d57f38d7d51d",
+  "manifestSha256": "968c52402f4c10507fb7c5410b33086bba33e7209b7030b42e7859b4c85c1980",
+  "invocation": 1,
+  "retriesAuthorized": 0,
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "argv": [
+    "tests/integration/html-public-independent-20260827/admission-v3.2/recipe/coordinator.mjs",
+    "e27a62c40a317deae83fc1ef9d41d57f38d7d51d",
+    "968c52402f4c10507fb7c5410b33086bba33e7209b7030b42e7859b4c85c1980",
+    "tests/integration/html-public-independent-20260827/admission-v3.2/execution-01"
+  ],
+  "environmentUnset": [
+    "NODE_OPTIONS",
+    "NODE_PATH"
+  ]
+}

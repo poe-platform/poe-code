@@ -1,0 +1,5 @@
+{
+  "control": "allocation-mutant",
+  "outcome": "expected-control-outcome",
+  "productPass": false
+}

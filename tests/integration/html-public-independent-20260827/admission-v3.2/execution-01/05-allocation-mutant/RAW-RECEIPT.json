@@ -1,0 +1,1239 @@
+{
+  "control": "allocation-mutant",
+  "started": "2026-08-28T00:17:02.673Z",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--max-old-space-size=96",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/worker.mjs",
+    "allocation-mutant",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/execution-01/05-allocation-mutant"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "env": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/execution-01/05-allocation-mutant/tmp",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/execution-01/05-allocation-mutant/tmp",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "freeze": "e27a62c40a317deae83fc1ef9d41d57f38d7d51d",
+  "manifestSha256": "968c52402f4c10507fb7c5410b33086bba33e7209b7030b42e7859b4c85c1980",
+  "signalsSent": [
+    {
+      "type": "signal-child",
+      "pid": 89725,
+      "signal": "SIGTERM",
+      "reason": "allocation mutant reached absolute RSS boundary; receipt and producer settlement complete",
+      "signalAccepted": true
+    }
+  ],
+  "messages": [
+    {
+      "type": "ready",
+      "producer": {
+        "pid": 89727,
+        "ppid": 89725,
+        "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "execArgv": [
+          "--max-old-space-size=96",
+          "--import",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/producer-observer.mjs"
+        ],
+        "memory": {
+          "baseline": {
+            "rss": 45252608,
+            "heapTotal": 5652480,
+            "heapUsed": 4871352,
+            "external": 1962447,
+            "arrayBuffers": 16655
+          },
+          "fieldwisePeaks": {
+            "rss": 45252608,
+            "heapTotal": 5652480,
+            "heapUsed": 4871352,
+            "external": 1962447,
+            "arrayBuffers": 16655
+          },
+          "latest": {
+            "rss": 45252608,
+            "heapTotal": 5652480,
+            "heapUsed": 4871352,
+            "external": 1962447,
+            "arrayBuffers": 16655
+          },
+          "samples": 0,
+          "fieldsUnit": "bytes",
+          "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 3,
+        "memory": {
+          "rss": 62357504,
+          "heapTotal": 6963200,
+          "heapUsed": 5380288,
+          "external": 10638153,
+          "arrayBuffers": 8491120
+        },
+        "flow": {
+          "chunks": 1,
+          "bytes": 65536,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 1,
+          "retainedBytes": 8388608,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 4,
+        "memory": {
+          "rss": 70942720,
+          "heapTotal": 6963200,
+          "heapUsed": 5422456,
+          "external": 19092324,
+          "arrayBuffers": 16945291
+        },
+        "flow": {
+          "chunks": 2,
+          "bytes": 131072,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 2,
+          "retainedBytes": 16777216,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 5,
+        "memory": {
+          "rss": 79413248,
+          "heapTotal": 6963200,
+          "heapUsed": 5436848,
+          "external": 27546488,
+          "arrayBuffers": 25399455
+        },
+        "flow": {
+          "chunks": 3,
+          "bytes": 196608,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 3,
+          "retainedBytes": 25165824,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 6,
+        "memory": {
+          "rss": 88293376,
+          "heapTotal": 7487488,
+          "heapUsed": 5168544,
+          "external": 35857587,
+          "arrayBuffers": 33710554
+        },
+        "flow": {
+          "chunks": 4,
+          "bytes": 262144,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 4,
+          "retainedBytes": 33554432,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 7,
+        "memory": {
+          "rss": 96878592,
+          "heapTotal": 7749632,
+          "heapUsed": 5150480,
+          "external": 44246195,
+          "arrayBuffers": 42099162
+        },
+        "flow": {
+          "chunks": 5,
+          "bytes": 327680,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 5,
+          "retainedBytes": 41943040,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 8,
+        "memory": {
+          "rss": 105283584,
+          "heapTotal": 7749632,
+          "heapUsed": 5173856,
+          "external": 52700359,
+          "arrayBuffers": 50553326
+        },
+        "flow": {
+          "chunks": 6,
+          "bytes": 393216,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 6,
+          "retainedBytes": 50331648,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 9,
+        "memory": {
+          "rss": 113770496,
+          "heapTotal": 7749632,
+          "heapUsed": 5195624,
+          "external": 61154523,
+          "arrayBuffers": 59007490
+        },
+        "flow": {
+          "chunks": 7,
+          "bytes": 458752,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 7,
+          "retainedBytes": 58720256,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 10,
+        "memory": {
+          "rss": 121585664,
+          "heapTotal": 6701056,
+          "heapUsed": 4892296,
+          "external": 69346427,
+          "arrayBuffers": 67199394
+        },
+        "flow": {
+          "chunks": 8,
+          "bytes": 524288,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 8,
+          "retainedBytes": 67108864,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 11,
+        "memory": {
+          "rss": 130023424,
+          "heapTotal": 6701056,
+          "heapUsed": 4955488,
+          "external": 77800591,
+          "arrayBuffers": 75653558
+        },
+        "flow": {
+          "chunks": 9,
+          "bytes": 589824,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 9,
+          "retainedBytes": 75497472,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 12,
+        "memory": {
+          "rss": 138477568,
+          "heapTotal": 6701056,
+          "heapUsed": 4997192,
+          "external": 86254755,
+          "arrayBuffers": 84107722
+        },
+        "flow": {
+          "chunks": 10,
+          "bytes": 655360,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 10,
+          "retainedBytes": 83886080,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 13,
+        "memory": {
+          "rss": 146882560,
+          "heapTotal": 6701056,
+          "heapUsed": 5010808,
+          "external": 94708919,
+          "arrayBuffers": 92561886
+        },
+        "flow": {
+          "chunks": 11,
+          "bytes": 720896,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 11,
+          "retainedBytes": 92274688,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 14,
+        "memory": {
+          "rss": 155467776,
+          "heapTotal": 8011776,
+          "heapUsed": 4970840,
+          "external": 102966395,
+          "arrayBuffers": 100819362
+        },
+        "flow": {
+          "chunks": 12,
+          "bytes": 786432,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 12,
+          "retainedBytes": 100663296,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 15,
+        "memory": {
+          "rss": 163889152,
+          "heapTotal": 8011776,
+          "heapUsed": 4993304,
+          "external": 111420559,
+          "arrayBuffers": 109273526
+        },
+        "flow": {
+          "chunks": 13,
+          "bytes": 851968,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 13,
+          "retainedBytes": 109051904,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 16,
+        "memory": {
+          "rss": 172310528,
+          "heapTotal": 8011776,
+          "heapUsed": 5012856,
+          "external": 119874723,
+          "arrayBuffers": 117727690
+        },
+        "flow": {
+          "chunks": 14,
+          "bytes": 917504,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 14,
+          "retainedBytes": 117440512,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 17,
+        "memory": {
+          "rss": 180731904,
+          "heapTotal": 8011776,
+          "heapUsed": 5026008,
+          "external": 128328887,
+          "arrayBuffers": 126181854
+        },
+        "flow": {
+          "chunks": 15,
+          "bytes": 983040,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 15,
+          "retainedBytes": 125829120,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 18,
+        "memory": {
+          "rss": 189153280,
+          "heapTotal": 8011776,
+          "heapUsed": 5022496,
+          "external": 136651919,
+          "arrayBuffers": 134504886
+        },
+        "flow": {
+          "chunks": 16,
+          "bytes": 1048576,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 16,
+          "retainedBytes": 134217728,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 19,
+        "memory": {
+          "rss": 197558272,
+          "heapTotal": 8011776,
+          "heapUsed": 5035528,
+          "external": 145106083,
+          "arrayBuffers": 142959050
+        },
+        "flow": {
+          "chunks": 17,
+          "bytes": 1114112,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 17,
+          "retainedBytes": 142606336,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 20,
+        "memory": {
+          "rss": 205963264,
+          "heapTotal": 8011776,
+          "heapUsed": 5048920,
+          "external": 153560247,
+          "arrayBuffers": 151413214
+        },
+        "flow": {
+          "chunks": 18,
+          "bytes": 1179648,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 18,
+          "retainedBytes": 150994944,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 21,
+        "memory": {
+          "rss": 214319104,
+          "heapTotal": 6963200,
+          "heapUsed": 4979680,
+          "external": 161621115,
+          "arrayBuffers": 159474082
+        },
+        "flow": {
+          "chunks": 19,
+          "bytes": 1245184,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 19,
+          "retainedBytes": 159383552,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 22,
+        "memory": {
+          "rss": 222724096,
+          "heapTotal": 6963200,
+          "heapUsed": 4999896,
+          "external": 170075279,
+          "arrayBuffers": 167928246
+        },
+        "flow": {
+          "chunks": 20,
+          "bytes": 1310720,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 20,
+          "retainedBytes": 167772160,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 23,
+        "memory": {
+          "rss": 231227392,
+          "heapTotal": 6963200,
+          "heapUsed": 5012928,
+          "external": 178529443,
+          "arrayBuffers": 176382410
+        },
+        "flow": {
+          "chunks": 21,
+          "bytes": 1376256,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 21,
+          "retainedBytes": 176160768,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 24,
+        "memory": {
+          "rss": 239681536,
+          "heapTotal": 6963200,
+          "heapUsed": 5025960,
+          "external": 186983607,
+          "arrayBuffers": 184836574
+        },
+        "flow": {
+          "chunks": 22,
+          "bytes": 1441792,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 22,
+          "retainedBytes": 184549376,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 25,
+        "memory": {
+          "rss": 248086528,
+          "heapTotal": 6963200,
+          "heapUsed": 5038992,
+          "external": 195437771,
+          "arrayBuffers": 193290738
+        },
+        "flow": {
+          "chunks": 23,
+          "bytes": 1507328,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 23,
+          "retainedBytes": 192937984,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 26,
+        "memory": {
+          "rss": 256606208,
+          "heapTotal": 8011776,
+          "heapUsed": 5023768,
+          "external": 203695247,
+          "arrayBuffers": 201548214
+        },
+        "flow": {
+          "chunks": 24,
+          "bytes": 1572864,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 24,
+          "retainedBytes": 201326592,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 27,
+        "memory": {
+          "rss": 265011200,
+          "heapTotal": 8011776,
+          "heapUsed": 5036800,
+          "external": 212149411,
+          "arrayBuffers": 210002378
+        },
+        "flow": {
+          "chunks": 25,
+          "bytes": 1638400,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 25,
+          "retainedBytes": 209715200,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "allocation",
+      "row": {
+        "type": "memory",
+        "role": "fresh-consumer",
+        "pid": 89725,
+        "ppid": 86238,
+        "phase": "allocation-retained",
+        "sample": 28,
+        "memory": {
+          "rss": 273416192,
+          "heapTotal": 8011776,
+          "heapUsed": 5049832,
+          "external": 220603575,
+          "arrayBuffers": 218456542
+        },
+        "flow": {
+          "chunks": 26,
+          "bytes": 1703936,
+          "maxChunkBytes": 65536,
+          "pending": 1,
+          "maxPending": 1,
+          "pendingBytes": 65536,
+          "maxPendingBytes": 65536
+        },
+        "mutation": {
+          "steps": 26,
+          "retainedBytes": 218103808,
+          "touchedByte": 180
+        }
+      }
+    },
+    {
+      "type": "receipt",
+      "control": "allocation-mutant",
+      "failed": true,
+      "code": "V3_RSS_LIMIT",
+      "message": "CONTROL_BOUNDARY:V3_RSS_LIMIT"
+    }
+  ],
+  "unexpected": [],
+  "deadlineMs": 45000,
+  "naturalConsumerClose": false,
+  "ready": true,
+  "receiptForwarded": true,
+  "timeoutTriggered": false,
+  "resourceBoundary": {
+    "type": "memory",
+    "role": "fresh-consumer",
+    "pid": 89725,
+    "ppid": 86238,
+    "phase": "allocation-retained",
+    "sample": 28,
+    "memory": {
+      "rss": 273416192,
+      "heapTotal": 8011776,
+      "heapUsed": 5049832,
+      "external": 220603575,
+      "arrayBuffers": 218456542
+    },
+    "flow": {
+      "chunks": 26,
+      "bytes": 1703936,
+      "maxChunkBytes": 65536,
+      "pending": 1,
+      "maxPending": 1,
+      "pendingBytes": 65536,
+      "maxPendingBytes": 65536
+    },
+    "mutation": {
+      "steps": 26,
+      "retainedBytes": 218103808,
+      "touchedByte": 180
+    }
+  },
+  "producerPid": 89727,
+  "stdoutBytes": 0,
+  "stderrBytes": 0,
+  "pid": 89725,
+  "membersAtReady": [
+    "89725 86238 89725 Ss   /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --max-old-space-size=96 /Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/worker.mjs allocation-mutant /Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/execution-01/05-allocation-mutant",
+    "89727 89725 89725 S    /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --max-old-space-size=96 --import /Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/producer-observer.mjs /Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/stream-fixture.mjs 1073872896 0"
+  ],
+  "forwardedFailureCode": "V3_RSS_LIMIT",
+  "forwardedFailureMessage": "CONTROL_BOUNDARY:V3_RSS_LIMIT",
+  "exitObserved": {
+    "code": null,
+    "signal": "SIGTERM",
+    "at": "2026-08-28T00:17:03.243Z"
+  },
+  "code": null,
+  "signal": "SIGTERM",
+  "closeObserved": true,
+  "finished": "2026-08-28T00:17:03.249Z",
+  "membersAtClose": [],
+  "remainingGroupMembers": [],
+  "consumerState": {
+    "pid": 89725,
+    "state": "absent",
+    "error": "ESRCH"
+  },
+  "producerState": {
+    "pid": 89727,
+    "state": "absent",
+    "error": "ESRCH"
+  },
+  "consumer": {
+    "value": {
+      "control": "allocation-mutant",
+      "pid": 89725,
+      "ppid": 86238,
+      "execPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "execArgv": [
+        "--max-old-space-size=96"
+      ],
+      "scope": "dedicated fresh consumer process, not supervisor/producer/whole verifier; no baseline subtraction",
+      "assertionState": "not evaluated; persisted before coordinator assertions",
+      "proposedExitCode": 17,
+      "failure": {
+        "name": "Error",
+        "code": "V3_RSS_LIMIT",
+        "message": "CONTROL_BOUNDARY:V3_RSS_LIMIT",
+        "stack": "Error: CONTROL_BOUNDARY:V3_RSS_LIMIT\n    at boundary (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/worker.mjs:22:48)\n    at consume (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/worker.mjs:71:52)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async hashStream (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/core.mjs:169:7)\n    at async hashProcess (file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/core.mjs:193:19)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/worker.mjs:37:12",
+        "process": {
+          "status": null,
+          "signal": "SIGTERM",
+          "stderr": "",
+          "timedOut": false,
+          "stderrOverflow": false
+        }
+      },
+      "result": null,
+      "memory": {
+        "baseline": {
+          "rss": 47448064,
+          "heapTotal": 6963200,
+          "heapUsed": 4948896,
+          "external": 2118259,
+          "arrayBuffers": 25023
+        },
+        "fieldwisePeaks": {
+          "rss": 273842176,
+          "heapTotal": 8273920,
+          "heapUsed": 5436848,
+          "external": 220709361,
+          "arrayBuffers": 218456542
+        },
+        "latest": {
+          "rss": 273842176,
+          "heapTotal": 8273920,
+          "heapUsed": 5158008,
+          "external": 220709361,
+          "arrayBuffers": 218259874
+        },
+        "samples": 29,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "flow": {
+        "chunks": 26,
+        "bytes": 1703936,
+        "maxChunkBytes": 65536,
+        "pending": 0,
+        "maxPending": 1,
+        "pendingBytes": 0,
+        "maxPendingBytes": 65536
+      },
+      "consumerObservation": null,
+      "orderedObservation": {
+        "control": "allocation-mutant",
+        "consumerPid": 89725,
+        "producerPid": 89727,
+        "events": [
+          {
+            "sequence": 1,
+            "monotonicNs": "119636811736000",
+            "type": "spawn",
+            "pid": 89727,
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "args": [
+              "--max-old-space-size=96",
+              "--import",
+              "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/producer-observer.mjs",
+              "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/stream-fixture.mjs",
+              "1073872896",
+              "0"
+            ]
+          },
+          {
+            "sequence": 2,
+            "monotonicNs": "119637284681625",
+            "type": "stop-request",
+            "reason": {
+              "code": "V3_RSS_LIMIT",
+              "message": "CONTROL_BOUNDARY:V3_RSS_LIMIT"
+            },
+            "pipeDestroyed": false
+          },
+          {
+            "sequence": 3,
+            "monotonicNs": "119637284730208",
+            "type": "signal-return",
+            "accepted": true
+          },
+          {
+            "sequence": 4,
+            "monotonicNs": "119637295040208",
+            "type": "producer-exit",
+            "status": null,
+            "signal": "SIGTERM",
+            "pipeDestroyed": false
+          },
+          {
+            "sequence": 5,
+            "monotonicNs": "119637295084541",
+            "type": "owned-pipe-destroy",
+            "exited": true,
+            "status": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "sequence": 6,
+            "monotonicNs": "119637295132750",
+            "type": "producer-close",
+            "status": null,
+            "signal": "SIGTERM"
+          },
+          {
+            "sequence": 7,
+            "monotonicNs": "119637295152375",
+            "type": "pipe-close",
+            "exited": true
+          },
+          {
+            "sequence": 8,
+            "monotonicNs": "119637295198875",
+            "type": "throw-original",
+            "code": "V3_RSS_LIMIT",
+            "message": "CONTROL_BOUNDARY:V3_RSS_LIMIT"
+          },
+          {
+            "sequence": 9,
+            "monotonicNs": "119637295374125",
+            "type": "core-settled",
+            "exited": true,
+            "closed": true,
+            "sameFailureObject": true
+          }
+        ],
+        "sameFailureObject": true,
+        "completed": true,
+        "error": null,
+        "caller": {
+          "code": "V3_RSS_LIMIT",
+          "message": "CONTROL_BOUNDARY:V3_RSS_LIMIT"
+        },
+        "signalAccepted": true,
+        "exit": {
+          "status": null,
+          "signal": "SIGTERM"
+        },
+        "close": {
+          "status": null,
+          "signal": "SIGTERM"
+        }
+      },
+      "observedSha256": "c3e10e0e51ada8382e41fe4a7b44648b57bb1bbe0086930dc21a434b81084656",
+      "mutation": {
+        "steps": 26,
+        "retainedBytes": 218103808,
+        "touchedByte": 180
+      },
+      "retainedAllocations": 26,
+      "thresholdBytes": 268435456,
+      "operator": "<",
+      "coreSha256": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d"
+    },
+    "error": null
+  },
+  "producer": {
+    "value": {
+      "pid": 89727,
+      "ppid": 89725,
+      "status": null,
+      "signal": "SIGTERM",
+      "uncaught": null,
+      "memory": {
+        "baseline": {
+          "rss": 45252608,
+          "heapTotal": 5652480,
+          "heapUsed": 4871352,
+          "external": 1962447,
+          "arrayBuffers": 16655
+        },
+        "fieldwisePeaks": {
+          "rss": 47071232,
+          "heapTotal": 6701056,
+          "heapUsed": 4951400,
+          "external": 2028023,
+          "arrayBuffers": 82191
+        },
+        "latest": {
+          "rss": 47071232,
+          "heapTotal": 6701056,
+          "heapUsed": 4662744,
+          "external": 2028023,
+          "arrayBuffers": 82191
+        },
+        "samples": 3,
+        "fieldsUnit": "bytes",
+        "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+      },
+      "flow": {
+        "writes": 29,
+        "acceptedBytes": 1900544,
+        "maxChunkBytes": 65536,
+        "falseWrites": 27,
+        "drains": 26,
+        "pendingDrains": 1,
+        "maxPendingDrains": 1,
+        "maxWritableLength": 65536,
+        "writableHighWaterMark": 65536,
+        "writableLength": 65536
+      },
+      "scope": "producer only; accepted writes are not a claim of delivered bytes"
+    },
+    "error": null
+  },
+  "producerCloseProof": {
+    "status": null,
+    "signal": "SIGTERM",
+    "stderr": "",
+    "timedOut": false,
+    "stderrOverflow": false
+  },
+  "operationSucceeded": false,
+  "supervisorMemoryExcluded": {
+    "baseline": {
+      "rss": 61915136,
+      "heapTotal": 12648448,
+      "heapUsed": 8466160,
+      "external": 8031379,
+      "arrayBuffers": 5757073
+    },
+    "fieldwisePeaks": {
+      "rss": 62521344,
+      "heapTotal": 12861440,
+      "heapUsed": 9312464,
+      "external": 8237306,
+      "arrayBuffers": 5963000
+    },
+    "latest": {
+      "rss": 62521344,
+      "heapTotal": 9928704,
+      "heapUsed": 8291216,
+      "external": 2718349,
+      "arrayBuffers": 36126
+    },
+    "samples": 29,
+    "fieldsUnit": "bytes",
+    "metric": "process.memoryUsage current samples; fieldwise maxima need not coincide"
+  },
+  "assertionState": "not evaluated; all available numeric and process outcomes durable first",
+  "outputHashes": {
+    "stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "harnessSettlementAt": "2026-08-28T00:17:03.322Z"
+}

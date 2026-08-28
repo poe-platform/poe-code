@@ -1,0 +1,330 @@
+{
+  "actual": [
+    {
+      "name": "ordinary-failure-continues-after-reap",
+      "expected": true,
+      "cohort": {
+        "rows": [
+          {
+            "mode": "semantic-failure",
+            "outcome": "unexpected-control-failure",
+            "safety": {
+              "safe": true,
+              "missing": [],
+              "proof": {
+                "bindingsIntact": true,
+                "receiptPresent": true,
+                "numericReceiptPresent": true,
+                "closeObserved": true,
+                "reaped": true,
+                "groupEmpty": true,
+                "cleanupComplete": true
+              }
+            },
+            "physicalSafety": true,
+            "receiptReason": "EXACT_FORWARDING_REASON",
+            "close": {
+              "code": 17,
+              "signal": null
+            },
+            "signals": []
+          },
+          {
+            "mode": "marker",
+            "outcome": "expected-control-outcome",
+            "safety": {
+              "safe": true,
+              "missing": [],
+              "proof": {
+                "bindingsIntact": true,
+                "receiptPresent": true,
+                "numericReceiptPresent": true,
+                "closeObserved": true,
+                "reaped": true,
+                "groupEmpty": true,
+                "cleanupComplete": true
+              }
+            },
+            "physicalSafety": true,
+            "receiptReason": "EXACT_FORWARDING_REASON",
+            "close": {
+              "code": 0,
+              "signal": null
+            },
+            "signals": []
+          }
+        ],
+        "unexecuted": [],
+        "exitCode": 1
+      }
+    },
+    {
+      "name": "cleanup-escalation-stops-marker",
+      "expected": true,
+      "cohort": {
+        "rows": [
+          {
+            "mode": "ignore-term",
+            "outcome": "unexpected-control-failure",
+            "safety": {
+              "safe": false,
+              "missing": [
+                "cleanupComplete"
+              ],
+              "proof": {
+                "bindingsIntact": true,
+                "receiptPresent": true,
+                "numericReceiptPresent": true,
+                "closeObserved": true,
+                "reaped": true,
+                "groupEmpty": true,
+                "cleanupComplete": false
+              }
+            },
+            "physicalSafety": true,
+            "receiptReason": "EXACT_FORWARDING_REASON",
+            "close": {
+              "code": null,
+              "signal": "SIGKILL"
+            },
+            "signals": [
+              {
+                "signal": "SIGTERM",
+                "accepted": true,
+                "at": "2026-08-28T00:16:15.518Z"
+              },
+              {
+                "signal": "SIGKILL",
+                "accepted": true,
+                "at": "2026-08-28T00:16:18.520Z"
+              }
+            ]
+          }
+        ],
+        "unexecuted": [
+          "marker"
+        ],
+        "exitCode": 1
+      }
+    },
+    {
+      "name": "private-binding-mismatch-stops-marker",
+      "expected": true,
+      "cohort": {
+        "rows": [
+          {
+            "mode": "binding-change",
+            "outcome": "expected-control-outcome",
+            "safety": {
+              "safe": false,
+              "missing": [
+                "bindingsIntact"
+              ],
+              "proof": {
+                "bindingsIntact": false,
+                "receiptPresent": true,
+                "numericReceiptPresent": true,
+                "closeObserved": true,
+                "reaped": true,
+                "groupEmpty": true,
+                "cleanupComplete": true
+              }
+            },
+            "physicalSafety": true,
+            "receiptReason": "EXACT_FORWARDING_REASON",
+            "close": {
+              "code": 0,
+              "signal": null
+            },
+            "signals": []
+          }
+        ],
+        "unexecuted": [
+          "marker"
+        ],
+        "exitCode": 1
+      }
+    },
+    {
+      "name": "missing-receipt-stops-marker",
+      "expected": true,
+      "cohort": {
+        "rows": [
+          {
+            "mode": "missing-receipt",
+            "outcome": "unexpected-control-failure",
+            "safety": {
+              "safe": false,
+              "missing": [
+                "receiptPresent",
+                "numericReceiptPresent"
+              ],
+              "proof": {
+                "bindingsIntact": true,
+                "receiptPresent": false,
+                "numericReceiptPresent": false,
+                "closeObserved": true,
+                "reaped": true,
+                "groupEmpty": true,
+                "cleanupComplete": true
+              }
+            },
+            "physicalSafety": true,
+            "close": {
+              "code": 0,
+              "signal": null
+            },
+            "signals": []
+          }
+        ],
+        "unexecuted": [
+          "marker"
+        ],
+        "exitCode": 1
+      }
+    },
+    {
+      "name": "omitted-reap-proof-stops-marker",
+      "expected": true,
+      "cohort": {
+        "rows": [
+          {
+            "mode": "omit-reap-proof",
+            "outcome": "expected-control-outcome",
+            "safety": {
+              "safe": false,
+              "missing": [
+                "reaped"
+              ],
+              "proof": {
+                "bindingsIntact": true,
+                "receiptPresent": true,
+                "numericReceiptPresent": true,
+                "closeObserved": true,
+                "reaped": false,
+                "groupEmpty": true,
+                "cleanupComplete": true
+              }
+            },
+            "physicalSafety": true,
+            "receiptReason": "EXACT_FORWARDING_REASON",
+            "close": {
+              "code": 0,
+              "signal": null
+            },
+            "signals": []
+          }
+        ],
+        "unexecuted": [
+          "marker"
+        ],
+        "exitCode": 1
+      }
+    },
+    {
+      "name": "wrong-reason-fails-and-continues",
+      "expected": true,
+      "cohort": {
+        "rows": [
+          {
+            "mode": "wrong-reason",
+            "outcome": "unexpected-control-failure",
+            "safety": {
+              "safe": true,
+              "missing": [],
+              "proof": {
+                "bindingsIntact": true,
+                "receiptPresent": true,
+                "numericReceiptPresent": true,
+                "closeObserved": true,
+                "reaped": true,
+                "groupEmpty": true,
+                "cleanupComplete": true
+              }
+            },
+            "physicalSafety": true,
+            "receiptReason": "WRONG_REASON",
+            "close": {
+              "code": 0,
+              "signal": null
+            },
+            "signals": []
+          },
+          {
+            "mode": "marker",
+            "outcome": "expected-control-outcome",
+            "safety": {
+              "safe": true,
+              "missing": [],
+              "proof": {
+                "bindingsIntact": true,
+                "receiptPresent": true,
+                "numericReceiptPresent": true,
+                "closeObserved": true,
+                "reaped": true,
+                "groupEmpty": true,
+                "cleanupComplete": true
+              }
+            },
+            "physicalSafety": true,
+            "receiptReason": "EXACT_FORWARDING_REASON",
+            "close": {
+              "code": 0,
+              "signal": null
+            },
+            "signals": []
+          }
+        ],
+        "unexecuted": [],
+        "exitCode": 1
+      }
+    }
+  ],
+  "predicates": [
+    {
+      "name": "strict-timeout-accepted",
+      "accepted": true,
+      "expected": true
+    },
+    {
+      "name": "strict-allocation-accepted",
+      "accepted": true,
+      "expected": true
+    },
+    {
+      "name": "timeout-reason-lost-rejected",
+      "accepted": false,
+      "expected": true
+    },
+    {
+      "name": "allocation-reason-lost-rejected",
+      "accepted": false,
+      "expected": true
+    },
+    {
+      "name": "timeout-exit1-rejected",
+      "accepted": false,
+      "expected": true
+    },
+    {
+      "name": "allocation-exit1-rejected",
+      "accepted": false,
+      "expected": true
+    },
+    {
+      "name": "same-error-identity-lost-rejected",
+      "accepted": false,
+      "expected": true
+    },
+    {
+      "name": "pipe-closed-before-exit-rejected",
+      "accepted": false,
+      "expected": true
+    }
+  ],
+  "safe": true,
+  "actualDeclared": 6,
+  "syntheticDeclared": 8,
+  "qualification": "Actual supervised small child processes exercise the shared aggregation/safety logic, receipts, close and SIGTERM/SIGKILL escalation. Private fixture binding corruption does not alter recipe bindings. Omitted reap proof is deliberately injected only after actual reaping. Synthetic ordered predicates use constructed records, not real producer executions. Actual five stream controls remain separate.",
+  "allExpected": true
+}

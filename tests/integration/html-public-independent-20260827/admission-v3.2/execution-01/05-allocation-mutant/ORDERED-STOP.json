@@ -1,0 +1,98 @@
+{
+  "control": "allocation-mutant",
+  "consumerPid": 89725,
+  "producerPid": 89727,
+  "events": [
+    {
+      "sequence": 1,
+      "monotonicNs": "119636811736000",
+      "type": "spawn",
+      "pid": 89727,
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--max-old-space-size=96",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/producer-observer.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/stream-fixture.mjs",
+        "1073872896",
+        "0"
+      ]
+    },
+    {
+      "sequence": 2,
+      "monotonicNs": "119637284681625",
+      "type": "stop-request",
+      "reason": {
+        "code": "V3_RSS_LIMIT",
+        "message": "CONTROL_BOUNDARY:V3_RSS_LIMIT"
+      },
+      "pipeDestroyed": false
+    },
+    {
+      "sequence": 3,
+      "monotonicNs": "119637284730208",
+      "type": "signal-return",
+      "accepted": true
+    },
+    {
+      "sequence": 4,
+      "monotonicNs": "119637295040208",
+      "type": "producer-exit",
+      "status": null,
+      "signal": "SIGTERM",
+      "pipeDestroyed": false
+    },
+    {
+      "sequence": 5,
+      "monotonicNs": "119637295084541",
+      "type": "owned-pipe-destroy",
+      "exited": true,
+      "status": null,
+      "signal": "SIGTERM"
+    },
+    {
+      "sequence": 6,
+      "monotonicNs": "119637295132750",
+      "type": "producer-close",
+      "status": null,
+      "signal": "SIGTERM"
+    },
+    {
+      "sequence": 7,
+      "monotonicNs": "119637295152375",
+      "type": "pipe-close",
+      "exited": true
+    },
+    {
+      "sequence": 8,
+      "monotonicNs": "119637295198875",
+      "type": "throw-original",
+      "code": "V3_RSS_LIMIT",
+      "message": "CONTROL_BOUNDARY:V3_RSS_LIMIT"
+    },
+    {
+      "sequence": 9,
+      "monotonicNs": "119637295374125",
+      "type": "core-settled",
+      "exited": true,
+      "closed": true,
+      "sameFailureObject": true
+    }
+  ],
+  "sameFailureObject": true,
+  "completed": true,
+  "error": null,
+  "caller": {
+    "code": "V3_RSS_LIMIT",
+    "message": "CONTROL_BOUNDARY:V3_RSS_LIMIT"
+  },
+  "signalAccepted": true,
+  "exit": {
+    "status": null,
+    "signal": "SIGTERM"
+  },
+  "close": {
+    "status": null,
+    "signal": "SIGTERM"
+  }
+}

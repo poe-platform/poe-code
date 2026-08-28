@@ -1,0 +1,49 @@
+{
+  "name": "cleanup-escalation-stops-marker",
+  "expected": true,
+  "cohort": {
+    "rows": [
+      {
+        "mode": "ignore-term",
+        "outcome": "unexpected-control-failure",
+        "safety": {
+          "safe": false,
+          "missing": [
+            "cleanupComplete"
+          ],
+          "proof": {
+            "bindingsIntact": true,
+            "receiptPresent": true,
+            "numericReceiptPresent": true,
+            "closeObserved": true,
+            "reaped": true,
+            "groupEmpty": true,
+            "cleanupComplete": false
+          }
+        },
+        "physicalSafety": true,
+        "receiptReason": "EXACT_FORWARDING_REASON",
+        "close": {
+          "code": null,
+          "signal": "SIGKILL"
+        },
+        "signals": [
+          {
+            "signal": "SIGTERM",
+            "accepted": true,
+            "at": "2026-08-28T00:16:15.518Z"
+          },
+          {
+            "signal": "SIGKILL",
+            "accepted": true,
+            "at": "2026-08-28T00:16:18.520Z"
+          }
+        ]
+      }
+    ],
+    "unexecuted": [
+      "marker"
+    ],
+    "exitCode": 1
+  }
+}

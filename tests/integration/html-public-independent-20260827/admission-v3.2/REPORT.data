@@ -1,0 +1,184 @@
+V3.2 SINGLE FROZEN HARNESS RUN — EXPECTED CONTROL OUTCOMES; ADMISSION HELD
+Authority/local date: 2026-08-27, America/Chicago. UTC launch timestamps cross
+into 2026-08-28; they do not change the assignment date.
+
+HANDOFF TO ROOT, FOR RAMAN
+Freeze: e27a62c40a317deae83fc1ef9d41d57f38d7d51d
+Recipe manifest SHA256:
+968c52402f4c10507fb7c5410b33086bba33e7209b7030b42e7859b4c85c1980
+Second commit seals this report and MANIFEST.json; its exact commit/hash are
+returned in the final handoff, rather than introducing a self-referential seal.
+One recipe invocation, no retries, exit0. Five real controls planned/executed:
+5 expected, 0 unexpected failures, 0 unexecuted. These expected negative-control
+outcomes are not five product passes. HTML34 and admission remain HELD pending
+independent review. No candidate/archive/materializer/build/pack/fullgate run.
+No TAP execution; it remains Dirac-owned. No Expr26 execution.
+
+BOUNDARY AND PRE-FREEZE ASSESSMENT
+All five terminal paths were inspected before seal. Positive requires complete
+drain, natural producer0/null and consumer0/null. Producer-exit7 requires complete
+drain, producer7/null and exact STREAM_PROCESS forwarding. Consumer-failure keeps
+the original v3.1 identity-bound EPIPE alternative only. Timeout and allocation
+both previously threw before the core catch could signal, letting iterator cleanup
+close stdout first. Strict producer SIGTERM therefore required controlled ordering.
+
+The separate worker-local hook retains the real ChildProcess, signals SIGTERM
+while consumption is blocked and its stdout is still open, awaits actual process
+exit, then destroys the owned pipe and awaits child close before throwing the
+original boundary Error object. Waiting for child close with unread touched stdout
+still open can deadlock; the pinned Node internal/child_process and readable
+source inspections are recorded in PREFLIGHT.json and recipe/STATIC-FINAL.json.
+Both stages share the unchanged3000ms cleanup grace. No core or producer change;
+no global EPIPE handling, fabricated SIGTERM, or timeout predicate waiver.
+
+The supervisor now bounds final closure after the unchanged45000ms deadline and
+two existing3000ms grace windows. Native ps calls retain their10000ms bounds;
+synchronous host work can delay timer dispatch, so this is not real-time assurance.
+It does not signal a recorded post-exit group leader PID. Unproved reaping or lost
+ownership is unsafe STOP, not assumed cleanup. This run needed no emergency for
+the real controls. The intentionally hanging allocation consumer was actually
+killed only after its numeric receipt and producer close were durable.
+
+FIVE REAL OUTCOMES (bytes and RSS are exact bytes, not baseline-subtracted)
+control            consumer terminal  producer terminal  forwarded reason
+positive           0/null             0/null             none
+producer-exit7     17/null            7/null             STREAM_PROCESS
+consumer-failure   17/null            1/null             V3_CONSUMER_FAILURE
+timeout            17/null            null/SIGTERM       V3_TIMEOUT
+allocation-mutant  null/SIGTERM        null/SIGTERM       V3_RSS_LIMIT
+
+control            consumed bytes/chunks    consumer baseline/peak  producer baseline/peak
+positive           1073872896/16386        47398912/97009664       45154304/57081856
+producer-exit7     1073872896/16386        47529984/98074624       45154304/57540608
+consumer-failure   1048576/16              47333376/55508992       45236224/47235072
+timeout            1048576/16              47579136/55836672       45170688/46956544
+allocation-mutant  1703936/26              47448064/273842176      45252608/47071232
+
+Positive's native core RSS sample maximum is96960512, distinct from telemetry's
+97009664; both are strictly below the unchanged268435456-byte absolute threshold.
+Producer/supervisor metrics are separate. Each consumer had maxPending1 and
+maxPendingBytes65536; final pending/pendingBytes0. All raw baseline, latest and
+fieldwise peaks for rss/heapTotal/heapUsed/external/arrayBuffers, producer flow,
+false writes/drains, stderr, statuses, PIDs, group observations, signals, and
+elapsed times are preserved in execution-01/*/RAW-RECEIPT.json and journals.
+Real case start-to-harness-settlement elapsed:1430,1458,239,536,649ms respectively.
+Per-case authentication follows the raw receipt and is not included in those times.
+
+TIMEOUT STRICT ORDERING OBSERVED
+Producer89455: stop-request119633414369125ns, signal-return119633414417041ns,
+exit119633423469250ns with stdoutDestroyedfalse and actual null/SIGTERM,
+owned-pipe-destroy119633423514125ns, child-close119633423562916ns,
+throw-original119633423630833ns, core-settled119633423754250ns.
+The same actual V3_TIMEOUT Error object reaches settlement; supervisor receives
+the exact code AND message. No producer EPIPE alternative was invoked.
+
+MEANINGFUL ALLOCATION KILL OBSERVED
+26 touched 8388608-byte Buffers retained218103808 bytes; touchedByte180.
+Current fresh-consumer RSS273416192 crossed268435456 by4980736 bytes at the
+supervisor's recorded boundary. It is within the unchanged67108864-byte overshoot
+ceiling. No baseline subtraction or threshold increase. Consumer peak273842176
+is intentionally a failing resource subject, not a resource-compliant pass.
+The supervisor stopped further allocation, forwarded V3_RSS_LIMIT, and producer
+89727 exited SIGTERM with its pipe open before owned destruction/close. The same
+Error object reached core settlement. BEFORE-KILL.json includes both receipts
+and producer PID absence. The supervisor actually signaled still-owned consumer
+89725 once; ChildProcess.kill returned true, actual exit/close were null/SIGTERM.
+No assert-only memory kill, no cap-exhaustion substitute, no unexecuted mutant.
+
+CONSUMER-FAILURE EXCEPTION REMAINS NARROW
+This run again observed producer exit1/null and structured EPIPE/write/errno-32
+as the same actual stdout error through non-handling errorMonitor and
+uncaughtExceptionMonitor, bound to caller token/PID context. The exact consumer
+failure reached settlement after16chunks. Unchanged terminal predicate accepted
+structured-closed-consumer-EPIPE. This does not extend that exception to timeout
+or allocation and does not retroactively validate v3.1 timeout stderr text.
+
+FAIL-FORWARD CONTROLS, FROZEN BEFORE THIS RUN
+Original consumer predicate cases:28/28 expected,2 accepts26 rejects, unchanged
+case/module/predicate bytes. New ordered predicates:8/8 expected,2 accepts6
+rejects covering lost timeout/RSS reason, wrong timeout/RSS terminal, lost exact
+Error identity and early pipe closure. These36 predicate subjects are synthetic.
+
+Six actual small-process supervision cohorts all matched their expectations:
+1 ordinary exit17 failure: physically reaped, safe/intact; later marker ran;
+  aggregate exit remained1.
+2 TERM-ignoring subject: actual SIGTERM then SIGKILL after grace; physically
+  reaped but cooperative cleanup failed; unsafe case stopped its later marker.
+3 private fixture binding changed: physically reaped; binding gate stopped marker.
+4 actual missing receipt: physically reaped; missing-proof gate stopped marker.
+5 reap proof deliberately omitted after actual reap: missing-proof gate stopped.
+6 exit0 with wrong exact reason: semantic failure, safe/intact; later marker ran;
+  aggregate exit remained1. Exit0 did not erase the reason failure.
+All six saved aggregate exit codes remain1; expected test outcomes do not rescore
+those injected failures. Eight actual small children were supervised/reaped.
+Private fixture corruption and omitted proof are qualified injections, not
+corruption of recipe bindings or an actual unreaped process. An actual physical
+reap/recipe-integrity failure would stop further cohorts and real controls.
+
+SAFETY, RAW-FIRST, AUTHENTICITY
+All five real controls recorded awaited worker exit/close, core producer-close
+results, both observed PIDs absent and empty group at close/after probe. All ten
+real subject processes and eight small-control subjects were physically reaped.
+Raw numeric receipts precede safety/semantic assertions. Each real case's separate
+BINDINGS.json authenticates the full frozen recipe/tools/history and all78 live
+v3.1 files before allowing continuation. The five SAFETY.json results are safe.
+33/33 post-run read-only authenticity and journal-to-receipt consistency checks
+passed. This verification did NOT rerun controls, import predicate functions,
+rescore failures, or modify raw evidence. The frozen recipe has23 files; the
+execution inventory has144 files, including intentionally absent-receipt control
+evidence. The final manifest covers all actual files plus directory inventory.
+Recipe inventories detect new entries as well as changes/deletions. Empty runtime
+tmp directories are recorded but not Git-storable. No append-proof whole-repo
+claim and no stale-PID identity lease are asserted.
+
+EXACT SOURCE BINDINGS
+Complete core unchanged:
+446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d
+Producer fixture unchanged:
+74611a26193e2bf826e7ab91d4972ee5fc8463b9b4aebfacef9d3a7dde2df48c
+Coordinator base:
+ea67c3b73e5af666c660a0d8bb76ac8a02bfd59b35d2d4eb17d35bfda91988ff
+Coordinator patched:
+56ff7bdc05f5546b79fbd401f33f8b930e5081a1708a65cb5b3d177938d6049d
+Worker base:
+7cbf5454c97b20033515147934eff2b2e57e4e711612806fc9b81a1358449eb0
+Worker patched:
+fb92f472913624dec312b7de2de014bcb8ddfb8d2a47d7e4c83e5c9e141004fd
+PIN base:
+10a7426689ce09863e1db949826b9b7f3b7872ecc43cd0b9d173187cc4487c69
+PIN patched:
+20aedb352f1f4becb0e61d982afe16ef4b8e754d247d536f3d1c3dbef4a45fef
+recipe/AMENDMENT.json inventories every copied base/patched hash and new module.
+Consumer observer, producer observer, terminal predicate,28 synthetic cases,
+telemetry/authenticate remain byte-identical; policy values/tools unchanged.
+Fifteen syntax checks passed before freeze; no development control execution.
+Pre-freeze static findings include the corrected manifest location, wrong-reason
+control originally using nonzero exit, and an initially over-restrictive semantic
+precontrol gate. They were corrected before freeze and recorded, not hidden.
+
+LIMITS / HISTORICAL HOLDS UNCHANGED
+No product source bug or cleanup barrier violation is established by this run.
+The prior harness terminal-order race was avoided only for these explicitly
+controlled aborts. This is not a universal core fix for arbitrary caller errors.
+Concurrent host load remains uncontrolled; one stream cohort is not a benchmark.
+The sole invocation ran2026-08-28T00:15:58.249Z to00:17:08.576Z,70.327s, equivalent
+to August27 19:15:58.249–19:17:08.576 America/Chicago. No72-hour claim.
+
+v3.1 freeze2461f905416b7260ff02742af87fba8bc31c2977; recipe manifest
+0974e68b90790ff10296997e0c03c9f3883b87a0e7ec4d68e5fed4ef57cbe4a3;
+evidence80c402da10314ccbca5fdd4a3832ef32049e3950; evidence manifest
+d2adbd44b2ab241c04fa1523ea18ee7d0350a3ad0c5c12e503f936444fb0eba2 remain HOLD:
+28 synthetic expected,3 real expected,1 strict timeout failure,1 mutant unrun.
+v3 eb56ed1eff6e7061aa219fb4877bc2382cf15a27 / evidence
+769678dda195c8f77a91563274accec6e685ec4d remains5declared3executed2expected1failed
+2unrun. v2 aa4374b0ab5f0789e51026b7c6fe163c044a9a6c seal
+82347c76a2730e7ddbab6c696c5558b657edc6b4701549505ef4e557420c6aa7 unchanged.
+Original independent v2 numeric RSS unrecoverable/causeUNKNOWN; original frozen
+runner raw rejection missing. Three v2 development failures and v3/v3.1 static
+mistakes remain in their original evidence. No old attestation repair.
+Raman diagnosis e579a96ca8889174b24d9c805a00a1f3d48305e2 is an authenticated input.
+HTMLcandidate aff899aa94ed0c57a936b08fd36d185688f5c0bb/source
+28cf1518eb3e1a27c5439ba89ff1801e3f852c3b/fullpack
+d9c1a97388357c5cb0c810cf2fa5181dc7bebff49efe517db414a5833096eed7 are provenance
+only. All78 old files unchanged. No universal parity, superiority or completion
+claim. Stop after this seal; route through root to Raman. HTML34 stays HELD.

@@ -1,0 +1,45 @@
+{
+  "mode": "semantic-failure",
+  "pid": 86561,
+  "receipt": {
+    "pid": 86561,
+    "ppid": 86238,
+    "mode": "semantic-failure",
+    "reason": "EXACT_FORWARDING_REASON",
+    "memory": {
+      "baseline": {
+        "rss": 45924352,
+        "heapTotal": 5914624,
+        "heapUsed": 5036416,
+        "external": 2082455,
+        "arrayBuffers": 16831
+      },
+      "fieldwisePeaks": {
+        "rss": 45924352,
+        "heapTotal": 5914624,
+        "heapUsed": 5042896,
+        "external": 2082495,
+        "arrayBuffers": 16831
+      }
+    }
+  },
+  "signals": [],
+  "exit": {
+    "code": 17,
+    "signal": null
+  },
+  "close": {
+    "code": 17,
+    "signal": null
+  },
+  "error": null,
+  "startedAt": "2026-08-28T00:16:04.755Z",
+  "assertionState": "not evaluated",
+  "elapsedMs": 44.13404199999968,
+  "closeObserved": true,
+  "pidState": "absent",
+  "groupMembers": [],
+  "bindingHash": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+  "originalBindingHash": "25718360e05d3c2d0963d1381e9dd4dae5fca789244ee4b9f861adcc0cc96218",
+  "markerPresent": false
+}

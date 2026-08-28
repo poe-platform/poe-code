@@ -1,0 +1,98 @@
+{
+  "control": "timeout",
+  "consumerPid": 89454,
+  "producerPid": 89455,
+  "events": [
+    {
+      "sequence": 1,
+      "monotonicNs": "119633048892333",
+      "type": "spawn",
+      "pid": 89455,
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--max-old-space-size=96",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/producer-observer.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/stream-fixture.mjs",
+        "1073872896",
+        "0"
+      ]
+    },
+    {
+      "sequence": 2,
+      "monotonicNs": "119633414369125",
+      "type": "stop-request",
+      "reason": {
+        "code": "V3_TIMEOUT",
+        "message": "CONTROL_BOUNDARY:V3_TIMEOUT"
+      },
+      "pipeDestroyed": false
+    },
+    {
+      "sequence": 3,
+      "monotonicNs": "119633414417041",
+      "type": "signal-return",
+      "accepted": true
+    },
+    {
+      "sequence": 4,
+      "monotonicNs": "119633423469250",
+      "type": "producer-exit",
+      "status": null,
+      "signal": "SIGTERM",
+      "pipeDestroyed": false
+    },
+    {
+      "sequence": 5,
+      "monotonicNs": "119633423514125",
+      "type": "owned-pipe-destroy",
+      "exited": true,
+      "status": null,
+      "signal": "SIGTERM"
+    },
+    {
+      "sequence": 6,
+      "monotonicNs": "119633423562916",
+      "type": "producer-close",
+      "status": null,
+      "signal": "SIGTERM"
+    },
+    {
+      "sequence": 7,
+      "monotonicNs": "119633423582500",
+      "type": "pipe-close",
+      "exited": true
+    },
+    {
+      "sequence": 8,
+      "monotonicNs": "119633423630833",
+      "type": "throw-original",
+      "code": "V3_TIMEOUT",
+      "message": "CONTROL_BOUNDARY:V3_TIMEOUT"
+    },
+    {
+      "sequence": 9,
+      "monotonicNs": "119633423754250",
+      "type": "core-settled",
+      "exited": true,
+      "closed": true,
+      "sameFailureObject": true
+    }
+  ],
+  "sameFailureObject": true,
+  "completed": true,
+  "error": null,
+  "caller": {
+    "code": "V3_TIMEOUT",
+    "message": "CONTROL_BOUNDARY:V3_TIMEOUT"
+  },
+  "signalAccepted": true,
+  "exit": {
+    "status": null,
+    "signal": "SIGTERM"
+  },
+  "close": {
+    "status": null,
+    "signal": "SIGTERM"
+  }
+}

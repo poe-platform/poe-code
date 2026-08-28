@@ -1,0 +1,89 @@
+{
+  "schema": "timeout-PC01-boundary-proposal-not-applied/1",
+  "status": "ROOT_DECISION_REQUIRED",
+  "basis": "New observations on old pinned candidate, not reconstructed historical bytes and not original pre-code literals.",
+  "sourceAndMovedNewObservation": {
+    "kind": "PC01-boundaries",
+    "route": "borrowed-outer-invoke",
+    "dispatch": {
+      "timeout": 1,
+      "child": 1,
+      "outer": 1
+    },
+    "observedOwnReason": {
+      "type": "object",
+      "text": "[object Object]"
+    },
+    "callerAborted": true,
+    "sameCallerSentinel": true,
+    "handlerSignalAborted": true,
+    "sameHandlerSignalReason": true,
+    "beforeRelease": {
+      "handler": {
+        "status": "pending"
+      },
+      "outer": {
+        "status": "pending"
+      }
+    },
+    "handler": {
+      "status": "rejected",
+      "sameSentinel": true,
+      "reason": {
+        "type": "object",
+        "text": "[object Object]"
+      }
+    },
+    "rawInvoke": {
+      "status": "rejected",
+      "sameSentinel": true,
+      "reason": {
+        "type": "object",
+        "text": "[object Object]"
+      }
+    },
+    "outer": {
+      "status": "fulfilled",
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "shell: line 1: [object Object]\n",
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgMTogW29iamVjdCBPYmplY3RdCg=="
+    },
+    "childClosed": true,
+    "resources": 0
+  },
+  "retainForBothRoutes": [
+    "observed own deadline sentinel equals caller reason by Object.is",
+    "raw timeout handler rejects that exact object, never returns124",
+    "handler and outer remain pending until selected child cleanup release",
+    "actual required dispatch and completed selected-child/retirement cleanup with zero owned resources"
+  ],
+  "rootCallerRoute": {
+    "change": "NONE",
+    "expected": "raw handler and outer Shell both reject the exact caller sentinel"
+  },
+  "borrowedInvokeRoute": {
+    "rawInvoke": "reject exact sentinel",
+    "actualDispatch": {
+      "timeout": 1,
+      "child": 1,
+      "outer": 1
+    },
+    "outer": {
+      "status": "fulfilled",
+      "exitCode": 1,
+      "stdoutBase64": "",
+      "stderrBase64": "c2hlbGw6IGxpbmUgMTogW29iamVjdCBPYmplY3RdCg==",
+      "stderrText": "shell: line 1: [object Object]\n"
+    },
+    "reason": "Accepted Stage2 maps a live outer command handler error to status1 after the borrowed invocation rejects; no root-caller signal was supplied to that Shell exec."
+  },
+  "counterfactual": "M01 actually returns124 from the raw handler while root Shell still rejects; the unchanged raw-handler predicate kills it, so outer behavior cannot mask a timeout mapping defect.",
+  "nonClaims": [
+    "No old PC01 rescore",
+    "No amendment applied to its assertions",
+    "No global mapping of arbitrary host errors",
+    "No new candidate acceptance"
+  ]
+}

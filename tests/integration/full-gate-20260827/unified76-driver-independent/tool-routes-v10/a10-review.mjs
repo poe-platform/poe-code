@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {readFileSync,writeFileSync,mkdirSync,readdirSync,lstatSync} from 'node:fs';
+import {join,dirname} from 'node:path';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+const owned=dirname(fileURLToPath(import.meta.url)),binding=JSON.parse(readFileSync(join(owned,'BINDINGS.json'))),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+assert.equal(JSON.parse(readFileSync(join(owned,'SAFETY-RESULTS.json'))).status,'SCOPED_RESOLVED_WRITE_SAFETY_PASS');
+const load=name=>import(pathToFileURL(join(binding.driver,name)).href);
+const {supervise}=await load('supervise.mjs'),{instructionFenceInvocation}=await load('os-instruction-fence.mjs'),{cleanGitEnvironment,validateEntries}=await load('transport.mjs'),{readProfile}=await load('profile.mjs');
+const profile=readProfile();let transportRefusal;try{validateEntries([...profile.scopeInputs,{path:'unbound-initial-link',mode:'120000',blob:'1'.repeat(40),bytes:1}]);}catch(error){transportRefusal={message:error.message,code:error.code};}assert.ok(transportRefusal);
+const raw=join(binding.temporary,'a10-raw');mkdirSync(raw);const output='/tmp/unified76-build-types-review-tool-routes-v10-a10-'+process.pid;
+const environment={PATH:'/Users/kjopek/.nvm/versions/node/v24.11.1/bin:/usr/bin:/bin:/usr/sbin:/sbin',HOME:binding.temporary,LANG:'C',LC_ALL:'C',TZ:'UTC'};
+const startedAt=new Date().toISOString();const launch=await supervise(process.execPath,[join(binding.driver,'review-build-types.mjs'),'--candidate',binding.candidate,'--review-build-types',output],{cwd:binding.driver,env:environment,timeoutMs:2400000,maxOutputBytes:268435456,stdout:join(raw,'stdout'),stderr:join(raw,'stderr'),observeSockets:true});
+const status={startedAt,launch,output,transportRefusal,fullGate:false};
+try{
+  assert.ok(launch.status===0&&launch.clean&&launch.closed&&!launch.signals.length&&!launch.survivors.length,'actual frozen A10 launcher not clean');
+  const summaries=readFileSync(join(raw,'stdout'),'utf8').trim().split('\n').map(line=>JSON.parse(line));const outer=summaries.findLast(row=>row.outer)?.outer;assert.ok(outer);status.outer=outer;
+  const outerReport=JSON.parse(readFileSync(join(outer,'REPORT.json'))),inner=JSON.parse(readFileSync(join(output,'REPORT.json')));status.outerReport=outerReport;
+  assert.equal(inner.status,'REVIEW_ONLY_BUILD_TYPES_PASS');assert.equal(inner.driverProductionBuilds,1);assert.equal(inner.phases[0].status,78);assert.equal(inner.phases[1].status,0);assert.equal(inner.buildReceipt.files.length,832);assert.equal(inner.fullGateLaunched,false);
+  const typing=JSON.parse(readFileSync(join(output,'typecheck-all/report.json')));status.typingKeys=Object.keys(typing);status.positive={reportPath:join(output,'REPORT.json'),reportSha256:sha(readFileSync(join(output,'REPORT.json'))),typingPath:join(output,'typecheck-all/report.json'),typingSha256:sha(readFileSync(join(output,'typecheck-all/report.json'))),buildReceipt:inner.buildReceipt,actualProductionBuilds:inner.actualProductionBuilds,audit:inner.audit,archive:inner.archive,archiveTransport:inner.archiveTransport,dependencyProjection:inner.dependencyProjection};
+  writeFileSync(join(owned,'A10-POSITIVE.json'),JSON.stringify(status,null,2)+'\n',{flag:'wx'});
+  const temporary=inner.temporary,source=join(temporary,'source'),audit={root:join(temporary,'production-build-audit'),source,preload:join(temporary,'harness/build-audit.mjs'),preloadSha256:inner.audit.preloadSha256,nonce:inner.audit.nonce};
+  const env=cleanGitEnvironment({PATH:inner.toolRoutes.path,GIT_EXEC_PATH:inner.toolRoutes.gitCore.origin,HOME:join(temporary,'home'),TMPDIR:join(temporary,'tmp'),TMP:join(temporary,'tmp'),TEMP:join(temporary,'tmp'),LANG:'C',LC_ALL:'C',TZ:'UTC',TSX_DISABLE_CACHE:'1',FULL_GATE_ROOT:temporary,FULL_GATE_SOURCE:source,FULL_GATE_EXPECTED:join(temporary,'harness/critical.json'),FULL_GATE_TOOL_ROOTS:JSON.stringify(['/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm']),UNIFIED76_BUILD_AUDIT:audit.root,UNIFIED76_BUILD_SOURCE:source,UNIFIED76_BUILD_NONCE:audit.nonce,NODE_OPTIONS:'--import='+pathToFileURL(join(temporary,'harness/import-guard.mjs')).href+' --import='+pathToFileURL(audit.preload).href,FULL_GATE_IMPORTS:join(output,'imports','independent-duplicate')});
+  env.GIT_EXEC_PATH=inner.toolRoutes.gitCore.origin;const {verifyToolPath}=await load('tool-routing.mjs');verifyToolPath(inner.toolRoutes,env);
+  const invocation=instructionFenceInvocation(outerReport.fence.envelope,process.execPath,[join(source,'node_modules/typescript/bin/tsc'),'-p','tsconfig.build.json'],env,{preserveEnvironment:true});
+  const duplicate=await supervise(invocation.executable,invocation.args,{cwd:source,env:invocation.env,timeoutMs:360000,maxOutputBytes:67108864,stdout:join(output,'independent-duplicate.stdout'),stderr:join(output,'independent-duplicate.stderr'),observeSockets:true});assert.ok(duplicate.status===0&&duplicate.clean&&duplicate.closed&&!duplicate.signals.length&&!duplicate.survivors.length);
+  const {readBuildAudit}=await load('build-types.mjs');let refusal;try{readBuildAudit(audit);}catch(error){refusal={message:error.message,code:error.code};}assert.match(refusal?.message??'',/duplicate driver production build/u);const events=readBuildAudit(audit,2);assert.equal(events.length,2);assert.notEqual(events[0].pid,events[1].pid);
+  const files=[];function walk(directory,prefix='dist'){for(const name of readdirSync(directory).sort()){const path=join(directory,name);if(lstatSync(path).isDirectory())walk(path,prefix+'/'+name);else files.push({path:prefix+'/'+name,sha256:sha(readFileSync(path))});}}walk(join(source,'dist'));assert.deepEqual(files,inner.buildReceipt.files);
+  status.duplicate={result:duplicate,osFence:invocation.receipt,refusal,events,emittedUnchanged:true};status.status='SHARED_A10_AND_REAL_DUPLICATE_SCOPED_PASS';
+}catch(error){status.status='HOLD';status.error={message:error.message,stack:error.stack};process.exitCode=1;}
+status.finishedAt=new Date().toISOString();writeFileSync(join(owned,'A10-RESULTS.json'),JSON.stringify(status,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({status:status.status,error:status.error,output,outer:status.outer,fullGate:false}));

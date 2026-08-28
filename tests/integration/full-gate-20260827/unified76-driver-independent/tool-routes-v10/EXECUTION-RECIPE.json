@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "chronology": "After pinned handoff and actual source inspection; before any new driver import or dynamic control. prepare.mjs performed independent metadata/hash authentication and regular frozen driver copies only.",
+  "prefreeze": "290b7fa0",
+  "bindings": "BINDINGS.json authenticates38 physical driver files (DRIVER plus37 declared entries),62 pre-import tool records including approved direct inspector,366 prior independent files, normalized profile/projection and exact packet",
+  "sourceTrace": [
+    "tool-routing.mjs: verifyToolFile hashes before prepareInspection/inspectLinkage execution; verifyInspector requires exact ENOENT pair, hashes sw_vers and compares pinned host; output exact caller comparison remains",
+    "external-admission.mjs: verifyExternal checks every existing tool/directory closure before actual direct linkage inspection; old11 SYSTEM_REFERENCES remain exact",
+    "execute.mjs and review-build-types.mjs create/verify finite toolPath and set Git-core; phase verification rechecks it; native staged extra/symlink/hash changes refuse",
+    "os-instruction-fence.mjs retains resolved-write profile, adds six process-exec literal denials; stable comparison removes only PID/admittedAt",
+    "fenced-supervisor,phase-runner,supervise,build-types,projection,transport unchanged from v9 where recorded in SOURCE-REVIEW.json; historical GitTar proof inherited, not freshly rescored"
+  ],
+  "execution": [
+    {"script":"route-controls.mjs","groups":8,"scope":"Actual full external prerequisites/four direct inspections plus targeted environment/target/manifest/output/readable-reference metadata mutants. Mutation copies only regular driver/JSON inputs outside canonical discovery. No root release or target fallback."},
+    {"script":"review.mjs","phaseLabels":["finite-git","selectors","resolved-boundary"],"worker":"worker.mjs","scope":"Actual shipping outer/phaseRunner, actual frozen toolPath verifier including three shadow mutants before phases; finite/empty-env Git and sh, six selector denials plus cleared-env descendant, focused permitted links/resolved denial/inode-directory denial. Writable parent FD ownership and separately grouped sentinel recorded. Source-byte assertion plus actual verifier before phase dispatch."},
+    {"script":"prepare-full.mjs","requires":"ROUTE_PREREQUISITES_PASS and SCOPED_RESOLVED_WRITE_SAFETY_PASS","scope":"Known corrected v9 opaque reachable-object stream and exact dependency projection. No Git checkout, instruction payload snapshots or archive file. Exact original .bin topology restored as authenticated second-hop input."},
+    {"script":"a10-review.mjs","requires":"fresh safety and complete setup","scope":"Same frozen shared review entry/full projection under final tool routing; actual cold/typecheck; extra real compiler through same fence with final finite toolPath/GIT_EXEC_PATH reverified before duplicate audit. Unbound initial transport symlink refusal retained as focused guard control. No fullgate admission/pack."}
+  ],
+  "commands": "Run each script with /Users/kjopek/.nvm/versions/node/v24.11.1/bin/node from repository root, clean env: env -i PATH=/usr/bin:/bin HOME=/private/tmp/unified76-independent-tool-v10-zUUgKh LANG=C LC_ALL=C TZ=UTC. Inputs/outputs unique owned roots; all original stdout/stderr/statuses retained. No hidden retry.",
+  "bounds": "CONTROL-FREEZE limits apply: probe spawn10s/1MiB, each shipping phase20s for focused cases, focused worker180s/1MiB; frozen A10 phases30min/256MiB, independent parent40min/256MiB, duplicate360s/64MiB, opaque setup600s/8GiB with bounded stderr; source logical4GiB/owned8GiB cooperative accounting. No hard-RSS/kernel watchdog claim.",
+  "stopping": "Any prerequisite failure or resolved write effect blocks A10. Capture and diagnose failures; no unsafe historical tar rerun. Post-run unexpected tool route means complete-binding HOLD even if scope phases passed.",
+  "qualifications": "Fresh instruction targets absent; benign attempted bytes only. Two protected-name attempts planned in focused Node/native controls, not zero attempts. Inert symlink permissions do not relax initial transport admission. No hostile FD-provider, arbitrary host-executable/library sandbox, private secrecy/network corpus or full process-image attestation. Old v9 and author failures/counts immutable."
+}

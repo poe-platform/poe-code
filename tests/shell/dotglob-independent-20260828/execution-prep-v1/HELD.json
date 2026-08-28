@@ -1,0 +1,19 @@
+{
+  "kind": "dotglob-preparation-v1",
+  "originalFreeze": "429766aaa9fee0be469ed79b186bc8e3b3ed43c2",
+  "overlay": "deced72dde70151b1b090fbba7d739323491cd89",
+  "acceptedStack": null,
+  "candidate": null,
+  "execution": "SYNTHETIC ONLY",
+  "admission": "HELD: explicit root-approved committed selected base, candidate, tools and package binding required in a later additive packet",
+  "heldCalibrations": [
+    "Accepted STACK exact selected source membership, source delta and package inventory",
+    "Compiler diagnostic code/location/message and positive resolution trace",
+    "Existing scriptFile preflight and supported interpreter entry routes",
+    "Bounded pattern-work positive/exhaustion vector and actual scheduler checkpoint",
+    "Internal state observation field and existing diagnostic/control mapping",
+    "Actual source/moved procedure adapters and their sealed source hashes"
+  ],
+  "denominators": {"commandTuples":102,"unsupportedMatrix":696,"globVectors":72,"stateScripts":14,"procedures":26},
+  "overlap": "Denominators are non-additive. Overlay eight rows belong to R23; procedure subchecks may overlap tuple/vector rows."
+}

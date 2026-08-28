@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "sha256",
+  "artifacts": {
+    "README.md": "6ba0aa357978be5bf0453a533a5d7290f70d06bc2c4ec4d29ec084f8c94a611a",
+    "evidence.json": "1b87c609c15e1cebfb5649318369933a1025f764c8701ccca76216f8157692f9",
+    "examples.data": "32fe0098a852ab636961a53b8314710ad819160c6329a005c859df59e64ca1f1"
+  },
+  "execution": "source-proof-only; examples and tests not executed"
+}

@@ -1,0 +1,486 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "id": "CW-F01-TYPE-OUTPUT-V2",
+  "status": "CANDIDATE_OVERLAY_NO_GO_DIFFERENT_REVIEW_PENDING",
+  "defect": {
+    "revision": "9189eb71d6cc16e028793318543fd2c0437c3a4d",
+    "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/concrete-workers-review-v1/CW-F01-STATIC-WITNESS.json",
+    "blob": "0b41b26fe6f9b67e7abe3c2ce9fb6510d5a20def",
+    "sha256": "a99d9d943663981b5f7d5fe75239b6465e85d268bc7f08ce4bf4a7c40df6338f",
+    "bytes": 2794,
+    "gitMode": "100644",
+    "historicalPosixMode": "NOT_INFERRED_FROM_GIT"
+  },
+  "parentComponent": {
+    "commit": "c0353685540288d504b93f206735fe4c448268ef",
+    "seal": {
+      "revision": "c0353685540288d504b93f206735fe4c448268ef",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/FINAL-SEAL.json",
+      "blob": "56ece3000f1c8e03cba3bba1a16d6c0132080ad5",
+      "sha256": "f5eb6e660f627c6cf1d029682b06f0f9b836b4bc98ccd5bc85c3ec68b811a0e2",
+      "bytes": 6749,
+      "gitMode": "100644",
+      "historicalPosixMode": "NOT_INFERRED_FROM_GIT"
+    }
+  },
+  "replacement": {
+    "sourcePath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f01-v2/type-worker.mjs",
+    "assemblyPath": "workers/type-worker.mjs",
+    "parent": {
+      "revision": "c0353685540288d504b93f206735fe4c448268ef",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/type-worker.mjs",
+      "blob": "de83516b3c1619abc405060bace220524c5d2652",
+      "sha256": "b9a26454115b72e096389657d2e8594ed7c938a4eea4bc9bc52e8ea9c25a4221",
+      "bytes": 10863,
+      "gitMode": "100644",
+      "historicalPosixMode": "NOT_INFERRED_FROM_GIT"
+    },
+    "preimage": {
+      "sha256": "b9a26454115b72e096389657d2e8594ed7c938a4eea4bc9bc52e8ea9c25a4221",
+      "bytes": 10863,
+      "mode": 420,
+      "kind": "file"
+    },
+    "postimage": {
+      "sha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd",
+      "bytes": 11186,
+      "mode": 420,
+      "kind": "file"
+    },
+    "freshProjectionModeObserved": true,
+    "gitSourceIdentityBoundByOverlayCommit": true
+  },
+  "edit": {
+    "before": "  const diagnostics = [];\n  let unexpectedOutput = false;\n  for (const line of text.split(/\\r?\\n/u)) {\n    if (line === '') continue;\n    const match = /^(.+)\\((\\d+),(\\d+)\\): error TS(\\d+): (.+)$/u.exec(line);\n    if (match) diagnostics.push({ file: resolve(raw.provenance.cwd, match[1]), line: Number(match[2]), column: Number(match[3]), code: Number(match[4]), message: match[5] });\n    else if (diagnostics.length === 0 || !/^ {2,}\\S/u.test(line)) unexpectedOutput = true;\n  }\n",
+    "after": "  const diagnostics = [];\n  const continuationLines = fixture.name === 'replace-undefined' && fixture.diagnostic?.code === 2379\n    ? [\"  Types of property 'replace' are incompatible.\", \"    Type 'undefined' is not assignable to type 'boolean'.\"]\n    : [];\n  const lines = text.split(/\\r?\\n/u);\n  if (lines.at(-1) === '') lines.pop();\n  let unexpectedOutput = lines.length !== 1 + continuationLines.length;\n  for (const [index, line] of lines.entries()) {\n    const match = /^(.+)\\((\\d+),(\\d+)\\): error TS(\\d+): (.+)$/u.exec(line);\n    if (match) diagnostics.push({ file: resolve(raw.provenance.cwd, match[1]), line: Number(match[2]), column: Number(match[3]), code: Number(match[4]), message: match[5] });\n    else if (index === 0 || line !== continuationLines[index - 1]) unexpectedOutput = true;\n  }\n",
+    "occurrences": 1,
+    "beforeSha256": "add4c6f44e1ab946490f6e0ca1b6cbaa585a2a15d18ef50b66e841f197a84423",
+    "afterSha256": "bf842949a39e021085aa1f4a5daa2b4cee7f963db8701c967d80ff3c93602424",
+    "parentStartLine": 87,
+    "scope": "private classify output framing only"
+  },
+  "unchangedInputs": [
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/DEFERRED-CONTROLS.json",
+        "sha256": "55ef67e504833471aac9a6417b9e6eb66a9ec88ca71b0c93abb143a7ab54576f",
+        "bytes": 3047,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/DEFERRED-CONTROLS.json",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/INPUT-PRESEAL.json",
+        "sha256": "b15d033f7a397b35b2dc3cd39f8a0f77f6cc160394b5160d62782394796e0f7b",
+        "bytes": 4078,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/INPUT-PRESEAL.json",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/INPUTS.json",
+        "sha256": "67d7e6d98edb0eb71c678ff618654123934f15b69a3686345afe469b35d735fc",
+        "bytes": 9615,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/INPUTS.json",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/INTEGRATION.md",
+        "sha256": "d4269035d874238f96a28c9a6c3bfc05ce95ac2f3dd7f2d2b478b7b668c60ba1",
+        "bytes": 4880,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/INTEGRATION.md",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/MUTANT-PLAN.json",
+        "sha256": "4b6ebde4b0e348ef6d4a0df3c5468002717c32dbbfb470fd112331cd7274181b",
+        "bytes": 20641,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/MUTANT-PLAN.json",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/PROTOCOL.md",
+        "sha256": "258df7957a3efa57bcd504312107bd4f80ddb9e0ac7471532faafc5cbd878487",
+        "bytes": 9248,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/PROTOCOL.md",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/RESULT-SCHEMA.json",
+        "sha256": "c0d2a2d224a906bdba73fc5785cbfb16e3509b6086c329948d4cd5d6253a000c",
+        "bytes": 3403,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/RESULT-SCHEMA.json",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/SOURCE-PRESEAL.json",
+        "sha256": "9319fd64441c728fba358be8b9def804d6990fc2e1042ee21e4939c3b8944dfb",
+        "bytes": 5213,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/SOURCE-PRESEAL.json",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/SPECIFICATION.md",
+        "sha256": "1e47d9358049cc98f885a050c4df9513252b822c9bf3dfaac85c239e12fed63a",
+        "bytes": 10144,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/SPECIFICATION.md",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/STATIC-CHECKS.json",
+        "sha256": "ad8a1aedfba2bf0f020581116df0391da4ead60433d86ce9de05c9c37f691e57",
+        "bytes": 5443,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/STATIC-CHECKS.json",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/TYPE-PLAN.json",
+        "sha256": "8eed676ec82857081c5103f0ccdd5514676e71eccbdfe26463352c34386fb9a2",
+        "bytes": 15023,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/TYPE-PLAN.json",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/factory-array-extra.mts.data",
+        "sha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+        "bytes": 80,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/fixtures/factory-array-extra.mts.data",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "ORIGINAL_40944913_MODE_UNATTESTED"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/factory-command-extra.mts.data",
+        "sha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+        "bytes": 63,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/fixtures/factory-command-extra.mts.data",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "ORIGINAL_40944913_MODE_UNATTESTED"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-defaults.mts.data",
+        "sha256": "53478f30079b739c9e34ffeb9404a67b5fd7947a4c00e08e117a85c009b48400",
+        "bytes": 86,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/fixtures/hidden-defaults.mts.data",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "ORIGINAL_40944913_MODE_UNATTESTED"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-factory.mts.data",
+        "sha256": "f73fef9fd1fae5e66379989d8cdf59101f09d82443122f7e91506bd03d8a5f20",
+        "bytes": 96,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/fixtures/hidden-factory.mts.data",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "ORIGINAL_40944913_MODE_UNATTESTED"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-limits.mts.data",
+        "sha256": "8fbaf4075b51382e279f1052350559ebbe3f4ce9c03944b7ac95e9d1890fc761",
+        "bytes": 76,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/fixtures/hidden-limits.mts.data",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "ORIGINAL_40944913_MODE_UNATTESTED"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-parser.mts.data",
+        "sha256": "5a05bae0fc1d308ce6e9a53c50b50d5fa17dd6d6e0795f0733e6f832e8347139",
+        "bytes": 68,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/fixtures/hidden-parser.mts.data",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "ORIGINAL_40944913_MODE_UNATTESTED"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-session.mts.data",
+        "sha256": "6b2868895df93e11b3de80caee59e2494ca5d49ff0b5e16b60d227a85e658a15",
+        "bytes": 88,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/fixtures/hidden-session.mts.data",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "ORIGINAL_40944913_MODE_UNATTESTED"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/positive.mts.data",
+        "sha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+        "bytes": 1036,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/fixtures/positive.mts.data",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "ORIGINAL_40944913_MODE_UNATTESTED"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/replace-string.mts.data",
+        "sha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+        "bytes": 69,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/fixtures/replace-string.mts.data",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "ORIGINAL_40944913_MODE_UNATTESTED"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/replace-undefined.mts.data",
+        "sha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+        "bytes": 73,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/fixtures/replace-undefined.mts.data",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "ORIGINAL_40944913_MODE_UNATTESTED"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/unknown-limits.mts.data",
+        "sha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+        "bytes": 78,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/fixtures/unknown-limits.mts.data",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "ORIGINAL_40944913_MODE_UNATTESTED"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/loaded-worker.mjs",
+        "sha256": "b63c1b93c96676f70aa12b64560bdae4f149a4005eae1ae3ab72fc1d03fd7ee0",
+        "bytes": 9806,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/loaded-worker.mjs",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/maps/pending-shadow.json",
+        "sha256": "f28d8d9538599055d5845eb92b347f51c6756024a5f661b8634bf6bb3b139e80",
+        "bytes": 152021,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/maps/pending-shadow.json",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/maps/pristine.json",
+        "sha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7",
+        "bytes": 152021,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/maps/pristine.json",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/maps/quoted-del.json",
+        "sha256": "cbdd27df0009a439a2b6612de57ca9cd6d19c03a259e2c711b56c7c3c880bfe7",
+        "bytes": 152021,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/maps/quoted-del.json",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/maps/retained-view.json",
+        "sha256": "9192ff9472d89e5311b5010a862ea8d31841c48ea128624c6a7fcab1018211c6",
+        "bytes": 152021,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/maps/retained-view.json",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/worker-support.mjs",
+        "sha256": "76a29d05aa4482add4dd03c7d35808924f74f879f38ed154b9eebd431bc00905",
+        "bytes": 6138,
+        "mode": 420,
+        "kind": "file"
+      },
+      "assemblyPath": "workers/worker-support.mjs",
+      "freshProjectionRequired": true,
+      "originalFixtureMode": "NO_RETROSPECTIVE_MODE_CLAIM"
+    },
+    {
+      "source": {
+        "revision": "c0353685540288d504b93f206735fe4c448268ef",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/FINAL-SEAL.json",
+        "blob": "56ece3000f1c8e03cba3bba1a16d6c0132080ad5",
+        "sha256": "f5eb6e660f627c6cf1d029682b06f0f9b836b4bc98ccd5bc85c3ec68b811a0e2",
+        "bytes": 6749,
+        "gitMode": "100644",
+        "historicalPosixMode": "NOT_INFERRED_FROM_GIT"
+      },
+      "assemblyPath": "workers/FINAL-SEAL.json",
+      "role": "IMMUTABLE_PARENT_AUDIT_ONLY_NOT_ACTIVE_POSTOVERLAY_SEAL",
+      "freshProjectionRequired": true,
+      "assemblyMode": 420
+    }
+  ],
+  "authorityRules": [
+    "Authenticate original c035 source/seals from immutable Git; never mutable HEAD or live cwd.",
+    "Create a fresh regular compound assembly. Replace only workers/type-worker.mjs after checking exact parent preimage/mode; admit exact postimage/mode/path. Never mutate original workers directory or original seals.",
+    "All unchanged execution-controlling code/data must be freshly projected from the specified immutable paths and independently mode/hash/size/kind/membership guarded by core. Listing inputs is not their admission.",
+    "Old source/final seals remain historical parent records, not postoverlay authority. The root must seal a new complete compound file map and update its worker binding before any future execution. No old c035 seal may be claimed to validate the changed worker.",
+    "Original409 fixture POSIX modes remain unattested; mode420 is required for fresh projected active copies, not a retrospective assertion.",
+    "This correction introduces no core ABI, fixture source, code/line/file expectation, compiler status, raw capture, product, semantic-policy, CARRY or budget delta."
+  ],
+  "staticContinuationReference": {
+    "role": "READ_ONLY_DIAGNOSTIC_TEXT_AND_FORMAT_REFERENCE_NOT_EXECUTION_OR_TOOL_ADMISSION",
+    "typescriptVersion": "5.9.3",
+    "files": [
+      {
+        "path": "node_modules/typescript/lib/_tsc.js",
+        "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419",
+        "bytes": 6213092
+      },
+      {
+        "path": "node_modules/typescript/package.json",
+        "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6",
+        "bytes": 3620
+      }
+    ],
+    "sourceLines": {
+      "diagnosticType": 6326,
+      "diagnosticProperty": 6330,
+      "formatDiagnostic": 121575,
+      "flattenDiagnosticMessageText": 121686
+    },
+    "qualification": "Exact two-line permitted structure is declared from static message templates and the frozen fixture. Its actual compiler emission is UNRUN, not a captured golden. Literal strings controlling the correction are freshly sealed inside type-worker.mjs."
+  },
+  "publicExportGap": "UNCHANGED",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "rootGO": false,
+  "executionCounts": {
+    "compiler": 0,
+    "classifier": 0,
+    "worker": 0,
+    "control": 0,
+    "product": 0,
+    "moduleImports": 0
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "role": "DIFFERENT_STATIC_REVIEW_ONLY",
+  "sourceCommit": "3b55c4afb81e32d719c14995a6e38620b4fabe2c",
+  "sourceScope": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/tool-request-validation-v3",
+  "finalSealSha256": "9f8cacde18c46e9d7d7c82c3665ab0ba0e6406b9b42e6e939c2fe826164daa54",
+  "overlaySha256": "2d31ea4c244af9c0a036822bd5150984e0a047f20777493bb41b1c05b485c1fe",
+  "parentCommit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+  "priorReviewCommit": "88f92894efd9c14de76ed6a2669292f10467dc4f",
+  "originalFindingCommit": "2df1dab10c3176a35f4160fa12c460a7abc592fe",
+  "originalWitnessSha256": "0eb85eb7515432bae8f8118e1016243216a1295d1d60120746bcd957cd2fbf31",
+  "targets": [
+    {"path": "core/worker-api.mjs", "operation": "replace", "preSha256": "e6548d6d4d7d8c6433f11953a0f62638e8f699a91dc31617cfc2dea2740fc876", "postSha256": "9b9ef9ab1aa83e76678d72dc6a99407623dd16822e220ea427d553dd2545e3ec"},
+    {"path": "core/tool-request.mjs", "operation": "add", "postSha256": "bac59cab6cbed385817dc22f616c0fdf407cc490319cd42b6fb9b4e54209a4ad"}
+  ],
+  "currentHeadChronologyOnly": "2832fdf1b6fb790995e2fcfcb9b203c71a13680e",
+  "criteriaTiming": "after root routing and handoff metadata; before correction body inspection",
+  "deferredControlDefinitions": 24,
+  "candidateExecutions": 0,
+  "controlExecutions": 0,
+  "controlPasses": 0,
+  "parentStatus": "NO_GO_FC_F02_FC_F03_OPEN_NO_RECOMPOSITION"
+}

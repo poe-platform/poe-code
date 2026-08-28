@@ -3171,3 +3171,31 @@ that any implementation, command, fixture, or test currently exists.
   product execution/telemetry/acceptance and permits no retry or executor bypass.
   No currentHEAD build, export/default, production or foreign fixture edits were
   performed for this maintenance checkpoint. Existing durable AGENTS rules stand.
+
+### 2026-08-28T11:07Z — Fresh fixed76 attempt stops at native authority setup
+
+- Fresh ROOT release for packet52e83606/final review7ecfe453 was sealed in
+  c222e17c4cbcc6bcb9da8a77414b90af3c465d88; receipt SHA256
+  6c04ed4badd458d74f8d1c8c4dd945e55cdd087b90b7d49f097aa2338fae524d.
+  Exactly one shipping `--run` used fixedf5e9fc49, driver2db94b8b and expected
+  packagec109, with output `/tmp/full-gate-unified76-f5-scopedenv-20260828-r2`.
+  That authorization is consumed. No retry, permission widening or source repair.
+- Actual exit1 precedes all14 phases: zero production builds/canonical tests,
+  no TAP score and no package reconstruction. Mandatory native chmod2755/6755
+  both ran, returned status1 with `Operation not permitted`, and left0644.
+  Group20 membership and helper directory normalization were recorded; the
+  specific kernel/policy cause is unproved. This is a native prerequisite
+  failure, not a virtual-command assertion or another Git spawn error.
+- Native51 identity admission passed, distinct from the failed semantic probes.
+  The inherited prerequisite adapter restored its environment and was not
+  poisoned. Private-state checkpoints, engine-body copy and guest execution
+  were not reached. Worker closure was natural with no recorded survivors;
+  aggregate phase/fence cleanliness remains false because phases/final sweep
+  did not run. No full integrity, private pre/post or kernel-drain claim follows.
+- Evidence55db52a45e583017fba50c02ad64bddce2feb251 preserves eight raw files,
+  19,061,272 bytes, with SHA256 and compressed round-trip verification. All
+  failed roots remain retained. See
+  `tests/integration/full-gate-20260827/unified76-driver/released-run-v2/HANDOFF.md`.
+  Old consumed8e6b/df89 stays0/14 with its EPERM target UNKNOWN. E03.3 stays
+  unsupported; priorA10/protection/package proofs are bound-only, not rerun.
+  Current features/XAN are not injected or accepted by this failed fixed76 run.

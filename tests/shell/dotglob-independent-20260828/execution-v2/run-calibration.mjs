@@ -37,9 +37,11 @@ try {
     result.types.push({ id, fixtureSha256: hash(Buffer.from(text)), run: child, diagnostics: (child.stdout + child.stderr).split(/\r?\n/u).filter(line => /error TS\d+:/u.test(line)) });
     if (child.failure || !child.groupAbsent) { infrastructureFailure = true; throw new Error('compiler resource/cleanup failure'); }
   }
-  for (const [name, item] of Object.entries(before)) assert.equal(inventory(stage.moved)[name]?.sha256, item.sha256, 'baseline staged input unchanged');
+  const after = inventory(stage.moved);
+  for (const [name, item] of Object.entries(before)) assert.deepEqual(after[name], item, 'baseline staged input unchanged');
+  assert.deepEqual(Object.keys(after).filter(name => !Object.hasOwn(before, name)).sort(), fixtures.map(([id]) => id + '.mts').sort(), 'only five admitted type-consumer additions');
   assertInventory(stage.packageRoot, binding.package.members);
-  result.after = inventory(stage.moved);
+  result.after = after;
 } catch (error) { result.error = String(error?.stack ?? error); }
 finally {
   if (!infrastructureFailure) { rmSync(stage.work, { recursive: true, force: true }); result.cleanup = { exactOwnedRootRemoved: stage.work, absent: !existsSync(stage.work) }; }

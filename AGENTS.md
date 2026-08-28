@@ -155,6 +155,11 @@
   Authenticate all inputs and recompute exact canonical tree bytes/hashes; do
   not require git rev-parse success for a declared derived-only identity.
   Claims of stored commits/blobs/trees still require object verification.
+- Inventory canonicalization must declare one explicit pathname domain and shared
+  producer/verifier ordering; do not mix locale, component and full-path ordering.
+- A sparse witness is not a complete inventory; preserve that distinction in guards.
+- Establish trusted outer-owned raw startup capture before fallible admission or
+  child launch, so early bootstrap failures do not depend on inner publication.
 - Authenticate Git path inventories from NUL-delimited records and byte-exact
   paths, not C-quoted line displays; never reinterpret quoted display names as
   filenames or classify a wrong-tree harness capture as a product failure.

@@ -40,7 +40,6 @@ class RepairModel extends Model {
   rmdir(filename) {
     super.rmdir(filename);
     if (filename === "/owned/fixture") {
-      if (this.scenario === "final-mode-only") this.files.get("/controls/modules/lifecycle.mjs").mode = 0o777;
       if (this.scenario === "final-directory-mode") this.files.get("/owned/records").mode = 0o777;
     }
   }
@@ -54,6 +53,7 @@ class RepairModel extends Model {
     }
     if (this.scenario === "second-row-mode-change" && filename === "/owned/records/row-N01.json") this.files.get("/controls/modules/lifecycle.mjs").mode = 0o777;
     if (this.scenario === "final-receipt-mode" && filename === "/owned/records/final.json") this.files.get(filename).mode = 0o666;
+    if (this.scenario === "final-mode-only" && filename === "/owned/records/final.json") this.files.get("/controls/modules/storage.mjs").mode = 0o777;
   }
   start(spec, callbacks) {
     const special = ["close-without-spawn", "close-without-exit", "close-before-spawn", "spawn-after-terminal", "just-before-final-admission-boundary"].includes(this.scenario);
@@ -154,6 +154,7 @@ for (const scenario of precode.controls) {
       if (scenario === "receipt-mode-after-write") assert.ok(model.files.has("/owned/records/attempt-N01.json"));
       if (scenario === "final-directory-mode") assert.ok(model.files.has("/owned/records"));
       if (scenario === "final-receipt-mode") assert.ok(report.failures.some(failure => failure.phase === "post-persistence-storage"));
+      if (scenario === "final-mode-only") assert.ok(report.failures.some(failure => failure.phase === "post-persistence-integrity"));
       if (scenario === "second-row-mode-change") { assert.equal(model.starts, 1); assert.equal(report.launched, 1); assert.deepEqual(report.remaining, ["N02"]); }
       if (["deadline-crossed-during-attempt", "row-admission-deadline-during-attempt", "deadline-crossed-final-admission"].includes(scenario)) {
         assert.equal(report.rows[0].attemptRegistered, true); assert.equal(report.rows[0].spawnCalled, false); assert.equal(report.rows[0].terminal, "admission-refused");

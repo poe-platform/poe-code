@@ -73,8 +73,9 @@ export function observeChild(port, spec, record, persist, outputBudget, wholeDea
       persist(`attempt-${record.id}.json`, record);
       if (port.now() >= admissionEnd) { record.fault = "row admission deadline after attempt persistence"; finish("admission-refused"); return; }
       admit();
-      if (port.now() >= admissionEnd) { record.fault = "row admission deadline after final authentication"; finish("admission-refused"); return; }
-      record.admittedAt = port.now();
+      const admittedAt = port.now();
+      if (admittedAt >= admissionEnd) { record.fault = "row admission deadline after final authentication"; finish("admission-refused"); return; }
+      record.admittedAt = admittedAt;
       record.spawnCalled = true;
       handle = port.start(spec, callbacks);
       record.submitted = true; record.pid = Number.isSafeInteger(handle.pid) && handle.pid > 0 ? handle.pid : null;

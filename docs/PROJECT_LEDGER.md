@@ -3467,3 +3467,27 @@ that any implementation, command, fixture, or test currently exists.
 - Prior8e6b/df89 andc222/55db remain consumed0/14. New021302a1 is consumed6/14;
   no strict/full-release/currentHEAD/native parity/superiority acceptance. Further
   diagnosis, repairs and execution require separate ROOT authority; no GO remains.
+
+## 2026-08-28 — R3 diagnosis and bounded author harness repairs
+
+- Diagnosiscd9d08be and independent682aad12 reconcile all132 failures and7 skips
+  without deductions. The original canonical phase row contains accounting;
+  the later top-level canonical assignment was not reached after integrity failure.
+  R3/c23a8de8/55d9bb1a remain19425P/132F/7skip,6/14, unqualified integrity/cleanup.
+- ROOT authorized proven fixture/route repairs only. Preseald627747d,
+  source437778996f60109e212e20b1b242455866fda285 changes13 fixture/helper files
+  plus shippingexecute/DRIVER, no product bytes. It fixes owned scratch lifetime,
+  explicit admitted rootTS/Git/npm selection, missing native TMPDIR routing and
+  two explicit TAP reporters. Native effect equivalence remains unexecuted.
+- Controlsealb7e7689b:45/45 synthetic/source checks,17 stub dispatches,
+  zero actual native/product/private/build/gate execution. Shared version positive,
+  auxiliary native flow, S3 later package flow and compiler success are not proved.
+  Five pipeline tools lack admitted closure; unresolved signal/mode/socket/env-S
+  expectations and all seven skips remain unchanged. No permission widening/GO.
+  Handoff: `tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/HANDOFF.md`.
+- ROOT separately accepts mapfile observer3d3a0371 through Locke review d60df2ed:
+  55/55 synthetic/source only, original47/49 retained; zero real observer/native43/
+  product executions. Real-process qualification is preparation, no GO or mapfile
+  implementation. Declaration P1–P4 ratification7719f39e has no implementation GO;
+  arrayS06 successorc0adae53 remains author-only awaiting complete independent review.
+  Curl confirmationb795 remains unchanged. None of these enter fixedf5 or this repair.

@@ -1,0 +1,22 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: dist/commands/structured/interpreter.js
++ actual - expected
+
++ 'b60f6efe17216bf0fcff6a5eeced7d6fdb4914a708d0ddf8e9e094a19c7f1382'
+- 'cc86b7c89e05046aa989c9828444f30907c2d67b00d587c73469108ac2057540'
+
+    at load (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-nvkj5M/candidate-consumer-installed/worker.mjs:23:10)
+    at async allocationDiscriminator (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-nvkj5M/candidate-consumer-installed/worker.mjs:151:27)
+    at async file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/virtual-bash-length-author-nvkj5M/candidate-consumer-installed/worker.mjs:211:51 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'b60f6efe17216bf0fcff6a5eeced7d6fdb4914a708d0ddf8e9e094a19c7f1382',
+  expected: 'cc86b7c89e05046aa989c9828444f30907c2d67b00d587c73469108ac2057540',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

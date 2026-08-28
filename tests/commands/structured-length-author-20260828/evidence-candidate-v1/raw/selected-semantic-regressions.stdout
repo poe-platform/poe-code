@@ -1,0 +1,556 @@
+TAP version 13
+# Subtest: semantic matrix 1: [(1,2)+(10,20)]
+ok 1 - semantic matrix 1: [(1,2)+(10,20)]
+  ---
+  duration_ms: 5.099916
+  type: 'test'
+  ...
+# Subtest: semantic matrix 2: {a:(1,2),b:(10,20)}
+ok 2 - semantic matrix 2: {a:(1,2),b:(10,20)}
+  ---
+  duration_ms: 1.578417
+  type: 'test'
+  ...
+# Subtest: semantic matrix 3: map((.,.+10))
+ok 3 - semantic matrix 3: map((.,.+10))
+  ---
+  duration_ms: 1.496625
+  type: 'test'
+  ...
+# Subtest: semantic matrix 4: [.[]|select((true,false,true))]
+ok 4 - semantic matrix 4: [.[]|select((true,false,true))]
+  ---
+  duration_ms: 1.005625
+  type: 'test'
+  ...
+# Subtest: semantic matrix 5: {a:empty,b:1},[empty]
+ok 5 - semantic matrix 5: {a:empty,b:1},[empty]
+  ---
+  duration_ms: 1.343167
+  type: 'test'
+  ...
+# Subtest: semantic matrix 6: .[]|.,.+10
+ok 6 - semantic matrix 6: .[]|.,.+10
+  ---
+  duration_ms: 0.799083
+  type: 'test'
+  ...
+# Subtest: semantic matrix 7: [(1,2)<(1,2)]
+ok 7 - semantic matrix 7: [(1,2)<(1,2)]
+  ---
+  duration_ms: 0.666708
+  type: 'test'
+  ...
+# Subtest: semantic matrix 8: [(false,true) and (false,true)]
+ok 8 - semantic matrix 8: [(false,true) and (false,true)]
+  ---
+  duration_ms: 0.5245
+  type: 'test'
+  ...
+# Subtest: semantic matrix 9: [(true,false) or (true,false)]
+ok 9 - semantic matrix 9: [(true,false) or (true,false)]
+  ---
+  duration_ms: 0.789625
+  type: 'test'
+  ...
+# Subtest: semantic matrix 10: false and (1/0),true or (1/0)
+ok 10 - semantic matrix 10: false and (1/0),true or (1/0)
+  ---
+  duration_ms: 0.868333
+  type: 'test'
+  ...
+# Subtest: semantic matrix 11: (false,1,null,2)//9
+ok 11 - semantic matrix 11: (false,1,null,2)//9
+  ---
+  duration_ms: 0.342167
+  type: 'test'
+  ...
+# Subtest: semantic matrix 12: (false,null)//(8,9)
+ok 12 - semantic matrix 12: (false,null)//(8,9)
+  ---
+  duration_ms: 0.409042
+  type: 'test'
+  ...
+# Subtest: semantic matrix 13: [(false,null,1)|.//9]
+ok 13 - semantic matrix 13: [(false,null,1)|.//9]
+  ---
+  duration_ms: 0.359666
+  type: 'test'
+  ...
+# Subtest: semantic matrix 14: [false,null,0,"",[],{}]|map(.//=9)
+ok 14 - semantic matrix 14: [false,null,0,"",[],{}]|map(.//=9)
+  ---
+  duration_ms: 1.034042
+  type: 'test'
+  ...
+# Subtest: semantic matrix 15: [1=="1",null==false,[]=={}]
+ok 15 - semantic matrix 15: [1=="1",null==false,[]=={}]
+  ---
+  duration_ms: 0.33875
+  type: 'test'
+  ...
+# Subtest: semantic matrix 16: [{b:1,a:2}=={a:2,b:1},[1,2]==[2,1]]
+ok 16 - semantic matrix 16: [{b:1,a:2}=={a:2,b:1},[1,2]==[2,1]]
+  ---
+  duration_ms: 0.399458
+  type: 'test'
+  ...
+# Subtest: semantic matrix 17: sort
+ok 17 - semantic matrix 17: sort
+  ---
+  duration_ms: 0.54375
+  type: 'test'
+  ...
+# Subtest: semantic matrix 18: sort
+ok 18 - semantic matrix 18: sort
+  ---
+  duration_ms: 0.971584
+  type: 'test'
+  ...
+# Subtest: semantic matrix 19: sort
+ok 19 - semantic matrix 19: sort
+  ---
+  duration_ms: 0.53175
+  type: 'test'
+  ...
+# Subtest: semantic matrix 20: unique
+ok 20 - semantic matrix 20: unique
+  ---
+  duration_ms: 0.624917
+  type: 'test'
+  ...
+# Subtest: semantic matrix 21: group_by(.k)
+ok 21 - semantic matrix 21: group_by(.k)
+  ---
+  duration_ms: 0.392458
+  type: 'test'
+  ...
+# Subtest: semantic matrix 22: length,.[1:2]
+ok 22 - semantic matrix 22: length,.[1:2]
+  ---
+  duration_ms: 0.320459
+  type: 'test'
+  ...
+# Subtest: semantic matrix 23: .[-8:99],.[3:1],.[99]
+ok 23 - semantic matrix 23: .[-8:99],.[3:1],.[99]
+  ---
+  duration_ms: 0.383042
+  type: 'test'
+  ...
+# Subtest: semantic matrix 24: .constructor,.toString
+ok 24 - semantic matrix 24: .constructor,.toString
+  ---
+  duration_ms: 0.232292
+  type: 'test'
+  ...
+# Subtest: semantic matrix 25: [.[]|values]
+ok 25 - semantic matrix 25: [.[]|values]
+  ---
+  duration_ms: 0.413459
+  type: 'test'
+  ...
+# Subtest: semantic matrix 26: map(type)
+ok 26 - semantic matrix 26: map(type)
+  ---
+  duration_ms: 1.809666
+  type: 'test'
+  ...
+# Subtest: semantic matrix 27: has("a")
+ok 27 - semantic matrix 27: has("a")
+  ---
+  duration_ms: 0.274666
+  type: 'test'
+  ...
+# Subtest: semantic matrix 28: has(0)
+ok 28 - semantic matrix 28: has(0)
+  ---
+  duration_ms: 0.254291
+  type: 'test'
+  ...
+# Subtest: semantic matrix 29: has("0")
+ok 29 - semantic matrix 29: has("0")
+  ---
+  duration_ms: 0.490459
+  type: 'test'
+  ...
+# Subtest: semantic matrix 30: contains([1,1])
+ok 30 - semantic matrix 30: contains([1,1])
+  ---
+  duration_ms: 0.401292
+  type: 'test'
+  ...
+# Subtest: semantic matrix 31: contains({a:null})
+ok 31 - semantic matrix 31: contains({a:null})
+  ---
+  duration_ms: 0.259625
+  type: 'test'
+  ...
+# Subtest: semantic matrix 32: contains("bc")
+ok 32 - semantic matrix 32: contains("bc")
+  ---
+  duration_ms: 0.360625
+  type: 'test'
+  ...
+# Subtest: semantic matrix 33: add
+ok 33 - semantic matrix 33: add
+  ---
+  duration_ms: 0.222917
+  type: 'test'
+  ...
+# Subtest: semantic matrix 34: add
+ok 34 - semantic matrix 34: add
+  ---
+  duration_ms: 0.220292
+  type: 'test'
+  ...
+# Subtest: semantic matrix 35: add
+ok 35 - semantic matrix 35: add
+  ---
+  duration_ms: 0.17425
+  type: 'test'
+  ...
+# Subtest: semantic matrix 36: add
+ok 36 - semantic matrix 36: add
+  ---
+  duration_ms: 0.35
+  type: 'test'
+  ...
+# Subtest: semantic matrix 37: .[],keys
+ok 37 - semantic matrix 37: .[],keys
+  ---
+  duration_ms: 0.416292
+  type: 'test'
+  ...
+# Subtest: semantic matrix 38: (.a,.b)=(10,20)
+ok 38 - semantic matrix 38: (.a,.b)=(10,20)
+  ---
+  duration_ms: 0.730416
+  type: 'test'
+  ...
+# Subtest: semantic matrix 39: (.a,.b)|=(.,.+10)
+ok 39 - semantic matrix 39: (.a,.b)|=(.,.+10)
+  ---
+  duration_ms: 0.463958
+  type: 'test'
+  ...
+# Subtest: semantic matrix 40: .a=.b
+ok 40 - semantic matrix 40: .a=.b
+  ---
+  duration_ms: 0.346291
+  type: 'test'
+  ...
+# Subtest: semantic matrix 41: .a|=.b
+ok 41 - semantic matrix 41: .a|=.b
+  ---
+  duration_ms: 0.316333
+  type: 'test'
+  ...
+# Subtest: semantic matrix 42: .a|=empty
+ok 42 - semantic matrix 42: .a|=empty
+  ---
+  duration_ms: 0.211208
+  type: 'test'
+  ...
+# Subtest: semantic matrix 43: .a=empty
+ok 43 - semantic matrix 43: .a=empty
+  ---
+  duration_ms: 0.207667
+  type: 'test'
+  ...
+# Subtest: semantic matrix 44: .a|=(empty,99)
+ok 44 - semantic matrix 44: .a|=(empty,99)
+  ---
+  duration_ms: 0.368167
+  type: 'test'
+  ...
+# Subtest: semantic matrix 45: .a|=(7,1/0)
+ok 45 - semantic matrix 45: .a|=(7,1/0)
+  ---
+  duration_ms: 0.264625
+  type: 'test'
+  ...
+# Subtest: semantic matrix 46: .[1,2]|=empty
+ok 46 - semantic matrix 46: .[1,2]|=empty
+  ---
+  duration_ms: 0.411417
+  type: 'test'
+  ...
+# Subtest: semantic matrix 47: .a.b=1
+ok 47 - semantic matrix 47: .a.b=1
+  ---
+  duration_ms: 0.208667
+  type: 'test'
+  ...
+# Subtest: semantic matrix 48: .[2]=7
+ok 48 - semantic matrix 48: .[2]=7
+  ---
+  duration_ms: 0.168334
+  type: 'test'
+  ...
+# Subtest: semantic matrix 49: .[-1]=7
+ok 49 - semantic matrix 49: .[-1]=7
+  ---
+  duration_ms: 0.217916
+  type: 'test'
+  ...
+# Subtest: semantic matrix 50: (.a.b=2),.
+ok 50 - semantic matrix 50: (.a.b=2),.
+  ---
+  duration_ms: 0.273583
+  type: 'test'
+  ...
+# Subtest: semantic matrix 51: .a=. | .a.x=1
+ok 51 - semantic matrix 51: .a=. | .a.x=1
+  ---
+  duration_ms: 0.28825
+  type: 'test'
+  ...
+# Subtest: semantic matrix 52: first((1,1/0))
+ok 52 - semantic matrix 52: first((1,1/0))
+  ---
+  duration_ms: 0.164083
+  type: 'test'
+  ...
+# Subtest: semantic matrix 53: limit(1;(1,1/0))
+ok 53 - semantic matrix 53: limit(1;(1,1/0))
+  ---
+  duration_ms: 0.195417
+  type: 'test'
+  ...
+# Subtest: semantic matrix 54: first({a:(1,1/0)})
+ok 54 - semantic matrix 54: first({a:(1,1/0)})
+  ---
+  duration_ms: 0.300625
+  type: 'test'
+  ...
+# Subtest: semantic matrix 55: .a += .b
+ok 55 - semantic matrix 55: .a += .b
+  ---
+  duration_ms: 0.258958
+  type: 'test'
+  ...
+# Subtest: semantic matrix 56: (.a,.a) |= .+1
+ok 56 - semantic matrix 56: (.a,.a) |= .+1
+  ---
+  duration_ms: 0.333292
+  type: 'test'
+  ...
+# Subtest: semantic matrix 57: .a[.b]
+ok 57 - semantic matrix 57: .a[.b]
+  ---
+  duration_ms: 0.223166
+  type: 'test'
+  ...
+# Subtest: semantic matrix 58: map_values(select(.>1))
+ok 58 - semantic matrix 58: map_values(select(.>1))
+  ---
+  duration_ms: 0.344542
+  type: 'test'
+  ...
+# Subtest: semantic matrix 59: map_values(.,.+10)
+ok 59 - semantic matrix 59: map_values(.,.+10)
+  ---
+  duration_ms: 0.236334
+  type: 'test'
+  ...
+# Subtest: semantic matrix 60: [range(5;0;-2)]
+ok 60 - semantic matrix 60: [range(5;0;-2)]
+  ---
+  duration_ms: 0.235417
+  type: 'test'
+  ...
+# Subtest: semantic matrix 61: if false then 1 elif true then 2 else 3 end
+ok 61 - semantic matrix 61: if false then 1 elif true then 2 else 3 end
+  ---
+  duration_ms: 0.32325
+  type: 'test'
+  ...
+# Subtest: semantic matrix 62: [.[] | .a?]
+ok 62 - semantic matrix 62: [.[] | .a?]
+  ---
+  duration_ms: 1.874333
+  type: 'test'
+  ...
+# Subtest: semantic matrix 63: any(.>2),all(.>0),min,max,reverse
+ok 63 - semantic matrix 63: any(.>2),all(.>0),min,max,reverse
+  ---
+  duration_ms: 0.493541
+  type: 'test'
+  ...
+# Subtest: semantic matrix 64: sort_by(.a),unique_by(.a),min_by(.a),max_by(.a)
+ok 64 - semantic matrix 64: sort_by(.a),unique_by(.a),min_by(.a),max_by(.a)
+  ---
+  duration_ms: 0.590459
+  type: 'test'
+  ...
+# Subtest: semantic matrix 65: to_entries | map(.key += "x") | from_entries
+ok 65 - semantic matrix 65: to_entries | map(.key += "x") | from_entries
+  ---
+  duration_ms: 0.305208
+  type: 'test'
+  ...
+# Subtest: semantic matrix 66: with_entries(.key += "x")
+ok 66 - semantic matrix 66: with_entries(.key += "x")
+  ---
+  duration_ms: 0.195083
+  type: 'test'
+  ...
+# Subtest: semantic matrix 67: tonumber,tostring,tojson,fromjson
+ok 67 - semantic matrix 67: tonumber,tostring,tojson,fromjson
+  ---
+  duration_ms: 0.410292
+  type: 'test'
+  ...
+# Subtest: semantic matrix 68: [("ab"*2),(4.5%2),("a:b"/":"),([1,2,1]-[1])]
+ok 68 - semantic matrix 68: [("ab"*2),(4.5%2),("a:b"/":"),([1,2,1]-[1])]
+  ---
+  duration_ms: 0.469083
+  type: 'test'
+  ...
+# Subtest: semantic matrix 69: {a:{b:1,c:2}}*{a:{b:3,d:4}}
+ok 69 - semantic matrix 69: {a:{b:1,c:2}}*{a:{b:3,d:4}}
+  ---
+  duration_ms: 0.363916
+  type: 'test'
+  ...
+# Subtest: semantic matrix 70: (.a,.b) += (1,2)
+ok 70 - semantic matrix 70: (.a,.b) += (1,2)
+  ---
+  duration_ms: 0.744625
+  type: 'test'
+  ...
+# Subtest: semantic matrix 71: .a //= (false,9)
+ok 71 - semantic matrix 71: .a //= (false,9)
+  ---
+  duration_ms: 0.522875
+  type: 'test'
+  ...
+# Subtest: semantic matrix 72: .a //= (1/0)
+ok 72 - semantic matrix 72: .a //= (1/0)
+  ---
+  duration_ms: 0.49975
+  type: 'test'
+  ...
+# Subtest: semantic matrix 73: .a = empty
+ok 73 - semantic matrix 73: .a = empty
+  ---
+  duration_ms: 0.329541
+  type: 'test'
+  ...
+# Subtest: semantic matrix 74: {("a","b"):(1,2)}
+ok 74 - semantic matrix 74: {("a","b"):(1,2)}
+  ---
+  duration_ms: 0.402583
+  type: 'test'
+  ...
+# Subtest: semantic matrix 75: .[1,1]|=empty
+ok 75 - semantic matrix 75: .[1,1]|=empty
+  ---
+  duration_ms: 0.366083
+  type: 'test'
+  ...
+# Subtest: semantic matrix 76: (.a,.a.b)|=empty
+ok 76 - semantic matrix 76: (.a,.a.b)|=empty
+  ---
+  duration_ms: 0.29175
+  type: 'test'
+  ...
+# Subtest: semantic matrix 77: if true then . else 0 end
+ok 77 - semantic matrix 77: if true then . else 0 end
+  ---
+  duration_ms: 0.250417
+  type: 'test'
+  ...
+# Subtest: semantic matrix 78: if . then 1 else 0 end
+ok 78 - semantic matrix 78: if . then 1 else 0 end
+  ---
+  duration_ms: 0.164792
+  type: 'test'
+  ...
+# Subtest: semantic matrix 79: if . then 1 else . end
+ok 79 - semantic matrix 79: if . then 1 else . end
+  ---
+  duration_ms: 0.213916
+  type: 'test'
+  ...
+# Subtest: semantic matrix 80: if .then then .else else .end end
+ok 80 - semantic matrix 80: if .then then .else else .end end
+  ---
+  duration_ms: 0.187083
+  type: 'test'
+  ...
+# Subtest: semantic matrix 81: (.[0],.[0])|=empty
+ok 81 - semantic matrix 81: (.[0],.[0])|=empty
+  ---
+  duration_ms: 0.38325
+  type: 'test'
+  ...
+# Subtest: semantic matrix 82: (.[0],.[0])|=.+1
+ok 82 - semantic matrix 82: (.[0],.[0])|=.+1
+  ---
+  duration_ms: 0.323583
+  type: 'test'
+  ...
+# Subtest: semantic matrix 83: has(1.5)
+ok 83 - semantic matrix 83: has(1.5)
+  ---
+  duration_ms: 0.165583
+  type: 'test'
+  ...
+# Subtest: semantic matrix 84: [has(-1.5),has(-0.5),has(0.5),has(1.5),has(2.5)]
+ok 84 - semantic matrix 84: [has(-1.5),has(-0.5),has(0.5),has(1.5),has(2.5)]
+  ---
+  duration_ms: 0.278292
+  type: 'test'
+  ...
+# Subtest: semantic matrix 85: [.[-1.5],.[-0.5],.[0.5],.[1.5],.[2.5]]
+ok 85 - semantic matrix 85: [.[-1.5],.[-0.5],.[0.5],.[1.5],.[2.5]]
+  ---
+  duration_ms: 0.291334
+  type: 'test'
+  ...
+# Subtest: semantic matrix 86: .[1.5]=7
+ok 86 - semantic matrix 86: .[1.5]=7
+  ---
+  duration_ms: 0.20725
+  type: 'test'
+  ...
+# Subtest: semantic matrix 87: .[-0.5]=7
+ok 87 - semantic matrix 87: .[-0.5]=7
+  ---
+  duration_ms: 0.406
+  type: 'test'
+  ...
+# Subtest: semantic matrix 88: .[-1.5]=7
+ok 88 - semantic matrix 88: .[-1.5]=7
+  ---
+  duration_ms: 0.305875
+  type: 'test'
+  ...
+# Subtest: semantic matrix 89: [("b","a") as $x | $x]
+ok 89 - semantic matrix 89: [("b","a") as $x | $x]
+  ---
+  duration_ms: 0.219834
+  type: 'test'
+  ...
+# Subtest: prototype keys preserve data without altering host prototypes
+ok 90 - prototype keys preserve data without altering host prototypes
+  ---
+  duration_ms: 6.967208
+  type: 'test'
+  ...
+# Subtest: integer-like keys retain source/constructor order through output and updates
+ok 91 - integer-like keys retain source/constructor order through output and updates
+  ---
+  duration_ms: 1.035708
+  type: 'test'
+  ...
+1..91
+# tests 91
+# suites 0
+# pass 91
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 323.242

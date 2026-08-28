@@ -2,7 +2,9 @@
 
 Status: Proposed preparation; independent review and root execution pending
 
-Implemented Through: `ab729daa5a4eb891c7f3ac7f40d6ca0dbafbafe6` (historical v1 only)
+Implemented Through: `ab729daa5a4eb891c7f3ac7f40d6ca0dbafbafe6`
+
+This metadata identifies historical v1 only; v2 is a preparation proposal.
 
 Purpose: Compose separately sealed consumer/runtime corrections without changing
 original cases or executing the candidate.

@@ -14,3 +14,8 @@
   loop. All11 source-preseal files and the preseal matched exact7add5d2c Git/live
   bytes before its helper API was consumed. Source/evidence/recipe identities
   are bound in COMPONENTS; the pending binding is resolved, not a new root gap.
+- First validation at validation-2h2UrqxP: nine Node syntax checks passed; the
+  specification checker rejected an explanatory suffix on Implemented Through.
+  No data/composition checks or owned child admissions followed that failure.
+  The suffix moved to a separate paragraph. SEAL.json and its original source
+  commit remain historical; SEAL-v2.json binds the corrected documentation.

@@ -1,0 +1,19 @@
+{
+  "schema": "unified76-shared-v6-seal-attempts",
+  "scope": "Metadata/hash/compression/owned-cleanup only, no product/driver imports or control rerun",
+  "attempts": [
+    {
+      "command": "node24 tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/seal.mjs",
+      "exitStatus": 1,
+      "sha256": "5e0709388eee9ae2044e7e0cae20def4b53b320906d1d456879e41af307b6116",
+      "reason": "No-AGENTS assertion detected one dependency AGENTS copy in first old work tree; all3 discovered and recorded POLICY-COPY-INCIDENT. No work removed or raw bytes changed by this failed sealer; LOAD-PROOF.json written."
+    },
+    {
+      "command": "node24 tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/seal-final.mjs",
+      "exitStatus": 1,
+      "sha256": "9425b6ada28840e590f26d8ad5234b872d9173663df7038b08e18a1c8d404b1d",
+      "reason": "Stale cleanup path work already removed by incident handling: ENOENT before any new work removal/compression. Current no-AGENTS and process/module/hash assertions already passed; LOAD-PROOF-2.json written."
+    }
+  ],
+  "next": "finish-seal.mjs checks existing generated metadata byte-identical/read-only and removes only still-owned work-followup3. All previous sealer sources and outputs preserved."
+}

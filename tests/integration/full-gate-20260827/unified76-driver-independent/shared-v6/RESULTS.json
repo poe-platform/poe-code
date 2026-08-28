@@ -1,0 +1,653 @@
+{
+  "schema": "unified76-independent-shared-v6-results",
+  "startedAt": "2026-08-28T03:41:09.865Z",
+  "finishedAt": "2026-08-28T03:54:41.371Z",
+  "commandReceipts": [
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/review.mjs"
+      ],
+      "exitStatus": 1,
+      "frozenAt": "271e2cb9",
+      "result": "shared positive FAIL before build: missing /bin/bash sandbox permission; independent observer group PASS"
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/review-followup.mjs"
+      ],
+      "exitStatus": 1,
+      "frozenAt": "872bfd39",
+      "result": "cold78; typecheckall1 with0builds: /usr/bin/git Apple shim dispatch; duplicate NOT_EXECUTED"
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/review-followup2.mjs"
+      ],
+      "exitStatus": 0,
+      "frozenAt": "9be9e9e9",
+      "result": "Behavioral shared positive and duplicate PASS, but forbidden dependency AGENTS copy invalidates clean-procedure acceptance; preserved separately"
+    },
+    {
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/review-followup3.mjs"
+      ],
+      "exitStatus": 0,
+      "frozenAt": "888f01f4ff8703c5351a6b3ee86353f7a7f96046",
+      "result": "Clean shared positive PASS; real duplicate negative PASS; exact instruction file omitted before phases and no AGENTS copies in source/dependency work tree"
+    }
+  ],
+  "distinctCurrentControls": {
+    "sharedPositive": "PASS",
+    "realDuplicate": "PASS",
+    "outerObserverTransportForeignIsolation": "PASS"
+  },
+  "preservedSetupFailures": 2,
+  "preservedPolicyViolation": {
+    "incident": "POLICY-COPY-INCIDENT.json",
+    "initialNoAgentsClaimsSuperseded": true,
+    "compliantReplay": true,
+    "actualProductionBuildsAcrossAllAttempts": 4,
+    "meaning": "Two separate positive shared builds and two intentional duplicate negatives; two earlier setups built0. Not one total build across review attempts."
+  },
+  "omittedInstructionFiles": [
+    {
+      "dependency": "benchmarks",
+      "path": "just-bash/dist/AGENTS.md",
+      "bytes": 9231,
+      "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979",
+      "reason": "User explicitly forbids instruction-file copies; not a compiler/runtime input for this type-only slice. Full host dependency identity remains authenticated."
+    }
+  ],
+  "hiddenRetries": 0,
+  "fullGateLaunched": false,
+  "authorControlsUsedAsIndependentPasses": 0,
+  "typing": {
+    "status": "typecheck-passed-not-runtime-acceptance",
+    "phases": [
+      {
+        "label": "build",
+        "status": 0
+      },
+      {
+        "label": "source-and-tests",
+        "status": 0
+      },
+      {
+        "label": "historical-build-first-consumer",
+        "status": 0
+      },
+      {
+        "label": "source-consumer-atomic-webdav-profile-source",
+        "status": 0
+      },
+      {
+        "label": "source-consumer-atomic-webdav-independent-source",
+        "status": 0
+      },
+      {
+        "label": "source-consumer-env-split-public-source",
+        "status": 0
+      },
+      {
+        "label": "consumer-du-leaf",
+        "status": 0
+      },
+      {
+        "label": "consumer-grep-aliases-public",
+        "status": 0
+      },
+      {
+        "label": "consumer-column-public",
+        "status": 0
+      },
+      {
+        "label": "consumer-network-zero-caps-public",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex-continuation",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex-followup",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex-production",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex-production-continuation",
+        "status": 0
+      },
+      {
+        "label": "consumer-s3-constructor",
+        "status": 0
+      },
+      {
+        "label": "consumer-s3-http-author",
+        "status": 0
+      },
+      {
+        "label": "consumer-s3-http-independent",
+        "status": 0
+      },
+      {
+        "label": "consumer-s3-rmdir",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-loopback",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-services",
+        "status": 0
+      },
+      {
+        "label": "consumer-stream-inspection",
+        "status": 0
+      },
+      {
+        "label": "consumer-stream-five",
+        "status": 0
+      },
+      {
+        "label": "consumer-time-env-public",
+        "status": 0
+      },
+      {
+        "label": "consumer-time-env-leaf",
+        "status": 0
+      },
+      {
+        "label": "consumer-env-split-public-types",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-atomic",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-atomic-independent",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-timestamp-independent",
+        "status": 0
+      },
+      {
+        "label": "negative-env-split-invalid-binding",
+        "status": 2
+      },
+      {
+        "label": "negative-time-env-public-negative",
+        "status": 2
+      },
+      {
+        "label": "negative-time-env-leaf-negative",
+        "status": 2
+      }
+    ],
+    "maintainedGroups": [
+      {
+        "name": "du-leaf",
+        "files": [
+          "tests/plugins/qualified-current-release/du-leaf.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "grep-aliases-public",
+        "files": [
+          "tests/commands/grep-aliases/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "column-public",
+        "files": [
+          "tests/plugins/qualified-current-release/current-column.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "network-zero-caps-public",
+        "files": [
+          "tests/commands/network-zero-caps-review/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "regex",
+        "files": [
+          "tests/commands/regex-execution/package-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "regex-continuation",
+        "files": [
+          "tests/commands/regex-execution/continuation/package-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "regex-followup",
+        "files": [
+          "tests/commands/regex-execution/followup/product-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "regex-production",
+        "files": [
+          "tests/stress/regex-execution/production-review/package-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "regex-production-continuation",
+        "files": [
+          "tests/stress/regex-execution/production-continuation-review/package-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "s3-constructor",
+        "files": [
+          "tests/fs/s3/constructor-comparison/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "s3-http-author",
+        "files": [
+          "tests/fs/s3/http/author/public-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "s3-http-independent",
+        "files": [
+          "tests/fs/s3/http-independent/public-workflow.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "s3-rmdir",
+        "files": [
+          "tests/fs/s3/rmdir-independent/public-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "webdav-loopback",
+        "files": [
+          "tests/fs/webdav/consumer/consumer.test.mts",
+          "tests/fs/webdav/consumer/example.mts",
+          "tests/fs/webdav/consumer/provider.mts",
+          "tests/fs/webdav/consumer/types.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "webdav-services",
+        "files": [
+          "tests/fs/webdav/real-service/consumer.mts",
+          "tests/fs/webdav/real-service/example.mts",
+          "tests/fs/webdav/real-service/https.mts",
+          "tests/fs/webdav/real-service/phase2-consumer.mts",
+          "tests/fs/webdav/real-service-independent/independent.mts",
+          "tests/fs/webdav/real-service-independent/scope-neighbors.mts",
+          "tests/fs/webdav/rmdir-real-service/feasibility.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "stream-inspection",
+        "files": [
+          "tests/integration/stream-inspection-public-author/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "stream-five",
+        "files": [
+          "tests/plugins/stream-five-fixture-migration/public-options.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "time-env-public",
+        "files": [
+          "tests/commands/time-env-stress/fraction-independent/packed/public-positive.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "time-env-leaf",
+        "files": [
+          "tests/commands/time-env-stress/fraction-independent/packed/leaf-positive.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "env-split-public-types",
+        "files": [
+          "tests/shell-stress/env-split-validity/public-types.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "webdav-atomic",
+        "files": [
+          "tests/fs/webdav/atomic-extension/consumer.mts",
+          "tests/fs/webdav/atomic-extension/example.mts",
+          "tests/fs/webdav/atomic-extension/https.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "webdav-atomic-independent",
+        "files": [
+          "tests/fs/webdav/atomic-extension-independent/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "webdav-timestamp-independent",
+        "files": [
+          "tests/fs/webdav/release-timestamp-independent/independent.test.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      }
+    ],
+    "sourceGroups": [
+      {
+        "name": "atomic-webdav-profile-source",
+        "files": [
+          "tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts",
+          "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts"
+        ],
+        "qualification": "current public imports use built declarations; explicit source MockDav helper is not a packed-provider proof",
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "atomic-webdav-independent-source",
+        "files": [
+          "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts"
+        ],
+        "qualification": "current public imports use built declarations; source fixture helpers remain explicit",
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "env-split-public-source",
+        "files": [
+          "tests/shell-stress/env-split-consumer/packed-public-types.ts"
+        ],
+        "qualification": "current public declaration consumer; typing is not env-S runtime acceptance",
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      }
+    ],
+    "expectedNegativeGroups": [
+      {
+        "name": "env-split-invalid-binding",
+        "status": "pass",
+        "diagnostics": 1
+      },
+      {
+        "name": "time-env-public-negative",
+        "status": "pass",
+        "diagnostics": 2
+      },
+      {
+        "name": "time-env-leaf-negative",
+        "status": "pass",
+        "diagnostics": 5
+      }
+    ],
+    "groupsDenominator": "23 maintained +3 source positive type groups;3 expected-negative diagnostic groups, not29 runtime/product passes",
+    "productionBuilds": 1,
+    "emittedFiles": 832,
+    "declarationFiles": 208,
+    "runtimeExecutions": 0,
+    "cleaned": true
+  },
+  "duplicate": {
+    "compilerExitStatus": 0,
+    "auditDefaultMaximum": 1,
+    "observedRealBuildEvents": [
+      {
+        "nonce": "3a6e3971-9964-4c80-9617-623e48ab9139",
+        "pid": 43966,
+        "parent": 43945,
+        "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "compiler": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc",
+        "project": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/tsconfig.build.json",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source",
+        "args": [
+          "-p",
+          "tsconfig.build.json"
+        ],
+        "startedAt": "2026-08-28T03:53:22.268Z"
+      },
+      {
+        "nonce": "3a6e3971-9964-4c80-9617-623e48ab9139",
+        "pid": 46983,
+        "parent": 42952,
+        "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "compiler": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc",
+        "project": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/tsconfig.build.json",
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source",
+        "args": [
+          "-p",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/tsconfig.build.json"
+        ],
+        "startedAt": "2026-08-28T03:54:32.148Z"
+      }
+    ],
+    "refusal": "unexpected duplicate driver production build",
+    "APIOutcome": "Actual readBuildAudit throws, caught by independent expected-negative control. Not a CLI78 claim; compiler itself completed0.",
+    "sourceGuardUnchangedAfterDuplicate": true
+  },
+  "transport": {
+    "independentSubcontrols": [
+      {
+        "id": "inner-ps-and-write-fences",
+        "status": "PASS"
+      },
+      {
+        "id": "foreign-pid-registration-refused",
+        "status": "PASS"
+      },
+      {
+        "id": "unknown-handle-refused",
+        "status": "PASS"
+      },
+      {
+        "id": "wrong-channel-token-refused",
+        "status": "PASS"
+      },
+      {
+        "id": "positive-exact-backslash-and-contained-link",
+        "status": "PASS"
+      },
+      {
+        "id": "traversal",
+        "status": "PASS",
+        "refusal": {
+          "message": "The expression evaluated to a falsy value:\n\n  assert.ok(!posix.isAbsolute(entry.path)&&entry.path===posix.normalize(entry.path)&&!entry.path.split('/').some(part=>part==='..'||part==='.git'))\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "id": "git-metadata",
+        "status": "PASS",
+        "refusal": {
+          "message": "The expression evaluated to a falsy value:\n\n  assert.ok(!posix.isAbsolute(entry.path)&&entry.path===posix.normalize(entry.path)&&!entry.path.split('/').some(part=>part==='..'||part==='.git'))\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "id": "duplicate-entry",
+        "status": "PASS",
+        "refusal": {
+          "message": "The expression evaluated to a falsy value:\n\n  assert.ok(!seen.has(entry.path))\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "id": "link-ancestor",
+        "status": "PASS",
+        "refusal": {
+          "message": "symlink ancestor is not an extraction directory",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "id": "wrong-platform",
+        "status": "PASS",
+        "refusal": {
+          "message": "only the pinned POSIX archive path profile is supported\n+ actual - expected\n\n  {\n    arch: 'arm64',\n+   platform: 'win32',\n-   platform: 'darwin',\n    separator: '/',\n    syntax: 'posix'\n  }\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "id": "wrong-size-header",
+        "status": "PASS",
+        "refusal": {
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'a76db6d0092895bbc2b2d72e9e0d5c0477f27797 blob 28'\n- 'a76db6d0092895bbc2b2d72e9e0d5c0477f27797 blob 29'\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "id": "missing-object-header",
+        "status": "PASS",
+        "refusal": {
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '0000000000000000000000000000000000000000 missing'\n- '0000000000000000000000000000000000000000 blob 28'\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "id": "escaping-link",
+        "status": "PASS",
+        "refusal": {
+          "message": "The expression evaluated to a falsy value:\n\n  assert.ok(!posix.isAbsolute(link)&&normalized!=='..'&&!normalized.startsWith('../')&&!link.includes('\\0'))\n",
+          "code": "ERR_ASSERTION"
+        }
+      }
+    ],
+    "observedGitGroups": [
+      {
+        "pid": 30689,
+        "parent": 30678,
+        "group": 30689,
+        "born": "Thu Aug 27 22:41:39 2026",
+        "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+      },
+      {
+        "pid": 30703,
+        "parent": 30678,
+        "group": 30703,
+        "born": "Thu Aug 27 22:41:39 2026",
+        "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+      },
+      {
+        "pid": 30709,
+        "parent": 30678,
+        "group": 30709,
+        "born": "Thu Aug 27 22:41:39 2026",
+        "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+      },
+      {
+        "pid": 30718,
+        "parent": 30678,
+        "group": 30718,
+        "born": "Thu Aug 27 22:41:40 2026",
+        "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+      }
+    ],
+    "outerExit": {
+      "status": 0,
+      "signal": null
+    },
+    "zeroSurvivors": true,
+    "foreignBefore": {
+      "pid": 30675,
+      "parent": 29646,
+      "group": 30675,
+      "born": "Thu Aug 27 22:41:39 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node -e process.stdout.write(\"READY\\n\");setInterval(()=>{},1000)"
+    },
+    "foreignAfter": {
+      "pid": 30675,
+      "parent": 29646,
+      "group": 30675,
+      "born": "Thu Aug 27 22:41:39 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node -e process.stdout.write(\"READY\\n\");setInterval(()=>{},1000)"
+    },
+    "foreignCleanup": {
+      "pid": 30675,
+      "action": "Intentional controller cleanup after survival proof; not watched-group cleanup",
+      "result": {
+        "status": null,
+        "signal": "SIGTERM"
+      }
+    },
+    "lifecycleQualification": "Positive extraction returns status0/null signal/closed/zero survivors. Negative API calls throw; per-child terminal statuses are not exposed by throwing transport API, not invented. Outer observer verifies watched groups empty. Negative rejection is not positive extraction completion."
+  },
+  "bounds": {
+    "configured": {
+      "wholeReviewMs": 1200000,
+      "phaseMs": 360000,
+      "childOutputBytes": 67108864,
+      "workBytes": 1073741824,
+      "sourceCopyBytes": 268435456,
+      "chunkBytes": 65536,
+      "smallTransportBytes": 1048576,
+      "metadataBytes": 16777216,
+      "rawEvidenceBytes": 134217728,
+      "cleanupMs": 5000
+    },
+    "measuredPeakWorkBytes": 183586076,
+    "measuredPeakRawBeforeFinalReport": 81802614,
+    "finalRawBytes": 120819203,
+    "qualification": "Cooperative5s disk sampling during followups, actual per-phase360s supervisor; whole-review watchdog starts before phase execution after bounded setup. Not a kernel-hard deadline or complete syscall sandbox. Initial short failed setup and observer have no disk monitor; their fixed input/output bounds and measured tree sizes retained."
+  },
+  "currentScope": "A10 now closes only for the new shared implementation and approved one-driver-managed-build/type scope. No universal one total build: intentional duplicate negative is second real build, and test-owned isolated builds remain separate."
+}

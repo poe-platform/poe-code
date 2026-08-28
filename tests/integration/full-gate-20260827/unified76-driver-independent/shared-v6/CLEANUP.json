@@ -1,0 +1,749 @@
+{
+  "recordedProcessIdentities": [
+    {
+      "pid": 34210,
+      "parent": 33334,
+      "group": 34210,
+      "born": "Thu Aug 27 22:45:13 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js run typecheck -- --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup2/cold-types"
+    },
+    {
+      "pid": 34243,
+      "parent": 34210,
+      "group": 34210,
+      "born": "Thu Aug 27 22:45:14 2026",
+      "command": "(node)"
+    },
+    {
+      "pid": 34317,
+      "parent": 33334,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:18 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js run typecheck:all -- --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup2/typecheck-all"
+    },
+    {
+      "pid": 34339,
+      "parent": 34317,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:18 2026",
+      "command": "node scripts/typecheck.mjs --build --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup2/typecheck-all"
+    },
+    {
+      "pid": 34360,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:18 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p tsconfig.build.json"
+    },
+    {
+      "pid": 34416,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:22 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc --noEmit"
+    },
+    {
+      "pid": 34688,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:33 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc --noEmit -p tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json"
+    },
+    {
+      "pid": 34726,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:34 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/atomic-webdav-profile-source.json --traceResolution"
+    },
+    {
+      "pid": 34748,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:35 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/atomic-webdav-independent-source.json --traceResolution"
+    },
+    {
+      "pid": 34789,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:37 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/env-split-public-source.json --traceResolution"
+    },
+    {
+      "pid": 34832,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:38 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/du-leaf/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 34857,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:39 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/grep-aliases-public/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 34886,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:40 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/column-public/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 34901,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:41 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/network-zero-caps-public/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 34932,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:42 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/regex/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 34953,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:43 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/regex-continuation/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 34974,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:44 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/regex-followup/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35011,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:45 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/regex-production/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35024,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:46 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/regex-production-continuation/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35037,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:47 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/s3-constructor/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35049,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:48 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/s3-http-author/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35067,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:49 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/s3-http-independent/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35094,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:50 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/s3-rmdir/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35109,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:51 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/webdav-loopback/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35129,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:52 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/webdav-services/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35142,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:53 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/stream-inspection/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35153,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:54 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/stream-five/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35187,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:55 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/time-env-public/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35206,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:56 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/time-env-leaf/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35229,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:57 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/env-split-public-types/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35258,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:58 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/webdav-atomic/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35283,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:45:59 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/webdav-atomic-independent/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35297,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:46:00 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/webdav-timestamp-independent/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 35318,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:46:01 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/env-split-public-types/negative.json"
+    },
+    {
+      "pid": 35329,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:46:02 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/time-env-public/negative.json"
+    },
+    {
+      "pid": 35339,
+      "parent": 34339,
+      "group": 34317,
+      "born": "Thu Aug 27 22:46:03 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/tmp/safe-bash-typecheck-042EHj/consumer/time-env-leaf/negative.json"
+    },
+    {
+      "pid": 43815,
+      "parent": 42952,
+      "group": 43815,
+      "born": "Thu Aug 27 22:53:16 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js run typecheck -- --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/cold-types"
+    },
+    {
+      "pid": 43855,
+      "parent": 43815,
+      "group": 43815,
+      "born": "Thu Aug 27 22:53:16 2026",
+      "command": "(node)"
+    },
+    {
+      "pid": 43925,
+      "parent": 42952,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:21 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js run typecheck:all -- --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/typecheck-all"
+    },
+    {
+      "pid": 43945,
+      "parent": 43925,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:22 2026",
+      "command": "node scripts/typecheck.mjs --build --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/typecheck-all"
+    },
+    {
+      "pid": 43960,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:22 2026",
+      "command": "(git)"
+    },
+    {
+      "pid": 43966,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:22 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p tsconfig.build.json"
+    },
+    {
+      "pid": 44065,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:26 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc --noEmit"
+    },
+    {
+      "pid": 45721,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:43 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc --noEmit -p tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json"
+    },
+    {
+      "pid": 45827,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:45 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/atomic-webdav-profile-source.json --traceResolution"
+    },
+    {
+      "pid": 45907,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:47 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/atomic-webdav-independent-source.json --traceResolution"
+    },
+    {
+      "pid": 46031,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:49 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/env-split-public-source.json --traceResolution"
+    },
+    {
+      "pid": 46093,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:51 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/du-leaf/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46149,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:52 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/grep-aliases-public/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46177,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:53 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/column-public/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46243,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:54 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/network-zero-caps-public/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46268,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:55 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/regex/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46296,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:56 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/regex-continuation/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46324,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:58 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/regex-followup/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46350,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:53:59 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/regex-production/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46381,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:00 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/regex-production-continuation/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46426,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:01 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/s3-constructor/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46491,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:02 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/s3-http-author/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46517,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:03 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/s3-http-independent/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46541,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:05 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/s3-rmdir/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46569,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:06 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/webdav-loopback/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46594,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/webdav-services/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46629,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:08 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/stream-inspection/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46679,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:10 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/stream-five/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46706,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:11 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/time-env-public/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46763,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:12 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/time-env-leaf/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46781,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:13 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/env-split-public-types/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46798,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:15 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/webdav-atomic/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46819,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:16 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/webdav-atomic-independent/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46852,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:17 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/webdav-timestamp-independent/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 46875,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:18 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/env-split-public-types/negative.json"
+    },
+    {
+      "pid": 46884,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:19 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/time-env-public/negative.json"
+    },
+    {
+      "pid": 46895,
+      "parent": 43945,
+      "group": 43925,
+      "born": "Thu Aug 27 22:54:19 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/tmp/safe-bash-typecheck-fAqFUj/consumer/time-env-leaf/negative.json"
+    },
+    {
+      "pid": 30540,
+      "parent": 29646,
+      "group": 30540,
+      "born": "Thu Aug 27 22:41:32 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js run typecheck -- --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw/cold-types"
+    },
+    {
+      "pid": 30575,
+      "parent": 30540,
+      "group": 30540,
+      "born": "Thu Aug 27 22:41:33 2026",
+      "command": "(sh)"
+    },
+    {
+      "pid": 32850,
+      "parent": 31944,
+      "group": 32850,
+      "born": "Thu Aug 27 22:43:57 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js run typecheck -- --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup/cold-types"
+    },
+    {
+      "pid": 32874,
+      "parent": 32850,
+      "group": 32850,
+      "born": "Thu Aug 27 22:43:58 2026",
+      "command": "node scripts/typecheck.mjs --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup/cold-types"
+    },
+    {
+      "pid": 32940,
+      "parent": 31944,
+      "group": 32940,
+      "born": "Thu Aug 27 22:44:02 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js run typecheck:all -- --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup/typecheck-all"
+    },
+    {
+      "pid": 32963,
+      "parent": 32940,
+      "group": 32940,
+      "born": "Thu Aug 27 22:44:02 2026",
+      "command": "node scripts/typecheck.mjs --build --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup/typecheck-all"
+    },
+    {
+      "pid": 46983,
+      "parent": 42952,
+      "group": 46983,
+      "born": "Thu Aug 27 22:54:32 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup3/source/tsconfig.build.json"
+    },
+    {
+      "pid": 35390,
+      "parent": 33334,
+      "group": 35390,
+      "born": "Thu Aug 27 22:46:14 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/node_modules/typescript/bin/tsc -p /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work-followup2/source/tsconfig.build.json"
+    },
+    {
+      "pid": 30689,
+      "parent": 30678,
+      "group": 30689,
+      "born": "Thu Aug 27 22:41:39 2026",
+      "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+    },
+    {
+      "pid": 30703,
+      "parent": 30678,
+      "group": 30703,
+      "born": "Thu Aug 27 22:41:39 2026",
+      "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+    },
+    {
+      "pid": 30709,
+      "parent": 30678,
+      "group": 30709,
+      "born": "Thu Aug 27 22:41:39 2026",
+      "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+    },
+    {
+      "pid": 30718,
+      "parent": 30678,
+      "group": 30718,
+      "born": "Thu Aug 27 22:41:40 2026",
+      "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+    },
+    {
+      "pid": 30678,
+      "parent": 29646,
+      "group": 30678,
+      "born": "Thu Aug 27 22:41:39 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/observer-probe.mjs /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/work/observer/config.json"
+    },
+    {
+      "pid": 30675,
+      "parent": 29646,
+      "group": 30675,
+      "born": "Thu Aug 27 22:41:39 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node -e process.stdout.write(\"READY\\n\");setInterval(()=>{},1000)"
+    }
+  ],
+  "checkedAt": "2026-08-28T03:55:52.970Z",
+  "observedMatchingSurvivors": [],
+  "foreignSentinel": {
+    "survivedWatchedGroupCleanup": true,
+    "explicitlyStoppedByControllerAfterProof": {
+      "pid": 30675,
+      "action": "Intentional controller cleanup after survival proof; not watched-group cleanup",
+      "result": {
+        "status": null,
+        "signal": "SIGTERM"
+      }
+    }
+  },
+  "workBeforeRemoval": [
+    {
+      "root": "work-followup3",
+      "files": 9701,
+      "regularFiles": 9701,
+      "regularBytes": 171413699,
+      "regularContentManifestSha256": "896f96eec119dd7299cde71a0c46a0a4804c18a67e4cfa68322fbedfa088bb40",
+      "agentsFiles": 0
+    }
+  ],
+  "ownedTemporaryTreesRemoved": true,
+  "priorRemovedWorkTrees": [
+    {
+      "root": "work",
+      "files": 8883,
+      "regularBytes": 166095599,
+      "regularContentManifestSha256": "d5dc0be928014220c403cb469d586247f04d7acfafee606826e7eea791cc6f5f"
+    },
+    {
+      "root": "work-followup",
+      "files": 8867,
+      "regularBytes": 166078475,
+      "regularContentManifestSha256": "28f8297e0250ac48291a236a0d124f97cf000e20f56b0c274440a9774fd0d1bc"
+    },
+    {
+      "root": "work-followup2",
+      "files": 9702,
+      "regularBytes": 171422858,
+      "regularContentManifestSha256": "6ed74f70a8233c47c212d5de451608de15745a9cce879f4d49b280e5f019b57a"
+    }
+  ],
+  "priorForbiddenCopies": [
+    {
+      "path": "work/source/benchmarks/node_modules/just-bash/dist/AGENTS.md",
+      "bytes": 9231,
+      "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979"
+    },
+    {
+      "path": "work-followup/source/benchmarks/node_modules/just-bash/dist/AGENTS.md",
+      "bytes": 9231,
+      "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979"
+    },
+    {
+      "path": "work-followup2/source/benchmarks/node_modules/just-bash/dist/AGENTS.md",
+      "bytes": 9231,
+      "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979"
+    }
+  ],
+  "currentInstructionFilesOmitted": [
+    {
+      "dependency": "benchmarks",
+      "path": "just-bash/dist/AGENTS.md",
+      "bytes": 9231,
+      "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979",
+      "reason": "User explicitly forbids instruction-file copies; not a compiler/runtime input for this type-only slice. Full host dependency identity remains authenticated."
+    }
+  ],
+  "currentAgentsCopies": 0,
+  "stagedFrozenDriverRemoved": true,
+  "priorArtifactsChecked": 56,
+  "priorArtifactHashes": {
+    "tests/integration/full-gate-20260827/unified76-driver-independent/AUTHORITY-v2.json": "3c17c2d58f257b0b33e721670d42485da2ec6d8ba022be6f44b50fb3e7028c20",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/HANDOFF-v3.md": "4ef79cf29c670463a5082e0b69954b8693c84bfd584968e17cae2da0496b1a66",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/PHASE-A.json": "c8df466748a048e91a7a28a0b83c58dca2f8fdba2773e359d7b647d51d41a37c",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/PHASE-B.json": "f7919534015ef0ab3e253a3f4721197d93c7747314bcbce24c30e33b27484802",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/RECEIPT.md": "4b1375ff8b6e5bac026655e83993d0b22345686c23f019a5996f4fa552abc0f7",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/REVIEW-v2.md": "940dd1c16e04dd4205d4c4f48fa8f6abebf7e771532666243f3fae598af455bf",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/STATIC-POLICY-v3.json": "a7fa8f8c7c9d64950c69eda9a0a3198cf8cf4b79841a316bb76fa592ae222ad5",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/COMPONENT-RECIPE.json": "354a2a2dfeac1a5572f388b0e22fc8c6d24d6e730a53c8a9350b19ec8cdaf8a6",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/EXECUTION.txt": "f09d6ee8f3721288f820be36815f2341eeee183857776c9614306360d626d166",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/HANDOFF.md": "737d93dd356ae1510e3ff217f26bffbda7379f33f677beb24614a1de3a0d95d3",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/LEDGER.json": "969447de5de9fcabe2364a6a960dd83e13e2f41c554baf39b238a6fde0e5ffea",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/PLAN.json": "45cdac8bc9ff8aefa0c3d90e67132c67cb9bec89158acbcc0128f052d0539f3f",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/RESULTS.json": "11f8eb030c9d771c73ce0c0505bdec02bff6444e79c6d14e355eae4c4addbc70",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/SEAL.json": "7b65d8d22a4404bc3f13e8f5c0b0a2ab74a6a9d2b54c313d612c7d1720fa0634",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/cleanup-components.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/cleanup-components.stdout": "3732734d1e0cacae6e158d3cdab54af6b4ae2114ce3091c67958b0eaaf5e100a",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/cleanup-probe.mjs": "1bc52fb5ca5d36e856afda4cf44346d3af60086e30c65e4b7ac87281dbea5e20",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/component-probe.mjs": "68f522b4ffa590a08aa69b89f4217f7ef938cc0f6f3a3e237dd3ae60d3b5fc11",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/contained-link.stderr": "6b0fb5ac0098ef7a95c0c15a79d5750719615d83b75e2c12106b3f73f6b07b26",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/contained-link.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/containment.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/containment.stdout": "2472869b6725f43197108c0121e2f1874942a9bcae29c2c8282da91ed9598fd4",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/independent-pack.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/independent-pack.stdout": "4565108f1c4d79d7d34bd7eb88ee5e08e6f94a14268870427623a92c5cc6abfe",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/literal-HEAD.stderr": "1985a29d9bd00d2e470a451785cacaff852fc92e1d49bade6f7267a88fc249fd",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/literal-HEAD.stdout": "df592036e59b9824b0682519e02a1892ffb60bc8125501248e5138e0bb7dbe8a",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/literal-pinned.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/literal-pinned.stdout": "517e73f508b2f13651a2a2db97baa7e65375a2f37c41b837ab627f8ed1a1b6fc",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/load-guard.mjs": "699ae6829bc6952e911d24a5921fc694aca522ac3f6bbf3bd294b38822391f9f",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/production-build.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/production-build.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/run-completion.mjs": "e222d37ca4881a96063fb6106a04a5a6bdbfc55bdd526bf9ed43b07140cc6700",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/seal-absent.stderr": "190b285293bed7b0b535dc50b3b1e455d1856b91dcbdfb104f95816b8369bcee",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/seal-absent.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/seal-present.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/seal-present.stdout": "ca0c941b42812ed2fe0232ea79ea17327853f83c2080c3409f72ea44b2b07a61",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/seal-restored.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/seal-restored.stdout": "ca0c941b42812ed2fe0232ea79ea17327853f83c2080c3409f72ea44b2b07a61",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/COMPLETION-EXECUTION.txt": "ab3f7d8c6c49001f6da70a90286f55f6fdab22ed523656bfcdef57c60c1fee4a",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/COMPLETION-PLAN.json": "5f986b35a4731371d47e874cf408853b4f94d04e7535fae5f9bc6977dc3c94db",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/COMPLETION-RESULTS.json": "354aa2f54bc8500b6c94b1488aba33bf86b5fd4be8b8f0de9617d1589c24b256",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/EXECUTION.txt": "b25095e1d34e8d5fee047de86cb1486406aa0274056b7823abeb36d6b545bd8e",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/FOLLOWUP-EXECUTION.txt": "760c44752a70585f29c2f5d61bd4f18d66fdd557f774be43a5ea455bef418ed2",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/FOLLOWUP-PLAN.json": "1cff3ee755d52674920bf7740e40c367f9308195fa020c78ea07326a510c9a3b",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/FOLLOWUP-RAW.ndjson": "0a898b2ae1f78b7150b0524be24481cbac397a1653073a29b163e0c8b55a2fbd",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/FOLLOWUP-RESULTS.json": "373f587ab9c1a8afec44c2656307683146ac439ad521e2f20725659a09af44ce",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/HANDOFF.md": "e8db8b16fddb0ea4280069470303f1122eb0c87a465ac641c4d99c97eee41b30",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/PLAN.json": "6828a41e7dfa70aa86651fcc03424fa2604ff964b2cfad515bf1ba864cd3d3a4",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/RAW-COMMANDS.ndjson": "800dc7bd16b192c5fc6cf14a04846c03a072289f1acc6eb769dd29310f374595",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/RESULTS.json": "706f365dfa2748275fb0a90a05870edcd422ee423e3e6a306c252c62b167e9b0",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/SEAL.json": "5b08335c3ed5e7af80afb4306bf37595c59619295a43a091beb670e158eed504",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/completion.mjs": "be8a498859eb80f400e74c38f073f805c16ca9d35129254dbff0309be537b567",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/followup.mjs": "a2b20c7ea49491db18727126becf3fc0e99af4acc7f84e8d505af4f63fc2380e",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/execution-v4/review.mjs": "7e4822ee798961c5e830ae171b2aff6b984d6d6ccbb318e51065f5f5f9ee1301",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/integrityvalidation.mjs": "a22c657444e0730f9837706712ad95d060fd0b895321bbc08238ffcd80242944",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/static-predicate-v2.mjs": "c640116ec007c4ba096a3165f15f49ba71762005c43077ec609e2d602c3204f2"
+  },
+  "preexistingSharedFrozenFilesChecked": 96,
+  "priorBytesUnchanged": true,
+  "workspaceAtSeal": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/next\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/old\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/target\n?? tests/commands/search-stress/.native-1m4O1e/input\n?? \"tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/moved package with spaces/consumer/binding.json\"\n?? \"tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/moved package with spaces/consumer/cases.json\"\n?? \"tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/moved package with spaces/consumer/child.mjs\"\n?? \"tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/moved package with spaces/consumer/guard-negative.mjs\"\n?? \"tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/moved package with spaces/consumer/guard.mjs\"\n?? \"tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/moved package with spaces/consumer/installed-binding.json\"\n?? \"tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/moved package with spaces/consumer/observer.mjs\"\n?? \"tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/moved package with spaces/consumer/package.json\"\n?? \"tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/moved package with spaces/consumer/silent-worker.mjs\"\n?? \"tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/moved package with spaces/consumer/worker-guard.mjs\"\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/REPORT.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/binding-installed.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/binding-moved.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/consumer-installed-before.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/consumer-moved-before.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-source-fallback-guard.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-source-fallback-guard.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-source-fallback-guard.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-source-fallback-guard.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-direct-0-record.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-direct-0.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-direct-0.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-direct-0.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-direct-0.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-direct-1-record.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-direct-1.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-direct-1.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-direct-1.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-direct-1.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-public-0-record.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-public-0.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-public-0.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-public-0.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-public-0.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-public-1-record.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-public-1.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-public-1.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-public-1.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-target-public-1.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-valid-direct.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-valid-direct.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-valid-direct.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-valid-direct.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-valid-public.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-valid-public.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-valid-public.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node22-valid-public.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-source-fallback-guard.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-source-fallback-guard.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-source-fallback-guard.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-source-fallback-guard.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-direct-0-record.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-direct-0.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-direct-0.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-direct-0.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-direct-0.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-direct-1-record.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-direct-1.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-direct-1.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-direct-1.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-direct-1.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-public-0-record.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-public-0.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-public-0.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-public-0.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-public-0.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-public-1-record.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-public-1.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-public-1.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-public-1.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-target-public-1.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-valid-direct.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-valid-direct.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-valid-direct.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-valid-direct.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-valid-public.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-valid-public.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-valid-public.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/installed-node24-valid-public.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-source-fallback-guard.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-source-fallback-guard.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-source-fallback-guard.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-source-fallback-guard.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-direct-0-record.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-direct-0.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-direct-0.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-direct-0.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-direct-0.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-direct-1-record.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-direct-1.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-direct-1.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-direct-1.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-direct-1.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-public-0-record.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-public-0.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-public-0.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-public-0.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-public-0.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-public-1-record.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-public-1.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-public-1.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-public-1.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-target-public-1.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-valid-direct.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-valid-direct.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-valid-direct.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-valid-direct.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-valid-public.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-valid-public.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-valid-public.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node22-valid-public.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-source-fallback-guard.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-source-fallback-guard.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-source-fallback-guard.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-source-fallback-guard.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-direct-0-record.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-direct-0.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-direct-0.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-direct-0.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-direct-0.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-direct-1-record.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-direct-1.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-direct-1.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-direct-1.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-direct-1.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-public-0-record.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-public-0.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-public-0.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-public-0.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-public-0.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-public-1-record.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-public-1.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-public-1.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-public-1.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-target-public-1.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-valid-direct.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-valid-direct.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-valid-direct.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-valid-direct.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-valid-public.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-valid-public.prelaunch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-valid-public.stderr.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/moved-node24-valid-public.stdout.raw\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-0-positive.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-0-wrong-command.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-0-wrong-context-identity.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-0-wrong-diagnostic.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-0-wrong-dispatch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-0-wrong-export-identity.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-0-wrong-input.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-0-wrong-leaf-path.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-0-wrong-module-hash.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-0-wrong-root-path.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-0-wrong-signal-identity.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-0-wrong-status.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-0-wrong-wrapper-count.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-1-positive.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-1-wrong-command.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-1-wrong-context-identity.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-1-wrong-diagnostic.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-1-wrong-dispatch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-1-wrong-export-identity.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-1-wrong-input.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-1-wrong-leaf-path.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-1-wrong-module-hash.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-1-wrong-root-path.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-1-wrong-signal-identity.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-1-wrong-status.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-direct-1-wrong-wrapper-count.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-0-positive.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-0-wrong-command.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-0-wrong-context-identity.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-0-wrong-diagnostic.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-0-wrong-dispatch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-0-wrong-export-identity.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-0-wrong-input.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-0-wrong-leaf-path.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-0-wrong-module-hash.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-0-wrong-root-path.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-0-wrong-signal-identity.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-0-wrong-status.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-0-wrong-wrapper-count.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-1-positive.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-1-wrong-command.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-1-wrong-context-identity.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-1-wrong-diagnostic.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-1-wrong-dispatch.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-1-wrong-export-identity.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-1-wrong-input.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-1-wrong-leaf-path.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-1-wrong-module-hash.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-1-wrong-root-path.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-1-wrong-signal-identity.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-1-wrong-status.json\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/run-001/raw/validator-target-public-1-wrong-wrapper-count.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/BINDINGS.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/LEDGER.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/LOAD-PROOF-2.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/RAW-INDEX.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/RESULTS.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/SEAL-ATTEMPTS.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/finish-seal.mjs\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/A10-real-duplicate.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/A10-shared-positive.json.gz\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/REPORT.json.gz\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/cold-typecheck.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/cold-typecheck.stderr\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/cold-typecheck.stdout\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/cold-types/report.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/copied-dependencies.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/duplicate.stderr\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/duplicate.stdout\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/cold-typecheck/43815.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/cold-typecheck/43855.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/duplicate/46983.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/43925.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/43945.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/43966.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/44065.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/45721.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/45827.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/45907.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46031.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46093.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46149.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46177.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46243.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46268.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46296.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46324.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46350.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46381.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46426.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46491.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46517.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46541.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46569.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46594.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46629.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46679.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46706.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46763.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46781.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46798.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46819.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46852.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46875.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46884.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/imports/typecheck-all/46895.ndjson\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/positive-audit.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/positive-emit.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/selected-manifest.json.gz\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/slice.json.gz\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/typecheck-all.json\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/typecheck-all.stderr\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/typecheck-all.stdout\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup3/typecheck-all/report.json.gz\n?? tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/seal-final.mjs\n?? tests/integration/html-public-admission-resource-v32-independent-20260827/ROOT-COORDINATION.md\n",
+  "indexAtSeal": "",
+  "qualification": "Only review-owned work trees and staged exact driver copies removed. No unrelated PID/group signalled, foreign real workspace artifacts/index left untouched. Natural slice children closed without signals; foreign sentinel stopped explicitly after proof."
+}

@@ -1,0 +1,466 @@
+{
+  "schema": "unified76-independent-shared-v6-ledger",
+  "source": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+  "priorInitial": {
+    "commit": "4b13eeda0588200b849f2c7fd6863c137ef75c70",
+    "PASS": 19,
+    "HOLD": 3,
+    "unchanged": true
+  },
+  "priorCurrent": {
+    "commit": "37b3c9c3c9c3e911286d0d8542c494f762e17015",
+    "PASS": 21,
+    "HOLD": 1,
+    "unchanged": true
+  },
+  "currentQualified22": {
+    "inheritedPASS": 21,
+    "newScopedA10PASS": 1,
+    "HOLD": 0,
+    "qualification": "Cumulative qualified group ledger, not22 freshly executed groups or full final-driver execution. Original assertion bytes and preinspection chronology stay immutable; root-approved A02/A10/F01 evolution remains additive."
+  },
+  "matrix": [
+    {
+      "id": "A01",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "static identity plus dynamic negative admission",
+      "newEvidence": "completion-v5/RESULTS.json",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A02",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "intrinsically static patch proof",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A03",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "dynamic actual namespace guard",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A04",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "FOLLOWUP-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "static declared closure plus actual external verification",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A05",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "static membership plus actual profile negatives",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A06",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "COMPLETION-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "COMPLETION-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "dynamic actual archive/origin guard",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A07",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual tool identity/process",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A08",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "FOLLOWUP-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual permission and pinned loader probes",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A09",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual argv and streamed TAP",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A10",
+      "status": "PASS_SCOPED_NEW_SOURCE",
+      "latestEvidence": "shared-v6/RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "HOLD"
+        }
+      ],
+      "criterion": "actual build-seam component plus integration boundary",
+      "qualification": "A10 now closes only for the new shared implementation and approved one-driver-managed-build/type scope. No universal one total build: intentional duplicate negative is second real build, and test-owned isolated builds remain separate.",
+      "priorStatus": "HOLD"
+    },
+    {
+      "id": "A11",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "FOLLOWUP-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "HOLD"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "intrinsically static package artifact binding",
+      "newEvidence": "completion-v5/RESULTS.json",
+      "qualification": "One independent isolated production build and offline pack reproduce full c109",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A12",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "COMPLETION-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "COMPLETION-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual bounded transport",
+      "qualification": "Prior regular transport PASS retained; new positive contained-link lifecycle supplement FAIL/HOLD due sandbox /bin/ps EPERM",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A13",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "COMPLETION-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "COMPLETION-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual transport path refusal",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A14",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual namespace/build delta guard",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A15",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "FOLLOWUP-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "static manifest plus actual readable identities",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A16",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual cleanup-envelope validator",
+      "newEvidence": "completion-v5/RESULTS.json",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A17",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual supervisor lifecycle",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A18",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "HOLD"
+        }
+      ],
+      "criterion": "product cooperative cleanup boundary",
+      "newEvidence": "completion-v5/RESULTS.json",
+      "qualification": "Six real narrow cleanup component/registry controls; not native/public cleanup cohort",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A19",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual strict verdict and raw lifecycle",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A20",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "COMPLETION-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "COMPLETION-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual inert import and unreleased CLI",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A21",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual selected inventory checker",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    },
+    {
+      "id": "A22",
+      "status": "PASS_INHERITED_QUALIFIED",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "intrinsically static provenance/versioning",
+      "notRerun": true,
+      "historicalStatus": "PASS"
+    }
+  ],
+  "sevenNew76Proofs": [
+    {
+      "id": "u76.binding-complete",
+      "status": "HOLD",
+      "evidence": "A01,A04,A10,A11,A18",
+      "limit": "New shared A10 passed; no valid ROOT_RELEASE or whole pipeline. Root must bind required EXPR/public/private prerequisites to final packet; this leaf does not adjudicate moving root receipts or release authorization."
+    },
+    {
+      "id": "u76.binding-pending-template",
+      "status": "PASS_BOUNDED_REFUSAL_INHERITED",
+      "evidence": "RESULTS:A01/A19; COMPLETION:A20",
+      "limit": "Actual empty/missing authorization and missing-binding rejection; not historical template runner",
+      "notRerun": true,
+      "carryQualification": "Immutable candidate/profile/policy/TAP/inventory validators unchanged; admission change only adds exact new runtime modules to seal. Not a new dynamic root-release or CLI run."
+    },
+    {
+      "id": "u76.binding-mutable-head",
+      "status": "PASS_BOUNDED_REFUSAL_INHERITED",
+      "evidence": "completion-v5 literal-HEAD.stdout/stderr + RESULTS.json",
+      "limit": "Exact HEAD token actually rejected by frozen parseArgs; no inspection/gate launch",
+      "notRerun": true,
+      "carryQualification": "Immutable candidate/profile/policy/TAP/inventory validators unchanged; admission change only adds exact new runtime modules to seal. Not a new dynamic root-release or CLI run."
+    },
+    {
+      "id": "u76.binding-missing-asset",
+      "status": "PASS_BOUNDED_REFUSAL_INHERITED",
+      "evidence": "RESULTS:A03; FOLLOWUP:A15",
+      "limit": "Actual missing runtime input and readable tool refusal, not full admission",
+      "notRerun": true,
+      "carryQualification": "Immutable candidate/profile/policy/TAP/inventory validators unchanged; admission change only adds exact new runtime modules to seal. Not a new dynamic root-release or CLI run."
+    },
+    {
+      "id": "u76.binding-missing-classification",
+      "status": "PASS_BOUNDED_REFUSAL_INHERITED",
+      "evidence": "RESULTS:A05/A21",
+      "limit": "Actual missing/unknown classification validators",
+      "notRerun": true,
+      "carryQualification": "Immutable candidate/profile/policy/TAP/inventory validators unchanged; admission change only adds exact new runtime modules to seal. Not a new dynamic root-release or CLI run."
+    },
+    {
+      "id": "u76.binding-missing-cleanup-manifest",
+      "status": "PASS_BOUNDED_REFUSAL_INHERITED",
+      "evidence": "completion-v5 seal-absent.stdout/stderr + RESULTS.json",
+      "limit": "Entire CLEANUP.json absent; actual verifyDriverSeal ENOENT; no recreation; exact restoration passes",
+      "notRerun": true,
+      "carryQualification": "Immutable candidate/profile/policy/TAP/inventory validators unchanged; admission change only adds exact new runtime modules to seal. Not a new dynamic root-release or CLI run."
+    },
+    {
+      "id": "u76.binding-skipped-case",
+      "status": "PASS_BOUNDED_REFUSAL_INHERITED",
+      "evidence": "RESULTS:A19",
+      "limit": "Actual nonzero HOLD for explicitly synthetic skipped=1; not measured canonical cohort",
+      "notRerun": true,
+      "carryQualification": "Immutable candidate/profile/policy/TAP/inventory validators unchanged; admission change only adds exact new runtime modules to seal. Not a new dynamic root-release or CLI run."
+    }
+  ],
+  "sevenSummary": {
+    "inheritedBoundedRefusals": 6,
+    "completeBindingHOLD": 1
+  },
+  "transportNewCohort": {
+    "PASS": 13,
+    "FAIL": 0,
+    "source": "raw/observer-probe.json",
+    "oldContainedLinkEPERMUnchanged": true
+  },
+  "allPriorCountsPreserved": [
+    "original Meitner71PASS/7NOT_EXECUTED",
+    "author56",
+    "author fixture49/1 then19/19 separate",
+    "author5 shared review controls",
+    "old2ff20/1",
+    "old b0ee/dfcb zero-build backslash and observer failures",
+    "F01 oldexit1/static10",
+    "v4 initial19/3",
+    "v5 current21/1 and outer9PASS/1FAIL"
+  ],
+  "rootRelease": "HOLD",
+  "wholeGateLaunched": false
+}

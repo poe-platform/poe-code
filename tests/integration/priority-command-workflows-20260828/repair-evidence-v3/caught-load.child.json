@@ -1,0 +1,12 @@
+{
+  "mode": "caught-load",
+  "pid": 72587,
+  "exitObserved": true,
+  "closeObserved": true,
+  "errors": [],
+  "stdout": "{\"role\":\"BENIGN_STUB_ONLY_NOT_PRODUCT_PROOF\",\"mode\":\"caught-load\",\"pass\":true,\"messages\":[{\"caught\":\"AssertionError [ERR_ASSERTION]: LOAD_HASH_REFUSED:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-dependency.mjs\\n+ actual - expected\\n\\n+ '198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84'\\n- '0000000000000000000000000000000000000000000000000000000000000000'\\n\"}],\"listenerRemoved\":true,\"rows\":[{\"token\":\"caught-load:1\",\"entry\":\"file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs\",\"requested\":{\"execArgv\":[],\"resourceLimits\":{\"maxOldGenerationSizeMb\":128,\"stackSizeMb\":4}},\"effective\":{\"execArgv\":[\"--import\",\"file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs\"],\"resourceLimits\":{\"maxOldGenerationSizeMb\":128,\"stackSizeMb\":4}},\"exited\":true,\"exitCode\":0,\"terminatePending\":0,\"terminateErrors\":[],\"emergency\":false,\"productTerminateCalls\":0,\"errors\":[],\"threadId\":1,\"resourceLimits\":{\"maxYoungGenerationSizeMb\":-1,\"maxOldGenerationSizeMb\":128,\"codeRangeSizeMb\":-1,\"stackSizeMb\":4},\"online\":true,\"childAdmissionRefused\":true}],\"admissionRefusals\":[],\"productImports\":0,\"productDispatches\":0}\n",
+  "stderr": "",
+  "status": 0,
+  "signal": null,
+  "reaped": true
+}

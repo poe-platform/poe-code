@@ -1,0 +1,12 @@
+{
+  "mode": "independent-cleanup",
+  "pid": 72589,
+  "exitObserved": true,
+  "closeObserved": true,
+  "errors": [],
+  "stdout": "{\"role\":\"BENIGN_STUB_ONLY_NOT_PRODUCT_PROOF\",\"mode\":\"independent-cleanup\",\"pass\":true,\"messages\":[\"stub-ready\"],\"listenerRemoved\":true,\"rows\":[{\"token\":\"independent-cleanup:1\",\"entry\":\"file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs\",\"requested\":{\"execArgv\":[],\"resourceLimits\":{\"maxOldGenerationSizeMb\":128,\"stackSizeMb\":4}},\"effective\":{\"execArgv\":[\"--import\",\"file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs\"],\"resourceLimits\":{\"maxOldGenerationSizeMb\":128,\"stackSizeMb\":4}},\"exited\":true,\"exitCode\":1,\"terminatePending\":0,\"terminateErrors\":[],\"emergency\":false,\"productTerminateCalls\":1,\"errors\":[],\"threadId\":1,\"resourceLimits\":{\"maxYoungGenerationSizeMb\":-1,\"maxOldGenerationSizeMb\":128,\"codeRangeSizeMb\":-1,\"stackSizeMb\":4},\"online\":true,\"childAdmissionRefused\":false}],\"admissionRefusals\":[\"AssertionError [ERR_ASSERTION]: WORKER_URL_DRIFT\"],\"productImports\":0,\"productDispatches\":0}\n",
+  "stderr": "",
+  "status": 0,
+  "signal": null,
+  "reaped": true
+}

@@ -1,0 +1,262 @@
+{
+  "role": "ONE_FINITE_DATA_QUALIFICATION_NOT_RUNTIME",
+  "originalNine": [
+    {
+      "name": "exact_saved_trace",
+      "expected": true,
+      "actual": true,
+      "pass": true,
+      "rejection": null
+    },
+    {
+      "name": "independent_pipeline_entry_swap",
+      "expected": true,
+      "actual": true,
+      "pass": true,
+      "rejection": null
+    },
+    {
+      "name": "missing_child",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "EXACT_STAGE_MULTIPLICITY",
+        "stack": "Error: EXACT_STAGE_MULTIPLICITY\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at assertTraceStages (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:29:49)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:9:115\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:9:73)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    },
+    {
+      "name": "extra_child",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "EXACT_STAGE_MULTIPLICITY",
+        "stack": "Error: EXACT_STAGE_MULTIPLICITY\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at assertTraceStages (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:29:49)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:9:115\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:9:73)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    },
+    {
+      "name": "duplicate_child",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "EXACT_STAGE_MULTIPLICITY",
+        "stack": "Error: EXACT_STAGE_MULTIPLICITY\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at assertTraceStages (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:29:49)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:9:115\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:9:73)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    },
+    {
+      "name": "changed_child_status",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "MISSING_OR_CHANGED_STAGE",
+        "stack": "Error: MISSING_OR_CHANGED_STAGE\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:35:23\n    at Array.map (<anonymous>)\n    at assertTraceStages (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:33:30)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:9:115\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:9:73)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    },
+    {
+      "name": "wrong_child_provenance",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "MISSING_OR_CHANGED_STAGE",
+        "stack": "Error: MISSING_OR_CHANGED_STAGE\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:35:23\n    at Array.map (<anonymous>)\n    at assertTraceStages (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:33:30)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:9:115\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:9:73)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    },
+    {
+      "name": "wrong_literal_path",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "MISSING_OR_CHANGED_STAGE",
+        "stack": "Error: MISSING_OR_CHANGED_STAGE\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:35:23\n    at Array.map (<anonymous>)\n    at assertTraceStages (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:33:30)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:9:115\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:9:73)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    },
+    {
+      "name": "child_order_reversed",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "STAGE_PARTIAL_ORDER",
+        "stack": "Error: STAGE_PARTIAL_ORDER\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at assertTraceStages (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:41:50)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:9:115\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:9:73)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    }
+  ],
+  "additionalObservable": [
+    {
+      "name": "observable_stolen_top_child_stdin",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "MISSING_OR_CHANGED_STAGE",
+        "stack": "Error: MISSING_OR_CHANGED_STAGE\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:35:23\n    at Array.map (<anonymous>)\n    at assertTraceStages (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:33:30)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:10:131\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:10:89)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    },
+    {
+      "name": "child_before_find",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "STAGE_PARTIAL_ORDER",
+        "stack": "Error: STAGE_PARTIAL_ORDER\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at assertTraceStages (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:41:50)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:10:131\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:10:89)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    },
+    {
+      "name": "missing_top",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "EXACT_STAGE_MULTIPLICITY",
+        "stack": "Error: EXACT_STAGE_MULTIPLICITY\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at assertTraceStages (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:29:49)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:10:131\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:10:89)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    },
+    {
+      "name": "duplicate_top",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "EXACT_STAGE_MULTIPLICITY",
+        "stack": "Error: EXACT_STAGE_MULTIPLICITY\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at assertTraceStages (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:29:49)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:10:131\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:10:89)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    },
+    {
+      "name": "changed_top_status",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "MISSING_OR_CHANGED_STAGE",
+        "stack": "Error: MISSING_OR_CHANGED_STAGE\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:35:23\n    at Array.map (<anonymous>)\n    at assertTraceStages (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:33:30)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:10:131\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:10:89)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    },
+    {
+      "name": "changed_child_kind",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "MISSING_OR_CHANGED_STAGE",
+        "stack": "Error: MISSING_OR_CHANGED_STAGE\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:35:23\n    at Array.map (<anonymous>)\n    at assertTraceStages (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:33:30)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:10:131\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:10:89)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    },
+    {
+      "name": "extra_observable_property",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "EXACT_KEYS",
+        "stack": "Error: EXACT_KEYS\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at ownData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:5:108)\n    at tuple (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:17:3)\n    at Array.map (<anonymous>)\n    at assertTraceStages (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:31:25)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:10:131\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:10:89)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    }
+  ],
+  "bindingControls": [
+    {
+      "name": "old_GO_rejected",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "EXACT_KEYS",
+        "stack": "Error: EXACT_KEYS\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at ownData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:5:108)\n    at assertExactData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:52:3)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:11:67\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:11:31)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    },
+    {
+      "name": "inactive_new_budget_DATA",
+      "expected": true,
+      "actual": true,
+      "pass": true,
+      "rejection": null
+    },
+    {
+      "name": "old_budget_rejected",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "EXACT_DATA_VALUE",
+        "stack": "Error: EXACT_DATA_VALUE\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at assertExactData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:48:39)\n    at assertExactData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:53:48)\n    at assertFutureBudget (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:57:10)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:13:71\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:13:31)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    },
+    {
+      "name": "old_root_rejected",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "EXACT_DATA_VALUE",
+        "stack": "Error: EXACT_DATA_VALUE\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at assertExactData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:48:39)\n    at assertExactData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:53:48)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:15:69\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:15:31)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    },
+    {
+      "name": "wrong_selection_rejected",
+      "expected": false,
+      "actual": false,
+      "pass": true,
+      "rejection": {
+        "name": "Error",
+        "message": "EXACT_DATA_VALUE",
+        "stack": "Error: EXACT_DATA_VALUE\n    at fail (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:1:32)\n    at assertExactData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:48:39)\n    at assertExactData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:53:48)\n    at assertExactData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/stage-helper.mjs:53:48)\n    at /Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:17:76\n    at run (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:6:11)\n    at Module.qualifyData (/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/qualify-data.mjs:17:31)\n    at /Users/kjopek/Workspace/safe-bash/.node_repl_cell_28.mjs:116:1388"
+      }
+    }
+  ],
+  "pass": true,
+  "startedEpochMs": 1787952377766,
+  "finishedEpochMs": 1787952377768,
+  "packet": "4088ee524e9ec6ae47ef90af3538dc35addcc3a0",
+  "codeCommit": "497c566083fac2eda1ddad14edba052e3c0a6d54",
+  "candidate": [
+    {
+      "path": "CANDIDATE.json",
+      "bytes": 1956,
+      "sha256": "9606b9f0235dd5b9adb1ef61e976d68730191fa16959410efb18ad876b7cfcb3"
+    }
+  ],
+  "executionCount": 1,
+  "originalNineDenominator": {
+    "positive": 2,
+    "negative": 7
+  },
+  "addedObservableDenominator": {
+    "positive": 0,
+    "negative": 7
+  },
+  "bindingDenominator": {
+    "positive": 1,
+    "negative": 4
+  },
+  "scope": "Pure DATA only. Both adapter call sites statically inspected to call this exact helper. No adapter/runtime/supervisor import or execution. No old outcome rescoring.",
+  "staticChecks": {
+    "bothSites": 2,
+    "helperCopiedAndAdmitted": true,
+    "selected78": true,
+    "unchanged31CaseSemantics": true,
+    "unchangedFixtures": true,
+    "oldGOAndBudgetHashes": true
+  }
+}

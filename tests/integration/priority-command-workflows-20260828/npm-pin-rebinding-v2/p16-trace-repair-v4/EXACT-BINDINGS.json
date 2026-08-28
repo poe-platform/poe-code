@@ -1,0 +1,142 @@
+{
+  "packetCommit": "4088ee524e9ec6ae47ef90af3538dc35addcc3a0",
+  "codeCommit": "497c566083fac2eda1ddad14edba052e3c0a6d54",
+  "codeIdentity": {
+    "encoding": "JSON.stringify ordered [path,sha256,bytes] tuples",
+    "sha256": "3ae9491a5630bce2d07de60632e5b9ffaed492f0cc72c931bd5fd96918ced6e8",
+    "rows": [
+      [
+        "stage-helper.mjs",
+        "94d584b226fe296bb548498e6627ba3b58fd61b1f8c593993da178d87d5584cb",
+        3480
+      ],
+      [
+        "future-adapter.mjs",
+        "7565884afa9b9e901097a8febba4e7d9a739c19cbb2e7396fde7ea3d66dfd276",
+        24017
+      ],
+      [
+        "future-supervisor.mjs",
+        "5908fb967c9246847ea719b0ad9113549a0f0ed022536cd207a402de0ac7acdb",
+        23859
+      ],
+      [
+        "admission.mjs",
+        "4eb32fc668919bf820302dbd23fdae61252aefbad8c929139c53ffd94d691ab4",
+        9212
+      ],
+      [
+        "source-auth.mjs",
+        "6cedc606a0fddec6d962bef9b47b3d3e877f8443a65733ea4d9d50f743d64167",
+        6828
+      ],
+      [
+        "runtime-entry.mjs",
+        "1dd597a49853c4c19a073e4a5667fee257d9903ca2bb90e2f457aee8d0d570ad",
+        3185
+      ],
+      [
+        "worker-observer.mjs",
+        "3ab091998e802533844494c07f74adfaa2f14de5e6f570588db3d16b99c56ed9",
+        5646
+      ],
+      [
+        "worker-preload.mjs",
+        "2df3bf2cfaa2ace0b6dba3852aad9208ef55b0e39ee0e0e2c2b2bd500d0a62db",
+        2105
+      ],
+      [
+        "../../stub-controls.mjs",
+        "e976a629f3e8535facc6fe0cf760025d0fe2d7b8fa313bab8edf90488d7e6a21",
+        10816
+      ],
+      [
+        "../../stub-child.mjs",
+        "c8d111fc46a7f9feb0cf20cf3ae1272429bcb2fd5d14e4f92e0ded87329d826e",
+        4148
+      ],
+      [
+        "../../stub-entry.mjs",
+        "ed5947d01667f281a26fe1f98d4e587a4d1c9a7022c188c8dd170c7e91784e7b",
+        786
+      ],
+      [
+        "../../stub-dependency.mjs",
+        "198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84",
+        53
+      ],
+      [
+        "../../stub-guard.mjs",
+        "aff310d837860b406a29d3863a6cb069d1740030412ff9a7b5b18f7447fda5b2",
+        622
+      ],
+      [
+        "../../repair-controls.mjs",
+        "b17544310f479f4e7ce15ce93a4a7a1b63dacd65a73e248844af846ce16ad211",
+        12505
+      ],
+      [
+        "../../repair-child.mjs",
+        "97a4cb3688922ff4efb70aef845dc6f5840a3e8a172710ead28ceca9a10fc104",
+        4821
+      ]
+    ]
+  },
+  "files": [
+    {
+      "path": "PRECODE-SEAL.json",
+      "bytes": 3911,
+      "sha256": "daf208c80cb8f6afc55e21f391547b99ed52265be5ba206096ce8818f7785ee7"
+    },
+    {
+      "path": "DATA-CONTROLS.presealed.json",
+      "bytes": 23889,
+      "sha256": "fe9c119a3a7dc7150b0dfd8bf9479b7df9e05e6e6a45f1c57b8c920b026f2625"
+    },
+    {
+      "path": "MANIFEST.json",
+      "bytes": 1381,
+      "sha256": "00070b5ee6f0a358d3595e54e577b4f32f4b2dfa36a526c6541271b3c02bd98e"
+    },
+    {
+      "path": "CANDIDATE.json",
+      "bytes": 1956,
+      "sha256": "9606b9f0235dd5b9adb1ef61e976d68730191fa16959410efb18ad876b7cfcb3"
+    },
+    {
+      "path": "DATA-QUALIFICATION.json",
+      "bytes": 25542,
+      "sha256": "7cdec3b84a4994bba609ed5c4f9852b58ddfa55bdd9feac29be3c4b3d8ef8f4d"
+    },
+    {
+      "path": "PREPARATION-SEAL-v4.json",
+      "bytes": 28972,
+      "sha256": "0b7ecfd23d705e4d9cfa8ac66b642f33aa51a16769b0d128dda9a156099bf579"
+    },
+    {
+      "path": "GO.template.json",
+      "bytes": 5812,
+      "sha256": "bcfdf1b6c4081288c05acfa16ccb3da2f4c86bdbf5d8327bcc8369e1f9517cd3"
+    },
+    {
+      "path": "PARENT-BUDGET.template.json",
+      "bytes": 300,
+      "sha256": "cda5c6fbf084925e821e17b8e8826983f38de3c5e665e8fc4fc93d49c4bbd494"
+    },
+    {
+      "path": "SELECTION.json",
+      "bytes": 11371,
+      "sha256": "75e43bb584f4edb791285da329460825401d82f7089418657fd9a3a8968a7c85"
+    },
+    {
+      "path": "SOURCE-AUTH.json",
+      "bytes": 103470,
+      "sha256": "e12b192070a3df71b2df89da25e16fb507c04f4077a14836ec0d0d4ad065964f"
+    },
+    {
+      "path": "AUTHORITY-ROLES.json",
+      "bytes": 28041,
+      "sha256": "15346ee811617244a8459d02089bdb2765621efb3408e41cd06e64e725110ca4"
+    }
+  ]
+}

@@ -1,0 +1,2181 @@
+{
+  "schema": "expr-v5-independent-checkpoint/1",
+  "authorizationDate": "2026-08-28",
+  "recipeCommit": "94b040e35d2a2c40ee006e65062a42f8f46292ff",
+  "recipeManifestSha256": "c2e3b0b966f055883ccdd9a92a4abe398f842943574f031edbbc56cdf685ee69",
+  "evidenceManifestSha256": "b8605b3dfe7d35723d6d24627a797edb0a60165e614c5800e54ffba4e0ff08f1",
+  "evidenceSealSha256": "0a37b5795ac594f1a1e587786295bb0dd21019162b3c76cfff3607fec6c232b1",
+  "verdict": "HELD",
+  "P01": {
+    "status": "BOUND_ACCEPTED_PROOF",
+    "accepted": true,
+    "independentlyBuiltIn": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+    "recipe": "8a28b7bffa5ef093cff2374ec32cba4ec4ca83f0",
+    "buildExecuted": false,
+    "packExecuted": false,
+    "independentInputsBound": 357,
+    "actualPackSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packBytes": 727526,
+    "members": 834,
+    "manifestSha256": "5baf947732e17db0e61d734de5c8bde3acfbe5daa14d634539dd1ecea4de7eb4",
+    "authorpackFallback": false
+  },
+  "counts": {
+    "plannedRuntimeContexts": 4,
+    "plannedRuntimeAssertions": 104,
+    "executed": 104,
+    "pass": 100,
+    "fail": 4,
+    "unrun": 0,
+    "controlsExecuted": 36,
+    "controlsPass": 36,
+    "typeInvocations": 40,
+    "typePass": 32,
+    "typeFail": 8,
+    "typeUnrun": 0,
+    "controlsFail": 0,
+    "controlsUnrun": 0
+  },
+  "newControls": {
+    "planned": 38,
+    "pass": 38,
+    "fail": 0,
+    "unrun": 0,
+    "transport": 16,
+    "aggregate": 22
+  },
+  "reusedEvidence": {
+    "reader16": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+    "repair28": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+    "newReaderControls": 0,
+    "newRepairControls": 0,
+    "newBuilds": 0
+  },
+  "failures": [
+    {
+      "layout": "installed-node22",
+      "id": "R21",
+      "actualChildStatus": 1,
+      "naturalSettlement": true,
+      "closed": true,
+      "concreteFailure": "Initial NUL literal argv through CommandContext.invoke returns exit1, exact frozen assertion expects2; later lone-surrogate variant is not reached. Product stdout/stderr are not retained by this failed exact() assertion.",
+      "childAssertion": "Expected values to be strictly equal:\n\n1 !== 2\n",
+      "rawReceipt": "installed-node22-R21.json"
+    },
+    {
+      "layout": "installed-node22",
+      "id": "N04",
+      "actualChildStatus": 2,
+      "naturalSettlement": true,
+      "closed": true,
+      "diagnostics": [
+        "installed-node22-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?"
+      ],
+      "concreteFailure": "Pinned compiler rejects maxRegexSteps with TS2561 at line11, while frozen strict diagnostic-code assertion expects TS2353. This is retained as a failure, not reclassified as a passing product type check.",
+      "rawReceipt": "installed-node22-type-N04.json"
+    },
+    {
+      "layout": "installed-node22",
+      "id": "combined",
+      "actualChildStatus": 2,
+      "naturalSettlement": true,
+      "closed": true,
+      "diagnostics": [
+        "installed-node22-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+        "installed-node22-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+        "installed-node22-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.",
+        "installed-node22-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?",
+        "installed-node22-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.",
+        "installed-node22-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'."
+      ],
+      "concreteFailure": "Pinned compiler rejects maxRegexSteps with TS2561 at line11, while frozen strict diagnostic-code assertion expects TS2353. This is retained as a failure, not reclassified as a passing product type check.",
+      "rawReceipt": "installed-node22-type-combined.json"
+    },
+    {
+      "layout": "installed-node24",
+      "id": "R21",
+      "actualChildStatus": 1,
+      "naturalSettlement": true,
+      "closed": true,
+      "concreteFailure": "Initial NUL literal argv through CommandContext.invoke returns exit1, exact frozen assertion expects2; later lone-surrogate variant is not reached. Product stdout/stderr are not retained by this failed exact() assertion.",
+      "childAssertion": "Expected values to be strictly equal:\n\n1 !== 2\n",
+      "rawReceipt": "installed-node24-R21.json"
+    },
+    {
+      "layout": "installed-node24",
+      "id": "N04",
+      "actualChildStatus": 2,
+      "naturalSettlement": true,
+      "closed": true,
+      "diagnostics": [
+        "installed-node24-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?"
+      ],
+      "concreteFailure": "Pinned compiler rejects maxRegexSteps with TS2561 at line11, while frozen strict diagnostic-code assertion expects TS2353. This is retained as a failure, not reclassified as a passing product type check.",
+      "rawReceipt": "installed-node24-type-N04.json"
+    },
+    {
+      "layout": "installed-node24",
+      "id": "combined",
+      "actualChildStatus": 2,
+      "naturalSettlement": true,
+      "closed": true,
+      "diagnostics": [
+        "installed-node24-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+        "installed-node24-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+        "installed-node24-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.",
+        "installed-node24-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?",
+        "installed-node24-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.",
+        "installed-node24-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'."
+      ],
+      "concreteFailure": "Pinned compiler rejects maxRegexSteps with TS2561 at line11, while frozen strict diagnostic-code assertion expects TS2353. This is retained as a failure, not reclassified as a passing product type check.",
+      "rawReceipt": "installed-node24-type-combined.json"
+    },
+    {
+      "layout": "moved-node22",
+      "id": "R21",
+      "actualChildStatus": 1,
+      "naturalSettlement": true,
+      "closed": true,
+      "concreteFailure": "Initial NUL literal argv through CommandContext.invoke returns exit1, exact frozen assertion expects2; later lone-surrogate variant is not reached. Product stdout/stderr are not retained by this failed exact() assertion.",
+      "childAssertion": "Expected values to be strictly equal:\n\n1 !== 2\n",
+      "rawReceipt": "moved-node22-R21.json"
+    },
+    {
+      "layout": "moved-node22",
+      "id": "N04",
+      "actualChildStatus": 2,
+      "naturalSettlement": true,
+      "closed": true,
+      "diagnostics": [
+        "moved-node22-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?"
+      ],
+      "concreteFailure": "Pinned compiler rejects maxRegexSteps with TS2561 at line11, while frozen strict diagnostic-code assertion expects TS2353. This is retained as a failure, not reclassified as a passing product type check.",
+      "rawReceipt": "moved-node22-type-N04.json"
+    },
+    {
+      "layout": "moved-node22",
+      "id": "combined",
+      "actualChildStatus": 2,
+      "naturalSettlement": true,
+      "closed": true,
+      "diagnostics": [
+        "moved-node22-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+        "moved-node22-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+        "moved-node22-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.",
+        "moved-node22-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?",
+        "moved-node22-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.",
+        "moved-node22-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'."
+      ],
+      "concreteFailure": "Pinned compiler rejects maxRegexSteps with TS2561 at line11, while frozen strict diagnostic-code assertion expects TS2353. This is retained as a failure, not reclassified as a passing product type check.",
+      "rawReceipt": "moved-node22-type-combined.json"
+    },
+    {
+      "layout": "moved-node24",
+      "id": "R21",
+      "actualChildStatus": 1,
+      "naturalSettlement": true,
+      "closed": true,
+      "concreteFailure": "Initial NUL literal argv through CommandContext.invoke returns exit1, exact frozen assertion expects2; later lone-surrogate variant is not reached. Product stdout/stderr are not retained by this failed exact() assertion.",
+      "childAssertion": "Expected values to be strictly equal:\n\n1 !== 2\n",
+      "rawReceipt": "moved-node24-R21.json"
+    },
+    {
+      "layout": "moved-node24",
+      "id": "N04",
+      "actualChildStatus": 2,
+      "naturalSettlement": true,
+      "closed": true,
+      "diagnostics": [
+        "moved-node24-N04.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?"
+      ],
+      "concreteFailure": "Pinned compiler rejects maxRegexSteps with TS2561 at line11, while frozen strict diagnostic-code assertion expects TS2353. This is retained as a failure, not reclassified as a passing product type check.",
+      "rawReceipt": "moved-node24-type-N04.json"
+    },
+    {
+      "layout": "moved-node24",
+      "id": "combined",
+      "actualChildStatus": 2,
+      "naturalSettlement": true,
+      "closed": true,
+      "diagnostics": [
+        "moved-node24-combined.ts(5,25): error TS2353: Object literal may only specify known properties, and 'regex' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+        "moved-node24-combined.ts(7,31): error TS2353: Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<ExprCommandsOptions, \"replace\" | \"regex\">'.",
+        "moved-node24-combined.ts(9,31): error TS2322: Type 'string' is not assignable to type 'number'.",
+        "moved-node24-combined.ts(11,32): error TS2561: Object literal may only specify known properties, but 'maxRegexSteps' does not exist in type 'Partial<ExprLimits>'. Did you mean to write 'maxRegexStates'?",
+        "moved-node24-combined.ts(13,25): error TS2322: Type 'string' is not assignable to type 'number'.",
+        "moved-node24-combined.ts(15,40): error TS2322: Type 'string' is not assignable to type 'boolean | undefined'."
+      ],
+      "concreteFailure": "Pinned compiler rejects maxRegexSteps with TS2561 at line11, while frozen strict diagnostic-code assertion expects TS2353. This is retained as a failure, not reclassified as a passing product type check.",
+      "rawReceipt": "moved-node24-type-combined.json"
+    }
+  ],
+  "phaseOutcomes": [
+    {
+      "layout": "installed-node22",
+      "phaseOrder": [
+        "package",
+        "runtime",
+        "types"
+      ],
+      "durationMs": 18021,
+      "runtime": {
+        "pass": 25,
+        "fail": 1,
+        "unrun": 0
+      },
+      "types": {
+        "pass": 8,
+        "fail": 2,
+        "unrun": 0
+      },
+      "packageControls": {
+        "pass": 9,
+        "fail": 0
+      },
+      "strictLifecycle": [
+        {
+          "id": "R25",
+          "status": "pass",
+          "executed": true,
+          "naturalSettlement": true,
+          "details": [
+            {
+              "exitCode": 3,
+              "stdoutHex": "",
+              "stderr": "expr: regex STARTUP_TIMEOUT: startup exceeded 50ms\n",
+              "retiredBeforeExecOnly": true
+            }
+          ]
+        },
+        {
+          "id": "R26",
+          "status": "pass",
+          "executed": true,
+          "naturalSettlement": true,
+          "details": [
+            {
+              "boundary": "direct",
+              "identicalReason": true,
+              "siblingLiveAtAbort": true,
+              "siblingExact": "1LF/status0/emptyStderr",
+              "overlappingCleanup": true
+            },
+            {
+              "boundary": "Shell/agentCommands",
+              "identicalReasonObserved": true,
+              "retiredBeforeExecAndDispose": true,
+              "siblingLiveThroughFirstDispose": true,
+              "siblingExact": "1LF/status0/emptyStderr"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layout": "installed-node24",
+      "phaseOrder": [
+        "package",
+        "runtime",
+        "types"
+      ],
+      "durationMs": 17390,
+      "runtime": {
+        "pass": 25,
+        "fail": 1,
+        "unrun": 0
+      },
+      "types": {
+        "pass": 8,
+        "fail": 2,
+        "unrun": 0
+      },
+      "packageControls": {
+        "pass": 9,
+        "fail": 0
+      },
+      "strictLifecycle": [
+        {
+          "id": "R25",
+          "status": "pass",
+          "executed": true,
+          "naturalSettlement": true,
+          "details": [
+            {
+              "exitCode": 3,
+              "stdoutHex": "",
+              "stderr": "expr: regex STARTUP_TIMEOUT: startup exceeded 50ms\n",
+              "retiredBeforeExecOnly": true
+            }
+          ]
+        },
+        {
+          "id": "R26",
+          "status": "pass",
+          "executed": true,
+          "naturalSettlement": true,
+          "details": [
+            {
+              "boundary": "direct",
+              "identicalReason": true,
+              "siblingLiveAtAbort": true,
+              "siblingExact": "1LF/status0/emptyStderr",
+              "overlappingCleanup": true
+            },
+            {
+              "boundary": "Shell/agentCommands",
+              "identicalReasonObserved": true,
+              "retiredBeforeExecAndDispose": true,
+              "siblingLiveThroughFirstDispose": true,
+              "siblingExact": "1LF/status0/emptyStderr"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layout": "moved-node22",
+      "phaseOrder": [
+        "package",
+        "runtime",
+        "types"
+      ],
+      "durationMs": 19257,
+      "runtime": {
+        "pass": 25,
+        "fail": 1,
+        "unrun": 0
+      },
+      "types": {
+        "pass": 8,
+        "fail": 2,
+        "unrun": 0
+      },
+      "packageControls": {
+        "pass": 9,
+        "fail": 0
+      },
+      "strictLifecycle": [
+        {
+          "id": "R25",
+          "status": "pass",
+          "executed": true,
+          "naturalSettlement": true,
+          "details": [
+            {
+              "exitCode": 3,
+              "stdoutHex": "",
+              "stderr": "expr: regex STARTUP_TIMEOUT: startup exceeded 50ms\n",
+              "retiredBeforeExecOnly": true
+            }
+          ]
+        },
+        {
+          "id": "R26",
+          "status": "pass",
+          "executed": true,
+          "naturalSettlement": true,
+          "details": [
+            {
+              "boundary": "direct",
+              "identicalReason": true,
+              "siblingLiveAtAbort": true,
+              "siblingExact": "1LF/status0/emptyStderr",
+              "overlappingCleanup": true
+            },
+            {
+              "boundary": "Shell/agentCommands",
+              "identicalReasonObserved": true,
+              "retiredBeforeExecAndDispose": true,
+              "siblingLiveThroughFirstDispose": true,
+              "siblingExact": "1LF/status0/emptyStderr"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "layout": "moved-node24",
+      "phaseOrder": [
+        "package",
+        "runtime",
+        "types"
+      ],
+      "durationMs": 18456,
+      "runtime": {
+        "pass": 25,
+        "fail": 1,
+        "unrun": 0
+      },
+      "types": {
+        "pass": 8,
+        "fail": 2,
+        "unrun": 0
+      },
+      "packageControls": {
+        "pass": 9,
+        "fail": 0
+      },
+      "strictLifecycle": [
+        {
+          "id": "R25",
+          "status": "pass",
+          "executed": true,
+          "naturalSettlement": true,
+          "details": [
+            {
+              "exitCode": 3,
+              "stdoutHex": "",
+              "stderr": "expr: regex STARTUP_TIMEOUT: startup exceeded 50ms\n",
+              "retiredBeforeExecOnly": true
+            }
+          ]
+        },
+        {
+          "id": "R26",
+          "status": "pass",
+          "executed": true,
+          "naturalSettlement": true,
+          "details": [
+            {
+              "boundary": "direct",
+              "identicalReason": true,
+              "siblingLiveAtAbort": true,
+              "siblingExact": "1LF/status0/emptyStderr",
+              "overlappingCleanup": true
+            },
+            {
+              "boundary": "Shell/agentCommands",
+              "identicalReasonObserved": true,
+              "retiredBeforeExecAndDispose": true,
+              "siblingLiveThroughFirstDispose": true,
+              "siblingExact": "1LF/status0/emptyStderr"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "traceProof": [
+    {
+      "layout": "installed-node22",
+      "id": "positive",
+      "status": "pass",
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/installed-node22-type-positive.stdout.raw",
+        "bytes": 1361501,
+        "observedBytes": 1361501,
+        "sha256": "112a0845e8e5797d95168aecbdaeef3f44ac4fe1df216c65de291c25bb7a44e8",
+        "analysis": {
+          "lines": 8552,
+          "diagnostics": [],
+          "diagnosticBytes": 0,
+          "forbiddenResolution": false,
+          "requiredPaths": [
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/index.d.ts",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts"
+          ],
+          "found": [
+            true,
+            true
+          ],
+          "complete": true
+        }
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/installed-node22-type-positive.stderr.raw",
+        "bytes": 0,
+        "observedBytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "analysis": {
+          "lines": 0,
+          "diagnostics": [],
+          "diagnosticBytes": 0,
+          "forbiddenResolution": false,
+          "requiredPaths": [
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/index.d.ts",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts"
+          ],
+          "found": [
+            false,
+            false
+          ],
+          "complete": true
+        }
+      }
+    },
+    {
+      "layout": "installed-node22",
+      "id": "broken-declaration",
+      "status": "pass",
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/installed-node22-type-broken-declaration.stdout.raw",
+        "bytes": 1487472,
+        "observedBytes": 1487472,
+        "sha256": "17247ce040d339bf0c6ffa3cf18b3ff6845f07d9f096907a8dac2a74bc13ba7c",
+        "analysis": {
+          "lines": 8924,
+          "diagnostics": [
+            "positive.ts(4,61): error TS2305: Module '\"virtual-bash\"' has no exported member 'ExprLimits'.",
+            "positive.ts(10,8): error TS2305: Module '\"virtual-bash/commands/expr\"' has no exported member 'ExprLimits'."
+          ],
+          "diagnosticBytes": 200,
+          "forbiddenResolution": false,
+          "requiredPaths": [
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/controls/installed-node22/broken-declaration/consumer/node_modules/virtual-bash/dist/index.d.ts",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/controls/installed-node22/broken-declaration/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts"
+          ],
+          "found": [
+            true,
+            true
+          ],
+          "complete": true
+        }
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/installed-node22-type-broken-declaration.stderr.raw",
+        "bytes": 0,
+        "observedBytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "analysis": {
+          "lines": 0,
+          "diagnostics": [],
+          "diagnosticBytes": 0,
+          "forbiddenResolution": false,
+          "requiredPaths": [
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/controls/installed-node22/broken-declaration/consumer/node_modules/virtual-bash/dist/index.d.ts",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/controls/installed-node22/broken-declaration/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts"
+          ],
+          "found": [
+            false,
+            false
+          ],
+          "complete": true
+        }
+      }
+    },
+    {
+      "layout": "installed-node24",
+      "id": "positive",
+      "status": "pass",
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/installed-node24-type-positive.stdout.raw",
+        "bytes": 1361501,
+        "observedBytes": 1361501,
+        "sha256": "112a0845e8e5797d95168aecbdaeef3f44ac4fe1df216c65de291c25bb7a44e8",
+        "analysis": {
+          "lines": 8552,
+          "diagnostics": [],
+          "diagnosticBytes": 0,
+          "forbiddenResolution": false,
+          "requiredPaths": [
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/index.d.ts",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts"
+          ],
+          "found": [
+            true,
+            true
+          ],
+          "complete": true
+        }
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/installed-node24-type-positive.stderr.raw",
+        "bytes": 0,
+        "observedBytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "analysis": {
+          "lines": 0,
+          "diagnostics": [],
+          "diagnosticBytes": 0,
+          "forbiddenResolution": false,
+          "requiredPaths": [
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/index.d.ts",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts"
+          ],
+          "found": [
+            false,
+            false
+          ],
+          "complete": true
+        }
+      }
+    },
+    {
+      "layout": "installed-node24",
+      "id": "broken-declaration",
+      "status": "pass",
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/installed-node24-type-broken-declaration.stdout.raw",
+        "bytes": 1487472,
+        "observedBytes": 1487472,
+        "sha256": "9d3fbab58fed77b6c84b7ed725b3e2255913bf8053889506c56aebd52d64a089",
+        "analysis": {
+          "lines": 8924,
+          "diagnostics": [
+            "positive.ts(4,61): error TS2305: Module '\"virtual-bash\"' has no exported member 'ExprLimits'.",
+            "positive.ts(10,8): error TS2305: Module '\"virtual-bash/commands/expr\"' has no exported member 'ExprLimits'."
+          ],
+          "diagnosticBytes": 200,
+          "forbiddenResolution": false,
+          "requiredPaths": [
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/controls/installed-node24/broken-declaration/consumer/node_modules/virtual-bash/dist/index.d.ts",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/controls/installed-node24/broken-declaration/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts"
+          ],
+          "found": [
+            true,
+            true
+          ],
+          "complete": true
+        }
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/installed-node24-type-broken-declaration.stderr.raw",
+        "bytes": 0,
+        "observedBytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "analysis": {
+          "lines": 0,
+          "diagnostics": [],
+          "diagnosticBytes": 0,
+          "forbiddenResolution": false,
+          "requiredPaths": [
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/controls/installed-node24/broken-declaration/consumer/node_modules/virtual-bash/dist/index.d.ts",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/controls/installed-node24/broken-declaration/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts"
+          ],
+          "found": [
+            false,
+            false
+          ],
+          "complete": true
+        }
+      }
+    },
+    {
+      "layout": "moved-node22",
+      "id": "positive",
+      "status": "pass",
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/moved-node22-type-positive.stdout.raw",
+        "bytes": 1391693,
+        "observedBytes": 1391693,
+        "sha256": "8c829273ea1ba45050ecf124fab0fe61a3e344cab4c85184019f76c9ee1ff57a",
+        "analysis": {
+          "lines": 8552,
+          "diagnostics": [],
+          "diagnosticBytes": 0,
+          "forbiddenResolution": false,
+          "requiredPaths": [
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/index.d.ts",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts"
+          ],
+          "found": [
+            true,
+            true
+          ],
+          "complete": true
+        }
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/moved-node22-type-positive.stderr.raw",
+        "bytes": 0,
+        "observedBytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "analysis": {
+          "lines": 0,
+          "diagnostics": [],
+          "diagnosticBytes": 0,
+          "forbiddenResolution": false,
+          "requiredPaths": [
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/index.d.ts",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts"
+          ],
+          "found": [
+            false,
+            false
+          ],
+          "complete": true
+        }
+      }
+    },
+    {
+      "layout": "moved-node22",
+      "id": "broken-declaration",
+      "status": "pass",
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/moved-node22-type-broken-declaration.stdout.raw",
+        "bytes": 1479428,
+        "observedBytes": 1479428,
+        "sha256": "39adf61400c5d88f05c2959738058537a86f04d8f501037453a0672d7b5388d8",
+        "analysis": {
+          "lines": 8924,
+          "diagnostics": [
+            "positive.ts(4,61): error TS2305: Module '\"virtual-bash\"' has no exported member 'ExprLimits'.",
+            "positive.ts(10,8): error TS2305: Module '\"virtual-bash/commands/expr\"' has no exported member 'ExprLimits'."
+          ],
+          "diagnosticBytes": 200,
+          "forbiddenResolution": false,
+          "requiredPaths": [
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/controls/moved-node22/broken-declaration/consumer/node_modules/virtual-bash/dist/index.d.ts",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/controls/moved-node22/broken-declaration/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts"
+          ],
+          "found": [
+            true,
+            true
+          ],
+          "complete": true
+        }
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/moved-node22-type-broken-declaration.stderr.raw",
+        "bytes": 0,
+        "observedBytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "analysis": {
+          "lines": 0,
+          "diagnostics": [],
+          "diagnosticBytes": 0,
+          "forbiddenResolution": false,
+          "requiredPaths": [
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/controls/moved-node22/broken-declaration/consumer/node_modules/virtual-bash/dist/index.d.ts",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/controls/moved-node22/broken-declaration/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts"
+          ],
+          "found": [
+            false,
+            false
+          ],
+          "complete": true
+        }
+      }
+    },
+    {
+      "layout": "moved-node24",
+      "id": "positive",
+      "status": "pass",
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/moved-node24-type-positive.stdout.raw",
+        "bytes": 1391693,
+        "observedBytes": 1391693,
+        "sha256": "8c829273ea1ba45050ecf124fab0fe61a3e344cab4c85184019f76c9ee1ff57a",
+        "analysis": {
+          "lines": 8552,
+          "diagnostics": [],
+          "diagnosticBytes": 0,
+          "forbiddenResolution": false,
+          "requiredPaths": [
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/index.d.ts",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts"
+          ],
+          "found": [
+            true,
+            true
+          ],
+          "complete": true
+        }
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/moved-node24-type-positive.stderr.raw",
+        "bytes": 0,
+        "observedBytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "analysis": {
+          "lines": 0,
+          "diagnostics": [],
+          "diagnosticBytes": 0,
+          "forbiddenResolution": false,
+          "requiredPaths": [
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/index.d.ts",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts"
+          ],
+          "found": [
+            false,
+            false
+          ],
+          "complete": true
+        }
+      }
+    },
+    {
+      "layout": "moved-node24",
+      "id": "broken-declaration",
+      "status": "pass",
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/moved-node24-type-broken-declaration.stdout.raw",
+        "bytes": 1479428,
+        "observedBytes": 1479428,
+        "sha256": "32b7e3cc2f449ab754abf81f5c2186de66691bf96930b6e2aa899c278ba9230f",
+        "analysis": {
+          "lines": 8924,
+          "diagnostics": [
+            "positive.ts(4,61): error TS2305: Module '\"virtual-bash\"' has no exported member 'ExprLimits'.",
+            "positive.ts(10,8): error TS2305: Module '\"virtual-bash/commands/expr\"' has no exported member 'ExprLimits'."
+          ],
+          "diagnosticBytes": 200,
+          "forbiddenResolution": false,
+          "requiredPaths": [
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/controls/moved-node24/broken-declaration/consumer/node_modules/virtual-bash/dist/index.d.ts",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/controls/moved-node24/broken-declaration/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts"
+          ],
+          "found": [
+            true,
+            true
+          ],
+          "complete": true
+        }
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/moved-node24-type-broken-declaration.stderr.raw",
+        "bytes": 0,
+        "observedBytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "analysis": {
+          "lines": 0,
+          "diagnostics": [],
+          "diagnosticBytes": 0,
+          "forbiddenResolution": false,
+          "requiredPaths": [
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/controls/moved-node24/broken-declaration/consumer/node_modules/virtual-bash/dist/index.d.ts",
+            "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/controls/moved-node24/broken-declaration/consumer/node_modules/virtual-bash/dist/commands/expr/index.d.ts"
+          ],
+          "found": [
+            false,
+            false
+          ],
+          "complete": true
+        }
+      }
+    }
+  ],
+  "lateControlMarkers": [
+    {
+      "node": "node22",
+      "actualTS2322ByteOffset": 2147158,
+      "actualForbiddenResolutionByteOffset": 1217837
+    },
+    {
+      "node": "node24",
+      "actualTS2322ByteOffset": 2147158,
+      "actualForbiddenResolutionByteOffset": 1217837
+    }
+  ],
+  "transportOutcomes": [
+    {
+      "id": "node22-compiler-positive",
+      "status": 0,
+      "receipt": "qualification-node22-compiler-positive-child",
+      "closed": true,
+      "supervision": null,
+      "naturalSettlement": true,
+      "capturedBytes": 2146797,
+      "observedBytes": 2146797,
+      "previewBytes": 1048576,
+      "output": {
+        "stdout": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node22-compiler-positive-child.stdout.raw",
+          "bytes": 2146770,
+          "observedBytes": 2146770,
+          "sha256": "d529fd9499b38088a37f1cd8f312f37ae44950a1854147061d9c664942190138",
+          "analysis": {
+            "lines": 43485,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        },
+        "stderr": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node22-compiler-positive-child.stderr.raw",
+          "bytes": 27,
+          "observedBytes": 27,
+          "sha256": "98cf5e406ee4dcb4875e4632bd7447a903b2b62ddc39fe671a1825e0ea97852f",
+          "analysis": {
+            "lines": 1,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        }
+      },
+      "traceVerdict": "pass"
+    },
+    {
+      "id": "node22-compiler-late-error",
+      "status": 2,
+      "receipt": "qualification-node22-compiler-late-error-child",
+      "closed": true,
+      "supervision": null,
+      "naturalSettlement": true,
+      "capturedBytes": 2147249,
+      "observedBytes": 2147249,
+      "previewBytes": 1048576,
+      "output": {
+        "stdout": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node22-compiler-late-error-child.stdout.raw",
+          "bytes": 2147222,
+          "observedBytes": 2147222,
+          "sha256": "8fbf4a3fab082fd3ce4ed3492d1ec8f20b27ebf9df21e70f6f82dd6f03858cb5",
+          "analysis": {
+            "lines": 43486,
+            "diagnostics": [
+              "fixture.ts(1,14): error TS2322: Type 'number' is not assignable to type 'string'."
+            ],
+            "diagnosticBytes": 81,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        },
+        "stderr": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node22-compiler-late-error-child.stderr.raw",
+          "bytes": 27,
+          "observedBytes": 27,
+          "sha256": "98cf5e406ee4dcb4875e4632bd7447a903b2b62ddc39fe671a1825e0ea97852f",
+          "analysis": {
+            "lines": 1,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        }
+      },
+      "traceVerdict": "type-diagnostics"
+    },
+    {
+      "id": "node22-compiler-forbidden",
+      "status": 0,
+      "receipt": "qualification-node22-compiler-forbidden-child",
+      "closed": true,
+      "supervision": null,
+      "naturalSettlement": true,
+      "capturedBytes": 2148796,
+      "observedBytes": 2148796,
+      "previewBytes": 1048576,
+      "output": {
+        "stdout": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node22-compiler-forbidden-child.stdout.raw",
+          "bytes": 2148769,
+          "observedBytes": 2148769,
+          "sha256": "9f0d012dbe5a5ff3d62d827c743f2b91f1c9c19c8c24d85936b8cc6ba2f44952",
+          "analysis": {
+            "lines": 43494,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": true,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        },
+        "stderr": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node22-compiler-forbidden-child.stderr.raw",
+          "bytes": 27,
+          "observedBytes": 27,
+          "sha256": "98cf5e406ee4dcb4875e4632bd7447a903b2b62ddc39fe671a1825e0ea97852f",
+          "analysis": {
+            "lines": 1,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        }
+      },
+      "traceVerdict": "forbidden-resolution"
+    },
+    {
+      "id": "node22-overflow",
+      "status": null,
+      "receipt": "qualification-node22-overflow-child",
+      "closed": true,
+      "supervision": "trace-artifact-ceiling-64MiB",
+      "naturalSettlement": false,
+      "capturedBytes": 67108864,
+      "observedBytes": 67297280,
+      "previewBytes": 1048576,
+      "output": {
+        "stdout": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node22-overflow-child.stdout.raw",
+          "bytes": 67108864,
+          "observedBytes": 67297280,
+          "sha256": "c8c60547947248cf52f2b373fe139ebabbe3496ba145c1055768815dc62ebfcd",
+          "analysis": {
+            "lines": 2033602,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        },
+        "stderr": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node22-overflow-child.stderr.raw",
+          "bytes": 0,
+          "observedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "analysis": {
+            "lines": 0,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        }
+      },
+      "traceVerdict": "supervision-failure"
+    },
+    {
+      "id": "node22-nonzero",
+      "status": 7,
+      "receipt": "qualification-node22-nonzero-child",
+      "closed": true,
+      "supervision": null,
+      "naturalSettlement": true,
+      "capturedBytes": 1216539,
+      "observedBytes": 1216539,
+      "previewBytes": 1048576,
+      "output": {
+        "stdout": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node22-nonzero-child.stdout.raw",
+          "bytes": 1216512,
+          "observedBytes": 1216512,
+          "sha256": "3c3982aff7079a4fbe2abdf3f56c985552495f0909339f306bc6f6e3d79636c3",
+          "analysis": {
+            "lines": 36864,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        },
+        "stderr": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node22-nonzero-child.stderr.raw",
+          "bytes": 27,
+          "observedBytes": 27,
+          "sha256": "98cf5e406ee4dcb4875e4632bd7447a903b2b62ddc39fe671a1825e0ea97852f",
+          "analysis": {
+            "lines": 1,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        }
+      },
+      "traceVerdict": "nonzero-child"
+    },
+    {
+      "id": "node22-line-overflow",
+      "status": null,
+      "receipt": "qualification-node22-line-overflow-child",
+      "closed": true,
+      "supervision": "trace-incomplete-line-overflow",
+      "naturalSettlement": false,
+      "capturedBytes": 262144,
+      "observedBytes": 262144,
+      "previewBytes": 262144,
+      "output": {
+        "stdout": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node22-line-overflow-child.stdout.raw",
+          "bytes": 262144,
+          "observedBytes": 262144,
+          "sha256": "d509bff642a353f88582e8a846ecae041c333b79c57a7a24ff310fbdb7e914e9",
+          "analysis": {
+            "lines": 0,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": false
+          }
+        },
+        "stderr": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node22-line-overflow-child.stderr.raw",
+          "bytes": 0,
+          "observedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "analysis": {
+            "lines": 0,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        }
+      },
+      "traceVerdict": "supervision-failure"
+    },
+    {
+      "id": "node22-diagnostic-overflow",
+      "status": null,
+      "receipt": "qualification-node22-diagnostic-overflow-child",
+      "closed": true,
+      "supervision": "trace-diagnostic-retention-overflow",
+      "naturalSettlement": false,
+      "capturedBytes": 18790,
+      "observedBytes": 18790,
+      "previewBytes": 18790,
+      "output": {
+        "stdout": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node22-diagnostic-overflow-child.stdout.raw",
+          "bytes": 18790,
+          "observedBytes": 18790,
+          "sha256": "caba8886468b3140803436f44b545d185b55c5798f26e8c130f3996a9d4ef7a6",
+          "analysis": {
+            "lines": 257,
+            "diagnostics": [
+              "fixture.ts(1,1): error TS2322: synthetic retention control 0",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 1",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 2",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 3",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 4",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 5",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 6",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 7",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 8",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 9",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 10",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 11",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 12",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 13",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 14",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 15",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 16",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 17",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 18",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 19",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 20",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 21",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 22",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 23",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 24",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 25",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 26",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 27",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 28",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 29",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 30",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 31",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 32",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 33",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 34",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 35",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 36",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 37",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 38",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 39",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 40",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 41",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 42",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 43",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 44",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 45",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 46",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 47",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 48",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 49",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 50",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 51",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 52",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 53",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 54",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 55",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 56",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 57",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 58",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 59",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 60",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 61",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 62",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 63",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 64",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 65",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 66",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 67",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 68",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 69",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 70",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 71",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 72",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 73",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 74",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 75",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 76",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 77",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 78",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 79",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 80",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 81",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 82",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 83",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 84",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 85",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 86",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 87",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 88",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 89",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 90",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 91",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 92",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 93",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 94",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 95",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 96",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 97",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 98",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 99",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 100",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 101",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 102",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 103",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 104",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 105",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 106",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 107",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 108",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 109",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 110",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 111",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 112",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 113",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 114",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 115",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 116",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 117",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 118",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 119",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 120",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 121",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 122",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 123",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 124",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 125",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 126",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 127",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 128",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 129",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 130",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 131",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 132",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 133",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 134",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 135",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 136",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 137",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 138",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 139",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 140",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 141",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 142",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 143",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 144",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 145",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 146",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 147",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 148",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 149",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 150",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 151",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 152",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 153",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 154",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 155",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 156",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 157",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 158",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 159",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 160",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 161",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 162",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 163",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 164",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 165",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 166",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 167",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 168",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 169",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 170",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 171",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 172",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 173",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 174",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 175",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 176",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 177",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 178",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 179",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 180",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 181",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 182",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 183",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 184",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 185",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 186",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 187",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 188",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 189",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 190",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 191",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 192",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 193",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 194",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 195",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 196",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 197",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 198",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 199",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 200",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 201",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 202",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 203",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 204",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 205",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 206",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 207",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 208",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 209",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 210",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 211",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 212",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 213",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 214",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 215",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 216",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 217",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 218",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 219",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 220",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 221",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 222",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 223",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 224",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 225",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 226",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 227",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 228",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 229",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 230",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 231",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 232",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 233",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 234",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 235",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 236",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 237",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 238",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 239",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 240",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 241",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 242",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 243",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 244",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 245",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 246",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 247",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 248",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 249",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 250",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 251",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 252",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 253",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 254",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 255"
+            ],
+            "diagnosticBytes": 15824,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": false
+          }
+        },
+        "stderr": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node22-diagnostic-overflow-child.stderr.raw",
+          "bytes": 0,
+          "observedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "analysis": {
+            "lines": 0,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        }
+      },
+      "traceVerdict": "supervision-failure"
+    },
+    {
+      "id": "node22-ordinary-cap",
+      "status": null,
+      "receipt": "qualification-node22-ordinary-cap-child",
+      "closed": true,
+      "supervision": "combined-output-cap-1MiB",
+      "naturalSettlement": false,
+      "capturedBytes": 1048576,
+      "observedBytes": 1200128,
+      "previewBytes": 1048576,
+      "output": {
+        "stdout": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node22-ordinary-cap-child.stdout.raw",
+          "bytes": 1048576,
+          "observedBytes": 1200128,
+          "sha256": "a3ade8cff188230ff030d9267ace4d33b5b958695b5cf66cfad20aee39b70994"
+        },
+        "stderr": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node22-ordinary-cap-child.stderr.raw",
+          "bytes": 0,
+          "observedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    {
+      "id": "node24-compiler-positive",
+      "status": 0,
+      "receipt": "qualification-node24-compiler-positive-child",
+      "closed": true,
+      "supervision": null,
+      "naturalSettlement": true,
+      "capturedBytes": 2146797,
+      "observedBytes": 2146797,
+      "previewBytes": 1048576,
+      "output": {
+        "stdout": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node24-compiler-positive-child.stdout.raw",
+          "bytes": 2146770,
+          "observedBytes": 2146770,
+          "sha256": "09923244d27ba61e8b0381731245db63717b69209c87fe35ab671ce739d5f53f",
+          "analysis": {
+            "lines": 43485,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        },
+        "stderr": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node24-compiler-positive-child.stderr.raw",
+          "bytes": 27,
+          "observedBytes": 27,
+          "sha256": "98cf5e406ee4dcb4875e4632bd7447a903b2b62ddc39fe671a1825e0ea97852f",
+          "analysis": {
+            "lines": 1,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        }
+      },
+      "traceVerdict": "pass"
+    },
+    {
+      "id": "node24-compiler-late-error",
+      "status": 2,
+      "receipt": "qualification-node24-compiler-late-error-child",
+      "closed": true,
+      "supervision": null,
+      "naturalSettlement": true,
+      "capturedBytes": 2147249,
+      "observedBytes": 2147249,
+      "previewBytes": 1048576,
+      "output": {
+        "stdout": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node24-compiler-late-error-child.stdout.raw",
+          "bytes": 2147222,
+          "observedBytes": 2147222,
+          "sha256": "96150016680bb0cb04313f7b7eedbc0847f8b9b8295a50e9035bf7cbf8668a36",
+          "analysis": {
+            "lines": 43486,
+            "diagnostics": [
+              "fixture.ts(1,14): error TS2322: Type 'number' is not assignable to type 'string'."
+            ],
+            "diagnosticBytes": 81,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        },
+        "stderr": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node24-compiler-late-error-child.stderr.raw",
+          "bytes": 27,
+          "observedBytes": 27,
+          "sha256": "98cf5e406ee4dcb4875e4632bd7447a903b2b62ddc39fe671a1825e0ea97852f",
+          "analysis": {
+            "lines": 1,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        }
+      },
+      "traceVerdict": "type-diagnostics"
+    },
+    {
+      "id": "node24-compiler-forbidden",
+      "status": 0,
+      "receipt": "qualification-node24-compiler-forbidden-child",
+      "closed": true,
+      "supervision": null,
+      "naturalSettlement": true,
+      "capturedBytes": 2148796,
+      "observedBytes": 2148796,
+      "previewBytes": 1048576,
+      "output": {
+        "stdout": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node24-compiler-forbidden-child.stdout.raw",
+          "bytes": 2148769,
+          "observedBytes": 2148769,
+          "sha256": "33aac58171f774cfa268a086ba7702692932aee7aa31aad3eac8bf04dfe4c199",
+          "analysis": {
+            "lines": 43494,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": true,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        },
+        "stderr": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node24-compiler-forbidden-child.stderr.raw",
+          "bytes": 27,
+          "observedBytes": 27,
+          "sha256": "98cf5e406ee4dcb4875e4632bd7447a903b2b62ddc39fe671a1825e0ea97852f",
+          "analysis": {
+            "lines": 1,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        }
+      },
+      "traceVerdict": "forbidden-resolution"
+    },
+    {
+      "id": "node24-overflow",
+      "status": null,
+      "receipt": "qualification-node24-overflow-child",
+      "closed": true,
+      "supervision": "trace-artifact-ceiling-64MiB",
+      "naturalSettlement": false,
+      "capturedBytes": 67108864,
+      "observedBytes": 67293184,
+      "previewBytes": 1048576,
+      "output": {
+        "stdout": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node24-overflow-child.stdout.raw",
+          "bytes": 67108864,
+          "observedBytes": 67293184,
+          "sha256": "c8c60547947248cf52f2b373fe139ebabbe3496ba145c1055768815dc62ebfcd",
+          "analysis": {
+            "lines": 2033602,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        },
+        "stderr": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node24-overflow-child.stderr.raw",
+          "bytes": 0,
+          "observedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "analysis": {
+            "lines": 0,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        }
+      },
+      "traceVerdict": "supervision-failure"
+    },
+    {
+      "id": "node24-nonzero",
+      "status": 7,
+      "receipt": "qualification-node24-nonzero-child",
+      "closed": true,
+      "supervision": null,
+      "naturalSettlement": true,
+      "capturedBytes": 1216539,
+      "observedBytes": 1216539,
+      "previewBytes": 1048576,
+      "output": {
+        "stdout": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node24-nonzero-child.stdout.raw",
+          "bytes": 1216512,
+          "observedBytes": 1216512,
+          "sha256": "3c3982aff7079a4fbe2abdf3f56c985552495f0909339f306bc6f6e3d79636c3",
+          "analysis": {
+            "lines": 36864,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        },
+        "stderr": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node24-nonzero-child.stderr.raw",
+          "bytes": 27,
+          "observedBytes": 27,
+          "sha256": "98cf5e406ee4dcb4875e4632bd7447a903b2b62ddc39fe671a1825e0ea97852f",
+          "analysis": {
+            "lines": 1,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        }
+      },
+      "traceVerdict": "nonzero-child"
+    },
+    {
+      "id": "node24-line-overflow",
+      "status": null,
+      "receipt": "qualification-node24-line-overflow-child",
+      "closed": true,
+      "supervision": "trace-incomplete-line-overflow",
+      "naturalSettlement": false,
+      "capturedBytes": 262144,
+      "observedBytes": 262144,
+      "previewBytes": 262144,
+      "output": {
+        "stdout": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node24-line-overflow-child.stdout.raw",
+          "bytes": 262144,
+          "observedBytes": 262144,
+          "sha256": "d509bff642a353f88582e8a846ecae041c333b79c57a7a24ff310fbdb7e914e9",
+          "analysis": {
+            "lines": 0,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": false
+          }
+        },
+        "stderr": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node24-line-overflow-child.stderr.raw",
+          "bytes": 0,
+          "observedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "analysis": {
+            "lines": 0,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        }
+      },
+      "traceVerdict": "supervision-failure"
+    },
+    {
+      "id": "node24-diagnostic-overflow",
+      "status": null,
+      "receipt": "qualification-node24-diagnostic-overflow-child",
+      "closed": true,
+      "supervision": "trace-diagnostic-retention-overflow",
+      "naturalSettlement": false,
+      "capturedBytes": 18790,
+      "observedBytes": 18790,
+      "previewBytes": 18790,
+      "output": {
+        "stdout": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node24-diagnostic-overflow-child.stdout.raw",
+          "bytes": 18790,
+          "observedBytes": 18790,
+          "sha256": "caba8886468b3140803436f44b545d185b55c5798f26e8c130f3996a9d4ef7a6",
+          "analysis": {
+            "lines": 257,
+            "diagnostics": [
+              "fixture.ts(1,1): error TS2322: synthetic retention control 0",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 1",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 2",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 3",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 4",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 5",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 6",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 7",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 8",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 9",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 10",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 11",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 12",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 13",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 14",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 15",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 16",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 17",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 18",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 19",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 20",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 21",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 22",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 23",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 24",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 25",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 26",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 27",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 28",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 29",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 30",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 31",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 32",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 33",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 34",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 35",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 36",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 37",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 38",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 39",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 40",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 41",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 42",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 43",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 44",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 45",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 46",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 47",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 48",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 49",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 50",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 51",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 52",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 53",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 54",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 55",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 56",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 57",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 58",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 59",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 60",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 61",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 62",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 63",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 64",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 65",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 66",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 67",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 68",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 69",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 70",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 71",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 72",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 73",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 74",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 75",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 76",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 77",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 78",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 79",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 80",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 81",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 82",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 83",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 84",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 85",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 86",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 87",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 88",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 89",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 90",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 91",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 92",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 93",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 94",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 95",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 96",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 97",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 98",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 99",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 100",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 101",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 102",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 103",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 104",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 105",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 106",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 107",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 108",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 109",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 110",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 111",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 112",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 113",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 114",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 115",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 116",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 117",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 118",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 119",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 120",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 121",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 122",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 123",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 124",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 125",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 126",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 127",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 128",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 129",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 130",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 131",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 132",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 133",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 134",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 135",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 136",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 137",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 138",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 139",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 140",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 141",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 142",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 143",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 144",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 145",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 146",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 147",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 148",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 149",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 150",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 151",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 152",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 153",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 154",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 155",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 156",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 157",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 158",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 159",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 160",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 161",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 162",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 163",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 164",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 165",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 166",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 167",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 168",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 169",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 170",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 171",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 172",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 173",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 174",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 175",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 176",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 177",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 178",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 179",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 180",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 181",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 182",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 183",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 184",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 185",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 186",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 187",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 188",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 189",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 190",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 191",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 192",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 193",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 194",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 195",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 196",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 197",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 198",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 199",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 200",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 201",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 202",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 203",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 204",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 205",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 206",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 207",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 208",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 209",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 210",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 211",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 212",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 213",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 214",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 215",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 216",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 217",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 218",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 219",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 220",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 221",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 222",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 223",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 224",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 225",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 226",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 227",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 228",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 229",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 230",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 231",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 232",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 233",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 234",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 235",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 236",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 237",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 238",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 239",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 240",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 241",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 242",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 243",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 244",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 245",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 246",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 247",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 248",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 249",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 250",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 251",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 252",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 253",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 254",
+              "fixture.ts(1,1): error TS2322: synthetic retention control 255"
+            ],
+            "diagnosticBytes": 15824,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": false
+          }
+        },
+        "stderr": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node24-diagnostic-overflow-child.stderr.raw",
+          "bytes": 0,
+          "observedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "analysis": {
+            "lines": 0,
+            "diagnostics": [],
+            "diagnosticBytes": 0,
+            "forbiddenResolution": false,
+            "requiredPaths": [],
+            "found": [],
+            "complete": true
+          }
+        }
+      },
+      "traceVerdict": "supervision-failure"
+    },
+    {
+      "id": "node24-ordinary-cap",
+      "status": null,
+      "receipt": "qualification-node24-ordinary-cap-child",
+      "closed": true,
+      "supervision": "combined-output-cap-1MiB",
+      "naturalSettlement": false,
+      "capturedBytes": 1048576,
+      "observedBytes": 1183744,
+      "previewBytes": 1048576,
+      "output": {
+        "stdout": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node24-ordinary-cap-child.stdout.raw",
+          "bytes": 1048576,
+          "observedBytes": 1183744,
+          "sha256": "a3ade8cff188230ff030d9267ace4d33b5b958695b5cf66cfad20aee39b70994"
+        },
+        "stderr": {
+          "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/raw/qualification-node24-ordinary-cap-child.stderr.raw",
+          "bytes": 0,
+          "observedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    }
+  ],
+  "cleanup": {
+    "bindingMetadataChildren": 90,
+    "bindingMetadataChildrenClosed": true,
+    "runnerChildren": 222,
+    "runnerChildrenClosed": true,
+    "naturalRunnerChildren": 214,
+    "forcedRunnerChildren": [
+      {
+        "name": "qualification-node22-overflow-child",
+        "status": null,
+        "durationMs": 203,
+        "supervision": "trace-artifact-ceiling-64MiB",
+        "naturalSettlement": false,
+        "closed": true,
+        "qualificationControl": true,
+        "expectedSupervision": true
+      },
+      {
+        "name": "qualification-node22-line-overflow-child",
+        "status": null,
+        "durationMs": 55,
+        "supervision": "trace-incomplete-line-overflow",
+        "naturalSettlement": false,
+        "closed": true,
+        "qualificationControl": true,
+        "expectedSupervision": true
+      },
+      {
+        "name": "qualification-node22-diagnostic-overflow-child",
+        "status": null,
+        "durationMs": 44,
+        "supervision": "trace-diagnostic-retention-overflow",
+        "naturalSettlement": false,
+        "closed": true,
+        "qualificationControl": true,
+        "expectedSupervision": true
+      },
+      {
+        "name": "qualification-node22-ordinary-cap-child",
+        "status": null,
+        "durationMs": 48,
+        "supervision": "combined-output-cap-1MiB",
+        "naturalSettlement": false,
+        "closed": true,
+        "qualificationControl": true,
+        "expectedSupervision": true
+      },
+      {
+        "name": "qualification-node24-overflow-child",
+        "status": null,
+        "durationMs": 207,
+        "supervision": "trace-artifact-ceiling-64MiB",
+        "naturalSettlement": false,
+        "closed": true,
+        "qualificationControl": true,
+        "expectedSupervision": true
+      },
+      {
+        "name": "qualification-node24-line-overflow-child",
+        "status": null,
+        "durationMs": 51,
+        "supervision": "trace-incomplete-line-overflow",
+        "naturalSettlement": false,
+        "closed": true,
+        "qualificationControl": true,
+        "expectedSupervision": true
+      },
+      {
+        "name": "qualification-node24-diagnostic-overflow-child",
+        "status": null,
+        "durationMs": 48,
+        "supervision": "trace-diagnostic-retention-overflow",
+        "naturalSettlement": false,
+        "closed": true,
+        "qualificationControl": true,
+        "expectedSupervision": true
+      },
+      {
+        "name": "qualification-node24-ordinary-cap-child",
+        "status": null,
+        "durationMs": 53,
+        "supervision": "combined-output-cap-1MiB",
+        "naturalSettlement": false,
+        "closed": true,
+        "qualificationControl": true,
+        "expectedSupervision": true
+      }
+    ],
+    "observedWorkers": 80,
+    "allObservedWorkersClosed": true,
+    "outerEntryClosed": true
+  },
+  "bindings": {
+    "preStatus": "pass",
+    "postStatus": "pass",
+    "preSha256": "16fe5482ad4baecce5091d440dd58585077726e237ec6cc19ea54be755e2de50",
+    "postSha256": "711fdc9d37f124837661ca692ba76f8ee3803eab45e4140e6b6f0933a3ad7393",
+    "checks": 189,
+    "failedChecks": [],
+    "recursiveNewEntryGuards": true,
+    "guardScope": "Selected retained build/tools, copied tools, package and compiler-input snapshots; declared historical and recipe top-level entries. Not an append-proof claim after finalization."
+  },
+  "readOnlyAudit": {
+    "rawEntries": 993,
+    "rawBytes": 220703859,
+    "allRawEntriesHashAuthenticated": true,
+    "receiptChannelHashesMatched": 444,
+    "mainLoadHashesMatched": 28028,
+    "workerLoadHashesMatched": 304,
+    "distinctProductModuleRelativePathsObserved": 203,
+    "fullPackMembersBound": 834,
+    "strictR25ExitBeforeExecBeforeDispose": 4,
+    "actualPhaseOrderFromCommandIndices": 4,
+    "archive": {
+      "path": "RAW.jsonl.gz",
+      "bytes": 10154080,
+      "sha256": "5a6b881110cd9f68d3b7fbd567d7a4588dfeb0be791a20850d5e3cc33ddab9ed"
+    }
+  },
+  "actualExecution": {
+    "startedAt": "2026-08-28T02:26:45.878Z",
+    "finishedAt": "2026-08-28T02:28:14.179Z",
+    "durationMs": 88301,
+    "entryExit": 1,
+    "outerExit": 1,
+    "supervision": null
+  },
+  "remainingHolds": [
+    "EXPRPUBLICCOMPONENT strict frozen cohort fails12 assertions; no rerun or waiver",
+    "R21 later surrogate variants were not reached; failed case rows do not establish all nested variants",
+    "Accepted-DU and original gate remain HELD; DU75 selection is not acceptance",
+    "HTML remains separately root-accepted; not rerun",
+    "No whole76/fullgate/engine/TEMP acceptance or superiority/duration claim"
+  ],
+  "nextAuthorization": "Reconcile the R21 public invocation-boundary contract and the pinned TS2561 diagnostic fixture in a separately authorized recipe. Preserve this cohort; no postfreeze expectation changes or product repair performed."
+}

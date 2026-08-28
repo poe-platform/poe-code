@@ -1,0 +1,58 @@
+{"checkpoint":"v5-bound-proof-admitted","P01":"BOUND_ACCEPTED_PROOF","reusedReader":16,"reusedRepair":28,"newControls":38}
+{"checkpoint":"v5-qualification","id":"node22-compiler-positive","status":"pass"}
+{"checkpoint":"v5-qualification","id":"node22-compiler-late-error","status":"pass"}
+{"checkpoint":"v5-qualification","id":"node22-compiler-forbidden","status":"pass"}
+{"checkpoint":"v5-qualification","id":"node22-overflow","status":"pass"}
+{"checkpoint":"v5-qualification","id":"node22-nonzero","status":"pass"}
+{"checkpoint":"v5-qualification","id":"node22-line-overflow","status":"pass"}
+{"checkpoint":"v5-qualification","id":"node22-diagnostic-overflow","status":"pass"}
+{"checkpoint":"v5-qualification","id":"node22-ordinary-cap","status":"pass"}
+{"checkpoint":"v5-qualification","id":"node24-compiler-positive","status":"pass"}
+{"checkpoint":"v5-qualification","id":"node24-compiler-late-error","status":"pass"}
+{"checkpoint":"v5-qualification","id":"node24-compiler-forbidden","status":"pass"}
+{"checkpoint":"v5-qualification","id":"node24-overflow","status":"pass"}
+{"checkpoint":"v5-qualification","id":"node24-nonzero","status":"pass"}
+{"checkpoint":"v5-qualification","id":"node24-line-overflow","status":"pass"}
+{"checkpoint":"v5-qualification","id":"node24-diagnostic-overflow","status":"pass"}
+{"checkpoint":"v5-qualification","id":"node24-ordinary-cap","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-positive","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-failed-P01","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-missing-P01","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-missing-admission","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-missing-repair","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-failed-repair","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-missing-controls","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-failed-control","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-missing-types","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-failed-type","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-unrun-case","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-missing-context","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-missing-finalization","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-failed-finalization","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-failed-check","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-unclosed-child","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-integrity-held","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-missing-bound-proof","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-failed-trace-control","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-missing-trace-control","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-supervised-type","status":"pass"}
+{"checkpoint":"v5-qualification","id":"aggregate-missing-phase","status":"pass"}
+{"checkpoint":"P01-BOUND-NOT-REBUILT","status":"BOUND_ACCEPTED_PROOF","accepted":true,"independentlyBuiltIn":"1ec1912001db43f803af46bb5dea89a7e397b83b","recipe":"8a28b7bffa5ef093cff2374ec32cba4ec4ca83f0","buildExecuted":false,"packExecuted":false,"independentInputsBound":357,"actualPackSha256":"c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd","packBytes":727526,"members":834,"manifestSha256":"5baf947732e17db0e61d734de5c8bde3acfbe5daa14d634539dd1ecea4de7eb4","authorpackFallback":false}
+{"checkpoint":"case-failure","context":"installed-node22","id":"R21","error":"{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/structured/values.js\",\"sha256\":\"8cd6dd8bc7373b3b1d21dc96ae5fe483c0f016326c35fd72a253292ae713119c\"}\nEXPR_MAIN_LOAD {\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/search/glob.js\",\"sha256\":\"9680d693cddf011ed06623582954b640d18ce26deebcd9b7d3c53a5564eb46f9\"}\nEXPR_MAIN_LOAD {\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/compon"}
+{"checkpoint":"type-failure","context":"installed-node22","id":"N04","error":"Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [\n      11,\n+     'TS2561'\n-     'TS2353'\n    ]\n  ]\n"}
+{"checkpoint":"type-failure","context":"installed-node22","id":"combined","error":"Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    [\n      5,\n      'TS2353'\n    ],\n...\n      11,\n+     'TS2561'\n-     'TS2353'\n    ],\n    [\n      13,\n      'TS2322'\n    ],\n"}
+{"checkpoint":"context-completed","label":"installed-node22","counts":{"pass":25,"fail":1,"unrun":0},"controls":["ordinary:pass","held-release:pass","held-withhold:pass","root-negative:pass","subpath-negative:pass","subpath-restored:pass","source-fallback:pass","worker-negative:pass","worker-restored:pass"],"types":["positive:pass","negative:pass","N01:pass","N02:pass","N03:pass","N04:fail","N05:pass","N06:pass","combined:fail","broken-declaration:pass"],"durationMs":18021}
+{"checkpoint":"case-failure","context":"installed-node24","id":"R21","error":"{\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/structured/values.js\",\"sha256\":\"8cd6dd8bc7373b3b1d21dc96ae5fe483c0f016326c35fd72a253292ae713119c\"}\nEXPR_MAIN_LOAD {\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/installed/consumer/node_modules/virtual-bash/dist/commands/search/glob.js\",\"sha256\":\"9680d693cddf011ed06623582954b640d18ce26deebcd9b7d3c53a5564eb46f9\"}\nEXPR_MAIN_LOAD {\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/compon"}
+{"checkpoint":"type-failure","context":"installed-node24","id":"N04","error":"Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [\n      11,\n+     'TS2561'\n-     'TS2353'\n    ]\n  ]\n"}
+{"checkpoint":"type-failure","context":"installed-node24","id":"combined","error":"Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    [\n      5,\n      'TS2353'\n    ],\n...\n      11,\n+     'TS2561'\n-     'TS2353'\n    ],\n    [\n      13,\n      'TS2322'\n    ],\n"}
+{"checkpoint":"context-completed","label":"installed-node24","counts":{"pass":25,"fail":1,"unrun":0},"controls":["ordinary:pass","held-release:pass","held-withhold:pass","root-negative:pass","subpath-negative:pass","subpath-restored:pass","source-fallback:pass","worker-negative:pass","worker-restored:pass"],"types":["positive:pass","negative:pass","N01:pass","N02:pass","N03:pass","N04:fail","N05:pass","N06:pass","combined:fail","broken-declaration:pass"],"durationMs":17390}
+{"checkpoint":"case-failure","context":"moved-node22","id":"R21","error":"dent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/commands/structured/values.js\",\"sha256\":\"8cd6dd8bc7373b3b1d21dc96ae5fe483c0f016326c35fd72a253292ae713119c\"}\nEXPR_MAIN_LOAD {\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/commands/search/glob.js\",\"sha256\":\"9680d693cddf011ed06623582954b640d18ce26deebcd9b7d3c53a5564eb46f9\"}\nEXPR_MAIN_LOAD {\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with"}
+{"checkpoint":"type-failure","context":"moved-node22","id":"N04","error":"Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [\n      11,\n+     'TS2561'\n-     'TS2353'\n    ]\n  ]\n"}
+{"checkpoint":"type-failure","context":"moved-node22","id":"combined","error":"Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    [\n      5,\n      'TS2353'\n    ],\n...\n      11,\n+     'TS2561'\n-     'TS2353'\n    ],\n    [\n      13,\n      'TS2322'\n    ],\n"}
+{"checkpoint":"context-completed","label":"moved-node22","counts":{"pass":25,"fail":1,"unrun":0},"controls":["ordinary:pass","held-release:pass","held-withhold:pass","root-negative:pass","subpath-negative:pass","subpath-restored:pass","source-fallback:pass","worker-negative:pass","worker-restored:pass"],"types":["positive:pass","negative:pass","N01:pass","N02:pass","N03:pass","N04:fail","N05:pass","N06:pass","combined:fail","broken-declaration:pass"],"durationMs":19257}
+{"checkpoint":"case-failure","context":"moved-node24","id":"R21","error":"dent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/commands/structured/values.js\",\"sha256\":\"8cd6dd8bc7373b3b1d21dc96ae5fe483c0f016326c35fd72a253292ae713119c\"}\nEXPR_MAIN_LOAD {\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with spaces/consumer/node_modules/virtual-bash/dist/commands/search/glob.js\",\"sha256\":\"9680d693cddf011ed06623582954b640d18ce26deebcd9b7d3c53a5564eb46f9\"}\nEXPR_MAIN_LOAD {\"path\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v5/work/run-001/moved package with"}
+{"checkpoint":"type-failure","context":"moved-node24","id":"N04","error":"Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    [\n      11,\n+     'TS2561'\n-     'TS2353'\n    ]\n  ]\n"}
+{"checkpoint":"type-failure","context":"moved-node24","id":"combined","error":"Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    [\n      5,\n      'TS2353'\n    ],\n...\n      11,\n+     'TS2561'\n-     'TS2353'\n    ],\n    [\n      13,\n      'TS2322'\n    ],\n"}
+{"checkpoint":"context-completed","label":"moved-node24","counts":{"pass":25,"fail":1,"unrun":0},"controls":["ordinary:pass","held-release:pass","held-withhold:pass","root-negative:pass","subpath-negative:pass","subpath-restored:pass","source-fallback:pass","worker-negative:pass","worker-restored:pass"],"types":["positive:pass","negative:pass","N01:pass","N02:pass","N03:pass","N04:fail","N05:pass","N06:pass","combined:fail","broken-declaration:pass"],"durationMs":18456}
+{"checkpoint":"evidence-written","counts":{"plannedRuntimeContexts":4,"plannedRuntimeAssertions":104,"executed":104,"pass":100,"fail":4,"unrun":0,"controlsExecuted":36,"controlsPass":36,"typeInvocations":40,"typePass":32,"typeFail":8,"typeUnrun":0,"controlsFail":0,"controlsUnrun":0},"failures":12,"manifestSha256":"b8605b3dfe7d35723d6d24627a797edb0a60165e614c5800e54ffba4e0ff08f1","reportSha256":"c927fe9fb51c3c1ae5f423de13b0dbed4d817213449556e5b24597b4d0363e0c"}
+{"checkpoint":"v5-aggregate-before-exit","status":"HELD","exitCode":1,"reasons":["reported-failures","installed-node22:types","installed-node22:runtime","installed-node24:types","installed-node24:runtime","moved-node22:types","moved-node22:runtime","moved-node24:types","moved-node24:runtime"]}

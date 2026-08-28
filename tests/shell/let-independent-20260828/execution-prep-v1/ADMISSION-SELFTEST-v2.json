@@ -1,0 +1,46 @@
+{
+  "qualification": "Actual Node/load-hook/read-fence controls using tiny owned data modules; NOT a LET/Shell/public-package acceptance test",
+  "started": "2026-08-28T07:38:42.916Z",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "runs": [
+    {
+      "mode": "positive",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-AIgErR/positive,/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--import",
+          "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-AIgErR/positive/harness/load-guard.mjs",
+          "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-AIgErR/positive/harness/entry.mjs"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-AIgErR/positive",
+        "started": "2026-08-28T07:38:42.979Z",
+        "finished": "2026-08-28T07:38:43.019Z",
+        "pid": 86816,
+        "code": 1,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "",
+        "stderr": "node:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at getSourceSync (node:internal/modules/esm/load:41:14)\n    at defaultLoad (node:internal/modules/esm/load:92:34)\n    at ModuleLoader.load (node:internal/modules/esm/loader:815:12)\n    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:594:31)\n    at #createModuleJob (node:internal/modules/esm/loader:624:36)\n    at #getJobFromResolveResult (node:internal/modules/esm/loader:343:34)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:311:41)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:25) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-AIgErR/positive/harness/load-guard.mjs'\n}\n\nNode.js v22.22.2\n",
+        "bytes": 1009
+      },
+      "checked": false
+    }
+  ],
+  "productExecutions": 0,
+  "candidateBuilds": 0,
+  "scratchRemoved": true,
+  "failure": {
+    "message": "positive\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at getSourceSync (node:internal/modules/esm/load:41:14)\n    at defaultLoad (node:internal/modules/esm/load:92:34)\n    at ModuleLoader.load (node:internal/modules/esm/loader:815:12)\n    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:594:31)\n    at #createModuleJob (node:internal/modules/esm/loader:624:36)\n    at #getJobFromResolveResult (node:internal/modules/esm/loader:343:34)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:311:41)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:25) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-AIgErR/positive/harness/load-guard.mjs'\n}\n\nNode.js v22.22.2\n\n\n1 !== 0\n",
+    "stack": "AssertionError [ERR_ASSERTION]: positive\nnode:fs:560\n  return binding.open(\n                 ^\n\nError: Access to this API has been restricted. Use --allow-fs-read to manage permissions.\n    at Object.openSync (node:fs:560:18)\n    at readFileSync (node:fs:444:35)\n    at getSourceSync (node:internal/modules/esm/load:41:14)\n    at defaultLoad (node:internal/modules/esm/load:92:34)\n    at ModuleLoader.load (node:internal/modules/esm/loader:815:12)\n    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:594:31)\n    at #createModuleJob (node:internal/modules/esm/loader:624:36)\n    at #getJobFromResolveResult (node:internal/modules/esm/loader:343:34)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:311:41)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:25) {\n  code: 'ERR_ACCESS_DENIED',\n  permission: 'FileSystemRead',\n  resource: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-AIgErR/positive/harness/load-guard.mjs'\n}\n\nNode.js v22.22.2\n\n\n1 !== 0\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1/admission-selftest.mjs:29:12\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+  },
+  "finished": "2026-08-28T07:38:43.022Z"
+}

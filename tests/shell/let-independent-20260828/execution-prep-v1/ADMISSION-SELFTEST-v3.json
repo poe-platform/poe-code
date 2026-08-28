@@ -1,0 +1,187 @@
+{
+  "qualification": "Actual Node/load-hook/read-fence controls using tiny owned data modules; NOT a LET/Shell/public-package acceptance test",
+  "started": "2026-08-28T07:39:19.790Z",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "runs": [
+    {
+      "mode": "positive",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/positive",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--import",
+          "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/positive/harness/load-guard.mjs",
+          "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/positive/harness/entry.mjs"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/positive",
+        "started": "2026-08-28T07:39:19.877Z",
+        "finished": "2026-08-28T07:39:20.005Z",
+        "pid": 88019,
+        "code": 0,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"admission\":{\"node\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"manifestSha256\":\"d1f58991c567b0aca3341540ec17e89d648edcbdb89b419908ca733ccd9e853f\"}}\n{\"load\":{\"path\":\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/positive/harness/entry.mjs\",\"sha256\":\"9a1b9f23719a761b71903df221140b4d236ce2fe39ec4059d4811df2aa6aecc6\"}}\n{\"load\":{\"path\":\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/positive/data/module.mjs\",\"sha256\":\"0ee61ebab8e3de790d56babbd166405809dccb96df9181a1d54871c13993c7a0\"}}\n{\"fixture\":\"ok\"}\n",
+        "stderr": "",
+        "bytes": 608
+      },
+      "checked": true
+    },
+    {
+      "mode": "changed-module",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/changed-module",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--import",
+          "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/changed-module/harness/load-guard.mjs",
+          "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/changed-module/harness/entry.mjs"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/changed-module",
+        "started": "2026-08-28T07:39:20.010Z",
+        "finished": "2026-08-28T07:39:20.128Z",
+        "pid": 88020,
+        "code": 1,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "",
+        "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: module.mjs\n+ actual - expected\n\n+ 'f137749ce1dd59ba9424cf108020ce1dd495c5979445bc33624ac903ddb49348'\n- '0ee61ebab8e3de790d56babbd166405809dccb96df9181a1d54871c13993c7a0'\n\n    at readAdmission (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/changed-module/harness/support.mjs:26:12)\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/changed-module/harness/load-guard.mjs:8:18\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:112:9) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: 'f137749ce1dd59ba9424cf108020ce1dd495c5979445bc33624ac903ddb49348',\n  expected: '0ee61ebab8e3de790d56babbd166405809dccb96df9181a1d54871c13993c7a0',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+        "bytes": 1083
+      },
+      "checked": true
+    },
+    {
+      "mode": "missing-module",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/missing-module",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--import",
+          "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/missing-module/harness/load-guard.mjs",
+          "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/missing-module/harness/entry.mjs"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/missing-module",
+        "started": "2026-08-28T07:39:20.131Z",
+        "finished": "2026-08-28T07:39:20.244Z",
+        "pid": 88021,
+        "code": 1,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "",
+        "stderr": "node:fs:1722\n  const stats = binding.lstat(\n                        ^\n\nError: ENOENT: no such file or directory, lstat '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/missing-module/data/module.mjs'\n    at lstatSync (node:fs:1722:25)\n    at readAdmission (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/missing-module/harness/support.mjs:25:48)\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/missing-module/harness/load-guard.mjs:8:18\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:112:9) {\n  errno: -2,\n  code: 'ENOENT',\n  syscall: 'lstat',\n  path: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/missing-module/data/module.mjs'\n}\n\nNode.js v22.22.2\n",
+        "bytes": 999
+      },
+      "checked": true
+    },
+    {
+      "mode": "manifest-digest",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/manifest-digest",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--import",
+          "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/manifest-digest/harness/load-guard.mjs",
+          "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/manifest-digest/harness/entry.mjs"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/manifest-digest",
+        "started": "2026-08-28T07:39:20.247Z",
+        "finished": "2026-08-28T07:39:20.297Z",
+        "pid": 88022,
+        "code": 1,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "",
+        "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: manifest SHA256\n+ actual - expected\n\n+ '4944811634c09f48a1540d9fdabb4cda2e7907fc3febdf484258b5d0be121e27'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n\n    at readAdmission (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/manifest-digest/harness/support.mjs:18:44)\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/manifest-digest/harness/load-guard.mjs:8:18\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:112:9) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: '4944811634c09f48a1540d9fdabb4cda2e7907fc3febdf484258b5d0be121e27',\n  expected: '0000000000000000000000000000000000000000000000000000000000000000',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+        "bytes": 1090
+      },
+      "checked": true
+    },
+    {
+      "mode": "unbound-module",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/unbound-module",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--import",
+          "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/unbound-module/harness/load-guard.mjs",
+          "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/unbound-module/harness/entry.mjs"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/unbound-module",
+        "started": "2026-08-28T07:39:20.300Z",
+        "finished": "2026-08-28T07:39:20.419Z",
+        "pid": 88023,
+        "code": 1,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"admission\":{\"node\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"manifestSha256\":\"e9832f6136f52d6746a9415318eb5ae2ca5370ccde913776e5cc6cf61ced7624\"}}\n{\"load\":{\"path\":\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/unbound-module/harness/entry.mjs\",\"sha256\":\"ec7ee423c50e65dd28b71ba21003c406c586a1db780b56fd0bbb57865dc3aa3d\"}}\n",
+        "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: unbound module /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/unbound-module/data/unbound.mjs\n    at load (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/unbound-module/harness/load-guard.mjs:19:48)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at loadWithHooks (node:internal/modules/customization_hooks:352:18)\n    at #loadSync (node:internal/modules/esm/loader:849:14)\n    at ModuleLoader.load (node:internal/modules/esm/loader:808:28)\n    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:594:31)\n    at #createModuleJob (node:internal/modules/esm/loader:624:36)\n    at #getJobFromResolveResult (node:internal/modules/esm/loader:343:34)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:311:41) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+        "bytes": 1491
+      },
+      "checked": true
+    },
+    {
+      "mode": "source-fallback",
+      "run": {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "--permission",
+          "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/source-fallback",
+          "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "--import",
+          "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/source-fallback/harness/load-guard.mjs",
+          "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/source-fallback/harness/entry.mjs"
+        ],
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/source-fallback",
+        "started": "2026-08-28T07:39:20.423Z",
+        "finished": "2026-08-28T07:39:20.542Z",
+        "pid": 88026,
+        "code": 1,
+        "signal": null,
+        "spawnError": null,
+        "failure": null,
+        "groupAbsent": true,
+        "closeObserved": true,
+        "stdout": "{\"admission\":{\"node\":\"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node\",\"version\":\"v22.22.2\",\"manifestSha256\":\"d4e80758d4b5c6f3aa85712ed936fa2e3c6cd498eb3b1ff1b2e02af154495787\"}}\n{\"load\":{\"path\":\"/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/source-fallback/harness/entry.mjs\",\"sha256\":\"f4e8c8c75b47ceca1e7942ba86f733f699832726a23eec5448efa35011924a12\"}}\n",
+        "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: unbound module /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/forbidden.mjs\n    at load (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/source-fallback/harness/load-guard.mjs:19:48)\n    at nextStep (node:internal/modules/customization_hooks:189:26)\n    at loadWithHooks (node:internal/modules/customization_hooks:352:18)\n    at #loadSync (node:internal/modules/esm/loader:849:14)\n    at ModuleLoader.load (node:internal/modules/esm/loader:808:28)\n    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:594:31)\n    at #createModuleJob (node:internal/modules/esm/loader:624:36)\n    at #getJobFromResolveResult (node:internal/modules/esm/loader:343:34)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:311:41) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+        "bytes": 1475
+      },
+      "checked": false
+    }
+  ],
+  "productExecutions": 0,
+  "candidateBuilds": 0,
+  "scratchRemoved": true,
+  "failure": {
+    "message": "The input did not match the regular expression /ERR_ACCESS_DENIED/u. Input:\n\n'node:internal/modules/run_main:123\\n' +\n  '    triggerUncaughtException(\\n' +\n  '    ^\\n' +\n  '\\n' +\n  'AssertionError [ERR_ASSERTION]: unbound module /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/forbidden.mjs\\n' +\n  '    at load (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/source-fallback/harness/load-guard.mjs:19:48)\\n' +\n  '    at nextStep (node:internal/modules/customization_hooks:189:26)\\n' +\n  '    at loadWithHooks (node:internal/modules/customization_hooks:352:18)\\n' +\n  '    at #loadSync (node:internal/modules/esm/loader:849:14)\\n' +\n  '    at ModuleLoader.load (node:internal/modules/esm/loader:808:28)\\n' +\n  '    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:594:31)\\n' +\n  '    at #createModuleJob (node:internal/modules/esm/loader:624:36)\\n' +\n  '    at #getJobFromResolveResult (node:internal/modules/esm/loader:343:34)\\n' +\n  '    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:311:41) {\\n' +\n  '  generatedMessage: false,\\n' +\n  \"  code: 'ERR_ASSERTION',\\n\" +\n  '  actual: undefined,\\n' +\n  '  expected: true,\\n' +\n  \"  operator: '==',\\n\" +\n  \"  diff: 'simple'\\n\" +\n  '}\\n' +\n  '\\n' +\n  'Node.js v22.22.2\\n'\n",
+    "stack": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /ERR_ACCESS_DENIED/u. Input:\n\n'node:internal/modules/run_main:123\\n' +\n  '    triggerUncaughtException(\\n' +\n  '    ^\\n' +\n  '\\n' +\n  'AssertionError [ERR_ASSERTION]: unbound module /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/forbidden.mjs\\n' +\n  '    at load (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-admission-data-8AcdIZ/source-fallback/harness/load-guard.mjs:19:48)\\n' +\n  '    at nextStep (node:internal/modules/customization_hooks:189:26)\\n' +\n  '    at loadWithHooks (node:internal/modules/customization_hooks:352:18)\\n' +\n  '    at #loadSync (node:internal/modules/esm/loader:849:14)\\n' +\n  '    at ModuleLoader.load (node:internal/modules/esm/loader:808:28)\\n' +\n  '    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:594:31)\\n' +\n  '    at #createModuleJob (node:internal/modules/esm/loader:624:36)\\n' +\n  '    at #getJobFromResolveResult (node:internal/modules/esm/loader:343:34)\\n' +\n  '    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:311:41) {\\n' +\n  '  generatedMessage: false,\\n' +\n  \"  code: 'ERR_ASSERTION',\\n\" +\n  '  actual: undefined,\\n' +\n  '  expected: true,\\n' +\n  \"  operator: '==',\\n\" +\n  \"  diff: 'simple'\\n\" +\n  '}\\n' +\n  '\\n' +\n  'Node.js v22.22.2\\n'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/shell/let-independent-20260828/execution-prep-v1/admission-selftest.mjs:34:14\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+  },
+  "finished": "2026-08-28T07:39:20.553Z"
+}

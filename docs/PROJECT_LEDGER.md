@@ -2867,3 +2867,69 @@ that any implementation, command, fixture, or test currently exists.
   sourcefb376b3a/evidenceacd04c3d still requires different review and fresh root
   authorization. Existing AGENTS cooperative/inventory rules already apply;
   no transient counts were added there.
+
+### 2026-08-28T06:39Z — OS instruction-write fence author packet; full gate held
+
+- Root approved the cedd4b96 exact two sandbox-exec/system-library ENOENT
+  references on macOS26.4.1/25E253, not file hashes/full OS attestation, and
+  the fresh confined write-root plus exact output-root policy. Primitive4e60fbeb
+  and integrated source86038b27 add inherited OS pathname-write protection,
+  PID/group/birth-bound outer observation and guarded sibling phase dispatch.
+  Existing source/permission/network-listener/cleanup checks remain; no target
+  process privilege was added to make ps work inside the sandbox.
+- Driver SHA a99c9f24b9edee16ef959139b48905e943ee108080c0aa39511965103f32f26a
+  binds unchanged f5e9fc49/c109/product profile8c9363ea/projectionb74e5756.
+  The single actual review-only slice passes cold prerequisite78, then
+  typecheck-all0 with one production compiler invocation,23 current consumers,
+  832 emitted files and exact declaration reuse. Original37397 logical entries
+  reconcile to37392 physical candidate entries; one benchmark instruction body
+  is separately metadata-only. Outer/phase settlement and final source guards
+  pass without forced cleanup. No full gate or pack/runtime consumer phase ran.
+- Original and current unchanged mechanism each retain14/15: inside-ps spawn
+  fails EPERM even under an allow-default sandbox. Outer protocol progresses
+  6/6,7/7,9/9 with explicit non-clean negative receipts for abandoned work and
+  a non-loopback listener. Final supplement6/6, native ancestry/alias controls,
+  admission8/8 and unchanged projection14/14 are separate scopes. Generated-JS
+  quoting and wrong nested-sandbox exit assumptions remain captured. Nested
+  sandbox apply refuses71 before its target, not a target-execution proof.
+- Controls65bb898d and the packet at
+  tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-os-fence-v1/HANDOFF.md
+  map all30 presealed groups without calling them30 fresh independent passes.
+  Deliberately inherited writable regular-file FDs bypass acquisition checks;
+  production launcher excludes them. This is not content-aware copying
+  prevention or arbitrary-host-JavaScript/whole-OS isolation. A denied Xcode
+  git cache write remains visible despite successful typing. Different Dirac
+  review and a new root release remain required; historical failed gates stand.
+
+### 2026-08-28T06:39Z — Root-accepted timeout public and workflow compositions
+
+- Root accepted public timeout78 composed proofdd5b40c4/recipeef511785 on the
+  unchanged67eab12e candidate and6608d255 full858-member pack. Runtime22 retained
+  plus8 new in source/installed/moved,20 retained types,7 retained mutants plus
+  genuine M07/A07,3 retained boundary controls plus B01 with7 capture controls
+  and its actual receipt. Prior build/pack proof is bound, not rerun. Original
+  22/30,3/4 and B01 missing bytes remain. Native/SafeJS/full-gate execution is0
+  for this public review, not a claim about separate workflow evidence.
+- Root separately accepted timeout/curl/actual-SafeJS composition: original
+  144e0fca retains11/12 installed and11/12 moved (116/118,8 controls, all24
+  instances attempted; actual enginebb23, mocked HTTP and private guards).
+  W05-only01b8e0e7/recipe91e404ba corrects the exact curl(7) prefix and passes1/1
+  per layout with10 assertions/4 controls. Composed11+1 per layout is not a
+  rescore or new all-workflow replay. New W05 guest evaluations are0, with126
+  engine loads/two run scopes; relevant original guest cases retain their
+  actual-execution proof. No product bug, native/provider/service/full-gate
+  claim follows. Neither composition enters fixed76 f5.
+
+### 2026-08-28T06:39Z — Root-accepted noncollecting jq string-length scope
+
+- Source74361026502d76b8c2b696f9c60e410ac9b78d95 accepted through independent
+  Plato16c4502d:60 unchanged holdouts and93 regressions, actual moved package,
+  typing and reversion control; no charge/API behavior change. Initial845-file
+  runtime/declaration pack351e03ad omitted README and remains a qualified
+  projection, not a full-package proof.
+- Additive6d5cf6c6/recipe4e4fbb56 closes that package-only gap with fresh846-file
+  packff230f2e9079cc843198533e412f836abb62e4ade63f4fa210b7269f7deb4eff:
+  only exact5137 README added, common845 bytes/modes identical,3 manifest
+  negatives; metadata/exports/zero runtime dependencies unchanged. No behavior
+  or build replay/full Git-archive claim. This is5137 plus the one source branch,
+  not automatically78/CD/XAN composition, and leaves f5 unchanged.

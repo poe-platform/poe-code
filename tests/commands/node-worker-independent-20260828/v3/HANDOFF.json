@@ -1,0 +1,29 @@
+{
+  "date": "2026-08-28",
+  "reviewRole": "different source and DATA review only",
+  "subject": "f9bf774409eca40b0518b322db6fcb652cd6cd7f",
+  "authorDataEvidence": "10f49933f430dccfd828dce1c5339ab8b2851458",
+  "decision": "R1-R4 design corrections present; concrete scaffold HOLD; no execution GO",
+  "report": { "path": "REPORT.md", "sha256": "498be4fd7d9a65b260128341d6065189dca2955691a559e6c331c02aaffb6d5a" },
+  "data": { "path": "DATA-RESULT.json", "sha256": "6467bd1ba2793d587419a40408c22e55bc991c0d7aa0c20499d4a823baeff060", "subjectFiles": 38, "pinnedInputRecords": 48, "gitChildren": 3, "processesIncludingChecker": 4, "capturedBytes": 1249506, "logicalWorkBytes": 1494005, "elapsedMs": 127 },
+  "priorityFindings": [
+    { "id": "S2", "finding": "Typed originals reconciled only by terminal; interrupted terminal can omit an undelivered FS error from final raw selection", "source": "parent-rpc.mjs:132; supervisor.mjs:79" },
+    { "id": "S3", "finding": "Operation-close rejection recorded by resolving wrapper, then marked closed and ordinary FREE published", "source": "owner.mjs:28; parent-rpc.mjs:117" },
+    { "id": "S6", "finding": "A typed recognizer can convert genuine FsError sink failure without explicit FS operation-route guard", "source": "parent-rpc.mjs:46" }
+  ],
+  "additionalFindings": [
+    { "id": "S1", "finding": "K3 retained parent closures outlive released credit; initialization rollback and serialized-envelope/frame admission gaps" },
+    { "id": "S4", "finding": "Primitive-role validation after serialization/coercion; phase payload copied before phase cap; final upload UTF8 validation absent" },
+    { "id": "S5", "finding": "JSON input byte limit implemented as UTF16 length" }
+  ],
+  "qualifications": [
+    "Source-derived traces, not executed failing Workers or failed nine-branch replay",
+    "All28 code names and eight WRQ mappings preserved; these are not semantic pass counts",
+    "K1 arbitrary original descriptors and K2 actual guest/Shell proof remain open",
+    "K3 is already honestly held by the author; concrete findings refine that HOLD",
+    "Missing public core/lint closure and L02/L08 work remain Locke-owned; no duplicate fetch/probe",
+    "Eleven Worker and ten guest ceilings unchanged; nine source instances, zero admissions",
+    "apply_patch 753f33d2 unchanged"
+  ],
+  "execution": { "subjectImports": 0, "compiler": 0, "workers": 0, "engine": 0, "privateReads": 0, "network": 0, "temporaryRoots": 0, "activeOwnedChildren": 0 }
+}

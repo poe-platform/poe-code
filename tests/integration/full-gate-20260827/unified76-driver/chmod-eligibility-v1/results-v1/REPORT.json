@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "capturedAt": "2026-08-28T11:43:45.208Z",
+  "source": "e35d83ca97f6aa4f32b2cb8542f5e711458f6aeb",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-timeout=15000",
+    "tests/integration/full-gate-20260827/unified76-driver/chmod-eligibility-v1/controls.mjs"
+  ],
+  "runtime": {
+    "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "version": "v24.11.1",
+    "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+    "qualification": "actual capture process uses same explicitly selected binary; no OS/library attestation or native tool probe"
+  },
+  "capture": "/tmp/unified76-eligibility-author-v1.6P5wI5",
+  "exitCode": 0,
+  "counts": {
+    "groups": 15,
+    "pass": 15,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "stdout": {
+    "bytes": 3086,
+    "sha256": "07494ffbacd312027e744bac2b694a685f146383d2b00bd257e980b3462069ae",
+    "path": "stdout.tap"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "text": ""
+  },
+  "bounds": {
+    "perTestTimeoutMs": 15000
+  },
+  "execution": "DATA_AND_SYNTHETIC_ONLY",
+  "realNativeProbes": 0,
+  "realSetup": 0,
+  "privateCopy": 0,
+  "productionBuilds": 0,
+  "gatePhases": 0,
+  "metadataCaptureIncident": {
+    "kind": "ENOBUFS",
+    "operation": "source-only git show of PROFILE.json.gz.base64",
+    "defaultBufferBytes": 1048576,
+    "childStatus": null,
+    "childSignal": "SIGTERM",
+    "candidateTestsRepeated": false,
+    "outputFilesWritten": false,
+    "resolution": "Metadata binding uses bounded direct-tree OIDs plus locally computed Git blob SHA1; no buffer increase or repeated large-output Git command."
+  },
+  "notes": [
+    "Synthetic stages do not prove fresh private guard behavior.",
+    "H12 exercises actual phase runner with injected fake supervisor, no child process or product execution.",
+    "Historical failed attempts and retained roots were not accessed or changed.",
+    "No current product or old profile bytes changed; full package not rebuilt.",
+    "Test runner settled naturally; synthetic temporary files cleaned by test hook."
+  ],
+  "bindings": "f192ca9330a440d33e49544e135a04305a48e84ce85858f902860aafa2ccd4f9"
+}

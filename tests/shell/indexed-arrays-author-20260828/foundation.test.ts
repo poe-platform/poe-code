@@ -9,8 +9,17 @@ import { arrayStore, requireArrays, snapshotState, trackState } from "../../../s
 import { InvocationScope } from "../../../src/shell/cleanup.js";
 import type { State } from "../../../src/shell/runtime.js";
 
+let publicExecs = 0;
+class AuthorShell extends Shell {
+  override exec(...args: Parameters<Shell["exec"]>): ReturnType<Shell["exec"]> {
+    publicExecs++;
+    return super.exec(...args);
+  }
+}
+test.after(() => { process.stdout.write(`AUTHOR_FLOW_COUNTS ${JSON.stringify({ publicExecs })}\n`); });
+
 function shell(): Shell {
-  const result = new Shell({ fs: new MemoryFileSystem() });
+  const result = new AuthorShell({ fs: new MemoryFileSystem() });
   for (const command of basicCommands()) if (command.name === "printf" || command.name === "echo") result.register(command);
   return result;
 }
@@ -206,6 +215,60 @@ test("foundation: actual default public expansion B/F boundaries", { timeout: 50
     await assert.rejects(instance.exec(fieldSource), (error: unknown) => error instanceof Error && "limit" in error && error.limit === "maxExpansionFields");
     const byteSource = `value='${"x".repeat(65536)}'; a[0]="${"$value".repeat(257)}"`;
     await assert.rejects(instance.exec(byteSource), (error: unknown) => error instanceof Error && "limit" in error && error.limit === "maxExpansionBytes");
+  } finally { await instance.dispose(); }
+});
+
+test("foundation: caller identity wins without waiting for opaque registered work", { timeout: 2000 }, async () => {
+  for (const reason of [0, new Error("array caller")]) {
+    const instance = shell();
+    let entered!: () => void;
+    const entry = new Promise<void>(resolve => { entered = resolve; });
+    instance.register({ name: "opaque", execute() { entered(); return new Promise<never>(() => undefined); } });
+    const controller = new AbortController();
+    const pending = instance.exec('a=(owned); opaque "${a[@]}"', { signal: controller.signal });
+    const rejected = assert.rejects(pending, error => Object.is(error, reason));
+    await entry;
+    controller.abort(reason);
+    await rejected;
+    await instance.dispose();
+  }
+});
+
+test("foundation: awaited backpressure and reused byte ownership survive array argv", { timeout: 2000 }, async () => {
+  const instance = shell();
+  instance.register({ name: "binary", async execute(context) {
+    const bytes = new Uint8Array([0, 255]);
+    await context.stdout.write(bytes);
+    bytes.fill(7);
+    await context.stdout.write(bytes);
+    return { exitCode: 0 };
+  } });
+  let writes = 0;
+  try {
+    const result = await instance.exec('a=(x); binary "${a[@]}"', { stdout: { async write() { await new Promise<void>(resolve => setImmediate(resolve)); writes++; } } });
+    assert.deepEqual(result.stdoutBytes, new Uint8Array([0, 255, 7, 7]));
+    assert.equal(writes, 2);
+  } finally { await instance.dispose(); }
+});
+
+test("foundation: function inline-input snapshots preserve typed reads and zero writes", { timeout: 5000 }, async () => {
+  await output('a=([1]=one); f() { read line; printf "%s/%s" "$line" "${a[1]}"; }; x=prefix f <<< "${a[@]}"', "one/one");
+  await output('a=([1]=one); f() { read line; printf "%s/%s" "$line" "$a"; }; x=prefix f <<< "${a:=zero}"', "zero/zero");
+});
+
+test("foundation: retained scalar LET, CD, STACK and DOTGLOB workflows", { timeout: 5000 }, async () => {
+  const instance = shell();
+  instance.register({ name: "setup", async execute(context) {
+    await context.fs.mkdir("/work");
+    await context.fs.mkdir("/other");
+    await context.fs.writeFile("/work/.hidden", new Uint8Array());
+    await context.fs.writeFile("/work/visible", new Uint8Array());
+    return { exitCode: 0 };
+  } });
+  try {
+    const result = await instance.exec('setup; a=(start); let "scalar=2+3"; cd /work; shopt -s dotglob; a=(*); printf "<%s>" "${a[@]}"; pushd /other > /stack-output; popd > /stack-output; printf "/%s/%s" "$PWD" "$scalar"');
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "<.hidden><visible>//work/5");
   } finally { await instance.dispose(); }
 });
 

@@ -94,6 +94,10 @@ export class StateMonitor {
     delete frame[overlayNext];
   }
 
+  *overlayFrames(): Iterable<OverlayMap> {
+    for (let frame = this.#overlays; frame; frame = frame[overlayNext]) yield frame;
+  }
+
   async prepareTypedPublication(name: string, owner: ArrayOwner, signal: AbortSignal): Promise<() => void> {
     owner.reserve({ metadata: 128, work: 7 });
     const saved: { superseded?: boolean }[] = [];

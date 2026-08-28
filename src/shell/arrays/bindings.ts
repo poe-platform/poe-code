@@ -248,7 +248,14 @@ export class BindingStore {
       if (!prepared) throw new Error("Missing indexed-array name admission");
       this.owner.adopt(prepared.name.admission, restoring);
       this.owner.adopt(prepared.admission, restoring);
-      this.bindings.set(name, { binding, name: prepared.name, admission: prepared.admission });
+      const entry = { binding, name: prepared.name, admission: prepared.admission };
+      prepared.admission.cleanup = () => {
+        if (this.bindings.get(name) !== entry) return;
+        this.bindings.delete(name);
+        entry.name.release();
+        void entry.binding.release();
+      };
+      this.bindings.set(name, entry);
     }
     this.changed(tickets, name);
     const watch = this.watches.get(name);

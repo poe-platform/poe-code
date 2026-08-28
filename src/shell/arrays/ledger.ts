@@ -84,20 +84,20 @@ export class ArrayLedger {
     const wrappers = charge.wrappers ?? 0;
     const slots = charge.slots ?? 0;
     const payload = charge.payload ?? 0;
-    const metadata = charge.metadata ?? 0;
+    const metadataRequest = BigInt(charge.metadata ?? 0) + 64n;
     const allocatedSlots = charge.allocatedSlots ?? slots;
-    const work = exactSum(charge.work ?? 0, 12);
-    const requested: Counters = [wrappers, slots, payload, metadata, exactSum(payload, metadata), allocatedSlots, work];
+    const work = BigInt(charge.work ?? 0) + 15n;
+    const requested = [BigInt(wrappers), BigInt(slots), BigInt(payload), metadataRequest, BigInt(payload) + metadataRequest, BigInt(allocatedSlots), work];
     for (let index = 0; index < requested.length; index++) {
       const amount = requested[index]!;
-      if (!Number.isSafeInteger(amount) || amount < 0 || amount > caps[index]! - this.#used[index]!) {
+      if (amount < 0n || amount > BigInt(caps[index]! - this.#used[index]!)) {
         throw new ArrayFailure(`private ${labels[index]} limit exceeded`);
       }
     }
     this.#caps = caps;
     this.#lastIssued = cursor;
-    for (let index = 0; index < requested.length; index++) this.#used[index]! += requested[index]!;
-    return new Admission(this, wrappers, slots, payload, metadata, generation, version, epoch);
+    for (let index = 0; index < requested.length; index++) this.#used[index]! += Number(requested[index]!);
+    return new Admission(this, wrappers, slots, payload, Number(metadataRequest), generation, version, epoch);
   }
 
   private derive(): Counters {

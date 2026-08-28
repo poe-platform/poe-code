@@ -89,14 +89,72 @@ try {
   const loader = path.join(repository, "node_modules/tsx/dist/loader.mjs");
   report.toolchain = { node: process.version, nodeSha256: sha(fs.readFileSync(process.execPath)), compilerSha256: sha(fs.readFileSync(path.join(repository, "node_modules/typescript/lib/_tsc.js"))), loaderSha256: sha(fs.readFileSync(loader)) };
   put("tsconfig.array-foundation.json", JSON.stringify({ extends: "./tsconfig.json", compilerOptions: { noEmit: true }, include: ["src/**/*.ts", `${relativeOwn}/foundation.test.ts`, `${relativeOwn}/syntax.test.ts`], exclude: ["dist", "node_modules"] }));
+  put("source-load-hook.mjs", 'import { register } from "node:module"; register("./source-load-guard.mjs", import.meta.url);\n');
+  put("source-load-guard.mjs", `import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
+const root = path.dirname(fileURLToPath(import.meta.url));
+const tools = ${JSON.stringify(path.join(repository, "node_modules"))};
+export async function load(url, context, nextLoad) {
+  if (!url.startsWith("file:")) return nextLoad(url, context);
+  const filename = fileURLToPath(url);
+  if (filename.startsWith(tools + path.sep)) return nextLoad(url, context);
+  const relative = path.relative(root, filename);
+  if (!(relative.startsWith("src/") || relative === ${JSON.stringify(`${relativeOwn}/foundation.test.ts`)} || relative === ${JSON.stringify(`${relativeOwn}/syntax.test.ts`)})) throw new Error("Out-of-profile source load: " + filename);
+  if (/^src\\/commands\\/(?!basic\\.ts$|internal\\.ts$|execution\\.ts$|env-split\\.ts$)/u.test(relative)) throw new Error("Held command module load: " + relative);
+  const loaded = await nextLoad(url, context);
+  fs.appendFileSync(${JSON.stringify(path.join(attempt, "source-loads.jsonl"))}, JSON.stringify({ relative, sha256: createHash("sha256").update(fs.readFileSync(filename)).digest("hex") }) + "\\n");
+  return loaded;
+}
+`);
   report.beforeBuild = snapshot(); save();
   run("selected-production-build", [compiler, "-p", "tsconfig.build.json"], 120000);
   run("strict-owned-consumers", [compiler, "-p", "tsconfig.array-foundation.json"], 120000);
   const before = snapshot();
-  run("source-foundation-and-syntax", ["--import", loader, "--test", "--test-timeout=5000", `${relativeOwn}/foundation.test.ts`, `${relativeOwn}/syntax.test.ts`], 60000);
+  const testArgs = ["--import", "./source-load-hook.mjs", "--import", loader, "--test", "--test-timeout=5000", `${relativeOwn}/foundation.test.ts`, `${relativeOwn}/syntax.test.ts`];
+  run("source-foundation-and-syntax", testArgs, 60000);
+  const readLoads = expected => {
+    const entries = fs.readFileSync(path.join(attempt, "source-loads.jsonl"), "utf8").trim().split("\n").map(line => JSON.parse(line));
+    for (const entry of entries) assert.equal(entry.sha256, expected[entry.relative], entry.relative);
+    fs.unlinkSync(path.join(attempt, "source-loads.jsonl"));
+    return entries;
+  };
+  report.sourceLoads = readLoads(before);
   assert.deepEqual(snapshot(), before);
   report.runtimeStableIncludingNewEntries = true;
   report.buildInventory = before;
+  const mutations = [
+    { name: "copied-slot-ownership", file: "src/shell/arrays/bindings.ts", from: "if (copy.values.get(index) === cloned) copy.values.delete(index);", to: "copy.values.delete(index);", assertion: "foundation: sparse assignment" },
+    { name: "static-overflow-planning", file: "src/shell/runtime.ts", from: "if (demanded && planned !== null && planned > 2147483647)", to: "if (false && demanded && planned !== null && planned > 2147483647)", assertion: "foundation: static overflow" },
+    { name: "zero-view", file: "src/shell/runtime.ts", from: "return binding ? binding.get(0) : state.variables[name];", to: "return state.variables[name];", assertion: "foundation: supported lazy bare" },
+    { name: "final-stage-stale-guard", file: "src/shell/runtime.ts", from: 'if (!watch.valid()) throw new ArrayFailure("stale binding");\n      if (!(assignment.kind', to: 'if (false) throw new ArrayFailure("stale binding");\n      if (!(assignment.kind', assertion: "foundation: staged RHS mutation" },
+    { name: "snapshot-epoch", file: "src/shell/arrays/state.ts", from: "if (monitor.epoch !== epoch) throw new ArrayFailure(\"stale state snapshot\");", to: "if (false) throw new ArrayFailure(\"stale state snapshot\");", assertion: "private state: whole-state epoch" },
+    { name: "atomic-ticket-cursor", file: "src/shell/arrays/ledger.ts", from: "for (let index = 0; index < requested.length; index++) {", to: "this.#lastIssued = cursor; for (let index = 0; index < requested.length; index++) {", assertion: "private ledger: seven formulas" },
+    { name: "cumulative-nonrefund", file: "src/shell/arrays/ledger.ts", from: "this.#used[3] -= admission.metadata;", to: "this.#used[3] -= admission.metadata; this.#used[4] -= admission.metadata + admission.payload;", assertion: "private ledger: seven formulas" },
+    { name: "observer-retirement", file: "src/shell/arrays/bindings.ts", from: "this.watches.delete(name);", to: "void name;", assertion: "private ledger: last observer retires" },
+    { name: "root-work-drain", file: "src/shell/arrays/ledger.ts", from: "if (this.#holds) await this.#idle;", to: "if (false) await this.#idle;", assertion: "private ownership: root close drains" },
+    { name: "repeated-aggregate-splice", file: "src/shell/runtime.ts", from: "if (position > 0) {\n            owner?.reserve", to: "if (true) {\n            owner?.reserve", assertion: "foundation: repeated aggregate splice" },
+  ];
+  report.mutations = [];
+  for (const mutation of mutations) {
+    const filename = path.join(source, mutation.file);
+    const original = fs.readFileSync(filename, "utf8");
+    assert.equal(original.split(mutation.from).length, 2, mutation.name);
+    const altered = original.replace(mutation.from, mutation.to);
+    const entry = { ...mutation, originalSha256: sha(original), alteredSha256: sha(altered) };
+    report.mutations.push(entry); save();
+    try {
+      fs.writeFileSync(filename, altered);
+      const result = run("loaded-mutant-" + mutation.name, testArgs, 60000, 1);
+      assert(result.stdout.split("\n").some(line => line.startsWith("not ok ") && line.includes(mutation.assertion)), mutation.name);
+      assert.doesNotMatch(result.stderr, /Out-of-profile|Held command module|Transform failed|ERR_MODULE_NOT_FOUND/u);
+      entry.loads = readLoads({ ...before, [mutation.file]: sha(altered) });
+      assert(entry.loads.some(load => load.relative === mutation.file && load.sha256 === sha(altered)));
+      entry.executedAssertionRejected = true;
+    } finally { fs.writeFileSync(filename, original); }
+  }
+  assert.deepEqual(snapshot(), before, "all loaded mutants restored including new-entry checks");
   const npm = path.resolve(path.dirname(process.execPath), "../lib/node_modules/npm/bin/npm-cli.js");
   assert(fs.existsSync(npm));
   const packed = run("package-artifact", [npm, "pack", "--json", "--ignore-scripts", "--offline", "--pack-destination", attempt], 120000);
@@ -134,6 +192,20 @@ try {
   assert.deepEqual(manifest.dependencies ?? {}, {});
   assert(!fs.existsSync(path.join(packagePath, "src")));
   report.package.inventory = packageInventory;
+  const verifyPackage = directory => {
+    const actual = {};
+    const visit = folder => {
+      for (const name of fs.readdirSync(folder).sort()) {
+        const absolute = path.join(folder, name);
+        const stat = fs.lstatSync(absolute);
+        assert(!stat.isSymbolicLink());
+        if (stat.isDirectory()) visit(absolute);
+        else actual[path.relative(directory, absolute)] = sha(fs.readFileSync(absolute));
+      }
+    };
+    visit(directory);
+    assert.deepEqual(actual, packageInventory, "package runtime stability including new entries");
+  };
   fs.writeFileSync(path.join(installed, "package.json"), JSON.stringify({ type: "module" }));
   fs.writeFileSync(path.join(installed, "consumer.ts"), fs.readFileSync(path.join(source, relativeOwn, "public-consumer.ts")));
   fs.writeFileSync(path.join(installed, "tsconfig.json"), JSON.stringify({ compilerOptions: { target: "ES2022", module: "NodeNext", moduleResolution: "NodeNext", strict: true, exactOptionalPropertyTypes: true, noUncheckedIndexedAccess: true, skipLibCheck: false, outDir: "out", typeRoots: [path.join(repository, "node_modules/@types")] }, files: ["consumer.ts"] }));
@@ -160,6 +232,7 @@ export async function load(url, context, nextLoad) {
     assert(loads.some(entry => entry.relative.endsWith("/dist/shell/arrays/bindings.js")));
     for (const entry of loads) if (entry.relative.startsWith("node_modules/virtual-bash/")) assert.equal(entry.sha256, packageInventory[entry.relative.slice("node_modules/virtual-bash/".length)], entry.relative);
     (report.layouts ??= []).push({ label, directory: installed, loads, publicFlows: 6 });
+    verifyPackage(path.join(installed, "node_modules/virtual-bash"));
     fs.renameSync(path.join(installed, "loads.jsonl"), path.join(installed, `${label}-loads.jsonl`));
   };
   publicLayout("installed");
@@ -172,6 +245,8 @@ export async function load(url, context, nextLoad) {
   const negative = run("unchanged-public-api-negative-control", [compiler, "--noEmit", "--strict", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--target", "ES2022", "--typeRoots", path.join(repository, "node_modules/@types"), "negative.ts"], 120000, 2, installed);
   assert.match(negative.stdout, /no exported member.*ArrayLedger/u);
   assert.match(negative.stdout, /maxArrayBytes.*does not exist/u);
+  verifyPackage(path.join(installed, "node_modules/virtual-bash"));
+  report.package.stableIncludingNewEntries = true;
   assert.deepEqual(snapshot(), before, "package phases must not alter selected source/build inventory");
   report.success = true;
 } catch (error) { report.failure = error.stack; process.exitCode = 1; }

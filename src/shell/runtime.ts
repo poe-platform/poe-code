@@ -179,6 +179,7 @@ interface TypedSavedVariable {
   readonly prepared: { readonly name: OwnedText; readonly admission: Admission };
   readonly watch: BindingWatch;
   overlayVersion?: number;
+  readonly scalarLegacy: boolean;
 }
 
 const typedSavedVariables = new WeakMap<SavedVariable, TypedSavedVariable>();
@@ -334,8 +335,11 @@ async function restoreVariable(state: State, name: string, saved: SavedVariable)
       }
       if (saved.exported) state.exported.add(name);
       else state.exported.delete(name);
-      if (saved.readOnly) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
-      else state.readonlyVariables?.delete(name);
+      if (!typed.scalarLegacy || name === "OPTIND") {
+        if (saved.readOnly) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+        else state.readonlyVariables?.delete(name);
+      }
+      if (name === "OPTIND" && saved.getopts) state.getopts = saved.getopts;
     });
     typed.watch.close();
     await released;
@@ -1016,7 +1020,7 @@ export class Runtime {
     await this.arrayZero(state, name, async () => value);
   }
 
-  async prepareVariable(state: State, name: string, saved: SavedVariable): Promise<void> {
+  async prepareVariable(state: State, name: string, saved: SavedVariable, scalarLegacy = false): Promise<void> {
     const store = requireArrays(state);
     const owner = ArrayOwner.create(store.owner.ledger, store.owner);
     const holding = store.owner.hold();
@@ -1028,10 +1032,23 @@ export class Runtime {
       const admission = owner.reserve({ slots: 1, metadata: 32, work: 5 });
       if (saved.value !== undefined) await textToken(owner, saved.value, this.signal);
       if (!watch.valid()) throw new ArrayFailure("stale binding");
-      binding = store.get(name)?.retain();
-      typedSavedVariables.set(saved, { owner, binding, tickets, prepared: { name: token, admission }, watch });
+      binding = scalarLegacy ? undefined : store.get(name)?.retain();
+      typedSavedVariables.set(saved, { owner, binding, tickets, prepared: { name: token, admission }, watch, scalarLegacy });
     } catch (error) { await binding?.release(); await owner.close(); throw error; }
     finally { holding.release(); }
+  }
+
+  async prepareArrayObservers(state: State, owner: ArrayOwner): Promise<void> {
+    owner.reserve({ metadata: 128, work: 6 });
+    for (const frame of state.locals) for (const [name, saved] of frame) {
+      if (!typedSavedVariables.has(saved)) await this.prepareVariable(state, name, saved);
+      await owner.ledger.checkpoint(this.signal);
+    }
+    for (const frame of stateMonitor(state)!.overlayFrames()) for (const [name, record] of frame) {
+      const saved = record as SavedVariable;
+      if (!saved.superseded && !typedSavedVariables.has(saved)) await this.prepareVariable(state, name, saved, true);
+      await owner.ledger.checkpoint(this.signal);
+    }
   }
 
   async discardVariable(saved: SavedVariable): Promise<void> {
@@ -1180,12 +1197,6 @@ export class Runtime {
     let staged: IndexedBinding | undefined;
     try {
       const watch = await store.watch(name, operation, this.signal);
-      for (let index = state.locals.length - 1; index >= 0; index--) {
-        const saved = state.locals[index]!.get(name);
-        if (!saved) continue;
-        if (!typedSavedVariables.has(saved)) await this.prepareVariable(state, name, saved);
-        break;
-      }
       const current = store.get(name);
       const initialMaximum = current?.maximum ?? (state.variables[name] === undefined ? -1 : 0);
       let planned: number | null = assignment.append && assignment.kind === "compound" ? initialMaximum + 1 : 0;
@@ -1213,6 +1224,7 @@ export class Runtime {
         await operation.ledger.checkpoint(this.signal, entry.value.parts.length + 2);
       }
       const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);
+      await this.prepareArrayObservers(state, operation);
       const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
       const prepared = await store.prepareName(name, operation, this.signal);
       const preserve = assignment.kind === "element" || assignment.append;
@@ -1767,26 +1779,56 @@ export class Runtime {
           if (state.profile === "sh" || !words.length) throw new Flow("exit", state.profile === "sh" && (special || !words.length) ? 127 : 1);
           continue;
         }
-        if (!previous.has(assignment.name)) previous.set(assignment.name, saveVariable(state, assignment.name));
+        if (!previous.has(assignment.name)) {
+          const saved = saveVariable(state, assignment.name);
+          if (words.length && arrayStore(state)) await this.prepareVariable(state, assignment.name, saved, true);
+          previous.set(assignment.name, saved);
+        }
         this.writeVariable(state, assignment.name, value);
         if (words.length) state.exported.add(assignment.name);
       }
     };
+    if (words.length) stateMonitor(state)?.openOverlay(previous);
     try {
       if (inlineInput || (state.profile === "sh" || !words.length) && assignments.some(assignment => state.readonlyVariables?.has(assignment.name))) await assign();
       if (inlineInput && functionCommand && previous.size) {
-        const variables = Object.assign(Object.create(null) as Record<string, string>, state.variables);
+        const redirectState = await cloneState(state, this.signal);
+        const variables = redirectState.variables;
         const redirectAssignments = new Map<string, string>();
         for (const [name, saved] of previous) {
           redirectAssignments.set(name, state.variables[name]!);
           if (saved.value === undefined) delete variables[name];
           else variables[name] = saved.value;
         }
-        const redirectState = { ...state, variables, redirectAssignments, getopts: cloneGetoptsBinding(state), directoryStack: { entries: [...state.directoryStack?.entries ?? []], bytes: state.directoryStack?.bytes ?? 0 } };
+        redirectState.redirectAssignments = redirectAssignments;
         const savedIndex = previous.get("OPTIND");
         if (savedIndex?.getopts) redirectState.getopts = { integer: savedIndex.getopts.integer, cursor: cloneGetoptsState(savedIndex.getopts.cursor) };
+        const parentStore = arrayStore(state);
+        const copyOwner = parentStore ? ArrayOwner.create(parentStore.owner.ledger, parentStore.owner) : undefined;
+        const holding = parentStore?.owner.hold();
+        copyOwner?.reserve({ metadata: 64, work: 3 });
+        const publications = new Map<string, { binding: IndexedBinding; tickets: Admission }>();
+        if (parentStore && copyOwner) for (const [name, entry] of parentStore.bindings) {
+          copyOwner.reserve({ slots: 1, metadata: 32, work: 5 });
+          publications.set(name, { binding: entry.binding, tickets: copyOwner.reserve({ generation: true, version: true, epoch: true, work: 8 }) });
+        }
+        const epoch = stateMonitor(state)?.epoch;
+        let failed = false;
         try { io = await this.redirect(command.redirects, redirectState, io, inputs, outputs, false, true, false, command.line ?? 1); }
+        catch (error) { failed = true; throw error; }
         finally {
+          try {
+          const stale = parentStore && stateMonitor(state)!.epoch !== epoch;
+          if (stale && !failed) throw new ArrayFailure("stale state snapshot");
+          if (!stale) {
+          if (parentStore) for (const [name, publication] of publications) {
+            const changed = arrayStore(redirectState)!.get(name);
+            if (!previous.has(name) && changed && changed !== publication.binding) {
+              let released: Promise<void> | undefined;
+              stateMonitor(state)!.publish(publication.tickets, name, () => { released = parentStore.publish(name, changed.retain(), publication.tickets); });
+              await released;
+            }
+          }
           state.substitutionStatus = redirectState.substitutionStatus;
           for (const [name, value] of Object.entries(variables)) {
             if (!previous.has(name)) state.variables[name] = value;
@@ -1796,6 +1838,8 @@ export class Runtime {
             if (name === "OPTIND") saved.getopts = cloneGetoptsBinding(redirectState);
           }
           if (!previous.has("OPTIND")) state.getopts = cloneGetoptsBinding(redirectState);
+          }
+          } finally { try { await copyOwner?.close(); } finally { holding?.release(); } }
         }
       } else io = await this.redirect(command.redirects, state, io, inputs, outputs, isolatedInlineInput, !words.length || shellBuiltinNames.has(words[0]!) || functionCommand, fileShortcut, command.line ?? 1);
       if (!inlineInput) await assign();
@@ -1816,9 +1860,12 @@ export class Runtime {
       if (error instanceof ExecutionFailure) throw error;
       throw new ExecutionFailure(error, io);
     } finally {
-      if (words.length) for (const [key, saved] of previous) {
-        await restoreVariable(state, key, saved);
-      }
+      try {
+        if (words.length) for (const [key, saved] of previous) {
+          if (saved.superseded) await this.discardVariable(saved);
+          else await restoreVariable(state, key, saved);
+        }
+      } finally { if (words.length) stateMonitor(state)?.closeOverlay(previous); }
     }
   }
 
@@ -1939,6 +1986,7 @@ export class Runtime {
           const positionalSetVersion = state.positionalSetVersion ?? 0;
           const getoptsEntry = cloneGetoptsBinding(state);
           const functionRestoration = stateMonitor(state)?.restoration(true);
+          const getoptsRestoration = stateMonitor(state)?.restoration();
           state.positional = [...context.args];
           state.functionDepth++;
           state.depth++;
@@ -1960,14 +2008,19 @@ export class Runtime {
             if (functionRestoration) functionRestoration.apply(restoreControls, false);
             else restoreControls();
             for (const [name, previous] of locals) {
+              const typed = typedSavedVariables.has(previous);
               await restoreVariable(state, name, previous);
-              if (!previous.readOnly) state.readonlyVariables?.delete(name);
+              if (!typed && !previous.readOnly) state.readonlyVariables?.delete(name);
             }
             if (locals.has("OPTIND")) {
-              state.getopts ??= cloneGetoptsBinding(state);
-              state.getopts.cursor = cloneGetoptsState(getoptsEntry.cursor);
+              const restoreGetopts = () => {
+                state.getopts ??= getoptsEntry;
+                state.getopts.cursor = getoptsEntry.cursor;
+              };
+              if (getoptsRestoration) getoptsRestoration.apply(restoreGetopts);
+              else restoreGetopts();
             }
-            } finally { functionRestoration?.close(); }
+            } finally { getoptsRestoration?.close(); functionRestoration?.close(); }
           }
         }
         if (selected?.kind === "builtin") {
@@ -1976,7 +2029,8 @@ export class Runtime {
           if (special) assignments.clear();
           if (context.command === "." || context.command === "source") return { exitCode: await this.sourceBuiltin(context, state, { ...io, ...context }, special) };
           if (context.command === "eval") return { exitCode: await this.evalBuiltin(context, state, { ...io, ...context }, special) };
-          const builtin = await this.builtin(context, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
+          const builtinWork = this.builtin(context, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
+          const builtin = arrayStore(state) ? await interruptible(builtinWork, this.signal) : await builtinWork;
           if (builtin !== undefined) {
             if (special && builtin !== 0 && context.command !== "shift") throw new Flow("exit", builtin);
             return { exitCode: builtin };
@@ -1992,7 +2046,8 @@ export class Runtime {
           return { exitCode: 127 };
         }
         const raw = definition.execute(forwarded);
-        return await this.observeRuntimeReturn(raw, runtimeFrame);
+        const observed = this.observeRuntimeReturn(raw, runtimeFrame);
+        return arrayStore(state) ? await interruptible(observed, this.signal) : await observed;
       } finally {
         try {
         const restoreCwd = () => {
@@ -3095,6 +3150,7 @@ export class Runtime {
             await this.prepareVariable(state, name, saved);
             const store = requireArrays(state);
             const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+            const holding = store.owner.hold();
             let shadow: IndexedBinding | undefined;
             try {
               const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
@@ -3113,7 +3169,7 @@ export class Runtime {
               });
               shadow = undefined;
               await released;
-            } finally { await shadow?.release(); await operation.close(); }
+            } finally { try { await shadow?.release(); await operation.close(); } finally { holding.release(); } }
             assignments.delete(name);
             continue;
           }
@@ -3513,6 +3569,7 @@ export class Runtime {
     const owner = arrayOwned ? requireArrays(state).owner : undefined;
     const holding = owner?.hold();
     try {
+    if (owner) await this.prepareArrayObservers(state, owner);
     owner?.reserve({ metadata: 128 + word.parts.length * 32, allocatedSlots: word.parts.length + 1, work: word.parts.length + 5 });
     const fields: { value: string; pattern: string; present: boolean }[] = [{ value: "", pattern: "", present: false }];
     let expansionBytes = 0;
@@ -3671,7 +3728,10 @@ export class Runtime {
         const matches = await compilePattern(segment, work);
         for (const candidate of candidates) {
           let entries;
-          try { entries = await this.fs.readdir(resolvePath(state.cwd, candidate || "."), { signal: this.signal }); }
+          try {
+            const pending = this.fs.readdir(resolvePath(state.cwd, candidate || "."), { signal: this.signal });
+            entries = arrayStore(state) ? await interruptible(pending, this.signal) : await pending;
+          }
           catch (error) { if (["ENOENT", "ENOTDIR", "EACCES"].includes(errorCode(error) ?? "")) continue; throw error; }
           for (const entry of entries) {
             if (entry.name !== "." && entry.name !== ".." && (state.dotglob || !entry.name.startsWith(".") || segment.startsWith(".")) && await matches(entry.name)) {
@@ -3685,7 +3745,8 @@ export class Runtime {
     const found: string[] = [];
     for (const candidate of candidates) {
       try {
-        const stat = await this.fs.stat(resolvePath(state.cwd, candidate), { signal: this.signal });
+        const pending = this.fs.stat(resolvePath(state.cwd, candidate), { signal: this.signal });
+        const stat = arrayStore(state) ? await interruptible(pending, this.signal) : await pending;
         if (!value.endsWith("/") || stat.type === "directory") found.push(candidate + (value.endsWith("/") ? "/" : ""));
       } catch (error) { if (!["ENOENT", "ENOTDIR", "EACCES"].includes(errorCode(error) ?? "")) throw error; }
     }

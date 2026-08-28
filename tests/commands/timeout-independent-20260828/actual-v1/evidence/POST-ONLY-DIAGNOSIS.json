@@ -1,0 +1,36 @@
+{
+  "classification": "post-run static inspection, no product call or control replay",
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "nowFunctionBody": "now() {\n    validateThisInternalField(this, kPerformanceBrand, 'Performance');\n    return now();\n  }",
+  "nowFunctionBodySha256": "f057a3172d752722356f41404077910dda0d4f381b9fbb7914020d4c0c7f7d11",
+  "defaultScheduler": {
+    "actual": "F22 expected 7, received 125, source and moved",
+    "cause": "scheduler.ts:11-15 captures performance.now with undefined receiver; :27 Reflect.apply supplies that receiver; pinned Node method body validates the Performance receiver; index.ts:153 catches start failure and selects timer-setup failure.",
+    "recommendation": "Bind the captured performance.now method to its Performance receiver, or retain the valid receiver in the default binding; preserve fixed capture and injected-scheduler behavior.",
+    "missingOriginalObservations": [
+      "F22 default-call stderr bytes",
+      "caught underlying timer-start exception"
+    ]
+  },
+  "pc01": {
+    "actual": "Root-caller route passes; outer-context route raw timeout handler rejects same sentinel, but top-level Shell fulfills.",
+    "qualification": "No timeout-handler mapping to 124 is established. The borrowed invoke-option route is not a root-caller signal; fixed baseline runtime.ts:949-970 maps ordinary command errors and clears their cancellation report when its own signal is not aborted. contracts/command.md:26-39 expressly preserves already mapped outcomes. The verifier overextends raw handler priority to the outer Shell. Keep frozen PC01 unqualified; any boundary-specific predicate correction requires a separate version.",
+    "missingOriginalObservations": [
+      "outer fulfilled value exitCode",
+      "outer stdout",
+      "outer stderr"
+    ]
+  },
+  "rootNegative": {
+    "actual": "TS2724 at consumer.ts(1,10), compiler exit 2, denies createTimeoutCommand root export",
+    "expectedByVerifier": "TS2305",
+    "classification": "verifier diagnostic-code mismatch; no new public export established"
+  },
+  "a09": {
+    "actual": "negative helper caught ERR_ASSERTION, expected ERR_ACCESS_DENIED; helper assertion exits 1; only the negative helper was loaded",
+    "qualification": "Strict preload resolve/bound allowlist precedes module load; external target is not listed. This explains competing denial guards, but the exact caught assertion message was not retained. Do not claim an observed UNBOUND_MODULE message or a filesystem-permission denial.",
+    "missingOriginalObservations": [
+      "original caught error message before helper code assertion"
+    ]
+  }
+}

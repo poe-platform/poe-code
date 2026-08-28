@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import path from "node:path";
-import { inside } from "./admission.mjs";
+import { digest, inside } from "./admission.mjs";
 
 export const moduleUrl = import.meta.url;
 export class OwnedStorage {
@@ -29,7 +29,7 @@ export class OwnedStorage {
     const bytes = Buffer.from(JSON.stringify(value));
     assert.ok(bytes.length <= 4 * 1024 * 1024 - this.bytes, "receipt byte ceiling");
     assert.ok(this.files.length < 132, "receipt entry ceiling");
-    const record = { path: filename, planned: true, written: false };
+    const record = { path: filename, planned: true, written: false, bytes: bytes.length, sha256: digest(bytes) };
     this.files.push(record); this.bytes += bytes.length;
     this.port.writeExclusive(filename, bytes); record.written = true;
   }
@@ -46,6 +46,12 @@ export class OwnedStorage {
     return errors;
   }
   audit() {
+    for (const record of this.files.filter(item => item.written)) {
+      assert.equal(this.port.canonical(record.path), record.path, "canonical receipt path");
+      const stat = this.port.stat(record.path);
+      assert.equal(stat.kind, "file"); assert.equal(stat.bytes, record.bytes, "receipt byte count");
+      assert.equal(digest(this.port.read(record.path)), record.sha256, "receipt bytes");
+    }
     for (const record of this.directories.filter(item => !item.removed)) {
       this.verify(record);
       const children = [...this.directories.filter(item => item.acquired && !item.removed && path.dirname(item.path) === record.path).map(item => path.basename(item.path)), ...this.files.filter(item => item.written && path.dirname(item.path) === record.path).map(item => path.basename(item.path))].sort();

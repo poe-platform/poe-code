@@ -33,7 +33,7 @@ export async function main(args) {
   const recipeSha256 = digest(Buffer.from(JSON.stringify(rows)));
   assert.equal(authorization.recipeSha256, recipeSha256);
   for (const source of bindings.native.sourceMembers) protectedFiles[source.path] = source.sha256;
-  const config = { schema: "mapfile-observer-v1", mode: "native", protected: protectedFiles, moduleRoot, moduleFiles: seal.moduleFiles, moduleSealSha256: sealSha256, authorizationPath, authorizationSha256, recipeSha256, rows, rowIds: authorization.rowIds, outputRoot: authorization.outputRoot, binary: bindings.native.binary.path, binarySha256: bindings.native.binary.sha256 };
+  const config = { schema: "mapfile-observer-v1", mode: "native", runtime: authorization.runtime, protected: protectedFiles, moduleRoot, moduleFiles: seal.moduleFiles, moduleSealSha256: sealSha256, authorizationPath, authorizationSha256, recipeSha256, rows, rowIds: authorization.rowIds, outputRoot: authorization.outputRoot, binary: bindings.native.binary.path, binaryBytes: bindings.native.binary.bytes, binarySha256: bindings.native.binary.sha256 };
   const { nodePort } = await import("./node-driver.mjs");
   const report = await runObserver(nodePort("ROOT_NATIVE_GO"), config);
   const text = JSON.stringify(report);

@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { gzipSync } from "node:zlib";
+import { createHash } from "node:crypto";
 import * as admission from "./admission.mjs";
 import * as storageModule from "./storage.mjs";
 import * as lifecycle from "./lifecycle.mjs";
@@ -14,6 +15,7 @@ export const moduleUrl = import.meta.url;
 const moduleRoot = path.dirname(fileURLToPath(import.meta.url));
 const packet = path.resolve(moduleRoot, "../..");
 const precode = JSON.parse(fs.readFileSync(path.join(packet, "observer-v1/PRECODE.json")));
+const supplement = JSON.parse(fs.readFileSync(path.join(packet, "observer-v1/PRECODE-v2.json")));
 const original = JSON.parse(fs.readFileSync(path.join(packet, "OBSERVATIONS.json")));
 const additions = JSON.parse(fs.readFileSync(path.join(packet, "OBSERVATIONS-addendum-v2.json")));
 const modules = [admission, storageModule, lifecycle, observer, nativeDriver, cli, { moduleUrl }];
@@ -22,10 +24,11 @@ const hashes = Object.fromEntries(modules.map(namespace => { const filename = fi
 class Model {
   constructor(scenario) {
     this.scenario = scenario; this.files = new Map(); this.sequence = 0; this.time = 0;
-    this.timers = new Map(); this.timerSequence = 0; this.events = 0; this.starts = 0; this.releases = 0; this.lateErrors = 0; this.mutations = [];
+    this.timers = new Map(); this.timerSequence = 0; this.maximumTimers = 0; this.events = 0; this.starts = 0; this.releases = 0; this.lateErrors = 0; this.mutations = [];
     this.put("/", "directory"); this.put("/controls", "directory"); this.put("/controls/modules", "directory");
     for (const name of Object.keys(hashes)) this.put(`/controls/modules/${name}`, "file", fs.readFileSync(path.join(moduleRoot, name)));
     this.put("/controls/bash", "file", Buffer.from("FINITE CHILD MODEL — NOT AN EXECUTABLE"));
+    this.put("/controls/node", "file", Buffer.from("FINITE PARENT MODEL — NOT AN EXECUTABLE"));
     for (const name of ["config", "seal", "rows"]) this.put(`/controls/${name}`, "file", Buffer.from(name));
   }
   put(filename, kind, bytes = Buffer.alloc(0)) { this.files.set(filename, { kind, identity: ++this.sequence, bytes: Buffer.from(bytes) }); }
@@ -35,6 +38,8 @@ class Model {
     return { kind: record.kind, identity: record.identity, bytes: record.bytes.length };
   }
   read(filename) { const record = this.files.get(filename); if (!record) throw new Error(`missing: ${filename}`); return Buffer.from(record.bytes); }
+  hash(filename, maximumBytes) { const bytes = this.read(filename); assert.equal(bytes.length, maximumBytes); return admission.digest(bytes); }
+  runtimeIdentity() { return { path: "/controls/node", version: this.scenario === "runtime-version-mismatch-before-launch" ? "WRONG" : "FINITE_MODEL", platform: "synthetic", arch: "synthetic" }; }
   list(directory) { return [...this.files.keys()].filter(name => name !== directory && path.dirname(name) === directory).map(name => path.basename(name)); }
   canonical(filename) { return filename; }
   mkdir(filename) {
@@ -46,16 +51,22 @@ class Model {
     if (this.scenario === "cleanup-failure-refused" && filename.endsWith("/tmp")) throw new Error("injected rmdir failure");
     assert.deepEqual(this.list(filename), []); this.files.delete(filename);
     if (filename === "/owned/fixture") {
-      const targets = { "final-module-drift": "/controls/modules/lifecycle.mjs", "final-authorization-drift": "/controls/authorization", "final-config-drift": "/controls/config", "final-seal-drift": "/controls/seal", "final-row-input-drift": "/controls/rows" };
+      const targets = { "final-module-drift": "/controls/modules/lifecycle.mjs", "final-authorization-drift": "/controls/authorization", "final-config-drift": "/controls/config", "final-seal-drift": "/controls/seal", "final-row-input-drift": "/controls/rows", "final-runtime-drift": "/controls/node" };
       if (targets[this.scenario]) { const target = targets[this.scenario]; this.files.get(target).bytes = Buffer.from("changed after final row"); this.mutations.push(target); }
     }
   }
   writeExclusive(filename, bytes) {
     if (this.scenario === "post-spawn-receipt-failure-accounted" && filename.includes("/spawn-")) throw new Error("injected receipt persistence failure");
     assert.equal(this.files.has(filename), false); this.put(filename, "file", bytes);
+    if (filename === "/owned/records/final.json") {
+      const targets = { "post-persistence-module-drift": "/controls/modules/lifecycle.mjs", "post-persistence-binary-drift": "/controls/bash", "post-persistence-receipt-drift": "/owned/records/attempt-N01.json" };
+      if (targets[this.scenario]) { const target = targets[this.scenario]; this.files.get(target).bytes = Buffer.from("changed during final persistence"); this.mutations.push(target); }
+      if (this.scenario === "post-persistence-new-module") { this.put("/controls/modules/extra.mjs", "file"); this.mutations.push("/controls/modules/extra.mjs"); }
+      if (this.scenario === "post-persistence-receipt-new-entry") { this.put("/owned/records/foreign", "file"); this.mutations.push("/owned/records/foreign"); }
+    }
   }
   now() { return this.time; }
-  timer(delay, callback) { const id = ++this.timerSequence; this.timers.set(id, { at: this.time + delay, callback }); return id; }
+  timer(delay, callback) { const id = ++this.timerSequence; this.timers.set(id, { at: this.time + delay, callback }); this.maximumTimers = Math.max(this.maximumTimers, this.timers.size); return id; }
   clearTimer(id) { this.timers.delete(id); }
   start(spec, callbacks) {
     this.starts++; assert.equal(spec.executable, "/controls/bash");
@@ -78,7 +89,11 @@ class Model {
     this.timer(0, callbacks.spawn);
     if (this.scenario === "stdin-write-error") this.timer(5, () => callbacks.error(new Error("injected stdin EIO")));
     if (!["missing-close-hard-terminal", "surviving-group-hard-terminal"].includes(this.scenario)) {
-      this.timer(10, () => callbacks.data("stdout", Buffer.alloc(this.scenario === "output-overflow" ? 65537 : this.scenario === "aggregate-output-overflow" ? 65536 : 5, 65)));
+      this.timer(10, () => {
+        const repeated = this.scenario === "repeated-faults-timer-bound";
+        const bytes = Buffer.alloc(repeated || this.scenario === "output-overflow" ? 65537 : this.scenario === "aggregate-output-overflow" ? 65536 : 5, 65);
+        for (let index = 0; index < (repeated ? 200 : 1); index++) callbacks.data("stdout", bytes);
+      });
       this.timer(20, close);
     } else if (this.scenario === "surviving-group-hard-terminal") this.timer(20, close);
     if (this.scenario === "late-stream-error-handled") this.timer(30, () => { this.lateErrors++; callbacks.error(new Error("handled after terminal")); });
@@ -113,11 +128,13 @@ function configFor(model) {
   const rowIds = rows.slice(0, model.scenario === "aggregate-output-overflow" ? 17 : 1).map(row => row.id);
   if (model.scenario === "empty-cohort-refused") rowIds.length = 0;
   if (model.scenario === "unselected-row-refused") rowIds[0] = "A99";
-  const config = { schema: "mapfile-observer-v1", mode: "synthetic", protected: {}, moduleRoot: "/controls/modules", moduleFiles: Object.keys(hashes), moduleSealSha256: admission.digest(Buffer.from("seal")), authorizationPath: "/controls/authorization", recipeSha256: admission.digest(Buffer.from(JSON.stringify(rows))), rows, rowIds, outputRoot: "/owned", binary: "/controls/bash", binarySha256: admission.digest(model.read("/controls/bash")) };
-  const authority = { kind: model.scenario === "missing-root-go" ? "NOT_AUTHORIZED" : "SYNTHETIC_ONLY", moduleSealSha256: model.scenario === "wrong-go-seal" ? "wrong" : config.moduleSealSha256, recipeSha256: config.recipeSha256, outputRoot: config.outputRoot, rowIds };
+  const runtime = { path: "/controls/node", version: "FINITE_MODEL", platform: "synthetic", arch: "synthetic", bytes: model.stat("/controls/node").bytes, sha256: admission.digest(model.read("/controls/node")) };
+  const config = { schema: "mapfile-observer-v1", mode: "synthetic", runtime, protected: {}, moduleRoot: "/controls/modules", moduleFiles: Object.keys(hashes), moduleSealSha256: admission.digest(Buffer.from("seal")), authorizationPath: "/controls/authorization", recipeSha256: admission.digest(Buffer.from(JSON.stringify(rows))), rows, rowIds, outputRoot: "/owned", binary: "/controls/bash", binaryBytes: model.stat("/controls/bash").bytes, binarySha256: admission.digest(model.read("/controls/bash")) };
+  const authority = { kind: model.scenario === "missing-root-go" ? "NOT_AUTHORIZED" : "SYNTHETIC_ONLY", runtime, moduleSealSha256: model.scenario === "wrong-go-seal" ? "wrong" : config.moduleSealSha256, recipeSha256: config.recipeSha256, outputRoot: config.outputRoot, rowIds };
   model.put(config.authorizationPath, "file", Buffer.from(JSON.stringify(authority)));
   config.authorizationSha256 = admission.digest(model.read(config.authorizationPath));
-  for (const [filename, record] of model.files) if (record.kind === "file" && filename !== config.binary) config.protected[filename] = admission.digest(record.bytes);
+  for (const [filename, record] of model.files) if (record.kind === "file" && ![config.binary, runtime.path].includes(filename)) config.protected[filename] = admission.digest(record.bytes);
+  if (model.scenario === "runtime-byte-drift-before-launch") model.files.get(runtime.path).bytes = Buffer.alloc(runtime.bytes, 1);
   if (model.scenario === "bad-binary-hash") config.binarySha256 = "0".repeat(64);
   if (model.scenario === "extra-module-refused") model.put("/controls/modules/extra.mjs", "file", Buffer.from("unadmitted"));
   return config;
@@ -128,7 +145,7 @@ export async function syntheticControls() {
   const seal = JSON.parse(fs.readFileSync(sealPath));
   for (const [relative, expected] of Object.entries(seal.artifacts)) assert.equal(admission.digest(fs.readFileSync(path.join(packet, relative))), expected, relative);
   const results = [];
-  for (const scenario of precode.controls) {
+  for (const scenario of [...precode.controls, ...supplement.controls]) {
     const model = new Model(scenario), config = configFor(model);
     let report;
     const result = { scenario, pass: false };
@@ -156,16 +173,29 @@ export async function syntheticControls() {
         if (["bad-binary-hash", "missing-root-go", "wrong-go-seal", "unselected-row-refused", "empty-cohort-refused", "extra-module-refused", "whole-deadline-before-launch"].includes(scenario)) assert.equal(model.starts, 0);
         if (scenario.includes("output-overflow")) { assert.match(report.rows.at(-1).fault, /output ceiling/u); assert.ok(report.outputBytesRetained <= 1048576); }
         if (scenario === "stdin-write-error") assert.match(report.rows[0].fault, /stdin EIO/u);
+        if (scenario.startsWith("runtime-")) { assert.equal(model.starts, 0); assert.equal(report.directories.length, 0); }
+        if (scenario.startsWith("post-persistence-")) {
+          assert.equal(model.mutations.length, 1); assert.equal(report.launched, 1); assert.equal(report.actualCloseEvents, 1);
+          assert.ok(report.failures.some(row => row.phase === (scenario.includes("receipt") ? "post-persistence-storage" : "post-persistence-integrity")));
+          if (scenario.endsWith("new-entry")) assert.ok(model.files.has("/owned/records/foreign"));
+        }
+        if (scenario === "repeated-faults-timer-bound") {
+          assert.match(report.rows[0].fault, /output ceiling/u); assert.ok(model.maximumTimers <= 16);
+          assert.ok(report.rows[0].signals.length <= 4); assert.ok(report.outputBytesRetained <= 65536); assert.equal(model.starts, 1);
+        }
         result.report = report;
       }
       assert.equal(model.timers.size, 0); result.pass = true;
     } catch (error) { result.failure = { message: error.message, stack: error.stack }; result.report = report; }
-    result.model = { events: model.events, virtualTime: model.time, starts: model.starts, releases: model.releases, pendingTimers: model.timers.size, discardedInMemoryEntries: model.files.size };
+    result.model = { events: model.events, virtualTime: model.time, starts: model.starts, releases: model.releases, maximumTimers: model.maximumTimers, pendingTimers: model.timers.size, discardedInMemoryEntries: model.files.size };
     model.files.clear(); results.push(result);
   }
   await assert.rejects(cli.main([]), /explicit ROOT authorization/u);
   for (const [relative, expected] of Object.entries(seal.artifacts)) assert.equal(admission.digest(fs.readFileSync(path.join(packet, relative))), expected, relative);
-  return { version: 1, kind: "WHOLE_MODULE_SYNTHETIC_ONLY", moduleSealSha256: admission.digest(fs.readFileSync(sealPath)), actualImportedModuleHashes: hashes, scenarios: results, passed: results.filter(row => row.pass).length, total: results.length, cliMissingAdmissionRejected: true, actualChildProcesses: 0, actualNativeCalls: 0, productImports: 0, nativeDriverInstantiations: 0, qualification: "Dependency filesystem/clock/child model. No actual OS spawn/group/timeout behavior proved; native driver imported as code but not instantiated." };
+  const runtimeHash = createHash("sha256"), runtimePath = fs.realpathSync(process.execPath);
+  for await (const bytes of fs.createReadStream(runtimePath, { highWaterMark: 65536 })) runtimeHash.update(bytes);
+  const parentRuntime = { path: runtimePath, bytes: fs.statSync(runtimePath).size, sha256: runtimeHash.digest("hex"), version: process.version, platform: process.platform, arch: process.arch };
+  return { version: 2, kind: "WHOLE_MODULE_SYNTHETIC_ONLY", parentRuntime, moduleSealSha256: admission.digest(fs.readFileSync(sealPath)), actualImportedModuleHashes: hashes, actualImportedModuleUrls: modules.map(namespace => namespace.moduleUrl), scenarios: results, passed: results.filter(row => row.pass).length, total: results.length, originalTotal: precode.controls.length, supplementalTotal: supplement.controls.length, cliMissingAdmissionRejected: true, actualChildProcesses: 0, actualNativeCalls: 0, productImports: 0, nativeDriverInstantiations: 0, qualification: "Dependency filesystem/clock/child model. No actual OS spawn/group/timeout behavior proved; native driver imported as code but not instantiated." };
 }
 if (process.argv[1] && fs.realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const report = await syntheticControls();

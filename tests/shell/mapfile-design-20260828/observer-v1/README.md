@@ -99,3 +99,32 @@ child result cannot prove OS process group closure, actual stdio timing or spawn
 failure ordering. A different reviewer should inspect the real adapter before
 ROOT considers native43 GO. If concrete OS checks are needed, propose and approve
 a separate finite harmless-Node child cohort first; none is run by this packet.
+
+## Version2 supplemental hardening
+
+Initial module candidate9418c3cf and its28/28 capture remain immutable in Git and
+RESULTS-v1. PRECODE-v2 adds nine synthetic controls without replacing the28.
+MODULE-SEAL-v1.json preserves the original seal; MODULE-SEAL.json now binds the
+complete revised modules before their execution. Original32/additive11 native
+recipes are unchanged and remain unexecuted.
+
+Prospective ROOT authorization additionally requires `runtime` with canonical
+absolute `path`, exact `version`, `platform`, `arch`, `bytes` and `sha256` for the
+existing parent Node executable. No self-selected runtime is authorized by this
+CLI. Full authentication checks actual process identity, canonical regular-file
+path, exact size and bytes before every launch and after cleanup/final persistence.
+Node binary ceiling256MiB, GNU binary16MiB; native hashing uses64KiB scratch and
+exact-length descriptor reads with before/after metadata/path identity checks.
+These synchronous finite reads are not kernel-preemptible or hostile-ancestor
+race protection. The real driver, including this hashing path, is still unrun.
+
+Receipt contents now retain size/hash metadata and are checked along with exact
+directory entries after final persistence. No successful result can rely solely
+on the provisional final.json. Repeated output faults schedule only one initial
+fault escalation; ordinary deadline/KILL/group checks retain their roles. The
+supplement drives200 overflow callbacks and checks finite timers/signals.
+
+The synthetic parent records its own existing Node identity by read-only metadata
+and streaming hash, plus actual imported module URLs/hashes. This parent execution
+is not a native recipe or an actual child-process control. No new runtime
+dependencies, product imports, fixtures outside this subtree, or permission probes.

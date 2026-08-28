@@ -13,6 +13,7 @@ export function authenticate(port, config) {
   assert.ok(Object.keys(config.protected).length > 0 && Object.keys(config.protected).length <= 128);
   let total = 0;
   for (const [filename, expected] of Object.entries(config.protected)) {
+    assert.equal(port.canonical(filename), filename, "canonical control path");
     const stat = port.stat(filename);
     assert.equal(stat.kind, "file", `protected regular file: ${filename}`);
     assert.ok(stat.bytes <= 16 * 1024 * 1024);
@@ -28,8 +29,19 @@ export function authenticate(port, config) {
   assert.equal(authorization.recipeSha256, config.recipeSha256);
   assert.equal(authorization.outputRoot, config.outputRoot);
   assert.deepEqual(authorization.rowIds, config.rowIds);
+  assert.deepEqual(authorization.runtime, config.runtime, "explicit runtime authorization");
+  const { bytes: runtimeBytes, sha256: runtimeHash, ...runtimeIdentity } = config.runtime;
+  assert.deepEqual(port.runtimeIdentity(), runtimeIdentity, "executing runtime identity");
+  assert.ok(Number.isSafeInteger(runtimeBytes) && runtimeBytes > 0 && runtimeBytes <= 256 * 1024 * 1024);
+  assert.equal(port.canonical(runtimeIdentity.path), runtimeIdentity.path);
+  assert.equal(port.stat(runtimeIdentity.path).kind, "file");
+  assert.equal(port.stat(runtimeIdentity.path).bytes, runtimeBytes);
+  assert.equal(port.hash(runtimeIdentity.path, runtimeBytes), runtimeHash, "runtime binary bytes");
+  assert.equal(port.canonical(config.binary), config.binary);
   assert.equal(port.stat(config.binary).kind, "file");
-  assert.equal(digest(port.read(config.binary)), config.binarySha256, "binary bytes");
+  assert.ok(Number.isSafeInteger(config.binaryBytes) && config.binaryBytes > 0 && config.binaryBytes <= 16 * 1024 * 1024);
+  assert.equal(port.stat(config.binary).bytes, config.binaryBytes);
+  assert.equal(port.hash(config.binary, config.binaryBytes), config.binarySha256, "binary bytes");
   assert.equal(path.normalize(config.outputRoot), config.outputRoot);
   assert.ok(path.isAbsolute(config.outputRoot) && config.outputRoot !== "/");
   if (config.mode === "native") assert.match(config.outputRoot, /^\/private\/tmp\/mapfile-observer-[A-Za-z0-9-]+$/u);

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
 import { performance } from "node:perf_hooks";
 
@@ -7,6 +8,7 @@ export const moduleUrl = import.meta.url;
 export function nodePort(authorized) {
   assert.equal(authorized, "ROOT_NATIVE_GO");
   return {
+    runtimeIdentity: () => ({ path: fs.realpathSync(process.execPath), version: process.version, platform: process.platform, arch: process.arch }),
     now: () => performance.now(),
     timer: (delay, callback) => setTimeout(callback, delay),
     clearTimer: timer => clearTimeout(timer),
@@ -15,6 +17,24 @@ export function nodePort(authorized) {
       return { kind: stat.isSymbolicLink() ? "symlink" : stat.isDirectory() ? "directory" : stat.isFile() ? "file" : "other", bytes: stat.size, identity: `${stat.dev}:${stat.ino}` };
     },
     read: filename => fs.readFileSync(filename),
+    hash(filename, maximumBytes) {
+      assert.ok(Number.isSafeInteger(maximumBytes) && maximumBytes > 0 && maximumBytes <= 256 * 1024 * 1024);
+      const descriptor = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+      try {
+        const before = fs.fstatSync(descriptor); assert.ok(before.isFile() && before.size === maximumBytes);
+        const hash = createHash("sha256"), scratch = Buffer.alloc(65536);
+        let total = 0;
+        while (total < maximumBytes) {
+          const count = fs.readSync(descriptor, scratch, 0, Math.min(scratch.length, maximumBytes - total), null);
+          assert.ok(count > 0, "truncated bound file"); total += count; hash.update(scratch.subarray(0, count));
+        }
+        assert.equal(fs.readSync(descriptor, scratch, 0, 1, null), 0, "enlarged bound file");
+        const after = fs.fstatSync(descriptor), pathname = fs.lstatSync(filename);
+        assert.equal(after.size, before.size); assert.equal(after.mtimeMs, before.mtimeMs); assert.equal(after.ctimeMs, before.ctimeMs);
+        assert.ok(pathname.isFile()); assert.equal(pathname.dev, after.dev); assert.equal(pathname.ino, after.ino);
+        return hash.digest("hex");
+      } finally { fs.closeSync(descriptor); }
+    },
     list: directory => fs.readdirSync(directory),
     canonical: filename => fs.realpathSync(filename),
     mkdir: filename => fs.mkdirSync(filename, { mode: 0o700 }),

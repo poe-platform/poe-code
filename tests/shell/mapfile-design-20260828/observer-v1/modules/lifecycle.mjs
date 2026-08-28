@@ -1,7 +1,7 @@
 export const moduleUrl = import.meta.url;
 export function observeChild(port, spec, record, persist, outputBudget, wholeDeadline) {
   return new Promise(resolve => {
-    let handle, terminal = false, starting = true;
+    let handle, terminal = false, starting = true, faultSignalled = false;
     const timers = new Set(), chunks = { stdout: [], stderr: [] };
     const began = port.now(), hardAt = Math.min(began + 3000, wholeDeadline);
     Object.assign(record, { attemptRegistered: true, spawnCalled: false, submitted: false, spawnObserved: false, closeObserved: false, exitObserved: false, pid: null, code: null, signal: null, fault: null, groupAbsent: null, retainedBytes: 0, observedBytes: 0, signals: [], events: [] });
@@ -27,7 +27,9 @@ export function observeChild(port, spec, record, persist, outputBudget, wholeDea
     };
     const fault = message => {
       if (terminal) return;
-      record.fault ??= message; event("fault"); kill("SIGTERM");
+      record.fault ??= message; event("fault");
+      if (faultSignalled) return;
+      faultSignalled = true; kill("SIGTERM");
       schedule(Math.min(port.now() + 250, hardAt), () => kill("SIGKILL"));
     };
     const poll = () => {

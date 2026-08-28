@@ -6,7 +6,7 @@ import { observeChild } from "./lifecycle.mjs";
 export const moduleUrl = import.meta.url;
 export async function runObserver(port, input) {
   const config = JSON.parse(JSON.stringify(input));
-  const report = { schema: "mapfile-observer-result-v1", mode: config.mode, rows: [], failures: [], directories: [], remaining: config.rowIds?.slice() ?? [], nativeSemanticPasses: 0 };
+  const report = { schema: "mapfile-observer-result-v1", mode: config.mode, runtime: config.runtime, binary: { path: config.binary, sha256: config.binarySha256, bytes: config.binaryBytes }, moduleSealSha256: config.moduleSealSha256, recipeSha256: config.recipeSha256, authorizationSha256: config.authorizationSha256, rows: [], failures: [], directories: [], remaining: config.rowIds?.slice() ?? [], nativeSemanticPasses: 0 };
   const storage = new OwnedStorage(port, config.outputRoot);
   const deadline = port.now() + 150000;
   const outputBudget = { limit: 1048576, retained: 0 };
@@ -47,6 +47,7 @@ export async function runObserver(port, input) {
     report.actualCloseEvents = report.rows.filter(row => row.closeObserved).length;
     report.cleanupUncertain = report.rows.some(row => row.terminal === "terminal-cleanup-uncertain") || report.failures.some(row => row.phase.startsWith("cleanup"));
     try { storage.write("final.json", { ...report, success: undefined, phase: "PROVISIONAL_BEFORE_FINAL_CONTROL_AUTHENTICATION" }); } catch (error) { failure("final-persistence", error); report.success = false; }
+    try { storage.audit(); } catch (error) { failure("post-persistence-storage", error); report.success = false; }
     try { authenticate(port, config); } catch (error) { failure("post-persistence-integrity", error); report.success = false; }
     if (port.now() > deadline) { failure("whole-deadline", new Error("whole-run terminal deadline exceeded")); report.success = false; }
     report.elapsed = port.now() - (deadline - 150000);

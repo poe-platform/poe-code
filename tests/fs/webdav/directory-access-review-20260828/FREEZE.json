@@ -1,0 +1,32 @@
+{
+  "sealedAt": "2026-08-28T03:15:41.940Z",
+  "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "source": {
+    "src/fs/webdav/webdav.ts": "e66a66e2745852c6bd12be12a18c855df069152cf6b8089d2ecee8880c62de94",
+    "src/fs/webdav/xml.ts": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+    "src/fs/webdav/README.md": "9a56aaeabed8f9e0bdc7ef93326f1f25ec0fec23c733150f7b474ed29cb8ae36",
+    "src/fs/readonly/index.ts": "2d5057de23f90cfef1f98c45f41063545bcd6c5a4439aa57d9aa0a058645b7b2",
+    "src/contracts/filesystem.ts": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+    "src/contracts/filesystem.md": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+    "src/shell/runtime.ts": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169"
+  },
+  "fixtures": {
+    "cases.json": "f21d93e5595d1796ea11a9a6fd628df6e7a0e488ef848da5d412f64638adabde",
+    "README.md": "2c7e3f38769e9f81618d096f179db21b022600005790a042bd20e1ed4a819a17",
+    "run.mjs": "96622560758d0c1d79a73c89151af59adf42702cc56a5084fa26ce60edcd1046",
+    "primary.mjs": "edd0ab1e131a5922676ee125d9ad59b321d28cbcc865a8d9cd9b907091cd496b",
+    "primary.json": "ec99b62eb0c0f68a87082cc9bd50088a0acacac37c0c1a2cacf8481290674bc4",
+    "primary-v2.json": "fc5d58fbfbff2fc06ebe59b833be5168990cdb63c03f9a52e16dac75bbd80b6a"
+  },
+  "cases": 30,
+  "baselineCallsBeforeSeal": 0,
+  "productionCandidate": false,
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "version": "v22.22.2"
+  },
+  "packageEvidence": "tests/integration/combined77-stage2-independent-20260828/actual-01.json.gz.base64",
+  "packageEvidenceSha256": "88fadf81a9ab984e4c25ff26f9f1d13331967549c0dbe08fbce268ee7ed1da12",
+  "packageSha256": "13fe54de1cf900d587855e276375fdf72ed1ed0d0e0625cf7ef00730f2bb74c9"
+}

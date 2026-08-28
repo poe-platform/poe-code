@@ -2704,6 +2704,7 @@ export class Runtime {
     }
     const positional = state.positional;
     const version = state.positionalSetVersion ?? 0;
+    const sourceDepth = state.sourceDepth ?? 0;
     const monitor = stateMonitor(state);
     const restoration = monitor?.restoration(true);
     try {
@@ -2731,7 +2732,7 @@ export class Runtime {
     } finally {
       const restore = () => {
         state.depth--;
-        state.sourceDepth--;
+        state.sourceDepth = sourceDepth;
         if (args.length && (state.functionDepth > 0 || (state.positionalSetVersion ?? 0) === version)) {
           state.positional = positional;
           state.positionalSetVersion = version;

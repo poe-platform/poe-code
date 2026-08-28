@@ -1,0 +1,17 @@
+{
+  "sha256": "c0197514d7d10bb30a354065767f0383659f49bfaa3f0f6a71473ef128309fb9",
+  "bytes": 54258326,
+  "gzipBase64Sha256": "c9c2b9545926fd3fd526e135c540eba91c325c4768939bcd66dfc4f362b2cf20",
+  "accepted": false,
+  "error": null,
+  "counts": {
+    "product": 183,
+    "guard": 17,
+    "type": 5,
+    "tool": 3
+  },
+  "cleanup": {
+    "exactOwnedRootRemoved": "/Users/kjopek/Workspace/safe-bash/tests/shell/dotglob-independent-20260828/.baseline-candidate-01-NwG7lO",
+    "absent": true
+  }
+}

@@ -1,0 +1,332 @@
+{
+  "at": "2026-08-28T08:27:42.360Z",
+  "removedReceiptBoundRoots": [
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-os-write-6Wgifq",
+      "device": 16777232,
+      "inode": 180839594,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-build-types-review-protocol-phase-69869",
+      "device": 16777232,
+      "inode": 180839595,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-os-write-GeuLN0",
+      "device": 16777232,
+      "inode": 180839611,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-build-types-review-protocol-observe-69869",
+      "device": 16777232,
+      "inode": 180839612,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-os-write-7pp3hN",
+      "device": 16777232,
+      "inode": 180839632,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-build-types-review-protocol-fd-69869",
+      "device": 16777232,
+      "inode": 180839633,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-os-write-4PlQEn",
+      "device": 16777232,
+      "inode": 180839645,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-build-types-review-protocol-outside-69869",
+      "device": 16777232,
+      "inode": 180839646,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-os-write-a82okq",
+      "device": 16777232,
+      "inode": 180839660,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-build-types-review-protocol-extra-69869",
+      "device": 16777232,
+      "inode": 180839661,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-os-write-KCuYg7",
+      "device": 16777232,
+      "inode": 180839675,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-build-types-review-protocol-environment-69869",
+      "device": 16777232,
+      "inode": 180839676,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-os-write-DvJPSF",
+      "device": 16777232,
+      "inode": 180839691,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-build-types-review-protocol-abandon-69869",
+      "device": 16777232,
+      "inode": 180839692,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-os-write-ypWqiB",
+      "device": 16777232,
+      "inode": 180839713,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-build-types-review-protocol-loopback-69869",
+      "device": 16777232,
+      "inode": 180839714,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-os-write-EWH3mV",
+      "device": 16777232,
+      "inode": 180839850,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-01",
+      "path": "/private/tmp/unified76-build-types-review-protocol-network-69869",
+      "device": 16777232,
+      "inode": 180839851,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-os-write-5LkjiO",
+      "device": 16777232,
+      "inode": 180842411,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-build-types-review-protocol-phase-74056",
+      "device": 16777232,
+      "inode": 180842412,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-os-write-dQZWXp",
+      "device": 16777232,
+      "inode": 180842429,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-build-types-review-protocol-observe-74056",
+      "device": 16777232,
+      "inode": 180842430,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-os-write-MBhWg2",
+      "device": 16777232,
+      "inode": 180842451,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-build-types-review-protocol-fd-74056",
+      "device": 16777232,
+      "inode": 180842452,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-os-write-3oN13O",
+      "device": 16777232,
+      "inode": 180842464,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-build-types-review-protocol-outside-74056",
+      "device": 16777232,
+      "inode": 180842465,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-os-write-WXVKDv",
+      "device": 16777232,
+      "inode": 180842481,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-build-types-review-protocol-extra-74056",
+      "device": 16777232,
+      "inode": 180842482,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-os-write-zMCohF",
+      "device": 16777232,
+      "inode": 180842497,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-build-types-review-protocol-environment-74056",
+      "device": 16777232,
+      "inode": 180842498,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-os-write-uRPaol",
+      "device": 16777232,
+      "inode": 180842510,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-build-types-review-protocol-abandon-74056",
+      "device": 16777232,
+      "inode": 180842511,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-os-write-dimdpU",
+      "device": 16777232,
+      "inode": 180842532,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-build-types-review-protocol-loopback-74056",
+      "device": 16777232,
+      "inode": 180842533,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-os-write-A6wH2s",
+      "device": 16777232,
+      "inode": 180842574,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    },
+    {
+      "cohort": "protocol-02",
+      "path": "/private/tmp/unified76-build-types-review-protocol-network-74056",
+      "device": 16777232,
+      "inode": 180842575,
+      "mode": 448,
+      "uid": 501,
+      "absent": true
+    }
+  ],
+  "signalsSentBySealer": 0,
+  "foreignProcessesTouched": false,
+  "outerRawEvidencePreserved": true
+}

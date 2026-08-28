@@ -1,0 +1,15 @@
+{
+  "exit": 1,
+  "tests": 1,
+  "pass": 0,
+  "fail": 1,
+  "cancelled": 0,
+  "skipped": 0,
+  "todo": 0,
+  "records": [
+    {
+      "pass": false,
+      "name": "E08 runtime selector distinguishes authentic observation from equal falsy rejection"
+    }
+  ]
+}

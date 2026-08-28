@@ -1,0 +1,89 @@
+{
+  "capturedAt": "2026-08-28T00:08:54.859Z",
+  "driverSha256": "83d59fdbb8b740363648266f4470c3ce9ff1c81b2180389c2938031dacb9fba6",
+  "processes": [
+    {
+      "name": "node-version",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/tools/node",
+      "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "args": [
+        "--version"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "NODE_NO_WARNINGS": "1"
+      },
+      "started": "2026-08-28T00:08:53.103Z",
+      "ended": "2026-08-28T00:08:54.272Z",
+      "pid": 53964,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "5a64071862e0a30c10895711c2317a83576c2999e2d255bf9d95756c466bd4ce",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "typescript-version",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/tools/node",
+      "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/tools/typescript/lib/tsc.js",
+        "--version"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "NODE_NO_WARNINGS": "1"
+      },
+      "started": "2026-08-28T00:08:54.273Z",
+      "ended": "2026-08-28T00:08:54.403Z",
+      "pid": 53972,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "4985b444236c5acdb5b850e5d754975e130eed5b033c53f201cdf471e83d7f13",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "candidate-build",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/tools/node",
+      "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/tools/typescript/lib/tsc.js",
+        "--project",
+        "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/source/tsconfig.json",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/tmp",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "NODE_NO_WARNINGS": "1"
+      },
+      "started": "2026-08-28T00:08:54.405Z",
+      "ended": "2026-08-28T00:08:54.856Z",
+      "pid": 53974,
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

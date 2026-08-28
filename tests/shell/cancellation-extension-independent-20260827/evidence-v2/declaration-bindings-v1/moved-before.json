@@ -1,0 +1,72 @@
+{
+  ".": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "cancellation.d.ts": {
+    "kind": "file",
+    "mode": 420,
+    "size": 5113,
+    "sha256": "7edba703edd9d09da8fc6b1b754722695d9af2fba9fac0669408bbe1e79eb79d"
+  },
+  "cancellation.js": {
+    "kind": "file",
+    "mode": 420,
+    "size": 27613,
+    "sha256": "83a312b43649bd68929a57d113cb1c7cd09dfb2397461b465677dae9c5679d98"
+  },
+  "extension-eight-negative-moved.ts": {
+    "kind": "file",
+    "mode": 420,
+    "size": 908,
+    "sha256": "2a5c400b3e8332b847b601935e1bca64d6b16b6155ed7b0289fe5a620d30f72e"
+  },
+  "extension-positive-moved.ts": {
+    "kind": "file",
+    "mode": 420,
+    "size": 1779,
+    "sha256": "49211525cd597eaae6502fc35a06df95af513eded429f9cf48b54d43a119bc62"
+  },
+  "old-positive-moved.ts": {
+    "kind": "file",
+    "mode": 420,
+    "size": 1315,
+    "sha256": "508ae8d6c2277845f3477e20a5ba95cce62c19201ad5d9c80614a4f85607a03f"
+  },
+  "old-six-negative-moved.ts": {
+    "kind": "file",
+    "mode": 420,
+    "size": 683,
+    "sha256": "43a63f7795344ea6ad8b840954320a55241b916c592c6fa9bc1a6396bdf4fc9f"
+  },
+  "package.json": {
+    "kind": "file",
+    "mode": 420,
+    "size": 23,
+    "sha256": "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a"
+  },
+  "tsconfig-extension-eight-negative-moved.json": {
+    "kind": "file",
+    "mode": 420,
+    "size": 372,
+    "sha256": "106c9cbe99c3aea87b74e7be2b3056c46bc103febe8668e9a27bea7b64afb3f4"
+  },
+  "tsconfig-extension-positive-moved.json": {
+    "kind": "file",
+    "mode": 420,
+    "size": 366,
+    "sha256": "a48872a6bbaca50a797c512a02962416c348fc1dd9e73cc1ff61c0d32b21b5a6"
+  },
+  "tsconfig-old-positive-moved.json": {
+    "kind": "file",
+    "mode": 420,
+    "size": 360,
+    "sha256": "b52a127cd23d060e344ba34158e1b10016351cac94b33a19f0bc7d1d067e84fc"
+  },
+  "tsconfig-old-six-negative-moved.json": {
+    "kind": "file",
+    "mode": 420,
+    "size": 364,
+    "sha256": "039fbf9ea718b4b09603f896afd9690b9d0455f1c9eb9c5d574889b1ca2cd6e4"
+  }
+}

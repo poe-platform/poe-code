@@ -1,0 +1,74 @@
+{
+  "candidate": "373437cf84424939e1792470805cdd9e60bd3898",
+  "authorFreeze": "88d91975e4a718fb3c1b55322e44492cf4059391",
+  "independentFreeze": "cbed682564e1e3b1c2ac8062157ece7b8b997f30",
+  "ownParent": "80c402da10314ccbca5fdd4a3832ef32049e3950",
+  "helperSha256": "f628801379acd1c86c247a778e973f4cb89f8bbe2c3089f8192c31f3c5b273a5",
+  "candidateParentIsAuthorFreeze": true,
+  "candidateChangedPaths": [
+    "src/shell/cancellation.ts"
+  ],
+  "reservedBindings": [
+    {
+      "path": "src/contracts",
+      "before": "c205b529c7668be305dd211ff564af0076463e79",
+      "after": "c205b529c7668be305dd211ff564af0076463e79"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "before": "b826b1f3d8cb8a0f3703c949bda5003cce06f326",
+      "after": "b826b1f3d8cb8a0f3703c949bda5003cce06f326"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "before": "013889cd158e77267341867f1e360d7b5eb22e94",
+      "after": "013889cd158e77267341867f1e360d7b5eb22e94"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "before": "4684a5ad1f8b76c721a6f827646f289eda4c44ef",
+      "after": "4684a5ad1f8b76c721a6f827646f289eda4c44ef"
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "before": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "after": "eae04650a553e4820da9c7b08b0255a6b20fc01c"
+    },
+    {
+      "path": "src/index.ts",
+      "before": "32d3f6a2de96369954005c0689da00a4c2e1e7e1",
+      "after": "32d3f6a2de96369954005c0689da00a4c2e1e7e1"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "before": "b5685005ac287561413d59f9bc7bd00f92405761",
+      "after": "b5685005ac287561413d59f9bc7bd00f92405761"
+    },
+    {
+      "path": "package.json",
+      "before": "1e6bfc1e602dd0f22b8e0a3f064067d411c57e52",
+      "after": "1e6bfc1e602dd0f22b8e0a3f064067d411c57e52"
+    },
+    {
+      "path": "package-lock.json",
+      "before": "5d6562da663aa1b363c5ce5f101ed8469cece4da",
+      "after": "5d6562da663aa1b363c5ce5f101ed8469cece4da"
+    }
+  ],
+  "historicalMembership": {
+    "tests/shell/cancellation-stage1-independent-20260827": {
+      "sha256": "92e7bfd57a545919d41e5d55d59caba72869eabc168593a1a4b21f1147a79901",
+      "bytes": 34069,
+      "tree": "df695b3e4967d81b192f64fd43d67c377ac549b5"
+    },
+    "tests/shell/cancellation-stage1-20260827": {
+      "sha256": "6b4085e85417d326af10f0c0090093b31ab901b6803ca4542f4d1bb72ec68dcd",
+      "bytes": 4382,
+      "tree": "7f6cf6da4792361401338fef6cd0afaddf8d34e2"
+    }
+  },
+  "rawObjects": 57,
+  "fullTreeDeltaChecked": true,
+  "liveOverlay": false,
+  "sourceBindingsFromGit": true
+}

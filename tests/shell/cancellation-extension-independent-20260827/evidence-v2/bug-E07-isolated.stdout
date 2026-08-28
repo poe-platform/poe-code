@@ -1,0 +1,98 @@
+TAP version 13
+# {"pinnedE07Diagnostic":[{"role":"budget-control","route":"runtime-observed","kind":"throw","actual":"outer-cancel","expected":"control-failure","reportRole":"invoke-option"},{"role":"budget-control","route":"runtime-reported","kind":"throw","actual":"outer-cancel","expected":"control-failure","reportRole":"invoke-option"},{"role":"budget-control","route":"runtime-unproven","kind":"throw","actual":"control-failure","expected":"control-failure","reportRole":null},{"role":"budget-control","route":"accepted-stage1","kind":"throw","actual":"control-failure","expected":"control-failure","reportRole":"budget-control"},{"role":"budget-control","route":"actual-root","kind":"throw","actual":"root-cancel","expected":"root-cancel","reportRole":"root-caller"},{"role":"pipeline-control","route":"runtime-observed","kind":"throw","actual":"outer-cancel","expected":"control-failure","reportRole":"invoke-option"},{"role":"pipeline-control","route":"runtime-reported","kind":"throw","actual":"outer-cancel","expected":"control-failure","reportRole":"invoke-option"},{"role":"pipeline-control","route":"runtime-unproven","kind":"throw","actual":"control-failure","expected":"control-failure","reportRole":null},{"role":"pipeline-control","route":"accepted-stage1","kind":"throw","actual":"control-failure","expected":"control-failure","reportRole":"pipeline-control"},{"role":"pipeline-control","route":"actual-root","kind":"throw","actual":"root-cancel","expected":"root-cancel","reportRole":"root-caller"}]}
+# Subtest: B01 post-freeze diagnostic expansion of failing frozen E07, not a new independent family
+not ok 1 - B01 post-freeze diagnostic expansion of failing frozen E07, not a new independent family
+  ---
+  duration_ms: 2.753083
+  type: 'test'
+  location: '/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/diagnostics/bug-repro-v1.mjs:8:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    authenticated control failures must not become invoke cancellation
+    + actual - expected
+    
+    + [
+    +   {
+    +     actual: 'outer-cancel',
+    +     expected: 'control-failure',
+    +     kind: 'throw',
+    +     reportRole: 'invoke-option',
+    +     role: 'budget-control',
+    +     route: 'runtime-observed'
+    +   },
+    +   {
+    +     actual: 'outer-cancel',
+    +     expected: 'control-failure',
+    +     kind: 'throw',
+    +     reportRole: 'invoke-option',
+    +     role: 'budget-control',
+    +     route: 'runtime-reported'
+    +   },
+    +   {
+    +     actual: 'outer-cancel',
+    +     expected: 'control-failure',
+    +     kind: 'throw',
+    +     reportRole: 'invoke-option',
+    +     role: 'pipeline-control',
+    +     route: 'runtime-observed'
+    +   },
+    +   {
+    +     actual: 'outer-cancel',
+    +     expected: 'control-failure',
+    +     kind: 'throw',
+    +     reportRole: 'invoke-option',
+    +     role: 'pipeline-control',
+    +     route: 'runtime-reported'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      role: 'budget-control'
+      route: 'runtime-observed'
+      kind: 'throw'
+      actual: 'outer-cancel'
+      expected: 'control-failure'
+      reportRole: 'invoke-option'
+    1:
+      role: 'budget-control'
+      route: 'runtime-reported'
+      kind: 'throw'
+      actual: 'outer-cancel'
+      expected: 'control-failure'
+      reportRole: 'invoke-option'
+    2:
+      role: 'pipeline-control'
+      route: 'runtime-observed'
+      kind: 'throw'
+      actual: 'outer-cancel'
+      expected: 'control-failure'
+      reportRole: 'invoke-option'
+    3:
+      role: 'pipeline-control'
+      route: 'runtime-reported'
+      kind: 'throw'
+      actual: 'outer-cancel'
+      expected: 'control-failure'
+      reportRole: 'invoke-option'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/diagnostics/bug-repro-v1.mjs:40:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 90.8475

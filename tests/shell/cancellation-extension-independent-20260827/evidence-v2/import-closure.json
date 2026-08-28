@@ -1,0 +1,7 @@
+{
+  "sourceSha256": "f628801379acd1c86c247a778e973f4cb89f8bbe2c3089f8192c31f3c5b273a5",
+  "references": [],
+  "closurePaths": [
+    "src/shell/cancellation.ts"
+  ]
+}

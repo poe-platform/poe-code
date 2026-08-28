@@ -1,0 +1,34 @@
+{
+  "name": "extension-moved",
+  "executable": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/tools/node",
+  "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "args": [
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/fixtures/register-guard-v1.mjs",
+    "--test",
+    "--test-reporter=tap",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/fixtures/extension-v1.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "NODE_NO_WARNINGS": "1",
+    "CANCELLATION_MODULE": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/moved-internal/cancellation.js",
+    "CANCELLATION_MODULE_SHA256": "83a312b43649bd68929a57d113cb1c7cd09dfb2397461b465677dae9c5679d98",
+    "REVIEW_ALLOWED_FILES": "[\"/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/moved-internal/cancellation.js\",\"/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/.scratch-evidence-v2/fixtures/extension-v1.mjs\"]",
+    "REVIEW_LOAD_LOG": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/evidence-v2/extension-moved-loads.jsonl"
+  },
+  "started": "2026-08-28T00:10:29.906Z",
+  "ended": "2026-08-28T00:10:30.047Z",
+  "pid": 54615,
+  "exit": 1,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "03ef682450d33303b3dace086bc8ed3a00604c4af27f4c31eabc86677f1f8b36",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "name": "premature-preparation-acquisition",
+    "witness": "E01",
+    "candidateWitnessPassed": true,
+    "compiled": true,
+    "authenticatedLoad": true,
+    "killed": true,
+    "sourceSha256": "4435738aa3fd56ecb13800b5aeaf858047a6a1842dd948cbace5f30a3011ea3f"
+  },
+  {
+    "name": "activation-recheck",
+    "witness": "E04",
+    "candidateWitnessPassed": true,
+    "compiled": true,
+    "authenticatedLoad": true,
+    "killed": true,
+    "sourceSha256": "15704aa997ea97b43ff8f90e25608c737cda7dadb77b0f61b1f8d46bb99fa560"
+  },
+  {
+    "name": "runtime-reason-equality",
+    "witness": "E08",
+    "candidateWitnessPassed": true,
+    "compiled": true,
+    "authenticatedLoad": true,
+    "killed": true,
+    "sourceSha256": "225aa01309b8b2d20527566aeb70cbefed27fb4e585bc3628f887657125c29e4"
+  },
+  {
+    "name": "activation-rollback",
+    "witness": "E11",
+    "candidateWitnessPassed": true,
+    "compiled": true,
+    "authenticatedLoad": true,
+    "killed": true,
+    "sourceSha256": "5016ccf8832a2dcdefd16000a7e43133790933c57da7fefdde1accb8087264f8"
+  }
+]

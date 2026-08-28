@@ -1,0 +1,27 @@
+{
+  "exit": 0,
+  "tests": 4,
+  "pass": 4,
+  "fail": 0,
+  "cancelled": 0,
+  "skipped": 0,
+  "todo": 0,
+  "records": [
+    {
+      "pass": true,
+      "name": "N1 child-close and self-unsubscribe skip only removed forwarders; whole close stops fanout"
+    },
+    {
+      "pass": true,
+      "name": "N2 borrowed close and parent close preserve original descendant control and cleanup"
+    },
+    {
+      "pass": true,
+      "name": "N3 observed B-before-A admission stays separate from invoke and root settlement ranks"
+    },
+    {
+      "pass": true,
+      "name": "N4 pre-observation multiple aborts use configured fallback without historical-order inference"
+    }
+  ]
+}

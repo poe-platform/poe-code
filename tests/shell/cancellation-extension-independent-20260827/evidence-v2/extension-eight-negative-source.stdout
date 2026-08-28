@@ -1,0 +1,9 @@
+source/extension-eight-negative-source.ts(5,34): error TS2322: Type 'null' is not assignable to type 'AbortSignal | undefined'.
+source/extension-eight-negative-source.ts(6,34): error TS2740: Type 'AbortController' is missing the following properties from type 'AbortSignal': aborted, onabort, reason, throwIfAborted, and 3 more.
+source/extension-eight-negative-source.ts(7,45): error TS2322: Type 'string' is not assignable to type 'number'.
+source/extension-eight-negative-source.ts(8,57): error TS2322: Type '"invoke-option"' is not assignable to type '"budget-control" | "pipeline-control"'.
+source/extension-eight-negative-source.ts(9,83): error TS2740: Type '{ aborted: false; }' is missing the following properties from type 'AbortSignal': onabort, reason, throwIfAborted, addEventListener, and 2 more.
+source/extension-eight-negative-source.ts(10,27): error TS2345: Argument of type '{ owned: true; }' is not assignable to parameter of type 'PreparedChildCancellation'.
+  Property '[preparedState]' is missing in type '{ owned: true; }' but required in type 'PreparedChildCancellation'.
+source/extension-eight-negative-source.ts(11,10): error TS2540: Cannot assign to 'owned' because it is a read-only property.
+source/extension-eight-negative-source.ts(12,74): error TS2345: Argument of type 'number' is not assignable to parameter of type 'CancellationOrigin'.

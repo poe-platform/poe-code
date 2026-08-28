@@ -1,0 +1,52 @@
+{
+  "role": "DATA/source-profile inference and arithmetic only; no compiler or protocol execution",
+  "bindings": [
+    {
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "path": "package.json",
+      "blob": "c4a95d039e69a7c437b559f28a8e14204c0ecda3",
+      "bytes": 4979,
+      "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12"
+    },
+    {
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "path": "tsconfig.build.json",
+      "blob": "89e6b5617b949858c6e90953b561b38089c78dd7",
+      "bytes": 260,
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e"
+    },
+    {
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "path": "tsconfig.json",
+      "blob": "6a5f0688c7e8ac1d63d62eef915997d2fcca31b6",
+      "bytes": 2920,
+      "sha256": "f7db199a0245ffba2e8468f4d57ec6cb9fb61e6209acbf3e9806d83ea4e22508"
+    }
+  ],
+  "errorFieldInference": {
+    "optionalDeclarations": [
+      "syscall",
+      "path",
+      "dest"
+    ],
+    "target": "ES2023",
+    "overrideAbsent": true,
+    "v2RejectsOwnUndefined": true,
+    "runtimeObjectObserved": false,
+    "consequence": "Standard field initialization makes unspecified optional class fields own undefined; v2 extraction rejects that legitimate typed-source representation. Primary TS semantics, not a constructed/runtime observation."
+  },
+  "traffic": {
+    "rawReadCap": 4194304,
+    "encodedReadUpperBound": 12582912,
+    "transferBytes": 17825792,
+    "chunkBound": 400,
+    "validPublishedFrameBound": 1184,
+    "globalFrameCap": 4096,
+    "qualification": "Conservative valid-traffic bound; no new budget, retries or runtime frame measurement. Unpublished reservations still burn quota; malformed traffic fails closed."
+  },
+  "transitionRows": 14,
+  "directZeroFinalEdge": false,
+  "qualification": "Prose requires zero-result FINAL_ACK; the explicit transition row is missing, not proof the abstract design intends to reject it.",
+  "processedBytes": 133018,
+  "elapsedMs": 2.0392089999999996
+}

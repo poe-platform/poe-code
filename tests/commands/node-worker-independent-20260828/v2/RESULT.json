@@ -1,0 +1,293 @@
+{
+  "role": "Frozen packet DATA authentication; no model, Worker, provider or engine execution",
+  "candidate": "82aae2f5bff404423e81ddb6ddfacb6e0abd35a9",
+  "tree": "16da8c0abbbf2a468109095a71e0021d0b11f6fc",
+  "packet": [
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/CACHE.json",
+      "blob": "8d309641c5a635088e17a6f3eae4b15de5535cf6",
+      "mode": "100644",
+      "sha256": "1f89311173a64c33ff87d0b1e261ea7a5a66c3b858e837e921a2e312865415cb"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/CAPS.json",
+      "blob": "c4b295bf2a52a949d35a7300020c3d743c9089b5",
+      "mode": "100644",
+      "sha256": "334bf7463797805fa8808fd86f9939b9db59c96d9a1400bcbdc231afb21a26fd"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/CONTRACT.md",
+      "blob": "f0e5e0b16e05155ee4aefa1faad517e368ed077c",
+      "mode": "100644",
+      "sha256": "9de3c542a530b7e1253ad1c394baf675f5d31dcd4cacad7f6d15e3f9f1c16c12"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/DISPOSITIONS.json",
+      "blob": "57b44907d960766511e4e3e1161151f1bb47af02",
+      "mode": "100644",
+      "sha256": "91916e1d69307318e350993a93ed83e21fa02836bd53fe757e5fcc6566c73598"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/ERRORS.json",
+      "blob": "2aeca73146c16281b549217d9624d3a1536aca37",
+      "mode": "100644",
+      "sha256": "0cd33bc54d9500a1b9a552d6fb27c4a811472b21255ae106cf9a0d1b42bee011"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/HANDOFF.md",
+      "blob": "890f6e417b0e5506a9dd4c567cba6bc5b62503aa",
+      "mode": "100644",
+      "sha256": "6041fe928927ffc672075a5fbbdfb38b0360b8af750e6ce184d57d0884208682"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/OBLIGATIONS.json",
+      "blob": "539747489e8e3d3e5f47a39792fb8bd4db1b8f46",
+      "mode": "100644",
+      "sha256": "e3cf750f5fcea0c0a4bac0ec6d6da7e7ea60d357c5f1939e2915b35fbfb8bcaa"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/ROOT-RATIFICATION.md",
+      "blob": "91a2ccf16837bb9f05056357fdcfd318828113b2",
+      "mode": "100644",
+      "sha256": "75b9b2fca471cdca7d3c31361d11b55ac0343ccb9129cc50c365bb8b3f58c0b2"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/RPC.json",
+      "blob": "ef4c10568863a64075fad3f3cd3df7ddc25ac60f",
+      "mode": "100644",
+      "sha256": "04541b3b8a5a4ab1bebe106bbf8ded1a3895ad5b49dbe0058179204600969a77"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/SEAL.json",
+      "blob": "0b2d6c1a422345b324d869e226c2454c267f954c",
+      "mode": "100644",
+      "sha256": "afeeb6c6aa42577b9e7e0e7ebd682cf0ace17e09c54368a1c2d1101cc097b7a4"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/SOURCES.json",
+      "blob": "a26048370d34e41ae18741b862b0b3b0c5010324",
+      "mode": "100644",
+      "sha256": "03e2810bb628f225c3c18e9c194c816be7a59d00fcb92ba16d9a5c22ea8215a0"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v2/VALIDATION.json",
+      "blob": "96c977db62ba74e8a6db62c309b34bd5b80990e4",
+      "mode": "100644",
+      "sha256": "ec304acfbe75917c94f5d420cb0aa801ec93f6714f5755f8a104d47ac32646db"
+    }
+  ],
+  "sealKeys": [
+    "schema",
+    "date",
+    "authority",
+    "inputCommitObjects",
+    "inputBodies",
+    "instructionReferenceBodies",
+    "outputBodies",
+    "outputInventory",
+    "coverage",
+    "profile",
+    "subjectExecutions"
+  ],
+  "outputBodiesVerified": 11,
+  "inputBodiesVerified": [
+    {
+      "path": "tests/commands/node-design-20260828/np1-cjs-v1/CONTRACT.md",
+      "commit": "3495d20e5d52c3fb90666b2453ed0a964a14a8ce",
+      "blob": "165212e29329b6cd6a1764d4d9b373dce8d1f0fe",
+      "sha256": "ba1b0cb0c0f6b08d29ad6d33a138343140159ef8a73675fdbd2873816605ed9b"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/CASES.json",
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "blob": "f632103edd534e22757f27d732ad5db56f91cb7c",
+      "sha256": "cd1005348825c85ec2b6bff2feca061fc8fc4d0fae5eb9d2e13b81e440efd729"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/PROPOSAL.md",
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "blob": "4b752f9dccec33a05d48f76d5d69f06cb1eebb36",
+      "sha256": "b83e7d444713f876b3ab5850bde698940d010e97051735231a38ac630a23671e"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/RPC.json",
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "blob": "347a271be4b8e51036ec131f75ee25b44abe9bb2",
+      "sha256": "23a72deac68b1f9d78c9966b7fe6b37bd6955952434885d609a4e9b9e03cb66f"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/SOURCES.json",
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "blob": "f20d3eaaaf1ea3fa2af6a44e125aebbcd47caae4",
+      "sha256": "1c6ac683533c525b885f717edeeaee44d5f00bcb9fa9cb016bde3ab577ba8056"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-20260828/PUBLIC-SOURCE.json.gz.base64",
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "blob": "1fc213b278b5b7c848b8a92230f76139e77b88c9",
+      "sha256": "9723f42cc9f01e3dff7c3ad8705538f99cbdc1c507a2d0699a4575ecb4a227ec"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-20260828/SOURCES.json",
+      "commit": "53e5bffd5e808b198cfda2ff3a5cedccf88990e9",
+      "blob": "79f60f34950eba448a17394d1146841b8c428aa1",
+      "sha256": "a670629995f8cb7331a5e24d35ad4bb185dc0fbe5f70de8281598de615cd35b1"
+    },
+    {
+      "path": "tests/commands/node-worker-independent-20260828/ACTIVITY.md",
+      "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+      "blob": "f4a867790fc2faf3e471b9e22b5da20b38d78586",
+      "sha256": "6f06b1fad52a527d20e76cd8dbd1e0372354d1bc32f7df865d995d2e4c1a66af"
+    },
+    {
+      "path": "tests/commands/node-worker-independent-20260828/remaining-excerpts.data",
+      "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+      "blob": "5b638a22809a5b3c07c9cc1baf5932f5c74423ea",
+      "sha256": "625e8ee3f2b34a5dce06aefc5de92ebe0309f094a1e2170341797552d4d34857"
+    },
+    {
+      "path": "tests/commands/node-worker-independent-20260828/REPORT.md",
+      "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+      "blob": "037e1a343fcb451d51ca242b3f1dc6ae81e8d7cb",
+      "sha256": "b6e98183f48206b9ab2696b32a95fb83771c962aeb142d5af79158f1df85ea85"
+    },
+    {
+      "path": "tests/commands/node-worker-independent-20260828/RESULT-v1.json",
+      "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+      "blob": "c63e128557fc3b74fc1fe3c2a6e3fc9208869f09",
+      "sha256": "9d47abbd5ce661dafdebedd43eb955b9e6c3e302fed2e8612c0160d33c24401b"
+    },
+    {
+      "path": "tests/commands/node-worker-independent-20260828/ROOT-CHOICES.md",
+      "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+      "blob": "d4b76439baa70568a8a87483675cdc914c781979",
+      "sha256": "b116504b8feca0fbd2590e1626a54eea3b653d297824bfa447eebeaf35eca4c4"
+    },
+    {
+      "path": "tests/commands/node-worker-independent-20260828/SCHEDULES-v1.json",
+      "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+      "blob": "359c7c8300591b38b5542eee3232934fb0b85f7c",
+      "sha256": "02bf805e706bd05084845eb37fb240773f4b549d3becd95c4052356e392e4c2e"
+    },
+    {
+      "path": "tests/commands/node-worker-independent-20260828/source-excerpts.data",
+      "commit": "6dfec8d729a34c1f1699acfc7d1c90fc45d669a3",
+      "blob": "195c2b5bd05dd1f4a87998ab069a8beab8403a1d",
+      "sha256": "5bd28fcd3c43124c7e547493a306b3029ad8097fd1d5c3905822b14089f8dbd7"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "blob": "ef94adf238122441a66c2232fb3055aaee62d290",
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c"
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "blob": "d466866ce93c4feced56e2bd5fe4c41637e62226",
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "blob": "6dc0efb87132376763228a845b2e62638898268a",
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+    },
+    {
+      "path": "src/contracts/output.ts",
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "blob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/root-selection-v1/BINDINGS.json",
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "blob": "7683e4ccacd042ff62d0e090bc2693c0dd52c801",
+      "sha256": "2d07fe9cd60d1ca69bf68edfe98f89dc84a596b62d07024563f711ae75f5ac61"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/root-selection-v1/OPEN-OBLIGATIONS.json",
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "blob": "cad82ad4e0100d98a8cf1873f11f8eac52eb0672",
+      "sha256": "ca54239f8009dfaba113071f9fa6a8f5d2c81b804821d3d72ebacfe51dbc4b64"
+    },
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v1/root-selection-v1/ROOT-DECISION.md",
+      "commit": "700651e5ec6f50435a0298845c411a8f2a5a386f",
+      "blob": "6bd9a6e3ecaaae53a178a5d89e81a61aca4c8ae7",
+      "sha256": "964b1029a91661258c1845f13780107865537312ac6bff7bcb276d440bca4926"
+    },
+    {
+      "path": "tests/commands/node-worker-independent-20260828/REPORT.md",
+      "commit": "fa456e5a00cad84a64078ea416526688d89ea37a",
+      "blob": "037e1a343fcb451d51ca242b3f1dc6ae81e8d7cb",
+      "sha256": "b6e98183f48206b9ab2696b32a95fb83771c962aeb142d5af79158f1df85ea85"
+    },
+    {
+      "path": "tests/commands/node-worker-independent-20260828/ROOT-CHOICES.md",
+      "commit": "fa456e5a00cad84a64078ea416526688d89ea37a",
+      "blob": "d4b76439baa70568a8a87483675cdc914c781979",
+      "sha256": "b116504b8feca0fbd2590e1626a54eea3b653d297824bfa447eebeaf35eca4c4"
+    }
+  ],
+  "fsCodes": [
+    "EACCES",
+    "EAGAIN",
+    "EBADF",
+    "EBUSY",
+    "ECANCELED",
+    "EEXIST",
+    "EFBIG",
+    "EINTR",
+    "EINVAL",
+    "EIO",
+    "EISDIR",
+    "ELOOP",
+    "EMFILE",
+    "ENAMETOOLONG",
+    "ENFILE",
+    "ENOENT",
+    "ENOMEM",
+    "ENOSPC",
+    "ENOSYS",
+    "ENOTDIR",
+    "ENOTEMPTY",
+    "ENOTSUP",
+    "EOPNOTSUPP",
+    "EPERM",
+    "EPIPE",
+    "EROFS",
+    "ETIMEDOUT",
+    "EXDEV"
+  ],
+  "sharedBytes": 197056,
+  "sourceFunctionProof": "Earlier independent37-body authentication inherited; not rerun",
+  "obligationsShape": [
+    "schema",
+    "classification",
+    "originalMatrix",
+    "rootMapping",
+    "counts",
+    "common",
+    "obligations"
+  ],
+  "capsShape": [
+    "schema",
+    "status",
+    "limits",
+    "limitsNote",
+    "accounting",
+    "reservations",
+    "boundaries",
+    "deadline"
+  ],
+  "processedBytes": 2434895,
+  "elapsedMs": 24.588791999999998,
+  "processorVersion": "v22.22.2"
+}

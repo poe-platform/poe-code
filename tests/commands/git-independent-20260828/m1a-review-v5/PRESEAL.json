@@ -1,0 +1,507 @@
+{
+  "schema": "different-m1a-review-v5-preseal",
+  "source": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+  "evidence": "887c9cbfe536c11c176cb083a2aac6adb971f1fb",
+  "base": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "frozenAt": "2026-08-28T18:10:30.625Z",
+  "frozenMonotonicMs": 184043989,
+  "preparationElapsedMs": 966539,
+  "nativePrepClosed": {
+    "flag": "/tmp/safe-bash-git-native-bridge-prep-result.txt",
+    "sha256": "b47f71fe19ede3b84cd0681bd77eb96444252be8ca7b4b489c900b976cd64df0",
+    "exists": true,
+    "authorizesNothingAdditional": true
+  },
+  "files": [
+    {
+      "path": "common.mjs",
+      "bytes": 3207,
+      "sha256": "62b88de6158a1d7c27b0483e92b57e3eb60947f8f218f0f4c9c37eb9d266c769"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 8274,
+      "sha256": "19ce1e5d75d97958fcad07fdaf54077fe0359d0963c8531f6fcc8021c15307bc"
+    },
+    {
+      "path": "freeze.mjs",
+      "bytes": 6235,
+      "sha256": "861311f281467c58b429cd1deac35c0b30379e99c7d25b2a38ef2d23e214f6ab"
+    },
+    {
+      "path": "fixtures.mjs",
+      "bytes": 6833,
+      "sha256": "7130f0cdf6dea855f1d1c805569fb3e2d0d982e4c6f196be46728b0d05f1e396"
+    },
+    {
+      "path": "cases.mjs",
+      "bytes": 34603,
+      "sha256": "807a2e32b286da6a7e979cc45c75d0985de1e49db79b9d1926627c7a444f8b21"
+    },
+    {
+      "path": "loader.mjs",
+      "bytes": 2944,
+      "sha256": "7609cf3388e0850334f438dd5e14124f3f2afbd395d5e2f026b83307b6c8fd09"
+    },
+    {
+      "path": "child.mjs",
+      "bytes": 1122,
+      "sha256": "1b7a11aa795c94ac2a8b9bd2bd91b8db9b2a0c545f8e3882b44433d7d0c75dd7"
+    },
+    {
+      "path": "worker.mjs",
+      "bytes": 5143,
+      "sha256": "4ed48d8e1a40a7abc298d9ac16d6fcaba3d844c5a1673835868a586c3844182c"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 4493,
+      "sha256": "84ab6d711f4353a80e0346433074232985b47a820a82d95fd4f4f27b395c4a62"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 15148,
+      "sha256": "a5aad3b074bb31991a57d0a5fcab51978b68d5aa123b3d5d7119388df1b88831"
+    },
+    {
+      "path": "RECIPE.md",
+      "bytes": 7853,
+      "sha256": "33822eabe5db51938fe2f64ec559f7961fcfb74dfea790a179c4ba4b2422db95"
+    },
+    {
+      "path": "BINDING.json",
+      "bytes": 323015,
+      "sha256": "435739487723415b02ce1b4c558828d5b6548876bdd5a4566d4e922d508a6a13"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 3387857,
+      "sha256": "f23c38e5e78c365da8d396e3a0fb60ddcd224bb71fe948802642f676d5db701b"
+    }
+  ],
+  "cases": [
+    {
+      "id": "A01",
+      "title": "unchanged neutral project prediction; native UNRUN",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "A02",
+      "title": "unchanged neutral project prediction; native UNRUN",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "A03",
+      "title": "unchanged neutral project prediction; native UNRUN",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "A04",
+      "title": "unchanged neutral project prediction; native UNRUN",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "A05",
+      "title": "unchanged neutral project prediction; native UNRUN",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "A06",
+      "title": "unchanged neutral project prediction; native UNRUN",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "A07",
+      "title": "nested cwd, eight/nine -C, explicit boundary",
+      "plannedInvocations": 4
+    },
+    {
+      "id": "A08",
+      "title": "gitfiles and metadata symlinks refuse routing",
+      "plannedInvocations": 2
+    },
+    {
+      "id": "A09",
+      "title": "named ratification overlay: whole commondir refusal",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "A10",
+      "title": "bare metadata succeeds, working query refuses",
+      "plannedInvocations": 3
+    },
+    {
+      "id": "A11",
+      "title": "detached, unborn and born missing index",
+      "plannedInvocations": 3
+    },
+    {
+      "id": "A12",
+      "title": "explicit format0; format1 SHA1 and SHA256 refused",
+      "plannedInvocations": 3
+    },
+    {
+      "id": "A13",
+      "title": "config scalar last-value and unsafe include/escape",
+      "plannedInvocations": 4
+    },
+    {
+      "id": "A14",
+      "title": "all eight frozen routing environment keys",
+      "plannedInvocations": 8
+    },
+    {
+      "id": "A15",
+      "title": "actual pack/idx/promisor/alternate markers",
+      "plannedInvocations": 5
+    },
+    {
+      "id": "A16",
+      "title": "shallow/grafts/replace metadata",
+      "plannedInvocations": 3
+    },
+    {
+      "id": "A17",
+      "title": "packed refs stale loose precedence and malformed rows",
+      "plannedInvocations": 4
+    },
+    {
+      "id": "A18",
+      "title": "symbolic loops and malformed ref syntax",
+      "plannedInvocations": 4
+    },
+    {
+      "id": "A19",
+      "title": "annotated tag identity, nested peel, wrong target type",
+      "plannedInvocations": 3
+    },
+    {
+      "id": "A20",
+      "title": "ambiguous shorthand and typed suffixes",
+      "plannedInvocations": 5
+    },
+    {
+      "id": "A21",
+      "title": "complete loose-name abbreviation collision census",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "A22",
+      "title": "literal component-prefix selection and magic refusal",
+      "plannedInvocations": 3
+    },
+    {
+      "id": "A23",
+      "title": "standard v3 zero extension positive, v4/skip refusal",
+      "plannedInvocations": 3
+    },
+    {
+      "id": "A24",
+      "title": "checksum, count, name-length and padding corruption",
+      "plannedInvocations": 4
+    },
+    {
+      "id": "A25",
+      "title": "uppercase optional envelope, split/sparse refusals",
+      "plannedInvocations": 3
+    },
+    {
+      "id": "A26",
+      "title": "all seven unmerged masks plus selected diff refusal",
+      "plannedInvocations": 14
+    },
+    {
+      "id": "A27",
+      "title": "duplicate stage, mixed stage and unsafe paths",
+      "plannedInvocations": 4
+    },
+    {
+      "id": "A28",
+      "title": "arbitrary raw bytes and empty blobs",
+      "plannedInvocations": 3
+    },
+    {
+      "id": "A29",
+      "title": "canonical object framing and filename hash integrity",
+      "plannedInvocations": 6
+    },
+    {
+      "id": "A30",
+      "title": "zlib truncated/checksum/trailing/second member",
+      "plannedInvocations": 5
+    },
+    {
+      "id": "A31",
+      "title": "directory-aware tree order and executable/symlink modes",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "A32",
+      "title": "wrong tree object type and submodule refusal",
+      "plannedInvocations": 2
+    },
+    {
+      "id": "A33",
+      "title": "shared subtree DAG remains visible twice",
+      "plannedInvocations": 2
+    },
+    {
+      "id": "A34",
+      "title": "actual bytes beat equal stat size/cache",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "A35",
+      "title": "staged deletion plus recreation and obstruction",
+      "plannedInvocations": 2
+    },
+    {
+      "id": "A36",
+      "title": "truthful permission capability and executable bit",
+      "plannedInvocations": 3
+    },
+    {
+      "id": "A37",
+      "title": "symlink target text, never target traversal",
+      "plannedInvocations": 2
+    },
+    {
+      "id": "A38",
+      "title": "ignore does not suppress tracked files; nested override",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "A39",
+      "title": "parent-pruning and slash-aware globstar",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "A40",
+      "title": "symlinked and unsupported active ignore pattern",
+      "plannedInvocations": 2
+    },
+    {
+      "id": "A41",
+      "title": "all/normal/none untracked grouping and empty dirs",
+      "plannedInvocations": 3
+    },
+    {
+      "id": "A42",
+      "title": "raw NUL names and Git C quoting",
+      "plannedInvocations": 2
+    },
+    {
+      "id": "A43",
+      "title": "active attributes refuse comparisons but raw unchanged",
+      "plannedInvocations": 2
+    },
+    {
+      "id": "A44",
+      "title": "working/cached/one/two REV comparison sides",
+      "plannedInvocations": 4
+    },
+    {
+      "id": "A45",
+      "title": "independent applicable U0 text patch with CR/BOM/noLF",
+      "plannedInvocations": 2
+    },
+    {
+      "id": "A46",
+      "title": "cumulative LCS budget across two finite files",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "A47",
+      "title": "late NUL and invalid UTF8 names/quiet versus text",
+      "plannedInvocations": 6
+    },
+    {
+      "id": "A48",
+      "title": "difference statuses and unsupported switches",
+      "plannedInvocations": 5
+    },
+    {
+      "id": "A49",
+      "title": "first-parent count zero and missing later parent",
+      "plannedInvocations": 3
+    },
+    {
+      "id": "A50",
+      "title": "unsupported commit subject versus full hash",
+      "plannedInvocations": 2
+    },
+    {
+      "id": "A51",
+      "title": "argument count/bytes and invalid public option domain",
+      "plannedInvocations": 2
+    },
+    {
+      "id": "A52",
+      "title": "fixed counter edges include resident and cumulative domains",
+      "plannedInvocations": 0
+    },
+    {
+      "id": "A53",
+      "title": "provider oversized chunks and empty chunk count",
+      "plannedInvocations": 2
+    },
+    {
+      "id": "A54",
+      "title": "borrowed nonzero-offset buffers reused through finalization",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "A55",
+      "title": "caller abort identities and midread cancellation",
+      "plannedInvocations": 4
+    },
+    {
+      "id": "A56",
+      "title": "slow and rejected sink identities; consumer closure",
+      "plannedInvocations": 3
+    },
+    {
+      "id": "A57",
+      "title": "direct host no registration hook still finalizes readers",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "A58",
+      "title": "actual read-only wrapper and alias namespace refusal",
+      "plannedInvocations": 2
+    },
+    {
+      "id": "A59",
+      "title": "typed unreadable metadata remains error not clean",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "A60",
+      "title": "actual Shell pipeline optional plugin and no defaults drift",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "H01",
+      "title": "realistic empty canonical objects/pack and info positive",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "H02",
+      "title": "packed refs only remains supported without loose branch",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "H03",
+      "title": "tracked regular-to-symlink type change",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "H04",
+      "title": "escaped ignore space/hash/bang and bracket/question",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "H05",
+      "title": "strict Unicode blob text rejection separate from raw",
+      "plannedInvocations": 2
+    },
+    {
+      "id": "H06",
+      "title": "unknown executable metadata omitted not inferred",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "H07",
+      "title": "mandatory index unknown lowercase and stale optional TREE",
+      "plannedInvocations": 2
+    },
+    {
+      "id": "H08",
+      "title": "public factories export shape, collision and replacement",
+      "plannedInvocations": 0
+    },
+    {
+      "id": "H09",
+      "title": "object cap declared before expansion allocation",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "H10",
+      "title": "bounded malformed provider size and early file budget",
+      "plannedInvocations": 1
+    },
+    {
+      "id": "H11",
+      "title": "owned Real adapter bytes/modes/readonly effects",
+      "plannedInvocations": 1
+    }
+  ],
+  "mutants": [
+    {
+      "id": "wrong-raw",
+      "file": "dist/commands/git/queries.js",
+      "needle": "await session.output(content.bytes);",
+      "replacement": "await session.output(Buffer.from(\"independent-mutant\"));",
+      "cases": [
+        "A04"
+      ],
+      "originalSha256": "804f40f48b8f0d206c23ebb0e6dd94b0ea8fc69fb297377f70d0ec23cce6d55d",
+      "mutatedSha256": "d5be34dda7b2c330c08453aeca572b953933bb27025d4a116f5ec9abce32dc7d"
+    },
+    {
+      "id": "guessed-mode",
+      "file": "dist/commands/git/repository.js",
+      "needle": "this.session.context.fs.capabilities.permissions === true",
+      "replacement": "true",
+      "cases": [
+        "H06"
+      ],
+      "originalSha256": "82142be3b5911024274baf00d5ec1bd66bf9f7df0eb0efd633873f81d0006ec8",
+      "mutatedSha256": "a2316b67122970cc9b3a0212897f917da37ce625ffd74ce34c9897b52ea7c7ff"
+    },
+    {
+      "id": "unmerged-diff",
+      "file": "dist/commands/git/queries.js",
+      "needle": "!index.some(entry => entry.stage && selected(entry.path, specs))",
+      "replacement": "true",
+      "cases": [
+        "A26"
+      ],
+      "originalSha256": "804f40f48b8f0d206c23ebb0e6dd94b0ea8fc69fb297377f70d0ec23cce6d55d",
+      "mutatedSha256": "60d2072a4f233c224b9d0636060ac0c3da497aece3210a7220816b8942715687"
+    }
+  ],
+  "packagePath": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-author-20260828/results-v1/PACKAGE.tgz.base64",
+  "packageSha256": "68541722217fb3f88f7317750c8f1a66042ea090f2c769564b9afc14372dfe68",
+  "plans": {
+    "rowsPerLayout": 71,
+    "commandInvocationsPerLayoutIfNoEarlierAssertionFails": 180,
+    "layouts": [
+      "source",
+      "compiled",
+      "manual-staged",
+      "physically-moved"
+    ],
+    "rowExecutions": 284,
+    "build": 1,
+    "typeChildren": 5,
+    "strictPositive": 1,
+    "unsuppressedNegative": 4,
+    "loadedMutantChildren": 3,
+    "bindingRefusalChildren": 3,
+    "controlChildren": 1,
+    "totalChildren": 17,
+    "maxConcurrentOwnedProcesses": 4,
+    "targetProcesses": 2,
+    "nativeGit": 0,
+    "nativeH11": 0,
+    "M1B": 0
+  },
+  "workerGeometry": {
+    "working": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/working-v1",
+    "capture": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/capture-v1",
+    "app": "working-v1/app/node_modules/virtual-bash",
+    "moved": "working-v1/moved app/node_modules/virtual-bash",
+    "originalAppMustBeAbsentBeforeMoved": true
+  }
+}

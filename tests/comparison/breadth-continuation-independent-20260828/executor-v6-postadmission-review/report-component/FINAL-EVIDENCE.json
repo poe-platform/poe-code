@@ -1,0 +1,331 @@
+{
+  "schema": "INDEPENDENT_REPORT_COMPONENT_FINAL_EVIDENCE",
+  "date": "2026-08-28",
+  "candidate": "4d5d28b62c3253a613fd19cde11d7f2df0f98b1d",
+  "authorEvidence": "4c11bfa9431508e050613287e035b756e7ec4f1d",
+  "originalPresealCommit": "2d44ae1a",
+  "originalEvidenceCommit": "e7e8b5f4",
+  "correctionPresealCommit": "5195d90f",
+  "componentOnly": true,
+  "admissionReady": false,
+  "overallGo": false,
+  "sourceChanges": 0,
+  "engineImports": 0,
+  "historicalReplays": 0,
+  "instructionMembersMaterialized": 0,
+  "qualifiedUniqueCases": {
+    "declared": 20,
+    "pass": 18,
+    "fail": 2,
+    "unrun": 0
+  },
+  "originalRawCountsPreserved": {
+    "pass": 19,
+    "fail": 1,
+    "unrun": 0
+  },
+  "originalAudit": {
+    "pass": 18,
+    "fail": 1,
+    "unqualifiedFixture": 1
+  },
+  "correction": {
+    "sameCase": "S20",
+    "newCaseFamilies": 0,
+    "actualSupervisorReceipt": true,
+    "preconditions": {
+      "observed65537": true,
+      "retained65536": true,
+      "stderrEmpty": true,
+      "captureLimitRecorded": true,
+      "exitZero": true,
+      "closeZero": true,
+      "reaped": true,
+      "exactPidAbsent": true,
+      "exactGroupAbsent": true,
+      "timerRetired": true,
+      "childNoActiveResources": true,
+      "parentNoActiveResources": true
+    },
+    "expected": false,
+    "actual": true,
+    "status": "FAIL"
+  },
+  "defects": [
+    {
+      "id": "D13",
+      "source": "coordinator-report-v1/publisher.mjs:62",
+      "sha256": "84a4c2c18ed566e1bfcc90374561550ea9473e4c873c23326018cef7befb4ab2",
+      "observed": "TypeError outside boolean refusal for missing terminal failures array"
+    },
+    {
+      "id": "S20",
+      "source": "coordinator-report-v1/publisher.mjs:56",
+      "sha256": "84a4c2c18ed566e1bfcc90374561550ea9473e4c873c23326018cef7befb4ab2",
+      "observed": "actual assessor returns true for actual CAPTURE_LIMIT receipt, observed65537 retained65536, clean exit0/close0, naturalfalse"
+    }
+  ],
+  "children": [
+    {
+      "role": "original-driver",
+      "pid": 37844,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "role": "positive",
+      "pid": 37858,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "role": "exit7",
+      "pid": 37862,
+      "exit": {
+        "code": 7,
+        "signal": null
+      },
+      "close": {
+        "code": 7,
+        "signal": null
+      },
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "role": "stdout-failure",
+      "pid": 37866,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "role": "overflow",
+      "pid": 37871,
+      "exit": {
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "close": {
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "role": "corrected-S20",
+      "pid": 40142,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    }
+  ],
+  "activeResources": {
+    "originalDriver": [],
+    "originalLauncher": [],
+    "correctedChild": [],
+    "correctedLauncher": []
+  },
+  "authentication": {
+    "original": {
+      "inputs": 71,
+      "harness": 7,
+      "authorMembers": 55,
+      "nodeChecked": true,
+      "passed": true
+    },
+    "correctionFiles": 7,
+    "passed": true
+  },
+  "originalRawMembersUnchanged": 64,
+  "originalRawMembershipNewEntriesDetected": true,
+  "correctionArchive": {
+    "path": "corrected-raw.json.gz",
+    "bytes": 4956,
+    "mode": 420,
+    "sha256": "9a9cba005e5fe5600d1f8892e1676c94e967c43d1435c7cb960a95ccff5dd9ea",
+    "expandedBytes": 238380,
+    "rawBytes": 178331,
+    "members": [
+      {
+        "path": "EVIDENCE.json",
+        "bytes": 89565,
+        "mode": 420,
+        "sha256": "894bec27464cf831ac0a6837fea5f9af2feecc5a29b2b84efe23545bf09c8089"
+      },
+      {
+        "path": "RECEIPT.json",
+        "bytes": 88055,
+        "mode": 420,
+        "sha256": "5b4917ca0656aae22f15a75a2df57082912280256065d120d55f309eb771db4f"
+      },
+      {
+        "path": "RESULT.json",
+        "bytes": 412,
+        "mode": 420,
+        "sha256": "16a84cc8eb40df58243e24c0914cfa7d733ece0d889c3580b9a5ad173d5c8e51"
+      },
+      {
+        "path": "START.json",
+        "bytes": 299,
+        "mode": 420,
+        "sha256": "5adabec6bd749cb29cdb7fae7e689e89b30ff6f3200b27b38b01ab6e07277b71"
+      }
+    ]
+  },
+  "allIndependentRawPhysicalRecordMaximum": 262144,
+  "cumulativeGeneratedInputUpperBound": 36650454,
+  "oldSpaceMiB": 128,
+  "memoryLimitIsNotRSS": true,
+  "files": [
+    {
+      "path": "CASES.json",
+      "bytes": 2957,
+      "mode": 420,
+      "sha256": "00fd960c4038aa3a60282004b41958262b9fbc8feb7fad824930d9d6ed834316"
+    },
+    {
+      "path": "CORRECTION-CASES.md",
+      "bytes": 2462,
+      "mode": 420,
+      "sha256": "c557576ac36aff555d03547b04cd5d0f89f5c38520272dee3fb68cdbcb140b94"
+    },
+    {
+      "path": "CORRECTION-PRESEAL.json",
+      "bytes": 1982,
+      "mode": 420,
+      "sha256": "86c045c9f4832a4c0ac2c32172a70dab599d4ab1a3b9234968c8c28ed5d6045f"
+    },
+    {
+      "path": "ORIGINAL-EVIDENCE.json",
+      "bytes": 13221,
+      "mode": 420,
+      "sha256": "de4bb1cd80ec2509f82219e96ba7cf0d57daad533e5cc2f94ef68756c412ee21"
+    },
+    {
+      "path": "PREEXECUTION-BODY.md",
+      "bytes": 5922,
+      "mode": 420,
+      "sha256": "ccca479883ee4cd112b5695aee28d913481e94487915755ea2bf07c563f54b69"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 38144,
+      "mode": 420,
+      "sha256": "15dd68e13d9ca753a45f510e4b737383473895e3235075f6f27ac5059fa09c07"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3613,
+      "mode": 420,
+      "sha256": "f3ee9957ebd0ab054585ea4a2ee17397c398215a55a3a4b2ca76fb805583c1e1"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 10532,
+      "mode": 420,
+      "sha256": "ff632476b32c1a31a085a052f16364fe9b9ee4b8cec51bde2903f550425b76d0"
+    },
+    {
+      "path": "auth.mjs",
+      "bytes": 2897,
+      "mode": 420,
+      "sha256": "1b82934529f0001ddab124e60d1c381fa756a3111e2b27145e1d391c7e830720"
+    },
+    {
+      "path": "corrected-raw.json.gz",
+      "bytes": 4956,
+      "mode": 420,
+      "sha256": "9a9cba005e5fe5600d1f8892e1676c94e967c43d1435c7cb960a95ccff5dd9ea"
+    },
+    {
+      "path": "correction-auth.mjs",
+      "bytes": 536,
+      "mode": 420,
+      "sha256": "213987c6ab18693397c66463aa051432b0aecc0bfc9d368e22c2e1c80c878ef1"
+    },
+    {
+      "path": "correction-launch.mjs",
+      "bytes": 3657,
+      "mode": 420,
+      "sha256": "060804b1dfaa9ef5951ef3d4da0c0e65c8e099079ecbd2644285404bbbd7b154"
+    },
+    {
+      "path": "launch.mjs",
+      "bytes": 1932,
+      "mode": 420,
+      "sha256": "3f928e4bb016b51e9a1fe9fed49e3c16c3e8db02b613cf17a3b2e385f0c3dc15"
+    },
+    {
+      "path": "original-raw.json.gz",
+      "bytes": 32542,
+      "mode": 420,
+      "sha256": "d7390c3f8f8a1b94287f7c087e91a2930f269513d47006eb285cc5b994529018"
+    },
+    {
+      "path": "overflow-stub.mjs",
+      "bytes": 1471,
+      "mode": 420,
+      "sha256": "79faba2c6f13eb9f1fc50f7a9c889bd298c235fb05250f76fed90be67fc08f54"
+    },
+    {
+      "path": "stub.mjs",
+      "bytes": 1486,
+      "mode": 420,
+      "sha256": "35c38236099cbf113abac9182e5d56dea6864aca7654a36741ab7228ddd864d7"
+    },
+    {
+      "path": "verify.mjs",
+      "bytes": 22408,
+      "mode": 420,
+      "sha256": "b65a2997abe3175e9fa0af834097be9fc127491fd86c47472397acd96fe59f36"
+    }
+  ],
+  "indexBeforeEvidenceCommit": {
+    "paths": 0
+  },
+  "remaining": [
+    "both assessor defects require repair and different requalification",
+    "actual successor recipe/reader/worker/authorization integration and reseal",
+    "aggregate evidence accounting including out-of-store records and explicit staged-byte classification",
+    "pre-report/tail exception and acquired-child enrollment/cleanup qualification",
+    "separate source-policy/builtin adjudication and fresh explicit root grant before actual engine admission"
+  ]
+}

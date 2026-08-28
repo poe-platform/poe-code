@@ -62,17 +62,21 @@ export class StateMonitor {
     for (let entry = this.#restorations; entry; entry = entry.next) if (!entry.epoch) pending++;
     if (pending) {
       const admission = this.session.owner.reserve({ epoch: pending, metadata: pending * 64, work: pending * 8 });
+      admission.restorationReferences = pending;
       let ticket = admission.epoch - pending;
-      for (let entry = this.#restorations; entry; entry = entry.next) if (!entry.epoch) entry.epoch = ++ticket;
+      for (let entry = this.#restorations; entry; entry = entry.next) if (!entry.epoch) { entry.epoch = ++ticket; entry.admission = admission; }
     }
+    for (let entry = this.#restorations; entry; entry = entry.next) if (entry.resource && !entry.holding) entry.holding = this.session.owner.hold();
     this.store = BindingStore.create(this.session.owner);
     this.store.epoch = this.epoch;
     return this.store;
   }
 
-  restoration(): Restoration {
+  restoration(resource = false): Restoration {
     const admission = this.session.ledger.active ? this.session.owner!.reserve({ epoch: true, metadata: 64, work: 8 }) : undefined;
-    const permit = new Restoration(this, admission);
+    if (admission) admission.restorationReferences = 1;
+    const permit = new Restoration(this, admission, resource);
+    if (resource && this.session.ledger.active) permit.holding = this.session.owner!.hold();
     permit.next = this.#restorations;
     if (this.#restorations) this.#restorations.previous = permit;
     this.#restorations = permit;
@@ -213,20 +217,22 @@ export class Restoration {
   previous: Restoration | undefined;
   epoch: number;
   #closed = false;
+  holding: Admission | undefined;
 
-  constructor(readonly monitor: StateMonitor, readonly admission: Admission | undefined) { this.epoch = admission?.epoch ?? 0; }
+  constructor(readonly monitor: StateMonitor, public admission: Admission | undefined, readonly resource: boolean) { this.epoch = admission?.epoch ?? 0; }
 
-  apply(action: () => void): void {
+  apply(action: () => void, close = true): void {
     if (this.#closed) throw new Error("Indexed-array restoration already consumed");
     try { this.monitor.restore(this, action); }
-    finally { this.close(); }
+    finally { if (close) this.close(); }
   }
 
   close(): void {
     if (this.#closed) return;
     this.#closed = true;
     this.monitor.retire(this);
-    this.admission?.release();
+    if (this.admission && --this.admission.restorationReferences === 0) this.admission.release();
+    this.holding?.release();
   }
 }
 
@@ -237,6 +243,7 @@ export async function snapshotState(state: State, clone: () => State, signal: Ab
   const store = monitor.activate();
   const epoch = monitor.epoch;
   const owner = ArrayOwner.create(store.owner.ledger, store.owner);
+  const holding = store.owner.hold();
   const check = () => {
     signal.throwIfAborted();
     if (monitor.epoch !== epoch) throw new ArrayFailure("stale state snapshot");
@@ -283,5 +290,5 @@ export async function snapshotState(state: State, clone: () => State, signal: Ab
     if (result?.store) for (const [name] of result.store.bindings) await result.store.remove(name, { generation: 0, version: 0, epoch: 0 });
     await owner.close();
     throw error;
-  }
+  } finally { holding.release(); }
 }

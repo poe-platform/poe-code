@@ -706,7 +706,7 @@ class Parser {
             word = { offset: word.offset, parts: word.parts, spelling: this.lexer.source.slice(word.offset, end) };
             setArrayAssignment(word, { kind: "compound", ...head, entries });
           } else {
-            const assignment = elementAssignment(word);
+            const assignment = words.every(previous => getArrayAssignment(previous) || scalarAssignmentName(previous)) ? elementAssignment(word) : undefined;
             if (assignment) setArrayAssignment(word, assignment);
           }
           words.push(word);

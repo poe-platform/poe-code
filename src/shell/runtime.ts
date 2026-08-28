@@ -326,7 +326,7 @@ async function restoreVariable(state: State, name: string, saved: SavedVariable)
     stateMonitor(state)!.publish(typed.tickets, name, () => {
       if (typed.binding) {
         delete state.variables[name];
-        released = store.publish(name, typed.binding, typed.tickets, typed.prepared);
+        released = store.publish(name, typed.binding, typed.tickets, typed.prepared, true);
       } else {
         released = store.remove(name, typed.tickets);
         if (saved.value === undefined) delete state.variables[name];
@@ -1019,6 +1019,7 @@ export class Runtime {
   async prepareVariable(state: State, name: string, saved: SavedVariable): Promise<void> {
     const store = requireArrays(state);
     const owner = ArrayOwner.create(store.owner.ledger, store.owner);
+    const holding = store.owner.hold();
     let binding: IndexedBinding | undefined;
     try {
       const watch = await store.watch(name, owner, this.signal);
@@ -1030,6 +1031,7 @@ export class Runtime {
       binding = store.get(name)?.retain();
       typedSavedVariables.set(saved, { owner, binding, tickets, prepared: { name: token, admission }, watch });
     } catch (error) { await binding?.release(); await owner.close(); throw error; }
+    finally { holding.release(); }
   }
 
   async discardVariable(saved: SavedVariable): Promise<void> {
@@ -1044,6 +1046,7 @@ export class Runtime {
   async indexedEnvironment(state: State, env: Readonly<Record<string, string>>): Promise<void> {
     const store = requireArrays(state);
     const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+    const holding = store.owner.hold();
     const epoch = stateMonitor(state)!.epoch;
     try {
       const keys = Object.keys(env);
@@ -1073,12 +1076,13 @@ export class Runtime {
           state.variables[key] = env[key]!;
         });
       }
-    } finally { await operation.close(); }
+    } finally { try { await operation.close(); } finally { holding.release(); } }
   }
 
   async unsetIndexed(state: State, name: string, index?: number | "members"): Promise<void> {
     const store = requireArrays(state);
     const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+    const holding = store.owner.hold();
     let staged: IndexedBinding | undefined;
     try {
       if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
@@ -1111,16 +1115,18 @@ export class Runtime {
       staged = undefined;
       watch.close();
       await released;
-    } finally { await staged?.release(); await operation.close(); }
+    } finally { try { await staged?.release(); await operation.close(); } finally { holding.release(); } }
   }
 
   async arrayZero(state: State, name: string, expand: () => Promise<string>, append = false, freeze = false): Promise<void> {
     const store = requireArrays(state);
     const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+    const holding = store.owner.hold();
     let staged: IndexedBinding | undefined;
     try {
       const watch = await store.watch(name, operation, this.signal);
       const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
+      if (freeze) operation.reserve({ metadata: state.readonlyVariables ? 32 : 96, slots: 1, work: 5 });
       const expanded = await expand();
       this.signal.throwIfAborted();
       if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
@@ -1128,7 +1134,7 @@ export class Runtime {
       const current = store.get(name);
       if (!current) throw new ArrayFailure("stale binding");
       staged = await current.copy(this.signal);
-      const value = append ? this.arrayJoin(operation, [current.get(0) ?? "", expanded], "") : expanded;
+      const value = append ? await this.arrayJoin(operation, [current.get(0) ?? "", expanded], "") : expanded;
       const token = await textToken(staged.owner, value, this.signal);
       try { staged.insert(0, token); } catch (error) { token.release(); throw error; }
       const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);
@@ -1144,16 +1150,22 @@ export class Runtime {
       staged = undefined;
       watch.close();
       await released;
-    } finally { await staged?.release(); await operation.close(); }
+    } finally { try { await staged?.release(); await operation.close(); } finally { holding.release(); } }
   }
 
-  arrayJoin(owner: ArrayOwner, values: readonly string[], separator: string): string {
+  async arrayJoin(owner: ArrayOwner, values: readonly string[], separator: string): Promise<string> {
     let bytes = 0;
-    for (const value of values) bytes = exactSum(bytes, Buffer.byteLength(value));
+    for (const value of values) {
+      owner.reserve({ work: value.length + 1 }).release();
+      bytes = exactSum(bytes, Buffer.byteLength(value));
+      await owner.ledger.checkpoint(this.signal, value.length + 1);
+    }
     bytes = exactSum(bytes, Math.max(0, values.length - 1) * Buffer.byteLength(separator));
     owner.reserve({ metadata: exactSum(96, values.length * 32), payload: bytes, allocatedSlots: values.length, work: values.length * 3 + 7 });
     this.signal.throwIfAborted();
-    return values.join(separator);
+    const result = values.join(separator);
+    await owner.ledger.checkpoint(this.signal);
+    return result;
   }
 
   async arrayAssignment(assignment: ArrayAssignment, state: State, io: IO): Promise<void> {
@@ -1164,9 +1176,16 @@ export class Runtime {
     if (state.exported.has(name)) throw new ArrayFailure("exported binding cannot be indexed");
     const store = requireArrays(state);
     const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+    const holding = store.owner.hold();
     let staged: IndexedBinding | undefined;
     try {
       const watch = await store.watch(name, operation, this.signal);
+      for (let index = state.locals.length - 1; index >= 0; index--) {
+        const saved = state.locals[index]!.get(name);
+        if (!saved) continue;
+        if (!typedSavedVariables.has(saved)) await this.prepareVariable(state, name, saved);
+        break;
+      }
       const current = store.get(name);
       const initialMaximum = current?.maximum ?? (state.variables[name] === undefined ? -1 : 0);
       let planned: number | null = assignment.append && assignment.kind === "compound" ? initialMaximum + 1 : 0;
@@ -1213,14 +1232,14 @@ export class Runtime {
       if (assignment.kind === "element") {
         const index = numericIndex(assignment.index)!;
         const fields = await this.word(assignment.value, state, io, false);
-        let value = this.arrayJoin(operation, fields, "");
-        if (assignment.append) value = this.arrayJoin(operation, [staged.get(index) ?? "", value], "");
+        let value = await this.arrayJoin(operation, fields, "");
+        if (assignment.append) value = await this.arrayJoin(operation, [staged.get(index) ?? "", value], "");
         await insert(index, value);
       } else for (const entry of assignment.entries) {
         const fields = await this.word(entry.value, state, io, entry.index === undefined);
         if (entry.index) {
           const index = numericIndex(entry.index)!;
-          await insert(index, this.arrayJoin(operation, fields, ""));
+          await insert(index, await this.arrayJoin(operation, fields, ""));
           cursor = index + 1;
         } else for (const value of fields) { await insert(cursor, value); cursor++; }
       }
@@ -1238,7 +1257,7 @@ export class Runtime {
         await released;
       }
       watch.close();
-    } finally { await staged?.release(); await operation.close(); }
+    } finally { try { await staged?.release(); await operation.close(); } finally { holding.release(); } }
   }
 
   async run(script: Script, state: State, io: IO): Promise<number> {
@@ -1851,7 +1870,7 @@ export class Runtime {
       const directoryStackCwdPublication = state.directoryStackCwdPublication;
       const environmentKeys = new Set([...Object.keys(initialEnv), ...Object.keys(context.env)]);
       const typedEnvironment = [...environmentKeys].some(key => arrayStore(state)?.get(key) && initialEnv[key] !== context.env[key]);
-      const cwdRestoration = stateMonitor(state)?.restoration();
+      const cwdRestoration = stateMonitor(state)?.restoration(true);
       if (typedEnvironment) {
         const store = requireArrays(state);
         store.owner.reserve({ metadata: 64 + environmentKeys.size * 64, allocatedSlots: environmentKeys.size * 2, work: environmentKeys.size * 4 + 4 });
@@ -1919,7 +1938,7 @@ export class Runtime {
           const positional = state.positional;
           const positionalSetVersion = state.positionalSetVersion ?? 0;
           const getoptsEntry = cloneGetoptsBinding(state);
-          const functionRestoration = stateMonitor(state)?.restoration();
+          const functionRestoration = stateMonitor(state)?.restoration(true);
           state.positional = [...context.args];
           state.functionDepth++;
           state.depth++;
@@ -1930,6 +1949,7 @@ export class Runtime {
             if (error instanceof Flow && error.kind === "return") return { exitCode: error.status };
             throw error;
           } finally {
+            try {
             const restoreControls = () => {
               state.positional = positional;
               state.positionalSetVersion = positionalSetVersion;
@@ -1937,7 +1957,7 @@ export class Runtime {
               state.depth--;
               state.locals.pop();
             };
-            if (functionRestoration) functionRestoration.apply(restoreControls);
+            if (functionRestoration) functionRestoration.apply(restoreControls, false);
             else restoreControls();
             for (const [name, previous] of locals) {
               await restoreVariable(state, name, previous);
@@ -1947,6 +1967,7 @@ export class Runtime {
               state.getopts ??= cloneGetoptsBinding(state);
               state.getopts.cursor = cloneGetoptsState(getoptsEntry.cursor);
             }
+            } finally { functionRestoration?.close(); }
           }
         }
         if (selected?.kind === "builtin") {
@@ -1973,10 +1994,11 @@ export class Runtime {
         const raw = definition.execute(forwarded);
         return await this.observeRuntimeReturn(raw, runtimeFrame);
       } finally {
+        try {
         const restoreCwd = () => {
           if (context.command !== "cd" && state.cwd === context.cwd && state.directoryStackCwdPublication === directoryStackCwdPublication) state.cwd = cwd;
         };
-        if (cwdRestoration) cwdRestoration.apply(restoreCwd);
+        if (cwdRestoration) cwdRestoration.apply(restoreCwd, false);
         else restoreCwd();
         for (const [key, saved] of previous) {
           const typed = typedSavedVariables.get(saved);
@@ -1989,7 +2011,10 @@ export class Runtime {
           if (saved.superseded || state.variables[key] !== saved.overlay) continue;
           await restoreVariable(state, key, saved);
         }
-        stateMonitor(state)?.closeOverlay(previous);
+        } finally {
+          stateMonitor(state)?.closeOverlay(previous);
+          cwdRestoration?.close();
+        }
       }
     });
     try { return validateExitCode((await interruptible(execute(context), this.signal)).exitCode); }
@@ -3092,6 +3117,7 @@ export class Runtime {
             assignments.delete(name);
             continue;
           }
+          if (arrayStore(state)) await this.prepareVariable(state, name, saved);
           locals!.set(name, saved);
           if (!assignments.has(name) && match[2] === undefined) delete state.variables[name];
           if (name === "OPTIND") {
@@ -3245,6 +3271,20 @@ export class Runtime {
   }
 
   async part(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString = false): Promise<string> {
+    const binding = part.kind === "variable" ? arrayStore(state)?.get(part.name) : undefined;
+    const holding = binding ? requireArrays(state).owner.hold() : undefined;
+    const selector = getArraySelector(part);
+    const index = selector?.kind === "element" ? numericIndex(selector.index) : 0;
+    const token = index === undefined || selector?.kind === "members" ? undefined : binding?.values.get(index)?.text;
+    token?.retain();
+    try {
+      const value = await this.partValue(part, state, io, hereString);
+      if (binding) await textToken(requireArrays(state).owner, value, this.signal);
+      return value;
+    } finally { token?.release(); holding?.release(); }
+  }
+
+  private async partValue(part: Exclude<WordPart, { kind: "text" }>, state: State, io: IO, hereString: boolean): Promise<string> {
     if (part.kind === "failed-substitution") {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
       await writeText(io.stderr, part.diagnostic);
@@ -3313,7 +3353,7 @@ export class Runtime {
         if (operator === "=" && arrayStore(state)?.get(part.name)) {
           alternate = "";
           await this.arrayZero(state, part.name, async () => {
-            alternate = this.arrayJoin(requireArrays(state).owner, await this.word(part.alternate!, state, io, false, false, hereString), "");
+            alternate = await this.arrayJoin(requireArrays(state).owner, await this.word(part.alternate!, state, io, false, false, hereString), "");
             return alternate;
           });
           value = alternate;
@@ -3332,6 +3372,7 @@ export class Runtime {
   }
 
   async substring(part: Extract<WordPart, { kind: "variable" }>, value: string | undefined, state: State, io: IO): Promise<string> {
+    const owner = arrayStore(state)?.get(part.name) ? requireArrays(state).owner : undefined;
     const expression = part.substring!;
     const line = io.diagnosticLine ?? part.line;
     if (!expression.offset.parts.length && !expression.length) throw new ExpansionFailure(`${expression.source}: bad substitution`, line);
@@ -3352,6 +3393,7 @@ export class Runtime {
         const text = entry.kind === "text" ? entry.value : await this.part(entry, state, io);
         bytes += Buffer.byteLength(text);
         if (bytes > limit) this.budget.fail("maxExpansionBytes");
+        owner?.reserve({ metadata: 32, payload: bytes, work: text.length + 4 });
         source += text;
       }
       this.signal.throwIfAborted();
@@ -3363,6 +3405,7 @@ export class Runtime {
       }
     };
     const offsetExpression = await arithmetic(expression.offset);
+    owner?.reserve({ metadata: 128 + value.length * 64, payload: Buffer.byteLength(value), allocatedSlots: value.length, work: value.length + 8 });
     const characters = byteLocale(state.variables) ? undefined : Array.from(value);
     const bytes = characters ? undefined : Buffer.from(value);
     const size = BigInt(characters?.length ?? bytes!.byteLength);
@@ -3376,16 +3419,24 @@ export class Runtime {
       if (end > size) end = size;
     }
     this.signal.throwIfAborted();
+    owner?.reserve({ metadata: 96 + value.length * 32, payload: Buffer.byteLength(value) * 3, allocatedSlots: value.length, work: value.length + 7 });
     if (characters) return characters.slice(Number(offset), Number(end)).join("");
     try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes!.subarray(Number(offset), Number(end))); }
     catch { throw new ExpansionFailure("substring expansion splits a UTF-8 character in a byte locale", line); }
   }
 
   async parameterPattern(part: Extract<WordPart, { kind: "variable" }>, text: string, state: State, io: IO, hereString: boolean): Promise<string> {
+    const owner = arrayStore(state)?.get(part.name) ? requireArrays(state).owner : undefined;
     const limit = this.budget.limits.maxExpansionBytes;
     if (Buffer.byteLength(text) > limit) this.budget.fail("maxExpansionBytes");
-    const pattern = (await this.word(part.alternate!, state, io, false, true, hereString)).join("");
+    const patternFields = await this.word(part.alternate!, state, io, false, true, hereString);
+    const pattern = owner ? await this.arrayJoin(owner, patternFields, "") : patternFields.join("");
+    owner?.reserve({ metadata: 128 + text.length * 64, payload: Buffer.byteLength(text), allocatedSlots: text.length, work: text.length + 8 });
     const characters = Array.from(text);
+    const slice = (start: number, end = characters.length): string => {
+      owner?.reserve({ metadata: 96 + (end - start) * 32, payload: (end - start) * 4, allocatedSlots: end - start, work: end - start + 7 });
+      return characters.slice(start, end).join("");
+    };
     const work = { remaining: Math.min(Number.MAX_SAFE_INTEGER, limit * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
     const matches = await compilePattern(pattern, work);
     let attempts = 0;
@@ -3394,24 +3445,27 @@ export class Runtime {
       if (work.remaining < 0) work.exhausted();
       if (++attempts % 256 === 0) await new Promise<void>(resolve => setImmediate(resolve));
       this.signal.throwIfAborted();
-      return matches(characters.slice(start, end).join(""));
+      if (owner) await owner.ledger.checkpoint(this.signal, end - start + 1);
+      return matches(slice(start, end));
     };
     const operator = part.operator!;
     if (!operator.startsWith("/")) {
       const longest = operator.length === 2;
       for (let length = longest ? characters.length : 0; longest ? length >= 0 : length <= characters.length; length += longest ? -1 : 1) {
         const prefix = operator.startsWith("#");
-        if (await match(prefix ? 0 : characters.length - length, prefix ? length : characters.length)) return (prefix ? characters.slice(length) : characters.slice(0, characters.length - length)).join("");
+        if (await match(prefix ? 0 : characters.length - length, prefix ? length : characters.length)) return prefix ? slice(length) : slice(0, characters.length - length);
       }
       return text;
     }
     const replacements: { value: string; quoted: boolean }[] = [];
+    owner?.reserve({ metadata: 64, work: 3 });
     let replacementBytes = 0;
     for (const [index, entry] of (part.replacement?.parts ?? []).entries()) {
       let value = entry.kind === "text" ? entry.value : await this.part(entry, state, io, hereString);
       if (index === 0 && !entry.quoted && /^~(?:\/|$)/u.test(value)) value = (state.variables.HOME ?? "~") + value.slice(1);
       replacementBytes += Buffer.byteLength(value);
       if (replacementBytes > limit) this.budget.fail("maxExpansionBytes");
+      owner?.reserve({ metadata: 64, payload: Buffer.byteLength(value), allocatedSlots: 1, work: 5 });
       replacements.push({ value, quoted: entry.quoted });
     }
     if (!pattern && operator !== "/#" && operator !== "/%") return text;
@@ -3420,6 +3474,7 @@ export class Runtime {
     const append = (value: string): void => {
       resultBytes += Buffer.byteLength(value);
       if (resultBytes > limit) this.budget.fail("maxExpansionBytes");
+      owner?.reserve({ metadata: 32, payload: resultBytes, work: value.length + 4 });
       result += value;
     };
     let position = 0;
@@ -3430,24 +3485,25 @@ export class Runtime {
         for (let end = characters.length; end >= start; end--) {
           if (operator === "/%" && end !== characters.length) break;
           if (!await match(start, end)) continue;
-          append(characters.slice(position, start).join(""));
-          const matched = characters.slice(start, end).join("");
+          append(slice(position, start));
+          const matched = slice(start, end);
           for (const replacement of replacements) {
             if (replacement.quoted) append(replacement.value);
             else {
+              owner?.reserve({ metadata: 64 + replacement.value.length * 64, payload: Buffer.byteLength(replacement.value), allocatedSlots: replacement.value.length, work: replacement.value.length + 4 });
               const pieces = replacement.value.split("&");
               for (const [index, piece] of pieces.entries()) { if (index) append(matched); append(piece); }
             }
           }
           position = end;
           found = true;
-          if (operator !== "//" || end === characters.length) { append(characters.slice(end).join("")); return result; }
+          if (operator !== "//" || end === characters.length) { append(slice(end)); return result; }
           if (end === start) { append(characters[position]!); position++; }
           break;
         }
         if (found) break;
       }
-      if (!found) { append(characters.slice(position).join("")); break; }
+      if (!found) { append(slice(position)); break; }
     }
     return result;
   }
@@ -3455,6 +3511,8 @@ export class Runtime {
   async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false): Promise<string[]> {
     const arrayOwned = word.parts.some(part => part.kind === "variable" && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));
     const owner = arrayOwned ? requireArrays(state).owner : undefined;
+    const holding = owner?.hold();
+    try {
     owner?.reserve({ metadata: 128 + word.parts.length * 32, allocatedSlots: word.parts.length + 1, work: word.parts.length + 5 });
     const fields: { value: string; pattern: string; present: boolean }[] = [{ value: "", pattern: "", present: false }];
     let expansionBytes = 0;
@@ -3559,10 +3617,13 @@ export class Runtime {
       if (result.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
     }
     return result;
+    } finally { holding?.release(); }
   }
 
   async arrayMembers(name: string, state: State): Promise<string[]> {
     const store = requireArrays(state);
+    const holding = store.owner.hold();
+    try {
     const binding = store.get(name);
     store.owner.reserve({ metadata: 64, work: 3 });
     if (!binding) {
@@ -3585,6 +3646,7 @@ export class Runtime {
       }
       return values;
     } finally { await binding.release(); }
+    } finally { holding.release(); }
   }
 
   async glob(value: string, pattern: string, state: State): Promise<string[]> {

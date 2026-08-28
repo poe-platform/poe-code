@@ -29,6 +29,7 @@ export class Admission implements Tickets {
   owner: ArrayOwner | undefined;
   released = false;
   cleanup: (() => void) | undefined;
+  restorationReferences = 0;
 
   constructor(
     readonly ledger: ArrayLedger,
@@ -119,13 +120,15 @@ export class ArrayLedger {
     this.#used[3] -= admission.metadata;
   }
 
-  async checkpoint(signal?: AbortSignal, units = 1): Promise<void> {
+  checkpoint(signal?: AbortSignal, units = 1): Promise<void> | undefined {
     signal?.throwIfAborted();
     this.#checkpoint += units;
     if (this.#checkpoint >= 128) {
       this.#checkpoint %= 128;
-      await new Promise<void>(resolve => setImmediate(resolve));
-      signal?.throwIfAborted();
+      return new Promise<void>((resolve, reject) => setImmediate(() => {
+        try { signal?.throwIfAborted(); resolve(); }
+        catch (error) { reject(error); }
+      }));
     }
   }
 }
@@ -146,10 +149,15 @@ export class ArrayOwner {
   #started = false;
   #resolve!: () => void;
   #reject!: (error: unknown) => void;
+  #holds = 0;
+  #resolveIdle!: () => void;
+  readonly #idle: Promise<void>;
+  #releasing = false;
   readonly completion: Promise<void>;
 
   private constructor(readonly ledger: ArrayLedger, readonly parent: ArrayOwner | undefined, readonly header: Admission) {
     this.completion = new Promise<void>((resolve, reject) => { this.#resolve = resolve; this.#reject = reject; });
+    this.#idle = new Promise<void>(resolve => { this.#resolveIdle = resolve; });
     void this.completion.catch(() => undefined);
   }
 
@@ -175,8 +183,9 @@ export class ArrayOwner {
     return this.adopt(this.ledger.reserve(charge));
   }
 
-  adopt(admission: Admission): Admission {
-    this.assertOpen();
+  adopt(admission: Admission, prepaid = false): Admission {
+    const root = this.root();
+    if (!prepaid || !root.#holds || root.#releasing) this.assertOpen();
     if (admission.released || admission.ledger !== this.ledger) throw new Error("Invalid indexed-array ownership transfer");
     admission.owner?.detach(admission);
     admission.owner = this;
@@ -184,6 +193,25 @@ export class ArrayOwner {
     admission.next = this.#head;
     if (this.#head) this.#head.previous = admission;
     this.#head = admission;
+    return admission;
+  }
+
+  private root(): ArrayOwner {
+    let root: ArrayOwner = this;
+    while (root.parent) root = root.parent;
+    return root;
+  }
+
+  hold(): Admission {
+    this.assertOpen();
+    const root = this.root();
+    if (root.#holds === Number.MAX_SAFE_INTEGER) throw new ArrayFailure("resource capacity exhausted");
+    const admission = this.reserve({ metadata: 64, work: 5 });
+    root.#holds++;
+    admission.cleanup = () => {
+      root.#holds--;
+      if (!root.#holds && root.#closed) root.#resolveIdle();
+    };
     return admission;
   }
 
@@ -206,10 +234,15 @@ export class ArrayOwner {
   }
 
   private async drain(): Promise<void> {
+    if (!this.parent) {
+      if (this.#holds) await this.#idle;
+      this.#releasing = true;
+    }
     while (this.#firstChild) await this.#firstChild.close();
     while (this.#head) {
       this.#head.release();
-      await this.ledger.checkpoint();
+      const checkpoint = this.ledger.checkpoint();
+      if (checkpoint) await checkpoint;
     }
     if (this.parent) {
       if (this.#previousSibling) this.#previousSibling.#nextSibling = this.#nextSibling;

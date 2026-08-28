@@ -55,6 +55,7 @@ test("foundation: syntax refusal includes inactive branches and ordinary argv re
   await output('false && a[01]=bad', "", 2);
   await output('a=(x) echo nope', "", 2);
   await output('printf "%s" "a[1]=x"', "a[1]=x");
+  await output('printf "%s" a[01]=x', "a[01]=x");
   await output('printf "%s" "${a[0]:-x}"', "", 2);
 });
 
@@ -68,6 +69,7 @@ test("foundation: readonly, export phases and typed local restoration", { timeou
   await output('a=(x y); readonly a=zero; a[0]=bad || printf "refused:"; printf "<%s>" "${a[@]}"', "refused:<zero><y>");
   await output('export a=scalar; a=(${side:=bad}) || printf "refused:"; printf "%s/%s" "$a" "${side-unset}"', "refused:scalar/unset");
   await output('a=(x); export a=bad || printf "refused:"; printf "%s" "$a"', "refused:x");
+  await output('a=outer; f() { local a=inner; a=(typed tail); }; f; printf "%s/%s" "$a" "${#a[@]}"', "outer/1");
 });
 
 test("foundation: clones, functions, eval and fresh public exec", { timeout: 5000 }, async () => {
@@ -151,6 +153,60 @@ test("private state: whole-state epoch rejects interleaved dotglob snapshot", { 
   await assert.rejects(pending, /stale state snapshot/u);
   await scope.close();
   assert.deepEqual(scope.failures, []);
+});
+
+test("foundation: staged RHS mutation preserves live effects and refuses stale publication", { timeout: 5000 }, async () => {
+  await output('a=([2]=old); a=(${a:=side}) || printf "stale:"; printf "<%s>" "${a[@]}"', "stale:<side><old>");
+  await output('a=([2147483647]=${side:=bad} "$missing") || printf "overflow:"; printf "%s" "${side-unset}"', "overflow:unset");
+});
+
+test("foundation: scalar overlay is permanently superseded only by successful typed publication", { timeout: 5000 }, async () => {
+  const instance = shell();
+  instance.use(async (context, next) => { if (context.command === "f") context.env.a = "B"; return next(); });
+  try {
+    const result = await instance.exec('a=A; f() { unset a; a=(new); unset a; a=B; }; f; printf "%s" "$a"');
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "B");
+  } finally { await instance.dispose(); }
+});
+
+test("private ownership: root close drains admitted cooperative work before resources", { timeout: 2000 }, async () => {
+  const ledger = new ArrayLedger(1000, 100);
+  const owner = ArrayOwner.create(ledger);
+  const holding = owner.hold();
+  const payload = owner.reserve({ payload: 25, metadata: 32, work: 4 });
+  let settled = false;
+  const pending = owner.close().then(() => { settled = true; });
+  await new Promise<void>(resolve => setImmediate(resolve));
+  assert.equal(settled, false);
+  assert.equal(payload.released, false);
+  holding.release();
+  await pending;
+  assert.equal(payload.released, true);
+  assert.deepEqual(ledger.snapshot().used.slice(0, 4), [0, 0, 0, 0]);
+});
+
+test("foundation: actual public zero B/F limits retain scalar-only execution", { timeout: 5000 }, async () => {
+  const instance = shell();
+  try {
+    assert.equal((await instance.exec("true", { limits: { maxExpansionBytes: 0, maxExpansionFields: 1 } })).exitCode, 0);
+    const bytes = await instance.exec("a=()", { limits: { maxExpansionBytes: 0 } });
+    assert.equal(bytes.exitCode, 1);
+    assert.match(bytes.stderr, /private payload limit/u);
+    const fields = await instance.exec("a=()", { limits: { maxExpansionFields: 1 } });
+    assert.equal(fields.exitCode, 1);
+    assert.match(fields.stderr, /private metadata limit/u);
+  } finally { await instance.dispose(); }
+});
+
+test("foundation: actual default public expansion B/F boundaries", { timeout: 5000 }, async () => {
+  const instance = shell();
+  try {
+    const fieldSource = `values='${"x ".repeat(10001)}'; a=($values)`;
+    await assert.rejects(instance.exec(fieldSource), (error: unknown) => error instanceof Error && "limit" in error && error.limit === "maxExpansionFields");
+    const byteSource = `value='${"x".repeat(65536)}'; a[0]="${"$value".repeat(257)}"`;
+    await assert.rejects(instance.exec(byteSource), (error: unknown) => error instanceof Error && "limit" in error && error.limit === "maxExpansionBytes");
+  } finally { await instance.dispose(); }
 });
 
 test("private ledger: last observer retires, ABA gets fresh tickets, overlapping close single-flights", { timeout: 2000 }, async () => {

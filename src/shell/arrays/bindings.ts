@@ -90,6 +90,7 @@ export class IndexedBinding {
 
   async copy(signal: AbortSignal): Promise<IndexedBinding> {
     const copy = IndexedBinding.create(this.owner.parent!);
+    this.retain();
     try {
       for (const [index, element] of this.values) {
         copy.owner.reserve({ work: 2 }).release();
@@ -103,6 +104,7 @@ export class IndexedBinding {
       }
       return copy;
     } catch (error) { await copy.release(); throw error; }
+    finally { await this.release(); }
   }
 
   async indices(owner: ArrayOwner, signal: AbortSignal): Promise<number[]> {
@@ -189,7 +191,10 @@ export class BindingStore {
     let watch = this.watches.get(name);
     const observer = operation.reserve({ metadata: 64, work: 5 });
     if (!watch) {
-      const token = await textToken(this.owner, name, signal);
+      signal.throwIfAborted();
+      this.owner.reserve({ work: name.length }).release();
+      const bytes = Buffer.byteLength(name);
+      const token = new OwnedText(name, bytes, this.owner.reserve({ metadata: 32, payload: bytes, work: 4 }));
       try {
         const admission = this.owner.reserve({ slots: 1, metadata: 96, generation: true, version: true, work: 9 });
         watch = { generation: admission.generation, version: admission.version, typedVersion: 0, observers: 0, admission, name: token };
@@ -200,6 +205,7 @@ export class BindingStore {
     watch.observers++;
     const result = new BindingWatch(this, name, watch, observer);
     observer.cleanup = () => result.close();
+    await operation.ledger.checkpoint(signal, name.length);
     return result;
   }
 
@@ -234,14 +240,14 @@ export class BindingStore {
     } catch (error) { token.release(); throw error; }
   }
 
-  publish(name: string, binding: IndexedBinding, tickets: Tickets, prepared?: { readonly name: OwnedText; readonly admission: Admission }): Promise<void> | undefined {
+  publish(name: string, binding: IndexedBinding, tickets: Tickets, prepared?: { readonly name: OwnedText; readonly admission: Admission }, restoring = false): Promise<void> | undefined {
     const previous = this.bindings.get(name);
     const displaced = previous?.binding;
     if (previous) previous.binding = binding;
     else {
       if (!prepared) throw new Error("Missing indexed-array name admission");
-      this.owner.adopt(prepared.name.admission);
-      this.owner.adopt(prepared.admission);
+      this.owner.adopt(prepared.name.admission, restoring);
+      this.owner.adopt(prepared.admission, restoring);
       this.bindings.set(name, { binding, name: prepared.name, admission: prepared.admission });
     }
     this.changed(tickets, name);

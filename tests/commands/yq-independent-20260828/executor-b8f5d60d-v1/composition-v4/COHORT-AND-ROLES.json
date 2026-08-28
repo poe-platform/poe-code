@@ -1,0 +1,271 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "state": "STATIC_SOURCE_COMPOSITION_ONLY",
+  "jobsSha256": "96e72f94f0dbe57e96ec9ad6b394bd8257dda4ced130f8418bfa3a097c29bd80",
+  "originalRuntimeJobsSha256": "c0fbd4490a171734352795a33729c5b2b6f28ec980f11752ca097f19e9b8c368",
+  "outerSlots": 336,
+  "phaseCaps": [
+    {
+      "id": "AUTHENTICATION",
+      "startOffsetMs": 0,
+      "absoluteCutoffOffsetMs": 120000,
+      "capMs": 120000,
+      "jobCount": 1
+    },
+    {
+      "id": "BUILD",
+      "startOffsetMs": 120000,
+      "absoluteCutoffOffsetMs": 420000,
+      "capMs": 300000,
+      "jobCount": 1
+    },
+    {
+      "id": "SETUP",
+      "startOffsetMs": 420000,
+      "absoluteCutoffOffsetMs": 600000,
+      "capMs": 180000,
+      "jobCount": 2
+    },
+    {
+      "id": "CONTROLS",
+      "startOffsetMs": 600000,
+      "absoluteCutoffOffsetMs": 1170000,
+      "capMs": 570000,
+      "jobCount": 19
+    },
+    {
+      "id": "SOURCE_AUDIT",
+      "startOffsetMs": 1170000,
+      "absoluteCutoffOffsetMs": 1470000,
+      "capMs": 300000,
+      "jobCount": 1
+    },
+    {
+      "id": "SOURCE_RUNTIME",
+      "startOffsetMs": 1470000,
+      "absoluteCutoffOffsetMs": 8175000,
+      "capMs": 6705000,
+      "jobCount": 149
+    },
+    {
+      "id": "MOVED_RUNTIME",
+      "startOffsetMs": 8175000,
+      "absoluteCutoffOffsetMs": 21585000,
+      "capMs": 13410000,
+      "jobCount": 149
+    },
+    {
+      "id": "TYPES",
+      "startOffsetMs": 21585000,
+      "absoluteCutoffOffsetMs": 23145000,
+      "capMs": 1560000,
+      "jobCount": 3,
+      "jobIds": [
+        "TYPE-SOURCE-DIRECT-SIX",
+        "TYPE-DIRECT-SIX",
+        "TYPE-PUBLIC-FIVE"
+      ],
+      "allocation": {
+        "sourceDirectWorker": 540000,
+        "installedMovedDirectWorker": 540000,
+        "conditionalPublicWorker": 480000,
+        "directPerEnvironment": {
+          "setup": 90000,
+          "compilerInvocations": 6,
+          "compilerMsEach": 60000,
+          "postguardsEvidence": 60000,
+          "cleanup": 30000
+        },
+        "public": {
+          "setup": 90000,
+          "compilerInvocations": 5,
+          "compilerMsEach": 60000,
+          "postguardsEvidence": 60000,
+          "cleanup": 30000
+        }
+      }
+    },
+    {
+      "id": "LOADED_CONTROLS",
+      "startOffsetMs": 23145000,
+      "absoluteCutoffOffsetMs": 24045000,
+      "capMs": 900000,
+      "jobCount": 10
+    },
+    {
+      "id": "FINALIZATION",
+      "startOffsetMs": 24045000,
+      "absoluteCutoffOffsetMs": 24165000,
+      "capMs": 120000,
+      "jobCount": 1
+    }
+  ],
+  "totalMs": 24165000,
+  "cleanupInside": true,
+  "retry": false,
+  "resume": false,
+  "forecasts": false,
+  "profiles": [
+    {
+      "name": "source-built-direct",
+      "runtimeJobs": 149,
+      "uniqueIds": 132,
+      "semanticProjectionJobs": 128,
+      "admissionProjectionJobs": 21,
+      "directCompilerFixtures": 6,
+      "origin": "New independent compiler output+explicit map relocation+source README/package metadata; never authorbuilt copies",
+      "invocation": "Independently compiled tree direct createYqCommand module; never raw TypeScript or authorbuilt A"
+    },
+    {
+      "name": "installed-moved-direct",
+      "runtimeJobs": 149,
+      "uniqueIds": 132,
+      "semanticProjectionJobs": 128,
+      "admissionProjectionJobs": 21,
+      "directCompilerFixtures": 6,
+      "origin": "Full870 OFFLINE regular package materialization, then physical move BEFORE direct-module invocation; no npm install or public-root export claim"
+    }
+  ],
+  "installedUnmoved": {
+    "semanticJobs": 0,
+    "typeJobs": 0,
+    "role": "ADMISSION_AND_MOVEMENT_ORIGIN"
+  },
+  "compilerAttempts": {
+    "build": 1,
+    "direct": 12,
+    "publicReserved": 5,
+    "currentPublic": "UNRUN_NO_PUBLIC_YQ_EXPORT",
+    "maximum": 18,
+    "currentPlanned": 13
+  },
+  "loaded": {
+    "slots": 10,
+    "knownBindingGaps": [
+      {
+        "id": "source-built-direct/LOAD-POSITIVE",
+        "variantId": null,
+        "environment": "source-built-direct",
+        "statusWhenKnownFactsMatch": "INCOMPLETE",
+        "classification": "PRISTINE_OBSERVATION_BINDING_GAP",
+        "positiveCredit": false,
+        "killCredit": false,
+        "prerequisite": "expected.assertions[0] has no executable proof binding under frozen F01",
+        "mustDenyBeforeMaterializationAndImport": false
+      },
+      {
+        "id": "source-built-direct/MUT-RETAINED-VIEW",
+        "variantId": "retained-view",
+        "environment": "source-built-direct",
+        "statusWhenKnownFactsMatch": "UNRUN",
+        "classification": "UNRUN_CONTROL_PRISTINE_OBSERVATION_BINDING_GAP",
+        "positiveCredit": false,
+        "killCredit": false,
+        "prerequisite": "expected.assertions[0] has no executable proof binding under frozen F01",
+        "mustDenyBeforeMaterializationAndImport": true
+      },
+      {
+        "id": "installed-moved-direct/LOAD-POSITIVE",
+        "variantId": null,
+        "environment": "installed-moved-direct",
+        "statusWhenKnownFactsMatch": "INCOMPLETE",
+        "classification": "PRISTINE_OBSERVATION_BINDING_GAP",
+        "positiveCredit": false,
+        "killCredit": false,
+        "prerequisite": "expected.assertions[0] has no executable proof binding under frozen F01",
+        "mustDenyBeforeMaterializationAndImport": false
+      },
+      {
+        "id": "installed-moved-direct/MUT-RETAINED-VIEW",
+        "variantId": "retained-view",
+        "environment": "installed-moved-direct",
+        "statusWhenKnownFactsMatch": "UNRUN",
+        "classification": "UNRUN_CONTROL_PRISTINE_OBSERVATION_BINDING_GAP",
+        "positiveCredit": false,
+        "killCredit": false,
+        "prerequisite": "expected.assertions[0] has no executable proof binding under frozen F01",
+        "mustDenyBeforeMaterializationAndImport": true
+      }
+    ],
+    "positive2": "Matching primitives with exact UTF22 unbound assertion =>INCOMPLETE; contradiction remainsFAIL",
+    "retainedMutant2": "UNRUN before materialization/import; no observation adapter",
+    "otherMutant6": "Actual loaded mutated dependency+invoked unchanged witness+genuine prior same-environment F01 PASS+declared changed primitive"
+  },
+  "coverage": {
+    "records": 194,
+    "overlays": 8,
+    "overlapNotSummed": true,
+    "roleCounts": [
+      111,
+      34,
+      23,
+      11,
+      4,
+      5,
+      6
+    ],
+    "completeSemanticEligibility": 94,
+    "partial": 17,
+    "missingRecords": 80,
+    "missingObligations": 135,
+    "sourceStaticRecords": 23,
+    "sourceRepairArguments": 4,
+    "missingStatus": "UNRUN_NOT_PRODUCT_FAIL",
+    "semanticPassRate": null,
+    "fullRecordAcceptance": false,
+    "namedRoleCounts": {
+      "command-semantic-runtime": 111,
+      "admission-error-boundary": 34,
+      "source-static-counterproof": 23,
+      "lifecycle-cooperative": 11,
+      "materialized-package-infrastructure": 4,
+      "type-consumer": 5,
+      "negative-control": 6
+    }
+  },
+  "historical": {
+    "parent": "4b219eae FAIL immutable",
+    "oldCMD22": "Raw failure retained; exact narrow87dad0c predicate only",
+    "oldUnfulfilled": 31,
+    "oldUnrun": 134,
+    "mode": "90a FINAL-SEAL content e569179037058f038e0fc28345af56ae95e06765e153fe0724cc5fbd273019a2 ORIGINAL_MODE_UNATTESTED only; old DENY unchanged",
+    "frozenB1": {
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "review": "88f92894efd9c14de76ed6a2669292f10467dc4f",
+      "status": "CHANGES_REQUIRED_NOT_RESCORED"
+    },
+    "compositionV3": {
+      "commit": "c175839a69f4c352c5f8fcfb405ead06782e8684",
+      "classification": "IMMUTABLE_UNEXECUTED_NOT_CLAIMED_REVIEWED_OR_COMPLETED"
+    }
+  },
+  "actual": {
+    "productImports": 0,
+    "buildCompilers": 0,
+    "typeCompilers": 0,
+    "loaderCalls": 0,
+    "harnessControls": 0,
+    "coordinators": 0,
+    "authoredMaterializers": 0,
+    "activeOwnedExecutionChildren": 0
+  },
+  "compositionEdition": "v4",
+  "recipe": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/RECIPE.json",
+    "sha256": "92b4c7b958b9f07b75c2f55fa719e83093317a506bb41f74526a4df09eed7c90"
+  },
+  "knownPreOuterRetainedViewDenials": 2,
+  "maximumOuterStartsAbsentOtherRefusals": 334,
+  "ledger": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/assembly/core/data/ledger.json",
+    "sha256": "e7cafaa36105dd65501b2c8d35c802729c1da27abc03259eaad5257e1e6590e8"
+  },
+  "obligations": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/assembly/core/data/obligations.json",
+    "sha256": "03bddefe2f75af7e03345608aab69f47cdfeaeadb7213082d2f8722c15526df3"
+  },
+  "newCases": 0,
+  "newControlsEnrolled": 0
+}

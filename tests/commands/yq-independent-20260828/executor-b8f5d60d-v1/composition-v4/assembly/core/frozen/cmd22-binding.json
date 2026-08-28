@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "version": "runtime-v3-cmd22-path-domain-preseal",
+  "id": "CMD-22-literal-operand-to-resolved-vfs-v1",
+  "recordId": "CMD-22",
+  "expectationDomain": "literal-file-operands",
+  "observationDomain": "resolved-vfs-paths",
+  "profile": {
+    "id": "frozen-fixture-posix-resolve-v1",
+    "cwd": "/v",
+    "contextSha256": "b4827ee8656e9d2a88a23176c9b61b757bf9d4c79f8c46463c5cb579e42e7821",
+    "resolverSourceCommit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "resolverSourcePath": "src/contracts/path.ts",
+    "resolverSourceSha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+    "operation": "validate string/NUL-free absolute cwd and string/NUL-free operand; node:path.posix.resolve(cwd, operand)",
+    "scope": "lexical fixture VFS paths, not host cwd, symlink containment or deployed filesystem semantics"
+  },
+  "literalOperands": [
+    "-name"
+  ],
+  "resolvedExpectedReads": [
+    "/v/-name"
+  ],
+  "frozenJobSha256": "ae7d0831845bc564edaab13216e81a113a1c8c6d1cfe01ae5be2c641d72e8cb3",
+  "frozenJob": {
+    "id": "CMD-22--whole",
+    "recordId": "CMD-22",
+    "role": "command-semantic-runtime",
+    "argv": [
+      "--output-format=json",
+      "--compact-output",
+      "--",
+      ".",
+      "-name"
+    ],
+    "stdinChunksHex": [
+      ""
+    ],
+    "stdinIsDefault": true,
+    "producerReuse": false,
+    "files": [
+      {
+        "path": "-name",
+        "hex": "66616c73650a"
+      }
+    ],
+    "expected": {
+      "status": 0,
+      "stdoutUtf8": "false\n",
+      "reads": [
+        "-name"
+      ]
+    },
+    "fullRecordEligibleAfterProjection": true,
+    "sourceReference": {
+      "source": "freeze-command-parser",
+      "path": "tests/commands/yq-independent-20260828/freeze/command-parser.json",
+      "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+      "pointer": "/cases/21",
+      "recordSha256": "2b02982553c2e253a6caea3eeeb65ee91dd0dd1170e890644691648249ddac8f",
+      "inputSha256": "745189fc77fe0a3f0bdc11a460db36f6d2629f9fe16d261942cdd289728d9d8e",
+      "defaultsSha256": "203ec05dc33535f956bb0eb3ddf94bb6bde70f9ed89e8cf312dea0aa5e3a287d"
+    },
+    "overlayReference": null,
+    "missingBindings": []
+  },
+  "historicalReviewCommit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+  "semanticPasses": 0,
+  "grantsGO": false
+}

@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "selectedComponents": [
+    {
+      "name": "composition-v3-parent",
+      "commit": "c175839a69f4c352c5f8fcfb405ead06782e8684",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v3/FINAL-SEAL.json",
+      "sha256": "f633d77168b78eb061001b98f2da3098a95e8329d049f41bfe027ee1740c1288"
+    },
+    {
+      "name": "CC-F01-one-line",
+      "commit": "30c38df6a8ee526392fc59850475dfad679cfd59",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/coordinator-aggregation-v4/FINAL-SEAL.json",
+      "sha256": "3abd40dc8b40cc079e12f4a74cebaed825a0c0de9006741910efdc1253621665"
+    }
+  ],
+  "sourceAuthentication": [
+    {
+      "commit": "c175839a69f4c352c5f8fcfb405ead06782e8684",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v3/FINAL-SEAL.json",
+      "sha256": "f633d77168b78eb061001b98f2da3098a95e8329d049f41bfe027ee1740c1288",
+      "files": 85,
+      "committedLiveBytesModesSizesAndMembership": true
+    },
+    {
+      "commit": "30c38df6a8ee526392fc59850475dfad679cfd59",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/coordinator-aggregation-v4/FINAL-SEAL.json",
+      "sha256": "3abd40dc8b40cc079e12f4a74cebaed825a0c0de9006741910efdc1253621665",
+      "files": 10,
+      "committedLiveBytesModesSizesAndMembership": true
+    }
+  ],
+  "overlay": {
+    "commit": "30c38df6a8ee526392fc59850475dfad679cfd59",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/coordinator-aggregation-v4/ASSEMBLY-OVERLAY.json",
+    "sha256": "3b13adfff112166e5d4803da62761fd8d400f9cd355db97019d7efa31cc3eac3",
+    "targets": 1,
+    "sourcePreseal": {
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/coordinator-aggregation-v4/SOURCE-PRESEAL.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3995,
+      "sha256": "551879a34bb2092280657bb0f65016438c98b26a5a47c15cd7b75ad3cd98ef2f"
+    },
+    "selectedSource": {
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/coordinator-aggregation-v4/overlay/core/supervisor.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 27700,
+      "sha256": "49c7c7050769e2c2edf71a27edd26790ac786e05dc6afbc02c93eba372d361a0"
+    },
+    "preimageInParent": {
+      "commit": "c175839a69f4c352c5f8fcfb405ead06782e8684",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v3/assembly/core/supervisor.mjs",
+      "sha256": "7d33d4e0feba862a3bf3b5da3f6e41bd2217871c01d429207b4a47061682a126",
+      "bytes": 27596,
+      "mode": 420
+    },
+    "literalChange": {
+      "kind": "one-exact-text-insertion",
+      "line": 276,
+      "occurrences": 1,
+      "oldFragment": "parent.timedOut || parent.overflow || !finalReap",
+      "newFragment": "parent.timedOut || parent.overflow || parent.spawnError !== null || parent.metadataComplete !== true || parent.metadataError !== undefined || !finalReap",
+      "addedBytes": 104,
+      "removedBytes": 0,
+      "changedLines": 1
+    }
+  },
+  "historicalFinding": {
+    "id": "CC-F01",
+    "witness": {
+      "commit": "cc6da0299760f26cdfcf0b77ad26d1e0b0b7c260",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/corrected-composition-review-v2/CC-F01-STATIC-WITNESS.json",
+      "sha256": "604334221f8e1b1caad5e55a17055e644960cda2bd744f1dbc3aaa8d32fb20fc",
+      "bytes": 9229
+    },
+    "review": {
+      "commit": "cac8ebacb329927c7dc6d2cd769a3d2e8c7f8672",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/corrected-composition-review-v2/FINAL-SEAL.json",
+      "sha256": "2564c1e8bb2209116ef317716765d1d55040f04c29bd49bd31d05081b6f97c04"
+    },
+    "role": "Frozen finding provenance, not v4 acceptance"
+  },
+  "parent": {
+    "commit": "c175839a69f4c352c5f8fcfb405ead06782e8684",
+    "immutable": true,
+    "unexecuted": true,
+    "reviewedOrCompletedClaim": false
+  },
+  "independentFixReview": "PENDING_NOT_ASSUMED",
+  "independentUnionReview": "FUTURE_EXACT_V4_FINAL_SEAL_REFERENCE_REQUIRED_NOT_POPULATED",
+  "candidate": {
+    "source": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+    "evidence": "644460b932feb6fa87222b7042d705da1219cf0c",
+    "handoff": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+    "sourceArchive": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+    "fullPackage": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+    "sourceProjection": 271,
+    "archiveFiles": 273,
+    "fullPackageFiles": 870,
+    "fullReadmeRequired": true,
+    "unchanged": true,
+    "sourcePolicy": "5137 baseline +7436 accepted length changes +7 selected Yq/private adapter paths, not whole Git301 or mutable HEAD",
+    "authority": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v3/assembly/core/data/sourceAuthority.json",
+      "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752"
+    }
+  },
+  "physicalGuard": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/PHYSICAL-INPUT-SEAL.json",
+    "sha256": "d977b6e68190077c9bb7a231465e91f3d459374361736d0f8e9fd5a07167afe0"
+  },
+  "unchangedContract": {
+    "commit": "c175839a69f4c352c5f8fcfb405ead06782e8684",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v3/SPECIFICATION.md",
+    "sha256": "df8b7eabe1081a5731e930daa6f709a53d3888c96e56befd43318c888964b292",
+    "policyOrABIChanges": 0
+  },
+  "originalPreparationFailures": "Original parent and overlay failed static attempts remain under their immutable seals; no rescore.",
+  "RootGO": false
+}

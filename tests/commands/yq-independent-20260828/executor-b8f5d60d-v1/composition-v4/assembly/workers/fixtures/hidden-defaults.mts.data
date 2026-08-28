@@ -1,0 +1,2 @@
+import { defaultYqLimits } from "@@ROOT@@";
+export const forbidden = defaultYqLimits;

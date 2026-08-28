@@ -1,0 +1,326 @@
+[
+  {
+    "category": "cli",
+    "code": "CLI_ARGV_ENTRIES_LIMIT",
+    "status": 2,
+    "conditions": "context.args.length exceeds 4096"
+  },
+  {
+    "category": "cli",
+    "code": "CLI_ARGV_BYTES_LIMIT",
+    "status": 2,
+    "conditions": "aggregate argv UTF-8 bytes exceed 65536 or checked arithmetic overflows"
+  },
+  {
+    "category": "cli",
+    "code": "CLI_INVALID_UNICODE",
+    "status": 2,
+    "conditions": "an argv string contains an unpaired surrogate"
+  },
+  {
+    "category": "cli",
+    "code": "CLI_INFO_COMBINATION",
+    "status": 2,
+    "conditions": "-h/--help/--version occurs outside an exact sole-information form"
+  },
+  {
+    "category": "cli",
+    "code": "CLI_UNSUPPORTED_COMMAND",
+    "status": 2,
+    "conditions": "eval-all or ea is used as a command word"
+  },
+  {
+    "category": "cli",
+    "code": "CLI_MISSING_OPTION_VALUE",
+    "status": 2,
+    "conditions": "-o/--output-format lacks its required value, including empty long equals form"
+  },
+  {
+    "category": "cli",
+    "code": "CLI_INVALID_OPTION_VALUE",
+    "status": 2,
+    "conditions": "an output format value is not yaml or json"
+  },
+  {
+    "category": "cli",
+    "code": "CLI_UNSUPPORTED_OPTION",
+    "status": 2,
+    "conditions": "a specifically refused b311 option/mode spelling is present"
+  },
+  {
+    "category": "cli",
+    "code": "CLI_UNKNOWN_OPTION",
+    "status": 2,
+    "conditions": "any other unlisted option, short cluster, or attached short value; offending text is not echoed"
+  },
+  {
+    "category": "cli",
+    "code": "CLI_DUPLICATE_OPTION",
+    "status": 2,
+    "conditions": "a second spelling of one option family occurs"
+  },
+  {
+    "category": "cli",
+    "code": "CLI_INCOMPATIBLE_OPTIONS",
+    "status": 2,
+    "conditions": "compact or unwrap is selected without explicit JSON output"
+  },
+  {
+    "category": "cli",
+    "code": "CLI_DUPLICATE_STDIN",
+    "status": 2,
+    "conditions": "a second '-' file operand occurs"
+  },
+  {
+    "category": "cli",
+    "code": "CLI_VFS_OPERAND_LIMIT",
+    "status": 2,
+    "conditions": "one literal VFS operand path exceeds 16384 UTF-8 bytes"
+  },
+  {
+    "category": "query",
+    "code": "QUERY_COMPILE_FAILED",
+    "status": 3,
+    "conditions": "a recognized non-limit JqError escapes synchronous parse"
+  },
+  {
+    "category": "query",
+    "code": "QUERY_RUNTIME_FAILED",
+    "status": 5,
+    "conditions": "a recognized non-limit JqError escapes Interpreter.run"
+  },
+  {
+    "category": "input",
+    "code": "INPUT_INVALID_UTF8",
+    "status": 5,
+    "conditions": "fatal UTF-8 decoding fails"
+  },
+  {
+    "category": "input",
+    "code": "INPUT_YAML_SYNTAX",
+    "status": 5,
+    "conditions": "YAML token/indentation/escape/character grammar is malformed"
+  },
+  {
+    "category": "input",
+    "code": "INPUT_DOCUMENT_STRUCTURE",
+    "status": 5,
+    "conditions": "a BOM, otherwise-supported directive, marker, document boundary, or trailing stream structure is misplaced"
+  },
+  {
+    "category": "schema",
+    "code": "SCHEMA_UNSUPPORTED_DIRECTIVE",
+    "status": 5,
+    "conditions": "at a legal directives position, a directive other than one %YAML 1.2, or a duplicate/reserved directive, is present"
+  },
+  {
+    "category": "schema",
+    "code": "SCHEMA_UNSUPPORTED_TAG",
+    "status": 5,
+    "conditions": "a local/application/unknown/non-specific/disallowed built-in tag, including !!merge/tag:yaml.org,2002:merge, is present"
+  },
+  {
+    "category": "schema",
+    "code": "SCHEMA_TAG_KIND_MISMATCH",
+    "status": 5,
+    "conditions": "accepted map/seq/scalar tag is attached to the wrong node kind"
+  },
+  {
+    "category": "schema",
+    "code": "SCHEMA_TAG_LEXEME_MISMATCH",
+    "status": 5,
+    "conditions": "accepted explicit null/bool/int/float tag content misses its Core lexical family"
+  },
+  {
+    "category": "schema",
+    "code": "SCHEMA_NONSTRING_KEY",
+    "status": 5,
+    "conditions": "a composed mapping key is not a scalar string"
+  },
+  {
+    "category": "schema",
+    "code": "SCHEMA_DUPLICATE_KEY",
+    "status": 5,
+    "conditions": "two decoded/resolved string keys are equal by Unicode code points"
+  },
+  {
+    "category": "schema",
+    "code": "SCHEMA_PLAIN_MERGE_KEY",
+    "status": 5,
+    "conditions": "a mapping key is plain, untagged, and decodes exactly to <<"
+  },
+  {
+    "category": "schema",
+    "code": "SCHEMA_NONFINITE_NUMBER",
+    "status": 5,
+    "conditions": "input or yielded graph contains NaN or either infinity after resolution/conversion"
+  },
+  {
+    "category": "schema",
+    "code": "SCHEMA_UNSAFE_INTEGER",
+    "status": 5,
+    "conditions": "exact mathematical integral value or converted integral double is outside Number safe-integer range"
+  },
+  {
+    "category": "schema",
+    "code": "SCHEMA_DECIMAL_RANGE",
+    "status": 5,
+    "conditions": "normalized decimal exponent is outside [-1147483646, 999999999]"
+  },
+  {
+    "category": "alias",
+    "code": "ALIAS_UNDEFINED",
+    "status": 5,
+    "conditions": "alias name has no anchor in the current document, including a prior-document-only name"
+  },
+  {
+    "category": "alias",
+    "code": "ALIAS_FORWARD",
+    "status": 5,
+    "conditions": "alias names an anchor declared later in the current document"
+  },
+  {
+    "category": "alias",
+    "code": "ALIAS_CURRENT_NODE",
+    "status": 5,
+    "conditions": "alias directly names an anchor whose node has not completed composition/validation"
+  },
+  {
+    "category": "alias",
+    "code": "ALIAS_CYCLE",
+    "status": 5,
+    "conditions": "an indirect alias chain would recursively re-enter a composing/copying node"
+  },
+  {
+    "category": "alias",
+    "code": "ALIAS_DUPLICATE_ANCHOR",
+    "status": 5,
+    "conditions": "under Y2_DUPLICATE_ANCHOR choice B, an anchor name is declared twice in one document; under choice A this code is reserved and never emitted"
+  },
+  {
+    "category": "limit",
+    "code": "LIMIT_MAX_INPUT_BYTES",
+    "status": 5,
+    "conditions": "cumulative received source bytes exceed 67108864"
+  },
+  {
+    "category": "limit",
+    "code": "LIMIT_MAX_DOCUMENT_BYTES",
+    "status": 5,
+    "conditions": "current assigned raw document bytes exceed 8388608"
+  },
+  {
+    "category": "limit",
+    "code": "LIMIT_MAX_VALUE_BYTES",
+    "status": 5,
+    "conditions": "one compact-measured composed/yielded graph exceeds 8388608"
+  },
+  {
+    "category": "limit",
+    "code": "LIMIT_MAX_SCALAR_BYTES",
+    "status": 5,
+    "conditions": "one decoded scalar/key exceeds 1048576 UTF-8 bytes"
+  },
+  {
+    "category": "limit",
+    "code": "LIMIT_MAX_QUERY_SOURCE_BYTES",
+    "status": 5,
+    "conditions": "filter exceeds 8192 UTF-8 bytes"
+  },
+  {
+    "category": "limit",
+    "code": "LIMIT_MAX_DEPTH",
+    "status": 5,
+    "conditions": "one input/result graph exceeds depth 128"
+  },
+  {
+    "category": "limit",
+    "code": "LIMIT_MAX_AST_DEPTH",
+    "status": 5,
+    "conditions": "compiled query AST exceeds depth 64"
+  },
+  {
+    "category": "limit",
+    "code": "LIMIT_MAX_STEPS",
+    "status": 5,
+    "conditions": "single invocation Budget steps exceed 1000000"
+  },
+  {
+    "category": "limit",
+    "code": "LIMIT_MAX_RESULTS",
+    "status": 5,
+    "conditions": "cumulative engine yields exceed 100000"
+  },
+  {
+    "category": "limit",
+    "code": "LIMIT_MAX_COLLECTION_SIZE",
+    "status": 5,
+    "conditions": "one current collection exceeds 100000 members"
+  },
+  {
+    "category": "limit",
+    "code": "LIMIT_MAX_DOCUMENTS",
+    "status": 5,
+    "conditions": "cumulative composed documents exceed 1024"
+  },
+  {
+    "category": "limit",
+    "code": "LIMIT_MAX_ANCHORS_PER_DOCUMENT",
+    "status": 5,
+    "conditions": "current document anchors exceed 1024"
+  },
+  {
+    "category": "limit",
+    "code": "LIMIT_MAX_ALIAS_REFERENCES",
+    "status": 5,
+    "conditions": "cumulative accepted aliases exceed 1024"
+  },
+  {
+    "category": "limit",
+    "code": "LIMIT_MAX_DOCUMENT_NODES",
+    "status": 5,
+    "conditions": "current original-plus-alias-copy nodes exceed 100000"
+  },
+  {
+    "category": "limit",
+    "code": "LIMIT_MAX_OUTPUT_BYTES",
+    "status": 5,
+    "conditions": "stdout exceeds 16773120 or combined admitted stdout/stderr exceeds 16777216"
+  },
+  {
+    "category": "limit",
+    "code": "DIAGNOSTIC_TRUNCATED",
+    "status": "inherits selected normal failure",
+    "conditions": "fallback-only code when the preferred selected diagnostic cannot fit the reserve/cap"
+  },
+  {
+    "category": "vfs",
+    "code": "VFS_INPUT_OPEN",
+    "status": 2,
+    "conditions": "a typed non-cancellation VFS failure occurs before a readStream iterator is returned for an operand"
+  },
+  {
+    "category": "vfs",
+    "code": "VFS_INPUT_READ",
+    "status": 2,
+    "conditions": "a typed non-cancellation VFS failure rejects fallback readFile or readStream iteration after source creation"
+  },
+  {
+    "category": "encode",
+    "code": "ENCODE_UNSUPPORTED_VALUE",
+    "status": 5,
+    "conditions": "yielded graph contains a non-Json value or unsupported object"
+  },
+  {
+    "category": "encode",
+    "code": "ENCODE_INVALID_UNICODE",
+    "status": 5,
+    "conditions": "yielded string/key is not well-formed Unicode"
+  },
+  {
+    "category": "encode",
+    "code": "ENCODE_CYCLIC_GRAPH",
+    "status": 5,
+    "conditions": "yielded graph contains a reference cycle"
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "date": "2026-08-28",
+  "phase": "sealed after initial module commit, before ANY build/runtime execution",
+  "candidate": "58be2d6c5706f3e90f01d48e695ecfd9daa52669",
+  "precodeProtocol": "7ce2ed91",
+  "runtimeCasesPerLayout": 63,
+  "caseSplit": "32 literal +24 supplementary +7 provider flows; ReadOnly is a required refusal, not a writable positive",
+  "typesPerLayout": "one positive +two deliberate negatives +two repaired inversions",
+  "mutants": 6,
+  "loaderNegatives": 3,
+  "scope": "whole isolated compiled-source package, offline installed, physically moved; internal new-module imports only; no source fallback or public wiring claim",
+  "fixtureDelta": "MockDav source from exact accepted base, development transpile-only; only emitted relative resource-id import is routed to the same admitted package. No helper behavior changes or actual service.",
+  "files": {
+    "run.mjs":"adafc32db11c88a9f7cd1899bd0ac02fe92492555d80264aefed4e66d02dad4b",
+    "probe.mjs":"b98034e3a3b9e55558fd401ae53ab78bbb3fc2534c51fced281c5b96ea47f786",
+    "loader.mjs":"2e3e3aa46fb2696f1c7794ad4a9fc5eefdb371bb386cc1602280cc23ad5cd0e5",
+    "CASES-v1.json":"e13c2ed4ddce65dc0d976a06ba32ddd42f00d7472579cbc30769d007ea42ab61",
+    "IMPLEMENTATION-PRESEAL-v1.json":"62ab7f9d184d9b3ab399805069e1110f024fb8d8841876b8aed1d5701981bfcc",
+    "../../integration/coherent78-shell-author-20260828/compose.mjs":"326b23a6322756a2cd838462687b9ec20aa58d5c185f61b8f101c9a8caf85db5",
+    "../../integration/coherent78-shell-author-20260828/MANIFEST.json":"4ecaed8c6fc04a90320482531ea50cc729a4ac52bcb88782922d0225417dc18e"
+  }
+}

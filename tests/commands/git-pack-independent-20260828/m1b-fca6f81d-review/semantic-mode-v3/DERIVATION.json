@@ -1,0 +1,274 @@
+{
+  "schema": "m1b-semantic-mode-derivation-v3",
+  "date": "2026-08-28",
+  "authority": "ROOT_AUTHORIZED_SI_MODE_01_HARNESS_CORRECTION_ONLY",
+  "originalSemanticCommit": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+  "immutableIntegrationCommits": [
+    "c3d8a8578b9e83af9b16fb85d553f05a66d5a534",
+    "b57b45b7461cb133863f6b0a97e8fdcf7fc8cf3b"
+  ],
+  "sourceInputs": [
+    {
+      "revision": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/semantic.mjs",
+      "gitMode": "100644",
+      "blob": "330b0f6101fe83be31b63bbd07caae27e402aea5",
+      "bytes": 18577,
+      "sha256": "016378caa896457d1c4fc2852fe49d6c18b02e65b567dfaad88e6672cf4c64f2",
+      "role": "IMMUTABLE_DERIVATION_PREIMAGE"
+    },
+    {
+      "revision": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/fixtures.mjs",
+      "gitMode": "100644",
+      "blob": "e8d90bc25e364c0bd54a97d595c9fa0488c134f7",
+      "bytes": 12591,
+      "sha256": "4595e425d2c562069d1c4529ad7af9a0c48af11017cc8ce4aa75707a95a65145",
+      "role": "UNCHANGED_COMPOUND_INPUT"
+    },
+    {
+      "revision": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/CASE-DATA.json",
+      "gitMode": "100644",
+      "blob": "d7b30ae77aa042bc557931b38536f619b1e50094",
+      "bytes": 166027,
+      "sha256": "cdff96c2817366c7506e1cf785f9b4ca9056cfc1d787df232bd1dde95d6f2ff0",
+      "role": "UNCHANGED_COMPOUND_INPUT"
+    },
+    {
+      "revision": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/FROZEN-DATA.json",
+      "gitMode": "100644",
+      "blob": "24875b4a409ccb0791d50262aeb637b37e49fc8f",
+      "bytes": 128512,
+      "sha256": "a57c3da7b9354dd5d5cc1af23f5a10160aaafa0a2f05c94ee64d022946b4811d",
+      "role": "UNCHANGED_COMPOUND_INPUT"
+    },
+    {
+      "revision": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/CASES.json",
+      "gitMode": "100644",
+      "blob": "da16afd79d269b64a7f4bdb6941cc243cec22433",
+      "bytes": 47492,
+      "sha256": "bc12868ad2897c28363280d7a93f21f20f7729130f8f70bc07bd5c1acdc2d737",
+      "role": "UNCHANGED_COMPOUND_INPUT"
+    },
+    {
+      "revision": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/BATCHES.json",
+      "gitMode": "100644",
+      "blob": "d4c29b908c63db730e4ba82bb8d21e933fb2d73a",
+      "bytes": 11869,
+      "sha256": "4ac45458102bf159fdbfb6a4484203dfdf7c6428f18f4956cf610d9365b479d2",
+      "role": "UNCHANGED_COMPOUND_INPUT"
+    },
+    {
+      "revision": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/BINDINGS.json",
+      "gitMode": "100644",
+      "blob": "12e3b7ea6e00b09ac24d4e738bfa490efe8c580d",
+      "bytes": 14401,
+      "sha256": "1befe8a62e3cc4dd6b8a0556607f2a3318b7960edcf98b8e7f08e22bcbf0af91",
+      "role": "HISTORICAL_AUTHORITY_METADATA"
+    },
+    {
+      "revision": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/SEAL.json",
+      "gitMode": "100644",
+      "blob": "516dd3a729d7c2b458a5e2edd322a851099e9209",
+      "bytes": 5762,
+      "sha256": "fcc60cc7cad15d74a1e59443b1cd3a792a02ce4d395de09b1ff30e666fb63c2d",
+      "role": "HISTORICAL_AUTHORITY_METADATA"
+    }
+  ],
+  "selectedMemorySource": {
+    "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "path": "src/fs/memory/index.ts",
+    "gitMode": "100644",
+    "blob": "29551d4afa95503783f915410fcdafaf518a6786",
+    "bytes": 23533,
+    "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+    "role": "SELECTED_SOURCE_STAT_REPRESENTATION_PROOF"
+  },
+  "mapping": {
+    "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-mode-v3/semantic.mjs",
+    "assemblyPath": "semantic/semantic.mjs",
+    "export": "async runCase(api,caseId)",
+    "freshRegularMode": 420,
+    "preimage": {
+      "bytes": 18577,
+      "sha256": "016378caa896457d1c4fc2852fe49d6c18b02e65b567dfaad88e6672cf4c64f2",
+      "gitBlob": "330b0f6101fe83be31b63bbd07caae27e402aea5"
+    },
+    "postimage": {
+      "bytes": 18613,
+      "sha256": "0f8e4b79ec3cf233b9b31a166f83feef264384a62039417ef2f0e049f899da7f"
+    },
+    "patchDataPath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-mode-v3/MODE.patch.data",
+    "patchStatus": "UNAPPLIED_DATA_ONLY_NOT_AN_AUTHORITY_TO_EDIT_ORIGINAL_WORKTREE"
+  },
+  "segments": [
+    {
+      "kind": "UNCHANGED",
+      "originalOffsetBytes": 0,
+      "bytes": 6197,
+      "sha256": "7d55b57503ba66bd63f1ff080b7b20f7c339c855ae519f6b54f4cc89a2c24beb"
+    },
+    {
+      "kind": "REPLACE",
+      "id": "FULL_FILE_STAT_MODE",
+      "before": "expectedFiles.set(path, { mode: file.mode, bytes: file.bytes.length, sha256: digest(file.bytes) });",
+      "after": "expectedFiles.set(path, { mode: 0o100000 | file.mode, bytes: file.bytes.length, sha256: digest(file.bytes) });",
+      "offsetBytes": 6197,
+      "line": 132,
+      "beforeSha256": "2e9ff418d66e907abbe6958fcdc06dd72f02466fd3d4f80d17572273992e4695",
+      "afterSha256": "546f26b530152251ae8cb69ec94adc251723b524faa6b85f9ea99c20dea2c7da",
+      "beforeBytes": 99,
+      "afterBytes": 110,
+      "requiredOccurrences": 1
+    },
+    {
+      "kind": "UNCHANGED",
+      "originalOffsetBytes": 6296,
+      "bytes": 300,
+      "sha256": "ec81a582851aab96963a2f1fbc54668e85e4437986f596768cebab0d572e5fe0"
+    },
+    {
+      "kind": "REPLACE",
+      "id": "EXPLICIT_DIRECTORY_STAT_MODE",
+      "before": ": row.type === 'directory'));",
+      "after": ": row.type === 'directory' && row.mode === 0o040755));",
+      "offsetBytes": 6596,
+      "line": 134,
+      "beforeSha256": "af8fd0ca33d5d08d297c901913e68f29638e2526898c9e2e5174d1ee44a74b29",
+      "afterSha256": "e29ed52eb879f075392f06899719c72e8acf178c36d64056b38dc1726b85243d",
+      "beforeBytes": 29,
+      "afterBytes": 54,
+      "requiredOccurrences": 1
+    },
+    {
+      "kind": "UNCHANGED",
+      "originalOffsetBytes": 6625,
+      "bytes": 11952,
+      "sha256": "2c26111b7c65a5f430b59feca199502c59cd074478a92254a9415e86abd55249"
+    }
+  ],
+  "modeMeaning": {
+    "fixturePermission": 420,
+    "expectedFileType": 32768,
+    "expectedFullFileMode": 33188,
+    "expectedDirectoryType": 16384,
+    "declaredDirectoryPermission": 493,
+    "expectedFullDirectoryMode": 16877,
+    "sourceSites": [
+      {
+        "path": "src/fs/memory/index.ts",
+        "line": 54,
+        "meaning": "File/directory type constants"
+      },
+      {
+        "path": "src/fs/memory/index.ts",
+        "line": 106,
+        "meaning": "Root directory0755"
+      },
+      {
+        "path": "src/fs/memory/index.ts",
+        "line": 133,
+        "meaning": "Directory mode is type OR permissions"
+      },
+      {
+        "path": "src/fs/memory/index.ts",
+        "line": 234,
+        "meaning": "Raw FileStat mode retained"
+      },
+      {
+        "path": "src/fs/memory/index.ts",
+        "line": 268,
+        "meaning": "Regular file mode is type OR permissions"
+      }
+    ],
+    "fixtureSites": [
+      {
+        "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/semantic.mjs",
+        "line": 84,
+        "meaning": "/repo0755"
+      },
+      {
+        "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/semantic.mjs",
+        "line": 88,
+        "meaning": "Ancestor directories0755"
+      },
+      {
+        "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/semantic.mjs",
+        "line": 89,
+        "meaning": "Explicit fixture-directory permissions applied"
+      },
+      {
+        "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/fixtures.mjs",
+        "meaning": "All declared extra directories use0755; original bytes bound, no runtime inference"
+      }
+    ]
+  },
+  "preservation": {
+    "caseCount": 104,
+    "controlCount": 56,
+    "layouts": [
+      "S",
+      "M"
+    ],
+    "caseRecords": 208,
+    "maxCommands": 320,
+    "rawStatCaptureUnchanged": true,
+    "allCodeOutsideTwoSpansUnchanged": true,
+    "allFixtureBytesAndExpectedDiagnosticsUnchanged": true,
+    "argvStatusStdoutStderrPathsContentsUnchanged": true,
+    "namespaceOrdering": "Existing Buffer.compare of complete UTF8 virtual path bytes unchanged; no new inventory ordering policy.",
+    "originalFailure": "SI-MODE-01 remains an UNEXECUTED_SOURCE_CONTRADICTION in immutable original; no old-cohort rescore."
+  },
+  "importClosure": {
+    "moduleSpecifiers": [
+      "node:fs/promises",
+      "./fixtures.mjs"
+    ],
+    "relativeResolution": "Only in intended assembly directory semantic/. Do not execute/import source under semantic-mode-v3/; it intentionally has no duplicated fixture helper or data.",
+    "transitiveBuiltinSpecifiers": [
+      "node:crypto",
+      "node:zlib"
+    ],
+    "dataFiles": [
+      "semantic/CASE-DATA.json",
+      "semantic/FROZEN-DATA.json"
+    ],
+    "candidateEntries": [
+      "dist/fs/memory/index.js",
+      "dist/commands/git/index.js",
+      "dist/shell/shell.js"
+    ],
+    "admission": "Fresh regular0644 mode/hash/size/path for derived actor and unchanged execution inputs; Git source modes are not retrospective host POSIX attestations. Parent complete compound map overrides only active semantic/semantic.mjs expected hash. Old input seal remains historical binding, never reused as a false current assembled-map claim."
+  },
+  "costDelta": {
+    "newCases": 0,
+    "newControls": 0,
+    "newActors": 0,
+    "newChildren": 0,
+    "newCompilerCalls": 0,
+    "newBatchWindows": 0,
+    "actorSourceBytes": 36,
+    "captureBudgetDelta": 0,
+    "workAllocationDelta": 0,
+    "qualification": "Existing reservations must cover36 extra actor bytes; no new allowance. Existing18 semantic30s shared batches and root<=168/peak4/120min/256MiB/1GiB remain unchanged."
+  },
+  "validation": {
+    "role": "STATIC_SOURCE_AND_DATA_ONLY",
+    "literalPreimagesUnique": true,
+    "reversibleExactOriginal": true,
+    "selectedSourceHashMatchesOriginalBinding": true,
+    "manifestCaseCount": 104,
+    "tableControlCount": 56,
+    "syntaxExecuted": 0,
+    "authoredModuleImports": 0,
+    "fixtureOrNamespaceControlExecutions": 0,
+    "compilerExecutions": 0,
+    "productExecutions": 0
+  }
+}

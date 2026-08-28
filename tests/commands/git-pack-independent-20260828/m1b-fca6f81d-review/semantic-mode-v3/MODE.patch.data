@@ -1,0 +1,9 @@
+*** Begin Patch
+*** Update File: semantic/semantic.mjs
+@@
+-    if (file.type === 'file') expectedFiles.set(path, { mode: file.mode, bytes: file.bytes.length, sha256: digest(file.bytes) });
++    if (file.type === 'file') expectedFiles.set(path, { mode: 0o100000 | file.mode, bytes: file.bytes.length, sha256: digest(file.bytes) });
+@@
+-  const valid = before.length === names.size && before.every(row => names.has(row.path) && (expectedFiles.has(row.path) ? row.type === 'file' && row.mode === expectedFiles.get(row.path).mode && row.bytes === expectedFiles.get(row.path).bytes && row.sha256 === expectedFiles.get(row.path).sha256 : row.type === 'directory'));
++  const valid = before.length === names.size && before.every(row => names.has(row.path) && (expectedFiles.has(row.path) ? row.type === 'file' && row.mode === expectedFiles.get(row.path).mode && row.bytes === expectedFiles.get(row.path).bytes && row.sha256 === expectedFiles.get(row.path).sha256 : row.type === 'directory' && row.mode === 0o040755));
+*** End Patch

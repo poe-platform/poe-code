@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { admit, guard, moduleURL, verifyTree } from './boundary.mjs';
-import { semanticCase, literalCase, preabort, rhsAbort } from './semantic.mjs';
+import { semanticCase, literalCase, preabort, rhsAbort, overlayCases } from './semantic.mjs';
 
 const emit = value => process.stdout.write(JSON.stringify(value) + '\n');
 try {
@@ -18,10 +18,12 @@ try {
     : cohort === 'operations' ? holdouts.operations
     : cohort === 'mechanical' ? controls.controls : [];
   assert.ok(ids.every(id => available.some(row => row.id === id)), 'known admitted IDs; H12 is held');
-  const needsAdapter = ids.some(id => id === 'O11' || id.startsWith('M') || id.startsWith('P') && !['P01', 'P02'].includes(id));
+  const concreteOperations = ['P01', 'P02', 'P06', 'P07'];
+  const needsAdapter = ids.some(id => id === 'O11' || id.startsWith('M') || id.startsWith('P') && !concreteOperations.includes(id));
   if (needsAdapter) assert.ok(manifest.adapter && bound.allowed.has(manifest.adapter.path), 'exact candidate mechanical/terminal observer binding required');
   const loads = guard(bound, emit);
-  const api = await import(moduleURL(manifest.rootModule));
+  const api = await import('virtual-bash');
+  assert.equal(loads.get(manifest.rootModule), bound.allowed.get(manifest.rootModule), 'actual public root import resolves to admitted package');
   await import(moduleURL(manifest.runtimeModule));
   const baseline = JSON.parse(readFileSync(manifest.baselineFile));
   const defaults = api.createAgentCommands().map(definition => definition.name).sort();
@@ -29,7 +31,7 @@ try {
   const adapter = needsAdapter ? await import(moduleURL(manifest.adapter.path)) : undefined;
   if (needsAdapter) {
     assert.equal(adapter.candidate, manifest.candidate);
-    assert.ok(ids.filter(id => id === 'O11' || id.startsWith('M') || id.startsWith('P') && !['P01', 'P02'].includes(id)).every(id => adapter.supportedIds.includes(id)), 'no missing adapter methods/stub fallback');
+    assert.ok(ids.filter(id => id === 'O11' || id.startsWith('M') || id.startsWith('P') && !concreteOperations.includes(id)).every(id => adapter.supportedIds.includes(id)), 'no missing adapter methods/stub fallback');
   }
   const failed = [];
   for (const id of ids) {
@@ -40,6 +42,8 @@ try {
       else if (cohort === 'holdouts') detail = await literalCase(api, row);
       else if (id === 'P01') detail = await preabort(api);
       else if (id === 'P02') detail = await rhsAbort(api);
+      else if (id === 'P06') detail = await overlayCases(api, false);
+      else if (id === 'P07') detail = await overlayCases(api, true);
       else {
         detail = await adapter.execute({ id, row, api, manifest, emit });
         assert.ok(['actual-candidate-mechanism', 'candidate-source-proof'].includes(detail.category));

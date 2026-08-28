@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, lstatSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { admit, authenticate, digest, verifyTree } from './boundary.mjs';
@@ -10,6 +10,10 @@ try {
   assert.ok(outputPath && idsJson, 'explicit root authorization/manifest/output/cohort/IDs required');
   const bound = admit(manifestPath, manifestSha256, goPath, goSha256);
   const { manifest } = bound;
+  if (manifest.layout === 'moved') {
+    assert.ok(manifest.priorAppRoot && manifest.priorAppRoot !== manifest.harnessRoot);
+    assert.throws(() => lstatSync(manifest.priorAppRoot), error => error.code === 'ENOENT', 'prior app really absent after physical move');
+  }
   for (const entry of manifest.sourceProjection) {
     const committed = execFileSync('/usr/bin/git', ['show', `${entry.commit}:${entry.path}`], { cwd: manifest.repository, timeout: 10000, maxBuffer: 4 * 1024 * 1024 });
     assert.equal(digest(committed), entry.sha256, 'immutable selected source, never working-tree fallback');

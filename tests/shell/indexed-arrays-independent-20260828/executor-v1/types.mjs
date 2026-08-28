@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { authenticate, verifyTree } from './boundary.mjs';
+import { readFileSync } from 'node:fs';
+import { authenticate, verifyTree, digest } from './boundary.mjs';
 import { supervise } from './supervisor.mjs';
 
 export const typeCases = [
@@ -10,7 +11,12 @@ export const typeCases = [
   { id: 'negative-limit', fixture: 'negative-limit.mts.fixture', exitCode: 2,
     diagnostics: ["negative-limit.mts(3,3): error TS2353: Object literal may only specify known properties, and 'arrayWork' does not exist in type 'ShellLimits'."] },
   { id: 'negative-export', fixture: 'negative-export.mts.fixture', exitCode: 2,
-    diagnostics: ["negative-export.mts(1,10): error TS2305: Module '\"virtual-bash\"' has no exported member 'ArrayLedger'."] }
+    diagnostics: ["negative-export.mts(1,10): error TS2305: Module '\"virtual-bash\"' has no exported member 'ArrayLedger'."] },
+  { id: 'option-inverse', fixture: 'option-inverse.mts.fixture', exitCode: 0, diagnostics: [] },
+  { id: 'limit-inverse', fixture: 'limit-inverse.mts.fixture', exitCode: 0, diagnostics: [] },
+  { id: 'export-inverse', fixture: 'export-inverse.mts.fixture', exitCode: 0, diagnostics: [] },
+  { id: 'ast-negative', fixture: 'ast-negative.mts.fixture', exitCode: 2,
+    diagnostics: ["ast-negative.mts(11,22): error TS2322: Type '{ kind: \"synthetic-unhandled\"; }' is not assignable to type 'never'."] }
 ];
 export async function runTypes(binding) {
   assert.equal(binding.action, 'root-authorized-array-types');
@@ -21,6 +27,7 @@ export async function runTypes(binding) {
   for (const expected of typeCases) {
     const source = binding.consumers[expected.id];
     authenticate(source.path, source.sha256);
+    authenticate(source.path, digest(readFileSync(new URL(expected.fixture, import.meta.url))));
     const run = await supervise(binding.node.path, ['--permission', ...binding.trees.map(tree => `--allow-fs-read=${tree.root}`),
       `--allow-fs-read=${binding.node.path}`, binding.compiler.path, '--strict', '--exactOptionalPropertyTypes', '--noEmit',
       '--skipLibCheck', 'false', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--target', 'ES2022', '--traceResolution', source.path], {

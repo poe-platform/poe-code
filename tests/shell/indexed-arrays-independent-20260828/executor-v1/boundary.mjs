@@ -81,6 +81,9 @@ export function admit(path, expected, goPath, goDigest) {
   }
   for (const entry of manifest.requiredFiles) assert.ok(allowed.has(entry), 'bound required source/declaration/harness member');
   for (const key of ['rootModule', 'runtimeModule', 'rootDeclaration', 'workerModule', 'vectorsFile', 'holdoutsFile', 'controlsFile', 'baselineFile', 'packageTar']) assert.ok(allowed.has(manifest[key]), key);
+  authenticate(manifest.vectorsFile, '7d9c591a044fa1fc609c1c6e72a06146ec9e0c26d7c45304d516418f425e5095');
+  authenticate(manifest.controlsFile, '8c9c0604e4f855fd5bd9fdf7b5d4f09cee11b2b1a631bf99bc26217777d16951');
+  authenticate(manifest.holdoutsFile, 'b38508ef94dcd8ce42329c7cf1e173ab460a200e3ddb96e4f5e4cfdd8b3e5e95');
   const baseline = JSON.parse(authenticate(manifest.baselineFile, 'c154ccc9f221080d3b19f0a3dc3eff38529ef9e16c464317fa3635f8789ad21d'));
   const projection = verifyProjection(baseline.source, manifest.sourceProjection);
   assert.deepEqual(projection.unapprovedChanges, [], 'source write set');
@@ -95,6 +98,7 @@ export function admit(path, expected, goPath, goDigest) {
   }
   assert.ok(manifest.trees.some(tree => tree.root === manifest.packageRoot));
   assert.ok(manifest.trees.some(tree => tree.root === manifest.harnessRoot));
+  assert.equal(authenticate(join(manifest.harnessRoot, 'package.json'), allowed.get(join(manifest.harnessRoot, 'package.json'))).toString(), '{"private":true,"type":"module"}\n', 'isolated consumer package boundary');
   assert.equal(manifest.rootModule, join(manifest.packageRoot, 'dist/index.js'));
   assert.equal(manifest.runtimeModule, join(manifest.packageRoot, 'dist/shell/runtime.js'));
   const metadata = JSON.parse(authenticate(join(manifest.packageRoot, 'package.json'), allowed.get(join(manifest.packageRoot, 'package.json'))));
@@ -140,6 +144,7 @@ export function verifyProjection(base, candidate, authorizations = []) {
     assert.ok(entry.path.split('/').every(part => part && part !== '.' && part !== '..' && part !== 'AGENTS.md'));
     assert.match(entry.commit, /^[a-f0-9]{40}$/u); assert.match(entry.sha256, /^[a-f0-9]{64}$/u);
     const old = prior.get(entry.path);
+    assert.equal(entry.mode, old?.mode ?? '100644', 'no source mode drift');
     if (old?.sha256 === entry.sha256 && old.mode === entry.mode) continue;
     const ordinary = old ? ['src/shell/runtime.ts', 'src/shell/parser.ts', 'src/shell/shell.ts'].includes(entry.path) : /^src\/shell\/arrays\/[a-zA-Z0-9_/-]+\.ts$/u.test(entry.path);
     if (!ordinary && !authorizations.includes(entry.path)) unapprovedChanges.push(entry.path);

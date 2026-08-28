@@ -1,0 +1,31 @@
+{
+  "role": "immutable accepted tool metadata; no new compiler/product execution",
+  "revision": "8fa48028",
+  "path": "tests/shell/dotglob-independent-20260828/stack-binding-v1/BINDING.json",
+  "sha256": "6cbb60b0c55a5ebb81e3a2ffcd539e6b3593d0c51fcbe60f81cd853bb4bbfc39",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "version": "v22.22.2"
+  },
+  "packages": [
+    {
+      "name": "typescript",
+      "root": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "inventorySha256": "393b0d4da8ba3ede5f92d9003339655b2110296e0f91789beb5b4b8e8e85aa1f",
+      "files": 132
+    },
+    {
+      "name": "@types/node",
+      "root": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+      "inventorySha256": "d021646c5e80b3877e3fd3f77946aff340e54a722eaf361675bc9f1e30b578f9",
+      "files": 74
+    },
+    {
+      "name": "undici-types",
+      "root": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+      "inventorySha256": "2a768124c97517d7a6d2ed5364a25b8b4e94bf1fa029404df55bdef90694ec1a",
+      "files": 41
+    }
+  ]
+}

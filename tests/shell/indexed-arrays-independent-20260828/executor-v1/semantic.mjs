@@ -104,3 +104,29 @@ export async function rhsAbort(api) {
     return { events, identity: true, receipt: 'retained', privateDrainProof: 'separate instrumented candidate obligation' };
   } finally { release(); if (execution) await execution; await closeOwned(shell); }
 }
+export async function overlayCases(api, typed) {
+  const variants = typed ? [
+    { initial: 'a=([7]=tail)', body: ':', expected: ['1', '', 'tail'] },
+    { initial: 'a=([7]=tail)', body: 'a=B', expected: ['1', 'B', ''] },
+    { initial: 'a=A', body: 'unset a; a=([7]=new); unset a; a=B', expected: ['1', 'B', ''] }
+  ] : [false, true].flatMap(unrelated => [
+    { body: 'a=B', expected: ['A'] }, { body: 'a=C', expected: ['C'] },
+    { body: 'a=C; a=B', expected: ['A'] }, { body: 'unset a; a=B', expected: ['A'] }
+  ].map(row => ({ ...row, initial: `${unrelated ? 'other=([7]=unrelated); ' : ''}a=A` })));
+  const receipts = [];
+  for (const row of variants) {
+    const shell = new api.Shell({ fs: new api.MemoryFileSystem() }); const calls = []; let overlays = 0;
+    shell.use(async (context, next) => {
+      if (context.command === '__overlay') { context.env.a = 'B'; overlays++; }
+      return next();
+    });
+    shell.register({ name: '__capture', execute(context) { calls.push([...context.args]); return { exitCode: 0 }; } });
+    try {
+      const script = `${row.initial}; __overlay() { ${row.body}; }; __overlay; __capture ${typed ? '"${#a[@]}" "$a" "${a[7]}"' : '"$a"'}`;
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, 0); assert.equal(result.stdout, ''); assert.equal(result.stderr, '');
+      assert.equal(overlays, 1); assert.deepEqual(calls, [row.expected]); receipts.push({ script, calls, overlays });
+    } finally { await closeOwned(shell); }
+  }
+  return receipts;
+}

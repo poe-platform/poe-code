@@ -1,0 +1,158 @@
+{
+  "entries": [
+    {
+      "path": "positive",
+      "mode": 448,
+      "nlink": 4,
+      "kind": "directory"
+    },
+    {
+      "path": "positive/moved",
+      "mode": 493,
+      "nlink": 13,
+      "kind": "directory"
+    },
+    {
+      "path": "positive/moved/consumer-bad-value-repair.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 42,
+      "sha256": "270919ffbfed197cb1a87fecf066972e0821d84a1373e9d9d049fd0fabdf8a52"
+    },
+    {
+      "path": "positive/moved/consumer-bad-value.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 35,
+      "sha256": "82102e9b889f19def38183d05d2afcb27e35cee61a5db7aa8b50890d7bec4340"
+    },
+    {
+      "path": "positive/moved/consumer-moved-v6-bad-value-repair.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 42,
+      "sha256": "270919ffbfed197cb1a87fecf066972e0821d84a1373e9d9d049fd0fabdf8a52"
+    },
+    {
+      "path": "positive/moved/consumer-moved-v6-bad-value.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 35,
+      "sha256": "82102e9b889f19def38183d05d2afcb27e35cee61a5db7aa8b50890d7bec4340"
+    },
+    {
+      "path": "positive/moved/consumer-moved-v6-positive.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 34,
+      "sha256": "78a9ab677743cead7950080fa8977115f3b08d5ee6c93b178c5ad5f84e486c0b"
+    },
+    {
+      "path": "positive/moved/consumer-moved-v6-root-negative.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 39,
+      "sha256": "bafd9e822c804172902e9a45b30e53bb9bbd92dc40302aa5ae25f5bf134f2c9a"
+    },
+    {
+      "path": "positive/moved/consumer-moved-v6-root-repair.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 37,
+      "sha256": "68e6821a4fc72fc9d595f6969802df7ed0e08739e3f129c8718cb44ca8387ce7"
+    },
+    {
+      "path": "positive/moved/consumer-positive.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 34,
+      "sha256": "78a9ab677743cead7950080fa8977115f3b08d5ee6c93b178c5ad5f84e486c0b"
+    },
+    {
+      "path": "positive/moved/consumer-root-negative.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 39,
+      "sha256": "bafd9e822c804172902e9a45b30e53bb9bbd92dc40302aa5ae25f5bf134f2c9a"
+    },
+    {
+      "path": "positive/moved/consumer-root-repair.mts",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 37,
+      "sha256": "68e6821a4fc72fc9d595f6969802df7ed0e08739e3f129c8718cb44ca8387ce7"
+    },
+    {
+      "path": "positive/moved/package-data.txt",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 42,
+      "sha256": "d13a8d7439891677a729a2966fe027d528c44c15c25c98bc90bdef229e4ecd88"
+    },
+    {
+      "path": "positive/refusals",
+      "mode": 448,
+      "nlink": 8,
+      "kind": "directory"
+    },
+    {
+      "path": "positive/refusals/alias",
+      "mode": 420,
+      "nlink": 2,
+      "kind": "file",
+      "bytes": 34,
+      "sha256": "78a9ab677743cead7950080fa8977115f3b08d5ee6c93b178c5ad5f84e486c0b"
+    },
+    {
+      "path": "positive/refusals/alias-source",
+      "mode": 420,
+      "nlink": 2,
+      "kind": "file",
+      "bytes": 34,
+      "sha256": "78a9ab677743cead7950080fa8977115f3b08d5ee6c93b178c5ad5f84e486c0b"
+    },
+    {
+      "path": "positive/refusals/different",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 34,
+      "sha256": "eb429444a274825de244c2ca7ad89afee0b422bf29a16f3da8b52910a403fd2b"
+    },
+    {
+      "path": "positive/refusals/link-target",
+      "mode": 420,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 34,
+      "sha256": "78a9ab677743cead7950080fa8977115f3b08d5ee6c93b178c5ad5f84e486c0b"
+    },
+    {
+      "path": "positive/refusals/mode",
+      "mode": 384,
+      "nlink": 1,
+      "kind": "file",
+      "bytes": 34,
+      "sha256": "78a9ab677743cead7950080fa8977115f3b08d5ee6c93b178c5ad5f84e486c0b"
+    },
+    {
+      "path": "positive/refusals/symlink",
+      "mode": 493,
+      "nlink": 1,
+      "kind": "symlink",
+      "target": "link-target"
+    }
+  ],
+  "bytes": 586
+}

@@ -1,0 +1,6 @@
+{"kind":"startup-env","stage":"positive","pid":52160,"ppid":52157,"env":{"__CF_USER_TEXT_ENCODING":"0x1F5:0x0:0x0"}}
+{"kind":"control","id":"R01","detail":{"physicalRename":true,"oldEEXIST":5,"distinctMovedWx":5,"variants":["positive","bad-value","bad-value-repair","root-negative","root-repair"],"intendedBodiesUnchanged":true}}
+{"kind":"control","id":"R02","detail":{"exactExisting":5,"noWrites":true}}
+{"kind":"control","id":"R03","detail":{"rejected":["bytes","mode","symlink","hardlink"],"noWrites":true}}
+{"kind":"control","id":"B01","detail":{"accepted":64,"refused":65,"ownedCopy":true,"scope":"helper admission only"}}
+{"kind":"data","id":"D01","detail":{"originalMembership":4,"exactSourceExcerpts":4,"explicitDeltas":4,"newIds":["V6-S62-CANONICAL","V6-S64-LITERAL-NOPULL","V6-S71-ACCESS-MODE","V6-S74-EXACT-BRANCH-SET"],"productRuns":0}}

@@ -1,0 +1,21 @@
+{
+  "schema": "v8-static-d02-neighbor-lengths",
+  "canonical": {
+    "text": "apply_patch: permission denied: /work/a\n",
+    "measuredBytes": 40,
+    "frozenAssertionBytes": 38
+  },
+  "branches": [
+    {
+      "text": "apply_patch: operation 2; prior changes may remain: target bytes changed since preflight: /work/b\n",
+      "measuredBytes": 98,
+      "frozenAssertionBytes": 98
+    },
+    {
+      "text": "apply_patch: operation 2; prior changes may remain: target changed since preflight: /work/b\n",
+      "measuredBytes": 92,
+      "frozenAssertionBytes": 92
+    }
+  ],
+  "classification": "data-only byte measurement after stopped qualification; no control replay, fixture edit or product execution"
+}

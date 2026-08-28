@@ -1,0 +1,38 @@
+{
+  "at": "2026-08-28T21:51:19.551Z",
+  "sourceCommit": "c4aa6e6e3e195c8b39b77db435fc8f6cc032b311",
+  "sourceSealSha256": "da9fbf9092bf6908e65fa8c79790dad4181cf32d8e251388d20c82d13dbb6479",
+  "outcomeSha256": "cc2581a97ac038fd5025097dcccf94f3a47a696fa0c0ed203b2f04aa7b351f17",
+  "membershipSha256": "eab6e62d8404eaa33b7a19a45b683194f4c43acb8fb47cb0f7f589802ed13c3f",
+  "allSourceFilesUnchanged": 11,
+  "authenticatedRawRecords": 10,
+  "exactRunMembers": [
+    "01-D00.receipt.json",
+    "01-D00.stderr.raw",
+    "01-D00.stdout.raw",
+    "02-START-POSITIVE.receipt.json",
+    "02-START-POSITIVE.stderr.raw",
+    "02-START-POSITIVE.stdout.raw",
+    "MAIN-PRESEAL.json",
+    "OUTCOME.json",
+    "OWNER-ENV-DISCOVERY.json",
+    "OWNER-EVENTS.jsonl",
+    "RAW-MEMBERSHIP.json",
+    "WORK-INVENTORY.json"
+  ],
+  "qualificationExecutions": 1,
+  "stopped": {
+    "name": "AssertionError",
+    "message": "Expected values to be strictly equal:\n\n1 !== 0\n",
+    "code": "ERR_ASSERTION",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at child (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/owner.mjs:229:10)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v8/recipe/owner.mjs:310:20"
+  },
+  "cleanup": {
+    "removed": true,
+    "bytes": 586,
+    "entries": 20,
+    "inventorySha256": "85b89e95f5cbbfb4f8f2408838c913b11d973cc26f245f13f9cfb72fea1c8dda",
+    "identityChecked": true
+  },
+  "postflightPid": 52530
+}

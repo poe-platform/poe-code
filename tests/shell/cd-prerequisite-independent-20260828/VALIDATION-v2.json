@@ -1,0 +1,108 @@
+{
+  "schema": "cd-independent-static-validation/v1",
+  "checkedAt": "2026-08-28T05:14:32.571Z",
+  "kind": "Own syntax/schema/arithmetic/authentication and baseline-public-type evidence only",
+  "groups": {
+    "behavior": 16,
+    "permissions": 14,
+    "adapters": 6,
+    "state": 9,
+    "output": 5,
+    "cancellation": 5,
+    "limits": 27
+  },
+  "commandCases": 82,
+  "diagnosticCases": 4,
+  "futureSemanticCases": 86,
+  "positiveTypes": 10,
+  "negativeTypes": 10,
+  "invariants": 12,
+  "integrationControls": 7,
+  "workArithmetic": {
+    "maximumCalls": {
+      "work": 61456,
+      "probes": 4097,
+      "publicCalls": 8194
+    },
+    "exact": {
+      "work": 8388608,
+      "probes": 57,
+      "publicCalls": 114
+    },
+    "nextUnit": {
+      "unconstrainedWork": 8388609,
+      "statCalls": 57,
+      "accessCalls": 52
+    },
+    "rejectedReservation": {
+      "spent": 8320652,
+      "request": 80004
+    }
+  },
+  "diagnosticArithmetic": [
+    {
+      "id": "D01",
+      "inputBytes": 65792,
+      "retainedBytes": 65792,
+      "outputBytes": 65792,
+      "truncated": false
+    },
+    {
+      "id": "D02",
+      "inputBytes": 65793,
+      "retainedBytes": 65780,
+      "outputBytes": 65792,
+      "truncated": true
+    },
+    {
+      "id": "D03",
+      "inputBytes": 65803,
+      "retainedBytes": 65779,
+      "outputBytes": 65791,
+      "truncated": true
+    },
+    {
+      "id": "D04",
+      "inputBytes": 65800,
+      "retainedBytes": 65780,
+      "outputBytes": 65792,
+      "truncated": true
+    }
+  ],
+  "syntaxFiles": [
+    "audit.mjs",
+    "cases-v1.mjs",
+    "typecheck-v1.mjs",
+    "validate-v1.mjs"
+  ],
+  "protectedEntries": 237,
+  "retainedNative": {
+    "observations": 28,
+    "successes": 21,
+    "diagnosticStatus1": 7,
+    "newRuns": 0
+  },
+  "productCasesRun": 0,
+  "providerRuns": 0,
+  "nativeRuns": 0,
+  "builds": 0,
+  "sourceInstalledMovedRuns": 0,
+  "futureCasesStatus": "NOT RUN; runtime author awaits ROOT go",
+  "ownedInputs": {
+    "DECLARED-CONTRACT-v1.md": "cdac52ba488a5dfdada963072fad6db01087f5d09efe9b5d380cc9f08f26d1a3",
+    "EXPOSURES-v1.json": "a505094e08de897a349dace2e1d6d2741e033e2ea81403e1f7c9c84adf425721",
+    "INPUTS-v1.json": "28d3d799e7e2b59a43f8e51bf5a94757df795f10fa8080513ca28a78289027a3",
+    "PROTECTED-BEFORE-v1.json": "301ddcc818f490ddb200f68dfd118dc0ee070e6d19aedac60a0d53bb138afb50",
+    "PROTOCOL-v1.md": "7938c8471bfe40972989126f3a31fa4281505b094068e711ac8515014aed600d",
+    "README.md": "b6d1d9b27dce731cdc1ec096478161cba40a915c09adfd6ceb5a6f4d477e2f17",
+    "STATIC-ATTEMPTS-v1.md": "71e57e0751f16024bb083e4c1c9157a15c819ea406ec9d1d19cbf6b9bbaf8d23",
+    "TYPE-BINDING-v1.json": "2dfe1a79575f96e2d157fcfe89cce19f185863f272b6085ecf5569c2330fd69f",
+    "VALIDATION-v1.json": "c241c2acaabd2a1f50fb4555deb5c7fa164638fad7554187461576c8be39e160",
+    "audit.mjs": "bbea5b42e581adc80a523d32c684817ad5eb7a4a88cf40a4b0b402b477f77417",
+    "cases-v1.mjs": "a04ee5ea49742b08d05370c5eca28fbd1ea4d1ed3f02a7cb534f56540bfdae7a",
+    "typecheck-v1.mjs": "1a820fb0fac8f04c6f6431cff4b39a329c834e4d766b1e22374cbd16d283fd67",
+    "types-negative-v1.mts.fixture": "a7dcdc1a60467b91b7295f9640bc8d0e279c56f465538ed4f234c49abba17fb7",
+    "types-positive-v1.mts.fixture": "aa36091715072992ae4bb7ab70bce06f3cc96188a9bd2dbee5fd39c293bcc8c4",
+    "validate-v1.mjs": "e20fc187d117e1d21775bcc47b77fc884ace1aaaf6309a2f9a32805a51fb2045"
+  }
+}

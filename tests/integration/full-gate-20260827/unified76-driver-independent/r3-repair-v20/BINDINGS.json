@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "mode": "COMMITTED_GIT_METADATA_AND_MANUAL_SOURCE_REVIEW",
+  "qualification": "Git compared the selected live files to the specified committed blobs. SHA256 values below are bound claims from committed SOURCE-CANDIDATE, not independently recomputed by the failed runner. No actual native image identity or retained-root contents revalidation.",
+  "commits": {
+    "source": "437778996f60109e212e20b1b242455866fda285",
+    "sourceEvidence": "2ae74702def6b06f1519c9a88c12d6f748611250",
+    "toolRecipe": "adcb1467caad7165361f035f110b40dd1bbdf07d",
+    "toolEvidence": "26de751f7c1e2e39edfe38c976dc52ce9516fac3",
+    "historicalProduct": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "r3": "c23a8de855f4f51423ee21c35ef5bbcc4d2d56a5",
+    "authorDiagnosis": "cd9d08be0918ddc5bd59c40b088e06be2b5b2f54",
+    "independentDiagnosis": "682aad1292eac3dc82a2c15a48b9f0c6ec9c5628",
+    "freeze": "bc60e57b246bf2be853004bd7b5a301e3ee4a339"
+  },
+  "sourceManifest": {
+    "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/SOURCE-CANDIDATE.json",
+    "blob": "52ce672369a0b37f515fc37b7c6bd5b6a2933bc4",
+    "sha256": "47741f284b1593aa96b012d6e2ab9e9f6b64f38d69034b17554dc52544b59e71"
+  },
+  "selectedSource": [
+    {"path":"tests/commands/table-text-stress/support.ts","blob":"d7c1ec255b0371bbf2fe25f3cf3705d16c9017b1","sha256":"b6e4793cac4c3670de36e6c47de6b0d8126de73cab469b6370257e116e39ea92"},
+    {"path":"tests/commands/table-text-stress/shared-stdin-fix/support.ts","blob":"dcdc48f4006f6094ddd8eeb19cbb5a863f328e12","sha256":"7aa2fd7b61583a94668b4cd0d2bedf48846087eb623345875eec27c468c69c7b"},
+    {"path":"tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts","blob":"264df9589e4c9b1cf76b7f70a2b934c168e50bf6","sha256":"1f81d9226a09c22221a7faacb5f794e81726626b4ac438ee526a2877aec7b342"},
+    {"path":"tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs","blob":"7f75b66d3446e1b6f4cfd00567051393928cc450","sha256":"e8702db260de5d5117ac86ed48e6e1a5bae0a428e397310b7b404402ed91a55a"},
+    {"path":"tests/commands/diff-patch-stress/editflows/helpers.ts","blob":"b6d1c11c733d204b14d7ff91695817cb98ba920c","sha256":"d2ba19c9387a60b0e218d676d6f44f388ccf0f759615ac26df5e682098b5ee78"},
+    {"path":"tests/integration/s3-http-exports/verify.mjs","blob":"8b03c107a001880f0c870fc06e3eeb01bec0edf3","sha256":"ae9f72b2114076c92901043f0748c5525ea7cad264994c21b04f17ca3e8c72f9"},
+    {"path":"tests/plugins/qualified-current-release-native-data/helpers.ts","blob":"192112e71c099f0463be4f80a910a51cc4d057e1","sha256":"fd55635268b461f69d50bf7403f1ca94f00f27210337303f3352f97ee7b68f05"},
+    {"path":"tests/commands/search-stress/safety.test.ts","blob":"f05ad807bf78bdb0fa185bd7abe383a0c2e86a14","sha256":"8ae3afb363a07e8905006346ce8cdc6318d8227ce0668443381504d54ec731ce"},
+    {"path":"tests/commands/search-stress/streaming.test.ts","blob":"928c73ce7da9ba19cd383be51bd7f8d35ba03657","sha256":"8ce5213a4a5cd277628e83dad3390e05c05527f1269001736e64ae9ac7de5f82"},
+    {"path":"tests/commands/diff-patch-stress/gnu-target/oracle.ts","blob":"aa5bff6001dac716be5f50c8fbea8490eebf41fd","sha256":"fa393338c0d4f6f1769a560d40e468ed165f196add6da7e9c55b5592212b4726"},
+    {"path":"tests/commands/diff-patch-stress/gnu-auxiliary/helpers.ts","blob":"269d5aa6a8af48cbfb9c8423d3a6ea13fd2feac1","sha256":"d1c019640fabd954808dcc2f092a6fd80de5fad8674d56e2f37cf7f75f25ad91"},
+    {"path":"tests/commands/diff-patch-stress/gnu-target-followup/helpers.ts","blob":"80653b8e7b3eb91e323756d397f089afc5affbbd","sha256":"3ed6929afc27bda15ecd9732fbd446428be30eb4c4bf24ed99a620312b319e48"},
+    {"path":"tests/commands/stream-inspection/oracle.ts","blob":"6f71cd1303fc6a4f1c6a751e96afd3b1d24263a5","sha256":"144a0ab22228978c68a4b89d137ff48f27cf20cfb69ec9784f73976ad7fc9ee7"},
+    {"path":"tests/shell-stress/helpers.ts","blob":"102489c0e62e2d338bb76ae85fca35c4569d3035","sha256":"a32a59b7ea7efb057837b759fdf30d60c87902f31ed0135d35fcb860f19d1718"},
+    {"path":"tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json","blob":"d40bfeafda550a3a69e630f8368eaff262c6d9dd","sha256":"b933c447efda4438266f40190eecc00d9e00e195d854eb4a254cfb0e2783306f"}
+  ],
+  "metadataResults": {
+    "selected15LiveVersus437DiffExit": 0,
+    "frozenCorpusAndSearchHelperAndPipelinesVersusF5DiffExit": 0,
+    "authorRepairRootVersus2ae74702DiffExit": 0,
+    "authorToolRootVersus26de751fDiffExit": 0,
+    "independentDiagnosisRootVersus682aad12DiffExit": 0,
+    "authorDiagnosisRootVersusCd9d08beDiffExit": 0,
+    "fourProtectedAuthorReviewerRootsScopedStatus": "empty, including untracked-files=all",
+    "foreignIndexAtInspectionAndPostcohort": "empty",
+    "source437CommitChangedPaths": 15,
+    "proposedFixtureOverlayPathsChangedVersusF5": 13,
+    "combinedCandidateMaterialized": false,
+    "frozen632Rewritten": false,
+    "oldCaptureBytesRehashed": false,
+    "retainedRootContentsReverified": false
+  },
+  "protectedCommittedTrees": {
+    "r3-repair-v1": "93a2c4ee9b9e5ea2524f227966dd1440097ed511",
+    "r3-tool-closure-v1": "5debad61e8741dc892424ed238750e0dee37ee49",
+    "independent-r3-diagnosis-v19": "5c531f639f66d3eecc8fd28e7d8a593d680e0b94",
+    "author-r3-diagnosis-v1": "495c69e9dc0d3d73595b11c5ad8853aebb6b7547",
+    "released-run-v3-qualified-h11": "4b156253a988091d46fb4cee60e9e416c06ec0bc"
+  },
+  "compositionWarning": {
+    "f5SrcTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+    "source437SrcTree": "d2f7a99d5830c0b13a9b297949c5c08ab2441228",
+    "meaning": "Source437 whole tree is not the historical product. Only the explicit 13 selected fixture blobs may enter a new f5-based candidate; do not use source437 or live HEAD as that candidate.",
+    "expectedPack": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packReproduced": false
+  },
+  "toolMetadata": {
+    "profileSha256BoundFromSeal": "71ba31dea9594c3eee23c054a40b0fa09de4a78eb129a44018103c21a5dfb36c",
+    "inspectionSha256BoundFromSeal": "02803cbedd0e067624923a6b5cf3986a9f354a5ee806d1f70a13746133193c2d",
+    "callsSha256BoundFromSeal": "8efa968397a1cc0f7f44e2f0a54c8f1388752517ebdd2004f3645a82bfc533b1",
+    "rootRatifiedPairs": [
+      ["/usr/bin/cut","/usr/lib/libSystem.B.dylib","ENOENT"],
+      ["/usr/bin/sort","/usr/lib/libSystem.B.dylib","ENOENT"],
+      ["/usr/bin/tee","/usr/lib/libSystem.B.dylib","ENOENT"],
+      ["/usr/bin/xargs","/usr/lib/libSystem.B.dylib","ENOENT"],
+      ["/bin/cat","/usr/lib/libSystem.B.dylib","ENOENT"]
+    ],
+    "qualification": "OS-METADATA ONLY; old proposal pending wording is historical, superseded only by ROOT's exact pair decision.",
+    "missingImageActualHash": null,
+    "dyldActualRuntimeClosure": false,
+    "newRuntimeAdmission": false,
+    "future20Actual": "UNRUN"
+  },
+  "historicalCountsBoundNotRerun": {"captures":928,"retainedAdditions":286,"pass":19425,"fail":132,"skip":7,"phasesExecuted":6,"phasesDeclared":14},
+  "authorCountsNotIndependent": {"syntheticControls":45,"stubDispatches":17},
+  "frozenReviewerBlobs": {"CRITERIA.md":"34328aaa51e63a747b36fcae3aef27f788524da5","review.mjs":"38b3d83a4744ca29e5797d36882dd03fdffc97b3"}
+}

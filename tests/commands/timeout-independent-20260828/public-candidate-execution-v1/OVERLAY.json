@@ -1,0 +1,133 @@
+{
+  "schema": "timeout-public-executor-candidate-overlay/1",
+  "preparedAfterCandidateInspection": true,
+  "baseCommit": "58de550221d4f5a9a0ae54f86bb1fd5b1cd8b2ee",
+  "baseManifestSha256": "45d41c9e97d69febabaa700766f84950a9c36db3ca6fd99c921492296a518813",
+  "deltas": [
+    {
+      "name": "common.mjs",
+      "originalSha256": "dec89e7aaa05a24b974a01fa54f066c780b20ac4cf6c48b5532a414fbe10dc4a",
+      "resultSha256": "403b7ad73caf5683fcd002b770ef4e5154e130656243e33f3ba1f2936b50e666",
+      "byteIdentical": false,
+      "patches": [
+        {
+          "before": "  const binding = read(resolve(freeze, 'BINDINGS.json'));",
+          "after": "  const binding = read(resolve(freeze, 'BINDINGS.json'));\n  const supplemental = read(resolve(recipe, 'AUTHOR-BINDINGS.json'));\n  binding.selectedInputs.push(...supplemental.additionalBuildInputs);\n  binding.protectedFiles.push(...supplemental.protectedFiles);"
+        }
+      ]
+    },
+    {
+      "name": "admission.mjs",
+      "originalSha256": "7e792e6421a9a49e4c9ba889fc6de5ce512681dad642323473c3c9a2cd83effa",
+      "resultSha256": "3431c94223e68ec8f852029f0b187a57935a2336e8a54a99f8f0fbe90cf4cac6",
+      "byteIdentical": false,
+      "patches": [
+        {
+          "before": "baseline,'--','src','package.json','package-lock.json','tsconfig.json','tsconfig.build.json'",
+          "after": "baseline,'--','src','README.md','package.json','package-lock.json','tsconfig.json','tsconfig.build.json'"
+        }
+      ]
+    },
+    {
+      "name": "type-trace.mjs",
+      "originalSha256": "23476cfac54706b7cc6fd4aa2dc67ec81f56e683c2ae32867049b66517ded4e1",
+      "resultSha256": "3840a0048b7f44664cae018f44e3300a19cc1b2b9303fb94d54e012aa5375085",
+      "byteIdentical": false,
+      "patches": [
+        {
+          "before": "import { assertTypeOutcome } from '../public-integration-freeze-v1/predicates.mjs';",
+          "after": "import { assertTypeOutcome } from './t08-predicate.mjs';"
+        }
+      ]
+    },
+    {
+      "name": "supervisor.mjs",
+      "originalSha256": "ac4d3e1be95bf86c394be49347c0d515d14cb282e8d28fdbc550606f26252155",
+      "resultSha256": "ac4d3e1be95bf86c394be49347c0d515d14cb282e8d28fdbc550606f26252155",
+      "byteIdentical": true,
+      "patches": []
+    },
+    {
+      "name": "legacy-adapter.mjs",
+      "originalSha256": "d8e830e89970e1d8bf38ee1c5468a7a747a46d9a4d1e2d5ab06a95b06275c158",
+      "resultSha256": "d8e830e89970e1d8bf38ee1c5468a7a747a46d9a4d1e2d5ab06a95b06275c158",
+      "byteIdentical": true,
+      "patches": []
+    },
+    {
+      "name": "preload.mjs",
+      "originalSha256": "80071d9a9e2e2e7162e8891975abb43b618bc064bac95835d77856b3fdb94f18",
+      "resultSha256": "80071d9a9e2e2e7162e8891975abb43b618bc064bac95835d77856b3fdb94f18",
+      "byteIdentical": true,
+      "patches": []
+    },
+    {
+      "name": "runtime.mjs",
+      "originalSha256": "9b946a5b8568b002b7dadd409bc1e056fd62a9bc0ec46858efbfed2655a4e558",
+      "resultSha256": "e86c5d64945a4158f7a2476e6eaa80063bf393f94868cbdda5fa194457d43a73",
+      "byteIdentical": false,
+      "patches": [
+        {
+          "before": "const cases = {",
+          "after": "async function getterAdmissionProbes(){\n  for(const kind of ['definitions','plugin']){\n    const reads=[],timing=clock();\n    for(const key of ['now','setTimeout','clearTimeout']){const method=timing.scheduler[key];Object.defineProperty(timing.scheduler,key,{get(){reads.push(key);return method;},configurable:true});}\n    const nested={get invoke(){reads.push('invoke');return async function(){assert.equal(this,undefined);return {exitCode:7};};},get scheduler(){reads.push('scheduler');return timing.scheduler;},get maxTimerMilliseconds(){reads.push('maxTimerMilliseconds');return 7;},get replace(){assert.fail('AGGREGATE_READ_NESTED_REPLACE');}};\n    const options={get timeout(){reads.push('timeout');return nested;}},registry=new root.CommandRegistry(kind==='definitions'?root.createAgentCommands(options):[]);\n    if(kind==='plugin')await root.agentCommands(options).setup(host(registry));\n    for(const key of ['timeout','invoke','scheduler','maxTimerMilliseconds','now','setTimeout','clearTimeout'])assert.equal(reads.filter(value=>value===key).length,1,`ONE_TIME_GETTER:${key}`);\n    assert.equal(reads.length,7);exact(await direct(registry.get('timeout'),['.020','child']),empty(7));assert.equal(timing.rows[0].milliseconds,7);assert.equal(timing.live,0);preserveDiagnostic('public-one-time-getters',{kind,reads});\n  }\n}\n\n\nconst cases = {"
+        },
+        {
+          "before": "async R30(){",
+          "after": "async R30(){await getterAdmissionProbes();"
+        },
+        {
+          "before": "  assert.equal(observation.status, 'rejected', 'SHARED_BUDGET_RESET');",
+          "after": "  preserveDiagnostic('public-shared-budget',{source,limit,status:observation.status,exitCode:observation.value?.exitCode,reasonName:observation.reason?.name,reasonLimit:observation.reason?.limit});\n  assert.equal(observation.status, 'rejected', 'SHARED_BUDGET_RESET');"
+        },
+        {
+          "before": "shellExact(await instance.exec('timeout 60 public-child'),empty(7));",
+          "after": "const actualDefault=await instance.exec('timeout 60 public-child');preserveDiagnostic('public-default-clock-result',{status:actualDefault.exitCode,stdoutBase64:Buffer.from(actualDefault.stdoutBytes).toString('base64'),stderrBase64:Buffer.from(actualDefault.stderrBytes).toString('base64')});shellExact(actualDefault,empty(7));"
+        },
+        {
+          "before": "const run={...captured,outcome:await watch(aggregate(options).execute(captured.context)).settled}; exact(run,",
+          "after": "const run={...captured,outcome:await watch(aggregate(options).execute(captured.context)).settled}; preserveDiagnostic('public-context-priority',{kind,calls,fallback,reads,status:run.outcome.status,exitCode:run.outcome.value?.exitCode});exact(run,"
+        }
+      ]
+    },
+    {
+      "name": "execute.mjs",
+      "originalSha256": "2f73228958da14f65383e62c9a27f3794bbef6a817807366185735069c95b1de",
+      "resultSha256": "f4460b3cf3b7040d09c0d800a9cc042b0afd032bc3d590366f5a90944fc85c85",
+      "byteIdentical": false,
+      "patches": [
+        {
+          "before": "const { binding, manifest } = authenticatePreparation(request.preparationSha256);",
+          "after": "const { binding, manifest } = authenticatePreparation(request.preparationSha256);\nconst boundAuthor=read(resolve(recipe,'AUTHOR-BINDINGS.json'));for(const key of ['candidate','baseline','module','public','packageFiles','mutants'])assert.deepEqual(request[key],boundAuthor[key],'SEALED_CANDIDATE_FIELD:'+key);"
+        },
+        {
+          "before": "if(mutation.id==='M08')assert.ok",
+          "after": "if(mutation.id==='M06'){const observation=captured.observations.find(row=>row.kind==='public-default-clock-result');assert.equal(observation?.status,125);assert.equal(observation.stdoutBase64,'');assert.equal(Buffer.from(observation.stderrBase64,'base64').toString(),'timeout: timer setup failed\\n');}if(mutation.id==='M08')assert.ok"
+        }
+      ]
+    },
+    {
+      "name": "negative-worker.mjs",
+      "originalSha256": "f411557139d8242ba6d42e2ce42a37520142c51d10e39b7a508ed9d6442a6cce",
+      "resultSha256": "f411557139d8242ba6d42e2ce42a37520142c51d10e39b7a508ed9d6442a6cce",
+      "byteIdentical": true,
+      "patches": []
+    },
+    {
+      "name": "negative-protocol.mjs",
+      "originalSha256": "9cda00e431a67d89130c1c7750993b78eefbe8b2fe5ed1bad249dfb9ceea596d",
+      "resultSha256": "9cda00e431a67d89130c1c7750993b78eefbe8b2fe5ed1bad249dfb9ceea596d",
+      "byteIdentical": true,
+      "patches": []
+    },
+    {
+      "name": "archive.mjs",
+      "originalSha256": "bdd6fd8c23bf43f53f4216936bf4c37eff94653e61bdb47f85dedf5f99648772",
+      "resultSha256": "bdd6fd8c23bf43f53f4216936bf4c37eff94653e61bdb47f85dedf5f99648772",
+      "byteIdentical": true,
+      "patches": []
+    }
+  ],
+  "T08": "Only exact demonstrated TS2561 at consumer.ts(2,52), full exact message; same original payload/rejection/root closure; original2353 result preserved.",
+  "R30": "Post-candidate instrumentation/additive getter probe explicitly requested by root; no new API policy.",
+  "build": "One additional exact baseline README input for full858 pack; not a source fallback or old268 manifest claim."
+}

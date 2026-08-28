@@ -33,6 +33,18 @@
    coordinator.mjs too; retains both earlier outputs; and compares all359
    bound observations and all three namespace censuses with BEFORE/AFTER.
    This correction prevents calling the smaller graph the full active route.
+6. Final preseal `aadfc6e8` produced `FINAL.json`: **1712/1712**, exit0;
+   154 parsed harness modules,49-member seeded active closure, zero missing
+   active static edges,31 source-token assertions, all322 prior bindings
+   preserved, all359 live observations and33/28/30 censuses stable against
+   both earlier outputs. Three checker invocations total; zero candidate or
+   child-harness executions. The sole original failed assertion remains in
+   BEFORE.json; the sole historical unbound edge remains listed separately.
+7. A documentation-only apply_patch with a duplicated context hunk failed
+   verification without changing files. The corrected patch fixes source line
+   references, calls the path limit UTF-16 code units, and corrects the manually
+   counted interface executable bindings to18 (two entries plus16 modules).
+   No candidate or checker expectations/results changed in that wording fix.
 
 Git read-only metadata subprocesses and the independent parser/checker are not
 candidate child harnesses. Node runs this checker and Git reads explicit bound

@@ -1,0 +1,191 @@
+{
+  "schema": "node-abi-preparation-manifest-repair-v2",
+  "date": "2026-08-28",
+  "freezeClass": "post-existing-source/post-ROOT-private-ABI-choice; before syntax or synthetic validation; before any experiment execution",
+  "runtimeExecutionAuthorized": false,
+  "files": [
+    {
+      "path": "CONTROL.json",
+      "mode": 420,
+      "bytes": 2353,
+      "sha256": "3ec52fb9c6fd658c7a10c478a647dcd357d8e906c5427c3b697144f747e8d366",
+      "gitBlob": "e5f608e1c03ab6fae425bbea505052810ea75600",
+      "classification": "preparation metadata/documentation"
+    },
+    {
+      "path": "FROZEN-EXPERIMENTS.json",
+      "mode": 420,
+      "bytes": 11607,
+      "sha256": "ee60580ec6b1035dcc5c38286b84ccea43d2ff92763449477fefec8194a53be2",
+      "gitBlob": "5be2819f112020677c574aae83189ccddbf66688",
+      "classification": "preparation metadata/documentation"
+    },
+    {
+      "path": "GRANT.template.json",
+      "mode": 420,
+      "bytes": 1213,
+      "sha256": "9edd6342e08b7d8660fdbf0d1e7f5f455fe67be753d71c926d504737f5dab7bd",
+      "gitBlob": "fd4ce1cd58d3a662a5347012e4e14ec44e110385",
+      "classification": "preparation metadata/documentation"
+    },
+    {
+      "path": "INHERITED.json",
+      "mode": 420,
+      "bytes": 3330,
+      "sha256": "f2a484cad8a1338962e420904e8cf7fce46711f801f4b6e6f8bf4cbd460a6346",
+      "gitBlob": "4fb1dd898a63b5ff14f8fc90f2340b237d836f34",
+      "classification": "preparation metadata/documentation"
+    },
+    {
+      "path": "MECHANISM.json",
+      "mode": 420,
+      "bytes": 2620,
+      "sha256": "d073965757070b9b9642aaf36fc812819470be2725b96cfb42c3268ae549809f",
+      "gitBlob": "33d557ff081e7bec2cbfab96c332163c9a96b85e",
+      "classification": "preparation metadata/documentation"
+    },
+    {
+      "path": "PUBLIC-SOURCE.json.gz.base64",
+      "mode": 420,
+      "bytes": 338073,
+      "sha256": "9723f42cc9f01e3dff7c3ad8705538f99cbdc1c507a2d0699a4575ecb4a227ec",
+      "gitBlob": "1fc213b278b5b7c848b8a92230f76139e77b88c9",
+      "classification": "compact authenticated public source data; never imported"
+    },
+    {
+      "path": "README.md",
+      "mode": 420,
+      "bytes": 589,
+      "sha256": "f8eed17220e1b6d4539838ee09556331bd620d7be5270f784aab4812e7cbd68d",
+      "gitBlob": "c119d661c208a8f3273b7513e8aaa4fae901dd51",
+      "classification": "preparation metadata/documentation"
+    },
+    {
+      "path": "REUSE.json",
+      "mode": 420,
+      "bytes": 797,
+      "sha256": "4974c1a12338a5609468c1261a94c15b290326105a5e5325ebab724ea625f10c",
+      "gitBlob": "e79e08f408fb8ca0eed60c036353d1e25da2f738",
+      "classification": "preparation metadata/documentation"
+    },
+    {
+      "path": "REVIEW.template.json",
+      "mode": 420,
+      "bytes": 247,
+      "sha256": "441204146ae7e796a17ad03581cf9ceddb43dcd34fd21cc535c238e101c2a4e2",
+      "gitBlob": "ec306e2136242c42b92d31d454d1bf8016e9b7e0",
+      "classification": "preparation metadata/documentation"
+    },
+    {
+      "path": "SOURCES.json",
+      "mode": 420,
+      "bytes": 35893,
+      "sha256": "a670629995f8cb7331a5e24d35ad4bb185dc0fbe5f70de8281598de615cd35b1",
+      "gitBlob": "79f60f34950eba448a17394d1146841b8c428aa1",
+      "classification": "preparation metadata/documentation"
+    },
+    {
+      "path": "TOOLS.json",
+      "mode": 420,
+      "bytes": 2312,
+      "sha256": "4efc7ff6181d6f92dd9aa3fe67803c55af027adc734b701582998efb452ae788",
+      "gitBlob": "43144c5c774a76dfd23f6e4de21d5834a599f11e",
+      "classification": "preparation metadata/documentation"
+    },
+    {
+      "path": "child.mjs.data",
+      "mode": 420,
+      "bytes": 17951,
+      "sha256": "65376bb60a8b0cd5577c7bd6109f62a5ca58edae967b33f9aafaa8b3dff71e34",
+      "gitBlob": "aee60cbdd91e8148dfcfaad2e46519f64ac3a93d",
+      "classification": "inert executable-source data"
+    },
+    {
+      "path": "loader.mjs.data",
+      "mode": 420,
+      "bytes": 7297,
+      "sha256": "24c302b637912972ad878ad7c597176aa569d5b5fed2d3fbe75695d097352d04",
+      "gitBlob": "0781c8eb2bf1092ce477010c72ca8f3fd6d02586",
+      "classification": "inert executable-source data"
+    },
+    {
+      "path": "reference-entry.mjs.data",
+      "mode": 420,
+      "bytes": 2018,
+      "sha256": "72d173cbe626079b5cf1e7fcd719f4f62a9b2fb9d7260c4776253c4f56299168",
+      "gitBlob": "4e690e66ba01f82e6aa6e1b5913deb8417cdc0aa",
+      "classification": "inert executable-source data"
+    },
+    {
+      "path": "supervisor.mjs.data",
+      "mode": 420,
+      "bytes": 47339,
+      "sha256": "e6a38d60595475d44989b28faa52670185a777e63bcf610811d2ad275373459f",
+      "gitBlob": "34c9e8fb35d1ddad5b29f1ac7a62e7916cbcca83",
+      "classification": "inert executable-source data"
+    }
+  ],
+  "requiredGates": [
+    "Raman read-only review of the code-freeze commit and this exact manifest hash",
+    "fresh ROOT GO with exact eight labels, hashes, ABI and limits"
+  ],
+  "metadataOnlyPreparation": {
+    "privateAccess": false,
+    "engineExecutions": 0,
+    "probes": 0,
+    "builds": 0,
+    "installs": 0,
+    "syntheticExecutions": 0,
+    "syntaxValidationBeforeFreeze": false,
+    "qualification": "At this code freeze only; later inert controls are separately sealed, never engine acceptance."
+  },
+  "generatedConsumerPackage": {
+    "relativePath": "consumer/package.json",
+    "utf8": "{\"type\":\"module\"}\n",
+    "mode": 420,
+    "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+  },
+  "futureLayout": {
+    "publicSources": "consumer/engine/<exact66 SOURCES.json paths>",
+    "runtimeEngineAdmission": "original63 only; unknown loads stop",
+    "compiler": "consumer/node_modules/typescript/<exact2 TOOLS.json relativePaths>",
+    "node": "tools/node",
+    "loader": "tools/loader.mjs",
+    "entry": "consumer/harness/reference-entry.mjs",
+    "driver": "consumer/harness/child.mjs"
+  },
+  "excludedNonExecutionNotes": [
+    "RAMAN_HANDOFF.md",
+    "VALIDATION.json"
+  ],
+  "separateAuthorityDirectories": [
+    "reviews",
+    "authorizations"
+  ],
+  "ownedOutputDirectory": "runs/<unused-run-id>",
+  "qualification": "Not a current product/engine acceptance gate or issued execution authorization.",
+  "repairBaseline": {
+    "schema": "node-abi-repair-reuse-v2",
+    "baselineCode": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+    "baselineHandoff": "5aeb915c39612a0e04021818af1251e8f3d78973",
+    "independentFailureCommit": "790a4412198cbe1a9b5b03fcc75aa8d1fcdfd1b9",
+    "changedExecutableFiles": [
+      "supervisor.mjs.data",
+      "child.mjs.data"
+    ],
+    "unchangedExecutableFiles": [
+      "loader.mjs.data",
+      "reference-entry.mjs.data"
+    ],
+    "changes": [
+      "child acquisition/listeners/containment/outer retirement",
+      "strict whole receipt composition and case reconciliation",
+      "raw stats artifact and nonexecuting observations for reconciliation"
+    ],
+    "guestSourcesChanged": false,
+    "plannedEvaluations": 8,
+    "F03F07OrderCasesAdded": 0,
+    "limitsChanged": false,
+    "priorReviewIsNotRepairApproval": true
+  }
+}

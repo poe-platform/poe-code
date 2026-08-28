@@ -1,0 +1,46 @@
+import assert from 'node:assert/strict';
+import { run } from '../engine/src/run.ts';
+import { Budget } from '../engine/src/interp/budget.ts';
+import { createSandboxClosure, deepCopyToSandbox } from '../engine/src/interp/values.ts';
+import { declareHostOperation } from '../engine/src/interp/host-bridge.ts';
+
+export function bindReferenceRuntime(identity, witness) {
+  assert.equal(identity.engineCommit, 'bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e');
+  assert.equal(identity.valuesSha256, '931e3d99b2ca4c279600fd00d053e382be7add117d26420f8d8ebf3a157336dd');
+  let runs = 0;
+  return Object.freeze({
+    identity: Object.freeze({ ...identity }),
+    createBudget(options) { const budget = new Budget(options); witness('budget-create'); return budget; },
+    createGuestData(value) { return deepCopyToSandbox(value); },
+    ordinary(operation) { return declareHostOperation(operation, 'read-side-effect'); },
+    intrinsic(name, operation) {
+      witness('factory-create', { name });
+      return createSandboxClosure({
+        name,
+        call(args) {
+          witness('intrinsic-enter', { name });
+          let result;
+          try { result = operation(args); }
+          catch (reason) { witness('intrinsic-settle', { name, rejected: true }); throw reason; }
+          if (result instanceof Promise) {
+            return result.then(value => {
+              witness('intrinsic-settle', { name, rejected: false, nativePromise: true });
+              return value;
+            }, reason => {
+              witness('intrinsic-settle', { name, rejected: true, nativePromise: true });
+              throw reason;
+            });
+          }
+          witness('intrinsic-settle', { name, rejected: false, nativePromise: false });
+          return result;
+        },
+      });
+    },
+    async runOnce(source, options) {
+      assert.equal(++runs, 1, 'ONE_EVALUATION_PER_CHILD');
+      witness('engine-enter');
+      try { return await run(source, options); }
+      finally { witness('engine-settle'); }
+    },
+  });
+}

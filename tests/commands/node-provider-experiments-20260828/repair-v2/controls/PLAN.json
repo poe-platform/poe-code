@@ -1,0 +1,393 @@
+{
+  "schema": "node-repair-inert-controls-preseal-v2",
+  "date": "2026-08-28",
+  "authorization": "Current ROOT narrow repair GO; synthetic only, no engine grant",
+  "runId": "repair-v2-01",
+  "executionTokenFormat": "repair-v2:repair-v2-01:<SHA256 exact PLAN.json>",
+  "node": {
+    "role": "node",
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "mode": 493,
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "controls": [
+    {
+      "id": "C01",
+      "expected": "natural close and NATURAL LF"
+    },
+    {
+      "id": "C02",
+      "expected": "postspawn clock primary retained; subject SIGTERM/close"
+    },
+    {
+      "id": "C03",
+      "expected": "postspawn publication primary plus secondary retained; subject SIGTERM/close"
+    },
+    {
+      "id": "C04",
+      "expected": "negative SIGTERM is not natural pass"
+    },
+    {
+      "id": "C05",
+      "expected": "whole composed inert receipt accepted plus null-prototype data accepted"
+    },
+    {
+      "id": "C06",
+      "expected": "contradictory receipt rejected with all composed inert prerequisite ports"
+    },
+    {
+      "id": "C07",
+      "expected": "hole rejected"
+    },
+    {
+      "id": "C08",
+      "expected": "accessor rejected without invocation"
+    },
+    {
+      "id": "C09",
+      "expected": "extra field rejected"
+    }
+  ],
+  "uniqueControls": 9,
+  "plannedHarmlessChildren": 6,
+  "plannedNodeProcessesIncludingRunner": 7,
+  "expectedNaturalChildren": 3,
+  "expectedSigtermChildren": 3,
+  "reconcilerInvocations": 6,
+  "mainEngineEvaluations": 0,
+  "compilerImports": 0,
+  "privateAccess": false,
+  "retries": false,
+  "limits": {
+    "overallMs": 60000,
+    "controlMs": 3000,
+    "subjectGraceMs": 250,
+    "reapGraceMs": 800,
+    "children": 6,
+    "concurrentChildren": 1,
+    "stubSelfRetirementMs": 4000,
+    "scratchBytes": 8388608,
+    "scratchFiles": 96,
+    "streamBytes": 8192,
+    "recordBytes": 131072,
+    "evidenceBytes": 524288,
+    "captureBytes": 1048576,
+    "hashChunkBytes": 65536
+  },
+  "childEnv": {
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "NODE_DISABLE_COMPILE_CACHE": "1"
+  },
+  "controlFiles": [
+    {
+      "path": "EXTRACTION.json",
+      "bytes": 2333,
+      "mode": 420,
+      "sha256": "4a9363c6518b5ec912ec1060b172dfbde6ad847f3422bf4680eb0e6a62ea29d1"
+    },
+    {
+      "path": "F01-INERT-FIXTURE.json",
+      "bytes": 4171,
+      "mode": 420,
+      "sha256": "78954f48666460b4ca6c3c0a92ad52a0e38b82ee1750aeead44e7190474c9a76"
+    },
+    {
+      "path": "runner.mjs.data",
+      "bytes": 17146,
+      "mode": 420,
+      "sha256": "b71234baf9111f50581adc8d1e80321c7ee500e1345d9aee1f09d56d360497ef"
+    },
+    {
+      "path": "stub.mjs.data",
+      "bytes": 1249,
+      "mode": 420,
+      "sha256": "640a7ae60a1e5c2f9be1e38ad38cf7b3011396e402583779efd9939729b0dc77"
+    },
+    {
+      "path": "subject.mjs.data",
+      "bytes": 24264,
+      "mode": 420,
+      "sha256": "9c12199286c437e714700340abe17ae7ab4637073a9d6f2b1065bc5602c47640"
+    }
+  ],
+  "protectedFiles": [
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/CONTROL.json",
+      "bytes": 2353,
+      "mode": 420,
+      "sha256": "3ec52fb9c6fd658c7a10c478a647dcd357d8e906c5427c3b697144f747e8d366"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/FROZEN-EXPERIMENTS.json",
+      "bytes": 11607,
+      "mode": 420,
+      "sha256": "ee60580ec6b1035dcc5c38286b84ccea43d2ff92763449477fefec8194a53be2"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/GRANT.template.json",
+      "bytes": 1213,
+      "mode": 420,
+      "sha256": "9edd6342e08b7d8660fdbf0d1e7f5f455fe67be753d71c926d504737f5dab7bd"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/INHERITED.json",
+      "bytes": 3330,
+      "mode": 420,
+      "sha256": "f2a484cad8a1338962e420904e8cf7fce46711f801f4b6e6f8bf4cbd460a6346"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/MANIFEST.json",
+      "bytes": 6994,
+      "mode": 420,
+      "sha256": "3b4169c6dcb15f5f9d43e08fd417c93a38004604404cebab724cb44dbeae5f8c"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/MECHANISM.json",
+      "bytes": 2620,
+      "mode": 420,
+      "sha256": "d073965757070b9b9642aaf36fc812819470be2725b96cfb42c3268ae549809f"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/PUBLIC-SOURCE.json.gz.base64",
+      "bytes": 338073,
+      "mode": 420,
+      "sha256": "9723f42cc9f01e3dff7c3ad8705538f99cbdc1c507a2d0699a4575ecb4a227ec"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/README.md",
+      "bytes": 589,
+      "mode": 420,
+      "sha256": "f8eed17220e1b6d4539838ee09556331bd620d7be5270f784aab4812e7cbd68d"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/REUSE.json",
+      "bytes": 797,
+      "mode": 420,
+      "sha256": "4974c1a12338a5609468c1261a94c15b290326105a5e5325ebab724ea625f10c"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/REVIEW.template.json",
+      "bytes": 247,
+      "mode": 420,
+      "sha256": "441204146ae7e796a17ad03581cf9ceddb43dcd34fd21cc535c238e101c2a4e2"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/SOURCES.json",
+      "bytes": 35893,
+      "mode": 420,
+      "sha256": "a670629995f8cb7331a5e24d35ad4bb185dc0fbe5f70de8281598de615cd35b1"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/TOOLS.json",
+      "bytes": 2312,
+      "mode": 420,
+      "sha256": "4efc7ff6181d6f92dd9aa3fe67803c55af027adc734b701582998efb452ae788"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/child.mjs.data",
+      "bytes": 17951,
+      "mode": 420,
+      "sha256": "65376bb60a8b0cd5577c7bd6109f62a5ca58edae967b33f9aafaa8b3dff71e34"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/loader.mjs.data",
+      "bytes": 7297,
+      "mode": 420,
+      "sha256": "24c302b637912972ad878ad7c597176aa569d5b5fed2d3fbe75695d097352d04"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/reference-entry.mjs.data",
+      "bytes": 2018,
+      "mode": 420,
+      "sha256": "72d173cbe626079b5cf1e7fcd719f4f62a9b2fb9d7260c4776253c4f56299168"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/supervisor.mjs.data",
+      "bytes": 47339,
+      "mode": 420,
+      "sha256": "e6a38d60595475d44989b28faa52670185a777e63bcf610811d2ad275373459f"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/CONTROL.json",
+      "bytes": 2353,
+      "mode": 420,
+      "sha256": "3ec52fb9c6fd658c7a10c478a647dcd357d8e906c5427c3b697144f747e8d366",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/FROZEN-EXPERIMENTS.json",
+      "bytes": 11607,
+      "mode": 420,
+      "sha256": "ee60580ec6b1035dcc5c38286b84ccea43d2ff92763449477fefec8194a53be2",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/GRANT.template.json",
+      "bytes": 1213,
+      "mode": 420,
+      "sha256": "9edd6342e08b7d8660fdbf0d1e7f5f455fe67be753d71c926d504737f5dab7bd",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/INHERITED.json",
+      "bytes": 3330,
+      "mode": 420,
+      "sha256": "f2a484cad8a1338962e420904e8cf7fce46711f801f4b6e6f8bf4cbd460a6346",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/MANIFEST.json",
+      "bytes": 6006,
+      "mode": 420,
+      "sha256": "c163bcd7cc0686dc7d4ab67ba24429fe4900c68c244cdf46799bff5b12b4e213",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/MECHANISM.json",
+      "bytes": 2620,
+      "mode": 420,
+      "sha256": "d073965757070b9b9642aaf36fc812819470be2725b96cfb42c3268ae549809f",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/PUBLIC-SOURCE.json.gz.base64",
+      "bytes": 338073,
+      "mode": 420,
+      "sha256": "9723f42cc9f01e3dff7c3ad8705538f99cbdc1c507a2d0699a4575ecb4a227ec",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/RAMAN_HANDOFF.md",
+      "bytes": 7561,
+      "mode": 420,
+      "sha256": "5b8196c989e6b78387dca0756616ecdfed1918ee7daf13f4cb6e2ae3efaad472",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/README.md",
+      "bytes": 8580,
+      "mode": 420,
+      "sha256": "3bcef9b0c59be13fb00a765d9f034af7755739e3ae94d3f723d32a410e14577f",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/REUSE.json",
+      "bytes": 1892,
+      "mode": 420,
+      "sha256": "306f20cb34d27bc5a85b1fdcf04e057a33b8486bb149ad680befba477585ce44",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/REVIEW.template.json",
+      "bytes": 247,
+      "mode": 420,
+      "sha256": "441204146ae7e796a17ad03581cf9ceddb43dcd34fd21cc535c238e101c2a4e2",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/SOURCES.json",
+      "bytes": 35893,
+      "mode": 420,
+      "sha256": "a670629995f8cb7331a5e24d35ad4bb185dc0fbe5f70de8281598de615cd35b1",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/TOOLS.json",
+      "bytes": 2312,
+      "mode": 420,
+      "sha256": "4efc7ff6181d6f92dd9aa3fe67803c55af027adc734b701582998efb452ae788",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/VALIDATION.json",
+      "bytes": 3751,
+      "mode": 420,
+      "sha256": "649a2d7dccc42e83392f411d5fcaad8f473cf7e8ee5aafc433bfcc6977737e94",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/child.mjs.data",
+      "bytes": 17273,
+      "mode": 420,
+      "sha256": "8ee806cbcc01f4a520fad781d081affc92188000b4b0b9f36d7526c639353f72",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/loader.mjs.data",
+      "bytes": 7297,
+      "mode": 420,
+      "sha256": "24c302b637912972ad878ad7c597176aa569d5b5fed2d3fbe75695d097352d04",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/reference-entry.mjs.data",
+      "bytes": 2018,
+      "mode": 420,
+      "sha256": "72d173cbe626079b5cf1e7fcd719f4f62a9b2fb9d7260c4776253c4f56299168",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/supervisor.mjs.data",
+      "bytes": 26682,
+      "mode": 420,
+      "sha256": "986d9c3f06e9341a6dc577d03984092a7c046617386c56bc9569d21d1255891f",
+      "commit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e or5aeb notes"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/REVIEW-EVIDENCE.json",
+      "bytes": 7732,
+      "mode": 420,
+      "sha256": "d15171345f51a9f31412ef7fa76156982aa4c18adfe84425676a1129e24078ca",
+      "commit": "790a4412198cbe1a9b5b03fcc75aa8d1fcdfd1b9"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/runs/synthetic-v1-01/REPORT.json",
+      "bytes": 15937,
+      "mode": 420,
+      "sha256": "315f5edcf5747d6ad582b74f9689102ffdb1e1b5b2f52eec40b4f4b4cdd524d3",
+      "commit": "790a4412198cbe1a9b5b03fcc75aa8d1fcdfd1b9"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-independent-20260828/np1-cjs-v1-review/REVIEW.md",
+      "bytes": 9373,
+      "mode": 420,
+      "sha256": "5c1565eafe1c0912fe921d9cf6624d54fce53612019bac718a857d06f54d32d7",
+      "commit": "790a4412198cbe1a9b5b03fcc75aa8d1fcdfd1b9"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/PRESEAL.md",
+      "bytes": 4583,
+      "mode": 420,
+      "sha256": "bdda6190c1fd40e1423bbfe68206f746fcee92b4dc52319069289ca7841023f1"
+    },
+    {
+      "origin": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/typescript.js",
+      "bytes": 9112572,
+      "mode": 420,
+      "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/package.json",
+      "bytes": 3620,
+      "mode": 420,
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    }
+  ],
+  "mainRecipeManifestSha256": "3b4169c6dcb15f5f9d43e08fd417c93a38004604404cebab724cb44dbeae5f8c",
+  "extractionSha256": "4a9363c6518b5ec912ec1060b172dfbde6ad847f3422bf4680eb0e6a62ea29d1",
+  "launch": "Pinned Node --input-type=module receives exact runner.mjs.data on stdin; scrubbed env contains only LC_ALL=C,TZ=UTC,NODE_DISABLE_COMPILE_CACHE=1,NP_REPAIR_CONTROL_GO. Existing approved data-tool launcher supplies bytes and captures bounded sealed-runner terminal output; its own process is not one of the seven Node processes. Tool/CLI ancestors not an OS descendant census.",
+  "portQualification": "Whole functions exact. Main guard/immutable/load ports are authenticated inert mocks in composed controls; actual child close and bounded artifact IO are real. No engine/statistics/brand fabrication is executed or represented as engine proof.",
+  "stop": "Any independent rescue or guard uncertainty stops dependent controls; ordinary reaped assertion failure retained; no retry. Capture then safe scratch removal then re-read closure.",
+  "noSyntaxBeforeFreeze": true
+}

@@ -1,0 +1,734 @@
+{
+  "schema": "yq-final-carry-independent-results/1",
+  "date": "2026-08-28",
+  "status": "READY_AUTHOR_FACING_PRECODE_STATIC_ONLY",
+  "candidate": "bd471ef682d768692a682d40009a874f51e3ad68",
+  "predicateSeal": "c52a1d733576aebad79f154e71146923b5aa4e0c",
+  "preparationSeal": "cbc3ff0b8188f8cce88d91382ffc9c149606bcd6",
+  "startHead": "913da9ed20e6927c6880d077cb1b1f12b9d4d059",
+  "endHead": "d3c1bb62304809cac149a61fc2f1cebe46d076ff",
+  "priorWait": "Historical bounded preparation only; not a finding or current prerequisite",
+  "authentication": {
+    "parent": "4b94b827fce7d7efc62a4ce52c5a69c1e4cae46a",
+    "deltaSha256": "5c2cca06c7b30d7ef2dd91764ca4b82d615fc68dc58e8cad53d9652baf44f908",
+    "deltaBytes": 91311,
+    "rootDecisionSha256": "138bc2fd25e3e9b83ccc63fdfd41f4f977e167e5a8e4cefb8281cf7a6e28b1a0",
+    "candidateIdentities": [
+      {
+        "path": "tests/commands/yq-independent-20260828/README.md",
+        "mode": "100644",
+        "blob": "217338beac024cf37af4904da98b9e4e3aeb1ac0",
+        "bytes": 3452,
+        "sha256": "08da0acb6e4549a03a7b13e0c889c70ff0d001fa0f170c2cfee99544dacb6179"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/final-carry-v1/CONTRACT.md",
+        "mode": "100644",
+        "blob": "885a54dd028e86ad164c5d58d27d41228f06cf78",
+        "bytes": 18630,
+        "sha256": "1e31a9883fdaf3e8fbb890c736a4082246b58d6dafd7479ebbec194dd8531401"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/final-carry-v1/MANIFEST.json",
+        "mode": "100644",
+        "blob": "4ab33422958b01d9ef0d9d17a01427827d05af17",
+        "bytes": 22271,
+        "sha256": "98871d5f7f98e9a9b666310d7189c176bab895d84dd313b3da2cc017ed2fd26d"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/final-carry-v1/RESOURCE-TRACES.json",
+        "mode": "100644",
+        "blob": "e98027cd8f2045aa371854b944abf8397b57fa8a",
+        "bytes": 10911,
+        "sha256": "c316344722cb4b4720978b1406f4d7e614bb362f1aa441d3966e14832b6cfacd"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/final-carry-v1/SOURCES.json",
+        "mode": "100644",
+        "blob": "d37a5821797647a08b442d2725c1de09d4428216",
+        "bytes": 14928,
+        "sha256": "11eba6977e60c33340374ecb51b002f330d2ca97a3c59384991eeff24134b5c6"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/final-carry-v1/check.mjs",
+        "mode": "100644",
+        "blob": "227d1529dcb4782a6f572b2b2a1a71421b64faf0",
+        "bytes": 16478,
+        "sha256": "4b9d6f3817cb91f0199b2fd85a664e04e82756b769987afc50f1fca2ffe33e3c"
+      }
+    ],
+    "preparedIdentities": [
+      {
+        "path": "tests/commands/yq-independent-20260828/final-carry-review-v1/PROTOCOL.md",
+        "mode": "100644",
+        "blob": "9d94c727b444fcf8d70fa9e5c17904917567b224",
+        "bytes": 3631,
+        "sha256": "83d32319c0859114b0a4fc829007f604d5793fac5edf1bb014ffde68638a243d"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/final-carry-review-v1/PREDICATES.json",
+        "mode": "100644",
+        "blob": "1acd6ba1e74114b299cbbc6102cf9e4abf3e82d0",
+        "bytes": 4563,
+        "sha256": "ac3c96476bec0bd2a2a6a63facf8805a5d28b5e15454f67d8c94ac50ba135733"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/final-carry-review-v1/PROTECTED_BASELINE.json",
+        "mode": "100644",
+        "blob": "a39b9429c2d4007d04d16598aa419512bf3c7178",
+        "bytes": 19818,
+        "sha256": "7d1ff3935e81304d6ba44f6174971c23c6b262a5dfca026711e0c262192b71a1"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/final-carry-review-v1/check-literals.mjs",
+        "mode": "100644",
+        "blob": "be8de18352c52b419c1b1ec5acf7998f1a5ab6b7",
+        "bytes": 4799,
+        "sha256": "8cedf7a4e31c50b17044d44c6d58a55eb57c7256def06115308ca07802d44c99"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/final-carry-review-v1/PREPARATION-RESULT.json",
+        "mode": "100644",
+        "blob": "2b5c8eb53009f8decee272d7cb4bb003ead4ea7a",
+        "bytes": 2646,
+        "sha256": "af6620a70d2dcac29db128f81cf3f9423d618e640adfab62e9de28ccf73ee070"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/final-carry-review-v1/PREPARED.md",
+        "mode": "100644",
+        "blob": "6a429dc81bcc54628839ce6860a3c488515b8849",
+        "bytes": 2421,
+        "sha256": "bd54dcf6df4e32460ae9cfac66eba78b34d31ddc3abbf8f9b424fd887e72c0d5"
+      }
+    ],
+    "selectedSourceIdentities": [
+      {
+        "id": "initial-readme",
+        "revision": "b311c2364ceca13daab4086dfb21157b9b8ae856",
+        "path": "tests/commands/yq-design-20260828/initial-profile-v1/README.md",
+        "mode": "100644",
+        "blob": "4d74b959588b2708cca6d4d8e8f2aa8ee465da68",
+        "bytes": 29498,
+        "sha256": "75af84bd5e888a3080e9096b86ed0a25be95105524011851193b9bf39192ba50"
+      },
+      {
+        "id": "initial-decisions",
+        "revision": "b311c2364ceca13daab4086dfb21157b9b8ae856",
+        "path": "tests/commands/yq-design-20260828/initial-profile-v1/decisions.json",
+        "mode": "100644",
+        "blob": "cc7d8c342eda556a743196deb1a519e4b9be79e6",
+        "bytes": 5381,
+        "sha256": "2d7e03e6e8e38020e62b96245ea95826208a400df19c106f0c3f857d4fa3d3fc"
+      },
+      {
+        "id": "final-readme",
+        "revision": "5783b8e03912f7774d2a86ba1dae9de778121273",
+        "path": "tests/commands/yq-design-20260828/final-contract-v1/README.md",
+        "mode": "100644",
+        "blob": "a6550e0698ff588b5e2d4ca4289282793a6f4f32",
+        "bytes": 8158,
+        "sha256": "14cee48cac1803f92432b4f7df8f3311514b12277357805945bd11156e8646ff"
+      },
+      {
+        "id": "final",
+        "revision": "5783b8e03912f7774d2a86ba1dae9de778121273",
+        "path": "tests/commands/yq-design-20260828/final-contract-v1/contract.json",
+        "mode": "100644",
+        "blob": "a902a481993cbfd3b1a85ce8c54112ade65fbc81",
+        "bytes": 37274,
+        "sha256": "1b2cf2740586d6847286d5a28788beb748d09e8b2181f02e6476d3b7634cefb8"
+      },
+      {
+        "id": "adoption-readme",
+        "revision": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707",
+        "path": "tests/commands/yq-design-20260828/final-adoption-v1/README.md",
+        "mode": "100644",
+        "blob": "289cd87cbd208578f16b5411dd44501fb0d03f48",
+        "bytes": 5128,
+        "sha256": "7e2f1a691409a09130f4cf2d539914eb76feab81d13c7cdc9f2c72d3a268c081"
+      },
+      {
+        "id": "adoption",
+        "revision": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707",
+        "path": "tests/commands/yq-design-20260828/final-adoption-v1/adoption.json",
+        "mode": "100644",
+        "blob": "403173f53d1674cbe35c8166e6fcb3c56c25ab5b",
+        "bytes": 8461,
+        "sha256": "22e83a0e6f602103ac9378654dd62fc7098c461ac90b7385e5d6b06cec156be6"
+      },
+      {
+        "id": "freeze-command-parser",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "path": "tests/commands/yq-independent-20260828/freeze/command-parser.json",
+        "mode": "100644",
+        "blob": "2818796d706eb48e452d769d36c0644754ceefbd",
+        "bytes": 10728,
+        "sha256": "173a594a4b61c17e14ecd09ee850027e1c9cfafac95530e04cfcb65d7c1de18f"
+      },
+      {
+        "id": "freeze-value-query",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "mode": "100644",
+        "blob": "15386e9f5336d8244ead725f0c5402b4e5a1183d",
+        "bytes": 12730,
+        "sha256": "b83f0f56eeddbc9637947356078d972999533af791d40f200d493008e17ee443"
+      },
+      {
+        "id": "freeze-utf8",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "path": "tests/commands/yq-independent-20260828/freeze/utf8.json",
+        "mode": "100644",
+        "blob": "d191c59bd40fd9413d4b73d7e8ac57acd4c197c2",
+        "bytes": 4211,
+        "sha256": "bd42933b99802391de2d41d8af9c00a32963f96ac5fb243b4913da3f358f150c"
+      },
+      {
+        "id": "freeze-accounting",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "mode": "100644",
+        "blob": "122721e4bef71663f098456e94990b8055b84b87",
+        "bytes": 10897,
+        "sha256": "f81e089520ccaffcd3cd73589f46737dd658cb9be295f43089156f64382381cf"
+      },
+      {
+        "id": "freeze-integration",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "mode": "100644",
+        "blob": "889e6db198ca7521e175501e39864a42ffc71e24",
+        "bytes": 12184,
+        "sha256": "5486bac2261fec24e85b2ebe2a48eaccbd59be0f8013cdbd852f081c3cc1af30"
+      },
+      {
+        "id": "freeze-integrity",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "path": "tests/commands/yq-independent-20260828/freeze/integrity.json",
+        "mode": "100644",
+        "blob": "b05483562a8c8961ef594f7bf909b33fc9852285",
+        "bytes": 3428,
+        "sha256": "658c00cf9b38c7b4c0f8cf2c0c9092baa04468433747e0427e25868f94ba5462"
+      },
+      {
+        "id": "freeze-fixed-values",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "path": "tests/commands/yq-independent-20260828/freeze/fixed-values.json",
+        "mode": "100644",
+        "blob": "f6d1f2e79e6fbc1e4edeb5e34ffead287525cb48",
+        "bytes": 3446,
+        "sha256": "59a1fbcc170e9b26e6184fca8f082f17c558ca3b0b9dcd15561a6a9dbf470b3a"
+      },
+      {
+        "id": "normative-cases",
+        "revision": "c75fad948ab185fc68e5fdbd49dce4727a279514",
+        "path": "tests/commands/yq-independent-20260828/normative/cases.json",
+        "mode": "100644",
+        "blob": "61c8bf10b3de59500b14462875a8650190b5aa8f",
+        "bytes": 20354,
+        "sha256": "36538ec3e40205a61d9d1b3a3ce0e9232bcff47502512dafc9cd90c615282d9e"
+      },
+      {
+        "id": "query-cases",
+        "revision": "3bc2ee8aa38e82773a1fbec1f0b67673b0928105",
+        "path": "tests/commands/yq-independent-20260828/query-budget/CASES.json",
+        "mode": "100644",
+        "blob": "a447806a83a413aba3562a806a57902a2b9a5777",
+        "bytes": 16845,
+        "sha256": "cc1e73ab2adc50840499f0f57f4d30a1baa72bee2e095652e9b2d456f3753de3"
+      },
+      {
+        "id": "reconciliation",
+        "revision": "544f8279138cb1335ded08f9db638410e91c1324",
+        "path": "tests/commands/yq-independent-20260828/reconciliation-v1/crosswalk.json",
+        "mode": "100644",
+        "blob": "19727506747a63f02ccc90cc8e63a098a8d28317",
+        "bytes": 12336,
+        "sha256": "c19081327f7e3d2602e0383078dd1acc05fbf2f70e6e60e4a7d9f895f4c34f4f"
+      },
+      {
+        "id": "n-decisions",
+        "revision": "914d2c9b61f68adc2adf5e4297f702248c2bd5ef",
+        "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/decisions.json",
+        "mode": "100644",
+        "blob": "043c4c868022cbb0093e062f3b05ffe8e51035ff",
+        "bytes": 6187,
+        "sha256": "bb4b07487d10340ab3ca715d52e6ada6765ee05b06bbd97f58d06fc87dabbdcc"
+      },
+      {
+        "id": "n-cases",
+        "revision": "914d2c9b61f68adc2adf5e4297f702248c2bd5ef",
+        "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/cases.json",
+        "mode": "100644",
+        "blob": "29a584ae5513f43e03c86ff0bd9c2e307404db4f",
+        "bytes": 10246,
+        "sha256": "cb1c52cc7c5d50b2e6e31cc0229f1a16cc526ab242c01bc04df16e581bf50279"
+      },
+      {
+        "id": "n-review",
+        "revision": "5fa2d5b92c323c1dfcacab1d4998f3d47dfbfc06",
+        "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/results-v1/REVIEW.md",
+        "mode": "100644",
+        "blob": "ca80745b90fd460611b38b01d0b6a031cf758d8d",
+        "bytes": 9476,
+        "sha256": "dec947b595be7ec9763ca73b616eb837ce9f9dca0ac363d19245b47c9b09a7a1"
+      },
+      {
+        "id": "n-results",
+        "revision": "5fa2d5b92c323c1dfcacab1d4998f3d47dfbfc06",
+        "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/results-v1/RESULTS.json",
+        "mode": "100644",
+        "blob": "3f66b39a409bd5e3dc95726c4ae63685fd4320b2",
+        "bytes": 73686,
+        "sha256": "7711c6833d9605e19bd2a2f1197f06798a8f2cafb4e269c7159795ff6f7535cc"
+      },
+      {
+        "id": "qb-base",
+        "revision": "89e403e080ba2ac051bcc19a634d9e964620152d",
+        "path": "tests/commands/yq-design-20260828/qb-policy-v1/README.md",
+        "mode": "100644",
+        "blob": "82e9db96a2f8acb09b94014169639f54542fa4eb",
+        "bytes": 14241,
+        "sha256": "9e17fcf17acce080b74667580c95fccd11c6a3171781f483904029899a034879"
+      },
+      {
+        "id": "qb-policy",
+        "revision": "6620463abdf7e952aaa855abfba13159a6c5cc83",
+        "path": "tests/commands/yq-design-20260828/qb-policy-v1/README.md",
+        "mode": "100644",
+        "blob": "69d60070d289e422164ebe45cf34f6bc2919a37c",
+        "bytes": 17271,
+        "sha256": "96a7ae5aa36cec464a28d9ba09cfcd9791cb0dd09e80a51a6fc203cdd87b7ac6"
+      },
+      {
+        "id": "qb-identity",
+        "revision": "6620463abdf7e952aaa855abfba13159a6c5cc83",
+        "path": "tests/commands/yq-design-20260828/qb-policy-v1/identity.json",
+        "mode": "100644",
+        "blob": "5ff9922a1c99a72858a4c7e1b8aa974a8713b954",
+        "bytes": 6614,
+        "sha256": "23a949aa0837aa50fa92c38941b83eae4c4404c9e6e5c3600e393817ca4852a4"
+      },
+      {
+        "id": "qb-controls",
+        "revision": "89e403e080ba2ac051bcc19a634d9e964620152d",
+        "path": "tests/commands/yq-design-20260828/qb-policy-v1/controls.json",
+        "mode": "100644",
+        "blob": "2757932475a9303c59a857311fbbfe14caaca3a2",
+        "bytes": 3729,
+        "sha256": "305f884198df8c8626b8246d1189f5708938fb0af4a2990e924420a178a9c43d"
+      },
+      {
+        "id": "qb-review",
+        "revision": "0457fa7939b8d48dd47d0fc3912c9c055462a100",
+        "path": "tests/commands/yq-independent-20260828/qb-mechanism-review-v1/REVIEW.md",
+        "mode": "100644",
+        "blob": "02333e186660e0004cd7c39b11e378f93c0c25af",
+        "bytes": 11739,
+        "sha256": "bcbc458a7a99fdae4940711899ae289fd6fb112b0bd18a693109387e8f339969"
+      },
+      {
+        "id": "qb-review-cases",
+        "revision": "0457fa7939b8d48dd47d0fc3912c9c055462a100",
+        "path": "tests/commands/yq-independent-20260828/qb-mechanism-review-v1/CASES.json",
+        "mode": "100644",
+        "blob": "6ec60d283a3f20a0af1938ffaeafdb35188c0e59",
+        "bytes": 11434,
+        "sha256": "ee1cbe07b3590cff1405c9708f7122385067189e56ef060bcbb58ce7edbb7c65"
+      },
+      {
+        "id": "length-relay",
+        "revision": "3387a103798bb441764218d38696639d501d19d2",
+        "path": "tests/commands/yq-independent-20260828/query-budget/LENGTH-ACCEPTANCE-ADDENDUM.md",
+        "mode": "100644",
+        "blob": "ae15f35b39adf79830bbfafcf2f4c91356ded6e8",
+        "bytes": 2599,
+        "sha256": "77246ca464b245e4258e622f10014cff70aa0b7293209fd3e6fbbca18914e713"
+      },
+      {
+        "id": "baseline-limits",
+        "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "path": "src/commands/structured/limits.ts",
+        "mode": "100644",
+        "blob": "f40c2edc755f14474ed50491b6f4118be33d7ae5",
+        "bytes": 6675,
+        "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe"
+      }
+    ],
+    "before": {
+      "protectedFiles": 50,
+      "protectedScopes": 8,
+      "protectedMembershipEntries": 59,
+      "historicalIdentitySha256": "41cfb3b678c4c386b349ca856f0ced43963a98459906588146d08accd399e492",
+      "membershipSha256": "f0bc3ad2343ed533aaa95c891f0d0e6467c64506c22223d770dc50e4961478f1",
+      "preparedFiles": 6,
+      "preparedIdentitySha256": "4502906f3e18500272ff2e9909d198cbe0cf30a5e38c6a071614cd08ada2b845",
+      "candidateFiles": 6,
+      "candidateIdentitySha256": "ba554f8fb33396aa4fdb35fd67245f75c65a21a2202865aea6ea7b8f7088e70c"
+    },
+    "after": {
+      "protectedFiles": 50,
+      "protectedScopes": 8,
+      "protectedMembershipEntries": 59,
+      "historicalIdentitySha256": "41cfb3b678c4c386b349ca856f0ced43963a98459906588146d08accd399e492",
+      "membershipSha256": "f0bc3ad2343ed533aaa95c891f0d0e6467c64506c22223d770dc50e4961478f1",
+      "preparedFiles": 6,
+      "preparedIdentitySha256": "4502906f3e18500272ff2e9909d198cbe0cf30a5e38c6a071614cd08ada2b845",
+      "candidateFiles": 6,
+      "candidateIdentitySha256": "ba554f8fb33396aa4fdb35fd67245f75c65a21a2202865aea6ea7b8f7088e70c"
+    }
+  },
+  "inherited": {
+    "pointerBindings": 14,
+    "privateCaps": 21,
+    "budgetFields": 9,
+    "diagnostics": 54,
+    "helpBytes": 501,
+    "versionBytes": 37,
+    "nAcceptedTuples": 32,
+    "nAcceptedStaticControls": 36,
+    "noNewNReview": true,
+    "lengthAndFull846": "accepted relay, no pack replay"
+  },
+  "coverage": {
+    "originalRecords": 194,
+    "groups": [
+      {
+        "source": "freeze-command-parser",
+        "records": 60,
+        "allOriginalRecordsSha256": "2500ef3718dacf31a3e1606780274a7304f7d3a44f3b79bbf73bb5df0b21fd4b",
+        "originalInputsSha256": "790e6ea76b287614efd5603ffb16d0af6123d884160203c198fa8062a7cb762f"
+      },
+      {
+        "source": "freeze-value-query",
+        "records": 53,
+        "allOriginalRecordsSha256": "54fbb1d9352bec640e8fb83f0129db2e9c5bd88b7079623f249bb71300784a18",
+        "originalInputsSha256": "aec4277dc622670a20b2833a6b9dce9791f2e4fe39941a1c35e4c32118818de1"
+      },
+      {
+        "source": "freeze-utf8",
+        "records": 22,
+        "allOriginalRecordsSha256": "5319cdfd7c091b9a988bbba29b2b1965520161fca89b6e2ba3b1f6d969355c5a",
+        "originalInputsSha256": "b795862bb45b44e9c5e1a00054a1b9be1d477d4f13602b1c18489dfc10cc6e3e"
+      },
+      {
+        "source": "freeze-accounting",
+        "records": 26,
+        "allOriginalRecordsSha256": "f4e31dc7646f1bb6e4df6eb8e1b9c77a421188b6148d4a187887b27af6b0bac2",
+        "originalInputsSha256": "b17083c5c0fdd66624271f66b78a5fa1540cc58863697b2cbc31cd4b28373bc1"
+      },
+      {
+        "source": "freeze-integration",
+        "records": 33,
+        "allOriginalRecordsSha256": "4a01bffdccb6d41432364a4591cc721394f397ac9d8e3efcf24513daedd8faaf",
+        "originalInputsSha256": "09f0aba8cc5ad1680cf9abcded5c88efae65f721b88345df088498ff77b62a2c"
+      }
+    ],
+    "overlays": [
+      "ENC-07",
+      "NUM-14",
+      "NUM-15",
+      "QUE-12",
+      "UTF-12",
+      "WRK-10",
+      "WRK-22",
+      "WRK-26"
+    ],
+    "heldCurrentIds": [],
+    "unchangedOriginalAssertionsOutsideOverlays": 186,
+    "normativeHistoricalRecords": 80,
+    "queryHistoricalRecords": 62,
+    "additiveUniqueCount": null
+  },
+  "ownComparisons": {
+    "originalQbRecords": 64,
+    "originalQbSourceBindingsViaLiteralChecker": 20,
+    "arithmeticAndControlViews": 52,
+    "schedule": 16,
+    "sequence": 5,
+    "chosenAdmission": 8,
+    "overflowAndInvalid": 9,
+    "payload": 4,
+    "originalMutationViews": 10,
+    "historicalTraceSchemaViews": 12,
+    "guardProjections": 18,
+    "handoffProjections": 4,
+    "originalCloseColumnsUnchanged": true,
+    "author23Executed": false
+  },
+  "mutations": [
+    {
+      "family": "terminal flush inserted",
+      "rejected": true,
+      "classification": "in-memory static predicate rejection, not runtime mutation"
+    },
+    {
+      "family": "finish pending reset",
+      "rejected": true,
+      "classification": "in-memory static predicate rejection, not runtime mutation"
+    },
+    {
+      "family": "document or phase pending reset",
+      "rejected": true,
+      "classification": "in-memory static predicate rejection, not runtime mutation"
+    },
+    {
+      "family": "allocation before guard",
+      "rejected": true,
+      "classification": "in-memory static predicate rejection, not runtime mutation"
+    },
+    {
+      "family": "after-await guard omitted",
+      "rejected": true,
+      "classification": "in-memory static predicate rejection, not runtime mutation"
+    },
+    {
+      "family": "final publication guard omitted",
+      "rejected": true,
+      "classification": "in-memory static predicate rejection, not runtime mutation"
+    },
+    {
+      "family": "signal/state guards charged",
+      "rejected": true,
+      "classification": "in-memory static predicate rejection, not runtime mutation"
+    },
+    {
+      "family": "real tick double-charged after reserve",
+      "rejected": true,
+      "classification": "in-memory static predicate rejection, not runtime mutation"
+    },
+    {
+      "family": "new or replacement Budget",
+      "rejected": true,
+      "classification": "in-memory static predicate rejection, not runtime mutation"
+    },
+    {
+      "family": "estimation made free",
+      "rejected": true,
+      "classification": "in-memory static predicate rejection, not runtime mutation"
+    },
+    {
+      "family": "interleaved Budget consumer admitted",
+      "rejected": true,
+      "classification": "in-memory static predicate rejection, not runtime mutation"
+    },
+    {
+      "family": "protected historical member bytes changed",
+      "rejected": true,
+      "classification": "in-memory static predicate rejection, not runtime mutation"
+    },
+    {
+      "family": "protected historical member mode changed",
+      "rejected": true,
+      "classification": "in-memory static predicate rejection, not runtime mutation"
+    },
+    {
+      "family": "protected historical member omitted",
+      "rejected": true,
+      "classification": "in-memory static predicate rejection, not runtime mutation"
+    }
+  ],
+  "mutationCount": 14,
+  "undetectedMutations": 0,
+  "freshCheckerRuns": [
+    {
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/results-v1/check.mjs",
+      "checkerSha256": "466460156169bc26b3da06419e2931df532923ef4567527f54a8c1ca598a2935",
+      "exitStatus": 0,
+      "stdoutSha256": "0e309f0c67a00ef0efa518a198e788c73122ab8a3aa77335dbc43373edbb2b4b",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 73686,
+      "summary": {
+        "state": "BOUNDED_STATIC_REVIEW_CONSISTENT",
+        "nestedCheckers": 5,
+        "authorSummary": {
+          "examined": 32,
+          "expectedAccept": 12,
+          "expectedRefuse": 20,
+          "priorHeld": 6,
+          "priorControls": 7,
+          "newBoundedControls": 19,
+          "tupleMismatches": 0,
+          "runtimePasses": null
+        },
+        "mutationSummary": {
+          "families": 7,
+          "detected": 36,
+          "undetected": 0,
+          "scope": "in-memory static expected-tuple/invariant rejection, not parser or product mutation tests"
+        },
+        "chronology": "unchanged historical pending-resource labels, not current policy holds"
+      }
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/qb-mechanism-review-v1/check.mjs",
+      "checkerSha256": "c10cd76e86b5c328f541e6b62563969efcce38f6986687fbdc38012c3f34477e",
+      "exitStatus": 0,
+      "stdoutSha256": "a02116740abce3a079bd4b2d185fccbcd9950a74645f63b90f896d365f0d93d6",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 721,
+      "summary": {
+        "status": "STATIC_CHECKS_PASS_ROOT_TERMINAL_POLICY_HELD",
+        "originalRows": 64,
+        "arithmeticAndMutationRows": 52,
+        "traceSchemaRecordsOnly": 12,
+        "detectedArithmeticMutations": 10,
+        "selectedGitInputs": 20,
+        "casesSha256": "ee1cbe07b3590cff1405c9708f7122385067189e56ef060bcbb58ce7edbb7c65",
+        "identitySha256": "b25d2be29c296e87fadcd32adbac158fb26b63e5e55625ca04d6a1a588a8f9f0",
+        "policySelected": false,
+        "runtimeCancellationTests": 0,
+        "productExecutions": 0,
+        "nativeExecutions": 0,
+        "authorCheckerExecutions": 0,
+        "existingCheckerExecutions": 0,
+        "evidenceWrites": 0,
+        "qualification": "Arithmetic and static trace/source checks only; author's 23 rows not run or counted; no implementation proof."
+      }
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/final-carry-v1/check.mjs",
+      "checkerSha256": "4b9d6f3817cb91f0199b2fd85a664e04e82756b769987afc50f1fca2ffe33e3c",
+      "exitStatus": 0,
+      "stdoutSha256": "34f263be796f6ebd5bb9bb9b4ffe6923731c904ae132a600e62460f377e63fc3",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 907,
+      "summary": {
+        "status": "FINAL_CARRY_STATIC_CHECKS_PASS_NOT_RUNTIME_ACCEPTANCE",
+        "originalIds": 194,
+        "fieldOverlays": 8,
+        "policyHolds": 0,
+        "immutableFiles": 50,
+        "immutableSubtrees": 8,
+        "selectedSources": 28,
+        "inheritedCaps": 21,
+        "budgetFields": 9,
+        "catalogueEntries": 54,
+        "originalQbRowsUnchanged": 64,
+        "currentArithmeticControlProjections": 52,
+        "currentHistoricalTraceViews": 12,
+        "guardProjections": 18,
+        "handoffProjections": 4,
+        "rootDecisionSha256": "138bc2fd25e3e9b83ccc63fdfd41f4f977e167e5a8e4cefb8281cf7a6e28b1a0",
+        "delta": {
+          "status": "EXACT_OWNED_SEAL_DELTA",
+          "commit": "bd471ef682d768692a682d40009a874f51e3ad68",
+          "files": 6,
+          "sha256": "5c2cca06c7b30d7ef2dd91764ca4b82d615fc68dc58e8cad53d9652baf44f908"
+        },
+        "historicalResultsRescored": false,
+        "author23RowsExecuted": false,
+        "productExecutions": 0,
+        "nativeOrParserExecutions": 0,
+        "artifactWrites": 0
+      }
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/final-carry-review-v1/check-literals.mjs",
+      "checkerSha256": "8cedf7a4e31c50b17044d44c6d58a55eb57c7256def06115308ca07802d44c99",
+      "exitStatus": 0,
+      "stdoutSha256": "a102b6875481ac786a5012f6e4240e6c5801f816b1788914c95b87b16171e1f0",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 474,
+      "summary": {
+        "status": "CHOSEN_CARRY_LITERAL_CHECKS_PASS_NOT_RUNTIME",
+        "authenticatedPriorRecords": 64,
+        "authenticatedPriorSourceBindings": 20,
+        "comparedScheduleRows": 16,
+        "comparedSequenceRows": 5,
+        "comparedChosenAdmissionRows": 8,
+        "comparedRefusalRows": 9,
+        "prospectiveTraceSchemaRecords": 12,
+        "closeComparisonHistoryUnchanged": true,
+        "rootChoice": "CARRY",
+        "terminalAndEmptyCarryBoundaries": "pass",
+        "productExecutions": 0,
+        "runtimeCancellationTests": 0
+      }
+    }
+  ],
+  "nestedCheckerRuns": [
+    {
+      "path": "tests/commands/yq-independent-20260828/freeze/verify-preparation.mjs",
+      "checkerSha256": "430b92c6270b73ab18e3e313255fee5c473914299bca203655a75a39b8af8de1",
+      "exitStatus": 0,
+      "stdoutSha256": "b73c5b0467c55ddf29fd438f4c89983c3bbbaeebcc3b6975c741a31b95a16733",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "historicalLabelsUnrescored": true
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/normative/check-static.mjs",
+      "checkerSha256": "cd866d7b8aa228f672a55c72152d15899f05283029e8c3b96d23ba296610b6b2",
+      "exitStatus": 0,
+      "stdoutSha256": "1f29479c737e28db278d5e6e65dd58067f746614b272057ce850e13ec98a0402",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "historicalLabelsUnrescored": true
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/query-budget/check.mjs",
+      "checkerSha256": "889b2229b4622a0f8bff3b0b4b51947db4b629c51609cd5cad868ebf25050550",
+      "exitStatus": 0,
+      "stdoutSha256": "73d989425d83c376ea566bc6a7473d4574fe1c24074e42d6e3d89f2e6d87d463",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "historicalLabelsUnrescored": true
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/reconciliation-v1/check.mjs",
+      "checkerSha256": "86e447aaed4f996d2acafa654e452ce9c5af820fbae54b6793ebfa85f25424cf",
+      "exitStatus": 0,
+      "stdoutSha256": "9ae8c753dca3754e22463c636630ff4eb995e362a58ee368f95a15143c11d8df",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "historicalLabelsUnrescored": true
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/check.mjs",
+      "checkerSha256": "3575b88f575eba515f05e6d8510ffca0da76e45d760a76604deb4e41ea577915",
+      "exitStatus": 0,
+      "stdoutSha256": "3f2aa01f88a54771a44fd15c99bc2a2a60ce2ba05948483cd54630f778f398d6",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "historicalLabelsUnrescored": true
+    }
+  ],
+  "executionCounts": {
+    "topLevelAuthenticatedCheckers": 4,
+    "nestedHistoricalCheckers": 5,
+    "distinctHistoricalCheckers": 7,
+    "authorChecker": 1,
+    "preparedLiteralChecker": 1,
+    "checkerInvocations": 9,
+    "independentResultChecker": 1
+  },
+  "checkerSafety": {
+    "inspected": "Builtins, read-only Git, bounded data arithmetic; nested Node only the five listed authenticated static checkers",
+    "soleLocalHelper": "tests/commands/yq-independent-20260828/freeze/recipes.mjs",
+    "productModulesImported": false,
+    "historyWrites": false
+  },
+  "reviewNotes": [
+    "Initial delta comparison omitted --full-index; full-index serialization matches the authorized exact SHA. No candidate change or finding.",
+    "Author disclosed ancestor-directory membership-filter preparation defect; final descendant-only inventory agrees independently with the earlier frozen baseline."
+  ],
+  "index": {
+    "before": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "after": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "changedDuringCheck": false,
+    "writesByChecker": false
+  },
+  "actualContradictions": [],
+  "unresolvedPolicyChoices": [],
+  "limitations": [
+    "Static source/manifest/arithmetic/schema checks only; no runtime cancellation, scheduler, parser, Budget, VFS or encoder execution.",
+    "Exact BigInt arithmetic is an independent bounded data comparator, not a product algorithm or runtime resource proof.",
+    "14 controls mutate in-memory contract/trace/inventory data, not product code.",
+    "Scoped before/after membership and Git modes detect added entries in selected subtrees, not a whole-repository or between-snapshot transaction guarantee.",
+    "Historical 194/80/62/64/23 and accepted N outcomes remain immutable and unrescored; counts are not summed unique product tests.",
+    "Existing synchronous compiler/interpreter internals remain qualified; future implementation and cleanup/public-API tests are still required."
+  ],
+  "productExecutions": 0,
+  "nativeExecutions": 0,
+  "runtimeCancellationTests": 0,
+  "buildOrTypeChecks": 0,
+  "dependenciesAdded": 0,
+  "privateCheckoutAccess": 0,
+  "productCodeGoOrRelease": false
+}

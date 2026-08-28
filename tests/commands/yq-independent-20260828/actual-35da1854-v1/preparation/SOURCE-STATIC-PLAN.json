@@ -1,0 +1,886 @@
+{
+  "role": "SOURCE_STATIC_PARTIAL_NOT_RUNTIME_PROOF",
+  "ids": [
+    {
+      "id": "ENC-08",
+      "category": "ENCODER",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/23",
+        "recordSha256": "75958af7fb1ff072aae944b51bb9ab4522133d9e788034ebb0cf72a4665e51c8",
+        "inputSha256": "72070d2704a92e1113fecafd73efe747c91f030a83d7cbbbd8e90580803775db",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-value-query#/cases/23/input",
+          "need": "approved private-boundary yield observation: string containing lone high surrogate"
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "ENC-09",
+      "category": "ENCODER",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/24",
+        "recordSha256": "63e8791f964b037c35bbe9481bca40e9e31bdd26997bc6f70eca24dd482983f2",
+        "inputSha256": "0d888f956fee6f902a62756648edcbbf25002a894e7be842b1b3032974f00e1e",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-value-query#/cases/24/input",
+          "need": "approved private-boundary yield observation: array whose first member is itself"
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "ENC-10",
+      "category": "ENCODER",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/25",
+        "recordSha256": "6c9c15e07a9aeb4c1add00168a66e643fd6272a6de8c9e088d0d66bcb5192c99",
+        "inputSha256": "1901840c2f5092e586692c47f33323c195d1975d5f45e9cb08ccf362d88d628a",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-value-query#/cases/25/input",
+          "need": "approved private-boundary yield observation: undefined or host Date object"
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "QUE-09",
+      "category": "QUERY",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data",
+        "lifecycle-cooperative"
+      ],
+      "frozen": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/34",
+        "recordSha256": "3c5c050a2c5b22457d617c28bf93ecf32d95dd676a9f01fc3b87f875759815d6",
+        "inputSha256": "f357b47fd620e08800d90c77867878846fd54e663c9c463c2d46781bfd3d1fd5",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-value-query#/cases/34/input",
+          "need": "compileOnce('[') fails, then compileOnce('.') and run(null) attempted on that same private session"
+        },
+        {
+          "binding": "freeze-value-query#/cases/34/expect/assertions/0",
+          "need": "Exactly one parse attempt; second compile and run are internal misuse failures, not normal language statuses.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "QUE-10",
+      "category": "QUERY",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data",
+        "lifecycle-cooperative"
+      ],
+      "frozen": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/35",
+        "recordSha256": "5d4ed81f39dd1e3a95778bc8af7d2921bc4d3936b77a921554f2d1e39389bb96",
+        "inputSha256": "cd377a579efb7f9e8d54e4ea524d5920e125f588f1412b7fec5537a70f17fc6d",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-value-query#/cases/35/input",
+          "need": "compileOnce('.'); start a run; attempt overlapping run; close twice concurrently; attempt another run"
+        },
+        {
+          "binding": "freeze-value-query#/cases/35/expect/assertions/0",
+          "need": "Only one active input; close shuts admission, shares completion and returns active engine generator once; no reset/new Budget.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "QUE-11",
+      "category": "QUERY",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-value-query",
+        "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/36",
+        "recordSha256": "2ec0512eabc2fe3eff786ce73739fb5b2466e65ec81629cc04aa5f320ae959b1",
+        "inputSha256": "2328c5450273fa09f164559bd4e33bafac27dbacd293470bb61398c58153ea52",
+        "defaultsSha256": "bad37bf323d5fcc4121a275ee249e7084dbd354483ee376c67ffa1cd154efaba"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-value-query#/cases/36/input",
+          "need": "two files, two documents each, identity query; approved observer records Budget/Interpreter/variables identity"
+        },
+        {
+          "binding": "freeze-value-query#/cases/36/expect/assertions/0",
+          "need": "One Budget, one Interpreter, one empty variables map, one AST; file and document order preserved; no slurp array.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "WRK-05",
+      "category": "WORK",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/4",
+        "recordSha256": "2d1f8742319cfc639ab4a82c946beb52ba4b474338443acab2df9e7e5f00923c",
+        "inputSha256": "115ed501429b2b3a4a94a7bbabf6e327d16c7c2a0f6bdbc135cc616627532622",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-accounting#/cases/4/input",
+          "need": "isolated ledger trace, not claimed reachable before maxSteps; include raw BOM/comment/rejected bytes"
+        },
+        {
+          "binding": "freeze-accounting#/cases/4/expect/assertions/0",
+          "need": "Last byte admitted; next received byte fails before retaining/copying/decoding; charge each received byte once, never again via structured readChunks.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "WRK-06",
+      "category": "WORK",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/5",
+        "recordSha256": "acba8bba1a790fbe9e232dc0f06b70b5316d8968f181f0b1cac8f1560185c66a",
+        "inputSha256": "97bf87229b4d38c0167a499890047569dc0400921a7120f76eb51231c45fb874",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-accounting#/cases/5/input",
+          "need": "Named private counter projection; no approved runtime observer or executable concrete argv fixture."
+        },
+        {
+          "binding": "freeze-accounting#/cases/5/expect/assertions/0",
+          "need": "Inclusive document admission then refusal before owned copy or decoded append; markers assigned exactly once; reset only at legal boundary.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "WRK-07",
+      "category": "WORK",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/6",
+        "recordSha256": "b099e91ac88725299ec3d561e9ab9b6d7a4d66417254300b1797f54b1d3164a9",
+        "inputSha256": "e176d598c42734efe6533fea7fe6b8944789aa1d27d04ae19eed1e4fe9969402",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-accounting#/cases/6/input",
+          "need": "decoded scalar ledger for a four-byte escape result, not source escape-text length"
+        },
+        {
+          "binding": "freeze-accounting#/cases/6/expect/assertions/0",
+          "need": "Four-byte scalar reaches inclusive cap; next byte fails before retaining fragment; keys follow same cap.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "WRK-08",
+      "category": "WORK",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/7",
+        "recordSha256": "93db44ab2087fd0a5edf56608496e7865636a3b7e1dae81ab071e84c561139d1",
+        "inputSha256": "f20e181a78cd9d56132852ebe12fa0ef078906fa153146cad5f47033db370bbb",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-accounting#/cases/7/input",
+          "need": "Named private counter projection; no approved runtime observer or executable concrete argv fixture."
+        },
+        {
+          "binding": "freeze-accounting#/cases/7/expect/assertions/0",
+          "need": "Compact JSON value measure includes punctuation and escaped key/string bytes; composition and alias projections precede allocation; yield checking is necessarily post-engine-allocation.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "WRK-11",
+      "category": "WORK",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/10",
+        "recordSha256": "a5a4177ae0354047d71fb6849c99b01a5935c5e9cc916d59735b9da4518b3eca",
+        "inputSha256": "6315d3e14ce7d48d158b22e16745e7800f1073b9d9fe91a77a26e096c943cdaf",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-accounting#/cases/10/input",
+          "need": "Named private counter projection; no approved runtime observer or executable concrete argv fixture."
+        },
+        {
+          "binding": "freeze-accounting#/cases/10/expect/assertions/0",
+          "need": "One invocation-wide Budget; 1000000 inclusive, next step refuses; no reset across run/file/document/encoder.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "WRK-12",
+      "category": "WORK",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/11",
+        "recordSha256": "bcdb61fafc6ea4a3302bf8d1e514ac5eadcb838e1c6378f7fc7db4faf2c00fe5",
+        "inputSha256": "fd07db0095b6cc597b3fa42eb452bcf025d64e836a9e34700bdef8afef61d31f",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-accounting#/cases/11/input",
+          "need": "Named private counter projection; no approved runtime observer or executable concrete argv fixture."
+        },
+        {
+          "binding": "freeze-accounting#/cases/11/expect/assertions/0",
+          "need": "Each valid yielded graph admitted once after validation and before encode/publication; invalid graph consumes no result admission; no reclaim and no per-document reset.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "WRK-13",
+      "category": "WORK",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/12",
+        "recordSha256": "5edc88ff2f8bbb7a6bee415b8fe7d8b961193b1682a052377b9e925de7eab0b1",
+        "inputSha256": "cb43951e3a1543bf40350f7eefe03acd87a0e464192551cbf8e7191d86293b64",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-accounting#/cases/12/input",
+          "need": "Named private counter projection; no approved runtime observer or executable concrete argv fixture."
+        },
+        {
+          "binding": "freeze-accounting#/cases/12/expect/assertions/0",
+          "need": "Current collection member 100000 fits; next is refused before input member allocation; this is not a string-code-point limit.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "WRK-15",
+      "category": "WORK",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/14",
+        "recordSha256": "c9ee476ff0aefe957b483b1fed175298165111a47063d4e6238faef20367e99e",
+        "inputSha256": "28dc7b83c2c40ab22efb9831ac5edbe6afc8b479dc62d4b4dde951e5bc4e25ab",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-accounting#/cases/14/input",
+          "need": "cross-document ledger: completed target valid; all copy projections independently fit"
+        },
+        {
+          "binding": "freeze-accounting#/cases/14/expect/assertions/0",
+          "need": "Alias 1024 admitted; 1025 refused before deep copy even in a new document; invalid targets do not increment accepted-alias counter.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "WRK-16",
+      "category": "WORK",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/15",
+        "recordSha256": "5538e2d452333517ab6967208194993bd7a89335824255b1a0a3e0036f5006e3",
+        "inputSha256": "c74726091fdfe499f931b5263785a157453d9e0e6490265c09ac670518ae0bd7",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-accounting#/cases/15/input",
+          "need": "alias target is [0], cached count is two nodes; all other limits have slack"
+        },
+        {
+          "binding": "freeze-accounting#/cases/15/expect/assertions/0",
+          "need": "One two-node copy exactly fits; next original node fails before allocation. With 99999 existing nodes, reject entire two-node alias copy before allocating its first node.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "WRK-17",
+      "category": "WORK",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/16",
+        "recordSha256": "884994f761eb5b519a186e4734ce3cdbd25c071bd68e9009fb5f288d97b67a24",
+        "inputSha256": "10cdea5ac9581e7fd331e92a6dc410847e082a93f71c6616470dda1852cbcfc0",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-accounting#/cases/16/input",
+          "need": "four-byte complete next output operation including any separator/newline; encoder fragments/join/buffer observed"
+        },
+        {
+          "binding": "freeze-accounting#/cases/16/expect/assertions/0",
+          "need": "Stdout stays <=16773120; reserve 4096 remains unavailable to stdout; oversized document submits zero bytes; every retained encoder allocation is preflighted.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "WRK-18",
+      "category": "WORK",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/17",
+        "recordSha256": "bbb2470697bcc6c82dae53eb193dc91019d606274d03fd4b1ae92feab94da38b",
+        "inputSha256": "a51ea12b207ad5d96183cab7359420a645665f8065ec372c1b8d092bb0b41fde",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-accounting#/cases/17/input",
+          "need": "accounting trace only, not fabricated normal 4096-byte diagnostic"
+        },
+        {
+          "binding": "freeze-accounting#/cases/17/expect/assertions/0",
+          "need": "Combined stdout/stderr cap 16777216 is inclusive; admitted operation bytes are not reclaimed after zero/partial/full sink acceptance then failure.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "WRK-20",
+      "category": "WORK",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/19",
+        "recordSha256": "94f5b3713f34bc0623c7e5fa03641dd895a50afbaf53399e9cca023f1ff108ce",
+        "inputSha256": "5726bb5aa5a9868ccfb6be60f43e8568c6d75bc46894941eb81907c7fc75cf07",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-accounting#/cases/19/input",
+          "need": "isolated diagnostic ledger with preferred line too large, then fallback exactly fits, then fallback one byte too large"
+        },
+        {
+          "binding": "freeze-accounting#/cases/19/expect/assertions/0",
+          "need": "Submit exact fallback yq: limit: DIAGNOSTIC_TRUNCATED LF only when it fits; otherwise nothing; retain selected failure status.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "WRK-21",
+      "category": "WORK",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/20",
+        "recordSha256": "ec4dea47957cf37696c069b9285fb8b4980218c43fbda1e66451600067102243",
+        "inputSha256": "077baf392580982572df6657da9bb25a9e63699bbd982c2ae3d999c194290b90",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-accounting#/cases/20/input",
+          "need": "owned payload operations: 1024 bytes once, 1025 once, and 512+512 as two operations"
+        },
+        {
+          "binding": "freeze-accounting#/cases/20/expect/assertions/0",
+          "need": "ceil(bytes/1024) per distinct nonempty operation; splitting is never free; node/code-point/event charges are additional.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "WRK-23",
+      "category": "WORK",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/22",
+        "recordSha256": "dafd5a643093d8a61514c24a11539f88b66e067b81b722d99239b70537d06a74",
+        "inputSha256": "50d96ac8c246d4bf5b88e304c688b294932b86f60c50d83c876de83027ea181f",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-accounting#/cases/22/input",
+          "need": "compile identity and bounded large query separately; static inspect tokenizer/AST allocations and retained source"
+        },
+        {
+          "binding": "freeze-accounting#/cases/22/expect/assertions/0",
+          "need": "Compiler is synchronous, source/AST bounded; no fabricated maxSteps charge for argv/regex/token/AST/diagnostic work beyond existing engine charges; disclose retained source/AST.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "WRK-24",
+      "category": "WORK",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/23",
+        "recordSha256": "5e411516ac1b97d078ccd9fb180eb4b2e04c0b0993544195769565e84330edf3",
+        "inputSha256": "05e176d2d987ad08b7d9407a00de16d806f3489bd55cd991dd72221d4d57f409",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-accounting#/cases/23/input",
+          "need": "retain raw fragments, decoded text, metadata, expanded input M, yield Q, encoder fragments E and suffix s simultaneously"
+        },
+        {
+          "binding": "freeze-accounting#/cases/23/expect/assertions/0",
+          "need": "Report logical inventory and M + Q + max(2E,3E+2s); do not claim an aggregate heap/RSS/CPU/latency bound or that fallback provider allocation is preempted.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "WRK-26",
+      "category": "WORK",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-accounting",
+        "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/25",
+        "recordSha256": "1b1dad171afcf446120499280d1b85d39880d2951ba3c7af91996ba21a65835c",
+        "inputSha256": "28a0d4d81f4be03831a86f157fb0edc16b6bf1fd6e2da0eb587959cbb3c6493a",
+        "defaultsSha256": "5fbd6e7828fa4bb0f1fdf2866942c1813ac233fc057cfd7ebb353e38786ffec8"
+      },
+      "currentOverlay": "final-manifest#/overlays/7",
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-accounting#/cases/25/input",
+          "need": "approved observer presents ownedWork counts -1, 0, 1.5, NaN, Infinity, MAX_SAFE_INTEGER+1; then step() and step(1)"
+        },
+        {
+          "binding": "freeze-accounting#/cases/25/expect/assertions/0",
+          "need": "Count methods accept only nonnegative safe integers; explicit step count must be positive; misuse escapes, no normal wildcard diagnostic; no exposed Budget/reset/decrement/limit replacement.",
+          "scope": "Apply final overlay first; original text retained as lineage, never active override."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    },
+    {
+      "id": "TYP-08",
+      "category": "TYPE",
+      "primaryRole": "source-static-counterproof",
+      "secondaryRoles": [
+        "fixture-data"
+      ],
+      "frozen": {
+        "source": "freeze-integration",
+        "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+        "revision": "f074c142411ba839cbd9da45a499cc798965149d",
+        "pointer": "/cases/26",
+        "recordSha256": "a0d23e7661f8eaf599cad5bf37aa18bd2142ccc34c5a332c93bd71a870835761",
+        "inputSha256": "63d5614f80ba51b1c25ba9333cc9e8ee01c6e45223f2da84b69ce7046807f1a8",
+        "defaultsSha256": "99ccc47a05d48be80c4c2c0085bb9fbfb5146b698f83122c4594c41cb168117f"
+      },
+      "currentOverlay": null,
+      "preparation": "MISSING_CASE_ADAPTER_BINDING",
+      "semanticDenominatorEligible": false,
+      "fullRecordEligibleAfterProjection": false,
+      "runtimeProofRole": null,
+      "missingBindings": [
+        {
+          "binding": "freeze-integration#/cases/26/input",
+          "need": "inspect private signatures against existing Json including Decimal; no public dependency injection"
+        },
+        {
+          "binding": "freeze-integration#/cases/26/expect/assertions/0",
+          "need": "Private session uses existing Json/Ast/Interpreter/Budget/ordered-object/Decimal semantics; signal borrowed, one-read validation; no new public limits bridge.",
+          "scope": "Not fully established by byte/status projection; needs designated source/observer adapter."
+        }
+      ],
+      "result": "PENDING_AUTHORIZED_CANDIDATE"
+    }
+  ],
+  "files": [
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/limits.ts",
+      "blob": "f40c2edc755f14474ed50491b6f4118be33d7ae5",
+      "mode": 420,
+      "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "bytes": 6675
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/numbers.ts",
+      "blob": "fe90b5fcbef68a4a2a4aed164d7599d0dcd22630",
+      "mode": 420,
+      "sha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "bytes": 6091
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/parser.ts",
+      "blob": "f1bb01cd4c0203109727b70eb3598bd7822298c4",
+      "mode": 420,
+      "sha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+      "bytes": 12587
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/values.ts",
+      "blob": "88556c37d99b451c0d9ef55443c5946c46d46d9b",
+      "mode": 420,
+      "sha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+      "bytes": 9063
+    },
+    {
+      "commit": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+      "path": "src/commands/structured/interpreter.ts",
+      "blob": "d3ba11f0057b07d5ad307c5dfbb5f0612a87a047",
+      "mode": 420,
+      "sha256": "e32ad45efe69544ed95b43b97f191006f10d3beea9ca9e2a3327843dffd45a74",
+      "bytes": 21632
+    },
+    {
+      "commit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "path": "src/commands/structured/query-core.ts",
+      "blob": "480ea53c6c3a4632ced154586470dfe5cf01a866",
+      "mode": 420,
+      "sha256": "d2501cff9e74757f9e9bd80e1cf78722d321e19a6fb4a5c3e18a29d0e224cf0a",
+      "bytes": 21067
+    },
+    {
+      "commit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "path": "src/commands/yq/README.md",
+      "blob": "461ee1f844aae1069914257aa0f6546ddaa65978",
+      "mode": 420,
+      "sha256": "86ee4384987c729d91d9296cf0e40a7ece59a0689149164affa7b5a8554e8ae6",
+      "bytes": 1153
+    },
+    {
+      "commit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "path": "src/commands/yq/accounting.ts",
+      "blob": "210e85f8ff5330667a52957333908c9f72fd255a",
+      "mode": 420,
+      "sha256": "efebacfc42d9ef15ee8d5366b57aeda41f9af96104d76519611a70d5643dccd0",
+      "bytes": 9562
+    },
+    {
+      "commit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "path": "src/commands/yq/encoder.ts",
+      "blob": "28bf7ab1c3f7328bd400c2e14a632e2da25b015e",
+      "mode": 420,
+      "sha256": "77441f383d339d05d4db92a28dd04cd45eda97ad090b82cba808d322e5a151f5",
+      "bytes": 7057
+    },
+    {
+      "commit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "path": "src/commands/yq/errors.ts",
+      "blob": "a1cd0156f38cc4fa53282e34c8a86d4b161de738",
+      "mode": 420,
+      "sha256": "92b24e41a6e83d858f8971975665470e238176053fd3936775e02f843079036b",
+      "bytes": 2728
+    },
+    {
+      "commit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "path": "src/commands/yq/index.ts",
+      "blob": "217c38e5920475f781ebb5f8ab4399afd2456eac",
+      "mode": 420,
+      "sha256": "ffa76c2b111d915973634ff1238a709a9a90b1a5db000c690649519378afb283",
+      "bytes": 20110
+    },
+    {
+      "commit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "path": "src/commands/yq/parser.ts",
+      "blob": "be98c79b3987267545e80b132496afdb72319206",
+      "mode": 420,
+      "sha256": "ec3c47823eca85730af613f460bf98d28182ea28a68473eb7e596dc780334a79",
+      "bytes": 38547
+    }
+  ],
+  "criticalOverlays": [
+    "ENC-07",
+    "WRK-22",
+    "WRK-26"
+  ],
+  "predicates": [
+    "Inspect designated frozen record obligations against exact selected source; report line and blob evidence.",
+    "CARRY selection preserves invocation-total work; invalid counter misuse escapes; no local resets.",
+    "Alias validity, depth/value/node/work/count projections precede copy; no runtime private-hook claim.",
+    "Signal/close, read-only input and output reservations preserve explicit ordering; static evidence cannot replace dynamic boundary observation."
+  ],
+  "noProductImports": true,
+  "noNewRuntimeProbes": true,
+  "noSemanticPasses": true
+}

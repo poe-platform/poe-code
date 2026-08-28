@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "purpose": "YQ_COMPOUND_V2_AFTER_ROOT_PRESEAL",
+  "execute": true,
+  "rootApproval": "2026-08-28 explicit user/root routing: ONE bounded DIFFERENT actual review, original194+8 overlays, exact frozen integration once; acd5644c full receipt trusted only AUTHOR_ARTIFACT_BINDING_ONLY; no duplicate review, no public acceptance.",
+  "integrationSealSha256": "47c3874f520efee18062d4b2e687159a52039a86d35945a7f5371e85eb00fdff",
+  "authorSourceCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+  "consumerCandidateCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+  "sourceBase": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+  "rootSourceCompositionAccepted": true,
+  "consumerReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/FULL-RECEIPT.json",
+    "sha256": "acd5644c6f148bd25d16af8c12a3e01b9319f682b3830ec5f8b19a23e6ae4a56"
+  },
+  "admissionReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/RESULT.json",
+    "sha256": "d0bacd61dd564b6ecfec6530aaea28b9b732af2f2677c68739b25b1ff546c2b3"
+  },
+  "frameworkReviewReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/VERDICT.json",
+    "sha256": "cf413356d14da03527e11fe44a9998f2d1105e1dd957928a790a947deffd6e82"
+  },
+  "sourceArchive": {
+    "path": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/artifacts/SOURCE.tar",
+    "sha256": "e4e6880a3622952b153a8261fec007908e1495584abf705ba2b150e95badcedc"
+  },
+  "packageArchive": {
+    "path": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/artifacts/virtual-bash-0.0.0.tgz",
+    "sha256": "2942ba1f6982a2e217350bbbad420e93d43e9336324b6db8a3d1d88b5a7aee4d"
+  },
+  "archiveSourceRoot": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/source-archive-273",
+  "consumerSourceRoot": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/source-271-original",
+  "packageRoot": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/package-870-original",
+  "runtimeRecipeRoot": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/runtime-recipe",
+  "outputParent": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence",
+  "buildProof": {
+    "classification": "AUTHOR_ARTIFACT_BINDING_ONLY",
+    "receipt": null
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "temporary": "/private/tmp/yq-actual-independent-35da1854-rUH4X4",
+  "runtimeRoot": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/runtime-recipe",
+  "evidenceParent": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence",
+  "rootHash": "74afb45f09d1a7189f816ec09a68fe1727a4cab3a285ba844f05d7a7e3afdce9",
+  "guardCount": 42,
+  "sourceRecords": 273,
+  "authenticatedRecords": 1035,
+  "buildHandoffPresent": false,
+  "productImports": 0,
+  "children": 0
+}

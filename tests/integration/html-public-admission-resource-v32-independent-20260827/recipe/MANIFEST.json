@@ -1,0 +1,55 @@
+{
+  "schema": "independent-html-admission-v3.2-resource-recipe/1",
+  "at": "2026-08-28T00:35:52.230Z",
+  "actualCasesRun": 0,
+  "declaredCases": [
+    "positive",
+    "producer-exit7",
+    "consumer-failure",
+    "timeout",
+    "allocation-mutant"
+  ],
+  "maxInvocations": 1,
+  "retries": 0,
+  "files": {
+    "ADAPTATION.json": {
+      "sha256": "3cc6b61bb0bc5cd98839b2614efabf627239cddb31b85349378d3644f8cf3163",
+      "bytes": 3449
+    },
+    "PREFLIGHT.json": {
+      "sha256": "1d2d59ecc89948bcb61aeec274f33e98fd1b042339ad45133f0ffcbd99280696",
+      "bytes": 21631
+    },
+    "REVIEW.md": {
+      "sha256": "f7993cb30e8b3e4ea07c11f65cde5a466c1d67a0438fd5527d7ed5a37b76813b",
+      "bytes": 9445
+    },
+    "adapt.mjs": {
+      "sha256": "65aa0a647cb1f0222be2b388fdf67ebce4a7e70a718fb479004b5eba6c6b68e0",
+      "bytes": 3193
+    },
+    "authenticate.mjs": {
+      "sha256": "a97584263a34160df70879803ae53879da0a4f8a28440f0d6096f7b1feb477cd",
+      "bytes": 6475
+    },
+    "coordinator.mjs": {
+      "sha256": "dae7a0014e4af0aa2754e3cd0d99ddcd7f0ed0dd094a3e9c1b140aec9c73b74f",
+      "bytes": 21362
+    },
+    "launch.mjs": {
+      "sha256": "94ab0fce4164a966efa2b8f3d9a8834fba2b255824447ffcc7c152c9b9d7db37",
+      "bytes": 5595
+    },
+    "observe.mjs": {
+      "sha256": "b8ab3d6cfa6ba4a76667b45b7786312fa3a0ef1f3b629d87aa08c5c37f4b3836",
+      "bytes": 3558
+    },
+    "postcheck.mjs": {
+      "sha256": "55b734cbaefddd2d785c6afafe4381ba2f2d0aecbf807d523e6729d10f90d69c",
+      "bytes": 11979
+    }
+  },
+  "directories": [],
+  "syntaxCheckedModules": 7,
+  "scope": "resource profile only; full original controlRun body unchanged; explicit relocation/precontrol exclusion and observational preload"
+}

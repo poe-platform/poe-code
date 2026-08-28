@@ -1,0 +1,67 @@
+{
+  "changes": [
+    {
+      "before": "from \"./authenticate.mjs\"",
+      "after": "from \"../../html-public-independent-20260827/admission-v3.2/recipe/authenticate.mjs\"",
+      "reason": "Import exact authenticated original module, not a copied/adapted hash."
+    },
+    {
+      "before": "from \"./telemetry.mjs\"",
+      "after": "from \"../../html-public-independent-20260827/admission-v3.2/recipe/telemetry.mjs\"",
+      "reason": "Import exact authenticated original module, not a copied/adapted hash."
+    },
+    {
+      "before": "from \"./terminal-predicate.mjs\"",
+      "after": "from \"../../html-public-independent-20260827/admission-v3.2/recipe/terminal-predicate.mjs\"",
+      "reason": "Import exact authenticated original module, not a copied/adapted hash."
+    },
+    {
+      "before": "from \"./bindings.mjs\"",
+      "after": "from \"../../html-public-independent-20260827/admission-v3.2/recipe/bindings.mjs\"",
+      "reason": "Import exact authenticated original module, not a copied/adapted hash."
+    },
+    {
+      "before": "from \"./aggregation.mjs\"",
+      "after": "from \"../../html-public-independent-20260827/admission-v3.2/recipe/aggregation.mjs\"",
+      "reason": "Import exact authenticated original module, not a copied/adapted hash."
+    },
+    {
+      "before": "import { runSyntheticControls } from \"./synthetic-controls.mjs\";\n",
+      "after": "",
+      "reason": "28 synthetic controls remain static-only; authorized execution is five real cases only."
+    },
+    {
+      "before": "import { runForwardingControls } from \"./forwarding-controls.mjs\";\n",
+      "after": "",
+      "reason": "Six forwarding cohorts and eight ordered synthetic predicates remain static-only."
+    },
+    {
+      "before": "const owned = resolve(here, \"..\");",
+      "after": "const owned = resolve(repository, \"tests/integration/html-public-admission-resource-v32-independent-20260827\");",
+      "reason": "Relocate only output authority into reviewer-owned scope."
+    },
+    {
+      "before": "const synthetic = runSyntheticControls(output, policy);\nconst forwarding = await runForwardingControls(output, policy, () => intactBindings(freeze, manifestSha));\n",
+      "after": "",
+      "reason": "Do not execute unauthorized precontrol families or fabricate their passes."
+    },
+    {
+      "before": "runIndependent(forwarding.safe ? policy.controls : [],",
+      "after": "runIndependent(policy.controls,",
+      "reason": "Select exactly the unchanged five real cases, preserving runIndependent safety/aggregation."
+    },
+    {
+      "before": "summary.synthetic = synthetic;\nsummary.forwarding = forwarding;",
+      "after": "summary.independentScope = { synthetic: \"not executed; static-only\", forwarding: \"not executed; static-only\", orderedSynthetic: \"not executed; static-only\" };",
+      "reason": "Explicitly qualify omitted cohorts rather than representing them as passes."
+    },
+    {
+      "before": " || !synthetic.allExpected || !forwarding.allExpected || !forwarding.safe",
+      "after": "",
+      "reason": "Remove only results of unexecuted out-of-scope cohorts from final aggregate expression."
+    }
+  ],
+  "originalSha256": "56ff7bdc05f5546b79fbd401f33f8b930e5081a1708a65cb5b3d177938d6049d",
+  "adaptedSha256": "dae7a0014e4af0aa2754e3cd0d99ddcd7f0ed0dd094a3e9c1b140aec9c73b74f",
+  "unchangedCaseRunnerSha256": "7476775ef27f0268266168e6831e8385e0c58be82308e055fab98a28af92c85f"
+}

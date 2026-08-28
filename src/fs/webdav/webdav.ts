@@ -92,6 +92,26 @@ function normalize(path: string): string {
   return `/${segments.join("/")}`;
 }
 
+function validateDirectoryAccessPath(path: string): void {
+  if (typeof path !== "string") fail("EINVAL", "resolve", String(path), "invalid WebDAV path");
+  let bytes = 0;
+  let components = 0;
+  let inComponent = false;
+  for (let offset = 0; offset < path.length; offset++) {
+    const point = path.codePointAt(offset)!;
+    if (point === 47) inComponent = false;
+    else if (!inComponent) {
+      components++;
+      inComponent = true;
+    }
+    bytes += point <= 0x7f ? 1 : point <= 0x7ff ? 2 : point <= 0xffff ? 3 : 4;
+    if (point > 0xffff) offset++;
+    if (bytes > 65_536 || components > 256) {
+      fail("ENAMETOOLONG", "access", path, "directory access exceeds the 64KiB path or 256 component limit");
+    }
+  }
+}
+
 function requiresCollection(path: string): boolean {
   const last = path.split("/").at(-1);
   return last === "" || last === "." || last === "..";
@@ -964,14 +984,19 @@ export class WebDavFileSystem implements FileSystem {
 
   async access(path: string, mode = 0, options: FsOptions = {}): Promise<void> {
     if (!Number.isInteger(mode) || mode < 0 || mode > 7) fail("EINVAL", "access", path);
-    if (mode & 3) this.unsupported("access write/execute permission checks", path);
+    if (options.signal?.aborted) fail("ECANCELED", "access", path);
+    if (mode & 2) this.unsupported("access write/execute permission checks", path);
+    if (mode & 1) validateDirectoryAccessPath(path);
     const stat = await this.stat(path, options);
-    if (mode === 4) {
+    if (options.signal?.aborted) fail("ECANCELED", "access", path);
+    if ((mode & 1) && stat.type !== "directory") this.unsupported("access execute permission checks", path);
+    if (mode & 4) {
       if (stat.type === "directory") await this.readdir(path, options);
       else await this.request("GET", normalize(path), options, { headers: { "Accept-Encoding": "identity" } }, async (response) => {
         if (response.status !== 200) this.httpError(response.status, "GET", path);
       });
     }
+    if (options.signal?.aborted) fail("ECANCELED", "access", path);
   }
 
   async readlink(path: string, _options: FsOptions = {}): Promise<string> { return this.unsupported("readlink", path); }

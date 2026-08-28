@@ -110,11 +110,57 @@ PUT/MOVE/COPY effects.
 - `realpath`: existence-checked lexical virtual path, not server alias discovery.
 - `utimes`: conditional PROPPATCH of a persistent timestamp dead property;
   see the provider requirements and timestamp semantics below.
-- `access`: existence (`F_OK`), or actual read authorization (`R_OK`) via GET
-  response headers for files and depth-one PROPFIND for directories. The GET
-  body is cancelled, not collected. This is a point-in-time probe, not a
-  guarantee that a later read succeeds. Write/execute permission probes remain
-  unsupported; synthesized mode bits never authorize access.
+- `access`: existence (`F_OK`), read probes (`R_OK`) via GET response headers for
+  files and depth-one PROPFIND for directories, and directory-only logical
+  navigation (`X_OK`) as described below. The GET body is cancelled, not
+  collected. These are point-in-time observations, not guarantees about later
+  operations. Write probes and non-directory execution remain unsupported;
+  synthesized mode bits never authorize access.
+
+### Directory access is virtual navigation, not an ACL grant
+
+`access(path, 1)` obtains a fresh namespace-bound depth-zero `stat`. A supported
+collection permits using that path as a virtual logical cwd. This is a
+provider-owned navigation policy with **`permissions: false`**, not POSIX
+execute/search permission or a remote ACL traversal grant. It does not establish
+listing, child, content, write or future access. Successful self metadata can
+coexist with a denied listing or child request; every subsequent operation still
+passes through the configured transport and its actual server authorization.
+No authentication is inferred merely from an Authorization header. An explicitly
+configured anonymous metadata response can satisfy the same navigation policy.
+
+Mode5 (`R_OK | X_OK`) additionally requires the existing depth-one directory
+listing operation after the successful collection stat. It does not assume the
+collection remained the same between these observations. A regular-file X_OK
+request returns `ENOTSUP` without GET; a directory-required suffix on a file
+retains `ENOTDIR`. Write-containing modes2/3/6/7 remain `ENOTSUP` without metadata
+requests. A readonly wrapper still delegates navigation and rejects its write
+modes with `EROFS`; its existing local rejection precedence is unchanged.
+
+Modes1/5 alone have private raw-input limits of65,536 UTF8 bytes and256 nonempty
+slash-separated components, inclusive. The incremental check runs before path
+normalization, splitting or requests. Slashes count as bytes; repeated slashes
+do not add components; `.` and `..` count before normalization. Exceeding either
+limit gives `ENAMETOOLONG`. Existing invalid-path, required-property, unknown-type,
+denial, href confinement and redirect rules remain in force. Modes0/4 do not
+inherit these new path limits. There is no new public option or capability.
+
+Validate mode0..7 before checking caller cancellation. A valid preaborted direct
+call returns typed `ECANCELED` without transport work, including write modes;
+invalid mode remains `EINVAL`. Caller cancellation is checked again after stat
+and after any read phase, before success. Existing active-request ECANCELED,
+request-deadline ETIMEDOUT and late-response/reader cleanup behavior is retained.
+The FS boundary does not promise raw abort-reason rejection or arbitrary host
+work preemption. Readonly write rejection occurs before provider delegation.
+
+An ordinary directory mode1 call sends one Depth0 request, or two with the
+existing exact trailing-slash canonicalization; mode5 then adds one Depth1
+request. An ENOENT stat may probe ancestors to distinguish a non-directory parent.
+The256-component bound permits at most256 logical metadata probes, each allowing
+one slash retry, on that failure path. Existing XML/entry/request-time limits
+remain per-response/per-request, **not an aggregate deadline or total-byte cap**.
+Caller cancellation bounds the whole operation. No mutation, lock, permission
+cache, ACL-property request or network-authorization expansion is introduced.
 
 Paths are virtual POSIX-style paths relative to the configured collection;
 relative paths resolve from `/`. Dot segments are normalized, but attempted

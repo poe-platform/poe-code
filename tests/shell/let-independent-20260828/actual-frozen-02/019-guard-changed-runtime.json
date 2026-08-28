@@ -1,0 +1,26 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--permission",
+    "--allow-fs-read=/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-changed-runtime",
+    "--allow-fs-read=/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--import",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-changed-runtime/harness/execution-prep-v1/load-guard.mjs",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-changed-runtime/harness/execution-prep-v1/probe-worker.mjs",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-changed-runtime/guard-manifest.json",
+    "3ec72f2da92d988ff8041a1b1375bb06a8981594cbf64b8b64812ca53ae13510"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-changed-runtime",
+  "started": "2026-08-28T07:58:18.600Z",
+  "finished": "2026-08-28T07:58:18.908Z",
+  "pid": 29664,
+  "code": 1,
+  "signal": null,
+  "spawnError": null,
+  "failure": null,
+  "groupAbsent": true,
+  "closeObserved": true,
+  "stdout": "",
+  "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: dist/shell/runtime.js\n+ actual - expected\n\n+ '5f2db8d09f8787f4c0f6e9f2d94e5a1962574224003c2fcc67a51d683b9c4017'\n- '6441001391e091b0b893d0d0becd5805effb44a787f8428a46dd515a75ab792f'\n\n    at readAdmission (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-changed-runtime/harness/execution-prep-v1/support.mjs:26:12)\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-pGZMku/guard-changed-runtime/harness/execution-prep-v1/load-guard.mjs:8:18\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:112:9) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: '5f2db8d09f8787f4c0f6e9f2d94e5a1962574224003c2fcc67a51d683b9c4017',\n  expected: '6441001391e091b0b893d0d0becd5805effb44a787f8428a46dd515a75ab792f',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.22.2\n",
+  "bytes": 1138
+}

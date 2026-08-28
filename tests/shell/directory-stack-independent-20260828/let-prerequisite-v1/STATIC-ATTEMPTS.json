@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "kind": "static-prerequisite-binding-attempts",
+  "firstRecordedClock": "2026-08-28T08:31:15Z",
+  "attempts": [
+    {
+      "id": "INSPECT-01",
+      "role": "metadata-only inspection helper",
+      "exitStatus": 1,
+      "error": "TypeError: Cannot read properties of undefined (reading 'slice')",
+      "cause": "JSON.stringify(entry[0]).slice(0,900) used without an empty-array guard while listing committed REPORT metadata",
+      "effects": "read-only Git data inspection; no authored files, product imports or execution",
+      "correction": "INSPECT-02 uses targeted named fields and avoids empty-array indexing",
+      "preservedErrorExcerpt": "TypeError: Cannot read properties of undefined (reading 'slice')\n    at file:///Users/kjopek/Workspace/safe-bash/[eval1]:4:355",
+      "captureQualification": "Exact error/location excerpt from terminal result; full tool transcript remains in conversation, not reconstructed stack text"
+    },
+    {
+      "id": "INSPECT-02",
+      "role": "corrected bounded committed-metadata inspection",
+      "exitStatus": 0,
+      "qualifiedResult": "exact LET fullcommit/tree/runtimeblob/composition/package resolved; historical counts referenced only"
+    }
+  ],
+  "staticChecks": [
+    {
+      "id": "STATIC-01",
+      "startedAt": "2026-08-28T08:38:11.008Z",
+      "finishedAt": "2026-08-28T08:38:29.631Z",
+      "kind": "static-data-only-not-product-tests",
+      "verifierSha256": "c4f1acd0375d4e37e90d772fa44467ac10f1a7ce6615878dbd2ea8a168761476",
+      "syntax": {
+        "exitStatus": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "exitStatus": 0,
+      "signal": null,
+      "stdout": "{\n  \"status\": \"static-only-pass\",\n  \"at\": \"2026-08-28T08:38:29.627Z\",\n  \"sealedCommit\": null,\n  \"immutablePriorFiles\": 44,\n  \"additiveFiles\": 5,\n  \"positiveGroups\": [\n    \"P01\",\n    \"P02\",\n    \"P03\",\n    \"P04\",\n    \"P05\",\n    \"P06\",\n    \"P07\",\n    \"P08\",\n    \"P09\",\n    \"P10\"\n  ],\n  \"negativeControlsRejected\": [\n    \"N01\",\n    \"N02\",\n    \"N03\",\n    \"N04\",\n    \"N05\",\n    \"N06\",\n    \"N07\",\n    \"N08\",\n    \"N09\",\n    \"N10\"\n  ],\n  \"evidenceDocuments\": 4,\n  \"compressedPackageBlobs\": 1,\n  \"pinnedSourceReferences\": 5,\n  \"precursorReferencesAuthenticated\": 265,\n  \"selectedCompositionInputsAuthenticated\": 265,\n  \"reportedPackageMembers\": 846,\n  \"packageMemberRole\": \"committed-report-metadata-not-new-tar-parse\",\n  \"acceptedLET\": \"c26892c3a1a419311c9cf46a6c2976e696e00624\",\n  \"letCommitTree\": \"e6fca9203a2d6be96e389f94a277e422b8f9f395\",\n  \"composedTree\": \"3e3a2fe381e11540213285e14e2a9a55a72bdbdd\",\n  \"packageSha256\": \"21c4858e6e4b857cd5e0d526159667621bcd206b4f1fd1ce1f84b54ad7abbace\",\n  \"originalCounts\": {\n    \"rows\": 138,\n    \"invariants\": 24,\n    \"positiveTypes\": 8,\n    \"negativeTypes\": 8,\n    \"mutationFamilies\": 16,\n    \"importNegativeFamilies\": 6\n  },\n  \"preparedAdaptersUnexecuted\": 124,\n  \"boundedAdapterGaps\": 14,\n  \"sourceInvariantsPending\": 24,\n  \"rootAuthorStackGo\": true,\n  \"rootAuthorWindowReleased\": true,\n  \"reviewerStackExecutionAuthorized\": false,\n  \"exactStackCandidate\": null,\n  \"execution\": {\n    \"productBuilds\": 0,\n    \"productInstalls\": 0,\n    \"productImports\": 0,\n    \"productTypeCompiles\": 0,\n    \"nativeOracleRuns\": 0,\n    \"providerRequests\": 0,\n    \"guestExecutions\": 0,\n    \"productTests\": 0,\n    \"fixtureCohorts\": 0,\n    \"implementationBodyInspections\": 0\n  }\n}\n",
+      "stderr": ""
+    }
+  ],
+  "summary": {
+    "inspectionHelperFailures": 1,
+    "staticVerifierFailures": 0,
+    "productExecution": 0,
+    "latestStaticExitStatus": 0,
+    "recordedThrough": "2026-08-28T08:38:29.631Z"
+  },
+  "timingQualification": "after ROOT-reported author stack GO and prior preparation; before this leaf inspects or executes any LET/stack implementation; not a claim about other workers chronology"
+}

@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "files": [
+    "let-prerequisite-v1/BINDING.json",
+    "let-prerequisite-v1/HANDOFF.md",
+    "let-prerequisite-v1/SEAL.json",
+    "let-prerequisite-v1/STATIC-ATTEMPTS.json",
+    "let-prerequisite-v1/verify.mjs"
+  ],
+  "sha256": {
+    "let-prerequisite-v1/BINDING.json": "d765bd850f6b0afd1021417cf1a97ab79363209818e007072583bd0d8accd0ed",
+    "let-prerequisite-v1/HANDOFF.md": "153a09c7b751e7d95eee147fa2941d485b61ae8796f19321446cc0186ac2d123",
+    "let-prerequisite-v1/STATIC-ATTEMPTS.json": "213ac9381a0b5cec388dd849fe3a0ac13265e70ed751a3c56851f323284b4923",
+    "let-prerequisite-v1/verify.mjs": "c4f1acd0375d4e37e90d772fa44467ac10f1a7ce6615878dbd2ea8a168761476"
+  },
+  "directoryModes": {
+    "executor-preparation-v1": 493,
+    "executor-preparation-v1/raw": 493,
+    "freeze-v1": 493,
+    "let-prerequisite-v1": 493,
+    "ratification-v1": 493
+  },
+  "selfAuthentication": "explicit additive commit required for committed self authentication",
+  "scope": "exact original44 plus additive5; file bytes/modes and directory membership/modes; no earlier auditor invoked"
+}

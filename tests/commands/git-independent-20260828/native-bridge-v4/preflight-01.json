@@ -1,0 +1,15 @@
+{
+  "classification": "PRESERVED_INITIAL_TOOL_CAPTURE_FAILURE_NOT_A_SYNTHETIC_CASE_RESULT",
+  "attempt": 1,
+  "presealCommit": "45423860",
+  "processExit": 1,
+  "casesLoaded": 0,
+  "casesExecuted": 0,
+  "rawFilesCreated": [],
+  "error": "Error: unapproved import before subject loading",
+  "location": "run-synthetic.mjs:19:164",
+  "cause": "Unanchored source import regexp mistook the closing quote after the message 'closed H11 import' for an import declaration in whole-h11.mjs.",
+  "durabilityDefect": "guard() ran before output reservation, so initial stderr was captured by the terminal tool, not an owned raw child-output file. This record describes that terminal evidence and does not pretend to be redirected raw stderr.",
+  "incidentalDiagnostic": "The Node error formatter printed Node.js v22.22.2; this was not a requested native/version probe or a fresh tool identity acceptance.",
+  "correction": "Additive run-synthetic-repair-01.mjs and REPAIR-PRESEAL.json only. All original sealed source/data remains immutable; 26-case family unchanged. One cohort will execute, with explicit second launcher attempt and no case reruns."
+}

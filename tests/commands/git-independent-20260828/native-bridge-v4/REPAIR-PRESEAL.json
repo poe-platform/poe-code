@@ -1,0 +1,118 @@
+{
+  "schema": "git-native-bridge-v4-preflight-repair-01",
+  "originalPresealSha256": "59741e3fbc15926bb8a6319e002331c537bdae1216a38dacf030f01ac6c1b537",
+  "files": [
+    {
+      "path": "run-synthetic-repair-01.mjs",
+      "mode": 420,
+      "bytes": 3639,
+      "sha256": "214a5c89157163c8d5e132e74a0936327e6669d34b55105fdeb2fb97db0a00aa"
+    },
+    {
+      "path": "preflight-01.json",
+      "mode": 420,
+      "bytes": 1142,
+      "sha256": "9f5f208ccbc99d118a8fb85f15638c764bbaf0c755c3575244d853ebd2588c9f"
+    }
+  ],
+  "imports": {
+    "finite.mjs": [
+      "node:crypto"
+    ],
+    "fence.mjs": [
+      "./finite.mjs"
+    ],
+    "recipe.mjs": [
+      "./finite.mjs"
+    ],
+    "account.mjs": [
+      "./finite.mjs"
+    ],
+    "whole-h11.mjs": [
+      "node:vm",
+      "./finite.mjs"
+    ],
+    "bridge.mjs": [
+      "./finite.mjs",
+      "./recipe.mjs",
+      "./fence.mjs",
+      "./account.mjs",
+      "./whole-h11.mjs"
+    ],
+    "collector.mjs": [
+      "./finite.mjs",
+      "./account.mjs",
+      "./recipe.mjs"
+    ],
+    "synthetic.mjs": [
+      "node:assert/strict",
+      "node:events",
+      "node:path",
+      "node:vm",
+      "./finite.mjs",
+      "./fence.mjs",
+      "./recipe.mjs",
+      "./account.mjs",
+      "./bridge.mjs",
+      "./whole-h11.mjs",
+      "./collector.mjs"
+    ],
+    "future-recipe.mjs": [
+      "./finite.mjs",
+      "./fence.mjs"
+    ],
+    "seal.mjs": [
+      "node:fs",
+      "node:crypto",
+      "node:url",
+      "node:path",
+      "./future-recipe.mjs"
+    ],
+    "run-synthetic.mjs": [
+      "node:fs",
+      "node:crypto",
+      "node:path",
+      "node:url"
+    ],
+    "run-synthetic-repair-01.mjs": [
+      "node:fs",
+      "node:crypto",
+      "node:path",
+      "node:url"
+    ]
+  },
+  "classification": "ADDITIVE_DRIVER_REPAIR_SUBJECT_SOURCE_UNCHANGED",
+  "initialAttempt": "preflight-01.json",
+  "caseFamily": "S01-S26_UNCHANGED_ZERO_CASES_PREVIOUSLY_LOADED",
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--experimental-vm-modules",
+    "--no-warnings",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/native-bridge-v4/run-synthetic-repair-01.mjs"
+  ],
+  "env": {
+    "PATH": "/dev/null",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "wallMs": 120000,
+  "combinedRawOutputBytes": 65536,
+  "scenarioReruns": 0,
+  "permittedCohortExecutions": 1,
+  "dynamicImport": {
+    "run-synthetic.mjs": [
+      "./synthetic.mjs"
+    ],
+    "run-synthetic-repair-01.mjs": [
+      "./synthetic.mjs"
+    ]
+  },
+  "syntax": {
+    "argv": [
+      "--check",
+      "tests/commands/git-independent-20260828/native-bridge-v4/run-synthetic-repair-01.mjs"
+    ],
+    "deadlineMs": 10000
+  }
+}

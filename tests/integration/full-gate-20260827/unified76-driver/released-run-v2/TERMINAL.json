@@ -1,0 +1,346 @@
+{
+  "capturedAt": "2026-08-28T11:05:31.034Z",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driverSha256": "2db94b8bf54405e5713b103bd677c873fcc0b153454b3deed13ee8ab4e90583e",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "rootAuthorizationCommit": "c222e17c4cbcc6bcb9da8a77414b90af3c465d88",
+  "packetCommit": "52e83606dc41297a20cbeb3e0fc4ecf703bb242d",
+  "toolSession": 80997,
+  "launcherInvocations": 1,
+  "launcherExit": 1,
+  "status": "HOLD_OR_QUALIFIED_RED",
+  "startedAt": "2026-08-28T11:01:53.330Z",
+  "finishedAt": "2026-08-28T11:02:47.868Z",
+  "error": {
+    "message": "mandatory native fixture authority profile unavailable\n+ actual - expected\n\n+ [\n+   {\n+     after: {\n+       directory: false,\n+       gid: 20,\n+       mode: '644',\n+       path: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755',\n+       symlink: false,\n+       uid: 501\n+     },\n+     before: {\n+       directory: false,\n+       gid: 20,\n+       mode: '644',\n+       path: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755',\n+       symlink: false,\n+       uid: 501\n+     },\n+     execution: {\n+       command: [\n+         '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod',\n+         '2755',\n+         '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755'\n+       ],\n+       cwd: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source',\n+       error: undefined,\n+       signal: null,\n+       status: 1,\n+       stderr: \"chmod: changing permissions of '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755': Operation not permitted\\n\",\n+       stdout: ''\n+     },\n+     kind: 'native-fixture-authority',\n+     mode: '2755'\n+   },\n+   {\n+     after: {\n+       directory: false,\n+       gid: 20,\n+       mode: '644',\n+       path: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755',\n+       symlink: false,\n+       uid: 501\n+     },\n+     before: {\n+       directory: false,\n+       gid: 20,\n+       mode: '644',\n+       path: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755',\n+       symlink: false,\n+       uid: 501\n+     },\n+     execution: {\n+       command: [\n+         '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod',\n+         '6755',\n+         '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755'\n+       ],\n+       cwd: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source',\n+       error: undefined,\n+       signal: null,\n+       status: 1,\n+       stderr: \"chmod: changing permissions of '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755': Operation not permitted\\n\",\n+       stdout: ''\n+     },\n+     kind: 'native-fixture-authority',\n+     mode: '6755'\n+   }\n+ ]\n- []\n",
+    "stack": "AssertionError [ERR_ASSERTION]: mandatory native fixture authority profile unavailable\n+ actual - expected\n\n+ [\n+   {\n+     after: {\n+       directory: false,\n+       gid: 20,\n+       mode: '644',\n+       path: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755',\n+       symlink: false,\n+       uid: 501\n+     },\n+     before: {\n+       directory: false,\n+       gid: 20,\n+       mode: '644',\n+       path: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755',\n+       symlink: false,\n+       uid: 501\n+     },\n+     execution: {\n+       command: [\n+         '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod',\n+         '2755',\n+         '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755'\n+       ],\n+       cwd: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source',\n+       error: undefined,\n+       signal: null,\n+       status: 1,\n+       stderr: \"chmod: changing permissions of '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755': Operation not permitted\\n\",\n+       stdout: ''\n+     },\n+     kind: 'native-fixture-authority',\n+     mode: '2755'\n+   },\n+   {\n+     after: {\n+       directory: false,\n+       gid: 20,\n+       mode: '644',\n+       path: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755',\n+       symlink: false,\n+       uid: 501\n+     },\n+     before: {\n+       directory: false,\n+       gid: 20,\n+       mode: '644',\n+       path: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755',\n+       symlink: false,\n+       uid: 501\n+     },\n+     execution: {\n+       command: [\n+         '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod',\n+         '6755',\n+         '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755'\n+       ],\n+       cwd: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source',\n+       error: undefined,\n+       signal: null,\n+       status: 1,\n+       stderr: \"chmod: changing permissions of '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755': Operation not permitted\\n\",\n+       stdout: ''\n+     },\n+     kind: 'native-fixture-authority',\n+     mode: '6755'\n+   }\n+ ]\n- []\n\n    at Module.prerequisites (file:///private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/support/tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs:40:10)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async Object.run (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tool-routing.mjs:263:21)\n    at async execute (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs:74:24)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver/launcher-v3/worker.mjs:8:67"
+  },
+  "phaseOutcomes": [
+    {
+      "name": "safejs-availability",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "mandatory native fixture authority setup failed before first phase"
+    },
+    {
+      "name": "cold-typecheck",
+      "expectedStatus": 78,
+      "outcome": "NOT_EXECUTED",
+      "reason": "mandatory native fixture authority setup failed before first phase"
+    },
+    {
+      "name": "typecheck-all",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "mandatory native fixture authority setup failed before first phase"
+    },
+    {
+      "name": "benchmark-types",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "mandatory native fixture authority setup failed before first phase"
+    },
+    {
+      "name": "env-source-binding",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "mandatory native fixture authority setup failed before first phase"
+    },
+    {
+      "name": "canonical",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "mandatory native fixture authority setup failed before first phase"
+    },
+    {
+      "name": "current-consumers",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "mandatory native fixture authority setup failed before first phase"
+    },
+    {
+      "name": "pack",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "mandatory native fixture authority setup failed before first phase"
+    },
+    {
+      "name": "public-runtime",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "mandatory native fixture authority setup failed before first phase"
+    },
+    {
+      "name": "public-types",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "mandatory native fixture authority setup failed before first phase"
+    },
+    {
+      "name": "negative-types",
+      "expectedStatus": 2,
+      "outcome": "NOT_EXECUTED",
+      "reason": "mandatory native fixture authority setup failed before first phase"
+    },
+    {
+      "name": "missing-root",
+      "expectedStatus": 1,
+      "outcome": "NOT_EXECUTED",
+      "reason": "mandatory native fixture authority setup failed before first phase"
+    },
+    {
+      "name": "missing-contracts",
+      "expectedStatus": 1,
+      "outcome": "NOT_EXECUTED",
+      "reason": "mandatory native fixture authority setup failed before first phase"
+    },
+    {
+      "name": "final-sweep",
+      "expectedStatus": 0,
+      "outcome": "NOT_EXECUTED",
+      "reason": "mandatory native fixture authority setup failed before first phase"
+    }
+  ],
+  "productionBuilds": 0,
+  "canonicalTestsExecuted": 0,
+  "canonicalCounts": null,
+  "packageRebuilt": false,
+  "preflight": {
+    "status": "preflight-admitted-not-product-acceptance",
+    "issues": [],
+    "nativeBindings": 51,
+    "readableBindingsVerified": true
+  },
+  "setup": {
+    "logicalEntries": 37397,
+    "physicalEntries": 37392,
+    "logicalBytes": 2382440321,
+    "historyBytes": 452180499,
+    "checkoutPerformed": false,
+    "omittedInstructionPathsAbsent": [
+      "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source/AGENTS.md",
+      "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source/tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+      "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source/tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+      "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source/tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+      "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source/tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+      "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source/benchmarks/node_modules/just-bash/dist/AGENTS.md"
+    ],
+    "nativeStagedExecutableCopies": 36,
+    "helper": {
+      "path": "tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs",
+      "staged": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/support/tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs",
+      "sha256": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db"
+    },
+    "finalSweepReached": false,
+    "setupSentinelAbsent": true
+  },
+  "failure": {
+    "boundary": "native host prerequisite, not a virtual-command assertion",
+    "authorityPath": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-fixture-authority.json",
+    "uid": 501,
+    "gid": 20,
+    "groups": [
+      20,
+      12,
+      61,
+      79,
+      80,
+      81,
+      701,
+      33,
+      98,
+      100,
+      204,
+      250,
+      395,
+      398,
+      400
+    ],
+    "umask": "22",
+    "directoryGroupNormalized": true,
+    "directoryBefore": {
+      "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp",
+      "uid": 501,
+      "gid": 0,
+      "mode": "700",
+      "directory": true,
+      "symlink": false
+    },
+    "directoryAfter": {
+      "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp",
+      "uid": 501,
+      "gid": 20,
+      "mode": "700",
+      "directory": true,
+      "symlink": false
+    },
+    "probes": [
+      {
+        "mode": "2755",
+        "before": {
+          "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755",
+          "uid": 501,
+          "gid": 20,
+          "mode": "644",
+          "directory": false,
+          "symlink": false
+        },
+        "execution": {
+          "command": [
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+            "2755",
+            "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755"
+          ],
+          "cwd": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source",
+          "status": 1,
+          "signal": null,
+          "stdout": "",
+          "stderr": "chmod: changing permissions of '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755': Operation not permitted\n"
+        },
+        "after": {
+          "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755",
+          "uid": 501,
+          "gid": 20,
+          "mode": "644",
+          "directory": false,
+          "symlink": false
+        }
+      },
+      {
+        "mode": "6755",
+        "before": {
+          "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755",
+          "uid": 501,
+          "gid": 20,
+          "mode": "644",
+          "directory": false,
+          "symlink": false
+        },
+        "execution": {
+          "command": [
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod",
+            "6755",
+            "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755"
+          ],
+          "cwd": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source",
+          "status": 1,
+          "signal": null,
+          "stdout": "",
+          "stderr": "chmod: changing permissions of '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755': Operation not permitted\n"
+        },
+        "after": {
+          "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755",
+          "uid": 501,
+          "gid": 20,
+          "mode": "644",
+          "directory": false,
+          "symlink": false
+        }
+      }
+    ],
+    "probeFiles": [
+      {
+        "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755",
+        "device": 16777232,
+        "inode": 181484102,
+        "mode": 420,
+        "uid": 501,
+        "gid": 20,
+        "bytes": 16,
+        "sha256": "ed3c88fea7d02001c5ac1acdca7a21ecf2f922ed0d2ecd481986a8c8ff38fd30"
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755",
+        "device": 16777232,
+        "inode": 181484103,
+        "mode": 420,
+        "uid": 501,
+        "gid": 20,
+        "bytes": 16,
+        "sha256": "ed3c88fea7d02001c5ac1acdca7a21ecf2f922ed0d2ecd481986a8c8ff38fd30"
+      }
+    ],
+    "causeQualification": "Exact admitted native chmod commands returned status1/Operation not permitted; mode stayed0644 on owned member-group files. This capture does not independently identify the kernel/sandbox policy responsible. No permission widening, repeat probe or fixture rewrite."
+  },
+  "inheritedHelperRoutes": [
+    {
+      "label": "prerequisites",
+      "installed": {
+        "PATH": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native:/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/tool-bin",
+        "GIT_EXEC_PATH": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+        "GIT_OPTIONAL_LOCKS": "0"
+      },
+      "resolvedGit": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "gitSha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+      "failures": [
+        {
+          "stage": "callback",
+          "name": "AssertionError",
+          "message": "mandatory native fixture authority profile unavailable\n+ actual - expected\n\n+ [\n+   {\n+     after: {\n+       directory: false,\n+       gid: 20,\n+       mode: '644',\n+       path: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755',\n+       symlink: false,\n+       uid: 501\n+     },\n+     before: {\n+       directory: false,\n+       gid: 20,\n+       mode: '644',\n+       path: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755',\n+       symlink: false,\n+       uid: 501\n+     },\n+     execution: {\n+       command: [\n+         '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod',\n+         '2755',\n+         '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755'\n+       ],\n+       cwd: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source',\n+       error: undefined,\n+       signal: null,\n+       status: 1,\n+       stderr: \"chmod: changing permissions of '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-2755': Operation not permitted\\n\",\n+       stdout: ''\n+     },\n+     kind: 'native-fixture-authority',\n+     mode: '2755'\n+   },\n+   {\n+     after: {\n+       directory: false,\n+       gid: 20,\n+       mode: '644',\n+       path: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755',\n+       symlink: false,\n+       uid: 501\n+     },\n+     before: {\n+       directory: false,\n+       gid: 20,\n+       mode: '644',\n+       path: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755',\n+       symlink: false,\n+       uid: 501\n+     },\n+     execution: {\n+       command: [\n+         '/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/chmod',\n+         '6755',\n+         '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755'\n+       ],\n+       cwd: '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/source',\n+       error: undefined,\n+       signal: null,\n+       status: 1,\n+       stderr: \"chmod: changing permissions of '/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7/native-tmp/authority-6755': Operation not permitted\\n\",\n+       stdout: ''\n+     },\n+     kind: 'native-fixture-authority',\n+     mode: '6755'\n+   }\n+ ]\n- []\n"
+        }
+      ],
+      "restored": true,
+      "poisoned": false,
+      "qualification": "Exclusive cooperating worker scope only; callback settlement is not detached-child closure or a kernel exec trace.",
+      "status": "failed"
+    }
+  ],
+  "private": {
+    "metadataAdmission": {
+      "root": "/Users/kjopek/Workspace/poe-code/packages/safejs",
+      "files": 264,
+      "metadataSha256": "765bee1eabc87924ab6e845b18dc3e6c665cdedc25280476de3bb46f42fcc6f1",
+      "instructionEntries": 0,
+      "qualification": "Metadata preflight of exact would-copy paths; no added omission and no private body read"
+    },
+    "beforeStateReached": false,
+    "afterStateReached": false,
+    "engineCopyExists": false,
+    "guestExecutions": 0,
+    "qualification": "Metadata-only would-copy admission reached. Helper fails before privateState/body copy; no current private HEAD/status/index or pre/post guarantee inferred."
+  },
+  "cleanup": {
+    "workerPid": 67506,
+    "workerClosed": true,
+    "workerProcessClean": true,
+    "signals": [],
+    "survivors": [],
+    "observerSurvivors": [],
+    "completedSupervisedPhases": 0,
+    "phaseProtocolClean": false,
+    "aggregateFenceClean": false,
+    "qualification": "Natural worker/observed owned closure; overall phase/final-sweep completeness false. No hard-kernel/all-background-drain claim."
+  },
+  "retained": {
+    "output": "/private/tmp/full-gate-unified76-f5-scopedenv-20260828-r2",
+    "outer": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-supervisor-lltDvB",
+    "workRoot": {
+      "path": "/private/tmp/unified76-os-write-HzSPPY",
+      "device": 16777232,
+      "inode": 181438673,
+      "mode": 448,
+      "uid": 501
+    },
+    "temporary": "/private/tmp/unified76-os-write-HzSPPY/tmp/unified76-execution-IO6zT7",
+    "rawFiles": 8,
+    "rawBytes": 19061272,
+    "rootsRemoved": false,
+    "qualification": "New failed roots and raw artifacts retained; no old attempt mutation or duplicate full snapshot."
+  },
+  "integrity": {
+    "shipping38Unchanged": true,
+    "checkedSixInstructionPathsAbsent": true,
+    "outputFiles": [
+      "ADMISSION.json",
+      "REPORT.json"
+    ],
+    "finalProductPackagePrivateSweeps": "NOT_REACHED",
+    "qualification": "Setup source authentication and bounded terminal checks, not a completed whole-gate integrity qualification."
+  },
+  "authority": {
+    "thisAttemptConsumed": true,
+    "retryAuthorized": false,
+    "priorAttempt": "8e6b/df89 unchanged consumed0/14 with UNKNOWN EPERM target",
+    "nextStep": "Root decides independent source/artifact diagnosis and any separately authorized correction/release; no repair or rerun performed."
+  }
+}

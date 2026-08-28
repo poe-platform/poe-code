@@ -1,0 +1,10 @@
+{
+  "compiler": {
+    "status": 2,
+    "signal": null,
+    "error": null,
+    "stderr": "",
+    "stdout": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/fake-compiler-data/negative.mts(2,1): error TS2554: Expected 0 arguments, but got 1.\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/fake-compiler-data/negative.mts\n/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/moved-package/dist/commands/yq/index.d.ts\n"
+  },
+  "exitCode": 7
+}

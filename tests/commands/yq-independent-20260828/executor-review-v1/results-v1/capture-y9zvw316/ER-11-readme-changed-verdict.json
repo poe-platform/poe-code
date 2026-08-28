@@ -1,0 +1,9 @@
+{
+  "family": "ER-11",
+  "name": "readme-changed",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-11-readme-changed-input.json",
+  "raw": "ER-11-readme-changed-raw.json"
+}

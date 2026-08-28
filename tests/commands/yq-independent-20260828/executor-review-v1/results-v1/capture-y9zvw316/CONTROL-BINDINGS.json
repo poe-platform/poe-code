@@ -1,0 +1,25 @@
+{
+  "preparedControls": "../FIXTURES.json#/controls",
+  "clarification": "../PRE-REVIEW-ER08-CLARIFICATION-v1.md",
+  "independentRecipe": {
+    "authenticate.py": "5102157f9c332449838ef0ae83920c5ce1ae1203e10f00c45c6595e67a43f7eb",
+    "review.mjs": "8b307c6bad2ab8ecc394811acd88a551f49c0a2f0b486bdd07cbdd4c9ced231d",
+    "synthetic-child.mjs": "297903318631a2d8a314a2668cea90f106c9fbcc111802093f864a193af8111b"
+  },
+  "targets": {
+    "ER-01/02/04/05/06/08/17": "runtime/recipe/host.mjs runJobs/ownedNode/parseReceipt",
+    "ER-03/16": "runtime/recipe/assert-capture.mjs assertCapture; context.mjs encodeRejection",
+    "ER-07/18": "runtime integrity.verifyGuards/createEvidence; consumer verifyRecipe/validateReceiptShape/assertSourceMap",
+    "ER-09/14/16": "runtime fixtures.materializeJobs and authenticated inventory rows",
+    "ER-10": "actual authorize and execute.mjs entry fence",
+    "ER-11/12": "consumer expectedPackage/assertPackageTree/verifyPreseal",
+    "ER-13": "consumer copyAndMoveRegularTree/resolveImportPath/withMaterializedImports",
+    "ER-15": "consumer classifyCompilerOutcome/assertWorkerExit"
+  },
+  "exclusions": [
+    "No actual product candidate loaded",
+    "No compiler or build",
+    "No author control suite",
+    "No replacement executor or forged capability"
+  ]
+}

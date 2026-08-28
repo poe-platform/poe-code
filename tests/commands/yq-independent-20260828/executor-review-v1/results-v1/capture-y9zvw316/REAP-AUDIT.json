@@ -1,0 +1,212 @@
+{
+  "classification": "OWNED_GROUP_POST_REVIEW_OBSERVATION_NOT_DESCENDANT_DISCOVERY",
+  "knownOwnedProcesses": 25,
+  "rows": [
+    {
+      "pid": 62059,
+      "group": 62059,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 62096,
+      "group": 62096,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 62133,
+      "group": 62133,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 62170,
+      "group": 62170,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 62231,
+      "group": 62231,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 62268,
+      "group": 62268,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 62317,
+      "group": 62317,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 62355,
+      "group": 62355,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 62392,
+      "group": 62392,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 62439,
+      "group": 62439,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 62550,
+      "group": 62550,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": [
+        "SIGTERM"
+      ]
+    },
+    {
+      "pid": 62599,
+      "group": 62599,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 62648,
+      "group": 62648,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 62698,
+      "group": 62698,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 62747,
+      "group": 62747,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 62784,
+      "group": 62784,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 62810,
+      "group": 62810,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 62950,
+      "group": 62950,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 63095,
+      "group": 63095,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 63235,
+      "group": 63235,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 63590,
+      "group": 63590,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 63627,
+      "group": 63627,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 63688,
+      "group": 63688,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 63738,
+      "group": 63738,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": []
+    },
+    {
+      "pid": 63775,
+      "group": 63775,
+      "capturedClosed": true,
+      "capturedReaped": true,
+      "postReviewGroupAbsent": true,
+      "signalsRecorded": [
+        "SIGTERM"
+      ]
+    }
+  ],
+  "signalsSentByThisAudit": 0,
+  "qualification": "Signal 0 existence probes of recorded owned groups only; no arbitrary escaped-descendant claim, transaction or PID lease."
+}

@@ -1,0 +1,9 @@
+{
+  "family": "ER-06",
+  "name": "mutation-stops-next",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-06-mutation-stops-next-input.json",
+  "raw": "ER-06-mutation-stops-next-raw.json"
+}

@@ -1,0 +1,72 @@
+{
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "returned": {
+    "summary": {
+      "schemaVersion": 1,
+      "aggregate": "FAIL",
+      "requested": 1,
+      "admitted": 1,
+      "stop": null,
+      "results": [
+        {
+          "jobId": "job0",
+          "admitted": true,
+          "outcome": "FAIL",
+          "failures": [
+            "child-process",
+            "assertion: AssertionError [ERR_ASSERTION]: Receipt must end with LF"
+          ],
+          "integrity": true,
+          "reapProof": true,
+          "metadata": {
+            "pid": 63738,
+            "group": 63738,
+            "exitCode": null,
+            "signal": "SIGTERM",
+            "timedOut": false,
+            "overflow": false,
+            "spawnError": null,
+            "closed": true,
+            "reaped": true,
+            "kills": [],
+            "elapsedMs": 45
+          }
+        }
+      ],
+      "activeChildren": [],
+      "evidence": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/host-evidence/run-2026-08-28T08-56-44.972Z-01e1efbc-dd59-492f-9a95-d93843937710"
+    },
+    "rawFiles": {
+      "job0/boundary.json": {
+        "base64": "ewogICJpbnRlZ3JpdHkiOiB0cnVlLAogICJpbnRlZ3JpdHlFcnJvciI6IG51bGwsCiAgInJlYXBQcm9vZiI6IHRydWUsCiAgInN5bnRoZXRpY1dpdGhoZWxkUmVhcFByb29mIjogZmFsc2UKfQo=",
+        "mode": 384
+      },
+      "job0/child.json": {
+        "base64": "ewogICJwaWQiOiA2MzczOCwKICAiZ3JvdXAiOiA2MzczOCwKICAiZXhpdENvZGUiOiBudWxsLAogICJzaWduYWwiOiAiU0lHVEVSTSIsCiAgInRpbWVkT3V0IjogZmFsc2UsCiAgIm92ZXJmbG93IjogZmFsc2UsCiAgInNwYXduRXJyb3IiOiBudWxsLAogICJjbG9zZWQiOiB0cnVlLAogICJyZWFwZWQiOiB0cnVlLAogICJraWxscyI6IFtdLAogICJlbGFwc2VkTXMiOiA0NQp9Cg==",
+        "mode": 384
+      },
+      "job0/stderr.bin": {
+        "base64": "",
+        "mode": 384
+      },
+      "job0/stdout.bin": {
+        "base64": "",
+        "mode": 384
+      },
+      "job0/verdict.json": {
+        "base64": "ewogICJqb2JJZCI6ICJqb2IwIiwKICAiYWRtaXR0ZWQiOiB0cnVlLAogICJvdXRjb21lIjogIkZBSUwiLAogICJmYWlsdXJlcyI6IFsKICAgICJjaGlsZC1wcm9jZXNzIiwKICAgICJhc3NlcnRpb246IEFzc2VydGlvbkVycm9yIFtFUlJfQVNTRVJUSU9OXTogUmVjZWlwdCBtdXN0IGVuZCB3aXRoIExGIgogIF0sCiAgImludGVncml0eSI6IHRydWUsCiAgInJlYXBQcm9vZiI6IHRydWUsCiAgIm1ldGFkYXRhIjogewogICAgInBpZCI6IDYzNzM4LAogICAgImdyb3VwIjogNjM3MzgsCiAgICAiZXhpdENvZGUiOiBudWxsLAogICAgInNpZ25hbCI6ICJTSUdURVJNIiwKICAgICJ0aW1lZE91dCI6IGZhbHNlLAogICAgIm92ZXJmbG93IjogZmFsc2UsCiAgICAic3Bhd25FcnJvciI6IG51bGwsCiAgICAiY2xvc2VkIjogdHJ1ZSwKICAgICJyZWFwZWQiOiB0cnVlLAogICAgImtpbGxzIjogW10sCiAgICAiZWxhcHNlZE1zIjogNDUKICB9Cn0K",
+        "mode": 384
+      },
+      "summary.json": {
+        "base64": "ewogICJzY2hlbWFWZXJzaW9uIjogMSwKICAiYWdncmVnYXRlIjogIkZBSUwiLAogICJyZXF1ZXN0ZWQiOiAxLAogICJhZG1pdHRlZCI6IDEsCiAgInN0b3AiOiBudWxsLAogICJyZXN1bHRzIjogWwogICAgewogICAgICAiam9iSWQiOiAiam9iMCIsCiAgICAgICJhZG1pdHRlZCI6IHRydWUsCiAgICAgICJvdXRjb21lIjogIkZBSUwiLAogICAgICAiZmFpbHVyZXMiOiBbCiAgICAgICAgImNoaWxkLXByb2Nlc3MiLAogICAgICAgICJhc3NlcnRpb246IEFzc2VydGlvbkVycm9yIFtFUlJfQVNTRVJUSU9OXTogUmVjZWlwdCBtdXN0IGVuZCB3aXRoIExGIgogICAgICBdLAogICAgICAiaW50ZWdyaXR5IjogdHJ1ZSwKICAgICAgInJlYXBQcm9vZiI6IHRydWUsCiAgICAgICJtZXRhZGF0YSI6IHsKICAgICAgICAicGlkIjogNjM3MzgsCiAgICAgICAgImdyb3VwIjogNjM3MzgsCiAgICAgICAgImV4aXRDb2RlIjogbnVsbCwKICAgICAgICAic2lnbmFsIjogIlNJR1RFUk0iLAogICAgICAgICJ0aW1lZE91dCI6IGZhbHNlLAogICAgICAgICJvdmVyZmxvdyI6IGZhbHNlLAogICAgICAgICJzcGF3bkVycm9yIjogbnVsbCwKICAgICAgICAiY2xvc2VkIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAia2lsbHMiOiBbXSwKICAgICAgICAiZWxhcHNlZE1zIjogNDUKICAgICAgfQogICAgfQogIF0sCiAgImFjdGl2ZUNoaWxkcmVuIjogW10sCiAgImV2aWRlbmNlIjogIi9wcml2YXRlL3Zhci9mb2xkZXJzL3J3L3M0Y3k3NmhuNnY1NXFycDBkaGNidHBsYzAwMDBnbi9UL3lxLWluZGVwZW5kZW50LWZyYW1ld29yay1pbmZiOWJ5bi9ob3N0LWV2aWRlbmNlL3J1bi0yMDI2LTA4LTI4VDA4LTU2LTQ0Ljk3MlotMDFlMWVmYmMtZGQ1OS00OTJmLTlhOTUtZDkzODQzOTM3NzEwIgp9Cg==",
+        "mode": 384
+      }
+    },
+    "secondMarker": false,
+    "effects": {
+      "input": "original\n"
+    }
+  },
+  "rejected": null,
+  "activeChildren": []
+}

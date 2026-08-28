@@ -1,0 +1,9 @@
+{
+  "family": "ER-14",
+  "name": "UNKNOWN-PROJECTION",
+  "classification": "DATA_ADMISSION_NOT_YQ_RUNTIME",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-14-UNKNOWN-PROJECTION-input.json",
+  "raw": "ER-14-UNKNOWN-PROJECTION-raw.json"
+}

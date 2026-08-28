@@ -1,0 +1,22 @@
+{
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "returned": {
+    "classification": "ACCEPTED_COMPILE_REJECTION",
+    "proofRole": "TYPE_NOT_SEMANTIC",
+    "compilerStatus": 2,
+    "diagnostics": [
+      {
+        "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/fake-compiler-data/negative.mts",
+        "line": 2,
+        "code": 2554,
+        "message": "Expected 0 arguments, but got 1."
+      }
+    ],
+    "consumed": [
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/fake-compiler-data/negative.mts",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/moved-package/dist/commands/yq/index.d.ts"
+    ]
+  },
+  "rejected": null,
+  "activeChildren": []
+}

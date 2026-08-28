@@ -1,0 +1,11 @@
+{
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "returned": null,
+  "rejected": {
+    "name": "Error",
+    "code": "COMPILER_STATUS",
+    "message": "COMPILER_STATUS: factory-command-extra",
+    "stack": "Error: COMPILER_STATUS: factory-command-extra\n    at requireFact (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/authenticated/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/guards.mjs:17:39)\n    at Module.classifyCompilerOutcome (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/authenticated/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/type-worker.mjs:22:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:280:546\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:69:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:280:430"
+  },
+  "activeChildren": []
+}

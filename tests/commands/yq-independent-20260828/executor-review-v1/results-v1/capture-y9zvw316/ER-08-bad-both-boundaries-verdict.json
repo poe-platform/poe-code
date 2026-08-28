@@ -1,0 +1,9 @@
+{
+  "family": "ER-08",
+  "name": "bad-both-boundaries",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-08-bad-both-boundaries-input.json",
+  "raw": "ER-08-bad-both-boundaries-raw.json"
+}

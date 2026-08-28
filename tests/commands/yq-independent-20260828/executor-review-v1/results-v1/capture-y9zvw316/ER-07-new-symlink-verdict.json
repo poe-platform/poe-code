@@ -1,0 +1,9 @@
+{
+  "family": "ER-07",
+  "name": "new-symlink",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-07-new-symlink-input.json",
+  "raw": "ER-07-new-symlink-raw.json"
+}

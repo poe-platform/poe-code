@@ -1,0 +1,11 @@
+{
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "returned": null,
+  "rejected": {
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "message": "Not regular: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/guard-new-symlink/extra",
+    "stack": "AssertionError [ERR_ASSERTION]: Not regular: /private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/guard-new-symlink/extra\n    at regularBytes (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/authenticated/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/integrity.mjs:12:3)\n    at walk (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/authenticated/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/integrity.mjs:33:23)\n    at treeSnapshot (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/authenticated/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/integrity.mjs:40:3)\n    at Module.verifyGuards (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/authenticated/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/integrity.mjs:57:29)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:167:15\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:69:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:158:9"
+  },
+  "activeChildren": []
+}

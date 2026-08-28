@@ -1,0 +1,9 @@
+{
+  "family": "ER-02",
+  "name": "fail-then-pass",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-02-fail-then-pass-input.json",
+  "raw": "ER-02-fail-then-pass-raw.json"
+}

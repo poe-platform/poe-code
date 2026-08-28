@@ -1,0 +1,140 @@
+{
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "returned": {
+    "stdoutBase64": "eyJhZ2dyZWdhdGUiOiJGQUlMIiwiZXZpZGVuY2UiOiIvcHJpdmF0ZS92YXIvZm9sZGVycy9ydy9zNGN5NzZobjZ2NTVxcnAwZGhjYnRwbGMwMDAwZ24vVC95cS1pbmRlcGVuZGVudC1mcmFtZXdvcmstaW5mYjlieW4vaG9zdC1ldmlkZW5jZS9ydW4tMjAyNi0wOC0yOFQwOC01Ni00My42OTVaLWQ2MmVkYTM4LTY1NGUtNDFlMC05NjI4LTM1YmFkMzU2Zjk1NyIsImFkbWl0dGVkUHJvamVjdGlvbnMiOjEsInNlbWFudGljRnVsbFJlY29yZFBhc3NlcyI6Ik5vdCBjb21wdXRlZCBieSBwcm9qZWN0aW9uIHJ1bm5lcjsgaW52ZW50b3J5IG1pc3NpbmcgYmluZGluZ3MgYW5kIGFsbCB2YXJpYW50cyBnb3Zlcm4gZWxpZ2liaWxpdHkuIn0K",
+    "stderrBase64": "",
+    "metadata": {
+      "pid": 63095,
+      "group": 63095,
+      "exitCode": 1,
+      "signal": null,
+      "timedOut": false,
+      "overflow": false,
+      "spawnError": null,
+      "closed": true,
+      "reaped": true,
+      "kills": [],
+      "elapsedMs": 656
+    },
+    "summary": {
+      "schemaVersion": 1,
+      "aggregate": "FAIL",
+      "requested": 1,
+      "admitted": 1,
+      "stop": null,
+      "results": [
+        {
+          "jobId": "CMD-01--whole",
+          "admitted": true,
+          "outcome": "FAIL",
+          "failures": [
+            "assertion: AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n+   candidateCommit: 'wrong'\n-   authorizationSha256: 'ee072161837c98db4121e3eb030d87c6956332b4d82c7d3c2c2b03b30bc230ac',\n-   candidateCommit: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',\n-   compiledEntrySha256: '83a45c8e22bdc519be97df9851516bf512688af88a9cf78b574f72bd8458b178',\n-   jobsSha256: 'da4efe14dea553663eee7fa44963547058ee94216e80846a883dc48e442f0cad',\n-   sealSha256: '2fce675f035a2ad39c2e2e2ee9d54e2762a531383e70507149993268acedb7e8',\n-   sourceTreeSha256: 'a02184c9e73467a54adbab4c43c6fec4934980f3a71fe363321d31b058ef28a3'\n  }\n"
+          ],
+          "integrity": true,
+          "reapProof": true,
+          "metadata": {
+            "pid": 63235,
+            "group": 63235,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "spawnError": null,
+            "closed": true,
+            "reaped": true,
+            "kills": [],
+            "elapsedMs": 227
+          }
+        }
+      ],
+      "activeChildren": [],
+      "evidence": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/host-evidence/run-2026-08-28T08-56-43.695Z-d62eda38-654e-41e0-9628-35bad356f957"
+    },
+    "rawFiles": {
+      "CMD-01--whole/boundary.json": {
+        "base64": "ewogICJpbnRlZ3JpdHkiOiB0cnVlLAogICJpbnRlZ3JpdHlFcnJvciI6IG51bGwsCiAgInJlYXBQcm9vZiI6IHRydWUsCiAgInN5bnRoZXRpY1dpdGhoZWxkUmVhcFByb29mIjogZmFsc2UKfQo=",
+        "mode": 384
+      },
+      "CMD-01--whole/child.json": {
+        "base64": "ewogICJwaWQiOiA2MzIzNSwKICAiZ3JvdXAiOiA2MzIzNSwKICAiZXhpdENvZGUiOiAwLAogICJzaWduYWwiOiBudWxsLAogICJ0aW1lZE91dCI6IGZhbHNlLAogICJvdmVyZmxvdyI6IGZhbHNlLAogICJzcGF3bkVycm9yIjogbnVsbCwKICAiY2xvc2VkIjogdHJ1ZSwKICAicmVhcGVkIjogdHJ1ZSwKICAia2lsbHMiOiBbXSwKICAiZWxhcHNlZE1zIjogMjI3Cn0K",
+        "mode": 384
+      },
+      "CMD-01--whole/receipt.json": {
+        "base64": "ewogICJzY2hlbWFWZXJzaW9uIjogMSwKICAiam9iSWQiOiAiQ01ELTAxLS13aG9sZSIsCiAgIm91dGNvbWUiOiAiQ0FQVFVSRUQiLAogICJwcm9vZlJvbGUiOiAiZGlyZWN0LWNvbXBpbGVkLWZhY3RvcnktaGFuZGxlci1ub3QtcHVibGljLXBhY2thZ2UiLAogICJiaW5kaW5nIjogewogICAgImNhbmRpZGF0ZUNvbW1pdCI6ICJ3cm9uZyIKICB9LAogICJjYXB0dXJlIjoge30KfQo=",
+        "mode": 384
+      },
+      "CMD-01--whole/stderr.bin": {
+        "base64": "",
+        "mode": 384
+      },
+      "CMD-01--whole/stdout.bin": {
+        "base64": "eyJzY2hlbWFWZXJzaW9uIjoxLCJqb2JJZCI6IkNNRC0wMS0td2hvbGUiLCJvdXRjb21lIjoiQ0FQVFVSRUQiLCJwcm9vZlJvbGUiOiJkaXJlY3QtY29tcGlsZWQtZmFjdG9yeS1oYW5kbGVyLW5vdC1wdWJsaWMtcGFja2FnZSIsImJpbmRpbmciOnsiY2FuZGlkYXRlQ29tbWl0Ijoid3JvbmcifSwiY2FwdHVyZSI6e319Cg==",
+        "mode": 384
+      },
+      "CMD-01--whole/verdict.json": {
+        "base64": "ewogICJqb2JJZCI6ICJDTUQtMDEtLXdob2xlIiwKICAiYWRtaXR0ZWQiOiB0cnVlLAogICJvdXRjb21lIjogIkZBSUwiLAogICJmYWlsdXJlcyI6IFsKICAgICJhc3NlcnRpb246IEFzc2VydGlvbkVycm9yIFtFUlJfQVNTRVJUSU9OXTogRXhwZWN0ZWQgdmFsdWVzIHRvIGJlIHN0cmljdGx5IGRlZXAtZXF1YWw6XG4rIGFjdHVhbCAtIGV4cGVjdGVkXG5cbiAge1xuKyAgIGNhbmRpZGF0ZUNvbW1pdDogJ3dyb25nJ1xuLSAgIGF1dGhvcml6YXRpb25TaGEyNTY6ICdlZTA3MjE2MTgzN2M5OGRiNDEyMWUzZWIwMzBkODdjNjk1NjMzMmI0ZDgyYzdkM2MyYzJiMDNiMzBiYzIzMGFjJyxcbi0gICBjYW5kaWRhdGVDb21taXQ6ICdiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiJyxcbi0gICBjb21waWxlZEVudHJ5U2hhMjU2OiAnODNhNDVjOGUyMmJkYzUxOWJlOTdkZjk4NTE1MTZiZjUxMjY4OGFmODhhOWNmNzhiNTc0ZjcyYmQ4NDU4YjE3OCcsXG4tICAgam9ic1NoYTI1NjogJ2RhNGVmZTE0ZGVhNTUzNjYzZWVlN2ZhNDQ5NjM1NDcwNThlZTk0MjE2ZTgwODQ2YTg4M2RjNDhlNDQyZjBjYWQnLFxuLSAgIHNlYWxTaGEyNTY6ICcyZmNlNjc1ZjAzNWEyYWQzOWMyZTJlMmVlOWQ1NGUyNzYyYTUzMTM4M2U3MDUwNzE0OTk5MzI2OGFjZWRiN2U4Jyxcbi0gICBzb3VyY2VUcmVlU2hhMjU2OiAnYTAyMTg0YzllNzM0NjdhNTRhZGJhYjRjNDNjNmZlYzQ5MzQ5ODBmM2E3MWZlMzYzMzIxZDMxYjA1OGVmMjhhMydcbiAgfVxuIgogIF0sCiAgImludGVncml0eSI6IHRydWUsCiAgInJlYXBQcm9vZiI6IHRydWUsCiAgIm1ldGFkYXRhIjogewogICAgInBpZCI6IDYzMjM1LAogICAgImdyb3VwIjogNjMyMzUsCiAgICAiZXhpdENvZGUiOiAwLAogICAgInNpZ25hbCI6IG51bGwsCiAgICAidGltZWRPdXQiOiBmYWxzZSwKICAgICJvdmVyZmxvdyI6IGZhbHNlLAogICAgInNwYXduRXJyb3IiOiBudWxsLAogICAgImNsb3NlZCI6IHRydWUsCiAgICAicmVhcGVkIjogdHJ1ZSwKICAgICJraWxscyI6IFtdLAogICAgImVsYXBzZWRNcyI6IDIyNwogIH0KfQo=",
+        "mode": 384
+      },
+      "summary.json": {
+        "base64": "ewogICJzY2hlbWFWZXJzaW9uIjogMSwKICAiYWdncmVnYXRlIjogIkZBSUwiLAogICJyZXF1ZXN0ZWQiOiAxLAogICJhZG1pdHRlZCI6IDEsCiAgInN0b3AiOiBudWxsLAogICJyZXN1bHRzIjogWwogICAgewogICAgICAiam9iSWQiOiAiQ01ELTAxLS13aG9sZSIsCiAgICAgICJhZG1pdHRlZCI6IHRydWUsCiAgICAgICJvdXRjb21lIjogIkZBSUwiLAogICAgICAiZmFpbHVyZXMiOiBbCiAgICAgICAgImFzc2VydGlvbjogQXNzZXJ0aW9uRXJyb3IgW0VSUl9BU1NFUlRJT05dOiBFeHBlY3RlZCB2YWx1ZXMgdG8gYmUgc3RyaWN0bHkgZGVlcC1lcXVhbDpcbisgYWN0dWFsIC0gZXhwZWN0ZWRcblxuICB7XG4rICAgY2FuZGlkYXRlQ29tbWl0OiAnd3JvbmcnXG4tICAgYXV0aG9yaXphdGlvblNoYTI1NjogJ2VlMDcyMTYxODM3Yzk4ZGI0MTIxZTNlYjAzMGQ4N2M2OTU2MzMyYjRkODJjN2QzYzJjMmIwM2IzMGJjMjMwYWMnLFxuLSAgIGNhbmRpZGF0ZUNvbW1pdDogJ2JiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmInLFxuLSAgIGNvbXBpbGVkRW50cnlTaGEyNTY6ICc4M2E0NWM4ZTIyYmRjNTE5YmU5N2RmOTg1MTUxNmJmNTEyNjg4YWY4OGE5Y2Y3OGI1NzRmNzJiZDg0NThiMTc4Jyxcbi0gICBqb2JzU2hhMjU2OiAnZGE0ZWZlMTRkZWE1NTM2NjNlZWU3ZmE0NDk2MzU0NzA1OGVlOTQyMTZlODA4NDZhODgzZGM0OGU0NDJmMGNhZCcsXG4tICAgc2VhbFNoYTI1NjogJzJmY2U2NzVmMDM1YTJhZDM5YzJlMmUyZWU5ZDU0ZTI3NjJhNTMxMzgzZTcwNTA3MTQ5OTkzMjY4YWNlZGI3ZTgnLFxuLSAgIHNvdXJjZVRyZWVTaGEyNTY6ICdhMDIxODRjOWU3MzQ2N2E1NGFkYmFiNGM0M2M2ZmVjNDkzNDk4MGYzYTcxZmUzNjMzMjFkMzFiMDU4ZWYyOGEzJ1xuICB9XG4iCiAgICAgIF0sCiAgICAgICJpbnRlZ3JpdHkiOiB0cnVlLAogICAgICAicmVhcFByb29mIjogdHJ1ZSwKICAgICAgIm1ldGFkYXRhIjogewogICAgICAgICJwaWQiOiA2MzIzNSwKICAgICAgICAiZ3JvdXAiOiA2MzIzNSwKICAgICAgICAiZXhpdENvZGUiOiAwLAogICAgICAgICJzaWduYWwiOiBudWxsLAogICAgICAgICJ0aW1lZE91dCI6IGZhbHNlLAogICAgICAgICJvdmVyZmxvdyI6IGZhbHNlLAogICAgICAgICJzcGF3bkVycm9yIjogbnVsbCwKICAgICAgICAiY2xvc2VkIjogdHJ1ZSwKICAgICAgICAicmVhcGVkIjogdHJ1ZSwKICAgICAgICAia2lsbHMiOiBbXSwKICAgICAgICAiZWxhcHNlZE1zIjogMjI3CiAgICAgIH0KICAgIH0KICBdLAogICJhY3RpdmVDaGlsZHJlbiI6IFtdLAogICJldmlkZW5jZSI6ICIvcHJpdmF0ZS92YXIvZm9sZGVycy9ydy9zNGN5NzZobjZ2NTVxcnAwZGhjYnRwbGMwMDAwZ24vVC95cS1pbmRlcGVuZGVudC1mcmFtZXdvcmstaW5mYjlieW4vaG9zdC1ldmlkZW5jZS9ydW4tMjAyNi0wOC0yOFQwOC01Ni00My42OTVaLWQ2MmVkYTM4LTY1NGUtNDFlMC05NjI4LTM1YmFkMzU2Zjk1NyIKfQo=",
+        "mode": 384
+      }
+    },
+    "importMarkerSeen": false,
+    "authorization": {
+      "schemaVersion": 1,
+      "purpose": "YQ_CANDIDATE_EXECUTION_EXPLICIT_HANDOFF",
+      "rootApproval": "SYNTHETIC FRAMEWORK ONLY",
+      "candidateCommit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "baselineCommit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "acceptedLengthCommit": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+      "contractCommit": "bd471ef682d768692a682d40009a874f51e3ad68",
+      "independentReviewCommit": "de89e478d8ddce62eac955708f1b87d7be1bd137",
+      "recipe": {
+        "root": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/authenticated/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe",
+        "sealSha256": "2fce675f035a2ad39c2e2e2ee9d54e2762a531383e70507149993268acedb7e8",
+        "treeSha256": "e04229e35902d8dd34c91c0adfbb357120312ff743ecdc9434b0d239c152db78"
+      },
+      "source": {
+        "root": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/execute-forged-source",
+        "treeSha256": "a02184c9e73467a54adbab4c43c6fec4934980f3a71fe363321d31b058ef28a3",
+        "provenance": {
+          "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/execute-forged/composition.json",
+          "sha256": "f4ddd4e92a3ae49e7d09fe882205f54744037afb8279c50a7e395458c5393a2d"
+        }
+      },
+      "compiled": {
+        "root": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/execute-forged-compiled",
+        "treeSha256": "93c7ed592474097b33b6a15a02847053c0b65c4df50af96cb80a669d3e468038",
+        "entry": {
+          "path": "entry.mjs",
+          "sha256": "83a45c8e22bdc519be97df9851516bf512688af88a9cf78b574f72bd8458b178",
+          "exportName": "createYqCommand",
+          "proofRole": "direct-compiled-factory-handler-not-public-package"
+        }
+      },
+      "node": {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "mode": 493
+      },
+      "frozenRepository": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/frozen",
+      "selection": {
+        "ids": [
+          "CMD-01"
+        ],
+        "jobsSha256": "da4efe14dea553663eee7fa44963547058ee94216e80846a883dc48e442f0cad"
+      },
+      "bounds": {
+        "deadlineMs": 1000,
+        "termGraceMs": 100,
+        "reapMs": 300,
+        "captureBytes": 65536,
+        "maximumJobs": 4
+      },
+      "evidenceParent": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/host-evidence"
+    }
+  },
+  "rejected": null,
+  "activeChildren": []
+}

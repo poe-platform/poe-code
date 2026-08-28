@@ -1,0 +1,9 @@
+{
+  "family": "ER-13",
+  "name": "symlink-escape",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-13-symlink-escape-input.json",
+  "raw": "ER-13-symlink-escape-raw.json"
+}

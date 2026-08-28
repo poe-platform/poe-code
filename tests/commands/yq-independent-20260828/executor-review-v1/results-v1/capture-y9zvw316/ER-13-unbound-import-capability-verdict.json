@@ -1,0 +1,9 @@
+{
+  "family": "ER-13",
+  "name": "unbound-import-capability",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-13-unbound-import-capability-input.json",
+  "raw": "ER-13-unbound-import-capability-raw.json"
+}

@@ -1,0 +1,11 @@
+{
+  "classification": "DATA_ADMISSION_NOT_YQ_RUNTIME",
+  "returned": null,
+  "rejected": {
+    "name": "Error",
+    "code": null,
+    "message": "Unbound data recipe",
+    "stack": "Error: Unbound data recipe\n    at Module.materializeDataRecipe (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/authenticated/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/fixtures.mjs:39:20)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:284:110\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:69:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:284:7"
+  },
+  "activeChildren": []
+}

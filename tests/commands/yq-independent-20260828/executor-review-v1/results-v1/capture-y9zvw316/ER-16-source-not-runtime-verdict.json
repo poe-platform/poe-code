@@ -1,0 +1,9 @@
+{
+  "family": "ER-16",
+  "name": "source-not-runtime",
+  "classification": "DATA_ADMISSION_NOT_YQ_RUNTIME",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-16-source-not-runtime-input.json",
+  "raw": "ER-16-source-not-runtime-raw.json"
+}

@@ -1,0 +1,9 @@
+{
+  "family": "ER-14",
+  "name": "WRK-22",
+  "classification": "DATA_ADMISSION_NOT_YQ_RUNTIME",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-14-WRK-22-input.json",
+  "raw": "ER-14-WRK-22-raw.json"
+}

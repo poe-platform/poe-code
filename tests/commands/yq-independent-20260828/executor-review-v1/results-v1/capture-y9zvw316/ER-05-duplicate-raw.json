@@ -1,0 +1,71 @@
+{
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "returned": {
+    "summary": {
+      "schemaVersion": 1,
+      "aggregate": "FAIL",
+      "requested": 1,
+      "admitted": 1,
+      "stop": null,
+      "results": [
+        {
+          "jobId": "job0",
+          "admitted": true,
+          "outcome": "FAIL",
+          "failures": [
+            "assertion: AssertionError [ERR_ASSERTION]: Exactly one receipt is required\n\n2 !== 1\n"
+          ],
+          "integrity": true,
+          "reapProof": true,
+          "metadata": {
+            "pid": 62268,
+            "group": 62268,
+            "exitCode": 0,
+            "signal": null,
+            "timedOut": false,
+            "overflow": false,
+            "spawnError": null,
+            "closed": true,
+            "reaped": true,
+            "kills": [],
+            "elapsedMs": 45
+          }
+        }
+      ],
+      "activeChildren": [],
+      "evidence": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/host-evidence/run-2026-08-28T08-56-41.444Z-b855c718-74a7-4cd3-9589-6f3a388c2480"
+    },
+    "rawFiles": {
+      "job0/boundary.json": {
+        "base64": "ewogICJpbnRlZ3JpdHkiOiB0cnVlLAogICJpbnRlZ3JpdHlFcnJvciI6IG51bGwsCiAgInJlYXBQcm9vZiI6IHRydWUsCiAgInN5bnRoZXRpY1dpdGhoZWxkUmVhcFByb29mIjogZmFsc2UKfQo=",
+        "mode": 384
+      },
+      "job0/child.json": {
+        "base64": "ewogICJwaWQiOiA2MjI2OCwKICAiZ3JvdXAiOiA2MjI2OCwKICAiZXhpdENvZGUiOiAwLAogICJzaWduYWwiOiBudWxsLAogICJ0aW1lZE91dCI6IGZhbHNlLAogICJvdmVyZmxvdyI6IGZhbHNlLAogICJzcGF3bkVycm9yIjogbnVsbCwKICAiY2xvc2VkIjogdHJ1ZSwKICAicmVhcGVkIjogdHJ1ZSwKICAia2lsbHMiOiBbXSwKICAiZWxhcHNlZE1zIjogNDUKfQo=",
+        "mode": 384
+      },
+      "job0/stderr.bin": {
+        "base64": "",
+        "mode": 384
+      },
+      "job0/stdout.bin": {
+        "base64": "eyJzY2hlbWFWZXJzaW9uIjoxLCJqb2JJZCI6ImpvYjAiLCJvdXRjb21lIjoiUEFTUyJ9Cnsic2NoZW1hVmVyc2lvbiI6MSwiam9iSWQiOiJqb2IwIiwib3V0Y29tZSI6IlBBU1MifQo=",
+        "mode": 384
+      },
+      "job0/verdict.json": {
+        "base64": "ewogICJqb2JJZCI6ICJqb2IwIiwKICAiYWRtaXR0ZWQiOiB0cnVlLAogICJvdXRjb21lIjogIkZBSUwiLAogICJmYWlsdXJlcyI6IFsKICAgICJhc3NlcnRpb246IEFzc2VydGlvbkVycm9yIFtFUlJfQVNTRVJUSU9OXTogRXhhY3RseSBvbmUgcmVjZWlwdCBpcyByZXF1aXJlZFxuXG4yICE9PSAxXG4iCiAgXSwKICAiaW50ZWdyaXR5IjogdHJ1ZSwKICAicmVhcFByb29mIjogdHJ1ZSwKICAibWV0YWRhdGEiOiB7CiAgICAicGlkIjogNjIyNjgsCiAgICAiZ3JvdXAiOiA2MjI2OCwKICAgICJleGl0Q29kZSI6IDAsCiAgICAic2lnbmFsIjogbnVsbCwKICAgICJ0aW1lZE91dCI6IGZhbHNlLAogICAgIm92ZXJmbG93IjogZmFsc2UsCiAgICAic3Bhd25FcnJvciI6IG51bGwsCiAgICAiY2xvc2VkIjogdHJ1ZSwKICAgICJyZWFwZWQiOiB0cnVlLAogICAgImtpbGxzIjogW10sCiAgICAiZWxhcHNlZE1zIjogNDUKICB9Cn0K",
+        "mode": 384
+      },
+      "summary.json": {
+        "base64": "ewogICJzY2hlbWFWZXJzaW9uIjogMSwKICAiYWdncmVnYXRlIjogIkZBSUwiLAogICJyZXF1ZXN0ZWQiOiAxLAogICJhZG1pdHRlZCI6IDEsCiAgInN0b3AiOiBudWxsLAogICJyZXN1bHRzIjogWwogICAgewogICAgICAiam9iSWQiOiAiam9iMCIsCiAgICAgICJhZG1pdHRlZCI6IHRydWUsCiAgICAgICJvdXRjb21lIjogIkZBSUwiLAogICAgICAiZmFpbHVyZXMiOiBbCiAgICAgICAgImFzc2VydGlvbjogQXNzZXJ0aW9uRXJyb3IgW0VSUl9BU1NFUlRJT05dOiBFeGFjdGx5IG9uZSByZWNlaXB0IGlzIHJlcXVpcmVkXG5cbjIgIT09IDFcbiIKICAgICAgXSwKICAgICAgImludGVncml0eSI6IHRydWUsCiAgICAgICJyZWFwUHJvb2YiOiB0cnVlLAogICAgICAibWV0YWRhdGEiOiB7CiAgICAgICAgInBpZCI6IDYyMjY4LAogICAgICAgICJncm91cCI6IDYyMjY4LAogICAgICAgICJleGl0Q29kZSI6IDAsCiAgICAgICAgInNpZ25hbCI6IG51bGwsCiAgICAgICAgInRpbWVkT3V0IjogZmFsc2UsCiAgICAgICAgIm92ZXJmbG93IjogZmFsc2UsCiAgICAgICAgInNwYXduRXJyb3IiOiBudWxsLAogICAgICAgICJjbG9zZWQiOiB0cnVlLAogICAgICAgICJyZWFwZWQiOiB0cnVlLAogICAgICAgICJraWxscyI6IFtdLAogICAgICAgICJlbGFwc2VkTXMiOiA0NQogICAgICB9CiAgICB9CiAgXSwKICAiYWN0aXZlQ2hpbGRyZW4iOiBbXSwKICAiZXZpZGVuY2UiOiAiL3ByaXZhdGUvdmFyL2ZvbGRlcnMvcncvczRjeTc2aG42djU1cXJwMGRoY2J0cGxjMDAwMGduL1QveXEtaW5kZXBlbmRlbnQtZnJhbWV3b3JrLWluZmI5YnluL2hvc3QtZXZpZGVuY2UvcnVuLTIwMjYtMDgtMjhUMDgtNTYtNDEuNDQ0Wi1iODU1YzcxOC03NGE3LTRjZDMtOTU4OS02ZjNhMzg4YzI0ODAiCn0K",
+        "mode": 384
+      }
+    },
+    "secondMarker": false,
+    "effects": {
+      "input": "original\n"
+    }
+  },
+  "rejected": null,
+  "activeChildren": []
+}

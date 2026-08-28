@@ -1,0 +1,9 @@
+{
+  "family": "ER-12",
+  "name": "extra-entry",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-12-extra-entry-input.json",
+  "raw": "ER-12-extra-entry-raw.json"
+}

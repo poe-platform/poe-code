@@ -1,0 +1,20 @@
+{
+  "args": [
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-independent-framework-infb9byn/authenticated/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/execute.mjs"
+  ],
+  "stdoutBase64": "",
+  "stderrBase64": "bm9kZTppbnRlcm5hbC9tb2R1bGVzL3J1bl9tYWluOjEyMwogICAgdHJpZ2dlclVuY2F1Z2h0RXhjZXB0aW9uKAogICAgXgoKQXNzZXJ0aW9uRXJyb3IgW0VSUl9BU1NFUlRJT05dOiBNaXNzaW5nIGV4cGxpY2l0IGNhbmRpZGF0ZSBhdXRob3JpemF0aW9uOiBubyBwcm9kdWN0IGltcG9ydHMgb3Igb3V0cHV0IGFkbWl0dGVkCiAgICBhdCBhdXRob3JpemUgKGZpbGU6Ly8vcHJpdmF0ZS92YXIvZm9sZGVycy9ydy9zNGN5NzZobjZ2NTVxcnAwZGhjYnRwbGMwMDAwZ24vVC95cS1pbmRlcGVuZGVudC1mcmFtZXdvcmstaW5mYjlieW4vYXV0aGVudGljYXRlZC90ZXN0cy9jb21tYW5kcy95cS1pbmRlcGVuZGVudC0yMDI2MDgyOC9leGVjdXRvci1wcmVwYXJhdGlvbi12MS9ydW50aW1lL3JlY2lwZS9hdXRob3JpemF0aW9uLm1qczoxNDozKQogICAgYXQgZmlsZTovLy9wcml2YXRlL3Zhci9mb2xkZXJzL3J3L3M0Y3k3NmhuNnY1NXFycDBkaGNidHBsYzAwMDBnbi9UL3lxLWluZGVwZW5kZW50LWZyYW1ld29yay1pbmZiOWJ5bi9hdXRoZW50aWNhdGVkL3Rlc3RzL2NvbW1hbmRzL3lxLWluZGVwZW5kZW50LTIwMjYwODI4L2V4ZWN1dG9yLXByZXBhcmF0aW9uLXYxL3J1bnRpbWUvcmVjaXBlL2V4ZWN1dGUubWpzOjg6MTUKICAgIGF0IE1vZHVsZUpvYi5ydW4gKG5vZGU6aW50ZXJuYWwvbW9kdWxlcy9lc20vbW9kdWxlX2pvYjozNDM6MjUpCiAgICBhdCBhc3luYyBvbkltcG9ydC50cmFjZVByb21pc2UuX19wcm90b19fIChub2RlOmludGVybmFsL21vZHVsZXMvZXNtL2xvYWRlcjo2NjU6MjYpCiAgICBhdCBhc3luYyBhc3luY1J1bkVudHJ5UG9pbnRXaXRoRVNNTG9hZGVyIChub2RlOmludGVybmFsL21vZHVsZXMvcnVuX21haW46MTE3OjUpIHsKICBnZW5lcmF0ZWRNZXNzYWdlOiBmYWxzZSwKICBjb2RlOiAnRVJSX0FTU0VSVElPTicsCiAgYWN0dWFsOiB1bmRlZmluZWQsCiAgZXhwZWN0ZWQ6IHRydWUsCiAgb3BlcmF0b3I6ICc9PScsCiAgZGlmZjogJ3NpbXBsZScKfQoKTm9kZS5qcyB2MjIuMjIuMgo=",
+  "metadata": {
+    "pid": 62747,
+    "group": 62747,
+    "exitCode": 1,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 57
+  }
+}

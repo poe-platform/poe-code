@@ -1,0 +1,639 @@
+{
+  "date": "2026-08-28",
+  "classification": "INDEPENDENT_SYNTHETIC_FRAMEWORK_REVIEW_NOT_PRODUCT_ACCEPTANCE",
+  "controls": [
+    {
+      "family": "ER-01",
+      "name": "pass-exit7",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-01-pass-exit7-input.json",
+      "raw": "ER-01-pass-exit7-raw.json"
+    },
+    {
+      "family": "ER-02",
+      "name": "fail-then-pass",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-02-fail-then-pass-input.json",
+      "raw": "ER-02-fail-then-pass-raw.json"
+    },
+    {
+      "family": "ER-03",
+      "name": "capture-before-assert",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-03-capture-before-assert-input.json",
+      "raw": "ER-03-capture-before-assert-raw.json"
+    },
+    {
+      "family": "ER-03",
+      "name": "reason-identities",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_FAILURE_REQUIRES_REVIEW",
+      "failure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Distinct reason objects lose observable identity",
+        "stack": "AssertionError [ERR_ASSERTION]: Distinct reason objects lose observable identity\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:149:177\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:73:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:145:1"
+      },
+      "input": "ER-03-reason-identities-input.json",
+      "raw": "ER-03-reason-identities-raw.json"
+    },
+    {
+      "family": "ER-04",
+      "name": "missing-receipt",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-04-missing-receipt-input.json",
+      "raw": "ER-04-missing-receipt-raw.json"
+    },
+    {
+      "family": "ER-05",
+      "name": "duplicate",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-05-duplicate-input.json",
+      "raw": "ER-05-duplicate-raw.json"
+    },
+    {
+      "family": "ER-05",
+      "name": "malformed",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-05-malformed-input.json",
+      "raw": "ER-05-malformed-raw.json"
+    },
+    {
+      "family": "ER-05",
+      "name": "wrong-job",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-05-wrong-job-input.json",
+      "raw": "ER-05-wrong-job-raw.json"
+    },
+    {
+      "family": "ER-05",
+      "name": "duplicate-key",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-05-duplicate-key-input.json",
+      "raw": "ER-05-duplicate-key-raw.json"
+    },
+    {
+      "family": "ER-06",
+      "name": "mutation-stops-next",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-06-mutation-stops-next-input.json",
+      "raw": "ER-06-mutation-stops-next-raw.json"
+    },
+    {
+      "family": "ER-07",
+      "name": "bytes",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-07-bytes-input.json",
+      "raw": "ER-07-bytes-raw.json"
+    },
+    {
+      "family": "ER-07",
+      "name": "mode",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-07-mode-input.json",
+      "raw": "ER-07-mode-raw.json"
+    },
+    {
+      "family": "ER-07",
+      "name": "new-file",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-07-new-file-input.json",
+      "raw": "ER-07-new-file-raw.json"
+    },
+    {
+      "family": "ER-07",
+      "name": "new-directory",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-07-new-directory-input.json",
+      "raw": "ER-07-new-directory-raw.json"
+    },
+    {
+      "family": "ER-07",
+      "name": "new-symlink",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-07-new-symlink-input.json",
+      "raw": "ER-07-new-symlink-raw.json"
+    },
+    {
+      "family": "ER-07",
+      "name": "consumer-recipe-mode",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-07-consumer-recipe-mode-input.json",
+      "raw": "ER-07-consumer-recipe-mode-raw.json"
+    },
+    {
+      "family": "ER-07",
+      "name": "consumer-recipe-new-file",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-07-consumer-recipe-new-file-input.json",
+      "raw": "ER-07-consumer-recipe-new-file-raw.json"
+    },
+    {
+      "family": "ER-08",
+      "name": "timeout-reaped",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-08-timeout-reaped-input.json",
+      "raw": "ER-08-timeout-reaped-raw.json"
+    },
+    {
+      "family": "ER-08",
+      "name": "withheld-reap",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-08-withheld-reap-input.json",
+      "raw": "ER-08-withheld-reap-raw.json"
+    },
+    {
+      "family": "ER-08",
+      "name": "bad-both-boundaries",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-08-bad-both-boundaries-input.json",
+      "raw": "ER-08-bad-both-boundaries-raw.json"
+    },
+    {
+      "family": "ER-09",
+      "name": "inventory-accounting",
+      "classification": "DATA_SOURCE_NOT_RUNTIME_SEMANTIC",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-09-inventory-accounting-input.json",
+      "raw": "ER-09-inventory-accounting-raw.json"
+    },
+    {
+      "family": "ER-10",
+      "name": "missing-authorization",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-10-missing-authorization-input.json",
+      "raw": "ER-10-missing-authorization-raw.json"
+    },
+    {
+      "family": "ER-10",
+      "name": "hash-mismatch",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-10-hash-mismatch-input.json",
+      "raw": "ER-10-hash-mismatch-raw.json"
+    },
+    {
+      "family": "ER-05",
+      "name": "actual-execute-positive",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-05-actual-execute-positive-input.json",
+      "raw": "ER-05-actual-execute-positive-raw.json"
+    },
+    {
+      "family": "ER-05",
+      "name": "actual-execute-forged-binding",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-05-actual-execute-forged-binding-input.json",
+      "raw": "ER-05-actual-execute-forged-binding-raw.json"
+    },
+    {
+      "family": "ER-11",
+      "name": "readme-absent",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-11-readme-absent-input.json",
+      "raw": "ER-11-readme-absent-raw.json"
+    },
+    {
+      "family": "ER-11",
+      "name": "readme-changed",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-11-readme-changed-input.json",
+      "raw": "ER-11-readme-changed-raw.json"
+    },
+    {
+      "family": "ER-12",
+      "name": "extra-entry",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-12-extra-entry-input.json",
+      "raw": "ER-12-extra-entry-raw.json"
+    },
+    {
+      "family": "ER-12",
+      "name": "baseline-omits-readme",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-12-baseline-omits-readme-input.json",
+      "raw": "ER-12-baseline-omits-readme-raw.json"
+    },
+    {
+      "family": "ER-12",
+      "name": "authenticated-baseline-omission",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-12-authenticated-baseline-omission-input.json",
+      "raw": "ER-12-authenticated-baseline-omission-raw.json"
+    },
+    {
+      "family": "ER-12",
+      "name": "authorized-addition-count",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-12-authorized-addition-count-input.json",
+      "raw": "ER-12-authorized-addition-count-raw.json"
+    },
+    {
+      "family": "ER-13",
+      "name": "physical-move",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-13-physical-move-input.json",
+      "raw": "ER-13-physical-move-raw.json"
+    },
+    {
+      "family": "ER-13",
+      "name": "moved-path-resolution",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-13-moved-path-resolution-input.json",
+      "raw": "ER-13-moved-path-resolution-raw.json"
+    },
+    {
+      "family": "ER-13",
+      "name": "fallback-2",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-13-fallback-2-input.json",
+      "raw": "ER-13-fallback-2-raw.json"
+    },
+    {
+      "family": "ER-13",
+      "name": "fallback-3",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-13-fallback-3-input.json",
+      "raw": "ER-13-fallback-3-raw.json"
+    },
+    {
+      "family": "ER-13",
+      "name": "fallback-4",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-13-fallback-4-input.json",
+      "raw": "ER-13-fallback-4-raw.json"
+    },
+    {
+      "family": "ER-13",
+      "name": "fallback-5",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-13-fallback-5-input.json",
+      "raw": "ER-13-fallback-5-raw.json"
+    },
+    {
+      "family": "ER-13",
+      "name": "symlink-escape",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-13-symlink-escape-input.json",
+      "raw": "ER-13-symlink-escape-raw.json"
+    },
+    {
+      "family": "ER-13",
+      "name": "unbound-import-capability",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-13-unbound-import-capability-input.json",
+      "raw": "ER-13-unbound-import-capability-raw.json"
+    },
+    {
+      "family": "ER-14",
+      "name": "WRK-22",
+      "classification": "DATA_ADMISSION_NOT_YQ_RUNTIME",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-14-WRK-22-input.json",
+      "raw": "ER-14-WRK-22-raw.json"
+    },
+    {
+      "family": "ER-14",
+      "name": "MOV-02",
+      "classification": "DATA_ADMISSION_NOT_YQ_RUNTIME",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-14-MOV-02-input.json",
+      "raw": "ER-14-MOV-02-raw.json"
+    },
+    {
+      "family": "ER-14",
+      "name": "TYP-04",
+      "classification": "DATA_ADMISSION_NOT_YQ_RUNTIME",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-14-TYP-04-input.json",
+      "raw": "ER-14-TYP-04-raw.json"
+    },
+    {
+      "family": "ER-14",
+      "name": "UNKNOWN-PROJECTION",
+      "classification": "DATA_ADMISSION_NOT_YQ_RUNTIME",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-14-UNKNOWN-PROJECTION-input.json",
+      "raw": "ER-14-UNKNOWN-PROJECTION-raw.json"
+    },
+    {
+      "family": "ER-14",
+      "name": "public-integration-pending",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-14-public-integration-pending-input.json",
+      "raw": "ER-14-public-integration-pending-raw.json"
+    },
+    {
+      "family": "ER-15",
+      "name": "declared-negative",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-15-declared-negative-input.json",
+      "raw": "ER-15-declared-negative-raw.json"
+    },
+    {
+      "family": "ER-15",
+      "name": "missing-module",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-15-missing-module-input.json",
+      "raw": "ER-15-missing-module-raw.json"
+    },
+    {
+      "family": "ER-15",
+      "name": "missing-declaration",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-15-missing-declaration-input.json",
+      "raw": "ER-15-missing-declaration-raw.json"
+    },
+    {
+      "family": "ER-15",
+      "name": "declaration-error",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-15-declaration-error-input.json",
+      "raw": "ER-15-declaration-error-raw.json"
+    },
+    {
+      "family": "ER-15",
+      "name": "signal",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-15-signal-input.json",
+      "raw": "ER-15-signal-raw.json"
+    },
+    {
+      "family": "ER-15",
+      "name": "type-worker-exit-0",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-15-type-worker-exit-0-input.json",
+      "raw": "ER-15-type-worker-exit-0-raw.json"
+    },
+    {
+      "family": "ER-15",
+      "name": "type-worker-exit-7",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-15-type-worker-exit-7-input.json",
+      "raw": "ER-15-type-worker-exit-7-raw.json"
+    },
+    {
+      "family": "ER-16",
+      "name": "source-not-runtime",
+      "classification": "DATA_ADMISSION_NOT_YQ_RUNTIME",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-16-source-not-runtime-input.json",
+      "raw": "ER-16-source-not-runtime-raw.json"
+    },
+    {
+      "family": "ER-16",
+      "name": "unknown-data-projection",
+      "classification": "DATA_ADMISSION_NOT_YQ_RUNTIME",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-16-unknown-data-projection-input.json",
+      "raw": "ER-16-unknown-data-projection-raw.json"
+    },
+    {
+      "family": "ER-16",
+      "name": "unknown-assertion",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_FAILURE_REQUIRES_REVIEW",
+      "failure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n\n'PASS' !== 'FAIL'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'PASS' !== 'FAIL'\n\n    at cohortFail (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:119:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:288:13\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:73:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:285:1"
+      },
+      "input": "ER-16-unknown-assertion-input.json",
+      "raw": "ER-16-unknown-assertion-raw.json"
+    },
+    {
+      "family": "ER-17",
+      "name": "signal",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-17-signal-input.json",
+      "raw": "ER-17-signal-raw.json"
+    },
+    {
+      "family": "ER-17",
+      "name": "overflow",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-17-overflow-input.json",
+      "raw": "ER-17-overflow-raw.json"
+    },
+    {
+      "family": "ER-18",
+      "name": "evidence-overlap",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-18-evidence-overlap-input.json",
+      "raw": "ER-18-evidence-overlap-raw.json"
+    },
+    {
+      "family": "ER-18",
+      "name": "missing-authorization-direct",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-18-missing-authorization-direct-input.json",
+      "raw": "ER-18-missing-authorization-direct-raw.json"
+    },
+    {
+      "family": "ER-18",
+      "name": "forbidden-source-2",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-18-forbidden-source-2-input.json",
+      "raw": "ER-18-forbidden-source-2-raw.json"
+    },
+    {
+      "family": "ER-18",
+      "name": "forbidden-source-3",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-18-forbidden-source-3-input.json",
+      "raw": "ER-18-forbidden-source-3-raw.json"
+    },
+    {
+      "family": "ER-18",
+      "name": "forbidden-source-4",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-18-forbidden-source-4-input.json",
+      "raw": "ER-18-forbidden-source-4-raw.json"
+    },
+    {
+      "family": "ER-18",
+      "name": "exact-source-map",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_PASS",
+      "failure": null,
+      "input": "ER-18-exact-source-map-input.json",
+      "raw": "ER-18-exact-source-map-raw.json"
+    }
+  ],
+  "controlObservations": 62,
+  "familiesRepresented": [
+    "ER-01",
+    "ER-02",
+    "ER-03",
+    "ER-04",
+    "ER-05",
+    "ER-06",
+    "ER-07",
+    "ER-08",
+    "ER-09",
+    "ER-10",
+    "ER-11",
+    "ER-12",
+    "ER-13",
+    "ER-14",
+    "ER-15",
+    "ER-16",
+    "ER-17",
+    "ER-18"
+  ],
+  "failures": [
+    {
+      "family": "ER-03",
+      "name": "reason-identities",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_FAILURE_REQUIRES_REVIEW",
+      "failure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Distinct reason objects lose observable identity",
+        "stack": "AssertionError [ERR_ASSERTION]: Distinct reason objects lose observable identity\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:149:177\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:73:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:145:1"
+      },
+      "input": "ER-03-reason-identities-input.json",
+      "raw": "ER-03-reason-identities-raw.json"
+    },
+    {
+      "family": "ER-16",
+      "name": "unknown-assertion",
+      "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+      "outcome": "CONTROL_FAILURE_REQUIRES_REVIEW",
+      "failure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n\n'PASS' !== 'FAIL'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'PASS' !== 'FAIL'\n\n    at cohortFail (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:119:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:288:13\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:73:9)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v1/review.mjs:285:1"
+      },
+      "input": "ER-16-unknown-assertion-input.json",
+      "raw": "ER-16-unknown-assertion-raw.json"
+    }
+  ],
+  "elapsedMs": 4368,
+  "activeChildren": [],
+  "productImports": 0,
+  "productExecutions": 0,
+  "builds": 0,
+  "typeCompiles": 0,
+  "authorControlSuitesExecuted": 0,
+  "gaps": [
+    "No actual candidate/source/build acceptance: separate root-routed binding stage required.",
+    "No implemented semantic scoring aggregator to stress with appended nonsemantic jobs; checked actual inventory and materialized job roles only.",
+    "No forged consumer authority: successful capability-bound withMaterializedImports remains pending actual source/package authorization; low-level physical move and resolution helpers exercised.",
+    "Source-primary records remain pending and do not prove runtime memory/progress/identity.",
+    "Known process groups only; no opaque escaped-descendant or hard-preemption guarantee."
+  ]
+}

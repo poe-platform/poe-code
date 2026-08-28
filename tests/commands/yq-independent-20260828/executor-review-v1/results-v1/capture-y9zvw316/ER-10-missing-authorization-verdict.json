@@ -1,0 +1,9 @@
+{
+  "family": "ER-10",
+  "name": "missing-authorization",
+  "classification": "RUNTIME_SYNTHETIC_FRAMEWORK",
+  "outcome": "CONTROL_PASS",
+  "failure": null,
+  "input": "ER-10-missing-authorization-input.json",
+  "raw": "ER-10-missing-authorization-raw.json"
+}

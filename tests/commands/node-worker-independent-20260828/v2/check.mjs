@@ -81,9 +81,10 @@ const errorRecord = inventory(`${own}errors-inventory.data`);
 assert.equal(errorRecord.length, 1);
 assert.equal(errorRecord[0].path, 'src/contracts/errors.ts');
 assert.equal(gitHash('blob', errorsSource), errorRecord[0].blob);
-const errorUnion = errorsSource.toString().match(/export type ErrnoCode\s*=([\s\S]*?);/);
-assert(errorUnion);
-const codes = [...errorUnion[1].matchAll(/"([A-Z0-9_]+)"/g)].map(match => match[1]);
+assert.match(errorsSource.toString(), /export type ErrnoCode = keyof typeof descriptions;/);
+const descriptions = errorsSource.toString().match(/const descriptions = \{([\s\S]*?)\} as const;/);
+assert(descriptions);
+const codes = [...descriptions[1].matchAll(/^  ([A-Z0-9_]+):/gm)].map(match => match[1]);
 assert.equal(codes.length, 28);
 assert.deepEqual([...codes].sort(), [...json['ERRORS.json'].fsCodes].sort());
 assert.equal(new Set(json['ERRORS.json'].fsCodes).size, 28);
@@ -97,6 +98,8 @@ assert.deepEqual(rpc.layout.inactiveSlots, [1, 2]);
 assert.equal(Object.keys(rpc.states).length, 7);
 assert.equal(json['DISPOSITIONS.json'].findings.length, 7);
 assert.deepEqual(json['DISPOSITIONS.json'].findings.map(entry => entry.id), ['F1','F2','F3','F4','F5','F6','F7']);
+assert.deepEqual(json['OBLIGATIONS.json'].obligations.map(entry => [entry.id, entry.rootId]), Array.from({ length: 8 }, (_, index) => [`WRQ0${index + 1}`, `L0${index + 1}`]));
+assert.equal(json['OBLIGATIONS.json'].counts.executedQualificationObligations, 0);
 const result = {
   role: 'Frozen packet DATA authentication; no model, Worker, provider or engine execution',
   candidate, tree: commit.toString().match(/^tree ([a-f0-9]{40})/)[1],

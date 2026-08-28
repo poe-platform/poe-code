@@ -3,21 +3,28 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { spawn } from 'node:child_process';
-import { gzipSync } from 'node:zlib';
+import { gzipSync, gunzipSync } from 'node:zlib';
 import { own, repo, sha, objectHash, inputs } from './prepare.mjs';
 
-assert.deepEqual(process.argv.slice(2), ['--run']);
+assert.deepEqual(process.argv.slice(2), ['--continue']);
 const started = Date.now();
 const { manifest, base, seal } = inputs();
 assert.deepEqual(manifest, JSON.parse(await fs.readFile(path.join(own, 'SOURCE.json'))));
 assert.equal(process.execPath, seal.tools.nodePath);
 assert.equal(process.version, seal.tools.nodeVersion);
 assert.equal(sha(await fs.readFile(process.execPath)), seal.tools.nodeSha256);
-const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR-v3.json')));
+const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR-v4.json')));
 for (const [name, expected] of Object.entries(executor.files)) assert.equal(sha(await fs.readFile(path.join(own, name))), expected, name);
 const output = await fs.mkdtemp(path.join(os.tmpdir(), 'coherent78-arrays-author-'));
 console.log(JSON.stringify({ output, candidate: manifest.computedTree, sourceSha256: sha(await fs.readFile(path.join(own, 'SOURCE.json'))) }));
 const receipt = { role: 'AUTHOR_COHERENCE_ONLY', candidate: manifest.computedTree, started: new Date(started).toISOString(), output, executor, source: manifest, children: [], phases: [], types: [], controls: [], failures: [], cleanup: {}, nativeRuns: 0, actualSafeJsRuns: 0 };
+const priorEncoded = await fs.readFile(path.join(own, 'RAW-v2.json.gz.base64'));
+assert.equal(sha(priorEncoded), 'ff6209758d5bf6c5dcfcd4f742299d9d9ec2c72b04e6bfe515fa4e51dc867ecf');
+const prior = JSON.parse(gunzipSync(Buffer.from(priorEncoded.toString().trim(), 'base64'), { maxOutputLength: 134217728 })).receipt;
+assert.equal(prior.candidate, manifest.computedTree);
+assert.equal(prior.pack.sha256, 'f5152eaeaaeb78aff350a86d55f67905c2caab900ba2f45b1869da6498e1e956');
+assert.equal(prior.children.filter(row => row.label === 'production-build-once' && row.code === 0).length, 1);
+receipt.continuation = { originalRawSha256: sha(priorEncoded), priorOutput: prior.output, originalStatus: prior.status, productionBuildsThisContinuation: 0, originalPhasesNotRerun: prior.phases.map(row => ({ layout: row.layout, script: row.script, summary: row.summary })), originalTypeGroupsNotRerun: prior.types.length };
 let totalCapture = 0, written = 0, childCount = 0;
 const active = new Set();
 const save = () => fs.writeFile(path.join(output, 'RESULT.json'), JSON.stringify(receipt, null, 2) + '\n');
@@ -102,8 +109,17 @@ async function types(label, consumer) {
     const pass = group.diagnostic ? result.code === 2 && errors.length === 1 && errors[0].includes(group.diagnostic) && errors[0].includes(group.term) : result.code === 0 && errors.length === 0;
     const product = label === 'source-build' ? source : path.join(consumer, 'node_modules/virtual-bash');
     const declarations = diagnostic.split('\n').filter(line => line.endsWith('.d.ts') && line.includes('/dist/'));
-    assert.ok(declarations.length > 0 && declarations.every(file => file.startsWith(product + '/dist/')), 'Type source fallback or absent public declaration');
-    receipt.types.push({ layout: label, id: group.id, cases: group.cases, pass, errors, declarations: await Promise.all(declarations.map(async file => ({ path: path.relative(product, file), sha256: sha(await fs.readFile(file)) }))) });
+    const realProduct = await fs.realpath(product);
+    assert.ok(declarations.length > 0, 'Absent public declaration');
+    const boundDeclarations = [];
+    for (const file of declarations) {
+      const realFile = await fs.realpath(file);
+      assert.ok(realFile.startsWith(realProduct + '/dist/'), 'Type source fallback');
+      const relative = path.relative(realProduct, realFile), digest = sha(await fs.readFile(realFile));
+      assert.equal(digest, admitted[relative]?.sha256, 'Declaration bytes differ from candidate');
+      boundDeclarations.push({ path: relative, sha256: digest });
+    }
+    receipt.types.push({ layout: label, id: group.id, cases: group.cases, pass, errors, realProduct, declarations: boundDeclarations });
     if (!pass) receipt.failures.push({ phase: `${label}-types`, id: group.id, errors });
   }
 }
@@ -123,19 +139,14 @@ try {
   for (const name of ['home', 'tmp', 'cache']) await fs.mkdir(path.join(output, name));
   for (const name of ['npmrc', 'global-npmrc']) await write(path.join(output, name), '');
   source = path.join(output, 'source'); await fs.mkdir(source);
-  const blobs = await child('development-exact-blobs', '/usr/bin/git', ['cat-file', '--batch'], repo, { GIT_OPTIONAL_LOCKS: '0' }, manifest.inputs.map(row => row.blob).join('\n') + '\n');
-  assert.equal(blobs.code, 0);
-  let cursor = 0;
   for (const row of manifest.inputs) {
     assert.ok(!row.path.startsWith('/') && !row.path.split('/').some(part => part === '..' || part === 'AGENTS.md'));
-    const end = blobs.out.indexOf(10, cursor);
-    assert.equal(blobs.out.subarray(cursor, end).toString(), `${row.blob} blob ${row.bytes}`);
-    const bytes = blobs.out.subarray(end + 1, end + 1 + row.bytes);
+    const previous = path.join(prior.output, 'source', row.path);
+    const metadata = await fs.lstat(previous); assert.ok(metadata.isFile() && !metadata.isSymbolicLink());
+    const bytes = await fs.readFile(previous); assert.equal(bytes.length, row.bytes);
     assert.equal(sha(bytes), row.sha256); assert.equal(objectHash('blob', bytes), row.blob);
-    assert.equal(blobs.out[end + 1 + row.bytes], 10); cursor = end + 2 + row.bytes;
     await write(path.join(source, row.path), bytes, Number.parseInt(row.mode, 8) & 0o777);
   }
-  assert.equal(cursor, blobs.out.length);
   receipt.tools = {};
   for (const name of ['typescript', '@types/node', 'undici-types', 'npm']) {
     const tool = base.tools[name];
@@ -161,21 +172,23 @@ try {
     receipt.tools[name] = { originalRows: tool.originalRows, version: tool.version, copied: destination, omittedInternalBinLinks: tool.omittedInternalBinLinks };
   }
   compiler = path.join(source, 'node_modules/typescript/bin/tsc');
-  const build = await child('production-build-once', process.execPath, [compiler, '-p', path.join(source, 'tsconfig.build.json')], source);
-  assert.equal(build.code, 0, 'Candidate build failed');
+  for (const [relative, row] of Object.entries(prior.packageMembers)) {
+    if (row.kind !== 'file' || !relative.startsWith('dist/')) continue;
+    const filename = path.join(prior.output, 'source', relative), metadata = await fs.lstat(filename);
+    assert.ok(metadata.isFile() && !metadata.isSymbolicLink());
+    const bytes = await fs.readFile(filename); assert.equal(sha(bytes), row.sha256); assert.equal(metadata.mode & 0o777, row.mode);
+    await write(path.join(source, relative), bytes, row.mode);
+  }
   admitted = await packageInventory(source);
+  assert.deepEqual(admitted, prior.packageMembers);
   assert.equal(Object.values(admitted).filter(row => row.kind === 'file').length, seal.expectedFullPackageMembers);
   receipt.packageMembers = admitted;
   await write(path.join(output, 'admitted.json'), JSON.stringify(admitted));
   await stageHarness(source);
-  await layout('source-build', source, source);
   const npm = path.join(output, 'tools/npm/bin/npm-cli.js');
-  const packed = await child('offline-pack', process.execPath, [npm, 'pack', '--offline', '--ignore-scripts', '--json', '--pack-destination', output], source);
-  assert.equal(packed.code, 0);
-  const metadata = JSON.parse(packed.out)[0];
-  assert.equal(metadata.files.length, seal.expectedFullPackageMembers);
-  const tarball = path.join(output, metadata.filename), bytes = await fs.readFile(tarball);
-  receipt.pack = { sha256: sha(bytes), bytes: bytes.length, metadata, base64: bytes.toString('base64') };
+  const tarball = path.join(output, 'virtual-bash-exact-prior.tgz'), bytes = Buffer.from(prior.pack.base64, 'base64');
+  assert.equal(sha(bytes), prior.pack.sha256); await write(tarball, bytes);
+  receipt.pack = prior.pack;
   const consumer = path.join(output, 'installed');
   await write(path.join(consumer, 'package.json'), '{"private":true,"type":"module"}\n');
   const install = await child('offline-install', process.execPath, [npm, 'install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund', '--package-lock=false', '--omit=dev', tarball], consumer);
@@ -185,7 +198,7 @@ try {
   const installedAll = await inventory(product);
   assert.equal(Object.values(installedAll).filter(row => row.kind === 'file').length, seal.expectedFullPackageMembers);
   receipt.fullInstalled = installedAll;
-  await stageHarness(consumer); await layout('installed', consumer, product);
+  await stageHarness(consumer); await types('installed', consumer);
   const moved = path.join(output, 'physically moved consumer'); await fs.rename(consumer, moved);
   await assert.rejects(fs.lstat(consumer), error => error.code === 'ENOENT');
   movedRoot = path.join(moved, 'node_modules/virtual-bash'); receipt.move = { originalAbsent: true, moved };
@@ -245,9 +258,9 @@ try {
   const captures = [];
   for (const name of (await fs.readdir(output)).sort()) if (/\.(stdout|stderr|jsonl)$/.test(name)) captures.push({ name, base64: (await fs.readFile(path.join(output, name))).toString('base64') });
   const encoded = gzipSync(Buffer.from(JSON.stringify({ receipt, captures })), { level: 9 }).toString('base64') + '\n';
-  await fs.writeFile(path.join(own, 'RAW-v2.json.gz.base64'), encoded, { flag: 'wx' });
+  await fs.writeFile(path.join(own, 'RAW-v3.json.gz.base64'), encoded, { flag: 'wx' });
   const summary = { candidate: receipt.candidate, status: receipt.status, pack: receipt.pack?.sha256, phases: receipt.phases.map(row => ({ layout: row.layout, script: row.script, summary: row.summary })), failures: receipt.failures, setupOrControlFailure: receipt.setupOrControlFailure, typeGroups: receipt.types.length, typePass: receipt.types.filter(row => row.pass).length, controls: receipt.controls, cleanup: receipt.cleanup, elapsedMilliseconds: receipt.elapsedMilliseconds, rawSha256: sha(Buffer.from(encoded)) };
-  await fs.writeFile(path.join(own, 'RESULT-v2.json'), JSON.stringify(summary, null, 2) + '\n', { flag: 'wx' });
+  await fs.writeFile(path.join(own, 'RESULT-v3.json'), JSON.stringify(summary, null, 2) + '\n', { flag: 'wx' });
   console.log(JSON.stringify(summary));
   if (receipt.status !== 'AUTHOR_SCOPED_PASS') process.exitCode = 1;
 }

@@ -1,0 +1,85 @@
+{
+  "candidate": "d111e5bf1f53aff16c5d4112e9ead2e025d6464f",
+  "status": "FAILED_OR_INCOMPLETE",
+  "pack": "f5152eaeaaeb78aff350a86d55f67905c2caab900ba2f45b1869da6498e1e956",
+  "phases": [
+    {
+      "layout": "source-build",
+      "script": "probe.mjs",
+      "summary": {
+        "layout": "source-build-probe.mjs",
+        "profile": "root-approved-v2",
+        "cases": 19,
+        "positives": 18,
+        "positivePass": 18,
+        "refusalControls": 1,
+        "refusalPass": 1,
+        "pass": 19,
+        "failed": [],
+        "created": 21,
+        "disposed": 21,
+        "forbiddenNetwork": 0,
+        "nativeRuns": 0,
+        "privateSafeJsRuns": 0
+      }
+    },
+    {
+      "layout": "source-build",
+      "script": "arrays.mjs",
+      "summary": {
+        "profile": "coherent78-array-author-v1",
+        "cases": 12,
+        "pass": 12,
+        "disposed": 12
+      }
+    },
+    {
+      "layout": "installed",
+      "script": "probe.mjs",
+      "summary": {
+        "layout": "installed-probe.mjs",
+        "profile": "root-approved-v2",
+        "cases": 19,
+        "positives": 18,
+        "positivePass": 18,
+        "refusalControls": 1,
+        "refusalPass": 1,
+        "pass": 19,
+        "failed": [],
+        "created": 21,
+        "disposed": 21,
+        "forbiddenNetwork": 0,
+        "nativeRuns": 0,
+        "privateSafeJsRuns": 0
+      }
+    },
+    {
+      "layout": "installed",
+      "script": "arrays.mjs",
+      "summary": {
+        "profile": "coherent78-array-author-v1",
+        "cases": 12,
+        "pass": 12,
+        "disposed": 12
+      }
+    }
+  ],
+  "failures": [],
+  "setupOrControlFailure": {
+    "message": "Type source fallback or absent public declaration",
+    "stack": "AssertionError [ERR_ASSERTION]: Type source fallback or absent public declaration\n    at types (file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-author-20260828/run.mjs:105:12)\n    at async layout (file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-author-20260828/run.mjs:119:3)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-author-20260828/run.mjs:188:33"
+  },
+  "typeGroups": 6,
+  "typePass": 6,
+  "controls": [],
+  "cleanup": {
+    "directChildren": 15,
+    "closed": 15,
+    "active": 0,
+    "signals": [],
+    "scratchRetained": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-NGVn8H",
+    "noForeignCleanup": true
+  },
+  "elapsedMilliseconds": 9711,
+  "rawSha256": "ff6209758d5bf6c5dcfcd4f742299d9d9ec2c72b04e6bfe515fa4e51dc867ecf"
+}

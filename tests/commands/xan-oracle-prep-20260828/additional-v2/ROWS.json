@@ -1,0 +1,193 @@
+{
+  "classification": "native-discovery-not-tests",
+  "rows": [
+    {
+      "id": "01-start-zero",
+      "argv": [
+        "slice",
+        "-s",
+        "1",
+        "-l",
+        "0"
+      ],
+      "stdinHex": "610a300a310a320a",
+      "files": {},
+      "outputs": [],
+      "classification": "UNKNOWN-DISCOVERY"
+    },
+    {
+      "id": "02-equal",
+      "argv": [
+        "slice",
+        "-s",
+        "1",
+        "-e",
+        "1"
+      ],
+      "stdinHex": "610a300a310a320a",
+      "files": {},
+      "outputs": [],
+      "classification": "UNKNOWN-DISCOVERY"
+    },
+    {
+      "id": "03-end-zero",
+      "argv": [
+        "slice",
+        "-e",
+        "0"
+      ],
+      "stdinHex": "610a300a310a320a",
+      "files": {},
+      "outputs": [],
+      "classification": "UNKNOWN-DISCOVERY"
+    },
+    {
+      "id": "04-tail-zero-stdin",
+      "argv": [
+        "slice",
+        "-L",
+        "0"
+      ],
+      "stdinHex": "610a300a310a320a",
+      "files": {},
+      "outputs": [],
+      "classification": "UNKNOWN-DISCOVERY"
+    },
+    {
+      "id": "05-tail-zero-file",
+      "argv": [
+        "slice",
+        "-L",
+        "0",
+        "a.csv"
+      ],
+      "stdinHex": "",
+      "files": {
+        "a.csv": "a\n0\n1\n2\n"
+      },
+      "outputs": [],
+      "classification": "UNKNOWN-DISCOVERY"
+    },
+    {
+      "id": "06-cr-headers",
+      "argv": [
+        "headers",
+        "-j"
+      ],
+      "stdinHex": "0d612c620d0a780d792c7a0d0a752c760d",
+      "files": {},
+      "outputs": [],
+      "classification": "UNKNOWN-DISCOVERY"
+    },
+    {
+      "id": "07-cr-count",
+      "argv": [
+        "count"
+      ],
+      "stdinHex": "0d612c620d0a780d792c7a0d0a752c760d",
+      "files": {},
+      "outputs": [],
+      "classification": "UNKNOWN-DISCOVERY"
+    },
+    {
+      "id": "08-cr-select",
+      "argv": [
+        "select",
+        "*"
+      ],
+      "stdinHex": "0d612c620d0a780d792c7a0d0a752c760d",
+      "files": {},
+      "outputs": [],
+      "classification": "UNKNOWN-DISCOVERY"
+    },
+    {
+      "id": "09-cr-slice",
+      "argv": [
+        "slice"
+      ],
+      "stdinHex": "0d612c620d0a780d792c7a0d0a752c760d",
+      "files": {},
+      "outputs": [],
+      "classification": "UNKNOWN-DISCOVERY"
+    },
+    {
+      "id": "10-embedded-headers",
+      "argv": [
+        "headers",
+        "-j"
+      ],
+      "stdinHex": "6122622c630a",
+      "files": {},
+      "outputs": [],
+      "classification": "UNKNOWN-DISCOVERY"
+    },
+    {
+      "id": "11-embedded-count",
+      "argv": [
+        "count"
+      ],
+      "stdinHex": "612c620a312c7822790a322c7a0a",
+      "files": {},
+      "outputs": [],
+      "classification": "UNKNOWN-DISCOVERY"
+    },
+    {
+      "id": "12-unterminated-slice",
+      "argv": [
+        "slice"
+      ],
+      "stdinHex": "612c620a312c22780a79",
+      "files": {},
+      "outputs": [],
+      "classification": "UNKNOWN-DISCOVERY"
+    },
+    {
+      "id": "13-bom-reorder",
+      "argv": [
+        "select",
+        "-n",
+        "1,0"
+      ],
+      "stdinHex": "782cefbbbf7a0a",
+      "files": {},
+      "outputs": [],
+      "classification": "UNKNOWN-DISCOVERY"
+    },
+    {
+      "id": "14-bom-only-headers",
+      "argv": [
+        "headers",
+        "--csv"
+      ],
+      "stdinHex": "efbbbf",
+      "files": {},
+      "outputs": [],
+      "classification": "UNKNOWN-DISCOVERY"
+    },
+    {
+      "id": "15-cross-delimiter",
+      "argv": [
+        "select",
+        "-n",
+        "-d",
+        ";",
+        "1,0"
+      ],
+      "stdinHex": "22613b62223b22782c79220d0a22223b22220d0a2271222272223b22750d0a76220d0a",
+      "files": {},
+      "outputs": [],
+      "classification": "UNKNOWN-DISCOVERY"
+    },
+    {
+      "id": "16-postquote-select",
+      "argv": [
+        "select",
+        "*"
+      ],
+      "stdinHex": "612c620a312c2278227a0a",
+      "files": {},
+      "outputs": [],
+      "classification": "UNKNOWN-DISCOVERY"
+    }
+  ]
+}

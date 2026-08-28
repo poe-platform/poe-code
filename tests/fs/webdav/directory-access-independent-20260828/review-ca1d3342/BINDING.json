@@ -1,0 +1,242 @@
+{
+  "schema": "independent-webdav-ca1d/v1",
+  "preparedAt": "2026-08-28T04:10:23.688Z",
+  "commits": {
+    "baseline": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "base64": "dHJlZSA0OGU1YWUzOWNlOThlMWM4ZTQxNmJhZTc3ZGE0MGQ4OGI3NWUxZGI1CnBhcmVudCAyODQ4NTdkN2FhOWIwZWUwZGYyYjZmZGQxYTcxZjQxMTE1ZDdiOTA5CmF1dGhvciBLYW1pbCBKb3BlayA8a2pvcGVrQHF1b3JhLmNvbT4gMTc4Nzg4MjI1NSAtMDUwMApjb21taXR0ZXIgS2FtaWwgSm9wZWsgPGtqb3Bla0BxdW9yYS5jb20+IDE3ODc4ODIyNTUgLTA1MDAKCkNvaGVyZW50NzcgcmVhZGluZXNzOiBhY2NlcHRlZCBXSElDSDc3ICsgaGVscGVyNTc4ICsgZXhhY3QgU3RhZ2UyIGZpdmUgYmxvYnMgKyBmb3VyIG1haW50YWluZWQgaW52ZW50b3JpZXMK",
+      "sha256": "285999c1e01e52076a2ae9075db6cafd26c791a73a7c5af24cd9ce02e1039f59",
+      "tree": "48e5ae39ce98e1c8e416bae77da40d88b75e1db5"
+    },
+    "candidate": {
+      "commit": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "base64": "dHJlZSA1YWNmMThjNjdiMTJkNGU2ODk0MzA1MDE4MDI4Y2I2YWVhZDQ3YWRmCnBhcmVudCBiNTNmN2ZmZjVhMmEzM2M4YWIzNTAxZWFkNjVkNDBmYWRjZmJjNjQ0CmF1dGhvciBLYW1pbCBKb3BlayA8a2pvcGVrQHF1b3JhLmNvbT4gMTc4Nzg4OTA5OCAtMDUwMApjb21taXR0ZXIgS2FtaWwgSm9wZWsgPGtqb3Bla0BxdW9yYS5jb20+IDE3ODc4ODkwOTggLTA1MDAKCmZlYXQod2ViZGF2KTogc3VwcG9ydCBib3VuZGVkIHZpcnR1YWwgZGlyZWN0b3J5IGFjY2VzcyBjaGVja3MK",
+      "sha256": "67fe16c5ac44536f764f367ea064546a3340aa7aba3f1ecf99f7d1c4a96e1585",
+      "tree": "5acf18c67b12d4e6894305018028cb6aead47adf"
+    },
+    "evidence": {
+      "commit": "899de9ab1344179bde928076217c45ba80c345c8",
+      "base64": "dHJlZSBjMDYwM2Q1OGIwNWU1Mjc4ZmZhOGVjY2FhZDEyMTcwYWI1OTMwZTExCnBhcmVudCBjZmQwZTYzMzk5ZjAzNjJiZWZhYzFmMWI2ZTlmNjQ5MzFhNzdhMzY1CmF1dGhvciBLYW1pbCBKb3BlayA8a2pvcGVrQHF1b3JhLmNvbT4gMTc4Nzg4OTMwOSAtMDUwMApjb21taXR0ZXIgS2FtaWwgSm9wZWsgPGtqb3Bla0BxdW9yYS5jb20+IDE3ODc4ODkzMDkgLTA1MDAKCnRlc3Qod2ViZGF2KTogc2VhbCBkaXJlY3RvcnkgYWNjZXNzIGNhbmRpZGF0ZSB2YWxpZGF0aW9uIGFuZCBwcm92ZW5hbmNlCg==",
+      "sha256": "551b21860a95e6898b4df63f127e60263d996a96ad3573528af564b2976bd2ea",
+      "tree": "c0603d58b05e5278ffa8eccaad12170ab5930e11"
+    },
+    "freeze": {
+      "commit": "c65c121e0756390869cddcf78ceb49d0de9cdd2b",
+      "base64": "dHJlZSBmN2FiN2VhZjI2MDEyNjVhYmRmOWQ2OWRhYTczMTdkZmYyYzU0OTdiCnBhcmVudCA1OWZmZTc4NjUyNjY5Nzk2ZGIxOTU5MmM0OGM5Y2Q1YzBiMTQ3N2M2CmF1dGhvciBLYW1pbCBKb3BlayA8a2pvcGVrQHF1b3JhLmNvbT4gMTc4Nzg4ODI0MSAtMDUwMApjb21taXR0ZXIgS2FtaWwgSm9wZWsgPGtqb3Bla0BxdW9yYS5jb20+IDE3ODc4ODgyNDEgLTA1MDAKCnRlc3Qod2ViZGF2KTogZnJlZXplIGluZGVwZW5kZW50IGRpcmVjdG9yeSBhY2Nlc3MgY29udHJhY3QK",
+      "sha256": "bc39d94150f96480013c812f97b952c5119ef81fd0fb09fc858b200ef94b31c0",
+      "tree": "f7ab7eaf2601265abdf9d69daa7317dff2c5497b"
+    }
+  },
+  "composition": {
+    "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "overrides": {
+      "src/fs/webdav/webdav.ts": "cf65b82429bd92ca52b73490e1d6c1070545b5912fbddaba7037e01c57cc21f5",
+      "src/fs/webdav/README.md": "b931ac0545c709d3be2bd7d8e328fe9b1137cdb6514dfd8e9975c64c1fecb7bd"
+    },
+    "composedTree": "7c68831a81fc49c94ad9177e58ca9fd7d0aca352",
+    "sourceFiles": 265,
+    "archiveSha256": "2968a36621be269f49d53f1d13222440987d0472ae3b6882086722254127e42e"
+  },
+  "originalFreeze": {
+    "DECLARED-CONTRACT.md": "2eea1c7c4338ad1d25d2c737e364c834efd77e79d79d827230ece9834aa47ee0",
+    "MANIFEST.json": "13aef9a1d4e5222015562108b14b4cad9bb26b04841468d6091408598e4db904",
+    "PROTOCOL.md": "8626b19d58ee822e989f3784bd2272cd15e625df2342c814ca3c09a656796e55",
+    "VALIDATION.json": "75a6f852feb6ef986561200b2ceb7f6783a433eb4121abc7ea6e6f60b30078bc",
+    "cases.mjs": "7c2da9534975aa90ddc3bdcd23e727926e53630dd0f57e0c39f7026bf329fb34",
+    "typed-inputs.ts": "ed7561849eb048fafabba46fb80201fd006be5fb62a442f307e69c1812700614",
+    "validate.mjs": "ebb731419f5c39287f7318c0f11745f8965ada894bf2ffdad2ba13056c38201e"
+  },
+  "liveBefore": {
+    "src/fs/webdav/index.ts": {
+      "sha256": "d359fa8a89c30fa7fa06b256c524b4bc1022b3217763051961e579c5fcfd7764",
+      "bytes": 230,
+      "mode": 420
+    },
+    "src/fs/webdav/PRODUCTION_CHECKPOINT.md": {
+      "sha256": "ee00578d845be249d82cef70c999df1c92e30d1c5498d2da3a8e3191d5e1f6f2",
+      "bytes": 5172,
+      "mode": 420
+    },
+    "src/fs/webdav/README.md": {
+      "sha256": "b931ac0545c709d3be2bd7d8e328fe9b1137cdb6514dfd8e9975c64c1fecb7bd",
+      "bytes": 43172,
+      "mode": 420
+    },
+    "src/fs/webdav/resource-id.ts": {
+      "sha256": "ee5720f77a352503368d672caaf5237e45863bde88cf69b947d14178fcda49f2",
+      "bytes": 5570,
+      "mode": 420
+    },
+    "src/fs/webdav/webdav.ts": {
+      "sha256": "cf65b82429bd92ca52b73490e1d6c1070545b5912fbddaba7037e01c57cc21f5",
+      "bytes": 54400,
+      "mode": 420
+    },
+    "src/fs/webdav/xml.ts": {
+      "sha256": "c5b2798ef847acb480be70348d59bb0bc0a0d80624c313880cd53ff1b293dec1",
+      "bytes": 10122,
+      "mode": 420
+    },
+    "src/fs/readonly/index.ts": {
+      "sha256": "2d5057de23f90cfef1f98c45f41063545bcd6c5a4439aa57d9aa0a058645b7b2",
+      "bytes": 5961,
+      "mode": 420
+    },
+    "src/fs/readonly/README.md": {
+      "sha256": "47484995dd2a66153196c1e5b79efb6ae0d883ebef521c1d81a2a9e103f9e48c",
+      "bytes": 6438,
+      "mode": 420
+    },
+    "src/shell/arithmetic.ts": {
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "bytes": 9922,
+      "mode": 420
+    },
+    "src/shell/cancellation.ts": {
+      "sha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2",
+      "bytes": 31986,
+      "mode": 420
+    },
+    "src/shell/cleanup.ts": {
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "bytes": 1947,
+      "mode": 420
+    },
+    "src/shell/display.ts": {
+      "sha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "bytes": 2605,
+      "mode": 420
+    },
+    "src/shell/getopts.ts": {
+      "sha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+      "bytes": 9964,
+      "mode": 420
+    },
+    "src/shell/index.ts": {
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "bytes": 275,
+      "mode": 420
+    },
+    "src/shell/input.ts": {
+      "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+      "bytes": 9881,
+      "mode": 420
+    },
+    "src/shell/locale.ts": {
+      "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "bytes": 207,
+      "mode": 420
+    },
+    "src/shell/parser.ts": {
+      "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+      "bytes": 36304,
+      "mode": 420
+    },
+    "src/shell/pattern.ts": {
+      "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "bytes": 4863,
+      "mode": 420
+    },
+    "src/shell/runtime.ts": {
+      "sha256": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169",
+      "bytes": 132362,
+      "mode": 420
+    },
+    "src/shell/shell.ts": {
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24",
+      "bytes": 15002,
+      "mode": 420
+    },
+    "src/shell/types.ts": {
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "bytes": 2223,
+      "mode": 420
+    },
+    "src/contracts/command.md": {
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "bytes": 9253,
+      "mode": 420
+    },
+    "src/contracts/command.ts": {
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "bytes": 2968,
+      "mode": 420
+    },
+    "src/contracts/errors.ts": {
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "bytes": 3457,
+      "mode": 420
+    },
+    "src/contracts/filesystem.md": {
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "bytes": 20876,
+      "mode": 420
+    },
+    "src/contracts/filesystem.ts": {
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "bytes": 3897,
+      "mode": 420
+    },
+    "src/contracts/index.ts": {
+      "sha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c",
+      "bytes": 202,
+      "mode": 420
+    },
+    "src/contracts/io.ts": {
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "bytes": 7663,
+      "mode": 420
+    },
+    "src/contracts/output.ts": {
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "bytes": 4661,
+      "mode": 420
+    },
+    "src/contracts/path.ts": {
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "bytes": 1675,
+      "mode": 420
+    },
+    "src/contracts/plugin.ts": {
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "bytes": 2359,
+      "mode": 420
+    },
+    "src/index.ts": {
+      "sha256": "6d847ff37316fcdc851145024a422cb6541f0cbeab15895c5a972d7f1f97bb6b",
+      "bytes": 1593,
+      "mode": 420
+    },
+    "package.json": {
+      "sha256": "64846cc0868630f863fade5119cef195a949aa0ed36ecc341bd9a076d6c363e2",
+      "bytes": 4840,
+      "mode": 420
+    },
+    "package-lock.json": {
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+      "bytes": 16734,
+      "mode": 420
+    },
+    "tsconfig.json": {
+      "sha256": "f7db199a0245ffba2e8468f4d57ec6cb9fb61e6209acbf3e9806d83ea4e22508",
+      "bytes": 2920,
+      "mode": 420
+    },
+    "tsconfig.build.json": {
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+      "bytes": 260,
+      "mode": 420
+    }
+  },
+  "liveStateQualification": "live preservation only, not equality to historical5137",
+  "authorHandoff": {
+    "commit": "899de9ab1344179bde928076217c45ba80c345c8",
+    "path": "tests/fs/webdav/directory-access-author-20260828/HANDOFF.md",
+    "sha256": "3fef7cd7d473fb0f090c1aa20c5d81a5993feb15fce25be33dc43b115405d838"
+  },
+  "scratchBeforeBuild": {
+    "file": "PREPARED-INVENTORY.json.gz",
+    "sha256": "c6af39c8daaede8a5f97282a6094be283741bfab82a5267ff02c6d671c3c6c02"
+  },
+  "toolsSha256": "9ece2210a15f54a7f66ab9e8d7bbba14d69c91f565e941735d5e935a120eca4a"
+}

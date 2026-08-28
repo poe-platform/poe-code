@@ -1,0 +1,29 @@
+Transcription of displayed tool stderr before candidate execution, not an automatic raw capture.
+
+AssertionError [ERR_ASSERTION]: symlink refused: /Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/scratch/tools/npm/node_modules/.bin/arborist
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/common.mjs:36:14)
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/common.mjs:38:48)
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/common.mjs:38:48)
+    at inventory (file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/common.mjs:46:3)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/prepare.mjs:73:22
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+Node.js v22.22.2
+
+Additional pre-execution syntax check (no provider loaded):
+run.mjs:94
+  write(path.join(raw, "emitted.json.gz"), pack(inventory(path.join(composition, "dist")))));
+                                                                                           ^
+SyntaxError: Unexpected token ')'
+    at checkSyntax (node:internal/main/check_syntax:74:5)
+Node.js v22.22.2
+
+Correction: explicit byte materialization replaces directory cp for tool origins;
+all destination entries must be regular. Removed one extra parenthesis in driver.

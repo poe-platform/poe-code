@@ -1,0 +1,24 @@
+Transcription of the displayed tool stderr, before automatic child capture exists.
+This is a tool-admission failure, not a candidate execution or mutant kill.
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: symlink refused: /Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/node_modules/.bin/arborist
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/common.mjs:36:14)
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/common.mjs:37:32)
+    at visit (file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/common.mjs:37:32)
+    at inventory (file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/common.mjs:45:3)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/prepare.mjs:70:20
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '=='
+}
+
+Node.js v22.22.2

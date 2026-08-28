@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "qualification": "post-source-review controls, not new precode cases",
+  "sourceMutants": [
+    {
+      "id": "admission", "witness": "O-aborted-plain-3",
+      "from": "if (options.signal?.aborted) fail(\"ECANCELED\", \"access\", path);\n    if (mode & 2)",
+      "to": "if (mode & 2)"
+    },
+    {
+      "id": "final-cancel", "witness": "C-after-readdir-5",
+      "from": "    if (options.signal?.aborted) fail(\"ECANCELED\", \"access\", path);\n  }\n\n  async readlink",
+      "to": "  }\n\n  async readlink"
+    },
+    {
+      "id": "path-bound", "witness": "B-ascii-over",
+      "from": "bytes > 65_536 || components > 256",
+      "to": "bytes > 65_537 || components > 256"
+    },
+    {
+      "id": "output-bound", "witness": "L-xml-over",
+      "from": "if (size > limit) fail(\"EFBIG\", \"webdav\", \"\", \"response exceeds byte limit\");",
+      "to": "if (false && size > limit) fail(\"EFBIG\", \"webdav\", \"\", \"response exceeds byte limit\");"
+    },
+    {
+      "id": "response-identity", "witness": "M-wrong-final-url",
+      "from": "if (value.url && this.hrefPath(value.url) !== path)",
+      "to": "if (false && value.url && this.hrefPath(value.url) !== path)"
+    }
+  ],
+  "loadControls": [
+    { "id": "outside-source", "expected": "REVIEW_OUTSIDE_BOUNDARY" },
+    { "id": "tampered-packed-provider", "expected": "REVIEW_ARTIFACT_HASH_MISMATCH" },
+    { "id": "missing-package-entry", "expected": "REVIEW_MISSING_ARTIFACT" }
+  ]
+}

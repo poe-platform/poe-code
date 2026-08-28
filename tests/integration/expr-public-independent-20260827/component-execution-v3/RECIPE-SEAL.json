@@ -1,0 +1,105 @@
+{
+  "schema": "expr-component-v3-preexecution-seal/1",
+  "createdAt": "2026-08-28T01:35:25.503Z",
+  "status": "sealed-source-before-one-invocation; controls still unqualified",
+  "entries": [
+    {
+      "path": ".gitignore",
+      "bytes": 6,
+      "mode": 420,
+      "sha256": "61f65dd9598c7421870bf4918332637f83f34abe1f9fc7cc095852ef7a1b44f7"
+    },
+    {
+      "path": "stream-reader.mjs",
+      "bytes": 7222,
+      "mode": 420,
+      "sha256": "5248d0c33f0a0282d80931c1ee7505bd379b802e377c4f2a7341a3e16df7932b"
+    },
+    {
+      "path": "control-producer.mjs",
+      "bytes": 560,
+      "mode": 420,
+      "sha256": "9457d28ff1d36c97e999d4fc299a75c199b288f2b71107073f791836a6cfeebd"
+    },
+    {
+      "path": "qualify.mjs",
+      "bytes": 4267,
+      "mode": 420,
+      "sha256": "8e96c872c97e0debb909d73ae66dc8287a7b739a32a147567dda984016073e18"
+    },
+    {
+      "path": "common.mjs",
+      "bytes": 3125,
+      "mode": 420,
+      "sha256": "f187faeae304362884656f249692cc312aad1363526f950fef2c5d203620ed89"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 7030,
+      "mode": 420,
+      "sha256": "5169f8f5102186a4a5b3c11284e5704d2d7949308ad1c66c4c2ef70c47a2b584"
+    },
+    {
+      "path": "PINS.json",
+      "bytes": 142480,
+      "mode": 420,
+      "sha256": "b321260e2f0a20deef0f5eb7df50538072a57c1313e34163216abae01a2e2231"
+    },
+    {
+      "path": "admission.mjs",
+      "bytes": 8908,
+      "mode": 420,
+      "sha256": "63d45cdbf628155234a791b6e39f98d81ebab07c6d2a7a50fd0adbc6afda67fe"
+    },
+    {
+      "path": "entry.mjs",
+      "bytes": 541,
+      "mode": 420,
+      "sha256": "7e719f1a9f0ed896f199fd7d5fad671fe9b759cc05c27bf24dae67fafc517f14"
+    },
+    {
+      "path": "generate-run.mjs",
+      "bytes": 6180,
+      "mode": 420,
+      "sha256": "d05b8c7b1ae5d98808b6e04aba642581c5b95033a5cdd62b5e7159b6bce859bf"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 27520,
+      "mode": 420,
+      "sha256": "a23592d7ed2f9d7b7aef6324964523b6fd7900e79c8ed05d2429a7ffafc59ee9"
+    },
+    {
+      "path": "OVERLAY.json",
+      "bytes": 7138,
+      "mode": 420,
+      "sha256": "4f3623d2f05b42fea31a7aa647b2abcbb97cb3b93122906d88a8a079fdd2abc0"
+    },
+    {
+      "path": "RECIPE.md",
+      "bytes": 6593,
+      "mode": 420,
+      "sha256": "b52627a26732c0c797b1963ac70762d6d0ba20613fb2fadaf957916473405988"
+    },
+    {
+      "path": "seal-evidence.mjs",
+      "bytes": 4697,
+      "mode": 420,
+      "sha256": "f8b505c808b8a2edaf9d6782fc150d223ae1d0b3914ecf96c1c5931df8e16f8b"
+    }
+  ],
+  "expectedReaderControls": 16,
+  "expectedSelected": 357,
+  "plannedRuntimeAssertions": 104,
+  "plannedTypes": 40,
+  "prohibited": [
+    "retry-to-green",
+    "post-run expectation edits",
+    "product repairs",
+    "accepted-DU substitution",
+    "HTML/DU/TAP/fullgate execution"
+  ],
+  "previousRecipe": "eaca395fd0f90051676798971750515d04b0c005",
+  "previousFailedEvidence": "4a091ba091413a6466034a8d1f9b84033517f913",
+  "interruptedDraft": "e87d3f16d9688d2449050ebc66f50ac93eb9c17b"
+}

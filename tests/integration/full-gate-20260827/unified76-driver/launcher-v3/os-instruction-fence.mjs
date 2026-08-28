@@ -13,6 +13,13 @@ const fail=message=>Object.assign(new Error(message),{exitCode:78});
 
 export function instructionFenceIdentity(){return JSON.parse(readFileSync(join(directory,'OS-INSTRUCTION-FENCE.json')));}
 
+function externalBinding(value){
+  const binding=structuredClone(value);
+  delete binding.inspection.pid;
+  delete binding.inspection.invocation.receipt.admittedAt;
+  return binding;
+}
+
 export function verifyInstructionFenceExternal(){
   const expected=instructionFenceIdentity();
   try{
@@ -63,7 +70,7 @@ export function createInstructionFence(output){
 
 export function validateInstructionFence(envelope,{initial=false}={}){
   assert.equal(envelope.schema,'unified76-os-instruction-fence/1');
-  assert.deepEqual(envelope.external,verifyInstructionFenceExternal());
+  assert.deepEqual(externalBinding(envelope.external),externalBinding(verifyInstructionFenceExternal()));
   assert.equal(envelope.profileSha256,digest(renderInstructionFence(envelope)));
   for(const row of envelope.roots)assert.deepEqual(identity(row.path),row);
   assert.equal(realpathSync(envelope.output),envelope.roots[1].path);

@@ -210,3 +210,81 @@ export function verifyToolPath(binding, environment, nativeRoot) {
   assert.deepEqual(verifyGitClosure(), binding.gitCore);
   return true;
 }
+
+const inheritedKeys = ['PATH', 'GIT_EXEC_PATH', 'GIT_OPTIONAL_LOCKS'];
+let inheritedOwner;
+let inheritedPoison;
+
+function requireInheritedIdle() {
+  if (inheritedPoison) throw Object.assign(new Error('inherited helper environment is poisoned'), {exitCode: 78, cause: inheritedPoison});
+  assert.equal(inheritedOwner, undefined, 'inherited helper environment already owned');
+}
+
+function environmentDifferences(actual, expected) {
+  return [...new Set([...Object.keys(actual), ...Object.keys(expected)])].sort().filter(key =>
+    Object.hasOwn(actual, key) !== Object.hasOwn(expected, key) || actual[key] !== expected[key]);
+}
+
+export function createInheritedHelperRoute(binding, environment, nativeRoot) {
+  const records = [];
+  return {records, assertIdle: requireInheritedIdle, async run(label, callback) {
+    requireInheritedIdle();
+    assert.ok(['prerequisites', 'private-final-sweep', 'private-finally'].includes(label));
+    assert.equal(typeof callback, 'function');
+    rejectToolSelection(process.env);
+    for (const [key, value] of Object.entries(process.env)) {
+      if (value && (key === 'NODE_OPTIONS' || key === 'NODE_PATH' || key.startsWith('GIT_'))) throw fail(new Error('ambient loader/Git injection refused: ' + key));
+    }
+    assert.equal(environment.GIT_OPTIONAL_LOCKS, '0');
+    verifyToolPath(binding, environment, nativeRoot);
+    assert.equal(readdirSync(nativeRoot).includes('git'), false, 'native PATH must not shadow admitted Git');
+    const installed = Object.fromEntries(inheritedKeys.map(key => [key, environment[key]]));
+    assert.ok(Object.values(installed).every(value => typeof value === 'string'));
+    const resolvedGit = realpathSync(join(binding.path, 'git'));
+    assert.equal(resolvedGit, git);
+    const target = process.env, before = {...target}, expected = {...before, ...installed};
+    const owner = {};
+    const record = {label, installed, resolvedGit, gitSha256: binding.aliases.find(entry => entry.name === 'git').sha256,
+      failures: [], restored: false, poisoned: false,
+      qualification: 'Exclusive cooperating worker scope only; callback settlement is not detached-child closure or a kernel exec trace.'};
+    const failures = [];
+    const retain = (stage, error) => {
+      failures.push({stage, error});
+      record.failures.push({stage, name: error instanceof Error ? error.name : typeof error,
+        message: error instanceof Error ? error.message : String(error)});
+    };
+    let value;
+    inheritedOwner = owner;
+    records.push(record);
+    try {
+      for (const key of inheritedKeys) target[key] = installed[key];
+      assert.equal(process.env, target, 'environment object changed during installation');
+      assert.deepEqual(environmentDifferences(target, expected), [], 'inherited environment installation drift');
+      try { value = await callback(); } catch (error) { retain('callback', error); }
+    } catch (error) { retain('installation', error); }
+    finally {
+      try {
+        assert.equal(process.env, target, 'environment object changed during helper');
+        assert.deepEqual(environmentDifferences(target, expected), [], 'inherited helper environment drift');
+      } catch (error) { retain('drift', error); }
+      for (const key of inheritedKeys) {
+        try {
+          if (Object.hasOwn(before, key)) target[key] = before[key];
+          else delete target[key];
+        } catch (error) { retain('restore:' + key, error); }
+      }
+      try {
+        assert.equal(process.env, target, 'environment object not restored');
+        assert.deepEqual(environmentDifferences(target, before), [], 'inherited helper environment not restored');
+        record.restored = true;
+      } catch (error) { retain('restore-verification', error); }
+      record.poisoned = !record.restored || failures.some(entry => entry.stage.startsWith('restore:'));
+      if (record.poisoned) inheritedPoison = new AggregateError(failures.map(entry => entry.error), 'inherited helper restoration failed');
+      else inheritedOwner = undefined;
+    }
+    record.status = failures.length ? 'failed' : 'returned';
+    if (failures.length === 1) throw failures[0].error;
+    if (failures.length) throw Object.assign(new AggregateError(failures.map(entry => entry.error), 'inherited helper callback/guard failures'), {failures, exitCode: 78});
+    return value;
+  }};
+}

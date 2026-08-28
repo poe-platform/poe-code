@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "at": "2026-08-28T09:47:05.036Z",
+  "archiveCommit": "dc9c839c19c515156d984363a06154c87cc5aa39",
+  "censusSha256": "a3bb84f46c447bd6a2c4b5df2f986e4253d326cdbdeac302f79000ff6be0c5e9",
+  "removed": [
+    "raw-v1",
+    "raw-v2",
+    "work-v1",
+    "work-v2",
+    "type-results-v2",
+    "mechanism-results-v1",
+    "mechanism-work-v1",
+    "import-results-v1",
+    "import-work-v1",
+    "import-results-v2",
+    "import-work-v2",
+    "regression-results-v1",
+    "regression-work-v1",
+    "regression-results-v2",
+    "regression-work-v2",
+    "regression-results-v3",
+    "regression-work-v3",
+    "regression-results-v4",
+    "regression-work-v4"
+  ],
+  "archivedOriginalRawFiles": 1247,
+  "archivedNewRawAndConfigs": 1124,
+  "method": "Each explicit owned directory full files/bytes/modes/links/directory-modes/membership census matched immediately before recursive removal; symlink targets not followed",
+  "precleanGroups": {
+    "reported": 18,
+    "substantive": 17,
+    "deferred": "V18 final append-aware seal evaluated only in final mode"
+  },
+  "noProductExecution": true
+}

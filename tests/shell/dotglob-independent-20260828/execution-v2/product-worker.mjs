@@ -10,11 +10,14 @@ try {
   const loaded = readLoadManifest(process.env.DOTGLOB_MANIFEST, process.env.DOTGLOB_MANIFEST_SHA256, 'dotglob-product-load-v2');
   const { manifest, allowed } = loaded;
   assert.equal(manifest.acceptedComposition, acceptedComposition);
-  assert.match(manifest.candidate, /^[a-f0-9]{40}$/u);
+  assert.equal(manifest.candidate, 'd2502aae3c8458e0ac92662f2af07e7f9fc3923a');
+  assert.equal(manifest.packageSha256, 'b0544dcb3d0d9b22420932fc86e4d4693377fcc813fde6bde95c8625edc951aa');
   assert.equal(manifest.rootAuthorizedCandidate, manifest.candidate, 'separately sealed root candidate GO required');
   assert.match(manifest.preparationRevision, /^[a-f0-9]{40}$/u);
   const binding = JSON.parse(readFileSync(new URL('../stack-binding-v1/BINDING.json', import.meta.url)));
   assert.deepEqual(sourceDelta(binding, manifest.candidateInputs), ['src/shell/runtime.ts', 'src/shell/shell.ts']);
+  assert.equal(manifest.candidateInputs.find(row => row.path === 'src/shell/runtime.ts').blob, '69125acc1d3afefcaeba642e71539ab0cc40e055');
+  assert.equal(manifest.candidateInputs.find(row => row.path === 'src/shell/shell.ts').blob, '220d6c28a6e50f459a48aaee2030f24a841f4ab7');
   for (const path of [manifest.rootModule, manifest.runtimeModule, manifest.patternModule, manifest.rootDeclaration]) assert.ok(allowed.has(path));
   assert.deepEqual(manifest.binding.defaultNames, binding.defaultNames);
   installGuard(loaded);

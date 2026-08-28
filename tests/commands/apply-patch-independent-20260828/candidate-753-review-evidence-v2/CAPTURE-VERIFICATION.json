@@ -1,0 +1,63 @@
+{
+  "schema": "AP753-capture-postguard-v2",
+  "report": {
+    "bytes": 1139569,
+    "sha256": "d6e48b6d9a1fc47c387fbb46462533cf3bb0b05146158b2608e02186b056edb7",
+    "mode": 420
+  },
+  "outcome": {
+    "bytes": 7608317,
+    "sha256": "8c2232b915b77a35f63507bf23fe0385c33eea1b6e8be59e000b1f23883521b5",
+    "mode": 420
+  },
+  "membership": {
+    "bytes": 32987,
+    "sha256": "1f2d0f5f35739b632007cd7eded347a3b92519561b96079d0449e9a4c32b1452",
+    "mode": 420
+  },
+  "capture": {
+    "members": 190,
+    "totalBytes": 74164910,
+    "rawObserved": 11666114,
+    "rawRetained": 11666114,
+    "rawLost": 0,
+    "externalRecords": {
+      "BUILD-RECEIPT.json": {
+        "bytes": 46227,
+        "sha256": "000c73627603ff782ddd46717093a2fe08600db2463e69be342ae8bde6e657f2",
+        "mode": 420
+      },
+      "RUNTIME-SEAL.json": {
+        "bytes": 1025334,
+        "sha256": "519d47654d82612b6edb01e49ca0052a5f2c5d2a308058d25482900c53e06605",
+        "mode": 420
+      }
+    },
+    "runtimeFramedBytes": 1071999,
+    "publication": {
+      "elapsedMs": 134112.283792,
+      "kind": "whole-runtime-publication-admitted",
+      "buildBytes": 46227,
+      "runtimeBytes": 1025334,
+      "framedBytes": 1137260,
+      "commitPayloadReservation": 65536
+    }
+  },
+  "archive": {
+    "name": "WORK-CAPTURE.jsonl.gz",
+    "bytes": 47298696,
+    "sha256": "5db05ef22fe66ce548316ca72a74937abc0c435690c4434df168582f37d5027f",
+    "mode": 384,
+    "crcStreamVerified": true,
+    "decodedBytes": 209745917,
+    "independentPerFileReconstruction": false,
+    "ownerRecordedFiles": 29495,
+    "ownerRecordedLogicalBytes": 154905565,
+    "ownerVerifiedWorkRemoved": true
+  },
+  "postguard": {
+    "sourceFiles": 20,
+    "externalBindings": 80,
+    "exactRunMembership": true
+  }
+}

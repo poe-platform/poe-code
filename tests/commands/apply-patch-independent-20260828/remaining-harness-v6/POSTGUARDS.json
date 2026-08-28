@@ -1,0 +1,104 @@
+{
+  "schema": "v6-postfailure-metadata-not-control-acceptance",
+  "recordedAt": "2026-08-28T21:15:06.295Z",
+  "sourceCommit": "49500bf8cd961788b1c212c862171306767ac069",
+  "discoveryPreseal": {
+    "bytes": 24502,
+    "mode": 420,
+    "sha256": "c90081207ac53c9cf0d2f5c1851e7371b842e1d82bffab8aa0854598f623466e"
+  },
+  "sourceBindings": {
+    "CALLGRAPH.md": {
+      "bytes": 3354,
+      "mode": 420,
+      "sha256": "d3498a03598ed2a9f0df621a3bc8a22e5621fcc97ee5d0633c134278e37e34e8"
+    },
+    "PLAN.md": {
+      "bytes": 8900,
+      "mode": 420,
+      "sha256": "8b82b8e0dbe14ca9212f13aaca9d0742b10f490acfcc5e387f00260234ec2aab"
+    },
+    "REVIEW.md": {
+      "bytes": 3415,
+      "mode": 420,
+      "sha256": "3b9bbfe3313d4109e7f0e4d26cec0d2affafd1a27f0410253ed983947b582907"
+    },
+    "author.mjs": {
+      "bytes": 14408,
+      "mode": 420,
+      "sha256": "f7e121e5750e4645459d6128525c80e4df35dadc8aae45d6a1bbe8051a6ae559"
+    },
+    "child.mjs": {
+      "bytes": 1988,
+      "mode": 420,
+      "sha256": "ec983f2788834fa91111ac06a3b03b389157f52d66b7ab4fe81eb436b52cbbed"
+    },
+    "data-controls.mjs": {
+      "bytes": 7923,
+      "mode": 420,
+      "sha256": "cd879bb07ac734be761fba8c1201d30485e3ffc4ae09444c3147a83b5a9e774f"
+    },
+    "evidence-author.mjs": {
+      "bytes": 11215,
+      "mode": 420,
+      "sha256": "e6ad3c24ac1c207d088934a74fe0b45d43390d1ac40ca4ac72d51a20d6b34e23"
+    },
+    "fixture-data.mjs": {
+      "bytes": 1450,
+      "mode": 420,
+      "sha256": "b70d884f3c30c1fa4ce29c99889bce8ecd55057232d3d51e6362ecad83f7e6dd"
+    },
+    "owner.mjs": {
+      "bytes": 21004,
+      "mode": 420,
+      "sha256": "088abb190147d7f627377604e2ceb5fc94db4b5dfa935b0fdc3f81e6349b2256"
+    },
+    "primitives.mjs": {
+      "bytes": 2593,
+      "mode": 420,
+      "sha256": "27ba09f27460eaddddc241e64dbf98fe55b48fa72216bfa7d68ec635d3feff65"
+    },
+    "FIXTURES-v6.json": {
+      "bytes": 30950,
+      "mode": 420,
+      "sha256": "ec2f4f1a29c85b65630ffaf4773634d202b62c438111933b18ec259ce80d0837"
+    },
+    "REMAINING-v6.json": {
+      "bytes": 42933,
+      "mode": 420,
+      "sha256": "3e0f68681188adf51bb164f4efeffe47df128153769a0daedb9b816e46cfb8fe"
+    },
+    "INPUTS-v6.json": {
+      "bytes": 618,
+      "mode": 420,
+      "sha256": "1d9320fc256d076398de3d16ea7c4044ce709bb50b6d5a5e70fde8018a6478bf"
+    }
+  },
+  "namedHistoricalBindings": 31,
+  "toolBindingsUnchanged": true,
+  "appendAwareOwnedMembership": true,
+  "foreignNewEntriesCensused": false,
+  "cleanup": {
+    "method": "rmdirSync exact known empty owned output directory; no recursive removal",
+    "device": 16777232,
+    "inode": 183131033,
+    "emptyBefore": true,
+    "identityRechecked": true,
+    "removed": true
+  },
+  "rawStartupCapture": null,
+  "toolTerminal": {
+    "exitCode": 1,
+    "continuingSession": false,
+    "classification": "operator-observed tool result; no raw channels"
+  },
+  "runtimeOwnerPid": null,
+  "knownChildren": [],
+  "runtimeChildCount": 0,
+  "controls": 0,
+  "fixtureDataChecks": 0,
+  "discovery": false,
+  "mainPreseal": false,
+  "sourceUnchanged": true,
+  "qualified": false
+}

@@ -1,0 +1,42 @@
+{
+  "schema": "independent-static-review-artifact-seal-v1",
+  "sealedAt": "2026-08-28T09:18:47.307473+00:00",
+  "authorCommit": "a045139b62164dbae923475bdca93ef109b926ff",
+  "authorManifestSha256": "19526e0eb11478107b73026bdcc5d3b309f4cfb38c57a93c7cfea1672e75e923",
+  "verdict": "PRECODE_HOLD_B1_B2_B3_NOT_EXECUTION_ACCEPTANCE",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 17730,
+      "mode": 420,
+      "sha256": "76cfac6b6833e0479b7fb09ebad3d4c97ab80cef5883c98d8bd38c7c15f9fc78"
+    },
+    {
+      "path": "static-review.py",
+      "bytes": 18511,
+      "mode": 420,
+      "sha256": "148069de79478a5504c2ea721adb27e57d18064304187884610c520b73dcdd90"
+    },
+    {
+      "path": "static-review-v1.py.data",
+      "bytes": 17587,
+      "mode": 420,
+      "sha256": "ea668fb60f7dded7dd0f7b02c1574dc6d6d9be7e300d238c3df449325c542020"
+    },
+    {
+      "path": "evidence-v1/RESULT.json",
+      "bytes": 1780719,
+      "mode": 420,
+      "sha256": "6f16cdf15664df2d21d7865efda3bc948f18b2837de111d1faecd7e755a7939e"
+    },
+    {
+      "path": "evidence-v2/RESULT.json",
+      "bytes": 1783288,
+      "mode": 420,
+      "sha256": "cd482c40a7877b2137430ff04e5dd9f07c2681fb36ff2382707a5a55bc03c0b6"
+    }
+  ],
+  "selfExcluded": true,
+  "runtimeExecutions": 0,
+  "qualification": "Data-only results and report; no cohort authorization; historical/live boundaries and failed checker attempts retained."
+}

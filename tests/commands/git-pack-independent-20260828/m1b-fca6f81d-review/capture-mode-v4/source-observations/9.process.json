@@ -1,0 +1,1 @@
+{"args":["ls-tree","-rz","--full-tree","5f937ee171bbcd5564c78709440e1fbbf3ef927a","--","tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-mode-v3/semantic.mjs"],"status":0,"signal":null,"error":null,"elapsedMs":430.740583}

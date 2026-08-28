@@ -1,0 +1,1829 @@
+{
+  "schema": "r3-five-platform-tools-inspection/1",
+  "date": "2026-08-28",
+  "mode": "readonly-static-bytes-no-target-execution",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "futureFixtureSource": "437778996f60109e212e20b1b242455866fda285",
+  "inspected": [
+    {
+      "name": "cut",
+      "origin": "/usr/bin/cut",
+      "physical": "/usr/bin/cut",
+      "bytes": 102480,
+      "mode": 493,
+      "sha256": "f2199a84b3bcad698217c78448615f296ee30d2b8dca713036cf8cdce3b783da",
+      "links": [
+        {
+          "path": "/usr",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin/cut",
+          "kind": "file",
+          "mode": 493
+        }
+      ],
+      "slices": [
+        {
+          "cpu": 16777223,
+          "subtype": 3,
+          "offset": 16384,
+          "size": 32704,
+          "sha256": "19116094ebd6b0dee215cb40b8fcd1f22ef671de0d431d6def9a107a44bb1662",
+          "references": [
+            {
+              "kind": 14,
+              "path": "/usr/lib/dyld"
+            },
+            {
+              "kind": 12,
+              "path": "/usr/lib/libSystem.B.dylib",
+              "currentVersion": 88866816,
+              "compatibilityVersion": 65536
+            }
+          ],
+          "commands": [
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "38432a8fbcbe1ae9fdf9263fe1e4e948de98131833cc5e5333f375dcf5f6333f"
+            },
+            {
+              "kind": 25,
+              "length": 472,
+              "sha256": "cb277349abdebfcc5fb6426cc68d547ea89ffa245875303b7a7804bb90cc96fa"
+            },
+            {
+              "kind": 25,
+              "length": 152,
+              "sha256": "674f382d1337d85a00c68e015d7e54a917a5d2a902f8cd1037e9f583972b8968"
+            },
+            {
+              "kind": 25,
+              "length": 152,
+              "sha256": "e25599c8c8cfe0751b224c78aee47f5e14c942cb9c805837b48cd05d08fcdf0f"
+            },
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "045424070e204e809fe1d46134fd62a509b037bd2a6f9df8a580a7b0f8832a64"
+            },
+            {
+              "kind": 2147483700,
+              "length": 16,
+              "sha256": "158145167ce95586942331de1ad091ab6ec2c05c227c54f4eb97e4be41716138"
+            },
+            {
+              "kind": 2147483699,
+              "length": 16,
+              "sha256": "6c954b4e050de27026ed89cd83ab9ccae102da729ae34b2166e0732621c559fa"
+            },
+            {
+              "kind": 2,
+              "length": 24,
+              "sha256": "5ad55cde71e41090e384bb8a718a04f7c9935a844040fac13b3433c2d24aef69"
+            },
+            {
+              "kind": 11,
+              "length": 80,
+              "sha256": "58630f8842feaf739820b863c1cf859081cbbfe975074b6fa7438d80f6d16ee0"
+            },
+            {
+              "kind": 14,
+              "length": 32,
+              "sha256": "44316cf4f366f41aa06996613c44af75e34479362928faf61a168c2a203b5999"
+            },
+            {
+              "kind": 27,
+              "length": 24,
+              "sha256": "acf95106846a7fef9b4afd4ad70b7357750c35230ccb1a3e338e3ba861d83457",
+              "uuidHex": "2e25d784afbf38e2a3676b3520196d90"
+            },
+            {
+              "kind": 50,
+              "length": 32,
+              "sha256": "624dea32902affb689f844ede34cfa3732e2e78a1ba20b1c157d51e7ef052ee0",
+              "platform": 1,
+              "minimumOS": 1704960,
+              "sdk": 1704960
+            },
+            {
+              "kind": 42,
+              "length": 16,
+              "sha256": "dd154de2531a8d02aaa3101205a61d56313d7121fbf02b84d078a924bb839dee"
+            },
+            {
+              "kind": 2147483688,
+              "length": 24,
+              "sha256": "48a5e18abc4873844a4d6bf35da79fc8ee316a21e5757ea76da04963c7d1487a"
+            },
+            {
+              "kind": 12,
+              "length": 56,
+              "sha256": "ffa45af4ce6b7780727be9b2f2f9ca0b35932363e311b247d840ef9da1bdc1f5"
+            },
+            {
+              "kind": 38,
+              "length": 16,
+              "sha256": "add2f81421fed55606d9f5c482a99c92d62d0e0c442aa85b3326590bb3073038"
+            },
+            {
+              "kind": 41,
+              "length": 16,
+              "sha256": "e440a46cc59b7837ffb066f016f1b9d1c6a553896e949258e04c2b2f4531bc7a"
+            },
+            {
+              "kind": 29,
+              "length": 16,
+              "sha256": "fa40f0cf39d526922c928d571222af8b1dba6370dd1eed9039a58a51c1ac26b6"
+            }
+          ]
+        },
+        {
+          "cpu": 16777228,
+          "subtype": 2147483650,
+          "offset": 49152,
+          "size": 53328,
+          "sha256": "4dccd15ead86077a9f8ff7486824269d47936ca4372af77594b8a09becd96855",
+          "references": [
+            {
+              "kind": 14,
+              "path": "/usr/lib/dyld"
+            },
+            {
+              "kind": 12,
+              "path": "/usr/lib/libSystem.B.dylib",
+              "currentVersion": 88866816,
+              "compatibilityVersion": 65536
+            }
+          ],
+          "commands": [
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "38432a8fbcbe1ae9fdf9263fe1e4e948de98131833cc5e5333f375dcf5f6333f"
+            },
+            {
+              "kind": 25,
+              "length": 472,
+              "sha256": "5d23997286830a58253ec145f798d587391615ea07b3ececae7a7610e3a8e6f7"
+            },
+            {
+              "kind": 25,
+              "length": 232,
+              "sha256": "371acabb6e2d53f102b9a51d83b6c2d46a4598f6df9cad786395ba0cb74fe6e5"
+            },
+            {
+              "kind": 25,
+              "length": 152,
+              "sha256": "0e2dbc4cfa4d46d6cb8a2ddffa0130c6bcc119cfeb6327e9dd823a912dafa150"
+            },
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "53c3f0c35dc599813f95c22d0455d497badce6197100c0a09058684f9e31c679"
+            },
+            {
+              "kind": 2147483700,
+              "length": 16,
+              "sha256": "b2bed5933f20a752b729fec628cad80f568ecb3d3f43f8c8e249c6f2c1f28ae8"
+            },
+            {
+              "kind": 2147483699,
+              "length": 16,
+              "sha256": "273e884defb8280f3ec7f15a2603f54df36a105f50afe94b7d143f883d3a01dc"
+            },
+            {
+              "kind": 2,
+              "length": 24,
+              "sha256": "2467c8d98e2d3948e4a874dd135b1d6381f6d57f246fe0632c916f6d43bd6b3a"
+            },
+            {
+              "kind": 11,
+              "length": 80,
+              "sha256": "454cd15f8dd42fe36404027a413706765647a083e8aca8448db5851533841f3e"
+            },
+            {
+              "kind": 14,
+              "length": 32,
+              "sha256": "44316cf4f366f41aa06996613c44af75e34479362928faf61a168c2a203b5999"
+            },
+            {
+              "kind": 27,
+              "length": 24,
+              "sha256": "fce7837dd0d90598af254acbd86a599a0401fc66613b0f735d18273d52f729fb",
+              "uuidHex": "867eb401758631cc92d83f184f172398"
+            },
+            {
+              "kind": 50,
+              "length": 32,
+              "sha256": "624dea32902affb689f844ede34cfa3732e2e78a1ba20b1c157d51e7ef052ee0",
+              "platform": 1,
+              "minimumOS": 1704960,
+              "sdk": 1704960
+            },
+            {
+              "kind": 42,
+              "length": 16,
+              "sha256": "dd154de2531a8d02aaa3101205a61d56313d7121fbf02b84d078a924bb839dee"
+            },
+            {
+              "kind": 2147483688,
+              "length": 24,
+              "sha256": "347dee0d63874a940c2f496e801b4186fe31d9a9335b082ff048c15f804d8bf7"
+            },
+            {
+              "kind": 12,
+              "length": 56,
+              "sha256": "ffa45af4ce6b7780727be9b2f2f9ca0b35932363e311b247d840ef9da1bdc1f5"
+            },
+            {
+              "kind": 38,
+              "length": 16,
+              "sha256": "0355977a86c48f53e2260e806bd6f10a98b39c8c9ac5c9c00dc073ea0d968ba6"
+            },
+            {
+              "kind": 41,
+              "length": 16,
+              "sha256": "0ea68f68c14a2870f4564c31f85d918e568cfab61f52fc63e4056af6d2c67d74"
+            },
+            {
+              "kind": 29,
+              "length": 16,
+              "sha256": "de904a33db315f218175744b8669ba26cab7abec37658ee7610d9dbb3ba4f23f"
+            }
+          ]
+        }
+      ],
+      "utilityVersion": null,
+      "utilityVersionQualification": "No utility executed. Exact system-file bytes plus host metadata identify this proposed profile; not a GNU version or historical resolution claim."
+    },
+    {
+      "name": "sort",
+      "origin": "/usr/bin/sort",
+      "physical": "/usr/bin/sort",
+      "bytes": 206032,
+      "mode": 493,
+      "sha256": "e1cae8c9638af1466950fd7c241434c81242d4bbc54fff5f2d18e0e86ea9c7e3",
+      "links": [
+        {
+          "path": "/usr",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin/sort",
+          "kind": "file",
+          "mode": 493
+        }
+      ],
+      "slices": [
+        {
+          "cpu": 16777223,
+          "subtype": 3,
+          "offset": 16384,
+          "size": 74752,
+          "sha256": "41bd78b241ee29e4867365f8489011925e6776eb9e5293cb0cad8f2a25a5411e",
+          "references": [
+            {
+              "kind": 14,
+              "path": "/usr/lib/dyld"
+            },
+            {
+              "kind": 12,
+              "path": "/usr/lib/libSystem.B.dylib",
+              "currentVersion": 88866816,
+              "compatibilityVersion": 65536
+            }
+          ],
+          "commands": [
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "38432a8fbcbe1ae9fdf9263fe1e4e948de98131833cc5e5333f375dcf5f6333f"
+            },
+            {
+              "kind": 25,
+              "length": 472,
+              "sha256": "097f873dd6560c349a1174a6f93492a76c9d5183f8972cd3994006e29989ba46"
+            },
+            {
+              "kind": 25,
+              "length": 232,
+              "sha256": "08eeaf985b5868b4972839c0fb2190633af19ce23b70adec29585260878db67b"
+            },
+            {
+              "kind": 25,
+              "length": 312,
+              "sha256": "802e61228d401d8c063c9b93227255056056130baf13f585db85bea3b7224cd6"
+            },
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "a214ae88ff182b9b4f0f8c89e8c0393151ab40ee22edb107864c6fd076b4a7a7"
+            },
+            {
+              "kind": 2147483700,
+              "length": 16,
+              "sha256": "3caacd5d06a204fa3bac506ef3743f837ab96ec3fc70edb19ef73ffcdfdf4020"
+            },
+            {
+              "kind": 2147483699,
+              "length": 16,
+              "sha256": "f688c1e6d014973a252d0a17894d9daf32291dc0405f0013c247296af94f53c6"
+            },
+            {
+              "kind": 2,
+              "length": 24,
+              "sha256": "6d9f50606139b7541dbb7ff81abc49e13e1b24f155009da3d240e36ee9b4f701"
+            },
+            {
+              "kind": 11,
+              "length": 80,
+              "sha256": "e2b14f57f5be9a36f667e36819aeca63317c36a8651b69953a9167b5e4fed4ee"
+            },
+            {
+              "kind": 14,
+              "length": 32,
+              "sha256": "44316cf4f366f41aa06996613c44af75e34479362928faf61a168c2a203b5999"
+            },
+            {
+              "kind": 27,
+              "length": 24,
+              "sha256": "0842eda04e9754a69c27ff96af954f3257bb79aa9cf8d8096e8caebd168f93d4",
+              "uuidHex": "a3a551028ea839488ce4739d115f734a"
+            },
+            {
+              "kind": 50,
+              "length": 32,
+              "sha256": "624dea32902affb689f844ede34cfa3732e2e78a1ba20b1c157d51e7ef052ee0",
+              "platform": 1,
+              "minimumOS": 1704960,
+              "sdk": 1704960
+            },
+            {
+              "kind": 42,
+              "length": 16,
+              "sha256": "dd154de2531a8d02aaa3101205a61d56313d7121fbf02b84d078a924bb839dee"
+            },
+            {
+              "kind": 2147483688,
+              "length": 24,
+              "sha256": "0374fb1d15bed648b5da2e7a89dc5fd29101f40e9c2a4f07ed057c896578ace5"
+            },
+            {
+              "kind": 12,
+              "length": 56,
+              "sha256": "ffa45af4ce6b7780727be9b2f2f9ca0b35932363e311b247d840ef9da1bdc1f5"
+            },
+            {
+              "kind": 38,
+              "length": 16,
+              "sha256": "381bd8e1b47072e4a827315f04b9970e11da570e7820ea0de8c0437445286262"
+            },
+            {
+              "kind": 41,
+              "length": 16,
+              "sha256": "1a27426d23ebabe0389de13c8edbadb6b76784ee88b4ea2fd3e4c3ffd6d6cc3c"
+            },
+            {
+              "kind": 29,
+              "length": 16,
+              "sha256": "713132eef2714f3a95dbbe5eaaeedba8e9c7919019c0575e8b4a3b6c564fec13"
+            }
+          ]
+        },
+        {
+          "cpu": 16777228,
+          "subtype": 2147483650,
+          "offset": 98304,
+          "size": 107728,
+          "sha256": "ec4e3fdf019996d9102cb7f35217c3889a36d00ef54c3300d955a5fe9770818f",
+          "references": [
+            {
+              "kind": 14,
+              "path": "/usr/lib/dyld"
+            },
+            {
+              "kind": 12,
+              "path": "/usr/lib/libSystem.B.dylib",
+              "currentVersion": 88866816,
+              "compatibilityVersion": 65536
+            }
+          ],
+          "commands": [
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "38432a8fbcbe1ae9fdf9263fe1e4e948de98131833cc5e5333f375dcf5f6333f"
+            },
+            {
+              "kind": 25,
+              "length": 472,
+              "sha256": "aba160cead04ae59b3cc5699857cd0a01d974220909c4088b85aa015bad55aaa"
+            },
+            {
+              "kind": 25,
+              "length": 312,
+              "sha256": "49e872ee8df91d1e0524980c86b1087b0b27a734a8c5206445ef9c8b08d50946"
+            },
+            {
+              "kind": 25,
+              "length": 312,
+              "sha256": "3d9fa6e82c621317b1e75412c1918c095868474d688778ae048886d76dc55557"
+            },
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "89a78aa77b232ece5ce8b101332d87f431d10db2b2ae338bfe976e4b7efca973"
+            },
+            {
+              "kind": 2147483700,
+              "length": 16,
+              "sha256": "e5fa6b291bac72acc15701d7010c17421e0416ff54ba2ab39b9dd0f8fb069c9f"
+            },
+            {
+              "kind": 2147483699,
+              "length": 16,
+              "sha256": "45aa2f8bcf081f1b593ef8b639f733d5067b852753fb6059480ba6aceb291258"
+            },
+            {
+              "kind": 2,
+              "length": 24,
+              "sha256": "c7ddba8c5d6be9195cfa113e31ee33f41e219e6f9f266dde9cfc13edf12db8de"
+            },
+            {
+              "kind": 11,
+              "length": 80,
+              "sha256": "7924fd8ad33860794cfd6841a499c127c3a9ab8cd070b1ae48bb4733c763e389"
+            },
+            {
+              "kind": 14,
+              "length": 32,
+              "sha256": "44316cf4f366f41aa06996613c44af75e34479362928faf61a168c2a203b5999"
+            },
+            {
+              "kind": 27,
+              "length": 24,
+              "sha256": "099365f520de4a5587ad80b1bb5134ce6018aef810ecade74e79d8180b9b0ff5",
+              "uuidHex": "111e5263225130ad890174f187eb0eeb"
+            },
+            {
+              "kind": 50,
+              "length": 32,
+              "sha256": "624dea32902affb689f844ede34cfa3732e2e78a1ba20b1c157d51e7ef052ee0",
+              "platform": 1,
+              "minimumOS": 1704960,
+              "sdk": 1704960
+            },
+            {
+              "kind": 42,
+              "length": 16,
+              "sha256": "dd154de2531a8d02aaa3101205a61d56313d7121fbf02b84d078a924bb839dee"
+            },
+            {
+              "kind": 2147483688,
+              "length": 24,
+              "sha256": "d93770e935f5034619e83bc34501f2e46da3b82ee579a7877f10a16dc9a80414"
+            },
+            {
+              "kind": 12,
+              "length": 56,
+              "sha256": "ffa45af4ce6b7780727be9b2f2f9ca0b35932363e311b247d840ef9da1bdc1f5"
+            },
+            {
+              "kind": 38,
+              "length": 16,
+              "sha256": "544d9c26332faa480e39b7b8ec533515d0535c1be09316ae49b73c23f3dba557"
+            },
+            {
+              "kind": 41,
+              "length": 16,
+              "sha256": "400981cba112a2b06e84305436762b64853070109755b2728c31080b6901f2e3"
+            },
+            {
+              "kind": 29,
+              "length": 16,
+              "sha256": "c2f7b82e0818780c587b35dffb25065b8f1e35eb31c3461691b85992e3312513"
+            }
+          ]
+        }
+      ],
+      "utilityVersion": null,
+      "utilityVersionQualification": "No utility executed. Exact system-file bytes plus host metadata identify this proposed profile; not a GNU version or historical resolution claim."
+    },
+    {
+      "name": "tee",
+      "origin": "/usr/bin/tee",
+      "physical": "/usr/bin/tee",
+      "bytes": 101232,
+      "mode": 493,
+      "sha256": "97832f8519ebacf737782b40cf0a33dc5b27bd4bfe7493e952c6c65ef309bea0",
+      "links": [
+        {
+          "path": "/usr",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin/tee",
+          "kind": "file",
+          "mode": 493
+        }
+      ],
+      "slices": [
+        {
+          "cpu": 16777223,
+          "subtype": 3,
+          "offset": 16384,
+          "size": 27312,
+          "sha256": "82373262c8a39a3b029955f0cc3c8058445fc74df55834a827035e3220e9b09e",
+          "references": [
+            {
+              "kind": 14,
+              "path": "/usr/lib/dyld"
+            },
+            {
+              "kind": 12,
+              "path": "/usr/lib/libSystem.B.dylib",
+              "currentVersion": 88866816,
+              "compatibilityVersion": 65536
+            }
+          ],
+          "commands": [
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "38432a8fbcbe1ae9fdf9263fe1e4e948de98131833cc5e5333f375dcf5f6333f"
+            },
+            {
+              "kind": 25,
+              "length": 472,
+              "sha256": "a91d1c3ca2f1f64a06a9c536a349ff98b1df0650373ff7729732ef3a7931f96f"
+            },
+            {
+              "kind": 25,
+              "length": 152,
+              "sha256": "9a5b9fb185def4c787caac3e1c374bfd092e9be977d49fe6d25042be460ed331"
+            },
+            {
+              "kind": 25,
+              "length": 152,
+              "sha256": "5c82a8eba118461ace61b67cffa477dd40391d9a103521f458ee0a6ca9d17b22"
+            },
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "74122ca9b131e206276ed50cc5fe18b51a07480585fa1ed1e7b514d10c7570ad"
+            },
+            {
+              "kind": 2147483700,
+              "length": 16,
+              "sha256": "9386c06c479b3e93ee1990029fc8907c298dfc3ed8c0deef1722fed9c9338f8f"
+            },
+            {
+              "kind": 2147483699,
+              "length": 16,
+              "sha256": "8daa92e6a27b0ad51ceff90da44cbc57dab9f0cfc8f6f7184d5df2bd20f1a579"
+            },
+            {
+              "kind": 2,
+              "length": 24,
+              "sha256": "2327cfcdf0f29a2b428c301d5fa5ae004d5231e44d2d5ddb777a647011ba059b"
+            },
+            {
+              "kind": 11,
+              "length": 80,
+              "sha256": "9d6f92caaa19d6dd325369f754b46af53c15d932988b2ea0b7de03ca3006c266"
+            },
+            {
+              "kind": 14,
+              "length": 32,
+              "sha256": "44316cf4f366f41aa06996613c44af75e34479362928faf61a168c2a203b5999"
+            },
+            {
+              "kind": 27,
+              "length": 24,
+              "sha256": "7f7881e0c1134652ee0ee1fe0506fe8a7334ff080ce00b2d0303989fd871130e",
+              "uuidHex": "6a1ccd202e8b3004a033c4ecbea59d1c"
+            },
+            {
+              "kind": 50,
+              "length": 32,
+              "sha256": "624dea32902affb689f844ede34cfa3732e2e78a1ba20b1c157d51e7ef052ee0",
+              "platform": 1,
+              "minimumOS": 1704960,
+              "sdk": 1704960
+            },
+            {
+              "kind": 42,
+              "length": 16,
+              "sha256": "97f6b6152b90b4392f5f58b3507faed49c3a8974d8cbbe93ab5afafab54bf1d4"
+            },
+            {
+              "kind": 2147483688,
+              "length": 24,
+              "sha256": "48a5e18abc4873844a4d6bf35da79fc8ee316a21e5757ea76da04963c7d1487a"
+            },
+            {
+              "kind": 12,
+              "length": 56,
+              "sha256": "ffa45af4ce6b7780727be9b2f2f9ca0b35932363e311b247d840ef9da1bdc1f5"
+            },
+            {
+              "kind": 38,
+              "length": 16,
+              "sha256": "4f6f894ea7364424f20adc05cc1bf827f259b843110c52b6b16b9d34ac007c07"
+            },
+            {
+              "kind": 41,
+              "length": 16,
+              "sha256": "0a43f7adcb078b900ca6a91aa35a61653a80c04086e3ae2bf985d2463e949b8a"
+            },
+            {
+              "kind": 29,
+              "length": 16,
+              "sha256": "17908cb90cd1928312a20c80a3973b238f9f4458b000d578803008e7d76c3e17"
+            }
+          ]
+        },
+        {
+          "cpu": 16777228,
+          "subtype": 2147483650,
+          "offset": 49152,
+          "size": 52080,
+          "sha256": "fb04805ad885a48a6d874252ce9adca9b8e0209a32d02ed437aae80fc35892ae",
+          "references": [
+            {
+              "kind": 14,
+              "path": "/usr/lib/dyld"
+            },
+            {
+              "kind": 12,
+              "path": "/usr/lib/libSystem.B.dylib",
+              "currentVersion": 88866816,
+              "compatibilityVersion": 65536
+            }
+          ],
+          "commands": [
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "38432a8fbcbe1ae9fdf9263fe1e4e948de98131833cc5e5333f375dcf5f6333f"
+            },
+            {
+              "kind": 25,
+              "length": 472,
+              "sha256": "8e14303b5e9604a54a9cecd22f60e01d1b4166a86c1b9a7b385600164c4da7c8"
+            },
+            {
+              "kind": 25,
+              "length": 232,
+              "sha256": "cc40eac379e2816229a09e27d7fcb59fa73f6d44fe16334a72a4c142c74965e0"
+            },
+            {
+              "kind": 25,
+              "length": 152,
+              "sha256": "f111ed7bf80529fd7ef6c792cadb2313dc5bf2bc27485edcebdab71206f53189"
+            },
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "f5d13f1cb18f08e79edeba7c53d079b8d402f439e0756d8dfba08b6f7c5fad0f"
+            },
+            {
+              "kind": 2147483700,
+              "length": 16,
+              "sha256": "a0064d08e5aba700903bc372fedef047e2c5f22821aa904f786289b371d4f642"
+            },
+            {
+              "kind": 2147483699,
+              "length": 16,
+              "sha256": "cb2796186a1575ec80e6da1606e8351ec9b018a527f836647edbd3e9e3380cd0"
+            },
+            {
+              "kind": 2,
+              "length": 24,
+              "sha256": "b6600c4b824b743f2b252ad8ca243a1144943b219536cab48690906c8d5d8cbd"
+            },
+            {
+              "kind": 11,
+              "length": 80,
+              "sha256": "0cbbee5b59e9083fa785192432b8c24c85ae76c5aea64e3d9d38f8b5b2f864d0"
+            },
+            {
+              "kind": 14,
+              "length": 32,
+              "sha256": "44316cf4f366f41aa06996613c44af75e34479362928faf61a168c2a203b5999"
+            },
+            {
+              "kind": 27,
+              "length": 24,
+              "sha256": "c72d36ebc3491d5eb4ec355dc2e53a02155b1cef6d3cf03ddac2e6486fb6a8a8",
+              "uuidHex": "80b19468cc2e3486ace138f644357dbd"
+            },
+            {
+              "kind": 50,
+              "length": 32,
+              "sha256": "624dea32902affb689f844ede34cfa3732e2e78a1ba20b1c157d51e7ef052ee0",
+              "platform": 1,
+              "minimumOS": 1704960,
+              "sdk": 1704960
+            },
+            {
+              "kind": 42,
+              "length": 16,
+              "sha256": "97f6b6152b90b4392f5f58b3507faed49c3a8974d8cbbe93ab5afafab54bf1d4"
+            },
+            {
+              "kind": 2147483688,
+              "length": 24,
+              "sha256": "347dee0d63874a940c2f496e801b4186fe31d9a9335b082ff048c15f804d8bf7"
+            },
+            {
+              "kind": 12,
+              "length": 56,
+              "sha256": "ffa45af4ce6b7780727be9b2f2f9ca0b35932363e311b247d840ef9da1bdc1f5"
+            },
+            {
+              "kind": 38,
+              "length": 16,
+              "sha256": "a9eb1b8163f4bb061498297af3b906593f8133267fdeb2399a8176d0f3411c1b"
+            },
+            {
+              "kind": 41,
+              "length": 16,
+              "sha256": "d2f7d5d31747b42c6bea92d5baba5ff9a5b7b81b028737b0cec7b1dff4ac0b2c"
+            },
+            {
+              "kind": 29,
+              "length": 16,
+              "sha256": "0de8fb2e5eb6dfcf00a6f3e8e0cea8e07f84fa8d7b4b6f6b711b070f0f1e8417"
+            }
+          ]
+        }
+      ],
+      "utilityVersion": null,
+      "utilityVersionQualification": "No utility executed. Exact system-file bytes plus host metadata identify this proposed profile; not a GNU version or historical resolution claim."
+    },
+    {
+      "name": "xargs",
+      "origin": "/usr/bin/xargs",
+      "physical": "/usr/bin/xargs",
+      "bytes": 135984,
+      "mode": 493,
+      "sha256": "aebe3d43c7bfa8df51a2c14a0f3718e24f08e68698cb2fd89ffdb980c4ab3213",
+      "links": [
+        {
+          "path": "/usr",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/usr/bin/xargs",
+          "kind": "file",
+          "mode": 493
+        }
+      ],
+      "slices": [
+        {
+          "cpu": 16777223,
+          "subtype": 3,
+          "offset": 16384,
+          "size": 41568,
+          "sha256": "29636f6b16b6cb38e855ede0b28c39932399cb2231b5f6670333818ac213fd37",
+          "references": [
+            {
+              "kind": 14,
+              "path": "/usr/lib/dyld"
+            },
+            {
+              "kind": 12,
+              "path": "/usr/lib/libSystem.B.dylib",
+              "currentVersion": 88866816,
+              "compatibilityVersion": 65536
+            }
+          ],
+          "commands": [
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "38432a8fbcbe1ae9fdf9263fe1e4e948de98131833cc5e5333f375dcf5f6333f"
+            },
+            {
+              "kind": 25,
+              "length": 472,
+              "sha256": "3fb6272ef805407fdec101e95fc10d5642dcb0f0c94b15c2e12bb6ed80effa0b"
+            },
+            {
+              "kind": 25,
+              "length": 232,
+              "sha256": "b1480e3cf51f89458e80b9f1e06eaa7a631b1fca0cde04102db8803da06c5e83"
+            },
+            {
+              "kind": 25,
+              "length": 232,
+              "sha256": "50e744a183122ee66afa8154ece8ce83de1bdc2d7316b5e9a9822f47ce344e26"
+            },
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "b631da8b024b08c847665e73d26dfe13380b4dd527dcc6adf32aee83166d5aff"
+            },
+            {
+              "kind": 2147483700,
+              "length": 16,
+              "sha256": "26733eafe2da7af006691227bb22d171ebf43f8469ce4912fc058112b555fdd9"
+            },
+            {
+              "kind": 2147483699,
+              "length": 16,
+              "sha256": "e560f1d88c02527db503dde2c4cc78556b65e84c53eda4a759bd73216252a8b9"
+            },
+            {
+              "kind": 2,
+              "length": 24,
+              "sha256": "65c517bbc315eee7b843fdeef1f92df94bcc4453d6f16bf4789ea45a1a647f61"
+            },
+            {
+              "kind": 11,
+              "length": 80,
+              "sha256": "ece9c8f4ec7932a2046250db37345c05150bb62bc5dc22a3196e594ef9bdb3e4"
+            },
+            {
+              "kind": 14,
+              "length": 32,
+              "sha256": "44316cf4f366f41aa06996613c44af75e34479362928faf61a168c2a203b5999"
+            },
+            {
+              "kind": 27,
+              "length": 24,
+              "sha256": "1ff03df30a20b0d965261b936a35b23da3ee2018bf1f4bc2393c9f546ab0fcea",
+              "uuidHex": "0d39589cdf623900837183c4ac74622f"
+            },
+            {
+              "kind": 50,
+              "length": 32,
+              "sha256": "624dea32902affb689f844ede34cfa3732e2e78a1ba20b1c157d51e7ef052ee0",
+              "platform": 1,
+              "minimumOS": 1704960,
+              "sdk": 1704960
+            },
+            {
+              "kind": 42,
+              "length": 16,
+              "sha256": "97f6b6152b90b4392f5f58b3507faed49c3a8974d8cbbe93ab5afafab54bf1d4"
+            },
+            {
+              "kind": 2147483688,
+              "length": 24,
+              "sha256": "58b2f730bf2d20c7601e9b7a5ee8451fcbd936bb34104d7fbd7b6c767d914ecf"
+            },
+            {
+              "kind": 12,
+              "length": 56,
+              "sha256": "ffa45af4ce6b7780727be9b2f2f9ca0b35932363e311b247d840ef9da1bdc1f5"
+            },
+            {
+              "kind": 38,
+              "length": 16,
+              "sha256": "41ea84b81252f154400b7ae00d9af0175e41bbc414e495aa93a214a2abad462b"
+            },
+            {
+              "kind": 41,
+              "length": 16,
+              "sha256": "6cf432e8a3cdf9e2104bb580930bde8202ea43dcb0351f27ac7066c8bfef3d71"
+            },
+            {
+              "kind": 29,
+              "length": 16,
+              "sha256": "030842b119b062da251072408fbdcc270d2793c0d9b5c8d3c7406226999dd43a"
+            }
+          ]
+        },
+        {
+          "cpu": 16777228,
+          "subtype": 2147483650,
+          "offset": 65536,
+          "size": 70448,
+          "sha256": "72a67312b038e269ac7bb5be72f01106a3ee4fce6247d71e27cbd36dec21d964",
+          "references": [
+            {
+              "kind": 14,
+              "path": "/usr/lib/dyld"
+            },
+            {
+              "kind": 12,
+              "path": "/usr/lib/libSystem.B.dylib",
+              "currentVersion": 88866816,
+              "compatibilityVersion": 65536
+            }
+          ],
+          "commands": [
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "38432a8fbcbe1ae9fdf9263fe1e4e948de98131833cc5e5333f375dcf5f6333f"
+            },
+            {
+              "kind": 25,
+              "length": 472,
+              "sha256": "8ba475a091fd840868da4a491bc848e42c24d435fce13a91b82dca2b6489be5b"
+            },
+            {
+              "kind": 25,
+              "length": 312,
+              "sha256": "bf2f9c96637a9f412ebf228a9dadf43e69205a5b25c68e3f6ec5c9abdeca4225"
+            },
+            {
+              "kind": 25,
+              "length": 232,
+              "sha256": "4b4d936ceb6291982f22eef9e1bfda5004212a70adaa4b4f02cec73955b21a95"
+            },
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "343f1f6543a112257f1ed7f5b0d1903db65539dd93a3b0152386b94f52cfb44a"
+            },
+            {
+              "kind": 2147483700,
+              "length": 16,
+              "sha256": "e4f10375cb4f803ddffba698e23e632bac7022913f5c8f78fc2c371a67fb997c"
+            },
+            {
+              "kind": 2147483699,
+              "length": 16,
+              "sha256": "d494dc26dda32a821733fe4d42916adaa82439b825e2e918c36598f7c5ff24d2"
+            },
+            {
+              "kind": 2,
+              "length": 24,
+              "sha256": "32a910b43a3b1280c3e6370d1e076faf29b3786f4cf325c32cca1eb9d61cf75d"
+            },
+            {
+              "kind": 11,
+              "length": 80,
+              "sha256": "4f531a091ad9b9cd5efa7a18752012bfc4e321d45359e46dc30c3ef762f1f577"
+            },
+            {
+              "kind": 14,
+              "length": 32,
+              "sha256": "44316cf4f366f41aa06996613c44af75e34479362928faf61a168c2a203b5999"
+            },
+            {
+              "kind": 27,
+              "length": 24,
+              "sha256": "93b537ab705314c7169dd1cfe31ddae772d09654cfd58fc25b401b39a0853618",
+              "uuidHex": "551342283a7833bba369f9e185408d47"
+            },
+            {
+              "kind": 50,
+              "length": 32,
+              "sha256": "624dea32902affb689f844ede34cfa3732e2e78a1ba20b1c157d51e7ef052ee0",
+              "platform": 1,
+              "minimumOS": 1704960,
+              "sdk": 1704960
+            },
+            {
+              "kind": 42,
+              "length": 16,
+              "sha256": "97f6b6152b90b4392f5f58b3507faed49c3a8974d8cbbe93ab5afafab54bf1d4"
+            },
+            {
+              "kind": 2147483688,
+              "length": 24,
+              "sha256": "cb074ff61dd6ca030d59b7ab537c59d99a07938a1d095821bde1acfce4f768fa"
+            },
+            {
+              "kind": 12,
+              "length": 56,
+              "sha256": "ffa45af4ce6b7780727be9b2f2f9ca0b35932363e311b247d840ef9da1bdc1f5"
+            },
+            {
+              "kind": 38,
+              "length": 16,
+              "sha256": "d55c41350008c00ef09f6b66f72eede695f548400c5f5e4fb779af1c4a149a14"
+            },
+            {
+              "kind": 41,
+              "length": 16,
+              "sha256": "d0f1a0b4f69db7437cd25bd7f93566c542183d58378a6626f10b0282e0845c24"
+            },
+            {
+              "kind": 29,
+              "length": 16,
+              "sha256": "bd1f0feebcaf7a9ba15c42764da163db542278f4ca5fe54e7f728aaaa647267c"
+            }
+          ]
+        }
+      ],
+      "utilityVersion": null,
+      "utilityVersionQualification": "No utility executed. Exact system-file bytes plus host metadata identify this proposed profile; not a GNU version or historical resolution claim."
+    },
+    {
+      "name": "cat",
+      "origin": "/bin/cat",
+      "physical": "/bin/cat",
+      "bytes": 118992,
+      "mode": 493,
+      "sha256": "580599dd318fa34bb0f91c29106894852c49c3a3df724b637113df95c6758fe6",
+      "links": [
+        {
+          "path": "/bin",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/bin/cat",
+          "kind": "file",
+          "mode": 493
+        }
+      ],
+      "slices": [
+        {
+          "cpu": 16777223,
+          "subtype": 3,
+          "offset": 16384,
+          "size": 32848,
+          "sha256": "6ff4553007aba82cd1a512ae74e90a61569423a976b9081ef4ec70876b968781",
+          "references": [
+            {
+              "kind": 14,
+              "path": "/usr/lib/dyld"
+            },
+            {
+              "kind": 12,
+              "path": "/usr/lib/libSystem.B.dylib",
+              "currentVersion": 88866816,
+              "compatibilityVersion": 65536
+            }
+          ],
+          "commands": [
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "38432a8fbcbe1ae9fdf9263fe1e4e948de98131833cc5e5333f375dcf5f6333f"
+            },
+            {
+              "kind": 25,
+              "length": 472,
+              "sha256": "7a8f8973307bdd6c58bf42270e0080078511316da7095482fbf08c143a81c7f4"
+            },
+            {
+              "kind": 25,
+              "length": 152,
+              "sha256": "f204e84e1f7a49af6d81f49d641d6123c0e59d88d722d183b1ff0e2a8a226eb2"
+            },
+            {
+              "kind": 25,
+              "length": 152,
+              "sha256": "a48acc0b2eae090e7215f9738b1dcda564a6d9ef0bcffd4b8eea53030f00513a"
+            },
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "0c9eedc8d57627fa4b8342319d5b154c33e38d8e9621c0c54cc21665842a6dfc"
+            },
+            {
+              "kind": 2147483700,
+              "length": 16,
+              "sha256": "e97d65cc268fe63ca1b34ed8ea9e7fbc9cd61e5c85733e59bbc415357bff9e64"
+            },
+            {
+              "kind": 2147483699,
+              "length": 16,
+              "sha256": "222be48d18b5c4ffd8bcfb438207ba6cedb991556a8a6afd296cd46f656ff608"
+            },
+            {
+              "kind": 2,
+              "length": 24,
+              "sha256": "060c8fbdf8c92970ece6a34aa5889b353a590c0cc0a82a36943d877e3cdf7185"
+            },
+            {
+              "kind": 11,
+              "length": 80,
+              "sha256": "22c4259dc7854af9848a8926695d720ef8e79cebc76ca1fa0b2155e36a61b5de"
+            },
+            {
+              "kind": 14,
+              "length": 32,
+              "sha256": "44316cf4f366f41aa06996613c44af75e34479362928faf61a168c2a203b5999"
+            },
+            {
+              "kind": 27,
+              "length": 24,
+              "sha256": "e0974890b64e07d1a7703951331765ffdce37a2a683c9468b269cd79af495f60",
+              "uuidHex": "89255d6bb9073f019db4c4e3788417bf"
+            },
+            {
+              "kind": 50,
+              "length": 32,
+              "sha256": "624dea32902affb689f844ede34cfa3732e2e78a1ba20b1c157d51e7ef052ee0",
+              "platform": 1,
+              "minimumOS": 1704960,
+              "sdk": 1704960
+            },
+            {
+              "kind": 42,
+              "length": 16,
+              "sha256": "dd154de2531a8d02aaa3101205a61d56313d7121fbf02b84d078a924bb839dee"
+            },
+            {
+              "kind": 2147483688,
+              "length": 24,
+              "sha256": "48a5e18abc4873844a4d6bf35da79fc8ee316a21e5757ea76da04963c7d1487a"
+            },
+            {
+              "kind": 12,
+              "length": 56,
+              "sha256": "ffa45af4ce6b7780727be9b2f2f9ca0b35932363e311b247d840ef9da1bdc1f5"
+            },
+            {
+              "kind": 38,
+              "length": 16,
+              "sha256": "c803266b4f43819de06232e2dab732eca4aa56254dab17068ebde1a40815a4d3"
+            },
+            {
+              "kind": 41,
+              "length": 16,
+              "sha256": "2ae9d102a0da9dbd35dc6f166654966cbaba8ab8df676c8f7a7dd069ec0c4f44"
+            },
+            {
+              "kind": 29,
+              "length": 16,
+              "sha256": "9d0c8fb593385f059c115ec46841eacc3192aaf2c44b6b7de7c4430ff912d6fe"
+            }
+          ]
+        },
+        {
+          "cpu": 16777228,
+          "subtype": 2147483650,
+          "offset": 65536,
+          "size": 53456,
+          "sha256": "25f402efd44a402b56eaa96c0366299837341f1a33e0a4a429c7febda7e2b877",
+          "references": [
+            {
+              "kind": 14,
+              "path": "/usr/lib/dyld"
+            },
+            {
+              "kind": 12,
+              "path": "/usr/lib/libSystem.B.dylib",
+              "currentVersion": 88866816,
+              "compatibilityVersion": 65536
+            }
+          ],
+          "commands": [
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "38432a8fbcbe1ae9fdf9263fe1e4e948de98131833cc5e5333f375dcf5f6333f"
+            },
+            {
+              "kind": 25,
+              "length": 472,
+              "sha256": "e8bd959cd16679580a1aa87f88b6a4510e205a5baeedc9df266947f7e20e7473"
+            },
+            {
+              "kind": 25,
+              "length": 232,
+              "sha256": "c286ea62e41b6e36548ba2ed5abb10adc9a42150c89a11d84a56c5ed133e8f43"
+            },
+            {
+              "kind": 25,
+              "length": 152,
+              "sha256": "81f0f74fc5a430dbc45513d4b74f49ffc2c4a1b7f1d41e15be61c3fb4ef2581a"
+            },
+            {
+              "kind": 25,
+              "length": 72,
+              "sha256": "4d19e31e8bef9bba59bf7db984679902e759ec9791fb3c5a443f1c38fdf86957"
+            },
+            {
+              "kind": 2147483700,
+              "length": 16,
+              "sha256": "d343ef2c364217f7f086e79e177312ef275e8a3bcbcefd17452552b09a9f0c9a"
+            },
+            {
+              "kind": 2147483699,
+              "length": 16,
+              "sha256": "25873bdefd6456cc1f645cafaf61ce3a149fd165bd84c49b2be5ccd5efa89454"
+            },
+            {
+              "kind": 2,
+              "length": 24,
+              "sha256": "a60ab2c89ad6fbcebc67e7ebc6beb41254eacecf02218df8d8da2b29427d9360"
+            },
+            {
+              "kind": 11,
+              "length": 80,
+              "sha256": "1fe1419e1d18be1fe06123b099338b57cfef215938c0bceeef8b1b0eba615792"
+            },
+            {
+              "kind": 14,
+              "length": 32,
+              "sha256": "44316cf4f366f41aa06996613c44af75e34479362928faf61a168c2a203b5999"
+            },
+            {
+              "kind": 27,
+              "length": 24,
+              "sha256": "2c2c8a7d8aa2c098144108abbb0d5ac8b9ae8c4a3257ee9b16f8ec125e38d5f8",
+              "uuidHex": "33038e5b494837598fe0148b697fb2f9"
+            },
+            {
+              "kind": 50,
+              "length": 32,
+              "sha256": "624dea32902affb689f844ede34cfa3732e2e78a1ba20b1c157d51e7ef052ee0",
+              "platform": 1,
+              "minimumOS": 1704960,
+              "sdk": 1704960
+            },
+            {
+              "kind": 42,
+              "length": 16,
+              "sha256": "dd154de2531a8d02aaa3101205a61d56313d7121fbf02b84d078a924bb839dee"
+            },
+            {
+              "kind": 2147483688,
+              "length": 24,
+              "sha256": "347dee0d63874a940c2f496e801b4186fe31d9a9335b082ff048c15f804d8bf7"
+            },
+            {
+              "kind": 12,
+              "length": 56,
+              "sha256": "ffa45af4ce6b7780727be9b2f2f9ca0b35932363e311b247d840ef9da1bdc1f5"
+            },
+            {
+              "kind": 38,
+              "length": 16,
+              "sha256": "9db27884a1a3251f59f5ec1cf447fc1544d87b38bfba39108ea4799f554c4912"
+            },
+            {
+              "kind": 41,
+              "length": 16,
+              "sha256": "4192c2cb1105a7a4f12a177ab4dba0edba8566a43977835d807c2c8acdd02907"
+            },
+            {
+              "kind": 29,
+              "length": 16,
+              "sha256": "73271c00e10a833532c6cb839e47ed6f9796d3b4b2ba63749fd89f2916bad1ad"
+            }
+          ]
+        }
+      ],
+      "utilityVersion": null,
+      "utilityVersionQualification": "No utility executed. Exact system-file bytes plus host metadata identify this proposed profile; not a GNU version or historical resolution claim."
+    }
+  ],
+  "linker": {
+    "origin": "/usr/lib/dyld",
+    "physical": "/usr/lib/dyld",
+    "bytes": 2357376,
+    "mode": 493,
+    "sha256": "a572fe3d9d46fc2c6461745a13940ec63de8c9ab333fcba5ef1e112783e521a7",
+    "links": [
+      {
+        "path": "/usr",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "/usr/lib",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "/usr/lib/dyld",
+        "kind": "file",
+        "mode": 493
+      }
+    ],
+    "slices": [
+      {
+        "cpu": 16777223,
+        "subtype": 3,
+        "offset": 16384,
+        "size": 1032128,
+        "sha256": "8fe6016dfd26cb1ecae05c68b8f040d92db488453e0232a823518fd56a100655",
+        "references": [],
+        "commands": [
+          {
+            "kind": 25,
+            "length": 552,
+            "sha256": "28adca04db210c2493039a9d2ac09bc5500510e7777b65179e11cce6bcc1d1a7"
+          },
+          {
+            "kind": 25,
+            "length": 232,
+            "sha256": "9b8ef588c6232da973dbd3aeb67cdf4ae1e945e58b9ac627300e6377246b5f3d"
+          },
+          {
+            "kind": 25,
+            "length": 392,
+            "sha256": "b05edb5673c891a1461d7ff15a5c452cd56ee63f599c9a9cb2045f94606e3763"
+          },
+          {
+            "kind": 25,
+            "length": 392,
+            "sha256": "64b7777aba799c879e0254d8d10b7686da7c8688910cfafe3aa6f6306568fa38"
+          },
+          {
+            "kind": 25,
+            "length": 152,
+            "sha256": "2137c9599a269ee4709df862c7f590a96b07cfef6c6ac0a28845dec91f377d0c"
+          },
+          {
+            "kind": 25,
+            "length": 72,
+            "sha256": "37e7c3ee3e0be030b52b3be59842ca3bb0d78ce5c8e67e11548ee0ce9ff16542"
+          },
+          {
+            "kind": 2147483700,
+            "length": 16,
+            "sha256": "c685c6883d00210e2d15e43954ed36931acfa4fa04793552ffbfb3a66f76a693"
+          },
+          {
+            "kind": 2147483699,
+            "length": 16,
+            "sha256": "0edaf58f59187dfbea5f7e8c6209b0be9ccaff0c4de80b177fd879becc56f129"
+          },
+          {
+            "kind": 2,
+            "length": 24,
+            "sha256": "2552916980977755d75e3d15e4d59fc4d16a4b96e1aae163f2232a21a4886b9c"
+          },
+          {
+            "kind": 11,
+            "length": 80,
+            "sha256": "222395ebdb99d26be4256f30894ea4c2cfc180559597cf81e0fe12483aee0dbd"
+          },
+          {
+            "kind": 15,
+            "length": 32,
+            "sha256": "baf639f9539f0b821d69c010e666cf1b484b959f52274be4fdfb86b6cd39022a"
+          },
+          {
+            "kind": 27,
+            "length": 24,
+            "sha256": "8f66a09a02b5f31ae5895f15ffca4d949f110cbcdb9cd4d193cb54ea938461e1",
+            "uuidHex": "a58aa73b66173a28ac72a8a5afd06772"
+          },
+          {
+            "kind": 50,
+            "length": 32,
+            "sha256": "624dea32902affb689f844ede34cfa3732e2e78a1ba20b1c157d51e7ef052ee0",
+            "platform": 1,
+            "minimumOS": 1704960,
+            "sdk": 1704960
+          },
+          {
+            "kind": 42,
+            "length": 16,
+            "sha256": "7a16893d76aee7c70ba34874285f0694bc9eecc6577e70d1862cdb405f7ca363"
+          },
+          {
+            "kind": 5,
+            "length": 184,
+            "sha256": "204afedbcad50f4d433d348fabda0e23e5dd9093ee7f53ce77badc41b6cf07a2"
+          },
+          {
+            "kind": 30,
+            "length": 16,
+            "sha256": "2a4ef853a3dd24f62e939efc58ffcac22ea36c405e6536d6201a7223f671f5d6"
+          },
+          {
+            "kind": 38,
+            "length": 16,
+            "sha256": "6b9b36a1008b0ce304c87165dbd3eb8c0e5c1161e91cdeb6947e15de9ed53e4f"
+          },
+          {
+            "kind": 41,
+            "length": 16,
+            "sha256": "8e20187d9f3c431f17f909826260806282563b788a5105c6e57a60e70089bf9e"
+          },
+          {
+            "kind": 29,
+            "length": 16,
+            "sha256": "2f6bec17fee8d45ccc9ce090acbf2f22dc6131f3dfdd01a90adad448ea30a755"
+          }
+        ]
+      },
+      {
+        "cpu": 16777228,
+        "subtype": 2147483650,
+        "offset": 1048576,
+        "size": 1308800,
+        "sha256": "0268816ffd121e21b6f7d3ee1add6a735406a41ff6744cdc5c8333f050629d21",
+        "references": [],
+        "commands": [
+          {
+            "kind": 25,
+            "length": 472,
+            "sha256": "6dd6b118fd4293b414257e958ac282fa745e61dfa612aa6dfea7fc87109994b2"
+          },
+          {
+            "kind": 25,
+            "length": 152,
+            "sha256": "f0ab235f031517f050a6302cd0ece8f224551478724df41b6cc3577cd9988b0b"
+          },
+          {
+            "kind": 25,
+            "length": 232,
+            "sha256": "736b535f4bde987625ad10e0e0f2b6d759c30d836f17f0520002e556c78bf259"
+          },
+          {
+            "kind": 25,
+            "length": 392,
+            "sha256": "5db9165ae802f6e84c601cafb7d0ce2b5c7f79271f6df5a3c609a116c2f301bc"
+          },
+          {
+            "kind": 25,
+            "length": 392,
+            "sha256": "1767b047e817c195ffa9f4823a9994a732427dadfccd377afbb4850415b409f1"
+          },
+          {
+            "kind": 25,
+            "length": 232,
+            "sha256": "75590dc255c9a9d1e6b9fbaee6a4f2acf308e17c94d7f2bb73632d3a268b2e72"
+          },
+          {
+            "kind": 25,
+            "length": 72,
+            "sha256": "0231e458f3c90c2401399a2b0c1c9a8f6898f0220916ebb70d9ccc8a1cefdba9"
+          },
+          {
+            "kind": 2147483700,
+            "length": 16,
+            "sha256": "8e8fb209c0a7e56e0c11d8442afc882bd9aca983916533afabdbcaf08f0ad570"
+          },
+          {
+            "kind": 2147483699,
+            "length": 16,
+            "sha256": "39c750139519d67334b97915c41176325226c3e12453e346d414d9a13fe4d333"
+          },
+          {
+            "kind": 2,
+            "length": 24,
+            "sha256": "380467b08902a11d2151a8683738668654ec6ae519f43417430a0ecd6a9824f7"
+          },
+          {
+            "kind": 11,
+            "length": 80,
+            "sha256": "09f5644040bbb243a08fb2ec783c4bb0697ddcbe410ea5a149e2e6f2b2c948d7"
+          },
+          {
+            "kind": 15,
+            "length": 32,
+            "sha256": "baf639f9539f0b821d69c010e666cf1b484b959f52274be4fdfb86b6cd39022a"
+          },
+          {
+            "kind": 27,
+            "length": 24,
+            "sha256": "021467935fa413b6d7fda213fe687b76c2634bcb75351fc32b3fa71556ed4d08",
+            "uuidHex": "9f682dcf340c3bfabcdddd702f30313e"
+          },
+          {
+            "kind": 50,
+            "length": 32,
+            "sha256": "624dea32902affb689f844ede34cfa3732e2e78a1ba20b1c157d51e7ef052ee0",
+            "platform": 1,
+            "minimumOS": 1704960,
+            "sdk": 1704960
+          },
+          {
+            "kind": 42,
+            "length": 16,
+            "sha256": "7a16893d76aee7c70ba34874285f0694bc9eecc6577e70d1862cdb405f7ca363"
+          },
+          {
+            "kind": 5,
+            "length": 288,
+            "sha256": "8a0014b6c5f0c4a2bbf6f7eb054217e51e460cfc242012f2ae6d6511c97687f9"
+          },
+          {
+            "kind": 30,
+            "length": 16,
+            "sha256": "5d48281137bff54b73df4c7c1350a5bd38ab64418f5b6631b8e66f4947db0cd6"
+          },
+          {
+            "kind": 38,
+            "length": 16,
+            "sha256": "b058dd35f05d1a6acd6a468347b70076bda948c9d060f667b1762f4db34dd2a1"
+          },
+          {
+            "kind": 41,
+            "length": 16,
+            "sha256": "0b4b78925291072e9b49586d45c622f7b611f761e80253d2cfe8efabe25889b7"
+          },
+          {
+            "kind": 29,
+            "length": 16,
+            "sha256": "dc7cc7a8059fe3087e865a9a3701b840ec6356b9e97cf9cec51e24a965ae138e"
+          }
+        ]
+      }
+    ],
+    "qualification": "Readable loader file bound as data, not dynamic-image or transitive runtime closure proof."
+  },
+  "library": {
+    "path": "/usr/lib/libSystem.B.dylib",
+    "observedError": "ENOENT",
+    "sha256": null,
+    "newToolPairs": [
+      [
+        "/usr/bin/cut",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/usr/bin/sort",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/usr/bin/tee",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/usr/bin/xargs",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/bin/cat",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    ],
+    "admission": "PENDING_EXPLICIT_OS_METADATA_PAIR_DECISION"
+  },
+  "host": {
+    "origin": "/System/Library/CoreServices/SystemVersion.plist",
+    "physical": "/System/Library/CoreServices/SystemVersion.plist",
+    "bytes": 604,
+    "mode": 292,
+    "sha256": "7cd74d8a730f38923ef39aed140d3172b3886e64b55f7489f33cef3731687709",
+    "links": [
+      {
+        "path": "/System",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "/System/Library",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "/System/Library/CoreServices",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "/System/Library/CoreServices/SystemVersion.plist",
+        "kind": "file",
+        "mode": 292
+      }
+    ],
+    "productVersion": "26.4.1",
+    "build": "25E253",
+    "qualification": "Read-only plist metadata, not executed sw_vers, full OS attestation or library-file hash."
+  },
+  "primaryLocalLayoutHeaders": [
+    {
+      "origin": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/mach-o/loader.h",
+      "physical": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/mach-o/loader.h",
+      "bytes": 74809,
+      "mode": 420,
+      "sha256": "5862aeb7fbf183453080bc887c0d502fe25a86ff5bd81291bbcc408bd7fe6e74",
+      "links": [
+        {
+          "path": "/Applications",
+          "kind": "directory",
+          "mode": 509
+        },
+        {
+          "path": "/Applications/Xcode.app",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/mach-o",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/mach-o/loader.h",
+          "kind": "file",
+          "mode": 420
+        }
+      ]
+    },
+    {
+      "origin": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/mach-o/fat.h",
+      "physical": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/mach-o/fat.h",
+      "bytes": 3323,
+      "mode": 420,
+      "sha256": "19925cdb5fed9b5b7981b05420856f65b99abb54bca34ea95e0e581da8cc580f",
+      "links": [
+        {
+          "path": "/Applications",
+          "kind": "directory",
+          "mode": 509
+        },
+        {
+          "path": "/Applications/Xcode.app",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/mach-o",
+          "kind": "directory",
+          "mode": 493
+        },
+        {
+          "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/mach-o/fat.h",
+          "kind": "file",
+          "mode": 420
+        }
+      ]
+    }
+  ],
+  "fixtureBindings": [
+    {
+      "path": "tests/commands/search-stress/harness.ts",
+      "gitBlob": "f3d35ec00766263a804fc4b52abfb4ce8c0c45e7",
+      "bytes": 3916,
+      "mode": 420,
+      "sha256": "4e431d4e46096c75d34c759ff0ba7674cc0067cd93df89a3e480fabe0e0279d1"
+    },
+    {
+      "path": "tests/commands/search-stress/pipelines.test.ts",
+      "gitBlob": "6b949c63f57f0f8596447d099fd5a96a5cd7d9e3",
+      "bytes": 1125,
+      "mode": 420,
+      "sha256": "d28a72f4a1bfb7a6ea600c2698d544ea7e5e375ae99f0d301ed0cde65261f2c6"
+    }
+  ],
+  "parentBindings": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+      "bytes": 4689,
+      "sha256": "b933c447efda4438266f40190eecc00d9e00e195d854eb4a254cfb0e2783306f"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/TOOL-ROUTES.json",
+      "bytes": 2520,
+      "sha256": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL-RECEIPT.json",
+      "bytes": 592,
+      "sha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL.json.gz.base64",
+      "bytes": 476241,
+      "sha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/SOURCE-CANDIDATE.json",
+      "bytes": 6245,
+      "sha256": "47741f284b1593aa96b012d6e2ab9e9f6b64f38d69034b17554dc52544b59e71"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/EVIDENCE-SEAL.json",
+      "bytes": 2287,
+      "sha256": "8d6824c66c92b52fffe7a4f94fd0ce60273482c368d0989fc626b00ff41869fd"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-diagnosis-v1/FAILURES.json",
+      "bytes": 205430,
+      "sha256": "031a489c0da790e649b077bba1d436119813bc0322fc445b2868feb0fb8a5295"
+    }
+  ],
+  "reads": 18,
+  "totalBytes": 3803877,
+  "execution": {
+    "nativeVersions": 0,
+    "nativeOracles": 0,
+    "toolsInspectedByExecution": 0,
+    "compiler": 0,
+    "product": 0,
+    "gate": 0,
+    "admissionControls": 0
+  },
+  "status": "PREPARATION_ONLY_NOT_ADMITTED",
+  "qualifications": [
+    "Static Mach-O load-command extraction only; all command hashes recorded, unknown runtime images/dlopen/code execution not established.",
+    "No external inspector, target utility, install, download, PATH modification, symlink creation or old-root mutation.",
+    "Known exact binaries are proposed platform selections; the original bare names did not pin a utility version or record a successful historical PATH resolution."
+  ]
+}

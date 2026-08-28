@@ -1,0 +1,37 @@
+{
+  "returned": {
+    "schemaVersion": 1,
+    "aggregate": "FAIL",
+    "requested": 1,
+    "admitted": 1,
+    "stop": null,
+    "results": [
+      {
+        "jobId": "CMD-01--whole",
+        "admitted": true,
+        "outcome": "FAIL",
+        "failures": [
+          "assertion: AssertionError [ERR_ASSERTION]: Unexpected raw rejection: {\"kind\":\"object\",\"identity\":{\"scope\":\"55a3eafb-6f93-471a-9023-af39fe1e3eb6\",\"token\":1},\"name\":\"same\",\"message\":\"same\",\"code\":\"\",\"stack\":\"\"}\n\ntrue !== false\n"
+        ],
+        "integrity": true,
+        "reapProof": true,
+        "metadata": {
+          "pid": 14208,
+          "group": 14208,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "spawnError": null,
+          "closed": true,
+          "reaped": true,
+          "kills": [],
+          "elapsedMs": 198
+        }
+      }
+    ],
+    "activeChildren": [],
+    "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/evidence/replay-zUPq22/host/run-2026-08-28T09-19-49.756Z-0ca5c30b-5966-4b7e-bcdf-fb83e8b6eafd"
+  },
+  "error": null
+}

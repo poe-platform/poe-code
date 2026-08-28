@@ -1,0 +1,13 @@
+{
+  "pid": 14202,
+  "group": 14202,
+  "exitCode": 0,
+  "signal": null,
+  "timedOut": false,
+  "overflow": false,
+  "spawnError": null,
+  "closed": true,
+  "reaped": true,
+  "kills": [],
+  "elapsedMs": 64
+}

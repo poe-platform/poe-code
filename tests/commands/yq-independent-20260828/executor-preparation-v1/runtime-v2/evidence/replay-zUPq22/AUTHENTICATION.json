@@ -1,0 +1,110 @@
+{
+  "classification": "SYNTHETIC_FRAMEWORK_ONLY",
+  "sourceCommit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+  "presealSha256": "c971d27207b661ae3ee23d61d6e1ee7cfefc2b6a8a890f4e0fde228c81945c64",
+  "recipeVersion": "yq-runtime-v2-20260828",
+  "recipeTreeSha256": "6a5ca19fef1237091719a4fb7571271f1c37ff02dde4a4c65253d34bd69b2878",
+  "recipeSealSha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15",
+  "diffSha256": "ae8de91fef938c24df0293a78548492bac44435509a610bf7f7decaede5c59fc",
+  "frozenBindingsSha256": "36fb6d5de3998795f5ca680861f35843349f8b0761630795dc9f5864566a8371",
+  "originalFindingsCommit": "b93241dfb9983d2b660233bdddce4569ec803f89",
+  "sourceFiles": [
+    {
+      "path": ".gitignore",
+      "bytes": 7,
+      "sha256": "07cc0e3f57247b75f5278d110feba3719a32f4b2383e41234cf01325de774d40",
+      "mode": 420
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 28557,
+      "sha256": "36fb6d5de3998795f5ca680861f35843349f8b0761630795dc9f5864566a8371",
+      "mode": 420
+    },
+    {
+      "path": "PROTOCOL.md",
+      "bytes": 8571,
+      "sha256": "807acc4a575a6c4b2fbf3a0ad9967048bf64e7a46d4cf579d4ffe0a0b7d5521a",
+      "mode": 420
+    },
+    {
+      "path": "RECIPE-SEAL.json",
+      "bytes": 3994,
+      "sha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15",
+      "mode": 420
+    },
+    {
+      "path": "V1-V2.diff",
+      "bytes": 6923,
+      "sha256": "ae8de91fef938c24df0293a78548492bac44435509a610bf7f7decaede5c59fc",
+      "mode": 420
+    },
+    {
+      "path": "controls.json",
+      "bytes": 7248,
+      "sha256": "589af6e344c3599726aaae217e975b04f4dddb656b316ed0837834eabe13a30a",
+      "mode": 420
+    },
+    {
+      "path": "delta.mjs",
+      "bytes": 5957,
+      "sha256": "c4241ec7033dc47171548988c638367a96e923c7a4462f2cddb9f9783bc57ed0",
+      "mode": 420
+    },
+    {
+      "path": "frozen.mjs",
+      "bytes": 4100,
+      "sha256": "23937b43be2061780a73a27490bb8ed7009a6d485429417692e607cc1fd3ad0b",
+      "mode": 420
+    },
+    {
+      "path": "recipe.mjs",
+      "bytes": 3104,
+      "sha256": "26d426b6db948fd9f72f3d712bdd8cfdde9d0e84e99c60f140705380617a6198",
+      "mode": 420
+    },
+    {
+      "path": "synthetic-child.mjs",
+      "bytes": 2914,
+      "sha256": "21f2f539ea980b10bd859ddf965ac5e235d117771f9725f2d0971b0ead7afed8",
+      "mode": 420
+    },
+    {
+      "path": "validate.mjs",
+      "bytes": 23248,
+      "sha256": "e7ebffcebf1c00afb79a7fdc9f747dd086602d2ad44f2820d36f32d7cad65ea9",
+      "mode": 420
+    }
+  ],
+  "node": {
+    "version": "v22.22.2",
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "work": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/work/synthetic-Xhq6mh",
+  "recipeGuards": [
+    {
+      "kind": "tree",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/work/synthetic-Xhq6mh/recipe-v2",
+      "sha256": "6a5ca19fef1237091719a4fb7571271f1c37ff02dde4a4c65253d34bd69b2878"
+    },
+    {
+      "kind": "tree",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/work/synthetic-Xhq6mh/recipe-v1",
+      "sha256": "e04229e35902d8dd34c91c0adfbb357120312ff743ecdc9434b0d239c152db78"
+    },
+    {
+      "kind": "tree",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/work/synthetic-Xhq6mh/frozen-data",
+      "sha256": "d9bca0ff79606144fd03baa1071c9de8527a9e2ade63475c7e1b14fb636757ac"
+    },
+    {
+      "kind": "file",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/synthetic-child.mjs",
+      "mode": 420,
+      "sha256": "21f2f539ea980b10bd859ddf965ac5e235d117771f9725f2d0971b0ead7afed8"
+    }
+  ],
+  "actualCandidateImported": false,
+  "grantsGO": false
+}

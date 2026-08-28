@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "jobId": "CMD-01--whole",
+  "outcome": "CAPTURED",
+  "proofRole": "direct-compiled-factory-handler-not-public-package",
+  "binding": {
+    "authorizationSha256": "31c08b8708cb5f9d5eb508119bb1ecd6843fed4a4db4e877a6a04ec874f7d2ee",
+    "sealSha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15",
+    "candidateCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+    "sourceTreeSha256": "1440df4baa533db14b703b15dffc280862fa813b9a687da306cd60df69df7486",
+    "compiledEntrySha256": "d561b076d9d89f55a622cc02d2282eac8fc679a6bec65f402a1d6ee50c1d4ee2",
+    "jobsSha256": "da4efe14dea553663eee7fa44963547058ee94216e80846a883dc48e442f0cad"
+  },
+  "capture": {
+    "stdoutHex": "",
+    "stderrHex": "",
+    "effects": {
+      "before": [],
+      "after": []
+    },
+    "events": [
+      {
+        "index": 0,
+        "kind": "command-call"
+      },
+      {
+        "index": 1,
+        "kind": "register-cleanup"
+      },
+      {
+        "index": 2,
+        "kind": "register-cleanup"
+      },
+      {
+        "index": 3,
+        "kind": "command-reject",
+        "rejection": {
+          "kind": "object",
+          "identity": {
+            "scope": "55a3eafb-6f93-471a-9023-af39fe1e3eb6",
+            "token": 1
+          },
+          "name": "same",
+          "message": "same",
+          "code": "",
+          "stack": ""
+        }
+      }
+    ],
+    "status": null,
+    "rejected": true,
+    "rejection": {
+      "kind": "object",
+      "identity": {
+        "scope": "55a3eafb-6f93-471a-9023-af39fe1e3eb6",
+        "token": 1
+      },
+      "name": "same",
+      "message": "same",
+      "code": "",
+      "stack": ""
+    },
+    "cleanupErrors": [
+      {
+        "kind": "object",
+        "identity": {
+          "scope": "55a3eafb-6f93-471a-9023-af39fe1e3eb6",
+          "token": 1
+        },
+        "name": "same",
+        "message": "same",
+        "code": "",
+        "stack": ""
+      },
+      {
+        "kind": "object",
+        "identity": {
+          "scope": "55a3eafb-6f93-471a-9023-af39fe1e3eb6",
+          "token": 2
+        },
+        "name": "same",
+        "message": "same",
+        "code": "",
+        "stack": ""
+      }
+    ]
+  }
+}

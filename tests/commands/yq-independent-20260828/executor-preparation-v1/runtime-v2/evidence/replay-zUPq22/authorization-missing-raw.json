@@ -1,0 +1,4 @@
+{
+  "returned": null,
+  "error": "AssertionError [ERR_ASSERTION]: Missing explicit candidate authorization: no product imports or output admitted"
+}

@@ -1,0 +1,37 @@
+{
+  "returned": {
+    "schemaVersion": 1,
+    "aggregate": "FAIL",
+    "requested": 1,
+    "admitted": 1,
+    "stop": null,
+    "results": [
+      {
+        "jobId": "obligation-partial-0",
+        "admitted": true,
+        "outcome": "FAIL",
+        "failures": [
+          "assertion: AssertionError [ERR_ASSERTION]: UNFULFILLED_OBLIGATIONS: see obligations.json; no full-record or semantic PASS\n\n1 !== 0\n"
+        ],
+        "integrity": true,
+        "reapProof": true,
+        "metadata": {
+          "pid": 14151,
+          "group": 14151,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "spawnError": null,
+          "closed": true,
+          "reaped": true,
+          "kills": [],
+          "elapsedMs": 44
+        }
+      }
+    ],
+    "activeChildren": [],
+    "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/evidence/replay-zUPq22/host/run-2026-08-28T09-19-45.094Z-eeb9ef78-1d27-459a-a274-f4f3f543dcfe"
+  },
+  "error": null
+}

@@ -1,0 +1,15 @@
+{
+  "pid": 14180,
+  "group": 14180,
+  "exitCode": null,
+  "signal": "SIGTERM",
+  "timedOut": false,
+  "overflow": true,
+  "spawnError": null,
+  "closed": true,
+  "reaped": true,
+  "kills": [
+    "SIGTERM"
+  ],
+  "elapsedMs": 47
+}

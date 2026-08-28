@@ -1,0 +1,58 @@
+{
+  "returned": {
+    "schemaVersion": 1,
+    "aggregate": "FAIL",
+    "requested": 2,
+    "admitted": 2,
+    "stop": null,
+    "results": [
+      {
+        "jobId": "new-F01-0",
+        "admitted": true,
+        "outcome": "FAIL",
+        "failures": [
+          "assertion: AssertionError [ERR_ASSERTION]: UNFULFILLED_OBLIGATIONS: see obligations.json; no full-record or semantic PASS\n\n1 !== 0\n"
+        ],
+        "integrity": true,
+        "reapProof": true,
+        "metadata": {
+          "pid": 14132,
+          "group": 14132,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "spawnError": null,
+          "closed": true,
+          "reaped": true,
+          "kills": [],
+          "elapsedMs": 45
+        }
+      },
+      {
+        "jobId": "new-F01-1",
+        "admitted": true,
+        "outcome": "PASS",
+        "failures": [],
+        "integrity": true,
+        "reapProof": true,
+        "metadata": {
+          "pid": 14133,
+          "group": 14133,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "spawnError": null,
+          "closed": true,
+          "reaped": true,
+          "kills": [],
+          "elapsedMs": 43
+        }
+      }
+    ],
+    "activeChildren": [],
+    "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/evidence/replay-zUPq22/host/run-2026-08-28T09-19-43.829Z-0f7d873a-faa2-4504-a2a6-512476a4f443"
+  },
+  "error": null
+}

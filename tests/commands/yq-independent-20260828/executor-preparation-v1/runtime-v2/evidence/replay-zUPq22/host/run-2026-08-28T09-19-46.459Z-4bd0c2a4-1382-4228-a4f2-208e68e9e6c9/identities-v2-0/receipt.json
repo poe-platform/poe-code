@@ -1,0 +1,196 @@
+{
+  "schemaVersion": 1,
+  "jobId": "identities-v2-0",
+  "outcome": "CAPTURED",
+  "captured": {
+    "first": {
+      "kind": "object",
+      "identity": {
+        "scope": "4a2f31a6-5b2f-41ac-b23f-b358001d98af",
+        "token": 1
+      },
+      "name": "same",
+      "message": "same",
+      "code": "",
+      "stack": ""
+    },
+    "firstAgain": {
+      "kind": "object",
+      "identity": {
+        "scope": "4a2f31a6-5b2f-41ac-b23f-b358001d98af",
+        "token": 1
+      },
+      "name": "same",
+      "message": "same",
+      "code": "",
+      "stack": ""
+    },
+    "second": {
+      "kind": "object",
+      "identity": {
+        "scope": "4a2f31a6-5b2f-41ac-b23f-b358001d98af",
+        "token": 2
+      },
+      "name": "same",
+      "message": "same",
+      "code": "",
+      "stack": ""
+    },
+    "primitives": [
+      {
+        "kind": "undefined"
+      },
+      {
+        "kind": "null"
+      },
+      {
+        "kind": "boolean",
+        "value": "false"
+      },
+      {
+        "kind": "boolean",
+        "value": "true"
+      },
+      {
+        "kind": "number",
+        "value": "0"
+      },
+      {
+        "kind": "number",
+        "value": "-0"
+      },
+      {
+        "kind": "number",
+        "value": "1"
+      },
+      {
+        "kind": "string",
+        "value": "1"
+      },
+      {
+        "kind": "bigint",
+        "value": "1"
+      },
+      {
+        "kind": "number",
+        "value": "NaN"
+      },
+      {
+        "kind": "number",
+        "value": "Infinity"
+      },
+      {
+        "kind": "number",
+        "value": "-Infinity"
+      },
+      {
+        "kind": "string",
+        "value": "undefined"
+      },
+      {
+        "kind": "string",
+        "value": "null"
+      },
+      {
+        "kind": "string",
+        "value": "false"
+      }
+    ],
+    "symbols": [
+      {
+        "kind": "symbol",
+        "value": "Symbol(same)",
+        "identity": {
+          "scope": "4a2f31a6-5b2f-41ac-b23f-b358001d98af",
+          "token": 3
+        }
+      },
+      {
+        "kind": "symbol",
+        "value": "Symbol(same)",
+        "identity": {
+          "scope": "4a2f31a6-5b2f-41ac-b23f-b358001d98af",
+          "token": 3
+        }
+      },
+      {
+        "kind": "symbol",
+        "value": "Symbol(same)",
+        "identity": {
+          "scope": "4a2f31a6-5b2f-41ac-b23f-b358001d98af",
+          "token": 4
+        }
+      }
+    ],
+    "functions": [
+      {
+        "kind": "function",
+        "identity": {
+          "scope": "4a2f31a6-5b2f-41ac-b23f-b358001d98af",
+          "token": 5
+        },
+        "name": "callback",
+        "message": "() => {}",
+        "code": "",
+        "stack": ""
+      },
+      {
+        "kind": "function",
+        "identity": {
+          "scope": "4a2f31a6-5b2f-41ac-b23f-b358001d98af",
+          "token": 5
+        },
+        "name": "callback",
+        "message": "() => {}",
+        "code": "",
+        "stack": ""
+      },
+      {
+        "kind": "function",
+        "identity": {
+          "scope": "4a2f31a6-5b2f-41ac-b23f-b358001d98af",
+          "token": 6
+        },
+        "name": "",
+        "message": "() => {}",
+        "code": "",
+        "stack": ""
+      }
+    ],
+    "cleanup": [
+      {
+        "kind": "object",
+        "identity": {
+          "scope": "4a2f31a6-5b2f-41ac-b23f-b358001d98af",
+          "token": 1
+        },
+        "name": "same",
+        "message": "same",
+        "code": "",
+        "stack": ""
+      },
+      {
+        "kind": "object",
+        "identity": {
+          "scope": "4a2f31a6-5b2f-41ac-b23f-b358001d98af",
+          "token": 2
+        },
+        "name": "same",
+        "message": "same",
+        "code": "",
+        "stack": ""
+      }
+    ],
+    "hostile": {
+      "kind": "object",
+      "identity": {
+        "scope": "4a2f31a6-5b2f-41ac-b23f-b358001d98af",
+        "token": 7
+      },
+      "name": "",
+      "message": "<unprintable>",
+      "code": "",
+      "stack": ""
+    }
+  }
+}

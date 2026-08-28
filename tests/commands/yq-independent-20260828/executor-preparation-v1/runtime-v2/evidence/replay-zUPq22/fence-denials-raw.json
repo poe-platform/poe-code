@@ -1,0 +1,165 @@
+{
+  "returned": [
+    {
+      "recipe": "v1",
+      "specifier": "node:fs",
+      "rejected": true
+    },
+    {
+      "recipe": "v1",
+      "specifier": "node:child_process",
+      "rejected": true
+    },
+    {
+      "recipe": "v1",
+      "specifier": "node:process",
+      "rejected": true
+    },
+    {
+      "recipe": "v1",
+      "specifier": "node:module",
+      "rejected": true
+    },
+    {
+      "recipe": "v1",
+      "specifier": "node:net",
+      "rejected": true
+    },
+    {
+      "recipe": "v1",
+      "specifier": "node:http",
+      "rejected": true
+    },
+    {
+      "recipe": "v1",
+      "specifier": "node:https",
+      "rejected": true
+    },
+    {
+      "recipe": "v1",
+      "specifier": "node:timers",
+      "rejected": true
+    },
+    {
+      "recipe": "v1",
+      "specifier": "node:crypto",
+      "rejected": true
+    },
+    {
+      "recipe": "v1",
+      "specifier": "fs",
+      "rejected": true
+    },
+    {
+      "recipe": "v1",
+      "specifier": "timers/promises",
+      "rejected": true
+    },
+    {
+      "recipe": "v1",
+      "specifier": "unbound-package",
+      "rejected": true
+    },
+    {
+      "recipe": "v1",
+      "specifier": "https://example.invalid/module.mjs",
+      "rejected": true
+    },
+    {
+      "recipe": "v1",
+      "specifier": "data:text/javascript,export default 1",
+      "rejected": true
+    },
+    {
+      "recipe": "v1",
+      "specifier": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/work/synthetic-Xhq6mh/outside.mjs",
+      "rejected": true
+    },
+    {
+      "recipe": "v1",
+      "specifier": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/work/synthetic-Xhq6mh/fence-target/alias.mjs",
+      "rejected": true
+    },
+    {
+      "recipe": "v2",
+      "specifier": "node:fs",
+      "rejected": true
+    },
+    {
+      "recipe": "v2",
+      "specifier": "node:child_process",
+      "rejected": true
+    },
+    {
+      "recipe": "v2",
+      "specifier": "node:process",
+      "rejected": true
+    },
+    {
+      "recipe": "v2",
+      "specifier": "node:module",
+      "rejected": true
+    },
+    {
+      "recipe": "v2",
+      "specifier": "node:net",
+      "rejected": true
+    },
+    {
+      "recipe": "v2",
+      "specifier": "node:http",
+      "rejected": true
+    },
+    {
+      "recipe": "v2",
+      "specifier": "node:https",
+      "rejected": true
+    },
+    {
+      "recipe": "v2",
+      "specifier": "node:timers",
+      "rejected": true
+    },
+    {
+      "recipe": "v2",
+      "specifier": "node:crypto",
+      "rejected": true
+    },
+    {
+      "recipe": "v2",
+      "specifier": "fs",
+      "rejected": true
+    },
+    {
+      "recipe": "v2",
+      "specifier": "timers/promises",
+      "rejected": true
+    },
+    {
+      "recipe": "v2",
+      "specifier": "unbound-package",
+      "rejected": true
+    },
+    {
+      "recipe": "v2",
+      "specifier": "https://example.invalid/module.mjs",
+      "rejected": true
+    },
+    {
+      "recipe": "v2",
+      "specifier": "data:text/javascript,export default 1",
+      "rejected": true
+    },
+    {
+      "recipe": "v2",
+      "specifier": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/work/synthetic-Xhq6mh/outside.mjs",
+      "rejected": true
+    },
+    {
+      "recipe": "v2",
+      "specifier": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/work/synthetic-Xhq6mh/fence-target/alias.mjs",
+      "rejected": true
+    }
+  ],
+  "error": null
+}

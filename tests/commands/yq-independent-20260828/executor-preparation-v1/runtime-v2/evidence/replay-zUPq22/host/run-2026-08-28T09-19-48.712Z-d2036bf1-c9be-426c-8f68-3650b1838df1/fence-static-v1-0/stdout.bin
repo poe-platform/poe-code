@@ -1,0 +1,1 @@
+{"schemaVersion":1,"jobId":"fence-static-v1-0","outcome":"CAPTURED","result":{"accepted":false,"message":"Error: Unbound candidate builtin: node:timers/promises"}}

@@ -1,0 +1,27 @@
+{
+  "returned": [
+    {
+      "kind": "object",
+      "identity": {
+        "scope": "fe4eaddc-a5fa-4f8d-8e6d-d5fd0516311f",
+        "token": 1
+      },
+      "name": "",
+      "message": "[object Object]",
+      "code": "",
+      "stack": ""
+    },
+    {
+      "kind": "object",
+      "identity": {
+        "scope": "0ce3d05f-cbbe-4951-8c1f-ef87a4e6176a",
+        "token": 1
+      },
+      "name": "",
+      "message": "[object Object]",
+      "code": "",
+      "stack": ""
+    }
+  ],
+  "error": null
+}

@@ -1,0 +1,23 @@
+{
+  "jobId": "host-wrong-job-0",
+  "admitted": true,
+  "outcome": "FAIL",
+  "failures": [
+    "assertion: AssertionError [ERR_ASSERTION]: Wrong or missing receipt job\n+ actual - expected\n\n+ 'other'\n- 'host-wrong-job-0'\n"
+  ],
+  "integrity": true,
+  "reapProof": true,
+  "metadata": {
+    "pid": 14185,
+    "group": 14185,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 56
+  }
+}

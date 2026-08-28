@@ -1,0 +1,1 @@
+{"schemaVersion":2,"status":"INCOMPLETE","unfulfilled":[{"path":"expected.assertions[0]","value":"UNBOUND_INDEPENDENT_ASSERTION_MUST_NOT_GREEN","reason":"Natural-language obligation has no executable proof binding"}],"semanticFullRecordPass":false}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "aggregate": "FAIL",
+  "requested": 2,
+  "admitted": 1,
+  "stop": "integrity",
+  "results": [
+    {
+      "jobId": "both-stop-0",
+      "admitted": true,
+      "outcome": "FAIL",
+      "failures": [
+        "integrity",
+        "reap"
+      ],
+      "integrity": false,
+      "reapProof": false,
+      "metadata": {
+        "pid": 14199,
+        "group": 14199,
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "spawnError": null,
+        "closed": true,
+        "reaped": true,
+        "kills": [],
+        "elapsedMs": 43
+      }
+    }
+  ],
+  "activeChildren": [],
+  "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/evidence/replay-zUPq22/host/run-2026-08-28T09-19-48.602Z-14d0f78b-cfb0-4304-b3f1-0b61a98f7d7a"
+}

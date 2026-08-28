@@ -1,0 +1,35 @@
+{
+  "returned": {
+    "schemaVersion": 1,
+    "aggregate": "PASS",
+    "requested": 1,
+    "admitted": 1,
+    "stop": null,
+    "results": [
+      {
+        "jobId": "identities-v2-0",
+        "admitted": true,
+        "outcome": "PASS",
+        "failures": [],
+        "integrity": true,
+        "reapProof": true,
+        "metadata": {
+          "pid": 14171,
+          "group": 14171,
+          "exitCode": 0,
+          "signal": null,
+          "timedOut": false,
+          "overflow": false,
+          "spawnError": null,
+          "closed": true,
+          "reaped": true,
+          "kills": [],
+          "elapsedMs": 43
+        }
+      }
+    ],
+    "activeChildren": [],
+    "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/evidence/replay-zUPq22/host/run-2026-08-28T09-19-46.459Z-4bd0c2a4-1382-4228-a4f2-208e68e9e6c9"
+  },
+  "error": null
+}

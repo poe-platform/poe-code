@@ -1,0 +1,310 @@
+{
+  "date": "2026-08-28",
+  "authority": "preparation/SOURCE-STATIC-PLAN.json at preseal7d3423ed",
+  "designatedIds": 23,
+  "criticalOverlappingOriginalIds": [
+    "WRK-22",
+    "ENC-07"
+  ],
+  "results": [
+    {
+      "id": "ENC-08",
+      "classification": "SUPPORT_ONLY",
+      "observation": "Malformed strings and keys are rejected by the async measure path before encoder/result admission; no private malformed-yield injection was executed.",
+      "references": [
+        "src/commands/structured/query-core.ts:178-236",
+        "src/commands/yq/index.ts:375-394"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "ENC-09",
+      "classification": "SUPPORT_ONLY",
+      "observation": "The measure ancestor set detects a current-path cycle and removes ancestors on leave; no private cycle was injected.",
+      "references": [
+        "src/commands/structured/query-core.ts:178-236"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "ENC-10",
+      "classification": "SUPPORT_ONLY",
+      "observation": "Measure rejects unsupported primitive types and nonordinary object prototypes. Runtime graph injection remains unavailable.",
+      "references": [
+        "src/commands/structured/query-core.ts:196-233"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "QUE-09",
+      "classification": "SUPPORT_ONLY",
+      "observation": "compileAttempted is set before parse; subsequent compilation and run without AST refuse. No private session call was made.",
+      "references": [
+        "src/commands/structured/query-core.ts:487-501"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "QUE-10",
+      "classification": "SUPPORT_ONLY",
+      "observation": "Active iterator excludes overlap; close shares its promise and active return memo. Runtime concurrent private-session proof remains missing.",
+      "references": [
+        "src/commands/structured/query-core.ts:494-557"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "QUE-11",
+      "classification": "SUPPORT_ONLY",
+      "observation": "One session allocates one Budget, Interpreter and variables map, reused by the file/document loops. This is source identity evidence, not a runtime identity observer.",
+      "references": [
+        "src/commands/structured/query-core.ts:466-492",
+        "src/commands/yq/index.ts:330-362"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "WRK-05",
+      "classification": "SUPPORT_ONLY",
+      "observation": "Each received chunk is admitted to invocation input bytes before owned Uint8Array copy; fallback file bytes are charged after provider return. Near-cap private projection and provider preemption are not established.",
+      "references": [
+        "src/commands/yq/index.ts:208-245",
+        "src/commands/yq/index.ts:248-276",
+        "src/commands/structured/query-core.ts:159-162"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "WRK-06",
+      "classification": "SOURCE_COUNTERPROOF",
+      "observation": "The frozen before-copy/before-decoded-append ordering is not implemented: the whole source is copied and decoded before beginDocument; rawLines also normalizes CRLF before computing rawBytes. This is static ordering/byte-accounting evidence, not an executed cap-boundary case.",
+      "references": [
+        "src/commands/yq/index.ts:231-244",
+        "src/commands/yq/index.ts:345-351",
+        "src/commands/yq/parser.ts:855-875",
+        "src/commands/yq/parser.ts:935-938"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "WRK-07",
+      "classification": "SOURCE_COUNTERPROOF",
+      "observation": "Quoted scalar value construction runs before composer.scalar and its scalar-byte admission; decodeDouble appends characters before that gate. The near-cap four-byte escape projection was not executed.",
+      "references": [
+        "src/commands/yq/parser.ts:264-289",
+        "src/commands/yq/parser.ts:457-474",
+        "src/commands/yq/parser.ts:528-546"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "WRK-08",
+      "classification": "PARTIAL_SUPPORT",
+      "observation": "Compact scalar, mapping punctuation and alias descriptor accounting are present; query-yield measurement follows engine allocation. Entire allocation-preflight and exact inclusive-cap obligations remain unproved.",
+      "references": [
+        "src/commands/yq/parser.ts:528-566",
+        "src/commands/yq/accounting.ts:69-81",
+        "src/commands/yq/index.ts:375-394"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "WRK-11",
+      "classification": "SUPPORT_ONLY",
+      "observation": "One private Budget is reused and existing Budget.step rejects totals above maxSteps. No private near-limit state was manufactured.",
+      "references": [
+        "src/commands/structured/query-core.ts:479-484",
+        "src/commands/structured/limits.ts:45-64",
+        "src/commands/structured/query-core.ts:135-156"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "WRK-12",
+      "classification": "SUPPORT_ONLY",
+      "observation": "The command measures a yielded graph before admitResult and encoding; results are on the reused Budget. Exact 100000/100001 dynamic boundary is unavailable.",
+      "references": [
+        "src/commands/yq/index.ts:373-394",
+        "src/commands/structured/query-core.ts:169-172"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "WRK-13",
+      "classification": "SOURCE_COUNTERPROOF",
+      "observation": "Flow sequence parses/allocates the prospective child before checking the parent member count. The pre-input-member-allocation obligation cannot be inferred from the later member guard; no large public probe was added.",
+      "references": [
+        "src/commands/yq/parser.ts:394-409",
+        "src/commands/yq/parser.ts:553-565"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "WRK-15",
+      "classification": "SUPPORT_ONLY",
+      "observation": "Alias count survives beginDocument; invalid/unfinished targets refuse before copyAlias; projection and prepaid work precede clone allocation. 1024/1025 cross-document cap trace remains unrun.",
+      "references": [
+        "src/commands/yq/accounting.ts:36-81",
+        "src/commands/yq/parser.ts:582-586",
+        "src/commands/yq/accounting.ts:207-229"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "WRK-16",
+      "classification": "PARTIAL_SUPPORT",
+      "observation": "Alias node total is preflighted as a descriptor before copied containers are allocated. No 99998/99999 injected ledger trace was run; insertion-context depth is not established by descriptor-relative depth alone.",
+      "references": [
+        "src/commands/yq/accounting.ts:69-81",
+        "src/commands/yq/accounting.ts:150-163",
+        "src/commands/yq/accounting.ts:207-229"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "WRK-17",
+      "classification": "SOURCE_COUNTERPROOF",
+      "observation": "Final output allocation and submission are reserved before write, but quoted encoder fragment concatenation precedes append byte preflight. Thus every-retained-encoder-allocation preflight is not supported by source. No private output-counter boundary was injected.",
+      "references": [
+        "src/commands/yq/encoder.ts:15-35",
+        "src/commands/yq/encoder.ts:56-79",
+        "src/commands/yq/index.ts:383-411"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "WRK-18",
+      "classification": "SUPPORT_ONLY",
+      "observation": "Stdout/combined totals are monotone, and admitted operation bytes precede sink write with no refund path in the inspected flow. The exact reserved diagnostic boundary remains a private trace.",
+      "references": [
+        "src/commands/yq/accounting.ts:83-98",
+        "src/commands/yq/index.ts:309-316",
+        "src/commands/yq/index.ts:400-412"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "WRK-20",
+      "classification": "SUPPORT_ONLY",
+      "observation": "Diagnostic selection checks preferred then fixed fallback then emits nothing, with selected normal status returned. Exact private diagnostic-ledger edges are unrun.",
+      "references": [
+        "src/commands/yq/index.ts:309-316",
+        "src/commands/yq/index.ts:424-434",
+        "src/commands/yq/accounting.ts:88-98"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "WRK-21",
+      "classification": "SUPPORT_ONLY",
+      "observation": "Distinct payload-copy operations use ceil(bytes/1024); source uses separate reservation units. No internal operation observer was introduced.",
+      "references": [
+        "src/commands/yq/accounting.ts:198-204",
+        "src/commands/yq/accounting.ts:214-243",
+        "src/commands/yq/encoder.ts:15-30"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "WRK-23",
+      "classification": "PARTIAL_SUPPORT",
+      "observation": "Command and parser bound query source before synchronous tokenizer allocation; AST parsing retains source/tokens while compiling and uses depth gates. No compiler heap/latency measurement or separate query execution was performed.",
+      "references": [
+        "src/commands/yq/index.ts:330-338",
+        "src/commands/structured/parser.ts:33-66",
+        "src/commands/structured/parser.ts:79-117"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "WRK-24",
+      "classification": "PARTIAL_SUPPORT",
+      "observation": "Raw chunk copies plus aggregate bytes, decoded source/line records, input M, yielded Q, and encoder fragments/join/output may coexist. The declared M+Q+max(2E,3E+2s) is not a measured RSS or all-live-allocation bound; source README explicitly disclaims aggregate heap/CPU/preemption.",
+      "references": [
+        "src/commands/yq/index.ts:218-245",
+        "src/commands/yq/index.ts:345-362",
+        "src/commands/yq/encoder.ts:6-35",
+        "src/commands/yq/index.ts:387-411",
+        "src/commands/yq/README.md:14-19"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "WRK-26",
+      "classification": "SUPPORT_ONLY",
+      "observation": "Private count methods validate safe nonnegative counts and charge requires positive units; arithmetic overflow is guarded. Final CARRY vocabulary supersedes the old step probe. No public limit bridge or Budget injection is exposed by the command.",
+      "references": [
+        "src/commands/structured/query-core.ts:69-76",
+        "src/commands/structured/query-core.ts:135-138",
+        "src/commands/structured/query-core.ts:339-355",
+        "src/commands/yq/index.ts:462-495"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    },
+    {
+      "id": "TYP-08",
+      "classification": "SUPPORT_ONLY",
+      "observation": "Private signatures retain Json/Ast/Interpreter/Budget/Decimal and borrowed signal. Factory options expose only replace. Source inspection is not a type-compile or private API conformance pass.",
+      "references": [
+        "src/commands/structured/query-core.ts:1-26",
+        "src/commands/structured/query-core.ts:47-66",
+        "src/commands/structured/query-core.ts:479-484",
+        "src/commands/structured/query-core.ts:560-563",
+        "src/commands/yq/index.ts:462-495"
+      ],
+      "fullRecordPass": false,
+      "runtimePrivateCounterProof": false
+    }
+  ],
+  "annotations": [
+    {
+      "id": "WRK-22",
+      "role": "CRITICAL_CARRY_SOURCE_ANNOTATION_NOT_ADDITIONAL_CASE",
+      "observation": "Pending count is invocation-scoped; reserve uses K=floor((c+U-1)/1023), U=0 retains c; finish assigns target pending and close has no terminal tick. Ordinary and prepaid paths check state around awaits. Static mechanics do not fulfill the original private observer.",
+      "references": [
+        "src/commands/structured/query-core.ts:135-156",
+        "src/commands/structured/query-core.ts:339-423"
+      ]
+    },
+    {
+      "id": "ENC-07",
+      "role": "CRITICAL_ENCODER_SOURCE_ANNOTATION_NOT_ADDITIONAL_CASE",
+      "observation": "Encoder traverses text by code point, with named/control escapes and surrogate validation; runtime results remain separately classified.",
+      "references": [
+        "src/commands/yq/encoder.ts:39-79"
+      ]
+    }
+  ],
+  "sourceCounterproofs": [
+    "WRK-06",
+    "WRK-07",
+    "WRK-13",
+    "WRK-17"
+  ],
+  "runtimeProbes": 0,
+  "semanticPasses": 0,
+  "fullRecordPasses": 0,
+  "noPrivateHookOrNewLimit": true
+}

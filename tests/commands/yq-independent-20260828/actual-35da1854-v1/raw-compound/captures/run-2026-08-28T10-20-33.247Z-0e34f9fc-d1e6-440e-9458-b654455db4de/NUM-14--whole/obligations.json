@@ -1,0 +1,1 @@
+{"schemaVersion":2,"status":"INCOMPLETE","unfulfilled":[{"path":"expected.stdout","value":{"utf8":"","hex":"","bytes":0},"reason":"No assertion adapter bound"},{"path":"expected.diagnostic","value":{"category":"schema","code":"SCHEMA_DECIMAL_RANGE"},"reason":"No assertion adapter bound"}],"semanticFullRecordPass":false}

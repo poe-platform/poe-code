@@ -1,0 +1,24 @@
+{
+  "pid": 87703,
+  "group": 87703,
+  "exitCode": 1,
+  "signal": null,
+  "spawnError": null,
+  "timedOut": false,
+  "overflow": false,
+  "combinedBytes": 229,
+  "closed": true,
+  "reaped": true,
+  "kills": [],
+  "elapsedMs": 619594,
+  "stdout": {
+    "sha256": "197008db9c456675bf780005f2a1bc807f57e77ea15e9d5f8ea03d8c6a342746",
+    "bytes": 229,
+    "mode": 420
+  },
+  "stderr": {
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "mode": 420
+  }
+}

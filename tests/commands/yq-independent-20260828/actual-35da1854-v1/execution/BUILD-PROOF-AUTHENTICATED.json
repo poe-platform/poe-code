@@ -1,0 +1,534 @@
+{
+  "date": "2026-08-28",
+  "receivedAfterActualPreseal": true,
+  "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+  "presealCommit": "94573dcaefad7db5d9ccf9a17c958a04eb8b422c",
+  "receiptSha256": "ae74c3f95061d481aec2dab99260214eb22babf5b1d2682b37928a9cc8dd62d6",
+  "records": [
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/ATTEMPT-STARTED.json",
+      "blob": "30d78c4a9331bc0fddd617a4441a6d3717fb668b",
+      "mode": 420,
+      "sha256": "79e6f29b1d04f2fefd105fdbb976132c3c61df51161f50f68f3ebec6c943fb48",
+      "bytes": 1061,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/BUILD-PRESEAL.json",
+      "blob": "a93387c8660907a1095a0a128b66035559194bb8",
+      "mode": 420,
+      "sha256": "0577678fbc1a6f3cb73e615213c378645f0e7f706f620e9c7be1fbed95c8f469",
+      "bytes": 2792,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/COMPILER-PROCESS.json",
+      "blob": "3aa056b0f4050a141efbc523d0195379f7d1f090",
+      "mode": 420,
+      "sha256": "576130630afd01d3b0f05636e217575fcc781ea617af1f209233148beec1cabc",
+      "bytes": 2012,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/EXPECTED-HASHES.json",
+      "blob": "18ef1d320dab9cc31fcd96a13fbbae3c709f1358",
+      "mode": 420,
+      "sha256": "00d6b2c83977085cf60e2e038bb4a6792f8fd2fde0134a885be0212c4e09987c",
+      "bytes": 979,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/FINAL-SEAL.json",
+      "blob": "87fdb02f21e8a64a9b4bf136980c636138ebd54f",
+      "mode": 420,
+      "sha256": "c8c6b98809ddb909c4b93f6e057d67cfd566bbfbeafd7088b2b0eeb4ebafcdb6",
+      "bytes": 4673,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/FULL-RECEIPT.json",
+      "blob": "91ea1129ae7feb3671ef7b61299943765b06ff78",
+      "mode": 420,
+      "sha256": "edf7a483436475c87a3fb8293517788905d4669fb8515790be1e098a6fdbb14d",
+      "bytes": 7454,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/HANDOFF-BINDINGS.json",
+      "blob": "c3dd51b0e8960b37c0ebd0b3ac5493932c4679ec",
+      "mode": 420,
+      "sha256": "2916d1fc5c177c5f75c0607d6dbd29e3a5b3816fb0d3fb7be4da89e7cf213f3f",
+      "bytes": 12965,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INDEPENDENT-BUILD-RECEIPT.json",
+      "blob": "ba9ac0d96c44f44b6dfc18268fde3a437a26d845",
+      "mode": 420,
+      "sha256": "ae74c3f95061d481aec2dab99260214eb22babf5b1d2682b37928a9cc8dd62d6",
+      "bytes": 4718,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INDEPENDENT-PACKAGE-MAP.json",
+      "blob": "24089b2da0b8dca92a107cef2d07225354f54823",
+      "mode": 420,
+      "sha256": "1b44932f2d5a1da4c1ebfde6148bc5edac9e65411e98d6c821023b55b59c757b",
+      "bytes": 121291,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INPUTS.json",
+      "blob": "d1961e78d32c0bc11452ce1736211e2f014ebdaa",
+      "mode": 420,
+      "sha256": "63eaea01df7f206f0c0d10f9f7b39f4a3c83e1d6d63172582953cc261ba3c83c",
+      "bytes": 116989,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INTEGRITY-AFTER.json",
+      "blob": "907cde77b835fb92a5cddaa85f9088339670e438",
+      "mode": 420,
+      "sha256": "daf4d2b15c04e27b4b92085232eca32e0cf2796c09eb984a89c8d079aac0d0b0",
+      "bytes": 5962,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/OUTPUT-COMPARISONS.json",
+      "blob": "c1acf9b327be43e7cf365e58b44c1f713b4c6c20",
+      "mode": 420,
+      "sha256": "858f28b1581ade646aca4455593b9f3f6bf1e1272c8833b24d6a74bf3ccd69ad",
+      "bytes": 471772,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/PACKING.json",
+      "blob": "c2b000e4d348e6cd7ec0e40620fad023b502a9e6",
+      "mode": 420,
+      "sha256": "feb4cf9d2bddd7d50f8bd8b0076b1b3420319bb12713e5a5e246c642c1deb5fe",
+      "bytes": 850,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/RAW-OUTPUT-MAP.json",
+      "blob": "fe9deeee64cd115e00f9467ae9165703f4213144",
+      "mode": 420,
+      "sha256": "b7ac9c9c91a8978d1ac3c34672fc75b10683f10e0144d2ee2d279eef77212278",
+      "bytes": 121061,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/README.md",
+      "blob": "fcfe1d7e4ecb87bf3216a53c8ed3d166d7eb8763",
+      "mode": 420,
+      "sha256": "4c713c1e1b7d7b1b93bb4d175e04f42c9f4ca610eac2890c528829e2525e2c15",
+      "bytes": 5012,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/RECIPE.md",
+      "blob": "3095dda0391778b2cf7cef4c2fffe4b2713d66c9",
+      "mode": 420,
+      "sha256": "c0f5b4c60a94502031cea536a13ce231c1b7468cebeb4ea4c44e44da8ad8f6b1",
+      "bytes": 7880,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/RESULT.json",
+      "blob": "5fb73d16d68cd4cb1a3e1f22e870bb7056be79bb",
+      "mode": 420,
+      "sha256": "51a866934331d0f45d336d87f15b17464bcec75dadee795dbfa6c6b390a324ea",
+      "bytes": 3266,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/build-once.mjs",
+      "blob": "b661a5e19b7747c358e72080212ae782fffcdd3d",
+      "mode": 420,
+      "sha256": "07c20e18ab1f34299a2d00ca3c65588ce0f4964334ea2eb9b3b8a7d14cf134d2",
+      "bytes": 32955,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/compiler.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/compiler.stdout.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "liveMode": 420
+    },
+    {
+      "commit": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/verify-seal.mjs",
+      "blob": "21aeedf85518aeb8aefe7be87fdc9e6d11df7d9d",
+      "mode": 420,
+      "sha256": "7939beab866908f98e12bd3d90fc65b038c6b65fba99a184ea60e2148bfb12fa",
+      "bytes": 1784,
+      "liveMode": 420
+    }
+  ],
+  "scopeSnapshot": [
+    {
+      "path": ".",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": "ATTEMPT-STARTED.json",
+      "kind": "file",
+      "sha256": "79e6f29b1d04f2fefd105fdbb976132c3c61df51161f50f68f3ebec6c943fb48",
+      "bytes": 1061,
+      "mode": 420
+    },
+    {
+      "path": "BUILD-PRESEAL.json",
+      "kind": "file",
+      "sha256": "0577678fbc1a6f3cb73e615213c378645f0e7f706f620e9c7be1fbed95c8f469",
+      "bytes": 2792,
+      "mode": 420
+    },
+    {
+      "path": "COMPILER-PROCESS.json",
+      "kind": "file",
+      "sha256": "576130630afd01d3b0f05636e217575fcc781ea617af1f209233148beec1cabc",
+      "bytes": 2012,
+      "mode": 420
+    },
+    {
+      "path": "EXPECTED-HASHES.json",
+      "kind": "file",
+      "sha256": "00d6b2c83977085cf60e2e038bb4a6792f8fd2fde0134a885be0212c4e09987c",
+      "bytes": 979,
+      "mode": 420
+    },
+    {
+      "path": "FINAL-SEAL.json",
+      "kind": "file",
+      "sha256": "c8c6b98809ddb909c4b93f6e057d67cfd566bbfbeafd7088b2b0eeb4ebafcdb6",
+      "bytes": 4673,
+      "mode": 420
+    },
+    {
+      "path": "FULL-RECEIPT.json",
+      "kind": "file",
+      "sha256": "edf7a483436475c87a3fb8293517788905d4669fb8515790be1e098a6fdbb14d",
+      "bytes": 7454,
+      "mode": 420
+    },
+    {
+      "path": "HANDOFF-BINDINGS.json",
+      "kind": "file",
+      "sha256": "2916d1fc5c177c5f75c0607d6dbd29e3a5b3816fb0d3fb7be4da89e7cf213f3f",
+      "bytes": 12965,
+      "mode": 420
+    },
+    {
+      "path": "INDEPENDENT-BUILD-RECEIPT.json",
+      "kind": "file",
+      "sha256": "ae74c3f95061d481aec2dab99260214eb22babf5b1d2682b37928a9cc8dd62d6",
+      "bytes": 4718,
+      "mode": 420
+    },
+    {
+      "path": "INDEPENDENT-PACKAGE-MAP.json",
+      "kind": "file",
+      "sha256": "1b44932f2d5a1da4c1ebfde6148bc5edac9e65411e98d6c821023b55b59c757b",
+      "bytes": 121291,
+      "mode": 420
+    },
+    {
+      "path": "INPUTS.json",
+      "kind": "file",
+      "sha256": "63eaea01df7f206f0c0d10f9f7b39f4a3c83e1d6d63172582953cc261ba3c83c",
+      "bytes": 116989,
+      "mode": 420
+    },
+    {
+      "path": "INTEGRITY-AFTER.json",
+      "kind": "file",
+      "sha256": "daf4d2b15c04e27b4b92085232eca32e0cf2796c09eb984a89c8d079aac0d0b0",
+      "bytes": 5962,
+      "mode": 420
+    },
+    {
+      "path": "OUTPUT-COMPARISONS.json",
+      "kind": "file",
+      "sha256": "858f28b1581ade646aca4455593b9f3f6bf1e1272c8833b24d6a74bf3ccd69ad",
+      "bytes": 471772,
+      "mode": 420
+    },
+    {
+      "path": "PACKING.json",
+      "kind": "file",
+      "sha256": "feb4cf9d2bddd7d50f8bd8b0076b1b3420319bb12713e5a5e246c642c1deb5fe",
+      "bytes": 850,
+      "mode": 420
+    },
+    {
+      "path": "RAW-OUTPUT-MAP.json",
+      "kind": "file",
+      "sha256": "b7ac9c9c91a8978d1ac3c34672fc75b10683f10e0144d2ee2d279eef77212278",
+      "bytes": 121061,
+      "mode": 420
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "sha256": "4c713c1e1b7d7b1b93bb4d175e04f42c9f4ca610eac2890c528829e2525e2c15",
+      "bytes": 5012,
+      "mode": 420
+    },
+    {
+      "path": "RECIPE.md",
+      "kind": "file",
+      "sha256": "c0f5b4c60a94502031cea536a13ce231c1b7468cebeb4ea4c44e44da8ad8f6b1",
+      "bytes": 7880,
+      "mode": 420
+    },
+    {
+      "path": "RESULT.json",
+      "kind": "file",
+      "sha256": "51a866934331d0f45d336d87f15b17464bcec75dadee795dbfa6c6b390a324ea",
+      "bytes": 3266,
+      "mode": 420
+    },
+    {
+      "path": "build-once.mjs",
+      "kind": "file",
+      "sha256": "07c20e18ab1f34299a2d00ca3c65588ce0f4964334ea2eb9b3b8a7d14cf134d2",
+      "bytes": 32955,
+      "mode": 420
+    },
+    {
+      "path": "compiler.stderr.txt",
+      "kind": "file",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420
+    },
+    {
+      "path": "compiler.stdout.txt",
+      "kind": "file",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420
+    },
+    {
+      "path": "verify-seal.mjs",
+      "kind": "file",
+      "sha256": "7939beab866908f98e12bd3d90fc65b038c6b65fba99a184ea60e2148bfb12fa",
+      "bytes": 1784,
+      "mode": 420
+    }
+  ],
+  "compilerProcess": {
+    "pid": 86780,
+    "startedAt": "2026-08-28T10:17:29.000Z",
+    "exitedAt": "2026-08-28T10:17:33.813Z",
+    "closedAt": "2026-08-28T10:17:33.813Z",
+    "elapsedMs": 4812.600917,
+    "exitCode": 0,
+    "signal": null,
+    "spawnError": null,
+    "timedOut": false,
+    "overflow": false,
+    "exitSeen": true,
+    "closeObserved": true,
+    "reapTimedOut": false,
+    "reaped": true,
+    "groupAbsent": true,
+    "signals": [],
+    "stdoutObservedBytes": 0,
+    "stderrObservedBytes": 0,
+    "command": {
+      "executable": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/node",
+      "args": [
+        "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/typescript/lib/tsc.js",
+        "--project",
+        "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source/tsconfig.build.json",
+        "--outDir",
+        "/private/tmp/yq-independent-build-35da1854-PJ4uYL/raw-output/dist",
+        "--typeRoots",
+        "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/types"
+      ],
+      "cwd": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source",
+      "umask": 18,
+      "env": {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/home",
+        "TMPDIR": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/scratch"
+      }
+    },
+    "bounds": {
+      "deadlineMs": 120000,
+      "termGraceMs": 2000,
+      "reapMs": 5000,
+      "captureBytesPerStream": 4194304,
+      "treeBytes": 67108864,
+      "treeEntries": 4096
+    },
+    "stdout": {
+      "path": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/evidence/compiler.stdout",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420
+    },
+    "stderr": {
+      "path": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/evidence/compiler.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "mode": 420
+    },
+    "captureBeforeAssertion": true,
+    "rawOutputRoot": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/raw-output"
+  },
+  "receipt": {
+    "schema": 1,
+    "candidateCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+    "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+    "packageMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088",
+    "classification": "INDEPENDENT_SCOPED_BUILD_WITH_EXPLICIT_SOURCE_MAP_RELOCATION",
+    "independentlyCompiled": true,
+    "rootTrustedBuildReceipt": false,
+    "buildPresealSha256": "0577678fbc1a6f3cb73e615213c378645f0e7f706f620e9c7be1fbed95c8f469",
+    "compilerProcess": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/COMPILER-PROCESS.json",
+      "sha256": "576130630afd01d3b0f05636e217575fcc781ea617af1f209233148beec1cabc",
+      "bytes": 2012,
+      "mode": 420
+    },
+    "comparisons": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/OUTPUT-COMPARISONS.json",
+      "sha256": "858f28b1581ade646aca4455593b9f3f6bf1e1272c8833b24d6a74bf3ccd69ad",
+      "bytes": 471772,
+      "mode": 420
+    },
+    "rawOutputMap": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/RAW-OUTPUT-MAP.json",
+      "sha256": "b7ac9c9c91a8978d1ac3c34672fc75b10683f10e0144d2ee2d279eef77212278",
+      "bytes": 121061,
+      "mode": 420
+    },
+    "independentPackageMap": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INDEPENDENT-PACKAGE-MAP.json",
+      "sha256": "1b44932f2d5a1da4c1ebfde6148bc5edac9e65411e98d6c821023b55b59c757b",
+      "bytes": 121291,
+      "mode": 420
+    },
+    "packing": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/PACKING.json",
+      "sha256": "feb4cf9d2bddd7d50f8bd8b0076b1b3420319bb12713e5a5e246c642c1deb5fe",
+      "bytes": 850,
+      "mode": 420
+    },
+    "integrityAfter": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INTEGRITY-AFTER.json",
+      "sha256": "daf4d2b15c04e27b4b92085232eca32e0cf2796c09eb984a89c8d079aac0d0b0",
+      "bytes": 5962,
+      "mode": 420
+    },
+    "command": {
+      "executable": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/node",
+      "args": [
+        "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/typescript/lib/tsc.js",
+        "--project",
+        "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source/tsconfig.build.json",
+        "--outDir",
+        "/private/tmp/yq-independent-build-35da1854-PJ4uYL/raw-output/dist",
+        "--typeRoots",
+        "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/types"
+      ],
+      "cwd": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source",
+      "umask": 18,
+      "env": {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "TZ": "UTC",
+        "HOME": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/home",
+        "TMPDIR": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/scratch"
+      }
+    },
+    "toolPins": {
+      "node": {
+        "original": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "copied": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/node",
+        "version": "v22.22.2",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "bytes": 112989184,
+        "mode": 493
+      },
+      "typescript": {
+        "path": "node_modules/typescript",
+        "version": "5.9.3",
+        "sha256": "11b47d397f587bd61bda8ebad9e87ed9f11cc95a2503309c88aaceadc3c39410",
+        "entries": 147
+      },
+      "nodeTypes": {
+        "path": "node_modules/@types/node",
+        "sha256": "6eeb16f926819ced24c5dc85a8f6c6c7b03254d56848d2a11113b923469706a9",
+        "entries": 83
+      },
+      "undiciTypes": {
+        "path": "node_modules/undici-types",
+        "sha256": "b54bcdc8b6540ae264924c04ed48eaa7a2ff3c3d6805f978a91232ff3d9331eb",
+        "entries": 41
+      }
+    },
+    "sourceFiles": 271,
+    "sourceArchiveFiles": 273,
+    "compiledSourceFiles": 217,
+    "compilerOutputs": 868,
+    "rawEqualOutputs": 434,
+    "explicitlyRelocatedMaps": 434,
+    "finalEqualOutputs": 868,
+    "fullPackageFiles": 870,
+    "artifact": {
+      "path": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/evidence/virtual-bash-0.0.0.tgz",
+      "sha256": "2942ba1f6982a2e217350bbbad420e93d43e9336324b6db8a3d1d88b5a7aee4d",
+      "bytes": 782141,
+      "mode": 420
+    },
+    "evidenceSourceCommit": "ef6032b210feb5cf19e6f6f94c40413740bef335",
+    "sourceOrigin": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+    "semanticPasses": 0,
+    "publicIntegration": "ABSENT_EXPECTED",
+    "rootRouting": "New proof only; old integration-v2 explicitly pins BOUND_AUTHOR_BUILD. Root must route this additive receipt without modifying history."
+  },
+  "findings": "Committed independent compile evidence has zero-exit/reap; selected271 source, raw868 emitted files and exact final870 package map/hash authenticated. JS/declarations434 raw equal; maps434 equality requires explicitly disclosed relocation. No build rerun by this reviewer.",
+  "separateAdditiveProof": true,
+  "frozenExecutionEnvelopeChanged": false,
+  "executionClassification": "AUTHOR_ARTIFACT_BINDING_ONLY",
+  "publicIntegration": false,
+  "compilerRunsByThisReviewer": 0,
+  "semanticPassesAdded": 0
+}

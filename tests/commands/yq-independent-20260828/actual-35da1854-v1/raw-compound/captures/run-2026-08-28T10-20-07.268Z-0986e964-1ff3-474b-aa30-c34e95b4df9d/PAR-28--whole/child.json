@@ -1,0 +1,13 @@
+{
+  "pid": 89155,
+  "group": 89155,
+  "exitCode": 0,
+  "signal": null,
+  "timedOut": false,
+  "overflow": false,
+  "spawnError": null,
+  "closed": true,
+  "reaped": true,
+  "kills": [],
+  "elapsedMs": 309
+}

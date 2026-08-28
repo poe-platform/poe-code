@@ -1,0 +1,98 @@
+{
+  "originalIds": 194,
+  "overlays": [
+    "NUM-14",
+    "NUM-15",
+    "UTF-12",
+    "ENC-07",
+    "QUE-12",
+    "WRK-10",
+    "WRK-22",
+    "WRK-26"
+  ],
+  "roleCounts": {
+    "command-semantic-runtime": 111,
+    "admission-error-boundary": 34,
+    "source-static-counterproof": 23,
+    "lifecycle-cooperative": 11,
+    "materialized-package-infrastructure": 4,
+    "type-consumer": 5,
+    "negative-control": 6
+  },
+  "aggregate": "FAIL",
+  "stopped": "total-admission-bound",
+  "admittedChildren": 167,
+  "runtimeJobs": 166,
+  "runtimeUniqueOriginalIds": 132,
+  "byEnvironment": {
+    "original-runtime": {
+      "jobs": 149,
+      "uniqueOriginalIds": 132,
+      "scopedMatches": 120,
+      "failedJobs": 29,
+      "unfulfilledJobs": 28,
+      "semanticRoleUniqueIdsObserved": 111,
+      "semanticRoleUniqueIdsAllAdmittedFragmentsMatched": 86,
+      "roles": {
+        "command-semantic-runtime": {
+          "jobs": 128,
+          "scopedMatches": 103,
+          "failures": 25
+        },
+        "admission-error-boundary": {
+          "jobs": 21,
+          "scopedMatches": 17,
+          "failures": 4
+        }
+      },
+      "noFullRecordPassClaim": true
+    },
+    "moved-runtime": {
+      "jobs": 17,
+      "uniqueOriginalIds": 17,
+      "scopedMatches": 14,
+      "failedJobs": 3,
+      "unfulfilledJobs": 3,
+      "semanticRoleUniqueIdsObserved": 3,
+      "semanticRoleUniqueIdsAllAdmittedFragmentsMatched": 3,
+      "roles": {
+        "command-semantic-runtime": {
+          "jobs": 3,
+          "scopedMatches": 3,
+          "failures": 0
+        },
+        "admission-error-boundary": {
+          "jobs": 14,
+          "scopedMatches": 11,
+          "failures": 3
+        }
+      },
+      "noFullRecordPassClaim": true
+    }
+  },
+  "workerFailures": 0,
+  "loadedCodeChildren": 0,
+  "typeWorkerChildren": 0,
+  "sourceStaticDesignatedIds": 23,
+  "sourceStaticCounterproofIds": [
+    "WRK-06",
+    "WRK-07",
+    "WRK-13",
+    "WRK-17"
+  ],
+  "semanticEligibilityNotResults": {
+    "completeProjection": 94,
+    "partial": 17
+  },
+  "missingBindings": {
+    "records": 80,
+    "noRuntimeAdapter": 62,
+    "partialRuntime": 18,
+    "resolvedByThisPreparation": 0
+  },
+  "fullRecordPasses": 0,
+  "publicIntegration": false,
+  "noOverallAcceptance": true,
+  "noAddedRuntimeProbes": true,
+  "genuineFailedCaseRetries": 0
+}

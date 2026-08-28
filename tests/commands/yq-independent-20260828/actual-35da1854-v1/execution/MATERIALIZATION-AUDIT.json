@@ -1,0 +1,227 @@
+{
+  "moves": [
+    {
+      "jobId": "CMD-01--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-01--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-GCtGw0/stage",
+      "directoryIdentity": {
+        "ino": 181287356,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    },
+    {
+      "jobId": "CMD-02--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-02--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-MN3LZc/stage",
+      "directoryIdentity": {
+        "ino": 181288440,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    },
+    {
+      "jobId": "CMD-03--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-03--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-xq7P8H/stage",
+      "directoryIdentity": {
+        "ino": 181289540,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    },
+    {
+      "jobId": "CMD-04--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-04--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-maHmbU/stage",
+      "directoryIdentity": {
+        "ino": 181290628,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    },
+    {
+      "jobId": "CMD-05--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-05--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-91OkeD/stage",
+      "directoryIdentity": {
+        "ino": 181292201,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    },
+    {
+      "jobId": "CMD-06--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-06--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-faHMAM/stage",
+      "directoryIdentity": {
+        "ino": 181294543,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    },
+    {
+      "jobId": "CMD-07--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-07--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-Uo9XxN/stage",
+      "directoryIdentity": {
+        "ino": 181296068,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    },
+    {
+      "jobId": "CMD-08--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-08--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-1k8OFR/stage",
+      "directoryIdentity": {
+        "ino": 181297217,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    },
+    {
+      "jobId": "CMD-09--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-09--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-TCUPt8/stage",
+      "directoryIdentity": {
+        "ino": 181300009,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    },
+    {
+      "jobId": "CMD-10--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-10--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-nhFgT1/stage",
+      "directoryIdentity": {
+        "ino": 181301158,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    },
+    {
+      "jobId": "CMD-11--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-11--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-nkAfaV/stage",
+      "directoryIdentity": {
+        "ino": 181303009,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    },
+    {
+      "jobId": "CMD-12--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-12--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-vPCrpc/stage",
+      "directoryIdentity": {
+        "ino": 181306138,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    },
+    {
+      "jobId": "CMD-13--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-13--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-tv2Jio/stage",
+      "directoryIdentity": {
+        "ino": 181313567,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    },
+    {
+      "jobId": "CMD-14--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-14--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-DsuXlY/stage",
+      "directoryIdentity": {
+        "ino": 181315261,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    },
+    {
+      "jobId": "CMD-15--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-15--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-1ir4hm/stage",
+      "directoryIdentity": {
+        "ino": 181316496,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    },
+    {
+      "jobId": "CMD-16--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-16--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-7TU3Vk/stage",
+      "directoryIdentity": {
+        "ino": 181321011,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    },
+    {
+      "jobId": "CMD-17--whole",
+      "mode": "moved-runtime",
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/moved-runtime-CMD-17--whole",
+      "staging": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/moves/.yq-materialization-OTZswr/stage",
+      "directoryIdentity": {
+        "ino": 181326096,
+        "dev": 16777232
+      },
+      "files": 870,
+      "completeMembershipModesHashes": true,
+      "treeDigest": "26f9c5081ca3892cc97589947d25a9844dfa0faed0d236d9217929f5343fcf2a"
+    }
+  ],
+  "noReplayOfPriorMoves": true,
+  "completeAddedEntryGuards": true
+}

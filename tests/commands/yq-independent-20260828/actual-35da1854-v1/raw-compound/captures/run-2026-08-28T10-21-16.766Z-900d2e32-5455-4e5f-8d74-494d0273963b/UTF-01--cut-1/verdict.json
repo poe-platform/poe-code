@@ -1,0 +1,21 @@
+{
+  "jobId": "UTF-01--cut-1",
+  "admitted": true,
+  "outcome": "PASS",
+  "failures": [],
+  "integrity": true,
+  "reapProof": true,
+  "metadata": {
+    "pid": 89597,
+    "group": 89597,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 317
+  }
+}

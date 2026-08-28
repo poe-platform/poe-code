@@ -1,0 +1,1363 @@
+{
+  "schema": 1,
+  "aggregate": "FAIL",
+  "stopped": "total-admission-bound",
+  "rootHash": "74afb45f09d1a7189f816ec09a68fe1727a4cab3a285ba844f05d7a7e3afdce9",
+  "sealHash": "47c3874f520efee18062d4b2e687159a52039a86d35945a7f5371e85eb00fdff",
+  "results": [
+    {
+      "mode": "source-admission",
+      "jobId": "source-admission",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-18-46.634Z-f00f1a4b-b9c6-4fe9-9b66-4896a79eaf36",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-01--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-03.653Z-ca7e09ae-40ca-47c0-a70b-6c3da221b7e9",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-02--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-04.974Z-fece9aab-2b40-49ba-b12c-af75f59482a3",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-03--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-06.357Z-e473762d-2566-41e8-9140-068051719c22",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-04--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-07.595Z-2650a388-4f4e-40f6-8853-b4358427135b",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-05--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-08.854Z-a37929ee-4d30-48ef-ae81-8bac807715b9",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-06--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-10.028Z-44734b67-aa54-43a8-b912-5e0f65ba7aae",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-07--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-11.199Z-5365e0ca-250a-4347-99a7-d942a76a1906",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-08--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-12.396Z-5f9ddf55-d29b-4833-b552-9af60d9b3603",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-09--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-13.607Z-1055111e-ef45-4f9c-8c36-1cf132081844",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-10--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-14.810Z-268697d2-b476-4d34-b57d-925f712c509f",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-11--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-15.984Z-e8e96ff7-3665-4967-b470-6f44165311bd",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-12--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-17.166Z-d3fd4290-9d0b-4fee-b281-153624a928bf",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-13--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-18.376Z-9dd12804-c96e-43e1-87b9-c47e21634e09",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-14--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-19.575Z-f7c577cd-bb6e-490c-84e2-fdfdd37a3fea",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-15--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-20.833Z-e9d5a22a-0b0c-4b8d-a2fb-a75dfd328fc2",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-16--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-22.051Z-44940a82-2326-4ed3-a5b4-09486240334e",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-17--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-23.235Z-3b083db7-f8e2-4071-99cd-28fd50de1888",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-18--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-24.430Z-1ac3882b-4b81-485a-a6bb-f56f1f448435",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-19--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-25.593Z-9d764279-ade7-4ad7-9c52-7ada1fd44203",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-20--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-26.867Z-2f2a3930-2032-446d-b646-bc574e0ba821",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-21--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-28.333Z-f6dd99aa-96b1-4ab1-8b06-9a5c97d9f030",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-22--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-23--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-30.801Z-7ec060d2-f57a-44cc-8c07-7661bd608daa",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "CMD-24--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-31.960Z-de7f884e-4562-4263-9b77-7a3b3559374d",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-01--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-33.201Z-862a6791-a854-4923-90a4-f32bfa6db8c2",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-02--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-34.401Z-d78c39ed-d3d7-47d7-85c6-b2e3eef4b5c9",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-03--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-35.544Z-3ca0bd50-c722-4265-9424-35bb27d742fa",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-04--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-36.791Z-7fc5cb95-4cea-4300-8838-969c6e47991c",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-05--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-37.956Z-5fb39ff0-dcbe-49f3-8d7f-4c4f14cc0da2",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-06--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-39.131Z-0ae20a20-b74f-4a45-b3b9-2c00d9b7df6a",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-07--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-40.326Z-85eb4778-ea28-45b3-b4a8-597b532b7763",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-08--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-41.635Z-c2cda14b-51c8-49fc-860a-613dd783d25c",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-09--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-42.812Z-99243e8c-3eb8-4120-bd07-ea9edef49c46",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-10--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-43.999Z-e96f0523-08a6-49e5-ba59-2faa12dbf1d1",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-11--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-45.164Z-13d4e332-d78d-41c2-8592-bc0f520d3fdf",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-12--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-46.365Z-ff9ffda6-7232-4697-9016-23ab6f6c32cf",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-13--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-47.690Z-072c0a1f-b7e8-4ab7-ad8b-e65acc88fd72",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-14--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-49.139Z-63c9ca1d-50cb-48ae-bbd4-8f3a0564babf",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-15--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-50.506Z-8e7e87b7-5255-4894-9428-23de894be050",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-16--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-51.901Z-1a7a1406-3ed9-4fef-bafa-cd633ba6fc7a",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-17--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-53.304Z-549229c8-1edb-47fb-a264-0b4bbc50c9ba",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-18--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-54.688Z-aba71f4f-2563-4e03-a93e-b2d7c1a1ac38",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-19--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-56.107Z-051e28bb-4790-4aa5-80ba-e0512bf65fba",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-20--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-57.413Z-482f99cc-ad97-4699-a532-540f2a2e4c61",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-21--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-58.631Z-faf68d57-dd6c-48c5-9bf5-48459a1cab2e",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-22--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-19-59.817Z-fe177081-f3ab-40b9-b540-4da8b2973759",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-23--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-01.001Z-96dce685-2c90-4df2-a30f-e7f27e87b0ba",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-24--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-02.185Z-fc0e454a-9ace-4480-b504-afa6150a462c",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-25--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-03.613Z-ef912a85-a131-41d4-b4ae-d6f9ca027483",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-26--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-04.810Z-0d92828b-4edd-4225-9a9b-757866c1ce81",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-27--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-05.986Z-2879480b-c78f-496d-8517-791ed553c1ad",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-28--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-07.268Z-0986e964-1ff3-474b-aa30-c34e95b4df9d",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-29--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-08.470Z-6c3c6149-c882-4d39-a481-20b40d770b23",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-30--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-09.654Z-f7ca94d7-30ee-4d94-974c-f2090b3782a3",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-31--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-10.869Z-a6080e3d-7c58-46ee-a168-d89fdb89cb08",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-32--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-12.045Z-0a863c10-aa49-49f8-bb15-1b7f8aa37667",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-33--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-13.197Z-d6bc863c-2b06-4160-a1ad-fbab7f421b38",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-34--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-14.388Z-796a0a70-ce1c-497f-afd9-67b8075f454b",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-35--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-15.591Z-3e159c23-6ad7-4785-8a77-633d53d3d6cd",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "PAR-36--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-16.775Z-9c96a1c2-dc8c-434d-a752-6f91b4f363b9",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "NUM-01--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-18.001Z-61bafd26-d777-4e54-82ec-697560130dd5",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "NUM-02--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-19.160Z-e584fd53-0b3c-49a8-a755-e6785b1aab63",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "NUM-03--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-20.334Z-f6972457-b310-4f6b-bd45-332d79fec83d",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "NUM-04--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-21.506Z-cf1591b5-f24b-49c4-9bfe-05a0f0a22325",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "NUM-05--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-22.681Z-14386570-0412-4f70-aaa1-c3d38e234a76",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "NUM-06--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-23.847Z-c0cf6a19-7c3f-4d49-b291-42df5e565486",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "NUM-07--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-25.011Z-dfbfbff0-b068-4a08-8950-f76ef38fc262",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "NUM-08--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-26.178Z-53ba0a58-eb86-47ae-9e34-77d911e2fcdf",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "NUM-09--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-27.397Z-faeb3219-4ffa-4f74-a1a9-f82541377ca9",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "NUM-10--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-28.559Z-fe93f8f9-1de1-41e1-a194-5ff8dd852318",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "NUM-11--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-29.716Z-bee41416-aae7-44ce-b443-d355fdf98b81",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "NUM-12--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-30.882Z-9ddcb1be-7400-4863-9ff3-893ea905d16f",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "NUM-13--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-32.101Z-e2375b07-c25f-481a-9eaa-3fba0abceed1",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "NUM-14--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-33.247Z-0e34f9fc-d1e6-440e-9458-b654455db4de",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "NUM-15--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-34.424Z-80a12e55-2e10-432b-9942-303b8556e1c1",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "NUM-16--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-35.610Z-44c99188-a1f8-4225-80d7-645c9dcfba7b",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ENC-01--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-36.806Z-dc0e2f72-2201-4b06-8dcf-adf27e102c89",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ENC-02--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-38.002Z-01aea115-1c28-4fd2-a52a-edb1021039b0",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ENC-03--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-39.175Z-b4d9cabe-4e2b-46fd-915d-925ecd5e4fea",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ENC-04--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-40.350Z-ae979bc8-836e-431e-b02f-6b99a53de39c",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ENC-05--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-41.572Z-62be9507-eecd-4d6e-8ead-b1577bfba2c5",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ENC-06--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-42.766Z-40dfc009-a21a-43d0-8c7f-ef50a9740949",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ENC-07--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-44.181Z-cab0a69b-d16f-4a56-b688-a46f8c6b52a1",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "QUE-01--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-45.404Z-6e50cf4b-8eb4-4c8c-adb9-bcdeff30f562",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "QUE-02--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-46.599Z-e87dc363-c5aa-49d0-8bd5-10aac0dac758",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "QUE-03--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-47.800Z-35e6e2a9-0322-411e-ad0d-d446a4b6f674",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "QUE-04--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-48.982Z-ba5986d8-8f06-4959-b093-7f89a08e0d37",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "QUE-05--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-50.156Z-9a510c75-c824-4e03-9590-d0737b3f32cd",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "QUE-06--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-51.341Z-d4e08d69-777f-433e-a78d-acc686e97b9b",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "QUE-07--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-52.552Z-251bfc25-fdaf-4f12-9dfc-78ddeb5b1aa2",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "QUE-08--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-53.767Z-38a12e4e-09a9-46b9-8529-3f55ce5f8056",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "QUE-12--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-54.942Z-9068b3fd-8b97-4bc8-afa3-fe2d85605e5b",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ALS-01--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-56.195Z-4ed8a111-e236-4dfd-bde7-eab1a4a86a8c",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ALS-02--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-57.427Z-8f773622-2aa0-4b21-8b5f-904c3562237a",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ALS-03--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-58.600Z-5d9f8b62-ac1c-43a6-b1b2-2ddf97a20fa0",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ALS-04--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-20-59.777Z-521bef0e-ee7a-4eb6-94c0-938c05fe2bf0",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ALS-05--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-00.946Z-2a232d58-610b-4c62-96c7-75eeb2cfb24e",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ALS-06--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-02.193Z-d8b3defd-d8bc-4589-ab83-130db57d7d4f",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ALS-07--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-03.404Z-4b3042e4-b79c-45f9-bc81-95b370358db3",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ALS-08--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-04.615Z-2d3d31fe-3d63-4103-8cdf-28530826cde9",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ALS-09--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-05.822Z-d6930708-681f-4f82-b378-a718afe4895b",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ALS-10--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-07.017Z-40d0da1e-746a-4f14-af8d-cfdf710fef74",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ALS-11--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-08.235Z-a5ee966f-648b-439c-b507-cae62ebc4a05",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ALS-12--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-09.452Z-5d7df1ee-9f2b-4a58-aedc-2d9bc0210fde",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ALS-13--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-10.677Z-deb289d1-d9e0-42ad-8318-d23de5e9344d",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ALS-14--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-11.876Z-5b61ea99-fd24-48a6-9a90-2abc2d423091",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "ALS-15--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-13.134Z-4bf938a7-4b1e-4fc1-954d-31d984dce318",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-01--single-byte",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-14.369Z-b0bef5b9-c469-49b7-b18b-2ec49344a72c",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-01--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-15.606Z-258b22cd-3fa3-4f70-94cc-c0507e18b215",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-01--cut-1",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-16.766Z-900d2e32-5455-4e5f-8d74-494d0273963b",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-01--cut-2",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-17.959Z-a3796d0d-2bf1-4c92-b473-9ab30ac2d925",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-01--cut-3",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-19.147Z-c1f4f82e-1755-4a39-8a44-38bde9d59a83",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-01--cut-4",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-20.379Z-f96da648-b37c-4801-a315-55d60d08ba3f",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-01--cut-5",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-21.589Z-ea3cca2b-28be-4150-ae65-8ad1a48d68a9",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-01--cut-6",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-22.756Z-1dc450bb-5426-4214-bf16-a165570334c9",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-01--cut-7",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-23.942Z-ad48e0bb-b826-4a0f-bcfd-f6ac95805005",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-01--cut-8",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-25.131Z-fbfaa14c-9a46-466a-9250-a8b7cd997867",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-01--cut-9",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-26.333Z-1ce85d9b-fc2d-4d35-9038-effbffb91acc",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-01--cut-10",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-27.524Z-600600ce-08f3-4d64-a0b9-ff8848057ca4",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-01--cut-11",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-28.831Z-84643738-6feb-4c78-8272-81be1d2ac4fd",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-02--single-byte",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-30.140Z-93a3a5ee-cf51-417d-916e-3ece1d224058",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-03--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-31.331Z-8718854a-3048-4255-9f06-fd8bafeb2df0",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-04--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-32.510Z-e1e3144b-41ac-4057-94b7-67befb1dcdf1",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-05--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-33.690Z-bdec4fec-59ec-4ef1-a8fa-9156449c57a8",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-06--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-34.839Z-c9c55033-d4e1-4f23-baed-bd6a0a1f7861",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-07--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-36.044Z-227f3f33-fc50-4129-87bb-a214177e7eee",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-08--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-37.222Z-e0b417d3-3c48-4b47-872a-4aec05123c5c",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-09--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-38.425Z-07ee017b-bf20-4f62-a43e-edde4c750983",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-10--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-39.618Z-8fe4b534-27b9-4250-abdc-32c2123cdd9f",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-11--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-40.798Z-b627bbc1-5836-4cef-ad8f-497a47af0cc6",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-12--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-41.959Z-37f358e6-6d01-4e5e-bec9-f78dd1a70e6e",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-13--single-byte",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-43.149Z-7a8844b9-8928-484b-bdf5-6ec5105937b9",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-13--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-44.386Z-ce716e4e-d086-460d-a9da-4f46f37360e1",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-13--cut-1",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-45.610Z-8ac53880-689e-41fe-946b-bd42cf028f42",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-13--cut-2",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-46.822Z-1ebe64a9-1d3f-4e9e-93fe-d3601aa12285",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-13--cut-3",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-48.136Z-f119dacf-b256-4722-b219-5193f77b00de",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-13--cut-4",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-49.328Z-e6bf628d-e045-4a99-b184-568f48ad9b97",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-14--single-byte",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-50.502Z-50be9ae9-33d7-4956-88dd-4c7524a48ba4",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-15--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-51.662Z-03f040b5-f8fa-4b46-8ad0-649d29130cd1",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-16--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-52.865Z-45ae064f-60bd-4f14-91d2-5902ff41d66f",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-17--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-54.121Z-f3bfc93a-6769-4a3a-bcb9-5e2f7e7df85d",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-18--single-byte",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-55.409Z-debe7672-a130-46b3-9ff8-e4979357b84b",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-19--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-56.637Z-21b66f97-e2cd-4a29-9a99-91d11ef6b62d",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-20--single-byte",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-57.971Z-8840ccc2-ec44-40e0-bc8d-4306d756ee65",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-21--single-byte",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-21-59.114Z-20c3529b-0955-478f-8658-b12bca6f9338",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "UTF-22--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-22-00.284Z-fccf9342-573d-4e20-8416-0d4fcf664d82",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "WRK-14--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-22-01.462Z-e096d758-5d0b-45e2-badb-76768c601a2d",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "FS-01--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-22-02.690Z-25d47b7d-fdfe-473e-81a0-d0111ead254a",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "original-runtime",
+      "jobId": "FS-05--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-22-03.879Z-e11933d3-f115-43a8-803c-2449a3820e8f",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-01--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-22-05.073Z-737aed76-f411-4b12-a719-2348b01aa180",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-02--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-22-22.929Z-7a38b647-8469-4c91-a503-50cce321f8bd",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-03--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-22-42.319Z-17ea1a1f-3194-443a-8d28-a50f6f258675",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-04--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-23-00.660Z-5b585ee1-fcf9-47f5-9cee-94cc54dd953e",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-05--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-23-19.919Z-0846ce2d-6ac8-41c3-8a57-07c00d444d04",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-06--whole",
+      "aggregate": "FAIL",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-23-42.994Z-50bbd8e3-c071-45d8-b57f-0b33f69b9db4",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-07--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-24-03.206Z-c01547fb-77ea-44a6-85a0-0e96805454f1",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-08--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-24-23.706Z-f0f87c58-b065-4a03-bd7d-ae12b237fe6b",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-09--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-24-45.757Z-441b35de-0e7c-4e8e-9459-af746e73ead6",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-10--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-25-10.261Z-e115e85c-5315-44c0-b549-a74821d09cbe",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-11--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-25-36.431Z-792f5a6f-805d-4a7b-ad09-37b25c115c7a",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-12--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-26-03.297Z-b70f17da-f663-45d3-b50e-2b11a6d1494f",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-13--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-26-34.389Z-2af168f0-570c-463a-85b2-ef962cb19995",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-14--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-27-05.961Z-40ea91ef-87aa-4c85-ade7-984b2045e8cd",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-15--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-27-36.740Z-03d26f30-682d-4d94-8d5f-5bcac13f543b",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-16--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-28-07.214Z-f39bc1fc-2554-4ec1-903b-258cedecb86c",
+      "admitted": 1,
+      "movementIntegrity": true
+    },
+    {
+      "mode": "moved-runtime",
+      "jobId": "CMD-17--whole",
+      "aggregate": "PASS",
+      "evidence": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/evidence/run-2026-08-28T10-18-46.284Z-6ba5b672-f03a-450f-9143-8a00f30a13e9/captures/run-2026-08-28T10-28-36.885Z-a2c5d9d5-ca7d-4175-9923-66aabab72d4b",
+      "admitted": 1,
+      "movementIntegrity": true
+    }
+  ],
+  "activeChildren": [],
+  "uniqueOriginalIds": 194,
+  "semanticEligibility": {
+    "eligibleIds": 111,
+    "completeExplicitProjectionIds": 94,
+    "partialIds": 17
+  },
+  "runtimeChildAdmissions": 166,
+  "missingBindings": {
+    "records": 80,
+    "noRuntimeAdapter": 62,
+    "partialRuntime": 18,
+    "resolvedByThisPreparation": 0
+  },
+  "publicStatus": "PUBLIC_EXPORT_GAP",
+  "buildProofClassification": "AUTHOR_ARTIFACT_BINDING_ONLY",
+  "semanticPassRate": "Not computed: two environments are not additive; 80 original binding gaps remain.",
+  "productAcceptance": false
+}

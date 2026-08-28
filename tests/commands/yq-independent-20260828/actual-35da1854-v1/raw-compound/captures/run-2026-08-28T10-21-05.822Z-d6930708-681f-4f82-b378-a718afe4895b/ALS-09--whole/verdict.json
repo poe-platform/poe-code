@@ -1,0 +1,21 @@
+{
+  "jobId": "ALS-09--whole",
+  "admitted": true,
+  "outcome": "PASS",
+  "failures": [],
+  "integrity": true,
+  "reapProof": true,
+  "metadata": {
+    "pid": 89523,
+    "group": 89523,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 320
+  }
+}

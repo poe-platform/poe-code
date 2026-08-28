@@ -1,0 +1,268 @@
+{
+  "createdAt": "2026-08-28T04:36:23.098Z",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+  "sourceCommit": "fb376b3a0bd390598038494235bec321a694383d",
+  "controlCommit": "1152411d112fc946eb8b69d656216a04368c4039",
+  "presealCommit": "794bfdbd586a058435433604814c6e047b75ebb9",
+  "driverSha256": "2922ac6400ecccce808431952e3aaccc97e20c2b4b2acc93041b514f52818809",
+  "projectionSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "expectedPackageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "controls": {
+    "pass": 14,
+    "fail": 0,
+    "groups": [
+      {
+        "name": "exact original five body streams have no physical instruction files",
+        "status": "PASS"
+      },
+      {
+        "name": "all presealed metadata fields and candidate binding fail closed",
+        "status": "PASS"
+      },
+      {
+        "name": "instruction path aliases and unsafe archive paths reject before writes",
+        "status": "PASS"
+      },
+      {
+        "name": "missing or tampered streamed logical proof never admits physical-only projection",
+        "status": "PASS"
+      },
+      {
+        "name": "missing added modified and mode-changed noninstruction inputs reject",
+        "status": "PASS"
+      },
+      {
+        "name": "corrupt and truncated instruction streams reject without plaintext writes",
+        "status": "PASS"
+      },
+      {
+        "name": "opaque history preserves real object identities with no checkout",
+        "status": "PASS"
+      },
+      {
+        "name": "symlink-to-instruction aliases reject while contained links remain usable",
+        "status": "PASS"
+      },
+      {
+        "name": "benchmark dependency projection is exact and reconciled",
+        "status": "PASS"
+      },
+      {
+        "name": "dependency missing-body origin alias and identity negatives reject",
+        "status": "PASS"
+      },
+      {
+        "name": "unapproved copy-tree instructions refuse before any copy",
+        "status": "PASS"
+      },
+      {
+        "name": "old release cannot authorize successor; imports remain inert",
+        "status": "PASS"
+      },
+      {
+        "name": "unchanged POSIX observer and actual duplicate-build control families",
+        "status": "PASS"
+      },
+      {
+        "name": "final instruction absence before evidence settlement",
+        "status": "PASS"
+      }
+    ],
+    "unchangedLegacy": {
+      "pass": 5,
+      "fail": 0
+    },
+    "nestedLegacy": {
+      "pass": 4,
+      "fail": 0
+    }
+  },
+  "review": {
+    "status": "REVIEW_ONLY_BUILD_TYPES_PASS",
+    "productionBuilds": 1,
+    "actualCompilerInvocations": 1,
+    "phases": [
+      {
+        "label": "cold-typecheck",
+        "status": 78,
+        "expectedStatus": 78,
+        "clean": true,
+        "closed": true,
+        "signals": [],
+        "survivors": []
+      },
+      {
+        "label": "typecheck-all",
+        "status": 0,
+        "expectedStatus": 0,
+        "clean": true,
+        "closed": true,
+        "signals": [],
+        "survivors": []
+      }
+    ],
+    "currentConsumers": 23,
+    "sourceConsumers": 3,
+    "negativeGroups": 3,
+    "declarations": 208,
+    "emittedFiles": 832,
+    "runtimeExecutions": 0,
+    "guardsPassed": true,
+    "cleanupComplete": true,
+    "outerClean": true,
+    "outerSurvivors": []
+  },
+  "projection": {
+    "format": "unified76-logical-projection-v1",
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "projectionSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb",
+    "entriesSha256": "62cac7ea25b6d6904438d0ebb1d2fca95d677a4ecd7e635c9d3e33fe83df89b8",
+    "logical": {
+      "entries": 37397,
+      "bytes": 2382440321
+    },
+    "physical": {
+      "entries": 37392,
+      "bytes": 2382392469
+    },
+    "metadataOnly": [
+      {
+        "path": "AGENTS.md",
+        "mode": "100644",
+        "blob": "d24f9e50fc271acbedf14c6bf415393572376622",
+        "bytes": 12424,
+        "sha256": "d54a4610a70cb11e81ce06471951c40fd5f96707fd28d802844fa06e977605a8"
+      },
+      {
+        "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      }
+    ]
+  },
+  "dependencyProjection": [
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules",
+      "logical": {
+        "files": 314,
+        "bytes": 48179371,
+        "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+      },
+      "physical": {
+        "files": 314,
+        "bytes": 48179371,
+        "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+      },
+      "metadataOnly": [],
+      "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+      "logical": {
+        "files": 3497,
+        "bytes": 75292558,
+        "sha256": "101679a28f9b302d6d17553344cbc427807a0510c66246fff3162cb86e033b3e"
+      },
+      "physical": {
+        "files": 3496,
+        "bytes": 75283327,
+        "sha256": "60a11cf540097d742ec2d916414e6b392bf4aa1fa9862919c9ae69138e1e8137"
+      },
+      "metadataOnly": [
+        {
+          "role": "benchmark",
+          "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+          "path": "just-bash/dist/AGENTS.md",
+          "mode": "100644",
+          "bytes": 9231,
+          "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979"
+        }
+      ],
+      "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+    }
+  ],
+  "physicalInstructionPaths": [],
+  "finalSixChecks": [
+    {
+      "path": "AGENTS.md",
+      "physical": false
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+      "physical": false
+    },
+    {
+      "path": "tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+      "physical": false
+    },
+    {
+      "path": "tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+      "physical": false
+    },
+    {
+      "path": "tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+      "physical": false
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/AGENTS.md",
+      "physical": false
+    }
+  ],
+  "emittedComparison": {
+    "priorReportAvailable": true,
+    "qualification": "No new npm pack; expected c109 retains prior independently reproduced provenance.",
+    "currentEmittedFiles": 832,
+    "priorEmittedFiles": 832,
+    "identicalEmittedManifest": true,
+    "currentEmittedManifestSha256": "3760c3b33307ffc7e4ed26c34073cda665d48a742cd3cc69f1894f6ee50e72fc",
+    "priorEmittedManifestSha256": "3760c3b33307ffc7e4ed26c34073cda665d48a742cd3cc69f1894f6ee50e72fc"
+  },
+  "preservedHistory": {
+    "originalCopyDefect": "a9ec3561: five candidate plus one benchmark plaintext copies; zero full phases; no rescore",
+    "controlV1": "empty-directory cleanup bug; exit1 before final summary; no instruction body created",
+    "controlV2": {
+      "pass": 13,
+      "fail": 1,
+      "reason": "nonexistent author-guessed baseline import target"
+    },
+    "controlV3": {
+      "pass": 14,
+      "fail": 0
+    }
+  },
+  "scope": {
+    "fullGateLaunched": false,
+    "fullGateReleased": false,
+    "independentlyAccepted": false,
+    "privateEngineExecuted": false,
+    "nativeSemanticsExecuted": false,
+    "newPackagePacked": false,
+    "fullHistoryTransportRepeated": false
+  },
+  "remaining": "Dirac independent successor review, new complete binding and explicit rebound root release before any full gate"
+}

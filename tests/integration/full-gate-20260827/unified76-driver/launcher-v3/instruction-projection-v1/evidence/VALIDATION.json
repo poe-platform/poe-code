@@ -1,0 +1,39 @@
+{
+  "createdAt": "2026-08-28T04:37:24.822Z",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "source": "fb376b3a0bd390598038494235bec321a694383d",
+  "driverScopeFiles": 32,
+  "sourceMismatches": [],
+  "raw": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/CONTROLS-V2.json.gz.base64",
+      "bytes": 32163,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/CONTROLS-V3.json.gz.base64",
+      "bytes": 31322,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/BUILD-TYPES.json.gz.base64",
+      "bytes": 31300316,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/TYPECHECK.json.gz.base64",
+      "bytes": 30868204,
+      "verified": true
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/OUTER.json.gz.base64",
+      "bytes": 107846,
+      "verified": true
+    }
+  ],
+  "physicalInstructionTargetsAbsent": true,
+  "fullGateLaunched": false,
+  "privateAccess": false,
+  "packageRebuilt": false,
+  "emittedFilesIdentical": true
+}

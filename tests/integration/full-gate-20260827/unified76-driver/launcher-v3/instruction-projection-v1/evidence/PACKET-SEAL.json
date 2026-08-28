@@ -1,0 +1,20 @@
+{
+  "createdAt": "2026-08-28T04:37:40.404Z",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "source": "fb376b3a0bd390598038494235bec321a694383d",
+  "driverSha256": "2922ac6400ecccce808431952e3aaccc97e20c2b4b2acc93041b514f52818809",
+  "files": {
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/CONTROLS-V2.json.gz.base64": "486cad61e7894726b82e817503b13e99fdec5ee3c1b4738fa87b8740a014eb8c",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/CONTROLS-V3.json.gz.base64": "248a9ed8c5a387d276bd0e3815009eb746756a77b832c79120dd9b7c9beebfc7",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/BUILD-TYPES.json.gz.base64": "40159c1ed938b0ea1793d194062db0d079019e97d46a2a38bc5306dadc72c2c4",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/TYPECHECK.json.gz.base64": "bcd16aa2af0feb14feff0ced511fc21c7e9064960f4b27bbb03b0487d527ef2a",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/OUTER.json.gz.base64": "4973367171c40a31785495e88c0b708d3b33a8de5f11b2a0cf4bcb4645d601a7",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/RAW-INDEX.json": "97bdefdea3830435b819bb74673a14c7783401e208af3ec823c755976161a7c9",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/SUMMARY.json": "03d20b59207f1ce268a781a131b34e1a842ae45c7f25cb3548e762a76fa733e5",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/evidence/VALIDATION.json": "abed651f23fc94f244b4ffb55b7b6cb2a2aed4ba89efb5145dafc9c3f8ba81b8",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/HANDOFF.md": "89614b55c594840bd40805fe244ff6a13c17510ea312b783f5f7886edd448e6a"
+  },
+  "independentReview": "PENDING_DIRAC",
+  "fullRelease": "HOLD_REBOUND_ROOT_RELEASE_REQUIRED",
+  "fullGateLaunched": false
+}

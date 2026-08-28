@@ -1,0 +1,5 @@
+
+> virtual-bash@0.0.0 typecheck:all
+> node scripts/typecheck.mjs --build --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/raw-followup/typecheck-all
+
+{"status":"typecheck-failed","builds":0,"currentConsumerGroups":0,"runtimeExecutions":0,"cleaned":true}

@@ -1,0 +1,15 @@
+{
+  "schema": "unified76-shared-v6-followup2-freeze",
+  "createdAt": "2026-08-28T03:44:45.736Z",
+  "priorFreeze": "872bfd39",
+  "priorRawSha256": "c5ab3e410085f1262160e2f67e49874a14e26070b466bb48dc82920f60c17325",
+  "preservedResult": "cold78 as expected; typecheckall1/builds0 before compilation: git ls-files selected /usr/bin/git Apple shim and sandbox refused its xcodebuild dispatch. Positive FAIL, duplicate NOT_EXECUTED. No product code failure.",
+  "exactChange": "Prepend dirname of already authenticated /Applications/Xcode.app/Contents/Developer/usr/bin/git to clean PATH after pinned Node. No permission addition, no xcodebuild executable, no tool substitution beyond pinned intended Git; actual shared functions/source/env otherwise identical. New owned empty work-followup2/raw-followup2; no historical edits or hidden retries.",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/review-followup2.mjs"
+  ],
+  "recipeSha256": "a76d4459e53964beea5dfbf1c887902eab17e935e8d74ef25eacb0f0e2e1a12a",
+  "expected": "Original actual positive+duplicate assertions unchanged; existing observer PASS not rerun",
+  "fullGate": false
+}

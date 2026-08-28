@@ -1,0 +1,10 @@
+{
+  "classification": "PRESEALED_SYNTHETIC_ADMISSION_OVERLAY_NOT_PRODUCT",
+  "requiredHelper": "../preparation-v2/supervisor.mjs aggregate; strict final proof authentication BEFORE aggregate acceptance/continuation",
+  "controls": ["valid", "missing-phase", "wrong-phase", "incomplete", "closed-false", "wrong-job", "wrong-manifest", "stale-nonce", "wrong-count", "missing-id", "duplicate-id", "duplicate-final", "no-final", "exit-zero-without-proof", "replayed-receipt", "failed-required-case", "failed-required-control", "failed-case-exit-zero", "nonzero-child", "false-failure-count", "integrity-false", "case-unclosed", "unreaped-receipt", "raw-hash-mismatch", "post-integrity-failure"],
+  "recipe": "node qualify-a01.mjs FULL_RECIPE_COMMIT",
+  "singleQualification": true,
+  "syntheticPrerequisite": "Any failed control holds all dependent candidate work; no automatic correction/retry after seal",
+  "durability": "Supervisor spools/syncs raw and process receipt before admission; admission captures raw hash before authentication; ordinary closed required-case failure is recorded and continues only independent work, aggregate NONZERO",
+  "coverageLimit": "Unreaped control mutates a reaped synthetic receipt; no intentionally orphaned process. Actual supervisor still enforces reaping. This is not candidate lifecycle proof."
+}

@@ -1,0 +1,53 @@
+{
+  "schema": "m1b-direct-prelaunch-review-v3",
+  "disposition": "PRELAUNCH_COMPONENT_REVIEW_COMPLETE",
+  "role": "DIRECT_HARNESS_SOURCE_AND_DATA_QUALIFICATION_NOT_PRODUCT_ACCEPTANCE",
+  "productSource": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+  "sourceCommit": "c90ad78b9ed27f83ed5ba8dd0ca1a548e0e1629f",
+  "recipeSha256": "98cbfd6cfea24483a2b32ffd0f696971e59b8e588aa6ba82f81214afc50f5a72",
+  "components": [
+    {
+      "component": "complete-executor-v3",
+      "sourceSeal": "70e88879a5ecd8af2fa166be04978407a7af7cb8e9b46be4b326550362221731"
+    },
+    {
+      "component": "type-api-v2",
+      "sourceSeal": "e2a71c452cea79089296fe3051ff9686d5b7f74096305a7ab2fd01ff5eb63ea7"
+    },
+    {
+      "component": "semantic-mode-v3",
+      "sourceSeal": "9e597aec4494f171a4921b2617787fc682400d39531f81b9db9cd0d7ea08ae4c"
+    },
+    {
+      "component": "semantic-loaded-v2",
+      "sourceSeal": "7a26dae3833255423416068f8810e94f5f85b698f5f9a15f78095a5a4155f69a"
+    },
+    {
+      "component": "neutral-decoder-v3",
+      "sourceSeal": "ca809a22ac6570310bc0f6d93024884997964aacb0f549fba8af988b05247ed5"
+    }
+  ],
+  "unchangedCalls": 274,
+  "S01Calls": 21,
+  "dataChecks": 245,
+  "dataRole": "DECLARATIONS_AND_CONSTRUCTORS_NOT_TARGET",
+  "externalFixtureReviewerClaim": false,
+  "priorOutcome": "be69c4d8 remains FAIL/zero product loads/274unfulfilled",
+  "limits": {
+    "runtimeCaptureBytes": 255852544,
+    "dataCaptureCeilingBytes": 1048576,
+    "sourceBindingCaptureCeilingBytes": 3145728,
+    "finalizationMetadataCaptureCeilingBytes": 8388608,
+    "combinedCaptureBytes": 268435456,
+    "dataProcesses": 1,
+    "sourceCheckProcessesIncludingMetadataCeiling": 10,
+    "routingProcesses": 1,
+    "archiveCleanupProcesses": 1,
+    "runtimeProcessesIncludingOuter": 65,
+    "combinedDeclaredProcesses": 78,
+    "peak": 4,
+    "temporaryEvidenceWorkingReservationBytes": 16777216,
+    "logicalWorkingCeilingIncludingPreparation": 727715153,
+    "authority": "No new allowance; runtime capture capped at244MiB, remaining12MiB reserved explicitly. Exact product24limits unchanged."
+  }
+}

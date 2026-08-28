@@ -110,8 +110,8 @@ for expected in evidence_seal['files']:
     raw, entry = committed(EVIDENCE, PREFIX + '/' + expected['path'])
     assert [entry['sha256'], entry['bytes'], entry['gitMode']] == [expected['sha256'], expected['bytes'], expected['gitMode']]
     evidence_entries.append(entry)
-actual_evidence = git('ls-tree', '-r', '--name-only', EVIDENCE, '--', PREFIX + '/evidence').decode().splitlines()
-assert sorted(actual_evidence) == sorted(entry['path'] for entry in evidence_entries)
+actual_evidence = git('ls-tree', '-r', '--name-only', EVIDENCE, '--', PREFIX).decode().splitlines()
+assert sorted(actual_evidence) == sorted([*tree_members, *(entry['path'] for entry in evidence_entries), PREFIX + '/EVIDENCE-SEAL.json'])
 
 original_child = REVIEW + '/results-v1/synthetic-child.mjs'
 authenticate_copy('b93241dfb9983d2b660233bdddce4569ec803f89', original_child)

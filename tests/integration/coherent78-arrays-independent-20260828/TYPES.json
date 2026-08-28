@@ -1,0 +1,11 @@
+{
+ "prefix":"import { Shell, MemoryFileSystem, agentCommands, networkCommands, parseShell } from 'virtual-bash';\nimport type { AgentCommandsOptions, CommandInvokeOptions, TimeoutScheduler } from 'virtual-bash';\nimport { timeoutCommands } from 'virtual-bash/commands/timeout';\nconst fs = new MemoryFileSystem();\n",
+ "groups":[
+  {"id":"positive","cases":["T-api","T-ast"],"code":0,"diagnostics":[],"body":"const scheduler: TimeoutScheduler = {now(){return 0},setTimeout(callback,delay){return {callback,delay}},clearTimeout(handle){void handle}}; const options: AgentCommandsOptions = {timeout:{scheduler},replace:true}; const shell = new Shell({fs}).use(agentCommands(options)); shell.register({name:'relay',async execute(context){if(!context.invoke || !context.registerCleanup) throw Error('capability missing'); context.registerCleanup(async()=>{}); return context.invoke('printf',['%s','ok'],{signal:undefined,replaceEnv:true,env:{}})}}); timeoutCommands({scheduler}); const tree: ReturnType<typeof parseShell> = parseShell('a=(x)'); void tree;"},
+  {"id":"array-option","cases":["N-array-option"],"code":2,"diagnostics":["TS2353"],"term":"arrays","body":"new Shell({fs,arrays:true});"},
+  {"id":"private-limit","cases":["N-private-limit"],"code":2,"diagnostics":["TS2353"],"term":"arrayWork","body":"new Shell({fs,limits:{arrayWork:5}});"},
+  {"id":"invoke-signal","cases":["N-invoke-signal"],"code":2,"diagnostics":["TS2322"],"term":"AbortSignal","body":"const invocation: CommandInvokeOptions={signal:7}; void invocation;"},
+  {"id":"replace-option","cases":["N-replace-option"],"code":2,"diagnostics":["TS2353"],"term":"replace","body":"const options: AgentCommandsOptions={timeout:{replace:true}}; void options;"},
+  {"id":"inversions","cases":["I-array-option","I-private-limit","I-invoke-signal","I-replace-option"],"code":0,"diagnostics":[],"body":"new Shell({fs}); new Shell({fs,limits:{maxCommands:5}}); const invocation: CommandInvokeOptions={signal:new AbortController().signal}; const options: AgentCommandsOptions={replace:true,timeout:{}}; void invocation; void options;"}
+ ]
+}

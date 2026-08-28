@@ -1,0 +1,231 @@
+{
+  "kind": "one bounded root-authorized coherent78-array independent composition review",
+  "candidate": "d111e5bf1f53aff16c5d4112e9ead2e025d6464f",
+  "base": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "array": "c0adae539c736db0e4023d401562ce958d9ebb00",
+  "packageSha256": "f5152eaeaaeb78aff350a86d55f67905c2caab900ba2f45b1869da6498e1e956",
+  "node": {
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "copied": "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-shell-independent-20260828/.scratch-review-v2/tools/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "roles": [
+    {
+      "path": "tests/integration/coherent78-arrays-independent-20260828/common.mjs",
+      "bytes": 5997,
+      "mode": 420,
+      "sha256": "07be840951496c53e3e16aaa0dd92901e32714e0fae3ba1692b35769daba1c99"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-independent-20260828/prepare.mjs",
+      "bytes": 8659,
+      "mode": 420,
+      "sha256": "29f278646546bb4a66c28da08c22724e81053d72dc6d28fe39bcfdcf47f93c6e"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-independent-20260828/worker.mjs",
+      "bytes": 11103,
+      "mode": 420,
+      "sha256": "b4acd6f53d55b28c515260b2eb89e4b6fe437f317a61c32862bc10e4fad41ea1"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-independent-20260828/run.mjs",
+      "bytes": 14039,
+      "mode": 420,
+      "sha256": "0739ebba91e69ce145cfaba402bc2e8602907ad5041222f8f44d172cc2176914"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-independent-20260828/CASES.json",
+      "bytes": 3126,
+      "mode": 420,
+      "sha256": "db6110bb0f1c8f7efdf3d968fbdb67fc2947e4e5f84df6defe9123b32dda7b3f"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-independent-20260828/TYPES.json",
+      "bytes": 2100,
+      "mode": 420,
+      "sha256": "61b85af51993e4f42e73baa058fa02cee7ee245e142fd271cb5e381677377d49"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-independent-20260828/MUTANTS.json",
+      "bytes": 658,
+      "mode": 420,
+      "sha256": "8ed0c5076daac4392d3af62442c54bb609f1c3ca9b1c3071397b86d2bdb7749a"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-independent-20260828/AUTHENTICATION.json",
+      "bytes": 1232435,
+      "mode": 420,
+      "sha256": "70d59d893ecc572d85fd1c4b1783af740c69913a3e7b27187488a53337503d49"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-independent-20260828/PRESEAL.md",
+      "bytes": 5882,
+      "mode": 420,
+      "sha256": "d4402fdcdbe319449818f10d9f9549ba0b1d657d0b25912de1c58272c9cfdf4c"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-independent-20260828/seal.mjs",
+      "bytes": 3721,
+      "mode": 420,
+      "sha256": "be66254710af7f35a95972e5ddc7a10478a21edeb0243ea95a2e99affd043896"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/probe.mjs",
+      "bytes": 16819,
+      "mode": 420,
+      "sha256": "c46da7b648b7f1c5402666276f88893f940c60d02606c5f911c6352309586456"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/names.mjs",
+      "bytes": 853,
+      "mode": 420,
+      "sha256": "eeffe4db1547913544ef0fee85886c7d924f9242e6b43b05530008817ebfbbee"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/CASES.json",
+      "bytes": 8553,
+      "mode": 420,
+      "sha256": "61486dae6c131769af1a39aef34a5585074467d4f32a34dd90b4be8374d023b0"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/CASES-v2-overlay.json",
+      "bytes": 1344,
+      "mode": 420,
+      "sha256": "a9aba608d1e30b24b8b3e4c70ca27bd4af8cca2dfac8df45fa460a15d052194d"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+      "bytes": 2507,
+      "mode": 420,
+      "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+      "bytes": 3019,
+      "mode": 420,
+      "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/controller.mjs",
+      "bytes": 8301,
+      "mode": 420,
+      "sha256": "a82b3503d4613a209d00db7cd77d23c70ae362391a576e7b1fecedaa2d7ce6e3"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/supervisor.mjs",
+      "bytes": 4656,
+      "mode": 420,
+      "sha256": "fd49dbff486a8399b19de12e3a8abc5c41116ae18a11191d67ee199782572e31"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/deadline.mjs",
+      "bytes": 1413,
+      "mode": 420,
+      "sha256": "b2538ecd3b45ea7ea9e4114ca29fae73d7e39aad585ce53259da7968922eb55e"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v3/staging.mjs",
+      "bytes": 4647,
+      "mode": 420,
+      "sha256": "861e25bad0935d25cc035b9aa991fdbb9cb9ceddaea72665532ed2a8805e717d"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/candidate-v1/boundary-app.mjs",
+      "bytes": 11119,
+      "mode": 420,
+      "sha256": "a8c7cddbf73fe9dddab960a59c430265a16262691a71fc88e8fe6b9fffae40cf"
+    }
+  ],
+  "appRoles": [
+    {
+      "path": "tests/integration/coherent78-arrays-independent-20260828/worker.mjs",
+      "destination": "worker.mjs"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-independent-20260828/CASES.json",
+      "destination": "CASES-independent.json"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/probe.mjs",
+      "destination": "probe.mjs"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/names.mjs",
+      "destination": "names.mjs"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/CASES.json",
+      "destination": "CASES.json"
+    },
+    {
+      "path": "tests/integration/coherent78-shell-author-20260828/CASES-v2-overlay.json",
+      "destination": "CASES-v2-overlay.json"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-author-20260828/arrays.mjs",
+      "destination": "arrays.mjs"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-author-20260828/ARRAY-CASES.json",
+      "destination": "ARRAY-CASES.json"
+    }
+  ],
+  "mutationBindings": [
+    {
+      "id": "U-zero",
+      "member": "dist/shell/arrays/bindings.js",
+      "originalSha256": "7ce8b06641fae9420bf2d09870c2db3447bf2124a376e8d8b2a39b18a62a9484",
+      "changedSha256": "a11a4987ba1aae507a7a8cbf9a2b272cc3a28ff932ff952c4cd9ca90d5282c5c",
+      "changedBytes": 10367
+    },
+    {
+      "id": "U-jq-unicode",
+      "member": "dist/commands/structured/interpreter.js",
+      "originalSha256": "cc86b7c89e05046aa989c9828444f30907c2d67b00d587c73469108ac2057540",
+      "changedSha256": "09e8641974d34685736065735d4bba11e62b25a95bc7d88266d05313aad5cd3e",
+      "changedBytes": 27844
+    }
+  ],
+  "preparedBytes": 41896853,
+  "policy": {
+    "maxConcurrency": 1,
+    "totalElapsedMsIncludingCleanup": 2100000,
+    "reservedCleanupMs": 120000,
+    "maxGitChildren": 0,
+    "maxOtherSupervisedChildren": 64,
+    "maxProductWorkers": 40,
+    "maxRuntimeWorkerMs": 30000,
+    "maxRuntimeWorkerCaptureBytes": 2097152,
+    "maxTypeWorkerCaptureBytes": 2097152,
+    "maxToolCaptureBytes": 4194304,
+    "maxGitCaptureBytes": 0,
+    "maxTotalCapturedChildBytes": 134217728,
+    "maxTotalGitBytes": 0,
+    "maxWorkingBytes": 494974059,
+    "maxRecordBytes": 16777216,
+    "maxPersistedEvidenceBytes": 134217728
+  },
+  "expectedChildren": 44,
+  "maximumChildren": 64,
+  "maximumProcessesIncludingCoordinator": 65,
+  "expectedBreakdown": {
+    "buildPackInstall": 3,
+    "types": 18,
+    "normalRuntime": 12,
+    "fallback": 3,
+    "admission": 4,
+    "mutantAndRestore": 4
+  },
+  "scope": {
+    "independentPerLayout": 24,
+    "authorPerLayout": 31,
+    "authorRefusalPerLayout": 1,
+    "typeOutcomesPerLayout": 10,
+    "mutants": 2
+  },
+  "qualification": "No actual execution yet; metadata authentication and syntax checks are not product passes. No raw HEAD, private engines, native or network. Shared supervisor/controller bytes pinned, no old staging replay."
+}

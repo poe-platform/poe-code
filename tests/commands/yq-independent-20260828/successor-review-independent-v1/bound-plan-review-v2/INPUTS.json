@@ -1,0 +1,17 @@
+{
+  "date": "2026-08-28",
+  "scope": "STATIC_BOUND_PLAN_AND_MODE_POLICY_ONLY",
+  "planSourceCommit": "5bbf54dd0b99dfbb679d7cb04ac3d7cf912b8d56",
+  "planEvidenceCommit": "46806f6eac2b7be26b476d6a7a04d08a17d20771",
+  "planRoot": "tests/commands/yq-independent-20260828/successor-review-preseal-v2",
+  "sourceSealSha256": "79e92aeed9364d390b8aabed2df2c52e3eecd5ce2abbf7caef83765304ae7fa8",
+  "finalSealSha256": "e5e789d888f0fe6c5b48af2e850f19f44a557a867bcc91c2d556fc1e3eeb1c98",
+  "sourceDiffSha256": "05215ba24a104b58847bdd78686d617001871f6276d44933abe49c0d8fffb8d6",
+  "acceptedCandidateDataReview": "dffc3047c2e06651cde6356338b3f73ec9cfd7af",
+  "candidateDataPacket": "e729a5ab8776ea768d10e6107692149989b2511d",
+  "previousScheduleReview": "4c65ffc48c999cf4c5ea077f4f2f8f40d6a8c830",
+  "rootAcceptedCeilingMsInPrinciple": 24165000,
+  "rootModePolicy": "Pure historical data may be content-bound ORIGINAL_MODE_UNATTESTED outside active executable/admission mode closure; old DENY preserved. Any reference controlling new execution requires fresh admitted projection mode/hash/size/path provenance.",
+  "unsealedCoreOrWorkersMayBeRead": false,
+  "freshGO": false
+}

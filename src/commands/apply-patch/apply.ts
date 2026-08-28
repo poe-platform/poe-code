@@ -41,15 +41,16 @@ class Invocation {
     for await (const chunk of readBytes(context.stdin, context.signal)) {
       work.count("maxInputChunks", 1);
       if (chunk.byteLength > work.limits.maxPatchBytes - bytes) throw new PatchError("maxPatchBytes limit exceeded");
-      work.step(chunk.byteLength + 1);
-      if (chunk.byteLength) chunks.push(new Uint8Array(chunk));
+      await work.charge(1);
+      if (chunk.byteLength) chunks.push(await work.copy(chunk));
       bytes += chunk.byteLength;
       await work.checkpoint();
     }
     work.check();
+    work.admit(bytes);
     const data = new Uint8Array(bytes);
     let offset = 0;
-    for (const chunk of chunks) { work.step(chunk.length); data.set(chunk, offset); offset += chunk.length; await work.checkpoint(); }
+    for (const chunk of chunks) { await work.copyInto(chunk, data, offset); offset += chunk.length; }
     return work.text(data, 2);
   }
 
@@ -66,7 +67,7 @@ class Invocation {
     const parts = path.split("/").filter(Boolean);
     let current = "/";
     for (let index = -1; index < parts.length; index++) {
-      this.work.step();
+      await this.work.charge(1);
       if (index >= 0) current = current === "/" ? current + parts[index]! : current + "/" + parts[index]!;
       const stat = await this.stat(current, cached);
       if (!stat) return undefined;
@@ -80,7 +81,7 @@ class Invocation {
   private async writable(path: string): Promise<void> {
     let target = path;
     while (!await this.stat(target, true)) {
-      this.work.step();
+      await this.work.charge(1);
       const parent = dirname(target);
       if (parent === target) throw new PatchError("missing VFS root");
       target = parent;
@@ -98,10 +99,7 @@ class Invocation {
     if (!(bytes instanceof Uint8Array)) throw new TypeError("FileSystem.readFile must return Uint8Array");
     if (bytes.length > maximum) throw new PatchError("target read byte limit exceeded");
     this.work.count("maxReadBytes", bytes.length);
-    this.work.step(bytes.length);
-    const owned = new Uint8Array(bytes);
-    await this.work.checkpoint();
-    return owned;
+    return this.work.copy(bytes);
   }
 
   private async prepare(files: readonly PatchFile[]): Promise<Plan[]> {
@@ -123,7 +121,7 @@ class Invocation {
     for (let left = 0; left < snapshots.length; left++) for (let right = left + 1; right < snapshots.length; right++) {
       const source = snapshots[left]!;
       const target = snapshots[right]!;
-      this.work.step();
+      await this.work.charge(1);
       let comparison = relation(source.stat, target.stat);
       if (comparison === "unknown" && this.context.fs.compareEntry) {
         comparison = await this.work.fs(source.path, () => this.context.fs.compareEntry!(source.path, this.context.fs, target.path, { signal: this.context.signal }));
@@ -209,6 +207,7 @@ class Invocation {
           lines.push(line);
         }
         if (bytes > work.limits.maxOutputBytes) throw new PatchError("maxOutputBytes limit exceeded");
+        await work.charge(bytes * 2);
         summary = Buffer.from(lines.join(""));
         await work.checkpoint();
         await this.publish(plans);

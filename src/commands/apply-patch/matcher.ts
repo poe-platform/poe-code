@@ -8,16 +8,16 @@ async function records(text: string, work: Work): Promise<RecordLine[]> {
   const result: RecordLine[] = [];
   let start = 0;
   for (let index = 0; index < text.length; index++) {
+    if (work.due) await work.checkpoint();
     work.step();
     if (text[index] === "\n") {
       const crlf = index > start && text[index - 1] === "\r";
       work.count("maxLines", 1);
-      result.push({ text: text.slice(start, crlf ? index - 1 : index), ending: crlf ? "\r\n" : "\n" });
+      result.push({ text: await work.slice(text, start, crlf ? index - 1 : index), ending: crlf ? "\r\n" : "\n" });
       start = index + 1;
     }
-    if ((index & 2047) === 0) await work.checkpoint();
   }
-  if (start < text.length) { work.count("maxLines", 1); result.push({ text: text.slice(start), ending: "" }); }
+  if (start < text.length) { work.count("maxLines", 1); result.push({ text: await work.slice(text, start), ending: "" }); }
   await work.checkpoint();
   return result;
 }
@@ -27,7 +27,7 @@ async function find(lines: readonly RecordLine[], pattern: readonly string[], st
   const first = eof ? last : start;
   if (first < start) return -1;
   for (let candidate = first; candidate <= last; candidate++) {
-    work.step();
+    await work.charge(1);
     let matched = true;
     for (let offset = 0; offset < pattern.length; offset++) {
       if (!await work.equal(lines[candidate + offset]!.text, pattern[offset]!)) { matched = false; break; }
@@ -40,20 +40,20 @@ async function find(lines: readonly RecordLine[], pattern: readonly string[], st
 
 async function encode(lines: readonly RecordLine[], work: Work): Promise<Uint8Array> {
   let bytes = 0;
+  let units = 0;
   for (const line of lines) {
     bytes += await work.utf8(line.text, work.limits.maxFileBytes - bytes);
     if (line.ending.length > work.limits.maxFileBytes - bytes) throw new PatchError("maxFileBytes limit exceeded");
     bytes += line.ending.length;
+    units += line.text.length + line.ending.length;
   }
   work.count("maxStagedBytes", bytes);
+  work.admit(units * 2 + bytes);
   const result = new Uint8Array(bytes);
   let offset = 0;
   for (const line of lines) {
-    work.step(line.text.length + line.ending.length);
-    const encoded = Buffer.from(line.text + line.ending);
-    result.set(encoded, offset);
-    offset += encoded.length;
-    await work.checkpoint();
+    offset = await work.encodeInto(line.text, result, offset);
+    offset = await work.encodeInto(line.ending, result, offset);
   }
   return result;
 }

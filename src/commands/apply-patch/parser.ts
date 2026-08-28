@@ -17,16 +17,17 @@ async function patchLines(text: string, work: Work): Promise<string[]> {
   const lines: string[] = [];
   let start = 0;
   for (let index = 0; index < text.length; index++) {
+    if (work.due) await work.checkpoint();
     work.step();
     if (text.charCodeAt(index) === 0) throw new PatchError("NUL bytes are unsupported", 2);
     if (text[index] === "\n") {
       work.count("maxLines", 1);
-      lines.push(text.slice(start, text[index - 1] === "\r" ? index - 1 : index));
+      lines.push(await work.slice(text, start, text[index - 1] === "\r" ? index - 1 : index));
       start = index + 1;
     }
-    if ((index & 2047) === 0) await work.checkpoint();
   }
-  if (start < text.length) { work.count("maxLines", 1); lines.push(text.slice(start)); }
+  await work.checkpoint();
+  if (start < text.length) { work.count("maxLines", 1); lines.push(await work.slice(text, start)); }
   await work.checkpoint();
   return lines;
 }
@@ -36,6 +37,7 @@ export async function targetPath(value: string, work: Work): Promise<string> {
   let components = 0;
   let start = 0;
   for (let index = 0; index <= value.length; index++) {
+    if (work.due) await work.checkpoint();
     work.step();
     const code = value.charCodeAt(index);
     if (code < 32 || code === 127) throw new PatchError("control character in path", 2);
@@ -84,8 +86,7 @@ export async function parse(text: string, work: Work): Promise<PatchFile[]> {
     let finished = false;
     while (index < lines.length - 1) {
       const line = lines[index]!;
-      work.step(line.length + 1);
-      await work.checkpoint();
+      await work.charge(line.length + 1);
       if (line.startsWith("*** Add File: ") || line.startsWith("*** Delete File: ") || line.startsWith("*** Update File: ")) break;
       if (kind === "add") {
         if (!line.startsWith("+")) throw new PatchError(`invalid Add body at patch line ${index + 1}`, 2);
@@ -125,7 +126,7 @@ export async function parse(text: string, work: Work): Promise<PatchFile[]> {
   const paths: string[] = [];
   for (const file of files) for (const path of [file.path, ...(file.destination ? [file.destination] : [])]) {
     for (const previous of paths) {
-      work.step(path.length + previous.length + 1);
+      await work.charge(path.length + previous.length + 1);
       if (path === previous || path.startsWith(previous + "/") || previous.startsWith(path + "/")) throw new PatchError("duplicate or conflicting patch paths", 2);
       await work.checkpoint();
     }

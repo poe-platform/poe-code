@@ -1,0 +1,3697 @@
+{
+  "classification": "UNCHANGED_IMMUTABLE_REFERENCES_NOT_PRODUCT_COVERAGE_CLAIM",
+  "count": 161,
+  "counts": {
+    "priorCases": 88,
+    "families": 12,
+    "caps": 18,
+    "ratifications": 7,
+    "selectors": 36
+  },
+  "qualificationMeaning": "Mapped helper tests qualify limited mechanisms only. Every family retains unimplemented product variants; no synthetic XAN implementation exists. Generic cap counters are not generators/independent work or capacity proof. Phase variants, public lifecycle and all factory/CLI type guards are held.",
+  "subtreeHashDefinition": "SHA256 of UTF-8 JSON.stringify of the unchanged parsed subtree in the immutable input; input whole-file identity bound separately in BINDING.json.",
+  "obligations": [
+    {
+      "kind": "prior-case",
+      "id": "T01H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/0",
+      "subtreeSha256": "ae46d72fe67b3e35f53c36c78057e6597fa0bf530360aa9bdbbdcb06f8aa2f48",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T01C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/1",
+      "subtreeSha256": "f9faf0c81e416cdf45f4aae7aba6a4e11eb5b79afe9fb74e6b872ef11abb1d9d",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T01S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/2",
+      "subtreeSha256": "29f1f19a4a6ec48f50c30bde7229e5d4ba6a04d9eef90d21803d293ab8dcae10",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T01L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/3",
+      "subtreeSha256": "6ef9a85bb867e2a3195b7fa6fd2fe19016156b32c9ae182ca6fba1c2defc10f8",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T02H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/4",
+      "subtreeSha256": "3f67d540ea7ceeffa5fbc4fe1825a07e84f8bf2c2a9d983c55a41d8acf8d3634",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T02C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/5",
+      "subtreeSha256": "b204b224dfe3464483b3452d3b42dc292938628e8186ee0b074d45955dc9354e",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T02S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/6",
+      "subtreeSha256": "49573dffe19b02f92a7170dd991f1f35965288709f047b6342aca4521b137edd",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T02L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/7",
+      "subtreeSha256": "684565b051645004dd894a2c05f3bf9d6fd58c020f6f23e76af34d972decdbb6",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T03H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/8",
+      "subtreeSha256": "1526e3d95797ce559011dca3fe8434f663d65f3cec91e4eec8135808b5805fa5",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T03C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/9",
+      "subtreeSha256": "d4524eb87b5bfe52b7b89e6857a030be3805f08d9deba79df209531552dfa174",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T03S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/10",
+      "subtreeSha256": "312275afde49f257f69f61ec0b197f3fff43ebf5305caacddb9d0863f5319712",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T03L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/11",
+      "subtreeSha256": "d7b664e48c441ffa3b6ad93be57202088f154b6aefe9fa422dc80a54cb3be4ce",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T04H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/12",
+      "subtreeSha256": "1f6191fb3cc72d300e2c2e45cf26345cad1b6feac37cf70a8bed3cd4a4f2e54a",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T04C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/13",
+      "subtreeSha256": "ff254a4cd3dd0494cfddb683771d638dcc3dac11ebc180ba9519591a0bd6643a",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T04S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/14",
+      "subtreeSha256": "57fa33409f7ec6e4e860acd6d4d911988599ebf23acefeee56771a18b40c2b41",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T04L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/15",
+      "subtreeSha256": "05851a4b32cb55ac9cc125af28378168af7e64ddaad51d0da86a4ede809a0be1",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T05H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/16",
+      "subtreeSha256": "638c9e6b64858abfad80fbf149e4dbcdcdb794557d6744f69cb766b86ef87071",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T05C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/17",
+      "subtreeSha256": "8996a2b91e00498585fc6896b2fe578f31791ff096cd47ad09c0eb5c4f83ea0e",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T05S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/18",
+      "subtreeSha256": "cdfbeb6919940457c1ff63927b9446d83ac9a51d1f53d67f2ae8ada354da7f83",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T05L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/19",
+      "subtreeSha256": "48e66afe6e506e6b96deb1dab38dbee87e71907794dea0fce5024ef4ab99872e",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T06H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/20",
+      "subtreeSha256": "b0a8849bc9f1c97f0856ba0169b0eed70943d07a12eaa667bd8b0fffeab4ba2f",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T06C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/21",
+      "subtreeSha256": "0b50fcf8e894c8b5678e3e507b2d96d422605a90239259e4c80f18d67f249bb6",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T06S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/22",
+      "subtreeSha256": "aa85d507624058ec40abcd083bf2372d15e14f270f75264af3c9ff09a1d8df26",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T06L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/23",
+      "subtreeSha256": "b20b20bd08cb1d3e21045950f962d387c4d9fc96a05bdd0dbe9205299abadfbb",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T07H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/24",
+      "subtreeSha256": "582fc0fd9818f55aa362812a8623774af551ca56ba076a2b5532e82c73dfe4c3",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T07C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/25",
+      "subtreeSha256": "4a11ff785a0569b6ffe2a0877b7a5872659d43a565f4b08c5730a31150baa89e",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T07S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/26",
+      "subtreeSha256": "18b42c045951adfc67f98261faa3ab000a5b2e6bc35c1d789245923c4a11851c",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T07L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/27",
+      "subtreeSha256": "c874c3bdf661d9f1cbfb52caa831ffbfa7823c584f4470036619b4c275b5b95e",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T08H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/28",
+      "subtreeSha256": "ff5e6d18234961295e12233172aa8f45f398b99d85a3c49edfb2ed25ed8dbbb5",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T08C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/29",
+      "subtreeSha256": "bc0ebcbb22b67c1cc899400f6f768c7ee11ce9fccef81e81e732981817c77be6",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T08S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/30",
+      "subtreeSha256": "764c21132c79a8422aa1a4ccfcb9f4bb9adea86f1f84a863abb137b03c24bd8f",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T08L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/31",
+      "subtreeSha256": "64b9a537c37674a5927925890715b2fc2ceeed85f14f168a5eee94b1ed8a20e2",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T09H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/32",
+      "subtreeSha256": "29375424a8da0860fdbdbddd8b368e4e29f47ff699c6781feb0e1e505bee826a",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T09C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/33",
+      "subtreeSha256": "2ec72113cf6e102d8354fc4aacd4db0199572e6e5387771cced7a98d0af677d3",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T09S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/34",
+      "subtreeSha256": "86dc321f426d0a57e2f8953a388615fe5a598d4d810ddfac2a82ee2be3ca7957",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T09L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/35",
+      "subtreeSha256": "2b25e363d072faa829556422ef4d14b2c36ce847084bdfaddd8842c71a9c5cfa",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T10H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/36",
+      "subtreeSha256": "29619ce892d611a6c47969d1b5eb9f209a309bcc7004c7d73267c63a1c7421d5",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T10C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/37",
+      "subtreeSha256": "0a2dc968fec815e589391558eb8dad1694e66ef825a204e99ea6c99e847a2bf3",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T10S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/38",
+      "subtreeSha256": "f1535f3bfffc804fad0ccaea3aa7c1a1dccdcdafdc23a80409e240d54afc0c58",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T10L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/39",
+      "subtreeSha256": "1c8b0da7134f01fe994336a78b476e37d61a7f909539eea7d25203598720557c",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T11H",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/40",
+      "subtreeSha256": "cc0eabf7e546dc7d36d8cca6dbae4d743c1d6db56002d16b68f4bc4ac3dd6ecd",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T11C",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/41",
+      "subtreeSha256": "28a4bd7a4fa1f525cae6f3a35109e48c9f373791832224b4e513be97fa0f4f68",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T11S",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/42",
+      "subtreeSha256": "f666a3accb333f1cde7fda88a4009723ccd3604e0acace5de211d55930b7a92a",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "T11L",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/43",
+      "subtreeSha256": "b31fdd303b04472fc792d78a469f9a4e6c7c446ef2789c6e29629fac010f3bc0",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "P01",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/44",
+      "subtreeSha256": "d81eec720cdbc97a35d56bd58311c549e91323de9d4f8ce9f7cc3b60d1b0dc6f",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "P02",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/45",
+      "subtreeSha256": "d22a4bb3d9a4a44ebd5e66de91c0f834a6489078861c61dd8dab09424aaebc17",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "O07",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/46",
+      "subtreeSha256": "485e9c3985dc9f60fc23145a2ea8a1bcc6f74bc214fed65da2ac2670fe8b72cf",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "O08",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/47",
+      "subtreeSha256": "969f1768e6df254102a58ff17353d9c51b08568b76e3363cff7a3a28ec67ad8b",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "O11",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/48",
+      "subtreeSha256": "8a4dce00f82459fb2cb6c4f2cad4c45a3dd0c84651394dce8e18503c952917a4",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "O13",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/49",
+      "subtreeSha256": "0bb7d33891e6ef9a08e9fd0cdf9dfd893c662e70d10a302a2855462766ddb287",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "O18",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/50",
+      "subtreeSha256": "e71d7498b8c0ed6094988971d38b22a9c83e03430169c99ba613ad4bb5bec42f",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase",
+        "mocks.mjs:faithfulCSV"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "O19",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/51",
+      "subtreeSha256": "97e388dd1d6658eae7375ccf2c60a576421c790b35cff15f1ae4318a612b78c5",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "P03",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/52",
+      "subtreeSha256": "46f008240b5f763b7c2a389b83f3b6046b8b0e772250ac08805ad45a2e85d646",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "P04",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/53",
+      "subtreeSha256": "b1ba0414d2384a243ee6723afd8820e1b73a0095b3bc0f251c33438840e7ce3d",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "P05",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/54",
+      "subtreeSha256": "406a55cdcef25e68e0513cc9871c5277288492f4baafbbf46d01d605a9912c46",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "P06",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/55",
+      "subtreeSha256": "06ae645f23aad0f306cdaa8899ee7d1bd136750b6662dc03152b291354de56e5",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "P07",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/56",
+      "subtreeSha256": "ae1e7df699982495535c08357a561368dd004c813275b4fe2a1b489099abc40b",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E01",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/57",
+      "subtreeSha256": "c44b1d1f0dd058a9bd436373d89412a61c47c87cd4cb84fb957edd1a7e4e10bb",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E02",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/58",
+      "subtreeSha256": "18c4888f3eb4bf34ebd930aa93348ec96c34f961c0d7a061f25f0db1e76ace7b",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E03",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/59",
+      "subtreeSha256": "93b95d47d583eb9bd0dba971a9856a301911a3c84329bf73ced4cd7e214d995a",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E04",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/60",
+      "subtreeSha256": "a02f6e87a31787b347163159708637d369407acacaa031bf64c484f0863da84d",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E05",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/61",
+      "subtreeSha256": "150697c3a300fa38be1257829a0a5471b272aa743d401bf7a7fd521976d3022e",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E06",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/62",
+      "subtreeSha256": "1b330af44846a42eea4dd8dbc20d1186780c1ebdca76680f8e5eeb8cc3ad14fa",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E07",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/63",
+      "subtreeSha256": "daab7af523371d393d03beb44e9fdb9375c14512377d4e2f03e969ce781d5292",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E08",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/64",
+      "subtreeSha256": "3293322757d1717b1c8ed4ee55360fcda846b1850f24dd6db4c06ecb212f5603",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "E09",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/65",
+      "subtreeSha256": "c0a5bb1bbf1f7354dd030d5fb9bbf63de1753bce1d9e853c6b5accecb639f410",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "U01",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/66",
+      "subtreeSha256": "9b95f58aa68e92868986a088b8947fc65aa3ae4de38a457a487a2aecc8d7678f",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "U02",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/67",
+      "subtreeSha256": "1fcd6e8da68292f19e5d556888438765a4b57b5f14782f7e73e21adbb4f0ccd6",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "U03",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/68",
+      "subtreeSha256": "e32b2d1ec17b89579fc8df0171239d4b1cc3bc82992806f801d6a3887af10e24",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04",
+        "G02"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z01",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/69",
+      "subtreeSha256": "a832e97be0d8f83a8855e67f1e68160704b444e8967d6b2f3b9047711a27c5d3",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z02",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/70",
+      "subtreeSha256": "c51c4fc7eeaf936906fb928a62a38f8634015d4f3a08cfcf37ba13015edfb6c6",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z03",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/71",
+      "subtreeSha256": "49c52a5e338e83e8c5febd8c6dfe8d8899379b0fe2183ff96c8faa382d5b9d0e",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z04",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/72",
+      "subtreeSha256": "4e2b0425eef9e1c1c3989a744b4dc886253eeef54f35326f61175f9766e288b2",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z05",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/73",
+      "subtreeSha256": "71cc8e21bbc72196aa3970f8278ad401f3d61019a903eb5909b729a8b885f5b6",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z06",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/74",
+      "subtreeSha256": "d61fd4f2a3b4917051d916d3626b54925d19755caa1a139bf77eea19be8e9a46",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z07",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/75",
+      "subtreeSha256": "c90c955533971f5713c6f6643a62be97558a9b5f464663a91a23141d75913e66",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z08",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/76",
+      "subtreeSha256": "5b81217ad4655e7c8d2640ab9eba884f2c18e87c89044f2c3b096b7a69f79544",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z09",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/77",
+      "subtreeSha256": "8b42d4e83f72f3bd50dc0eb7d8c759704e3114b5b82e9b9dbf1c98466329650c",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z10",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/78",
+      "subtreeSha256": "e5aec801e98ba9d4c8219571ff14b5de7dd950cafab642b3d6097eabd0c50569",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "Z11",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/79",
+      "subtreeSha256": "e770d37916115f7c24337b0602ef294d8b15d72be271c9b3ceeaa84741b9683d",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "X01",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/80",
+      "subtreeSha256": "25b68871e91ea23768224c16508dc36636b974c02f51f1d40e924c4f434e76f6",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "X02",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/81",
+      "subtreeSha256": "66169084748c56b67039f6bfdc25e26da469edff9ffbd798d9564736bc70441e",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "HCR",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/82",
+      "subtreeSha256": "eb996e401dd57f3dbf9ef9bea91f1c68cd7365e0721303c00038f37a44d53825",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "R01",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/83",
+      "subtreeSha256": "fbc6c5149d2c9b9c18f6edc1f4ad7fb8cc4839dfa559c09db73f413610f5d4ba",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04",
+        "G02"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "R02",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/84",
+      "subtreeSha256": "430431620a35d009219d108008460f6f08eeb4cbefe0fd44b71793b6ee5783f3",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04",
+        "G02"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "R03",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/85",
+      "subtreeSha256": "ce0d88ec1de94ab85464753b694ec65c5a70daddce255fe6a57b26f2fc05f73d",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04",
+        "G02"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "R04",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/86",
+      "subtreeSha256": "6dd2db700ae8de83bb664a7b51a8b99e3abe71b0867e8b3c6f6d65b7b0333220",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04",
+        "G02"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "prior-case",
+      "id": "R05",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CASES.json",
+      "jsonPointer": "/cases/87",
+      "subtreeSha256": "bd83f1062dc414ef2747a4bed11b873fe34680192d74da9ccc28428e0aef08fa",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "executor-receipt-before-assertion",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G03",
+        "G04",
+        "G02"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "control-family",
+      "id": "F01",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "jsonPointer": "/families/0",
+      "subtreeSha256": "574ca9012e852b57818dc19574522c7f72245edf597f5939a412b167b64bbab0",
+      "executor": [
+        "mocks.mjs",
+        "executor.mjs",
+        "qualify.mjs"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "ordinary-failure-aggregation",
+        "installed-physically-moved"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G05",
+        "G06",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "control-family",
+      "id": "F02",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "jsonPointer": "/families/1",
+      "subtreeSha256": "9440a8a34eba46cd9ef90cb9c4fb69336bb341d28841727461c9b127660183e1",
+      "executor": [
+        "mocks.mjs",
+        "executor.mjs",
+        "qualify.mjs"
+      ],
+      "syntheticQualification": [
+        "all-frozen-chunk-schedules",
+        "csv-cr-bom-quote-vectors"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G05",
+        "G06",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "control-family",
+      "id": "F03",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "jsonPointer": "/families/2",
+      "subtreeSha256": "25913fb6fce678879657e95ec23ad5030d37cf3adfe8e5fa48c49435e1845e5d",
+      "executor": [
+        "mocks.mjs",
+        "executor.mjs",
+        "qualify.mjs"
+      ],
+      "syntheticQualification": [
+        "borrowed-copy-finalization",
+        "owned-finalizer-mutation"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G05",
+        "G06",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "control-family",
+      "id": "F04",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "jsonPointer": "/families/3",
+      "subtreeSha256": "715a287b6f764929ad0ef627aa92b0240399e50472c37e01feda505ae6c8ca5c",
+      "executor": [
+        "mocks.mjs",
+        "executor.mjs",
+        "qualify.mjs"
+      ],
+      "syntheticQualification": [
+        "poison-acquisition"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G05",
+        "G06",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "control-family",
+      "id": "F05",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "jsonPointer": "/families/4",
+      "subtreeSha256": "153af4a13fb6b068cbb02221210c4b75b08ea533a4c6cf448f1932decda1a19f",
+      "executor": [
+        "mocks.mjs",
+        "executor.mjs",
+        "qualify.mjs"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G05",
+        "G06",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "control-family",
+      "id": "F06",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "jsonPointer": "/families/5",
+      "subtreeSha256": "2af174b8d503dbb8bbd178f357d5fc59c46c7234e1bec4ad2833179a35224574",
+      "executor": [
+        "mocks.mjs",
+        "executor.mjs",
+        "qualify.mjs"
+      ],
+      "syntheticQualification": [
+        "poison-acquisition",
+        "poison-metadata"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G05",
+        "G06",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "control-family",
+      "id": "F07",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "jsonPointer": "/families/6",
+      "subtreeSha256": "d5264a1a81e1215187fd7f2b42070b27de2bfa30dd2ea2612208d9a121578af2",
+      "executor": [
+        "mocks.mjs",
+        "executor.mjs",
+        "qualify.mjs"
+      ],
+      "syntheticQualification": [
+        "borrowed-copy-finalization",
+        "executor-receipt-before-assertion"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G05",
+        "G06",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "control-family",
+      "id": "F08",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "jsonPointer": "/families/7",
+      "subtreeSha256": "333d2300952e07dded9a46e8015550a97d7380c7a3bffa2afc4f335068169770",
+      "executor": [
+        "mocks.mjs",
+        "executor.mjs",
+        "qualify.mjs"
+      ],
+      "syntheticQualification": [
+        "cleanup-register-before-admit",
+        "cleanup-late-acquire-overlap",
+        "cleanup-failure-drains-sibling",
+        "caller-errno-identity",
+        "cleanup-fatal-stops-dependent"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G05",
+        "G06",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "control-family",
+      "id": "F09",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "jsonPointer": "/families/8",
+      "subtreeSha256": "3dacb7fb630d52ba389f9a3b8e86d31ed297b1507eee025017adb10369e616bd",
+      "executor": [
+        "mocks.mjs",
+        "executor.mjs",
+        "qualify.mjs"
+      ],
+      "syntheticQualification": [
+        "gated-backpressure",
+        "stream-fallback-same-flags",
+        "partial-publication-no-rollback",
+        "fallback-old-new-capacity"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G05",
+        "G06",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "control-family",
+      "id": "F10",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "jsonPointer": "/families/9",
+      "subtreeSha256": "8e25e7862b5a14290dd7ae2694685eed970c838a7f17eb6cf4e9e3c52ec88bfc",
+      "executor": [
+        "mocks.mjs",
+        "executor.mjs",
+        "qualify.mjs"
+      ],
+      "syntheticQualification": [
+        "poison-metadata",
+        "wx-race-preserves-creator",
+        "wx-unsupported-no-fallback",
+        "alias-identity",
+        "caller-errno-identity"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G05",
+        "G06",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "control-family",
+      "id": "F11",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "jsonPointer": "/families/10",
+      "subtreeSha256": "dee78677822584221f23d025b05cdbd0baaa008f6a5bb51451a4a849537a16a3",
+      "executor": [
+        "mocks.mjs",
+        "executor.mjs",
+        "qualify.mjs"
+      ],
+      "syntheticQualification": [
+        "cap-maxArgs",
+        "cap-maxArgumentBytes",
+        "cap-maxInputFiles",
+        "cap-maxInputBytes",
+        "cap-maxChunks",
+        "cap-maxChunkBytes",
+        "cap-maxRecordBytes",
+        "cap-maxCellBytes",
+        "cap-maxColumns",
+        "cap-maxRecords",
+        "cap-maxSelectorBytes",
+        "cap-maxSelectorNodes",
+        "cap-maxSelectorDepth",
+        "cap-maxSelectedColumns",
+        "cap-maxLastRows",
+        "cap-maxWork",
+        "cap-maxOutputBytes",
+        "cap-maxRetainedBytes"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G05",
+        "G06",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "control-family",
+      "id": "F12",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+      "jsonPointer": "/families/11",
+      "subtreeSha256": "037652d17463dc00d78a4e8012c0747cfa274df759e16f3a5e2f5783e873aeb5",
+      "executor": [
+        "mocks.mjs",
+        "executor.mjs",
+        "qualify.mjs"
+      ],
+      "syntheticQualification": [
+        "byte-typeguard",
+        "csv-cr-bom-quote-vectors",
+        "csv-invalid-raw-cr",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G05",
+        "G06",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxArgs",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/0",
+      "subtreeSha256": "3276ddf477458db9a600e12cb4c5714897fd5263c73a73248a8f6656405e07a7",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxArgs"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxArgumentBytes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/1",
+      "subtreeSha256": "b019f18053852d797f4f8196e058f98e4046e665b78a9e30edd5c091e6bc79eb",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxArgumentBytes"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxInputFiles",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/2",
+      "subtreeSha256": "016c9c354244e5abde1714738726fb105f728a67b2574adf134fb00495e8e416",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxInputFiles"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxInputBytes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/3",
+      "subtreeSha256": "2ea1c0e531d736cf06d05f1427cc99bb0fb38831a18887eaa0a5318c468fc774",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxInputBytes"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxChunks",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/4",
+      "subtreeSha256": "bff7ded3a9642b8893cb867f938aecf02987d7ba4386f1cba71f84168dd9303c",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxChunks"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxChunkBytes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/5",
+      "subtreeSha256": "4a9ee60c0d8b3c2839fc56ad59e65ef6501531905fe9f5762388fd4e5c7fa3de",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxChunkBytes"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxRecordBytes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/6",
+      "subtreeSha256": "deecd57d70c67cc9c48cbd3ed9c9c4a31973fa4bc708cd61db41be727d1a013f",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxRecordBytes"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxCellBytes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/7",
+      "subtreeSha256": "546946838d44d50acb8c3f949e8f4827617b671b503bd9e2f2d705c44f4ef4de",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxCellBytes"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxColumns",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/8",
+      "subtreeSha256": "7bb325ff0d33bac5f8333450e73b9e4905491e51b7dea0e523932caf0d0e285f",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxColumns"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxRecords",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/9",
+      "subtreeSha256": "920a99b2e4f3c4be1609377886176ac622c1aecf92dcfd91a156fb28bb3e515b",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxRecords"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxSelectorBytes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/10",
+      "subtreeSha256": "8b81e7eff072f226dc8b62378949a9eccdc3c11434c58baca97de16db8dbd3ca",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxSelectorBytes"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxSelectorNodes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/11",
+      "subtreeSha256": "ba025d65fc9e8ded4565b1fc69f5bb4aef32f8fa5b573f8268efc437f67c1281",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxSelectorNodes"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxSelectorDepth",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/12",
+      "subtreeSha256": "f9bc84f45013fa79c2580648a79b11ca05c5c66834433308b6b701f5e9b4e9ce",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxSelectorDepth"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxSelectedColumns",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/13",
+      "subtreeSha256": "5d0946954356afee03fb4495f2199a3541e61985dff9882b6dcd671b25b607c8",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxSelectedColumns"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxLastRows",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/14",
+      "subtreeSha256": "84b4d84476859a1f10e5f2a4b7059fbf9c5b367587cc540923ecc4cd958d9e1c",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxLastRows"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxWork",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/15",
+      "subtreeSha256": "5fc75ad889e58de2641b949ea0c91ac817d39d042e58fdf97757f88d6b303fde",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxWork"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxOutputBytes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/16",
+      "subtreeSha256": "4ef9567e7adbc8f58bae533b82ea33655de5c339bff7f45e3ff18a938e6ab1db",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxOutputBytes"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "cap-recipe",
+      "id": "maxRetainedBytes",
+      "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+      "jsonPointer": "/rows/17",
+      "subtreeSha256": "77bedbf2c1f306fa5e598f4bd802378ecf133c3fbba199db2828497c0e870b63",
+      "executor": [
+        "mocks.mjs:Ledger"
+      ],
+      "syntheticQualification": [
+        "cap-maxRetainedBytes"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G05"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "ratification",
+      "id": "B01-R1",
+      "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "jsonPointer": "/rules/0",
+      "subtreeSha256": "8f3c5d75cfb8a56436616b3a035e3be58d59a74ed21f8608a75e1e222e24fbce",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "byte-typeguard"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G02",
+        "G04",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "ratification",
+      "id": "B01-R2",
+      "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "jsonPointer": "/rules/1",
+      "subtreeSha256": "ec7f15123f9a84639c16f97a4d8a98ad57fab9f30d9b7202adc8d35e30ead354",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "byte-typeguard"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G02",
+        "G04",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "ratification",
+      "id": "B01-R3",
+      "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "jsonPointer": "/rules/2",
+      "subtreeSha256": "8859ff4c05231c816cc11ec1f9649466b1b5fb61cc7d675209fd02e7fe6f1f73",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "byte-typeguard"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G02",
+        "G04",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "ratification",
+      "id": "B01-R4",
+      "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "jsonPointer": "/rules/3",
+      "subtreeSha256": "b47aa306b60d7e3445b0359253729eb91097b9932222cff425d61f9d10d14c86",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "byte-typeguard"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G02",
+        "G04",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "ratification",
+      "id": "B01-R5",
+      "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "jsonPointer": "/rules/4",
+      "subtreeSha256": "963aabe88439bc305877b629d4335734dfb2b9fea22482ecc00fd034d4e3ae8f",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "byte-typeguard"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G02",
+        "G04",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "ratification",
+      "id": "B01-R6",
+      "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "jsonPointer": "/rules/5",
+      "subtreeSha256": "d87cd2c5c49f8995163cd14c2a7cd86e5b5179d74e6168d41077a18199a1b75c",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "byte-typeguard"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G02",
+        "G04",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "ratification",
+      "id": "B01-R7",
+      "input": "tests/commands/xan-independent-20260828/B01-RATIFICATION-7.json",
+      "jsonPointer": "/rules/6",
+      "subtreeSha256": "85de07171a85e69a76f2f10cf40b3f82d5e573a138eebb2276ee79009ea55d91",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "byte-typeguard"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G02",
+        "G04",
+        "G07"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P01",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/0",
+      "subtreeSha256": "bc41d440e646dca4dfd4de77461acb108170ab010ee28fd2fe2d7512adb8f0fa",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P02",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/1",
+      "subtreeSha256": "3d88779c70c6d272786d68714b57e6a816439aa4145c54e17a21744058f1e80e",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P03",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/2",
+      "subtreeSha256": "0489d029152b5ef5ac5049c39204b340f4fe10cdd9f4e4a372afea06be40e2bc",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P04",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/3",
+      "subtreeSha256": "781f0421ce6d6a64f199ada31dd61d1f5dd46ab499fdbc3d2b83cdce4e1e076d",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P05",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/4",
+      "subtreeSha256": "e0538de9d78510b6bf551aa4152b946f1e8c9fe0e257c9203fc6b253938fe0a9",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P06",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/5",
+      "subtreeSha256": "f057d2dcf6b1e3f87e3224a0d19b44bb052807f93e3504ed6a14f7c291adde3b",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P07",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/6",
+      "subtreeSha256": "0b52e9fecf3649c84dc5c996815582d47e2a0fef83643f98ed58a5fd2fb0ab42",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P08",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/7",
+      "subtreeSha256": "06ff22dc56379afdb761af690aab2e3d8bc85daa207d1d9f31d2348a3ee1761f",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P09",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/8",
+      "subtreeSha256": "8075282d3ef7db69bd9a0521bb125a03b2611121ae8a2ff39f90cfd12cff1063",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P10",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/9",
+      "subtreeSha256": "ac3fb37c9b1199cf9afafc87c9af0fa6186064a1161388b47717e6ec8fb3acc6",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P11",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/10",
+      "subtreeSha256": "668b660341373bbef20d0505e579d49675d2d16d86473201e5560ee3d63c1384",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P12",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/11",
+      "subtreeSha256": "b71993180cdc57e13735e330f6e10c6dbabc38872bebd62e12737673b49afc13",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P13",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/12",
+      "subtreeSha256": "f3ae367196072cde46d0b3400ad4364d768b57f272d8b8b3c5038c2ce8482ced",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P14",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/13",
+      "subtreeSha256": "449006acf04ae9f55dafd31ff2a5b2a91558fec81fc90e79024a1bf9832512cc",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P15",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/14",
+      "subtreeSha256": "b776d7ffd10630820cfe5ef7a9d71afefbdba00873aaefb8455549da357f5938",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P16",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/15",
+      "subtreeSha256": "667339477b7e502228f33b9d8fc6c1890baa7ce00c86a6e500646bcb7baef89b",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P17",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/16",
+      "subtreeSha256": "f1004d05928869251ea7cd7f1890fc5e9a8fb5429e8793f0afa74a809d3491e3",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P18",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/17",
+      "subtreeSha256": "929ac168c21255c39f846d0717bc04ec909e5ee9370639c80f68cd2505bc4571",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P19",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/18",
+      "subtreeSha256": "b72b8c239f8ad2c22bba1c62f4e6a1db58b98e8ec9da09da6b266760133f2790",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P20",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/19",
+      "subtreeSha256": "fb935d56d77ebd35a6410b17e9da487978db9b40aafa20c1bdb534258dc7e135",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-P21",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/20",
+      "subtreeSha256": "3c9e5a53dc8e2780c715517b59e8e93a1937f4e63d5fd0001ecf9f54709c8467",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-S01",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/21",
+      "subtreeSha256": "ed2f7dbf2fe38f09c4fb4e03999015b5142ac2511e88095bec86a8c45886e90a",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "poison-metadata",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G02",
+        "G06"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-S02",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/22",
+      "subtreeSha256": "05474e1fbef9c8e0df8f8f2a767b9d97a72bfb417e99a3ffa2a12f55fbe80fa4",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "poison-metadata",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G02",
+        "G06"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-S03",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/23",
+      "subtreeSha256": "6f9d8e6cd7e226a2ae0943245241a4e9e68c927ba8ebb1429382e67cb77d3305",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "poison-metadata",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G02",
+        "G06"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-S04",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/24",
+      "subtreeSha256": "0e1154ffac4df438059bf86b01c15819ea9897f92e4ee0479cec8fe4e6f01652",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "poison-metadata",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G02",
+        "G06"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-S05",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/25",
+      "subtreeSha256": "8f35acd45d1329d66d99e8b91bc4b8b63a9a4efc73e6f7aa4044c071c8effe52",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "poison-metadata",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G02",
+        "G06"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-N01",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/26",
+      "subtreeSha256": "9eff401a3650681bc7762e6a5eaf0b2a0ef06e15cad706e8867fa43d9401c4b2",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "poison-metadata",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G02",
+        "G06"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-N02",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/27",
+      "subtreeSha256": "6ec4bfd9d91032060281ea1b50586527fcd73e4a2297d0d8f12c9d0ba2ccf0de",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "poison-metadata",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G02",
+        "G06"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-R01",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/28",
+      "subtreeSha256": "417d0f356a4b3c936aef546991a35a160ab5df026421e89401186c70a813acaa",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "poison-metadata",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G02",
+        "G06"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-R02",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/29",
+      "subtreeSha256": "a57f008b916b263bf1ac30b004e85942b418390a2842c6140be7ef0ec10d2056",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "poison-metadata",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G02",
+        "G06"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-R03",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/30",
+      "subtreeSha256": "67dd735e966257fd5fdc801bb53975b12a7d20caf0e5f16b1721b92a060053d3",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "poison-metadata",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G02",
+        "G06"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-R04",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/31",
+      "subtreeSha256": "34cb1df770c371dd67408571f91cb3f30546af61676e6c01efc4c68a3a86c409",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "poison-metadata",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G02",
+        "G06"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-R05",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/32",
+      "subtreeSha256": "f18f260ea93fc74ef0ffeb9e70ff504f66710522969a29ab2789f30ab5bfdf91",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "poison-metadata",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G02",
+        "G06"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-R06",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/33",
+      "subtreeSha256": "3b39fb4e9547044589c3dbd4059cb82358f491b079ffbc6330a8c4452b9320b9",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "poison-metadata",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G02",
+        "G06"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-R07",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/34",
+      "subtreeSha256": "02a9e58a201b1421a0b639b9943cfe4d371b443b7881cea3cfdb5172c15bd22d",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "poison-metadata",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G02",
+        "G06"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    },
+    {
+      "kind": "selector",
+      "id": "X4-R08",
+      "input": "tests/commands/xan-independent-20260828/SELECTOR-FREEZE-V4.json",
+      "jsonPointer": "/cases/35",
+      "subtreeSha256": "82950f56af0f39565da7a72f7f097d862ef689e235b686b69363f0dde788046a",
+      "executor": [
+        "executor.mjs:casesFrom",
+        "executor.mjs:executeCase",
+        "executor.mjs:assertCase"
+      ],
+      "syntheticQualification": [
+        "bindings",
+        "poison-metadata",
+        "semantic-no-substring-waiver"
+      ],
+      "status": "HELD_PRODUCT_NOT_EXECUTED",
+      "gaps": [
+        "G01",
+        "G04",
+        "G02",
+        "G06"
+      ],
+      "candidateAdmission": "full root-routed immutable candidate and inspected module API; no product load during preparation"
+    }
+  ]
+}

@@ -47,7 +47,10 @@ author package. Author documentation binding is 38b2318d's FOUNDATION-HANDOFF.md
 and FOUNDATION-AUDIT.md, and d8ac8c2e's PRIVATE-REVIEW-BINDINGS.md, under
 tests/shell/indexed-arrays-author-20260828. Their reported checks were not rerun.
 CONTINUATION-G4A.md is the explicit existing registered-command transfer boundary;
-the current user instruction separately fixes declaration formatting as private.
+new SHELL-owned declaration-formatting private charges are a **PROJECT DESIGN
+PROPOSAL** inferred from that existing G4A boundary, pending root ratification.
+The latest user request asks for design/assessment, not a separate explicit
+declaration-formatting mandate. No formula changes or automatic E exemption.
 
 ## H: historical observations only
 

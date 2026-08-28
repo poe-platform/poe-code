@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "candidate": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+  "independentEvidence": "16c4502da78ac209e8979d7bd576f2be5492f104",
+  "projectionSha256": "351e03ad72b0bd82bb16d97cc50ec80b136edeaf705ec1590b414cb4cdf8b82e",
+  "projectionMembers": 845,
+  "baselineFullPackSha256": "13fe54de1cf900d587855e276375fdf72ed1ed0d0e0625cf7ef00730f2bb74c9",
+  "baselineCaptureCompressedSha256": "88fadf81a9ab984e4c25ff26f9f1d13331967549c0dbe08fbce268ee7ed1da12",
+  "priorReportSha256": "4e353c628f4b20757d90e197e86854988d76b4d790953907ac6bd1ff1c477e58",
+  "authorReconstructSha256": "d9875714779e252a76704266a4217add5764104e4660ba9b5078a3cb1b6296f9",
+  "addition": {
+    "path": "README.md",
+    "archivePath": "package/README.md",
+    "bytes": 36273,
+    "mode": 420,
+    "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1",
+    "role": "Exact baseline root documentation; not runtime code or declarations"
+  },
+  "expectedMembers": 846,
+  "nodePath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "npmPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+  "npmSha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+  "execution": "Fresh isolated regular-file stage; npm pack --json --ignore-scripts --offline; no install, build, product imports, or behavior tests",
+  "sourceCompleteness": "Package composition only: authenticated 844 emitted files plus package.json plus exact baseline README. Prior selected source recipe has 269 files and one interpreter overlay; neither archive is a full Git history or complete repository checkout."
+}

@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "role": "author evidence seal, independent acceptance pending",
+  "composition": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "approvedV2ExecutorCommit": "2512822b834ccb0843386b9558d372f654cd142f",
+  "artifacts": {
+    "MANIFEST.json": "4ecaed8c6fc04a90320482531ea50cc729a4ac52bcb88782922d0225417dc18e",
+    "PRESEAL.json": "2faf43ecc1624abd0340d72e67a4e3ecaf39dbbd34c5ef42066a8b894c71cb96",
+    "CASES.json": "61486dae6c131769af1a39aef34a5585074467d4f32a34dd90b4be8374d023b0",
+    "CASES-v2-overlay.json": "a9aba608d1e30b24b8b3e4c70ca27bd4af8cca2dfac8df45fa460a15d052194d",
+    "TYPES.json": "447fb41c072e964b5dc6be4089756b6ebf41e0e4de849abeca12d7a2aee2cd9c",
+    "names.mjs": "eeffe4db1547913544ef0fee85886c7d924f9242e6b43b05530008817ebfbbee",
+    "compose.mjs": "326b23a6322756a2cd838462687b9ec20aa58d5c185f61b8f101c9a8caf85db5",
+    "EXECUTOR.json": "262dfcc51eaf433d967ebcb36ee229f12e60acf170c5f822e411ee52a1e818d9",
+    "run.mjs": "11557db275a404a5f87a02e457d83927111c5f49e44e25f571cd7fbe211f0622",
+    "probe.mjs": "c46da7b648b7f1c5402666276f88893f940c60d02606c5f911c6352309586456",
+    "loader.mjs": "3310399901505de8bee60a4ea1e58fcc288ae315fa7b353b2fe4eb68553bceab",
+    "EXECUTOR-CORRECTIONS.md": "789cb6fa4bcd2012fbbcfe81096da2042e4f161ebf462a02fb8abd9c263dabeb",
+    "CHECKPOINT-v1.md": "477e407db3ce6a71cedea26f9b356c3f41df92d7679887b52544ca1a22a7005b",
+    "HANDOFF-v2.md": "afce0eb08d7560bd1eda09f491f8502ad846f4e6c2e01b5cc1ba4fcd21921394",
+    "CANDIDATE.json": "8cf149983f2c2ee2929f1343c680d61b69da533d704f1dc91682765fbb3bcf11",
+    "captures/coherent78-author-5d3ADb.json.gz.base64": "4b0ce8bf3590023c2d97ca82c490c382c5cbabf902c0f11150c19d54beb9ed32",
+    "captures/coherent78-author-O2uHTW.json.gz.base64": "6c788cbf2e37f68fe217b9dfa693705bc251d55dd1b2681c721ef0ba3d792d2d",
+    "captures/coherent78-author-ZpMIyO.json.gz.base64": "0b785f60c85992a4c73647120492c9ea2f4c8463f96a8fd7f1163d862c040435"
+  }
+}

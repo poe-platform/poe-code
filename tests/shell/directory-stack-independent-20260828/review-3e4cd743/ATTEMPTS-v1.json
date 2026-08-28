@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "role": "pre-execution inspection/preparation failures; no product results",
+  "failures": [
+    {"id":"INSPECT-01","error":"zsh: no matches found: tests/commands/agent*","correction":"quoted Git pathspec, read pinned baseline fixture"},
+    {"id":"INSPECT-02","error":"fatal: path src/plugins/agent.ts does not exist in 5137 baseline","correction":"pinned src/plugins/index.ts located"},
+    {"id":"INSPECT-03","error":"fatal: path src/plugins/agent-commands.ts does not exist in 5137 baseline","correction":"pinned src/plugins/index.ts inspected"},
+    {"id":"TOOLS-01","error":"ENOENT scandir /Users/kjopek/Workspace/safe-bash/node_modules/get-tsconfig","location":"[eval1]:2:320","effect":"no authored files produced; no product imported/executed","correction":"read actual tsx dependency metadata; this version depends only on esbuild; prepare-v1 uses five present explicit tool packages"}
+  ],
+  "productExecution": 0
+}

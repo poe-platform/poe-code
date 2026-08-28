@@ -1,0 +1,74 @@
+{
+  "kind": "syntax-only-no-product-import",
+  "checkedAt": "2026-08-28T09:00:51.528Z",
+  "checks": [
+    {
+      "file": "harness-v1/adapters.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "harness-v1/child-process.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "harness-v1/driver.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "harness-v1/gaps.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "harness-v1/integrity.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "harness-v1/lifecycle.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "harness-v1/load-hook.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "harness-v1/public-cases.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "prepare-v1.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "prepare-v2.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "run-review-v1.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "passed": 11,
+  "failed": 0
+}

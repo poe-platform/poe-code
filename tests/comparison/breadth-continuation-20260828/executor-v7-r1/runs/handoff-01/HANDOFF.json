@@ -1,0 +1,116 @@
+{
+  "schema": "BREADTH_SUCCESSOR_AUTHOR_HANDOFF",
+  "date": "2026-08-28",
+  "verdict": "READY_FOR_DIFFERENT_REVIEW_NOT_ADMISSION_ACCEPTED",
+  "candidateCommit": "230ed3c6e15617b312760367adf9ede4e5c7ff6a",
+  "recipe": {
+    "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/SEAL.json",
+    "bytes": 82608,
+    "sha256": "05aa8dce295c507fd605c93aa113ba2ecd5605064dc0f6dfe3a20aa6dc6bf04d",
+    "boundInputs": 322
+  },
+  "interface": {
+    "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/INTERFACE.json",
+    "bytes": 8796,
+    "sha256": "913d051875c60492cce06937ff33b85bb4c9b36085b79169d5e51e87852880c4"
+  },
+  "unchangedProduct": {
+    "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+    "comparator": "just-bash 3.4.2 pinned; not latest",
+    "sourcePackageOrPermissionsChanged": false
+  },
+  "sourceFinding": {
+    "getBuiltinModulePropertyAccessByte": 503546,
+    "propertyTokenNotCallByte": 503554,
+    "moduleCallHalfOpen": [503594, 503605],
+    "workerThreadsCallHalfOpen": [503704, 503723],
+    "mainSourceBytes": 510637,
+    "mainSourceSha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+    "sourceMode": 292,
+    "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+    "orderedQueries": ["module", "worker_threads"],
+    "returns": "undefined twice; exact arity one primitive-string value; zero native delegation",
+    "revocation": "Every captured wrapper permanently revoked at slot two and either import outcome before factory; final close also fails caught late violations",
+    "qualifications": ["Detached calls supported", "Not caller authentication", "Not stock-Node capabilities", "Separate existing Module imports and guards unchanged", "No raw Module or alternate-entry fallback"]
+  },
+  "originalSyntheticRun": {
+    "preseal": "0036d968360d41229e7df92d7a4a624375aac43a",
+    "launcherPreseal": "eaf948cefbf322f770ccc0fd1e206160750522cf",
+    "evidenceCommit": "d180c3e4b9d84ccc9c59af0eb767d9ba92302537",
+    "attempts": 1,
+    "pass": 31,
+    "fail": 2,
+    "unrun": 0,
+    "unsafe": false,
+    "failedFamilies": {
+      "G08": "Harness source-mode transcription: expected 0644, immutable projected source actually 0444",
+      "B16": "Harness observer used .length on integer final-report children:0; actual terminal has separate children:[]"
+    },
+    "reaped": { "runner": 1, "outer": 16, "nestedOwnStub": 11, "total": 28 },
+    "rawArchive": {
+      "manifest": "tests/comparison/breadth-continuation-20260828/executor-v7/runs/evidence-v7-01/MANIFEST.json",
+      "manifestSha256": "c003c7b8f00cadec085646a53ac865f5b72220d3c00c3c7f9a2f575e3c1f9ec1",
+      "entries": 273,
+      "rawBytes": 17242892,
+      "compressedBytes": 210954,
+      "parts": 1,
+      "symlinkFixture": "metadata only; never followed or materialized by archive"
+    },
+    "reportDefectEvidence": {
+      "actualTruncationCounterexample": { "id": "B11", "observedStdout": 65537, "retainedStdout": 65536, "unretained": 1, "exit": 0, "close": 0, "signalSent": "SIGTERM", "supervisorFailure": "CAPTURE_LIMIT", "natural": false, "reaped": true, "admissionAssessment": false },
+      "actualMissingFailures": { "id": "B10", "exit": 0, "natural": true, "admissionAssessment": false, "assessmentEscaped": false },
+      "schemaCounterexamples": { "id": "D05", "denied": 17, "getterInvocations": 0 },
+      "wholeBodyCases": ["configuration", "null primary plus cleanup zero", "spawn callback", "receipt persistence", "tail", "aggregate quota", "unlisted out-of-store file", "stdout failure", "missing failures", "truncation", "allPASS exit7", "multipart tamper", "caught third query", "caught post-factory query", "whole-body serialization failure"]
+    }
+  },
+  "focusedContinuation": {
+    "preseal": "230ed3c6e15617b312760367adf9ede4e5c7ff6a",
+    "attempts": 1,
+    "pass": 2,
+    "fail": 0,
+    "positives": 2,
+    "negatives": 12,
+    "newChildLaunches": 0,
+    "driverDisposition": "functions.exec_command observed exit 0; no PID captured for this data-only tool invocation",
+    "resultPath": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/runs/focused-r1-01/RESULT.json",
+    "resultSha256": "1f6c55a31136516accdd9046d205c4dddd4101fb8f12eb8cc140562905179dc0",
+    "B16Timing": "Explicit post-capture observer reconciliation using authenticated original archived raw receipt; no actual CLI replay",
+    "composition": "31 retained original qualifications plus 2 separately versioned corrections; not an original 33/33 rescore"
+  },
+  "resourceAndReportProfile": {
+    "coordinatorEvidenceBytes": 260046848,
+    "outerCollectorEvidenceBytes": 8388608,
+    "combinedEvidenceBytes": 268435456,
+    "perRecordBytes": 262144,
+    "perStreamBytes": 65536,
+    "logicalDocumentBytes": 33554432,
+    "configurationDocumentBytes": 2097152,
+    "allDirectClaimsLocksControlFixturesRegisteredBeforeWrites": true,
+    "stagedPayload": "Separate exact fixed projection, including moved-origin alias with no doubled byte allowance",
+    "finiteOwnDataSchemaBeforeAccess": true,
+    "fullOuterSupervisorDispositionRequired": true,
+    "primaryNullUndefinedPreserved": true,
+    "metadataGitChildrenSeparatelyRecorded": true,
+    "heapNotRSS": true,
+    "checkedElapsedNotHardPreemption": true
+  },
+  "historicalPreservation": {
+    "V6Evidence": "becd1647a1572995750585b5c60d2be7d5fb77d4",
+    "V6Status": "UNSAFE_STOP; consumed grant; 3/14 launched, comparator denied; zero C11/semantics",
+    "V6StdoutObserved": 359581,
+    "V6StdoutRetained": 65536,
+    "V6StdoutIrrecoverable": 294045,
+    "V6ResultBytes": 531954,
+    "otherOversizedV6Records": { "STAGED.json": 979544, "child-003.json": 685153, "child-001.receipt.json": 318162, "child-002.receipt.json": 317978 },
+    "originalReportReview": "19/20 original; corrected 18 qualified/2 defects; not rescored",
+    "V4V5History": "unchanged",
+    "W07ComparatorNonExecution": "UNQUALIFIED_UNCREDITED"
+  },
+  "actualEngineImports": 0,
+  "actualTargetComparatorStaging": 0,
+  "actualAdmissionC11": 0,
+  "semanticCohortCalls": 0,
+  "nextBlocker": "Archimedes must different-review the complete V7-r1 seal/interface and composed synthetic proof. Only a fresh root admission grant can authorize its concrete launch. Separate Module bootstrap guards may still refuse; this author proof does not waive them.",
+  "noNativePrivateNetworkOrFullGateClaim": true
+}

@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import {readFileSync,mkdtempSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {candidate,directory,blob,sha,save,verifyAssembly} from './driver/common.mjs';
+import {readProfile,validateProfile} from './driver/profile.mjs';
+import {parse,verifyDriverSeal,requireRelease,admission,canonicalArguments,requireCanonicalArguments} from './driver/admission.mjs';
+
+const output=mkdtempSync(join(tmpdir(),'unified76-amendment-controls-'));
+const freeze=JSON.parse(readFileSync(new URL('./FREEZE.json',import.meta.url)));
+const profile=readProfile(),seal=verifyDriverSeal();
+const sourceBindings=Object.fromEntries(Object.keys(seal.files).map(name=>[name,sha(readFileSync(join(directory,name)))]));
+const rows=[];
+const test=(name,run)=>{try{run();rows.push({name,status:'PASS'});}catch(error){rows.push({name,status:'FAIL',error:error.stack});}};
+const original=blob(freeze.path,freeze.previousCandidate).toString();
+const expected=original.replace(freeze.from,freeze.to);
+const requireExact=text=>assert.equal(text,expected,'only authorized one-hunk amendment');
+test('exact one numeric hunk, same four paths, product tree unchanged',()=>{verifyAssembly();requireExact(blob(freeze.path).toString());});
+test('removed amendment rejected',()=>assert.throws(()=>requireExact(original)));
+test('unapproved unique-count amendment rejected',()=>assert.throws(()=>requireExact(expected.replace('assert.equal(new Set(definitions).size, 73);','assert.equal(new Set(definitions).size, 76);'))));
+test('unapproved suffix amendment rejected',()=>assert.throws(()=>requireExact(expected.replace('"column"]','"column", "html-to-markdown", "du", "expr"]'))));
+test('custom count regression rejected',()=>assert.throws(()=>requireExact(expected.replace('target.commands.list().length, 77','target.commands.list().length, 74'))));
+test('fifth fixture path rejected',()=>assert.throws(()=>verifyAssembly({...candidate,changes:[...candidate.changes,{path:'not-authorized.ts'}]})));
+test('old candidate CLI refused',()=>assert.throws(()=>parse(['--candidate',freeze.previousCandidate,'--inspect'])));
+test('current exact inspect CLI accepted',()=>assert.equal(parse(['--candidate',candidate.candidate,'--inspect']).execute,false));
+test('old cleanup revision rejected',()=>{const altered=structuredClone(profile);altered.cleanup.revision=freeze.previousCandidate;assert.throws(()=>validateProfile(altered));});
+test('wrong selected fixture blob rejected',()=>{const altered=structuredClone(profile);altered.scopeInputs.find(entry=>entry.path===freeze.path).blob='0'.repeat(40);assert.throws(()=>validateProfile(altered));});
+test('missing runtime input rejected',()=>{const altered=structuredClone(profile);altered.scopeInputs.pop();assert.throws(()=>validateProfile(altered));});
+test('TAP omission rejected',()=>assert.throws(()=>requireCanonicalArguments(canonicalArguments(profile).filter(argument=>argument!=='--test-reporter=tap'),profile)));
+test('missing root release refused',()=>assert.throws(()=>requireRelease({},seal,profile)));
+test('F01 current provider binds actual selected Git blob, not stale inventory field',()=>{
+  const path='tests/fs/webdav/consumer/provider.mts';
+  const entry=profile.classifiedMts.find(row=>row.path===path);
+  assert.equal(entry.classification.classification,'current');
+  assert.equal(entry.blob,'21f5fe464f028b4e056d2aae40b26612f560bd95');
+  assert.equal(sha(blob(path)),'af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6');
+  assert.equal(entry.classification.sha256,'288d17dca5b6950fababb945cf21c15594dfbf37897d1cdcaab2aba1088a6b9b');
+  assert.deepEqual(blob('tests/plugins/qualified-current-release/inventory-check.mjs'),blob('tests/plugins/qualified-current-release/inventory-check.mjs',candidate.base));
+  assert.deepEqual(blob('tests/plugins/qualified-current-release/inventory.json'),blob('tests/plugins/qualified-current-release/inventory.json',candidate.base));
+});
+test('old provider body substitution rejected',()=>{const altered=structuredClone(profile);altered.scopeInputs.find(row=>row.path==='tests/fs/webdav/consumer/provider.mts').blob='27c6761a57a8e8fda7f083189bf7af4064a6f875';assert.throws(()=>validateProfile(altered));});
+const actual=await admission(profile,{...process.env,RG_NATIVE_BIN:'/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-rg-recovered-gsSpuz/rg',TREE_NATIVE_BIN:'/tmp/safe-bash-tree-external-oracle-TbVJVK/tree'});
+test('actual Node24 and native49+2 admission only',()=>{assert.deepEqual(actual.issues,[]);assert.equal(actual.native.assets.length,51);assert.equal(actual.suiteLaunched,false);});
+test('driver code unchanged except two versioned directory-depth adjustments',()=>{
+  const lineage=JSON.parse(readFileSync(join(directory,'CODE-LINEAGE.json')));
+  for(const row of lineage.files){const bytes=readFileSync(join(directory,row.name));assert.equal(sha(bytes),row.amendedSha256);let previous=blob('tests/integration/full-gate-20260827/unified76-driver/'+row.name,candidate.previousDriver).toString();if(['common.mjs','profile.mjs'].includes(row.name))previous=previous.replace("'../../../..'","'../../../../../..'");assert.equal(bytes.toString(),previous);}
+});
+test('all runtime source bindings remain unchanged',()=>{for(const[name,expectedHash]of Object.entries(sourceBindings))assert.equal(sha(readFileSync(join(directory,name))),expectedHash);verifyDriverSeal();});
+const result={capturedAt:new Date().toISOString(),candidate:candidate.candidate,driverSha256:sha(JSON.stringify(seal)),profileSha256:sha(JSON.stringify(profile)),sourceBindings,controlSourceSha256:sha(readFileSync(new URL(import.meta.url))),rows,native:actual,pass:rows.filter(row=>row.status==='PASS').length,fail:rows.filter(row=>row.status==='FAIL').length,fullGateLaunched:false};
+save(join(output,'REPORT.json'),result);console.log(JSON.stringify({output,candidate:candidate.candidate,pass:result.pass,fail:result.fail,fullGateLaunched:false}));if(result.fail)process.exitCode=1;

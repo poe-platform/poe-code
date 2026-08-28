@@ -1,0 +1,942 @@
+{
+  "startedAt": "2026-08-28T07:09:12.836Z",
+  "source": "86038b27d1bee03333f13560e374ad407db417b8",
+  "policySha256": "0c131a44099205aa3cf85adf4836738b41b111616fae0d8f7c7f198277c04d6e",
+  "preconditions": {
+    "hardlink": true,
+    "directoryRename": true
+  },
+  "canary": {
+    "path": "/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-canary",
+    "parentDescriptor": 12,
+    "before": "89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d",
+    "after": "89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d"
+  },
+  "sentinel": {
+    "pid": 39211,
+    "survived": true,
+    "close": {
+      "code": null,
+      "signal": "SIGTERM"
+    }
+  },
+  "controls": [
+    {
+      "id": "outside-links",
+      "status": 0,
+      "stdout": "{\"mode\":\"outside-links\",\"pid\":39236,\"ppid\":39209,\"events\":[{\"label\":\"inert outside file link\",\"positive\":true},{\"label\":\"inert outside directory link\",\"positive\":true},{\"label\":\"file-link-write\",\"target\":\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-canary\",\"instruction\":false,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-eQoqCS/outside-file'\"},\"present\":true},{\"label\":\"file-link-append\",\"target\":\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-canary\",\"instruction\":false,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-eQoqCS/outside-file'\"},\"present\":true},{\"label\":\"file-link-truncate\",\"target\":\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-canary\",\"instruction\":false,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-eQoqCS/outside-file'\"},\"present\":true},{\"label\":\"directory-child-create\",\"target\":\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory/new-child\",\"instruction\":false,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-eQoqCS/outside-dir/new-child'\"},\"present\":false},{\"label\":\"relative chain\",\"positive\":true},{\"label\":\"renamed-relative-chain\",\"target\":\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory/benign\",\"instruction\":false,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-eQoqCS/renamed-chain/benign'\"},\"present\":true},{\"label\":\"relative-dot-alias\",\"target\":\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-canary\",\"instruction\":false,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-eQoqCS/aliases/relative-file'\"},\"present\":true},{\"label\":\"tmp-private-alias\",\"target\":\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory/new-child\",\"instruction\":false,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-eQoqCS/tmp-alias/new-child'\"},\"present\":false},{\"label\":\"contained ordinary write\",\"positive\":true},{\"label\":\"exact output and literal backslash\",\"positive\":true},{\"label\":\"outside-exact-output\",\"target\":\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-publication\",\"instruction\":false,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-publication'\"},\"present\":false}],\"outsideBefore\":{\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-canary\":{\"inode\":180640799,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory\":{\"inode\":180640800,\"device\":16777232,\"links\":3,\"mode\":493,\"kind\":\"directory\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory/benign\":{\"inode\":180640801,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"85052eecd7dce2edff7e0e71aa214e11c183480d126253d73eba052b4629c922\"}},\"outsideAfter\":{\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-canary\":{\"inode\":180640799,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory\":{\"inode\":180640800,\"device\":16777232,\"links\":3,\"mode\":493,\"kind\":\"directory\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory/benign\":{\"inode\":180640801,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"85052eecd7dce2edff7e0e71aa214e11c183480d126253d73eba052b4629c922\"}},\"status\":\"PASS\"}\n",
+      "stderr": ""
+    },
+    {
+      "id": "alias-targets",
+      "status": 0,
+      "stdout": "{\"mode\":\"alias-targets\",\"pid\":39249,\"ppid\":39209,\"events\":[{\"label\":\"alias-create-AGENTS.md\",\"target\":\"/private/tmp/unified76-os-write-eQoqCS/AGENTS.md\",\"instruction\":true,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-eQoqCS/instruction-alias-0'\"},\"present\":false},{\"label\":\"renamed-chain-append-AGENTS.md\",\"target\":\"/private/tmp/unified76-os-write-eQoqCS/AGENTS.md\",\"instruction\":true,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-eQoqCS/instruction-renamed-0'\"},\"present\":false},{\"label\":\"alias-create-agents.md\",\"target\":\"/private/tmp/unified76-os-write-eQoqCS/agents.md\",\"instruction\":true,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-eQoqCS/instruction-alias-1'\"},\"present\":false},{\"label\":\"renamed-chain-append-agents.md\",\"target\":\"/private/tmp/unified76-os-write-eQoqCS/agents.md\",\"instruction\":true,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-eQoqCS/instruction-renamed-1'\"},\"present\":false},{\"label\":\"alias-create-AgEnTs.Md\",\"target\":\"/private/tmp/unified76-os-write-eQoqCS/AgEnTs.Md\",\"instruction\":true,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-eQoqCS/instruction-alias-2'\"},\"present\":false},{\"label\":\"renamed-chain-append-AgEnTs.Md\",\"target\":\"/private/tmp/unified76-os-write-eQoqCS/AgEnTs.Md\",\"instruction\":true,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-eQoqCS/instruction-renamed-2'\"},\"present\":false},{\"label\":\"alias-create-AGENTS.MD\",\"target\":\"/private/tmp/unified76-os-write-eQoqCS/AGENTS.MD\",\"instruction\":true,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-eQoqCS/instruction-alias-3'\"},\"present\":false},{\"label\":\"renamed-chain-append-AGENTS.MD\",\"target\":\"/private/tmp/unified76-os-write-eQoqCS/AGENTS.MD\",\"instruction\":true,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, open '/private/tmp/unified76-os-write-eQoqCS/instruction-renamed-3'\"},\"present\":false},{\"label\":\"instruction-link-name\",\"target\":\"/private/tmp/unified76-os-write-eQoqCS/AGENTS.md\",\"instruction\":true,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, symlink 'inside' -> '/private/tmp/unified76-os-write-eQoqCS/AGENTS.md'\"},\"present\":false}],\"outsideBefore\":{\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-canary\":{\"inode\":180640799,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory\":{\"inode\":180640800,\"device\":16777232,\"links\":3,\"mode\":493,\"kind\":\"directory\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory/benign\":{\"inode\":180640801,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"85052eecd7dce2edff7e0e71aa214e11c183480d126253d73eba052b4629c922\"}},\"outsideAfter\":{\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-canary\":{\"inode\":180640799,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory\":{\"inode\":180640800,\"device\":16777232,\"links\":3,\"mode\":493,\"kind\":\"directory\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory/benign\":{\"inode\":180640801,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"85052eecd7dce2edff7e0e71aa214e11c183480d126253d73eba052b4629c922\"}},\"status\":\"PASS\"}\n",
+      "stderr": ""
+    },
+    {
+      "id": "physical-imports",
+      "status": 0,
+      "stdout": "{\"mode\":\"physical-imports\",\"pid\":39264,\"ppid\":39209,\"events\":[{\"label\":\"outside-hardlink-import\",\"target\":\"/private/tmp/unified76-os-write-eQoqCS/hardlink-import\",\"instruction\":false,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, link '/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-canary' -> '/private/tmp/unified76-os-write-eQoqCS/hardlink-import'\"},\"present\":false},{\"label\":\"outside-hardlink-through-alias\",\"target\":\"/private/tmp/unified76-os-write-eQoqCS/hardlink-import-alias\",\"instruction\":false,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, link '/private/tmp/unified76-os-write-eQoqCS/outside-dir/benign' -> '/private/tmp/unified76-os-write-eQoqCS/hardlink-import-alias'\"},\"present\":false},{\"label\":\"physical-directory-rename\",\"target\":\"/private/tmp/unified76-os-write-eQoqCS/physical-import\",\"instruction\":false,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, rename '/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory' -> '/private/tmp/unified76-os-write-eQoqCS/physical-import'\"},\"present\":false},{\"label\":\"physical-directory-tmp-alias-rename\",\"target\":\"/private/tmp/unified76-os-write-eQoqCS/physical-import-alias\",\"instruction\":false,\"failure\":{\"code\":\"EPERM\",\"message\":\"EPERM: operation not permitted, rename '/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory' -> '/private/tmp/unified76-os-write-eQoqCS/physical-import-alias'\"},\"present\":false}],\"outsideBefore\":{\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-canary\":{\"inode\":180640799,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory\":{\"inode\":180640800,\"device\":16777232,\"links\":3,\"mode\":493,\"kind\":\"directory\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory/benign\":{\"inode\":180640801,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"85052eecd7dce2edff7e0e71aa214e11c183480d126253d73eba052b4629c922\"}},\"outsideAfter\":{\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-canary\":{\"inode\":180640799,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory\":{\"inode\":180640800,\"device\":16777232,\"links\":3,\"mode\":493,\"kind\":\"directory\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory/benign\":{\"inode\":180640801,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"85052eecd7dce2edff7e0e71aa214e11c183480d126253d73eba052b4629c922\"}},\"status\":\"PASS\"}\n",
+      "stderr": ""
+    },
+    {
+      "id": "descendants",
+      "status": 0,
+      "stdout": "{\"mode\":\"descendants\",\"pid\":39276,\"ppid\":39209,\"events\":[{\"label\":\"cleared Node child/grandchild\",\"status\":0,\"stdout\":\"{\\\"pid\\\":39278,\\\"nodeOptions\\\":null,\\\"status\\\":0,\\\"stdout\\\":\\\"{\\\\\\\"pid\\\\\\\":39280,\\\\\\\"ppid\\\\\\\":39278,\\\\\\\"nodeOptions\\\\\\\":null,\\\\\\\"rows\\\\\\\":[{\\\\\\\"path\\\\\\\":\\\\\\\"/private/tmp/unified76-os-write-eQoqCS/renamed-chain/benign\\\\\\\",\\\\\\\"status\\\\\\\":\\\\\\\"EPERM\\\\\\\"},{\\\\\\\"path\\\\\\\":\\\\\\\"/private/tmp/unified76-os-write-eQoqCS/instruction-renamed-0\\\\\\\",\\\\\\\"status\\\\\\\":\\\\\\\"EPERM\\\\\\\"}]}\\\\n\\\",\\\"stderr\\\":\\\"\\\"}\\n\",\"stderr\":\"\",\"instructionAttempts\":1},{\"label\":\"cleared native child/grandchild\",\"status\":0,\"stdout\":\"parent=39282\\nchild=39284\\n\",\"stderr\":\"child: /private/tmp/unified76-os-write-eQoqCS/renamed-chain/benign: Operation not permitted\\nchild: /private/tmp/unified76-os-write-eQoqCS/instruction-renamed-1: Operation not permitted\\n\",\"instructionAttempts\":1}],\"outsideBefore\":{\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-canary\":{\"inode\":180640799,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory\":{\"inode\":180640800,\"device\":16777232,\"links\":3,\"mode\":493,\"kind\":\"directory\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory/benign\":{\"inode\":180640801,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"85052eecd7dce2edff7e0e71aa214e11c183480d126253d73eba052b4629c922\"}},\"outsideAfter\":{\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-canary\":{\"inode\":180640799,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory\":{\"inode\":180640800,\"device\":16777232,\"links\":3,\"mode\":493,\"kind\":\"directory\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory/benign\":{\"inode\":180640801,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"85052eecd7dce2edff7e0e71aa214e11c183480d126253d73eba052b4629c922\"}},\"status\":\"PASS\"}\n",
+      "stderr": ""
+    },
+    {
+      "id": "shipping-fds",
+      "status": 0,
+      "stdout": "{\"mode\":\"shipping-fds\",\"pid\":39302,\"ppid\":39209,\"events\":[{\"label\":\"parent canary FD not inherited\",\"descriptors\":[{\"descriptor\":0,\"regular\":false,\"device\":18446744073409750000,\"inode\":336},{\"descriptor\":1,\"regular\":false,\"device\":18446744073709552000,\"inode\":2095641},{\"descriptor\":2,\"regular\":false,\"device\":18446744073709552000,\"inode\":2095642},{\"descriptor\":3,\"regular\":false,\"device\":0,\"inode\":0},{\"descriptor\":4,\"regular\":false,\"device\":0,\"inode\":8758255985314102000},{\"descriptor\":5,\"regular\":false,\"device\":0,\"inode\":9376776408482542000},{\"descriptor\":6,\"regular\":false,\"device\":16777232,\"inode\":2},{\"descriptor\":7,\"regular\":false,\"device\":0,\"inode\":0},{\"descriptor\":8,\"regular\":false,\"device\":16777232,\"inode\":2},{\"descriptor\":9,\"regular\":false,\"device\":0,\"inode\":0},{\"descriptor\":10,\"regular\":false,\"device\":16777232,\"inode\":2},{\"descriptor\":11,\"regular\":false,\"device\":18446744073409750000,\"inode\":336}]}],\"outsideBefore\":{\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-canary\":{\"inode\":180640799,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory\":{\"inode\":180640800,\"device\":16777232,\"links\":3,\"mode\":493,\"kind\":\"directory\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory/benign\":{\"inode\":180640801,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"85052eecd7dce2edff7e0e71aa214e11c183480d126253d73eba052b4629c922\"}},\"outsideAfter\":{\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-canary\":{\"inode\":180640799,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory\":{\"inode\":180640800,\"device\":16777232,\"links\":3,\"mode\":493,\"kind\":\"directory\"},\"/private/tmp/unified76-independent-write-v9-Tel2Zh/outside-directory/benign\":{\"inode\":180640801,\"device\":16777232,\"links\":1,\"mode\":420,\"kind\":\"file\",\"sha256\":\"85052eecd7dce2edff7e0e71aa214e11c183480d126253d73eba052b4629c922\"}},\"status\":\"PASS\"}\n",
+      "stderr": ""
+    }
+  ],
+  "fullGate": false,
+  "shipping": {
+    "envelope": {
+      "schema": "unified76-os-instruction-fence/1",
+      "createdAt": "2026-08-28T07:09:12.899Z",
+      "launcherPid": 39209,
+      "roots": [
+        {
+          "path": "/private/tmp/unified76-os-write-eQoqCS",
+          "device": 16777232,
+          "inode": 180640809,
+          "mode": 448,
+          "uid": 501
+        },
+        {
+          "path": "/private/tmp/unified76-build-types-review-resolved-write-v9-39209",
+          "device": 16777232,
+          "inode": 180640810,
+          "mode": 448,
+          "uid": 501
+        }
+      ],
+      "output": "/tmp/unified76-build-types-review-resolved-write-v9-39209",
+      "external": {
+        "manifestSha256": "fe1a7f720959472bdd8e39b4cb3c9e80e27a9be43961dd5558d69bb61560096f",
+        "binary": {
+          "path": "/usr/bin/sandbox-exec",
+          "bytes": 102560,
+          "mode": 493,
+          "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+        },
+        "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+        "systemReferences": [
+          [
+            "/usr/bin/sandbox-exec",
+            "/usr/lib/libsandbox.1.dylib"
+          ],
+          [
+            "/usr/bin/sandbox-exec",
+            "/usr/lib/libSystem.B.dylib"
+          ]
+        ],
+        "qualification": "Root approved exactly two additional sandbox-exec/tool system-reference pairs on pinned macOS26.4.1/25E253; physical library paths ENOENT, not file-hash/full-OS attestation. Original eleven-pair receipt unchanged. No non-system or ambient-loader exception."
+      },
+      "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor",
+      "profileSha256": "74892516fcb04a357e16808a4a0adebef41704df084bd9c21e876c83ec3fe251"
+    },
+    "result": {
+      "executable": "/usr/bin/sandbox-exec",
+      "args": [
+        "-p",
+        "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-eQoqCS\") (subpath \"/private/tmp/unified76-build-types-review-resolved-write-v9-39209\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n",
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/resolved-write-v9/worker.mjs",
+        "/private/tmp/unified76-independent-write-v9-Tel2Zh/input.json"
+      ],
+      "cwd": "/private/tmp/unified76-independent-write-v9-Tel2Zh",
+      "pid": 39221,
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputExceeded": false,
+      "closed": true,
+      "elapsedMs": 3045,
+      "timeoutMs": 180000,
+      "outputBytes": 0,
+      "observed": [
+        {
+          "pid": 39221,
+          "parent": 39209,
+          "group": 39221,
+          "born": "Fri Aug 28 02:09:12 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/resolved-write-v9/worker.mjs /private/tmp/unified76-independent-write-v9-Tel2Zh/input.json"
+        },
+        {
+          "pid": 39225,
+          "parent": 39221,
+          "group": 39221,
+          "born": "Fri Aug 28 02:09:13 2026",
+          "command": "/usr/bin/otool -L /usr/bin/sandbox-exec"
+        },
+        {
+          "pid": 39226,
+          "parent": 39225,
+          "group": 39221,
+          "born": "Fri Aug 28 02:09:13 2026",
+          "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -license check"
+        }
+      ],
+      "signals": [],
+      "survivors": [],
+      "listeners": [],
+      "cleanupRequired": false,
+      "clean": true
+    },
+    "phaseReceipt": {
+      "root": {
+        "pid": 39221,
+        "parent": 39209,
+        "group": 39221,
+        "born": "Fri Aug 28 02:09:12 2026",
+        "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/resolved-write-v9/worker.mjs /private/tmp/unified76-independent-write-v9-Tel2Zh/input.json"
+      },
+      "events": [
+        {
+          "label": "outside-links",
+          "result": {
+            "executable": "/usr/bin/sandbox-exec",
+            "args": [
+              "-p",
+              "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-eQoqCS\") (subpath \"/private/tmp/unified76-build-types-review-resolved-write-v9-39209\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n",
+              "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+              "/private/tmp/unified76-os-write-eQoqCS/probe.mjs",
+              "/private/tmp/unified76-os-write-eQoqCS/input.json",
+              "outside-links"
+            ],
+            "cwd": "/private/tmp/unified76-os-write-eQoqCS",
+            "pid": 39236,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "outputExceeded": false,
+            "closed": true,
+            "elapsedMs": 333,
+            "timeoutMs": 20000,
+            "outputBytes": 3850,
+            "observed": [
+              {
+                "pid": 39236,
+                "parent": 39209,
+                "group": 39236,
+                "born": "Fri Aug 28 02:09:13 2026",
+                "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-eQoqCS/probe.mjs /private/tmp/unified76-os-write-eQoqCS/input.json outside-links"
+              }
+            ],
+            "signals": [],
+            "survivors": [],
+            "listeners": [],
+            "cleanupRequired": false,
+            "clean": true
+          },
+          "osFence": {
+            "profileSha256": "74892516fcb04a357e16808a4a0adebef41704df084bd9c21e876c83ec3fe251",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-eQoqCS",
+                "device": 16777232,
+                "inode": 180640809,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-resolved-write-v9-39209",
+                "device": 16777232,
+                "inode": 180640810,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          }
+        },
+        {
+          "label": "alias-targets",
+          "result": {
+            "executable": "/usr/bin/sandbox-exec",
+            "args": [
+              "-p",
+              "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-eQoqCS\") (subpath \"/private/tmp/unified76-build-types-review-resolved-write-v9-39209\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n",
+              "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+              "/private/tmp/unified76-os-write-eQoqCS/probe.mjs",
+              "/private/tmp/unified76-os-write-eQoqCS/input.json",
+              "alias-targets"
+            ],
+            "cwd": "/private/tmp/unified76-os-write-eQoqCS",
+            "pid": 39249,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "outputExceeded": false,
+            "closed": true,
+            "elapsedMs": 333,
+            "timeoutMs": 20000,
+            "outputBytes": 3745,
+            "observed": [
+              {
+                "pid": 39249,
+                "parent": 39209,
+                "group": 39249,
+                "born": "Fri Aug 28 02:09:14 2026",
+                "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-eQoqCS/probe.mjs /private/tmp/unified76-os-write-eQoqCS/input.json alias-targets"
+              }
+            ],
+            "signals": [],
+            "survivors": [],
+            "listeners": [],
+            "cleanupRequired": false,
+            "clean": true
+          },
+          "osFence": {
+            "profileSha256": "74892516fcb04a357e16808a4a0adebef41704df084bd9c21e876c83ec3fe251",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-eQoqCS",
+                "device": 16777232,
+                "inode": 180640809,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-resolved-write-v9-39209",
+                "device": 16777232,
+                "inode": 180640810,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          }
+        },
+        {
+          "label": "physical-imports",
+          "result": {
+            "executable": "/usr/bin/sandbox-exec",
+            "args": [
+              "-p",
+              "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-eQoqCS\") (subpath \"/private/tmp/unified76-build-types-review-resolved-write-v9-39209\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n",
+              "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+              "/private/tmp/unified76-os-write-eQoqCS/probe.mjs",
+              "/private/tmp/unified76-os-write-eQoqCS/input.json",
+              "physical-imports"
+            ],
+            "cwd": "/private/tmp/unified76-os-write-eQoqCS",
+            "pid": 39264,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "outputExceeded": false,
+            "closed": true,
+            "elapsedMs": 315,
+            "timeoutMs": 20000,
+            "outputBytes": 2708,
+            "observed": [
+              {
+                "pid": 39264,
+                "parent": 39209,
+                "group": 39264,
+                "born": "Fri Aug 28 02:09:14 2026",
+                "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-eQoqCS/probe.mjs /private/tmp/unified76-os-write-eQoqCS/input.json physical-imports"
+              }
+            ],
+            "signals": [],
+            "survivors": [],
+            "listeners": [],
+            "cleanupRequired": false,
+            "clean": true
+          },
+          "osFence": {
+            "profileSha256": "74892516fcb04a357e16808a4a0adebef41704df084bd9c21e876c83ec3fe251",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-eQoqCS",
+                "device": 16777232,
+                "inode": 180640809,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-resolved-write-v9-39209",
+                "device": 16777232,
+                "inode": 180640810,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          }
+        },
+        {
+          "label": "descendants",
+          "result": {
+            "executable": "/usr/bin/sandbox-exec",
+            "args": [
+              "-p",
+              "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-eQoqCS\") (subpath \"/private/tmp/unified76-build-types-review-resolved-write-v9-39209\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n",
+              "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+              "/private/tmp/unified76-os-write-eQoqCS/probe.mjs",
+              "/private/tmp/unified76-os-write-eQoqCS/input.json",
+              "descendants"
+            ],
+            "cwd": "/private/tmp/unified76-os-write-eQoqCS",
+            "pid": 39276,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "outputExceeded": false,
+            "closed": true,
+            "elapsedMs": 407,
+            "timeoutMs": 20000,
+            "outputBytes": 2103,
+            "observed": [
+              {
+                "pid": 39276,
+                "parent": 39209,
+                "group": 39276,
+                "born": "Fri Aug 28 02:09:14 2026",
+                "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-eQoqCS/probe.mjs /private/tmp/unified76-os-write-eQoqCS/input.json descendants"
+              },
+              {
+                "pid": 39282,
+                "parent": 39276,
+                "group": 39276,
+                "born": "Fri Aug 28 02:09:15 2026",
+                "command": "(bash)"
+              },
+              {
+                "pid": 39284,
+                "parent": 39282,
+                "group": 39276,
+                "born": "Fri Aug 28 02:09:15 2026",
+                "command": "(bash)"
+              }
+            ],
+            "signals": [],
+            "survivors": [],
+            "listeners": [],
+            "cleanupRequired": false,
+            "clean": true
+          },
+          "osFence": {
+            "profileSha256": "74892516fcb04a357e16808a4a0adebef41704df084bd9c21e876c83ec3fe251",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-eQoqCS",
+                "device": 16777232,
+                "inode": 180640809,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-resolved-write-v9-39209",
+                "device": 16777232,
+                "inode": 180640810,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          }
+        },
+        {
+          "label": "shipping-fds",
+          "result": {
+            "executable": "/usr/bin/sandbox-exec",
+            "args": [
+              "-p",
+              "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-eQoqCS\") (subpath \"/private/tmp/unified76-build-types-review-resolved-write-v9-39209\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n",
+              "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+              "/private/tmp/unified76-os-write-eQoqCS/probe.mjs",
+              "/private/tmp/unified76-os-write-eQoqCS/input.json",
+              "shipping-fds"
+            ],
+            "cwd": "/private/tmp/unified76-os-write-eQoqCS",
+            "pid": 39302,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "outputExceeded": false,
+            "closed": true,
+            "elapsedMs": 322,
+            "timeoutMs": 20000,
+            "outputBytes": 2155,
+            "observed": [
+              {
+                "pid": 39302,
+                "parent": 39209,
+                "group": 39302,
+                "born": "Fri Aug 28 02:09:15 2026",
+                "command": "(sandbox-exec)"
+              }
+            ],
+            "signals": [],
+            "survivors": [],
+            "listeners": [],
+            "cleanupRequired": false,
+            "clean": true
+          },
+          "osFence": {
+            "profileSha256": "74892516fcb04a357e16808a4a0adebef41704df084bd9c21e876c83ec3fe251",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-eQoqCS",
+                "device": 16777232,
+                "inode": 180640809,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-resolved-write-v9-39209",
+                "device": 16777232,
+                "inode": 180640810,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          }
+        }
+      ],
+      "expectedPhases": [
+        "outside-links",
+        "alias-targets",
+        "physical-imports",
+        "descendants",
+        "shipping-fds"
+      ],
+      "completed": 5,
+      "clean": true
+    },
+    "observerReceipt": {
+      "root": {
+        "pid": 39221,
+        "parent": 39209,
+        "group": 39221,
+        "born": "Fri Aug 28 02:09:12 2026",
+        "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/resolved-write-v9/worker.mjs /private/tmp/unified76-independent-write-v9-Tel2Zh/input.json"
+      },
+      "groups": [],
+      "events": [],
+      "survivors": [],
+      "qualification": "Trusted outer read-only ps observer; exact requester PID/birth and admitted child PID/group/birth. No signals or target sandbox policy changes."
+    },
+    "clean": true,
+    "qualification": "Trusted outer owns and observes each restricted worker/phase. Phase targets are sibling process groups with the identical OS profile, never unfenced executions. IPC passes no writable file descriptors."
+  },
+  "worker": {
+    "report": {
+      "phases": [
+        {
+          "executable": "/usr/bin/sandbox-exec",
+          "args": [
+            "/private/tmp/unified76-os-write-eQoqCS/probe.mjs",
+            "/private/tmp/unified76-os-write-eQoqCS/input.json",
+            "outside-links"
+          ],
+          "cwd": "/private/tmp/unified76-os-write-eQoqCS",
+          "pid": 39236,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "outputExceeded": false,
+          "closed": true,
+          "elapsedMs": 333,
+          "timeoutMs": 20000,
+          "outputBytes": 3850,
+          "observed": [
+            {
+              "pid": 39236,
+              "parent": 39209,
+              "group": 39236,
+              "born": "Fri Aug 28 02:09:13 2026",
+              "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-eQoqCS/probe.mjs /private/tmp/unified76-os-write-eQoqCS/input.json outside-links"
+            }
+          ],
+          "signals": [],
+          "survivors": [],
+          "listeners": [],
+          "cleanupRequired": false,
+          "clean": true,
+          "osFence": {
+            "profileSha256": "74892516fcb04a357e16808a4a0adebef41704df084bd9c21e876c83ec3fe251",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-eQoqCS",
+                "device": 16777232,
+                "inode": 180640809,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-resolved-write-v9-39209",
+                "device": 16777232,
+                "inode": 180640810,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          },
+          "label": "outside-links",
+          "expectedStatus": 0,
+          "loaderPolicy": "outer authenticated source guard and production-build invocation audit; child harnesses with explicit environments retain their separately declared fences",
+          "observedNodeExecutables": [
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+          ]
+        },
+        {
+          "executable": "/usr/bin/sandbox-exec",
+          "args": [
+            "/private/tmp/unified76-os-write-eQoqCS/probe.mjs",
+            "/private/tmp/unified76-os-write-eQoqCS/input.json",
+            "alias-targets"
+          ],
+          "cwd": "/private/tmp/unified76-os-write-eQoqCS",
+          "pid": 39249,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "outputExceeded": false,
+          "closed": true,
+          "elapsedMs": 333,
+          "timeoutMs": 20000,
+          "outputBytes": 3745,
+          "observed": [
+            {
+              "pid": 39249,
+              "parent": 39209,
+              "group": 39249,
+              "born": "Fri Aug 28 02:09:14 2026",
+              "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-eQoqCS/probe.mjs /private/tmp/unified76-os-write-eQoqCS/input.json alias-targets"
+            }
+          ],
+          "signals": [],
+          "survivors": [],
+          "listeners": [],
+          "cleanupRequired": false,
+          "clean": true,
+          "osFence": {
+            "profileSha256": "74892516fcb04a357e16808a4a0adebef41704df084bd9c21e876c83ec3fe251",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-eQoqCS",
+                "device": 16777232,
+                "inode": 180640809,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-resolved-write-v9-39209",
+                "device": 16777232,
+                "inode": 180640810,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          },
+          "label": "alias-targets",
+          "expectedStatus": 0,
+          "loaderPolicy": "outer authenticated source guard and production-build invocation audit; child harnesses with explicit environments retain their separately declared fences",
+          "observedNodeExecutables": [
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+          ]
+        },
+        {
+          "executable": "/usr/bin/sandbox-exec",
+          "args": [
+            "/private/tmp/unified76-os-write-eQoqCS/probe.mjs",
+            "/private/tmp/unified76-os-write-eQoqCS/input.json",
+            "physical-imports"
+          ],
+          "cwd": "/private/tmp/unified76-os-write-eQoqCS",
+          "pid": 39264,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "outputExceeded": false,
+          "closed": true,
+          "elapsedMs": 315,
+          "timeoutMs": 20000,
+          "outputBytes": 2708,
+          "observed": [
+            {
+              "pid": 39264,
+              "parent": 39209,
+              "group": 39264,
+              "born": "Fri Aug 28 02:09:14 2026",
+              "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-eQoqCS/probe.mjs /private/tmp/unified76-os-write-eQoqCS/input.json physical-imports"
+            }
+          ],
+          "signals": [],
+          "survivors": [],
+          "listeners": [],
+          "cleanupRequired": false,
+          "clean": true,
+          "osFence": {
+            "profileSha256": "74892516fcb04a357e16808a4a0adebef41704df084bd9c21e876c83ec3fe251",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-eQoqCS",
+                "device": 16777232,
+                "inode": 180640809,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-resolved-write-v9-39209",
+                "device": 16777232,
+                "inode": 180640810,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          },
+          "label": "physical-imports",
+          "expectedStatus": 0,
+          "loaderPolicy": "outer authenticated source guard and production-build invocation audit; child harnesses with explicit environments retain their separately declared fences",
+          "observedNodeExecutables": [
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+          ]
+        },
+        {
+          "executable": "/usr/bin/sandbox-exec",
+          "args": [
+            "/private/tmp/unified76-os-write-eQoqCS/probe.mjs",
+            "/private/tmp/unified76-os-write-eQoqCS/input.json",
+            "descendants"
+          ],
+          "cwd": "/private/tmp/unified76-os-write-eQoqCS",
+          "pid": 39276,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "outputExceeded": false,
+          "closed": true,
+          "elapsedMs": 407,
+          "timeoutMs": 20000,
+          "outputBytes": 2103,
+          "observed": [
+            {
+              "pid": 39276,
+              "parent": 39209,
+              "group": 39276,
+              "born": "Fri Aug 28 02:09:14 2026",
+              "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-eQoqCS/probe.mjs /private/tmp/unified76-os-write-eQoqCS/input.json descendants"
+            },
+            {
+              "pid": 39282,
+              "parent": 39276,
+              "group": 39276,
+              "born": "Fri Aug 28 02:09:15 2026",
+              "command": "(bash)"
+            },
+            {
+              "pid": 39284,
+              "parent": 39282,
+              "group": 39276,
+              "born": "Fri Aug 28 02:09:15 2026",
+              "command": "(bash)"
+            }
+          ],
+          "signals": [],
+          "survivors": [],
+          "listeners": [],
+          "cleanupRequired": false,
+          "clean": true,
+          "osFence": {
+            "profileSha256": "74892516fcb04a357e16808a4a0adebef41704df084bd9c21e876c83ec3fe251",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-eQoqCS",
+                "device": 16777232,
+                "inode": 180640809,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-resolved-write-v9-39209",
+                "device": 16777232,
+                "inode": 180640810,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          },
+          "label": "descendants",
+          "expectedStatus": 0,
+          "loaderPolicy": "outer authenticated source guard and production-build invocation audit; child harnesses with explicit environments retain their separately declared fences",
+          "observedNodeExecutables": [
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+          ]
+        },
+        {
+          "executable": "/usr/bin/sandbox-exec",
+          "args": [
+            "/private/tmp/unified76-os-write-eQoqCS/probe.mjs",
+            "/private/tmp/unified76-os-write-eQoqCS/input.json",
+            "shipping-fds"
+          ],
+          "cwd": "/private/tmp/unified76-os-write-eQoqCS",
+          "pid": 39302,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "outputExceeded": false,
+          "closed": true,
+          "elapsedMs": 322,
+          "timeoutMs": 20000,
+          "outputBytes": 2155,
+          "observed": [
+            {
+              "pid": 39302,
+              "parent": 39209,
+              "group": 39302,
+              "born": "Fri Aug 28 02:09:15 2026",
+              "command": "(sandbox-exec)"
+            }
+          ],
+          "signals": [],
+          "survivors": [],
+          "listeners": [],
+          "cleanupRequired": false,
+          "clean": true,
+          "osFence": {
+            "profileSha256": "74892516fcb04a357e16808a4a0adebef41704df084bd9c21e876c83ec3fe251",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-eQoqCS",
+                "device": 16777232,
+                "inode": 180640809,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-resolved-write-v9-39209",
+                "device": 16777232,
+                "inode": 180640810,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          },
+          "label": "shipping-fds",
+          "expectedStatus": 0,
+          "loaderPolicy": "outer authenticated source guard and production-build invocation audit; child harnesses with explicit environments retain their separately declared fences",
+          "observedNodeExecutables": []
+        }
+      ]
+    },
+    "descriptors": [
+      {
+        "descriptor": 0,
+        "regular": false,
+        "device": 18446744073409750000,
+        "inode": 336
+      },
+      {
+        "descriptor": 1,
+        "regular": false,
+        "device": 18446744073709552000,
+        "inode": 2095570
+      },
+      {
+        "descriptor": 2,
+        "regular": false,
+        "device": 18446744073709552000,
+        "inode": 2095571
+      },
+      {
+        "descriptor": 3,
+        "regular": false,
+        "device": 18446744073709552000,
+        "inode": 2095649
+      },
+      {
+        "descriptor": 4,
+        "regular": false,
+        "device": 0,
+        "inode": 0
+      },
+      {
+        "descriptor": 5,
+        "regular": false,
+        "device": 0,
+        "inode": 16569585436460415000
+      },
+      {
+        "descriptor": 6,
+        "regular": false,
+        "device": 0,
+        "inode": 273946605130065700
+      },
+      {
+        "descriptor": 7,
+        "regular": false,
+        "device": 16777232,
+        "inode": 2
+      },
+      {
+        "descriptor": 8,
+        "regular": false,
+        "device": 0,
+        "inode": 0
+      },
+      {
+        "descriptor": 9,
+        "regular": false,
+        "device": 16777232,
+        "inode": 2
+      },
+      {
+        "descriptor": 10,
+        "regular": false,
+        "device": 0,
+        "inode": 0
+      },
+      {
+        "descriptor": 11,
+        "regular": false,
+        "device": 16777232,
+        "inode": 2
+      },
+      {
+        "descriptor": 12,
+        "regular": false,
+        "device": 18446744073409750000,
+        "inode": 336
+      }
+    ],
+    "componentOnly": true,
+    "fullGate": false
+  },
+  "status": "SCOPED_RESOLVED_WRITE_SAFETY_PASS",
+  "finishedAt": "2026-08-28T07:09:16.087Z"
+}

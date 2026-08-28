@@ -116,6 +116,7 @@ class OwnedWork implements YqOwnedWork {
   readonly #signal: AbortSignal;
   readonly #state: OwnedState = { pending: 0, activeReservation: false, accepting: true, terminal: false };
   readonly #active = new Set<Promise<unknown>>();
+  #activeAbandon: (() => void) | undefined;
 
   constructor(budget: Budget, signal: AbortSignal) {
     this.#budget = budget;
@@ -365,6 +366,7 @@ class OwnedWork implements YqOwnedWork {
       active = false;
       this.#state.activeReservation = false;
       this.#state.terminal = true;
+      this.#activeAbandon = undefined;
       releaseReservation();
       throw new Error("invalid prepaid owned-work schedule");
     };
@@ -373,10 +375,11 @@ class OwnedWork implements YqOwnedWork {
       active = false;
       this.#state.activeReservation = false;
       this.#state.terminal = true;
+      this.#activeAbandon = undefined;
       releaseReservation();
     };
-    return Object.freeze({
-      beforeUnit: async (): Promise<void> => {
+    this.#activeAbandon = abandon;
+    const beforeUnit = async (): Promise<void> => {
         if (!active || ordinaryRemaining === 0) fail();
         this.assertOpen();
         if (executionPending === checkpointWidth) {
@@ -397,13 +400,16 @@ class OwnedWork implements YqOwnedWork {
         }
         ordinaryRemaining--;
         executionPending++;
-      },
+    };
+    return Object.freeze({
+      beforeUnit: (): Promise<void> => this.#track(beforeUnit()),
       finish: (): void => {
         if (!active || ordinaryRemaining !== 0 || checkpointRemaining !== 0 || executionPending !== targetPending) fail();
         this.assertOpen();
         active = false;
         this.#state.pending = targetPending;
         this.#state.activeReservation = false;
+        this.#activeAbandon = undefined;
         releaseReservation();
       },
       abandon,
@@ -412,6 +418,7 @@ class OwnedWork implements YqOwnedWork {
 
   async close(): Promise<void> {
     this.#state.accepting = false;
+    this.#activeAbandon?.();
     await Promise.allSettled([...this.#active]);
   }
 

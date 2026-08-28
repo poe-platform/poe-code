@@ -1,0 +1,69 @@
+{
+  "classification": "NORMATIVE_PROJECT_PROFILE_SEVEN_RULE_DELTA; NOT_FINAL_FREEZE; NOT_EXECUTED",
+  "authority": "Latest routed user/root ratification of exactly seven B01 decisions; overrides their former proposal-only status, not unrelated grammar",
+  "readCheckpointUTC": "2026-08-28T04:05:28Z",
+  "profileRevision": "1168432e12568e63ff307e92ed83d64d78a03a3c",
+  "sourceBindings": [
+    {"path":"src/commands/xan/DESIGN.md","sha256":"a91220c4b62c15e89e88e54d488d8b58534907a8197d71a97748b6f7e945e5ea","relevantLines":"104-106,131-152,217-225,237-257"},
+    {"path":"src/commands/xan/design-evidence/PROFILE-V3.md","sha256":"8ec63164310e818b670bbafc01780356ffb83adea409e7273c456165c2e7bb44","relevantLines":"13-80,84-85; latter pending statement narrowed by this root ratification"},
+    {"path":"src/commands/xan/design-evidence/BYTE-TABLE-V3.md","sha256":"5a46a960ebf9709e3e2373984cf0ae44e9ae66821263c347b35168f5bab1f6a2","meaning":"Existing approved byte dialects unchanged"}
+  ],
+  "priorHistory": {"revision":"a364a807b0f4ab1b062bcf3c9ddb714466f5ec30","ownedFiles":9,"treeSha256":"d95b4b5555dac4f1e33b140a61a7f3b8aae2dfe9a2cd225fb103c96b20b68b54","algorithm":"SHA256(concat sorted UTF8(path + NUL + lowercase SHA256(file bytes) + LF)); exact original nine paths from git ls-tree under independent subtree","immutable":true},
+  "commonInputUtf8": "a,b\n1,2\n3,4\n",
+  "fixtureContext": "Literal argv after xan; common stdin bytes; ordinary completing byte sinks; no output-file operand or injected host failure. Only explicitly named cases are added; no corpus expansion or native comparison.",
+  "rejection": {"status":1,"stdoutUtf8":"","stderr":{"precision":"NONEXACT","required":"Nonempty bounded diagnostic identifying the rejected argument/condition; wording and prefix not globally frozen; existing local/parent output budgets still govern"},"stdoutScope":"Empty only for these fixed pre-I/O or pre-output validation fixtures, with sufficient diagnostic budget. Not a promise of rollback/empty output on later streaming errors.","ioScope":"Zero input reads/acquisition and no output creation asserted only where the rule explicitly requires before-I/O rejection; no implicit file effects are authorized by any case."},
+  "numericDomains": {"rowStartEndLengthHeaderStart":"u64, 0 through 18446744073709551615 inclusive; checked arithmetic stays in this domain, never floating-point rounding/wrapping","selectIndices":"Existing signed i64/index-vs-name rules unchanged; slice spelling ratification is not a new blanket selector-number rule","headerColumn":"Zero-based header column index in header-start+column; may require reading the header before validation"},
+  "rules": [
+    {
+      "id":"B01-R1","status":"RATIFIED","rule":"Reject repeated SINGLETON flags with exit 1 before I/O; not last-one-wins and not a ban on repeated list operands.",
+      "cases":[{"id":"B01-R1-repeat","argv":["count","-n","-n"],"expected":"rejection","validation":"before I/O; zero input acquisition/reads and output creation"}]
+    },
+    {
+      "id":"B01-R2","status":"RATIFIED","rule":"Reject NUL, CR, LF and quote delimiters in addition to the existing single-ASCII-byte restriction; literal tab support is not withdrawn.",
+      "rejectedDelimiterHex":["00","0d","0a","22"],
+      "cases":[{"id":"B01-R2-cr","argv":["count","-d","\r"],"expected":"rejection","validation":"invalid delimiter known before output; no blanket read-count claim"}]
+    },
+    {
+      "id":"B01-R3","status":"RATIFIED","rule":"Slice numeric spelling is one or more ASCII digits with an optional single leading + only, followed by existing domain checks; invalid spellings reject with exit 1.",
+      "invalidSpellingsPreviouslyIdentified":[""," "," 1","-1","1.0","1e1","1_0","0x1"],
+      "cases":[
+        {"id":"B01-R3-space","argv":["slice","-l"," "],"expected":"rejection","validation":"invalid numeric token known before output"},
+        {"id":"B01-R3-plus-control","argv":["slice","-l","+1"],"expected":{"status":0,"stdoutUtf8":"a,b\n1,2\n","stderrUtf8":""}}
+      ]
+    },
+    {
+      "id":"B01-R4","status":"RATIFIED","rule":"Reject overflow of start+len, index+1 and header-start+column in the declared u64 domain; this is distinct from rejecting an individually out-of-domain token.",
+      "cases":[
+        {"id":"B01-R4-start-length","argv":["slice","-s","18446744073709551615","-l","1"],"expected":"rejection","validation":"argument-derived arithmetic before output"},
+        {"id":"B01-R4-index-one","argv":["slice","-i","18446744073709551615"],"expected":"rejection","validation":"argument-derived arithmetic before output"},
+        {"id":"B01-R4-header-column","argv":["headers","-s","18446744073709551615"],"expected":"rejection","validation":"This finite two-column header allows pre-output range validation. Header acquisition/read is permitted and required to discover column 1; empty stdout here does NOT mean no input reads or generic streaming rollback."}
+      ]
+    },
+    {
+      "id":"B01-R5","status":"RATIFIED","rule":"Reject interior empty selector clauses with exit 1; accept a valid trailing comma and retain valid empty WHOLE selector behavior. No cursor-skipping wildcard/range exclusion is added.",
+      "cases":[
+        {"id":"B01-R5-interior","argv":["select","0,,1"],"expected":"rejection","validation":"interior empty clause detected before output on this fixed selector"},
+        {"id":"B01-R5-trailing","argv":["select","0,"],"expected":{"status":0,"stdoutUtf8":"a\n1\n3\n","stderrUtf8":""}},
+        {"id":"B01-R5-empty-whole","argv":["select",""],"expected":{"status":0,"stdoutUtf8":"a,b\n1,2\n3,4\n","stderrUtf8":""}}
+      ]
+    },
+    {
+      "id":"B01-R6","status":"RATIFIED","rule":"Reject L+I/range and I+range mode mixtures with exit 1 BEFORE I/O; no native-precedence emulation.",
+      "flagSets":{"L":["-L","--last"],"I":["-I","--indices"],"range":["-s","--start","--skip","-e","--end","-l","--len","-i","--index"]},
+      "rangeBinding":"DESIGN 239-255: -i N resolves to start N/length 1; --skip supplies start only when --start absent. Existing within-range conflicts/precedence remain unchanged. Common -n/-d/-o are not mode conflicts.",
+      "cases":[
+        {"id":"B01-R6-L-range","argv":["slice","-L","0","-l","0"],"expected":"rejection","validation":"before I/O; zero input acquisition/reads and output creation"},
+        {"id":"B01-R6-I-range","argv":["slice","-I","0","-s","1"],"expected":"rejection","validation":"before I/O; zero input acquisition/reads and output creation"},
+        {"id":"B01-R6-L-I","argv":["slice","-L","0","-I","0"],"expected":"rejection","validation":"before I/O; zero input acquisition/reads and output creation"}
+      ]
+    },
+    {
+      "id":"B01-R7","status":"RATIFIED","rule":"Invalid plural-index diagnostic accurately labels -I, NOT -i; nonempty bounded diagnostic, no global wording freeze.",
+      "cases":[{"id":"B01-R7-invalid-plural","argv":["slice","-I","x"],"expected":"rejection","validation":"invalid plural-index token known before output","stderrAdditionalSemanticAssertion":"The diagnostic's reference to the offending option identifies literal -I (optionally paired with --indices), not singular -i/--index. Judge the option reference in its quotation/context; do not regex-ban an incidental -i substring elsewhere, or invent a full stderr byte string."}]
+    }
+  ],
+  "remaining": {"id":"B01-CURSOR-ENUMERATION","status":"UNRESOLVED_UNEXECUTED","owner":"Faraday via root","scope":"Exact cursor-skipping wildcard/range exclusion enumeration and its final profile binding only","illustrativeArgv":["select","0::1"],"expected":null,"meaning":"No frozen outcome or recommended golden for 0::1; seven ratified decisions are no longer blockers"},
+  "unchanged": "Approved command-specific CR/BOM/M/EOF, -L0 uniform no-data with validation/publication, ordinary -l0/start/end zero behavior, all 18 caps, output/alias/fallback and lifecycle contracts remain unchanged. Existing old 88-case packet is byte-preserved.",
+  "clearance": "HOLD only pending exact remaining enumeration plus final profile binding; this additive delta is not the final freeze, native parity or implementation permission",
+  "executions": {"product":0,"native":0,"oracle":0,"tests":0,"processCohorts":0}
+}

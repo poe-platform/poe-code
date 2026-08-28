@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "classification": "PURE_DATA_COMPOSITION_NOT_PRODUCT_TESTS",
+  "controls": [
+    "missing-root-authorization",
+    "wrong-purpose",
+    "wrong-author-source",
+    "wrong-recipe-hash",
+    "wrong-package-artifact",
+    "raw-author-git-tree-refusal",
+    "distinct-source-views",
+    "runtime-tree-translation",
+    "runtime-authorization-translation",
+    "missing-baseline-readme",
+    "package-count-not-870",
+    "source-addition-mismatch",
+    "negative-type-diagnostic-match",
+    "negative-type-wrong-diagnostic",
+    "nonzero-worker-even-pass-receipt",
+    "timeout-always-fail",
+    "timeout-continue-only-intact-and-reaped",
+    "integrity-failure-stops",
+    "reap-failure-stops",
+    "all-194-routes",
+    "149-jobs-no-rescoring",
+    "public-gap-retained"
+  ]
+}

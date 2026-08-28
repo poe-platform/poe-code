@@ -1,0 +1,29 @@
+{
+  "at": "2026-08-28T00:40:01.320Z",
+  "rawPresent": false,
+  "compactScratchPresent": false,
+  "originalRuntimeOwnedProcesses": 11,
+  "beforeFinalSettlement": {
+    "allObservedChildrenExitedAndClosed": true,
+    "ownedGroupsEmpty": true
+  },
+  "awaitedSynchronousCompactionHelpers": [
+    {
+      "executable": "/usr/bin/tar",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "executable": "/usr/bin/tar",
+      "status": 0,
+      "signal": null
+    },
+    {
+      "executable": "/usr/bin/tar",
+      "status": 0,
+      "signal": null
+    }
+  ],
+  "noResidualOwnedScratch": true,
+  "noAdditionalCaseExecution": true
+}

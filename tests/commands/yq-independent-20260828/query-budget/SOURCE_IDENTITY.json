@@ -1,0 +1,371 @@
+{
+  "schema": "yq-independent-query-budget-source-identity/1",
+  "date": "2026-08-28",
+  "initialInspectionHead": "c62662548c74832376ca4a84d19272ada356c053",
+  "captureHead": "4e4fbb56ae92720735bb30c63b27708a22d248e1",
+  "binding": {
+    "baselineCommit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "baselineTree": "48e5ae39ce98e1c8e416bae77da40d88b75e1db5",
+    "evidence": "final-contract-v1/contract.json#/authority/fixedSourceBaseline and query-adapter-v1/identity.json#/fixedBaseline; Git resolves 5137^{commit} to the same identity",
+    "candidateFormula": "EXACT5137 + independently accepted length delta + new yq/private query adapter only",
+    "lengthCandidate": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+    "lengthAcceptance": "pending separate Plato review; not accepted by this packet"
+  },
+  "primarySources": [
+    {
+      "title": "YAML 1.2.2 (2021-10-01)",
+      "url": "https://yaml.org/spec/1.2.2/",
+      "sections": [
+        "10.2.1.3",
+        "10.2.1.4",
+        "10.3.2"
+      ],
+      "retrievedDate": "2026-08-28",
+      "method": "web primary specification read; no source parser imported",
+      "claims": "Core numeric lexical families and implementation-dependent numeric accuracy; not the source of custom Decimal exponent limits"
+    }
+  ],
+  "entries": [
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/limits.ts",
+      "lines": "20-98;100-136",
+      "gitBlob": "f40c2edc755f14474ed50491b6f4118be33d7ae5",
+      "bytes": 6675,
+      "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "liveSha256AtCapture": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/numbers.ts",
+      "lines": "3-74;102-114",
+      "gitBlob": "fe90b5fcbef68a4a2a4aed164d7599d0dcd22630",
+      "bytes": 6091,
+      "sha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "liveSha256AtCapture": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/parser.ts",
+      "lines": "24-82;113-221",
+      "gitBlob": "f1bb01cd4c0203109727b70eb3598bd7822298c4",
+      "bytes": 12587,
+      "sha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+      "liveSha256AtCapture": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/interpreter.ts",
+      "lines": "10-104;206-225;318-399",
+      "gitBlob": "f7e0dfcb1815aa90ae49d495e453b4d069139108",
+      "bytes": 21567,
+      "sha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+      "liveSha256AtCapture": "e32ad45efe69544ed95b43b97f191006f10d3beea9ca9e2a3327843dffd45a74",
+      "liveIdenticalAtCapture": false
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/input.ts",
+      "lines": "290-317",
+      "gitBlob": "6350b5c4f5b8cae9243cf6560c98d9e53cb3128e",
+      "bytes": 14456,
+      "sha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+      "liveSha256AtCapture": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/values.ts",
+      "lines": "10-21;55-79;101-139",
+      "gitBlob": "88556c37d99b451c0d9ef55443c5946c46d46d9b",
+      "bytes": 9063,
+      "sha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+      "liveSha256AtCapture": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/jq.ts",
+      "lines": "148-211",
+      "gitBlob": "f27c7c7925ee22c8aa496b67f5ed6560d125cdfd",
+      "bytes": 11396,
+      "sha256": "096897bfa9d875ba524cebd6b3959c551a26fa5e56d3b0d2fb42f9fabdf80da3",
+      "liveSha256AtCapture": "096897bfa9d875ba524cebd6b3959c551a26fa5e56d3b0d2fb42f9fabdf80da3",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/index.ts",
+      "lines": "1-22",
+      "gitBlob": "f2a68de1dd392442cafe407923f7eb336a4c58c5",
+      "bytes": 995,
+      "sha256": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "liveSha256AtCapture": "f2842b616b322081023e6091492bf7acb2231dcb2c729e0f376e125271cd0415",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/split.ts",
+      "lines": "1-60",
+      "gitBlob": "e2d7bb6635e60e0a479399e97ca8ede386b67dc1",
+      "bytes": 2102,
+      "sha256": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "liveSha256AtCapture": "b70b49daa93f472871799159c9702279c6e83d8a4ff2734d86024249a8ee35f6",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/command.ts",
+      "lines": "1-109",
+      "gitBlob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "liveSha256AtCapture": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/io.ts",
+      "lines": "140-150;208-236",
+      "gitBlob": "6dc0efb87132376763228a845b2e62638898268a",
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "liveSha256AtCapture": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/filesystem.ts",
+      "lines": "41-100",
+      "gitBlob": "5c1a59a85e47bc9bc242a2e92b22680d785fcc89",
+      "bytes": 3897,
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "liveSha256AtCapture": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/output.ts",
+      "lines": "13-126",
+      "gitBlob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+      "bytes": 4661,
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "liveSha256AtCapture": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/plugin.ts",
+      "lines": "1-20",
+      "gitBlob": "69b685ebbf6cfb7d1068c419b7e4109e4f9179d4",
+      "bytes": 2359,
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "liveSha256AtCapture": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/errors.ts",
+      "lines": "1-64",
+      "gitBlob": "d466866ce93c4feced56e2bd5fe4c41637e62226",
+      "bytes": 3457,
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "liveSha256AtCapture": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/command.md",
+      "lines": "60-138",
+      "gitBlob": "ef94adf238122441a66c2232fb3055aaee62d290",
+      "bytes": 9253,
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "liveSha256AtCapture": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/cleanup.ts",
+      "lines": "1-120",
+      "gitBlob": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "bytes": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "liveSha256AtCapture": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/runtime.ts",
+      "lines": "1724-1893",
+      "gitBlob": "bf41b4a97de4c20a0206abfd7b235cefd0aee1db",
+      "bytes": 132362,
+      "sha256": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169",
+      "liveSha256AtCapture": "93c06908aec9d5d61d801657f99ab75122cadb6688f038e1941c587b4a8d4ed3",
+      "liveIdenticalAtCapture": false
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/index.ts",
+      "lines": "public exports only",
+      "gitBlob": "ff7ab9b4e4a2f2a25eb0fae8db1d3149c514ad16",
+      "bytes": 1593,
+      "sha256": "6d847ff37316fcdc851145024a422cb6541f0cbeab15895c5a972d7f1f97bb6b",
+      "liveSha256AtCapture": "8ffbd42cb44f477a9720eb49c59ca77e38a9875dd0a57254231a297ed6d5d472",
+      "liveIdenticalAtCapture": false
+    },
+    {
+      "role": "fixed-source",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "package.json",
+      "lines": "exports and dependencies only",
+      "gitBlob": "161191ea9e8e56bbea0e74b48af54ee57b646015",
+      "bytes": 4840,
+      "sha256": "64846cc0868630f863fade5119cef195a949aa0ed36ecc341bd9a076d6c363e2",
+      "liveSha256AtCapture": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12",
+      "liveIdenticalAtCapture": false
+    },
+    {
+      "role": "historical-initial-design",
+      "revision": "270fedbe4f1fee6405dace72e6e18b22f358b5ce",
+      "path": "src/commands/yq/DESIGN.md",
+      "gitBlob": "8d466166c454a7a1cd27b00cfed9c4f8728a13fc",
+      "bytes": 14408,
+      "sha256": "9eb5fea732f55de694927ce6b6687e7549105f8079280c0474866057e3cde7fc",
+      "liveSha256AtCapture": "2b0dab044c165a85e2b2ec23d542be3abe65a72f8cb667cb0eac6b7f704c3e4c",
+      "liveIdenticalAtCapture": false
+    },
+    {
+      "role": "additive-design",
+      "revision": "0b8064d21fa82d516160ee8cd7ac3808144d09fc",
+      "path": "src/commands/yq/DESIGN.md",
+      "gitBlob": "412950cddd31e11f0bf5ee30a8b0c1492f360929",
+      "bytes": 16363,
+      "sha256": "2b0dab044c165a85e2b2ec23d542be3abe65a72f8cb667cb0eac6b7f704c3e4c",
+      "liveSha256AtCapture": "2b0dab044c165a85e2b2ec23d542be3abe65a72f8cb667cb0eac6b7f704c3e4c",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "source-identity-history",
+      "revision": "0b8064d21fa82d516160ee8cd7ac3808144d09fc",
+      "path": "tests/commands/yq-design-20260828/query-adapter-v1/identity.json",
+      "gitBlob": "8a5dc1c0355ded5abc408a4675775eaed69f6057",
+      "bytes": 2508,
+      "sha256": "a58f7d52eb915fa703c04064c5939407883a42d857a65def26fcd5ac96d041b8",
+      "liveSha256AtCapture": "a58f7d52eb915fa703c04064c5939407883a42d857a65def26fcd5ac96d041b8",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "historical-gap-review",
+      "revision": "e9db21578f51408df9b79fa4b32dbc21687a94a9",
+      "path": "tests/commands/yq-design-20260828/query-gap-v1/README.md",
+      "gitBlob": "4c4d52b7378159532c8f795e1d28c6a891a53918",
+      "bytes": 9597,
+      "sha256": "6ba0aa357978be5bf0453a533a5d7290f70d06bc2c4ec4d29ec084f8c94a611a",
+      "liveSha256AtCapture": "6ba0aa357978be5bf0453a533a5d7290f70d06bc2c4ec4d29ec084f8c94a611a",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "historical-gap-seal",
+      "revision": "e9db21578f51408df9b79fa4b32dbc21687a94a9",
+      "path": "tests/commands/yq-design-20260828/query-gap-v1/seal.json",
+      "gitBlob": "59eefce36a7f0a7c8845f0fa612a3a464b993358",
+      "bytes": 403,
+      "sha256": "81c1e04a73448a7f977844c7a7b6463679576d16397d26d99ef1a362bb3fd733",
+      "liveSha256AtCapture": "81c1e04a73448a7f977844c7a7b6463679576d16397d26d99ef1a362bb3fd733",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "authority-initial-profile",
+      "revision": "b311c2364ceca13daab4086dfb21157b9b8ae856",
+      "path": "tests/commands/yq-design-20260828/initial-profile-v1/README.md",
+      "gitBlob": "4d74b959588b2708cca6d4d8e8f2aa8ee465da68",
+      "bytes": 29498,
+      "sha256": "75af84bd5e888a3080e9096b86ed0a25be95105524011851193b9bf39192ba50",
+      "liveSha256AtCapture": "75af84bd5e888a3080e9096b86ed0a25be95105524011851193b9bf39192ba50",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "authority-initial-profile",
+      "revision": "b311c2364ceca13daab4086dfb21157b9b8ae856",
+      "path": "tests/commands/yq-design-20260828/initial-profile-v1/decisions.json",
+      "gitBlob": "cc7d8c342eda556a743196deb1a519e4b9be79e6",
+      "bytes": 5381,
+      "sha256": "2d7e03e6e8e38020e62b96245ea95826208a400df19c106f0c3f857d4fa3d3fc",
+      "liveSha256AtCapture": "2d7e03e6e8e38020e62b96245ea95826208a400df19c106f0c3f857d4fa3d3fc",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "authority-final-contract",
+      "revision": "5783b8e03912f7774d2a86ba1dae9de778121273",
+      "path": "tests/commands/yq-design-20260828/final-contract-v1/README.md",
+      "gitBlob": "a6550e0698ff588b5e2d4ca4289282793a6f4f32",
+      "bytes": 8158,
+      "sha256": "14cee48cac1803f92432b4f7df8f3311514b12277357805945bd11156e8646ff",
+      "liveSha256AtCapture": "14cee48cac1803f92432b4f7df8f3311514b12277357805945bd11156e8646ff",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "authority-final-contract",
+      "revision": "5783b8e03912f7774d2a86ba1dae9de778121273",
+      "path": "tests/commands/yq-design-20260828/final-contract-v1/contract.json",
+      "gitBlob": "a902a481993cbfd3b1a85ce8c54112ade65fbc81",
+      "bytes": 37274,
+      "sha256": "1b2cf2740586d6847286d5a28788beb748d09e8b2181f02e6476d3b7634cefb8",
+      "liveSha256AtCapture": "1b2cf2740586d6847286d5a28788beb748d09e8b2181f02e6476d3b7634cefb8",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "authority-root-adoption",
+      "revision": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707",
+      "path": "tests/commands/yq-design-20260828/final-adoption-v1/README.md",
+      "gitBlob": "289cd87cbd208578f16b5411dd44501fb0d03f48",
+      "bytes": 5128,
+      "sha256": "7e2f1a691409a09130f4cf2d539914eb76feab81d13c7cdc9f2c72d3a268c081",
+      "liveSha256AtCapture": "7e2f1a691409a09130f4cf2d539914eb76feab81d13c7cdc9f2c72d3a268c081",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "authority-root-adoption",
+      "revision": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707",
+      "path": "tests/commands/yq-design-20260828/final-adoption-v1/adoption.json",
+      "gitBlob": "403173f53d1674cbe35c8166e6fcb3c56c25ab5b",
+      "bytes": 8461,
+      "sha256": "22e83a0e6f602103ac9378654dd62fc7098c461ac90b7385e5d6b06cec156be6",
+      "liveSha256AtCapture": "22e83a0e6f602103ac9378654dd62fc7098c461ac90b7385e5d6b06cec156be6",
+      "liveIdenticalAtCapture": true
+    },
+    {
+      "role": "pending-length-source",
+      "revision": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+      "path": "src/commands/structured/interpreter.ts",
+      "gitBlob": "d3ba11f0057b07d5ad307c5dfbb5f0612a87a047",
+      "bytes": 21632,
+      "sha256": "e32ad45efe69544ed95b43b97f191006f10d3beea9ca9e2a3327843dffd45a74",
+      "liveSha256AtCapture": "e32ad45efe69544ed95b43b97f191006f10d3beea9ca9e2a3327843dffd45a74",
+      "liveIdenticalAtCapture": true
+    }
+  ],
+  "qualification": "Selected static Git/live byte identities only. No archive, native/product execution, code-go, or append-proof whole-tree claim."
+}

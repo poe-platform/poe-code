@@ -1,0 +1,43 @@
+{
+  "schema": "timeout-independent-receiver-only-static-review/1",
+  "reviewedAt": "2026-08-28T04:03:42.490Z",
+  "candidate": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+  "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "exactCommitChangedPaths": [
+    "src/commands/timeout/scheduler.ts"
+  ],
+  "selectedInputs": 268,
+  "differences": [
+    {
+      "path": "src/commands/timeout/scheduler.ts",
+      "mode": "100644",
+      "bytes": 3480,
+      "sha256": "fa542007183e5f097c105c70b7a9502f2fa26bd801430e899f9f1bddd7962af3",
+      "blob": "a5839e09b810b88dd340e4b36ff4b100533e481b",
+      "commit": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d"
+    }
+  ],
+  "repair": {
+    "before": "  receiver: undefined,",
+    "after": "  receiver: performance,",
+    "repairedSchedulerSha256": "fa542007183e5f097c105c70b7a9502f2fa26bd801430e899f9f1bddd7962af3",
+    "reversionSha256": "b6ba0e2bf22051f4032686a58821bddcdb211faa918beac4ec004f4d46ca00e8"
+  },
+  "otherThreeModuleFilesUnchanged": true,
+  "authorEvidenceFilesAuthenticated": 41,
+  "synchronousGitNaturalReturns": 271,
+  "packageChanges": [
+    {
+      "path": "dist/commands/timeout/scheduler.js",
+      "before": "eb6244b99a21aae0348c3cbd7c90f6290667445f1248571f52ee269f1b5de638",
+      "after": "836d82eb445a9981ea0b68c93903039be917288d186cee17a13cd0794d0c81ca"
+    },
+    {
+      "path": "dist/commands/timeout/scheduler.js.map",
+      "before": "c9fcfb38a5ae7f2fb8c384611dd5c85fc596a10b47e80a985748008e78b904c5",
+      "after": "53830273fa4b5635e78cebb89218b20871dde19c44f13ad02dcd66b6dac78b97"
+    }
+  ],
+  "conclusion": "Receiver-only source change matches F22 defect; no runtime/default/public export delta. Actual independent qualification still required.",
+  "productExecuted": false
+}

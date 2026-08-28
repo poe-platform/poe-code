@@ -1,0 +1,151 @@
+{
+  "schema": "dotglob-precode-bindings-v1",
+  "created": "2026-08-28T08:10:40.207Z",
+  "mixedHead": "d3c1bb62304809cac149a61fc2f1cebe46d076ff",
+  "certifiedBase": false,
+  "ownership": "Only new dotglob-precode-20260828 directory and owned OS temporary artifacts; no implementation grant",
+  "oracleVersion": "GNU bash, version 5.3.0(1)-release (aarch64-apple-darwin25.4.0)",
+  "oracleReceipt": "tests/shell/let-design-20260828/BINDINGS.json",
+  "versionReceipt": "tests/shell/cd-prerequisite-20260828/HANDOFF.md:100",
+  "tools": [
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "bytes": 1395864,
+      "mode": 493,
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+      "bytes": 415804,
+      "mode": 420,
+      "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "source": [
+    {
+      "path": "src/shell/runtime.ts",
+      "sha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+      "gitBlob": "9e70a9d556e46ecf23b977a048f089b1c0d25e5c"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24",
+      "gitBlob": "0b96a82f4ec29da4dbdd447806cca6a2f514311a"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+      "gitBlob": "f570235d1f65ade0f7279ccacf805ec1333155f7"
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "gitBlob": "be8739ee6b6c9e9323c559aff15f2dd27ce8271c"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "gitBlob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "gitBlob": "ef94adf238122441a66c2232fb3055aaee62d290"
+    },
+    {
+      "path": "src/contracts/filesystem.md",
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "gitBlob": "574db49cd823e7d662cb6ada5ad4dd0c92a8d192"
+    },
+    {
+      "path": "package.json",
+      "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12",
+      "gitBlob": "c4a95d039e69a7c437b559f28a8e14204c0ecda3"
+    },
+    {
+      "path": "tests/shell/alias-feasibility-20260828/REPORT.md",
+      "sha256": "289f4e58a8d1ef29a1ccde961d1b8af06826948c80b0bdc7a21e9071caf93fe0",
+      "gitBlob": "d419ea8b58667e300e0b096dc99d07771cc08719"
+    },
+    {
+      "path": "tests/shell/alias-feasibility-20260828/SOURCE-BINDING.json",
+      "sha256": "39f867180c2e1de24d55bf0fbf5800527fe5314eeecba0b831d74951cf4294bb",
+      "gitBlob": "e68f090ff3e5e7c9b1c040b8b08ab03aec693338"
+    },
+    {
+      "path": "tests/shell/let-design-20260828/BINDINGS.json",
+      "sha256": "1d548b490fb4312de0e7036edcb518b1d944b3911acdd53e9eaa9296505638b5",
+      "gitBlob": "46fa9b9042b6a043940fb0aaa4874254e9b5ca1d"
+    },
+    {
+      "path": "tests/shell/cd-prerequisite-20260828/HANDOFF.md",
+      "sha256": "01fc0cb31422a6069235ed86acd096c64684363c092aebcc3627a4753c7d03f8",
+      "gitBlob": "713dbeee29bf6dfc0df5d1f956b17479f44803ff"
+    }
+  ],
+  "primarySource": {
+    "localManual": {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+      "bytes": 415804,
+      "mode": 420,
+      "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5"
+    },
+    "shoptDefinition": {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/builtins/shopt.def",
+      "sha256": "ea8d1438198e44f7b4876acfafc6dce811d6141f52f86e4cb358fc95cf26fce2"
+    },
+    "archiveReceipt": "tests/shell/invocation-closure.md:111",
+    "archiveSha256": "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba",
+    "qualification": "Existing published qualification inherited; executable/manual bytes verified without execution. No fresh signature verification or source-to-binary rebuild claim.",
+    "web": [
+      {
+        "id": "G0",
+        "url": "https://www.gnu.org/s/bash/manual/html_node/index.html",
+        "finding": "Search retrieved Edition 5.3, updated 18 May 2025, Bash version 5.3"
+      },
+      {
+        "id": "G1",
+        "url": "https://www.gnu.org/s/bash/manual/html_node/The-Shopt-Builtin.html",
+        "localLines": "6206-6270;6368;6453",
+        "finding": "Primary GNU web search retrieved synopsis; direct open empty. Full semantics read from hash-qualified local primary manual."
+      },
+      {
+        "id": "G2",
+        "url": "https://www.gnu.org/s/bash/manual/html_node/Filename-Expansion.html",
+        "localLines": "3048-3097;3252-3264",
+        "finding": "GNU web search retrieved filename expansion section; direct open empty; full passage read from local primary manual."
+      },
+      {
+        "id": "G3",
+        "url": "https://www.gnu.org/s/bash/manual/html_node/Simple-Command-Expansion.html",
+        "localLines": "3628-3673",
+        "finding": "Direct web open empty; local primary manual used for execution-time expansion."
+      }
+    ]
+  },
+  "historicalAnchor": {
+    "aliasCommit": "cc8eac10",
+    "gapCommit": "17735a5eabf65a6398a64aef81e67fee2405733e",
+    "path": "tests/comparison/next-gap-inventory-20260828/BREADTH.json",
+    "sha256": "1fa3d5c30a1c4aa3106d5b794b9dcca7b17eba95510aedfad26093406a99d7bd",
+    "row": "shopt-positive",
+    "oursStatus": 127,
+    "baselineStatus": 0,
+    "baseline": "just-bash 3.4.2 historical only",
+    "noRerun": true
+  },
+  "nativeCallsBeforeSeal": 0,
+  "productCalls": 0
+}

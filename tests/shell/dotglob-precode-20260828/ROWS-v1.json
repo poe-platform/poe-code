@@ -1,0 +1,29 @@
+{
+  "schema": "dotglob-reference-rows-v1",
+  "rows": [
+    {"id":"01-default", "probes":["shopt"]},
+    {"id":"02-off", "probes":["shopt dotglob", "shopt -q dotglob", "shopt -p dotglob"]},
+    {"id":"03-set", "probes":["shopt -s dotglob", "shopt dotglob", "shopt -q dotglob", "shopt -p dotglob"]},
+    {"id":"04-unset", "setup":"shopt -s dotglob", "probes":["shopt -u dotglob", "shopt dotglob"]},
+    {"id":"05-conflict", "probes":["shopt -su dotglob", "shopt -us dotglob", "shopt -s -u dotglob", "shopt -u -s dotglob"]},
+    {"id":"06-repeat", "probes":["shopt -ss -s dotglob", "shopt -qq -q dotglob", "shopt -pp -p dotglob", "shopt -uu -u dotglob"]},
+    {"id":"07-set-quiet", "probes":["shopt -sq dotglob", "shopt -u dotglob", "shopt -qs dotglob"]},
+    {"id":"08-unset-quiet", "setup":"shopt -s dotglob", "probes":["shopt -uq dotglob", "shopt -s dotglob", "shopt -qu dotglob"]},
+    {"id":"09-set-print", "probes":["shopt -sp dotglob", "shopt -u dotglob", "shopt -ps dotglob"]},
+    {"id":"10-unset-print", "setup":"shopt -s dotglob", "probes":["shopt -up dotglob", "shopt -s dotglob", "shopt -pu dotglob"]},
+    {"id":"11-quiet-print", "probes":["shopt -qp dotglob", "shopt -s dotglob", "shopt -pq dotglob"]},
+    {"id":"12-filtered", "probes":["shopt -s", "shopt -u", "shopt -sp", "shopt -up", "shopt -sq", "shopt -uq", "shopt -q"]},
+    {"id":"13-end-options", "probes":["shopt -- dotglob", "shopt -s -- dotglob", "shopt -- -s"]},
+    {"id":"14-unsupported-flags", "probes":["shopt -z dotglob", "shopt -o dotglob"]},
+    {"id":"15-nonoption-order", "probes":["shopt dotglob -s", "shopt -s dotglob -u"]},
+    {"id":"16-partial-set", "probes":["shopt -s dotglob unknown_dotglob dotglob", "shopt -u dotglob", "shopt -s unknown_dotglob dotglob"]},
+    {"id":"17-partial-unset", "setup":"shopt -s dotglob", "probes":["shopt -u dotglob unknown_dotglob dotglob"]},
+    {"id":"18-mixed-list", "probes":["shopt dotglob unknown_dotglob dotglob", "shopt -s dotglob", "shopt -p dotglob unknown_dotglob dotglob"]},
+    {"id":"19-quiet-error", "probes":["shopt -q dotglob unknown_dotglob dotglob", "shopt -sq dotglob unknown_dotglob dotglob"]},
+    {"id":"20-native-alias-option", "probes":["shopt -s expand_aliases", "shopt -q expand_aliases", "shopt -u expand_aliases", "shopt -q expand_aliases"]},
+    {"id":"21-name-validation", "probes":["shopt ''", "shopt -", "shopt +s", "shopt Dotglob"]},
+    {"id":"22-parse-before-mutation", "probes":["shopt -s -z dotglob", "shopt -s -- dotglob unknown_dotglob dotglob"]},
+    {"id":"23-full-print-restrict", "probes":["shopt -p", "shopt -s dotglob", "shopt -sq", "shopt -uq", "shopt -p dotglob dotglob"]},
+    {"id":"24-glob-timing", "fixtures":[{"path":".hidden","text":"h\n"},{"path":"visible","text":"v\n"},{"path":"nest","directory":true},{"path":"nest/.inner","text":"i\n"},{"path":"nest/plain","text":"p\n"},{"path":".nest","directory":true},{"path":".nest/plain","text":"p\n"}], "probes":["printf '<%s>\\n' * .* . ..; shopt -s dotglob; printf '<%s>\\n' * */* [.]hidden [.v]* '*' missing* . ..; shopt -u dotglob; printf '<%s>\\n' * */* .*"]}
+  ]
+}

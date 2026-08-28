@@ -32,6 +32,14 @@ interface AnchorRecord {
   value?: Json;
 }
 
+interface BlockScalarPart {
+  readonly lineText: string;
+  readonly contentIndent: number;
+  readonly empty: boolean;
+  readonly moreIndented: boolean;
+  readonly hadBreak: boolean;
+}
+
 const integerPattern = /^(?:[+-]?[0-9]+|0o[0-7]+|0x[0-9a-fA-F]+)$/u;
 const decimalPattern = /^[+-]?(?:(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?)$/u;
 const floatPattern = /^[+-]?(?:(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?|\.(?:inf|Inf|INF|nan|NaN|NAN))$/u;
@@ -55,6 +63,10 @@ function countCodePoints(text: string): number {
     count++;
   }
   return count;
+}
+
+function utf8Width(codePoint: number): number {
+  return codePoint <= 0x7f ? 1 : codePoint <= 0x7ff ? 2 : codePoint <= 0xffff ? 3 : 4;
 }
 
 function compactStringBytes(text: string): number {
@@ -314,9 +326,182 @@ function decodeDouble(raw: string): string {
   return result;
 }
 
+function projectDoubleBytes(raw: string, start = 0, end = raw.length): number {
+  let bytes = 0;
+  for (let index = start + 1; index < end - 1; index++) {
+    const character = raw[index]!;
+    if (character === "\n" || character === "\r") {
+      if (character === "\r" && raw[index + 1] === "\n") index++;
+      while (raw[index + 1] === " " || raw[index + 1] === "\t") index++;
+      bytes++;
+      continue;
+    }
+    if (character !== "\\") {
+      const codePoint = character.codePointAt(0)!;
+      if (codePoint === 0) throw syntax();
+      bytes += utf8Width(codePoint);
+      if (codePoint > 0xffff) index++;
+      continue;
+    }
+    const escape = raw[++index];
+    if (escape === undefined) throw syntax();
+    const simpleWidths: Readonly<Record<string, number>> = {
+      "0": 1, a: 1, b: 1, t: 1, "\t": 1, n: 1, v: 1, f: 1, r: 1,
+      e: 1, " ": 1, '"': 1, "/": 1, "\\": 1, N: 2, _: 2, L: 3, P: 3,
+    };
+    if (Object.hasOwn(simpleWidths, escape)) {
+      bytes += simpleWidths[escape]!;
+      continue;
+    }
+    if (escape === "\n" || escape === "\r") {
+      if (escape === "\r" && raw[index + 1] === "\n") index++;
+      while (raw[index + 1] === " " || raw[index + 1] === "\t") index++;
+      continue;
+    }
+    const digits = escape === "x" ? 2 : escape === "u" ? 4 : escape === "U" ? 8 : 0;
+    if (digits === 0) throw syntax();
+    const hex = raw.slice(index + 1, index + 1 + digits);
+    if (hex.length !== digits || !/^[0-9a-fA-F]+$/u.test(hex)) throw syntax();
+    let codePoint = Number.parseInt(hex, 16);
+    index += digits;
+    if (escape === "u" && codePoint >= 0xd800 && codePoint <= 0xdbff) {
+      const next = raw.slice(index + 1, index + 7);
+      if (!/^\\u[0-9a-fA-F]{4}$/u.test(next)) throw syntax();
+      const low = Number.parseInt(next.slice(2), 16);
+      if (low < 0xdc00 || low > 0xdfff) throw syntax();
+      codePoint = 0x10000 + (codePoint - 0xd800) * 0x400 + low - 0xdc00;
+      index += 6;
+    } else if (codePoint >= 0xd800 && codePoint <= 0xdfff) throw syntax();
+    if (codePoint > 0x10ffff) throw syntax();
+    bytes += utf8Width(codePoint);
+  }
+  return bytes;
+}
+
 function decodeSingle(raw: string): string {
   const inner = raw.slice(1, -1);
   return inner.replace(/''/gu, "'").replace(/\r\n|\r|\n[ \t]*/gu, " ");
+}
+
+function projectSingleBytes(raw: string, start = 0, end = raw.length): number {
+  let bytes = 0;
+  for (let index = start + 1; index < end - 1; index++) {
+    const character = raw[index]!;
+    if (character === "'" && raw[index + 1] === "'") {
+      bytes++;
+      index++;
+    } else if (character === "\r" || character === "\n") {
+      if (character === "\r" && raw[index + 1] === "\n") index++;
+      if (character === "\n" || raw[index] === "\n") while (raw[index + 1] === " " || raw[index + 1] === "\t") index++;
+      bytes++;
+    } else {
+      const codePoint = character.codePointAt(0)!;
+      bytes += utf8Width(codePoint);
+      if (codePoint > 0xffff) index++;
+    }
+  }
+  return bytes;
+}
+
+function plainBounds(source: string, start: number, end: number): readonly [number, number] {
+  while (start < end && /\s/u.test(source[start]!)) start++;
+  while (end > start && /\s/u.test(source[end - 1]!)) end--;
+  return [start, end];
+}
+
+function projectPlainBytes(source: string, start: number, end: number): number {
+  [start, end] = plainBounds(source, start, end);
+  let bytes = 0;
+  for (let index = start; index < end;) {
+    if (source[index] === "\n") {
+      index++;
+      while (index < end && (source[index] === " " || source[index] === "\t")) index++;
+      bytes++;
+      continue;
+    }
+    const codePoint = source.codePointAt(index)!;
+    bytes += utf8Width(codePoint);
+    index += codePoint > 0xffff ? 2 : 1;
+  }
+  return bytes;
+}
+
+function blockPartText(part: BlockScalarPart): string {
+  return part.empty ? "" : part.lineText.slice(part.contentIndent);
+}
+
+function blockPartBytes(part: BlockScalarPart): number {
+  if (part.empty) return 0;
+  let bytes = 0;
+  for (let index = part.contentIndent; index < part.lineText.length;) {
+    const codePoint = part.lineText.codePointAt(index)!;
+    bytes += utf8Width(codePoint);
+    index += codePoint > 0xffff ? 2 : 1;
+  }
+  return bytes;
+}
+
+function blockScalarUnchomped(parts: readonly BlockScalarPart[], style: "literal" | "folded"): string {
+  if (style === "literal") {
+    let value = parts.map(blockPartText).join("\n");
+    if (parts.at(-1)?.hadBreak) value += "\n";
+    return value;
+  }
+  let value = "";
+  for (let index = 0; index < parts.length; index++) {
+    const current = parts[index]!;
+    value += blockPartText(current);
+    if (index < parts.length - 1) {
+      const next = parts[index + 1]!;
+      if (current.empty) value += next.empty ? "\n" : "";
+      else value += next.empty || current.moreIndented || next.moreIndented ? "\n" : " ";
+    } else if (current.hadBreak) value += "\n";
+  }
+  return value;
+}
+
+function projectBlockScalarBytes(parts: readonly BlockScalarPart[], style: "literal" | "folded", chomping: string): number {
+  let bytes = 0;
+  let trailingBreaks = 0;
+  const addPart = (part: BlockScalarPart): void => {
+    bytes += blockPartBytes(part);
+    if (!part.empty) trailingBreaks = 0;
+  };
+  const addBreak = (): void => {
+    bytes++;
+    trailingBreaks++;
+  };
+  if (style === "literal") {
+    for (let index = 0; index < parts.length; index++) {
+      if (index > 0) addBreak();
+      addPart(parts[index]!);
+    }
+    if (parts.at(-1)?.hadBreak) addBreak();
+  } else {
+    for (let index = 0; index < parts.length; index++) {
+      const current = parts[index]!;
+      addPart(current);
+      if (index < parts.length - 1) {
+        const next = parts[index + 1]!;
+        if (current.empty && next.empty || !current.empty && (next.empty || current.moreIndented || next.moreIndented)) addBreak();
+        else if (!current.empty) {
+          bytes++;
+          trailingBreaks = 0;
+        }
+      } else if (current.hadBreak) addBreak();
+    }
+  }
+  if (chomping === "+") return bytes;
+  const hasContent = parts.some(item => !item.empty);
+  return bytes - trailingBreaks + (chomping === "clip" && hasContent && parts.at(-1)?.hadBreak ? 1 : 0);
+}
+
+function buildBlockScalar(parts: readonly BlockScalarPart[], style: "literal" | "folded", chomping: string): string {
+  let value = blockScalarUnchomped(parts, style);
+  const hasContent = parts.some(item => !item.empty);
+  if (chomping === "clip") value = hasContent && parts.at(-1)?.hadBreak ? `${value.replace(/\n+$/u, "")}\n` : value.replace(/\n+$/u, "");
+  if (chomping === "-") value = value.replace(/\n+$/u, "");
+  return value;
 }
 
 class FlowParser {
@@ -392,6 +577,8 @@ class FlowParser {
       return { value: result };
     }
     while (true) {
+      this.composer.member(result.length + 1);
+      this.composer.member(1);
       const start = this.#position;
       let value = await this.#node();
       this.#space();
@@ -402,10 +589,9 @@ class FlowParser {
         await this.composer.node();
         this.composer.collection();
         const pair = object();
-        this.composer.mappingEntry(pair, value, mapped.value, true);
+        this.composer.mappingEntry(pair, value, mapped.value, true, true);
         value = { value: pair };
       }
-      this.composer.member(result.length + 1);
       result.push(value.value);
       this.#space();
       if (this.source[this.#position] === "]") {
@@ -427,18 +613,20 @@ class FlowParser {
     await this.composer.node();
     this.composer.collection();
     const result = object();
+    let members = 0;
     this.#space();
     if (this.source[this.#position] === "}") {
       this.#position++;
       return { value: result };
     }
     while (true) {
+      this.composer.member(++members);
       const key = await this.#node(true);
       this.#space();
       if (this.source[this.#position] !== ":") throw syntax(this.line, this.#position + 1);
       this.#position++;
       const value = await this.#node();
-      this.composer.mappingEntry(result, key, value.value, true);
+      this.composer.mappingEntry(result, key, value.value, true, true);
       this.#space();
       if (this.source[this.#position] === "}") {
         this.#position++;
@@ -468,9 +656,13 @@ class FlowParser {
       else if (character === "'") break;
     }
     if (this.source[this.#position - 1] !== quote) throw syntax(this.line, start + 1);
+    const projectedBytes = quote === '"'
+      ? projectDoubleBytes(this.source, start, this.#position)
+      : projectSingleBytes(this.source, start, this.#position);
+    this.composer.admitScalar(projectedBytes);
     const raw = this.source.slice(start, this.#position);
     const value = quote === '"' ? decodeDouble(raw) : decodeSingle(raw);
-    await this.composer.scalar(value);
+    await this.composer.scalar(value, value, true);
     return { value, style: quote === '"' ? "double" : "single" };
   }
 
@@ -495,10 +687,12 @@ class FlowParser {
       if (depth === 0 && character === ":" && (keyMode || /[\s,\]}]/u.test(this.source[this.#position + 1] ?? ""))) break;
       this.#position++;
     }
+    const projectedBytes = projectPlainBytes(this.source, start, this.#position);
+    this.composer.admitScalar(projectedBytes);
     const raw = this.source.slice(start, this.#position).trim().replace(/\r?\n[ \t]*/gu, " ");
     if (raw.length === 0) throw syntax(this.line, start + 1);
     const value = scalarFromPlain(raw);
-    await this.composer.scalar(typeof value === "string" ? value : raw, value);
+    await this.composer.scalar(typeof value === "string" ? value : raw, value, true);
     return { value, style: "plain", raw };
   }
 
@@ -525,10 +719,14 @@ class Composer {
     this.ledger.admitNode();
   }
 
-  async scalar(text: string, value: Json = text): Promise<void> {
+  admitScalar(bytes: number): void {
+    this.ledger.admitScalar(bytes);
+  }
+
+  async scalar(text: string, value: Json = text, admitted = false): Promise<void> {
     await this.node();
     const bytes = Buffer.byteLength(text);
-    this.ledger.admitScalar(bytes);
+    if (!admitted) this.ledger.admitScalar(bytes);
     let codePoints = 0;
     for (const unused of text) {
       void unused;
@@ -555,13 +753,12 @@ class Composer {
     if (size > 1) this.ledger.admitValueBytes(1);
   }
 
-  mappingEntry(target: Record<string, Json>, key: ParsedNode, value: Json, implicit: boolean): void {
+  mappingEntry(target: Record<string, Json>, key: ParsedNode, value: Json, implicit: boolean, memberAdmitted = false): void {
     if (typeof key.value !== "string") throw schema("SCHEMA_NONSTRING_KEY");
     if (implicit && countCodePoints(key.value) > 1024) throw syntax();
     if (key.style === "plain" && key.explicitTag === undefined && key.value === "<<") throw schema("SCHEMA_PLAIN_MERGE_KEY");
     if (Object.hasOwn(target, key.value)) throw schema("SCHEMA_DUPLICATE_KEY");
-    const size = objectKeys(target).length + 1;
-    this.member(size);
+    if (!memberAdmitted) this.member(objectKeys(target).length + 1);
     this.ledger.admitValueBytes(1);
     put(target, key.value, value);
   }
@@ -647,6 +844,7 @@ class BlockParser {
       if (!line || indentation(line.text) !== indent) break;
       const content = stripComment(line.text.slice(indent));
       if (!/^-(?:[ \t]|$)/u.test(content)) break;
+      this.composer.member(result.length + 1);
       this.#index++;
       const rest = content.slice(1).trimStart();
       let item: ParsedNode;
@@ -658,7 +856,6 @@ class BlockParser {
       } else if (mappingColon(rest) >= 0) {
         item = await this.#inlineMappingItem(rest, indent + 2, line.number);
       } else item = await this.#inlineOrBlock(rest, indent, line.number);
-      this.composer.member(result.length + 1);
       result.push(item.value);
     }
     return { value: result };
@@ -668,15 +865,18 @@ class BlockParser {
     await this.composer.node();
     this.composer.collection();
     const result = object();
-    await this.#mappingLine(result, first, indent, lineNumber);
+    let members = 1;
+    this.composer.member(members);
+    await this.#mappingLine(result, first, indent, lineNumber, true);
     while (this.#index < this.lines.length) {
       this.#skip();
       const line = this.lines[this.#index];
       if (!line || indentation(line.text) !== indent) break;
       const content = stripComment(line.text.slice(indent));
       if (mappingColon(content) < 0) break;
+      this.composer.member(++members);
       this.#index++;
-      await this.#mappingLine(result, content, indent, line.number);
+      await this.#mappingLine(result, content, indent, line.number, true);
     }
     return { value: result };
   }
@@ -685,12 +885,14 @@ class BlockParser {
     await this.composer.node();
     this.composer.collection();
     const result = object();
+    let members = 0;
     while (this.#index < this.lines.length) {
       this.#skip();
       const line = this.lines[this.#index];
       if (!line || indentation(line.text) !== indent) break;
       const content = stripComment(line.text.slice(indent));
       if (content.startsWith("? ")) {
+        this.composer.member(++members);
         this.#index++;
         const key = await this.#inlineOrBlock(content.slice(2).trimStart(), indent, line.number);
         this.#skip();
@@ -699,25 +901,26 @@ class BlockParser {
         this.#index++;
         const valueText = stripComment(valueLine.text.slice(indent)).slice(1).trimStart();
         const value = valueText.length > 0 ? await this.#inlineOrBlock(valueText, indent, valueLine.number) : await this.#nestedOrNull(indent);
-        this.composer.mappingEntry(result, key, value.value, false);
+        this.composer.mappingEntry(result, key, value.value, false, true);
         continue;
       }
       const colon = mappingColon(content);
       if (colon < 0) break;
+      this.composer.member(++members);
       this.#index++;
-      await this.#mappingLine(result, content, indent, line.number);
+      await this.#mappingLine(result, content, indent, line.number, true);
     }
     return { value: result };
   }
 
-  async #mappingLine(target: Record<string, Json>, content: string, indent: number, lineNumber: number): Promise<void> {
+  async #mappingLine(target: Record<string, Json>, content: string, indent: number, lineNumber: number, memberAdmitted: boolean): Promise<void> {
     const colon = mappingColon(content);
     if (colon < 0) throw syntax(lineNumber, 1);
     const keyText = content.slice(0, colon).trimEnd();
     const valueText = content.slice(colon + 1).trimStart();
     const key = await this.#inlineOrBlock(keyText, indent, lineNumber);
     const value = valueText.length > 0 ? await this.#inlineOrBlock(valueText, indent, lineNumber) : await this.#nestedOrNull(indent);
-    this.composer.mappingEntry(target, key, value.value, true);
+    this.composer.mappingEntry(target, key, value.value, true, memberAdmitted);
   }
 
   async #nestedOrNull(parentIndent: number): Promise<ParsedNode> {
@@ -762,35 +965,20 @@ class BlockParser {
       }
       if (contentIndent < 0) contentIndent = parentIndent + 1;
     }
-    const values: { readonly text: string; readonly empty: boolean; readonly moreIndented: boolean; readonly hadBreak: boolean }[] = [];
+    const values: BlockScalarPart[] = [];
     while (this.#index < this.lines.length) {
       const line = this.lines[this.#index]!;
       const actual = indentation(line.text);
       if (line.text.trim().length > 0 && actual < contentIndent) break;
       this.#index++;
-      values.push({ text: line.text.trim().length === 0 ? "" : line.text.slice(contentIndent), empty: line.text.trim().length === 0, moreIndented: line.text.trim().length > 0 && actual > contentIndent, hadBreak: line.hadBreak });
+      const empty = line.text.trim().length === 0;
+      values.push({ lineText: line.text, contentIndent, empty, moreIndented: !empty && actual > contentIndent, hadBreak: line.hadBreak });
     }
-    let value = "";
-    if (style === "literal") {
-      value = values.map(item => item.text).join("\n");
-      if (values.at(-1)?.hadBreak) value += "\n";
-    }
-    else {
-      for (let index = 0; index < values.length; index++) {
-        const current = values[index]!;
-        value += current.text;
-        if (index < values.length - 1) {
-          const next = values[index + 1]!;
-          if (current.empty) value += next.empty ? "\n" : "";
-          else value += next.empty || current.moreIndented || next.moreIndented ? "\n" : " ";
-        } else if (current.hadBreak) value += "\n";
-      }
-    }
-    const hasContent = values.some(item => !item.empty);
-    if (chomping === "clip") value = hasContent && values.at(-1)?.hadBreak ? `${value.replace(/\n+$/u, "")}\n` : value.replace(/\n+$/u, "");
-    if (chomping === "-") value = value.replace(/\n+$/u, "");
+    const projectedBytes = projectBlockScalarBytes(values, style, chomping);
+    this.composer.admitScalar(projectedBytes);
+    const value = buildBlockScalar(values, style, chomping);
     const record = anchorName === undefined ? undefined : this.composer.beginAnchor(anchorName);
-    await this.composer.scalar(value);
+    await this.composer.scalar(value, value, true);
     let node: ParsedNode = { value, style };
     node = await this.composer.applyTag(node, tag);
     if (record) this.composer.completeAnchor(record, node.value);
@@ -852,19 +1040,19 @@ class BlockParser {
   }
 }
 
-function rawLines(text: string): SourceLine[] {
+function rawLines(text: string, lineOffset = 0): SourceLine[] {
   const normalized = text.replace(/\r\n|\r/gu, "\n");
   const finalBreak = normalized.endsWith("\n");
   const pieces = normalized.split("\n");
   if (pieces[pieces.length - 1] === "") pieces.pop();
   return pieces.map((line, index) => {
     const hadBreak = index < pieces.length - 1 || finalBreak;
-    return { text: line, number: index + 1, rawBytes: Buffer.byteLength(line) + (hadBreak ? 1 : 0), hadBreak };
+    return { text: line, number: lineOffset + index + 1, rawBytes: Buffer.byteLength(line) + (hadBreak ? 1 : 0), hadBreak };
   });
 }
 
-function* documents(text: string): Generator<RawDocument> {
-  const lines = rawLines(text);
+function* documents(text: string, lineOffset = 0): Generator<RawDocument> {
+  const lines = rawLines(text, lineOffset);
   let current: SourceLine[] = [];
   let explicit = false;
   let ended = false;
@@ -932,10 +1120,12 @@ function futureAnchorNames(lines: readonly SourceLine[]): string[] {
   return names;
 }
 
-export async function* parseYamlDocuments(text: string, work: YqOwnedWork, ledger: YqLedger): AsyncGenerator<Json> {
+export async function* parseYamlDocuments(text: string, work: YqOwnedWork, ledger: YqLedger, admittedRawBytes?: number, lineOffset = 0): AsyncGenerator<Json> {
   if (!wellFormed(text)) throw new YqError("input", "INPUT_INVALID_UTF8", 5);
-  for (const document of documents(text)) {
-    ledger.beginDocument(document.rawBytes);
+  let admitted = false;
+  for (const document of documents(text, lineOffset)) {
+    ledger.beginDocument(admittedRawBytes !== undefined && !admitted ? admittedRawBytes : document.rawBytes);
+    admitted = true;
     let singleQuoted = false;
     let doubleQuoted = false;
     let escaped = false;

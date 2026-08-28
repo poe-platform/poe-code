@@ -42,8 +42,13 @@ export class YqLedger {
   stdoutBytes = 0;
   combinedOutputBytes = 0;
 
-  beginDocument(rawBytes: number): void {
+  admitDocumentBytes(rawBytes: number): void {
+    if (!Number.isSafeInteger(rawBytes) || rawBytes < 0) throw new RangeError("invalid raw document byte count");
     if (rawBytes > yqCaps.maxDocumentBytes) throw limit("LIMIT_MAX_DOCUMENT_BYTES");
+  }
+
+  beginDocument(rawBytes: number): void {
+    this.admitDocumentBytes(rawBytes);
     this.documents = checked(this.documents, 1, yqCaps.maxDocuments, "LIMIT_MAX_DOCUMENTS");
     this.documentNodes = 0;
     this.documentValueBytes = 0;

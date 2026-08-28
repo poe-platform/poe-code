@@ -30,6 +30,107 @@ interface ParsedArguments {
   readonly files: readonly string[];
 }
 
+interface InputFrame {
+  readonly bytes: Uint8Array;
+  readonly rawBytes: number;
+  readonly lineOffset: number;
+}
+
+interface FrameRange {
+  readonly start: number;
+  readonly end: number;
+  readonly lineOffset: number;
+}
+
+class RawDocumentFramer {
+  readonly #ranges: FrameRange[] = [];
+  #offset = 0;
+  #frameStart = 0;
+  #frameLine = 0;
+  #lineStart = 0;
+  #lineNumber = 0;
+  #line = "";
+  #pendingCr = false;
+  #frameBytes = 0;
+  #lineBytes = 0;
+  #lineCouldBeMarker = true;
+  #markerComment = false;
+  #hasContent = false;
+
+  admit(chunk: Uint8Array): void {
+    for (const byte of chunk) {
+      this.#offset++;
+      this.#lineBytes++;
+      if (this.#lineBytes > yqCaps.maxDocumentBytes) throw new YqError("limit", "LIMIT_MAX_DOCUMENT_BYTES", 5);
+      if (this.#pendingCr) {
+        this.#pendingCr = false;
+        if (byte === 0x0a) {
+          this.#line += "\n";
+          this.#finishLine(this.#offset);
+          continue;
+        }
+        this.#finishLine(this.#offset - 1);
+      }
+      if (!this.#markerComment && (this.#line.length <= 8 || /^(?:---|\.\.\.)[ \t]+#/u.test(this.#line))) {
+        this.#line += String.fromCharCode(byte);
+      }
+      if (/^(?:---|\.\.\.)[ \t]+#/u.test(this.#line)) this.#markerComment = true;
+      const candidate = this.#line.replace(/[\r\n]+$/u, "");
+      this.#lineCouldBeMarker = /^(?:-{0,3}|\.{0,3})$/u.test(candidate)
+        || /^(?:---|\.\.\.)(?:[ \t]*|[ \t]+#.*)$/u.test(candidate);
+      if (!this.#lineCouldBeMarker && this.#lineBytes > yqCaps.maxDocumentBytes - this.#frameBytes) {
+        throw new YqError("limit", "LIMIT_MAX_DOCUMENT_BYTES", 5);
+      }
+      if (byte === 0x0d) this.#pendingCr = true;
+      else if (byte === 0x0a) this.#finishLine(this.#offset);
+    }
+  }
+
+  finish(bytes: Uint8Array): InputFrame[] {
+    if (this.#line !== "") {
+      this.#pendingCr = false;
+      this.#finishLine(this.#offset);
+    }
+    if (this.#frameStart < this.#offset) this.#ranges.push({ start: this.#frameStart, end: this.#offset, lineOffset: this.#frameLine });
+    return this.#ranges.map(range => ({
+      bytes: bytes.subarray(range.start, range.end),
+      rawBytes: range.end - range.start,
+      lineOffset: range.lineOffset,
+    }));
+  }
+
+  #finishLine(end: number): void {
+    const line = this.#line.replace(/[\r\n]+$/u, "");
+    const marker = /^---(?:[ \t]+#.*)?$/u.test(line);
+    const endMarker = /^\.\.\.(?:[ \t]+#.*)?$/u.test(line);
+    if (marker && this.#hasContent && this.#lineStart > this.#frameStart) {
+      this.#ranges.push({ start: this.#frameStart, end: this.#lineStart, lineOffset: this.#frameLine });
+      this.#frameStart = this.#lineStart;
+      this.#frameLine = this.#lineNumber;
+      this.#frameBytes = this.#lineBytes;
+      this.#hasContent = false;
+    } else {
+      if (this.#lineBytes > yqCaps.maxDocumentBytes - this.#frameBytes) throw new YqError("limit", "LIMIT_MAX_DOCUMENT_BYTES", 5);
+      this.#frameBytes += this.#lineBytes;
+    }
+    const visible = line.replace(/^\ufeff/u, "").trimStart();
+    if (visible !== "" && !visible.startsWith("#") && !visible.startsWith("%") && !marker && !endMarker) this.#hasContent = true;
+    if (endMarker && this.#frameStart < end) {
+      this.#ranges.push({ start: this.#frameStart, end, lineOffset: this.#frameLine });
+      this.#frameStart = end;
+      this.#frameLine = this.#lineNumber + 1;
+      this.#frameBytes = 0;
+      this.#hasContent = false;
+    }
+    this.#line = "";
+    this.#lineBytes = 0;
+    this.#lineCouldBeMarker = true;
+    this.#markerComment = false;
+    this.#lineStart = end;
+    this.#lineNumber++;
+  }
+}
+
 class SinkFailure {
   constructor(readonly reason: unknown) {}
 }
@@ -205,7 +306,7 @@ async function collectSource(
   sourceName: string,
   source: ByteSource,
   vfs: boolean,
-): Promise<Uint8Array> {
+): Promise<InputFrame[]> {
   let iterator: AsyncIterator<Uint8Array> | undefined;
   let returned: Promise<unknown> | undefined;
   owner.register(async () => {
@@ -216,6 +317,7 @@ async function collectSource(
   });
   iterator = readBytes(source, context.signal)[Symbol.asyncIterator]();
   const chunks: Uint8Array[] = [];
+  const framer = new RawDocumentFramer();
   let size = 0;
   while (true) {
     let next: IteratorResult<Uint8Array>;
@@ -228,9 +330,11 @@ async function collectSource(
     }
     owner.assertOpen(context.signal);
     if (next.done) break;
-    session.ownedWork.admitInputBytes(next.value.byteLength);
-    if (next.value.byteLength > yqCaps.maxInputBytes - size) throw fromJqLimit(new JqLimitError("maxInputBytes"));
-    const owned = new Uint8Array(next.value);
+    const chunk = next.value;
+    session.ownedWork.admitInputBytes(chunk.byteLength);
+    if (chunk.byteLength > yqCaps.maxInputBytes - size) throw fromJqLimit(new JqLimitError("maxInputBytes"));
+    framer.admit(chunk);
+    const owned = new Uint8Array(chunk);
     owner.assertOpen(context.signal);
     chunks.push(owned);
     size += owned.byteLength;
@@ -242,15 +346,16 @@ async function collectSource(
     bytes.set(chunk, offset);
     offset += chunk.byteLength;
   }
-  return bytes;
+  owner.assertOpen(context.signal);
+  return framer.finish(bytes);
 }
 
-async function sourceBytes(
+async function sourceFrames(
   context: CommandContext,
   owner: InvocationOwner,
   session: YqQuerySession,
   sourceName: string,
-): Promise<Uint8Array> {
+): Promise<InputFrame[]> {
   if (sourceName === "-") return collectSource(context, owner, session, "<stdin>", context.stdin, false);
   const path = resolvePath(context.cwd, sourceName);
   if (context.fs.readStream) {
@@ -273,10 +378,14 @@ async function sourceBytes(
   }
   owner.assertOpen(context.signal);
   session.ownedWork.admitInputBytes(bytes.byteLength);
-  return new Uint8Array(bytes);
+  const framer = new RawDocumentFramer();
+  framer.admit(bytes);
+  const owned = new Uint8Array(bytes);
+  owner.assertOpen(context.signal);
+  return framer.finish(owned);
 }
 
-function decode(bytes: Uint8Array): string {
+function decodeDocument(bytes: Uint8Array): string {
   try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: false }).decode(bytes); }
   catch { throw new YqError("input", "INPUT_INVALID_UTF8", 5); }
 }
@@ -341,16 +450,19 @@ async function runCommand(context: CommandContext, owner: InvocationOwner): Prom
     let emitted = 0;
     for (const file of files) {
       const sourceName = file === "-" ? "<stdin>" : file;
-      let bytes: Uint8Array;
-      try { bytes = await sourceBytes(context, owner, session, file); }
+      let frames: InputFrame[];
+      try { frames = await sourceFrames(context, owner, session, file); }
       catch (failure) { throw failure instanceof YqError ? withSource(failure, sourceName) : failure; }
       owner.assertOpen(context.signal);
-      let input: string;
-      try { input = decode(bytes); }
-      catch (failure) { throw failure instanceof YqError ? withSource(failure, sourceName) : failure; }
-      const documents = parseYamlDocuments(input, session.ownedWork, ledger);
-      try {
-      for await (const document of documents) {
+      for (const frame of frames) {
+        ledger.admitDocumentBytes(frame.rawBytes);
+        let input: string;
+        try { input = decodeDocument(frame.bytes); }
+        catch (failure) { throw failure instanceof YqError ? withSource(failure, sourceName) : failure; }
+        owner.assertOpen(context.signal);
+        const documents = parseYamlDocuments(input, session.ownedWork, ledger, frame.rawBytes, frame.lineOffset);
+        try {
+        for await (const document of documents) {
         owner.assertOpen(context.signal);
         try { await session.ownedWork.measure(document); }
         catch (failure) {
@@ -415,9 +527,10 @@ async function runCommand(context: CommandContext, owner: InvocationOwner): Prom
           await iterator.return(undefined);
           owner.assertOpen(context.signal);
         }
-      }
-      } catch (failure) {
-        throw failure instanceof YqError ? withSource(failure, sourceName) : failure;
+        }
+        } catch (failure) {
+          throw failure instanceof YqError ? withSource(failure, sourceName) : failure;
+        }
       }
     }
     return { exitCode: 0 };

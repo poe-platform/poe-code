@@ -104,6 +104,13 @@ function jsonEscape(codePoint: number): string {
   return String.fromCodePoint(codePoint);
 }
 
+function jsonEscapedBytes(codePoint: number): number {
+  if (codePoint < 0x20 && ![0x08, 0x09, 0x0a, 0x0c, 0x0d].includes(codePoint)) return 6;
+  if (codePoint === 0x22 || codePoint === 0x5c || codePoint === 0x08 || codePoint === 0x09
+    || codePoint === 0x0a || codePoint === 0x0c || codePoint === 0x0d) return 2;
+  return codePoint <= 0x7f ? 1 : codePoint <= 0x7ff ? 2 : codePoint <= 0xffff ? 3 : 4;
+}
+
 interface OwnedState {
   pending: number;
   activeReservation: boolean;
@@ -252,6 +259,18 @@ class OwnedWork implements YqOwnedWork {
       fragments.push(fragment);
       bytes += fragmentBytes;
     };
+    const reserveFragment = (projectedBytes: number): void => {
+      if (!Number.isSafeInteger(projectedBytes) || projectedBytes < 0 || projectedBytes > options.maxBytes - bytes) {
+        throw new JqLimitError(options.limitName);
+      }
+      bytes += projectedBytes;
+    };
+    const appendReserved = async (fragment: string, projectedBytes: number): Promise<void> => {
+      if (Buffer.byteLength(fragment) !== projectedBytes) throw new Error("escaped fragment projection mismatch");
+      if (projectedBytes > 0) await this.charge(Math.ceil(projectedBytes / 1024));
+      this.assertOpen();
+      fragments.push(fragment);
+    };
     const appendIndent = async (depth: number): Promise<void> => {
       const indentBytes = depth * 2;
       if (!Number.isSafeInteger(indentBytes) || indentBytes > options.maxBytes - bytes) throw new JqLimitError(options.limitName);
@@ -260,24 +279,28 @@ class OwnedWork implements YqOwnedWork {
     const appendString = async (text: string): Promise<void> => {
       if (!wellFormed(text)) throw new YqValueFailure("ENCODE_INVALID_UNICODE");
       await append('"');
-      let fragment = "";
-      let codePoints = 0;
-      for (const character of text) {
-        fragment += jsonEscape(character.codePointAt(0)!);
-        codePoints++;
-        if (codePoints === 256) {
-          await this.charge(codePoints);
-          this.assertOpen();
-          await append(fragment);
-          this.assertOpen();
-          fragment = "";
-          codePoints = 0;
+      for (let start = 0; start < text.length;) {
+        let end = start;
+        let codePoints = 0;
+        let projectedBytes = 0;
+        while (end < text.length && codePoints < 256) {
+          const codePoint = text.codePointAt(end)!;
+          projectedBytes += jsonEscapedBytes(codePoint);
+          end += codePoint > 0xffff ? 2 : 1;
+          codePoints++;
         }
-      }
-      if (codePoints > 0) {
+        reserveFragment(projectedBytes);
+        let fragment = "";
+        for (let index = start; index < end;) {
+          const codePoint = text.codePointAt(index)!;
+          fragment += jsonEscape(codePoint);
+          index += codePoint > 0xffff ? 2 : 1;
+        }
         await this.charge(codePoints);
         this.assertOpen();
-        await append(fragment);
+        await appendReserved(fragment, projectedBytes);
+        this.assertOpen();
+        start = end;
       }
       this.assertOpen();
       await append('"');

@@ -21,6 +21,20 @@ class Fragments {
     this.bytes += bytes;
   }
 
+  reserve(bytes: number): void {
+    if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > this.maxBytes - this.bytes) {
+      throw new JqLimitError("maxOutputBytes");
+    }
+    this.bytes += bytes;
+  }
+
+  async appendReserved(fragment: string, bytes: number): Promise<void> {
+    if (Buffer.byteLength(fragment) !== bytes) throw new Error("escaped fragment projection mismatch");
+    if (bytes > 0) await this.work.charge(Math.ceil(bytes / 1024));
+    this.work.assertOpen();
+    this.parts.push(fragment);
+  }
+
   async indent(depth: number): Promise<void> {
     const bytes = depth * 2;
     if (!Number.isSafeInteger(bytes) || bytes > this.maxBytes - this.bytes) throw new JqLimitError("maxOutputBytes");
@@ -53,27 +67,39 @@ function yamlEscape(codePoint: number): string {
   return String.fromCodePoint(codePoint);
 }
 
+function yamlEscapedBytes(codePoint: number): number {
+  if (codePoint === 0 || codePoint < 0x20 && ![0x08, 0x09, 0x0a, 0x0c, 0x0d, 0x1b].includes(codePoint)
+    || codePoint === 0x7f || codePoint >= 0x80 && codePoint <= 0x9f || codePoint === 0xfffe || codePoint === 0xffff) return 6;
+  if (codePoint === 0x22 || codePoint === 0x5c || codePoint === 0x08 || codePoint === 0x09 || codePoint === 0x0a
+    || codePoint === 0x0c || codePoint === 0x0d || codePoint === 0x1b) return 2;
+  return codePoint <= 0x7f ? 1 : codePoint <= 0x7ff ? 2 : codePoint <= 0xffff ? 3 : 4;
+}
+
 async function quoted(text: string, output: Fragments): Promise<void> {
   if (!wellFormed(text)) throw new YqValueFailure("ENCODE_INVALID_UNICODE");
   await output.append('"');
-  let fragment = "";
-  let codePoints = 0;
-  for (const character of text) {
-    fragment += yamlEscape(character.codePointAt(0)!);
-    codePoints++;
-    if (codePoints === 256) {
-      await output.work.charge(codePoints);
-      output.work.assertOpen();
-      await output.append(fragment);
-      output.work.assertOpen();
-      fragment = "";
-      codePoints = 0;
+  for (let start = 0; start < text.length;) {
+    let end = start;
+    let codePoints = 0;
+    let projectedBytes = 0;
+    while (end < text.length && codePoints < 256) {
+      const codePoint = text.codePointAt(end)!;
+      projectedBytes += yamlEscapedBytes(codePoint);
+      end += codePoint > 0xffff ? 2 : 1;
+      codePoints++;
     }
-  }
-  if (codePoints > 0) {
+    output.reserve(projectedBytes);
+    let fragment = "";
+    for (let index = start; index < end;) {
+      const codePoint = text.codePointAt(index)!;
+      fragment += yamlEscape(codePoint);
+      index += codePoint > 0xffff ? 2 : 1;
+    }
     await output.work.charge(codePoints);
     output.work.assertOpen();
-    await output.append(fragment);
+    await output.appendReserved(fragment, projectedBytes);
+    output.work.assertOpen();
+    start = end;
   }
   output.work.assertOpen();
   await output.append('"');

@@ -151,6 +151,10 @@
   Strict-live gate mode retains its dirty-input rejection.
   State whether post-run checks also detect new entries; checking only original
   tracked paths does not establish an append-proof tree.
+- Computed composition/Merkle/Git-tree hashes need not name stored objects.
+  Authenticate all inputs and recompute exact canonical tree bytes/hashes; do
+  not require git rev-parse success for a declared derived-only identity.
+  Claims of stored commits/blobs/trees still require object verification.
 - Preserve original cohorts, failures, fixture inputs and oracle defects beside
   later corrections. Record exact source hashes, profiles, versions, denominators,
   dirty-vs-frozen state and external-oracle availability. Unmeasured/unsupported

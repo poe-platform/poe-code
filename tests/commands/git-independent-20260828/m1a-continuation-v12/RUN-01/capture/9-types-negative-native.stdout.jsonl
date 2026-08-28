@@ -1,0 +1,2 @@
+{"kind":"birth","pid":46756,"ppid":46590,"role":"types-negative-native"}
+../../../types/negative-native.ts(1,223): error TS2353: Object literal may only specify known properties, and 'spawn' does not exist in type 'GitCommandsOptions'.

@@ -1,0 +1,11 @@
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+Error: BINDING_HASH_REFUSED
+    at initialize (file:///Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/loader.mjs:17:172)
+    at Hooks.addCustomLoader (node:internal/modules/esm/hooks:183:24)
+    at Hooks.register (node:internal/modules/esm/hooks:157:16)
+    at async MessagePort.handleMessage (node:internal/modules/esm/worker:199:18)
+
+Node.js v22.22.2

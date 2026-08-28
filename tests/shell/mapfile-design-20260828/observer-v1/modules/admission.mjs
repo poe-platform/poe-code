@@ -1,0 +1,56 @@
+import assert from "node:assert/strict";
+import path from "node:path";
+import { createHash } from "node:crypto";
+
+export const digest = bytes => createHash("sha256").update(bytes).digest("hex");
+export const moduleUrl = import.meta.url;
+export function inside(root, filename) {
+  return path.isAbsolute(filename) && filename.startsWith(root + path.sep) && path.normalize(filename) === filename;
+}
+export function authenticate(port, config) {
+  assert.equal(config.schema, "mapfile-observer-v1");
+  assert.ok(["native", "synthetic"].includes(config.mode));
+  assert.ok(Object.keys(config.protected).length > 0 && Object.keys(config.protected).length <= 128);
+  let total = 0;
+  for (const [filename, expected] of Object.entries(config.protected)) {
+    const stat = port.stat(filename);
+    assert.equal(stat.kind, "file", `protected regular file: ${filename}`);
+    assert.ok(stat.bytes <= 16 * 1024 * 1024);
+    total += stat.bytes; assert.ok(total <= 64 * 1024 * 1024);
+    assert.equal(digest(port.read(filename)), expected, `protected bytes: ${filename}`);
+  }
+  assert.deepEqual(port.list(config.moduleRoot).sort(), config.moduleFiles.slice().sort(), "complete module directory");
+  for (const filename of config.moduleFiles) assert.ok(config.protected[path.join(config.moduleRoot, filename)], "every module must be byte-bound");
+  const authorization = JSON.parse(port.read(config.authorizationPath));
+  assert.equal(digest(port.read(config.authorizationPath)), config.authorizationSha256, "authorization bytes");
+  assert.equal(authorization.kind, config.mode === "native" ? "ROOT_NATIVE_GO" : "SYNTHETIC_ONLY");
+  assert.equal(authorization.moduleSealSha256, config.moduleSealSha256);
+  assert.equal(authorization.recipeSha256, config.recipeSha256);
+  assert.equal(authorization.outputRoot, config.outputRoot);
+  assert.deepEqual(authorization.rowIds, config.rowIds);
+  assert.equal(port.stat(config.binary).kind, "file");
+  assert.equal(digest(port.read(config.binary)), config.binarySha256, "binary bytes");
+  assert.equal(path.normalize(config.outputRoot), config.outputRoot);
+  assert.ok(path.isAbsolute(config.outputRoot) && config.outputRoot !== "/");
+  if (config.mode === "native") assert.match(config.outputRoot, /^\/private\/tmp\/mapfile-observer-[A-Za-z0-9-]+$/u);
+  assert.equal(port.canonical(path.dirname(config.outputRoot)), path.dirname(config.outputRoot), "stable canonical parent");
+  assert.ok(config.rowIds.length > 0 && config.rowIds.length <= 43);
+  assert.equal(new Set(config.rowIds).size, config.rowIds.length);
+  let scripts = 0, input = 0;
+  const selected = config.rowIds.map(id => {
+    assert.match(id, /^(N|A)\d{2}$/u);
+    const row = config.rows.find(item => item.id === id);
+    assert.ok(row, `unselected recipe: ${id}`);
+    assert.equal(row.expectation, null);
+    assert.equal(digest(Buffer.from(row.script)), row.scriptSha256);
+    assert.match(row.stdinHex, /^(?:[a-f0-9]{2})*$/u);
+    assert.equal(digest(Buffer.from(row.stdinHex, "hex")), row.stdinSha256);
+    const bytes = Buffer.byteLength(row.script), stdin = row.stdinHex.length / 2;
+    assert.ok(bytes <= 4096 && stdin <= 4096);
+    scripts += bytes; input += stdin;
+    return row;
+  });
+  assert.ok(scripts <= 32768 && input <= 32768);
+  assert.equal(digest(Buffer.from(JSON.stringify(config.rows))), config.recipeSha256, "recipe serialization");
+  return selected;
+}

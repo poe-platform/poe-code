@@ -9,7 +9,7 @@ export interface SchedulerBinding {
   readonly clearTimeout: TimeoutScheduler["clearTimeout"];
 }
 export const defaultSchedulerBinding: SchedulerBinding = Object.freeze({
-  receiver: undefined,
+  receiver: performance,
   now: performance.now,
   setTimeout: nodeSetTimeout,
   clearTimeout: nodeClearTimeout as TimeoutScheduler["clearTimeout"],

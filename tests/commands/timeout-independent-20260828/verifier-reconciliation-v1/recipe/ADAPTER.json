@@ -1,0 +1,138 @@
+{
+  "schema": "timeout-independent-explicit-verifier-adapter/1",
+  "originalRecipeCommit": "289d00d253136032c1bd6b078662ba5f37e39a3d",
+  "originalEvidenceCommit": "a8ebf811c57fbb1084ccfe9dd34a8265f5dff69a",
+  "generated": [
+    {
+      "name": "io.mjs",
+      "originalSha256": "78262115a1350aea9654be67f4b530c11c3639c16a74758cf50ee9e09533f112",
+      "patchedSha256": "78262115a1350aea9654be67f4b530c11c3639c16a74758cf50ee9e09533f112",
+      "unchanged": true
+    },
+    {
+      "name": "tool-observer.cjs",
+      "originalSha256": "318f0ce280bdeddb86ef49691094b46ddfc4b8d12ba05f6abd04900f7df61967",
+      "patchedSha256": "318f0ce280bdeddb86ef49691094b46ddfc4b8d12ba05f6abd04900f7df61967",
+      "unchanged": true
+    },
+    {
+      "name": "types-root.ts.data",
+      "originalSha256": "a21d313f3ddd96399d2757b004b4d0c13bc5967ba1b63052c100e9d5182b0263",
+      "patchedSha256": "a21d313f3ddd96399d2757b004b4d0c13bc5967ba1b63052c100e9d5182b0263",
+      "unchanged": true
+    },
+    {
+      "name": "preload.mjs",
+      "originalSha256": "3300fd9e5f8f8be690aaf7d187a71b4091a1d00fd4c6c91969b6e2e12a0c64e7",
+      "patchedSha256": "8b658fd213aaf772cb3e7ba6a206dca52b9cd824d8d837b969ddf5a219d4db25",
+      "unchanged": false
+    },
+    {
+      "name": "cases.mjs",
+      "originalSha256": "40656fde375e566c79833aff236044722bde43961fc4fe2a3abe38a300964a4b",
+      "patchedSha256": "8a4d9c58119e24a15ab4a3a3f8c3fc3bb52c87cf44ac1e200d7b31a7931f1be5",
+      "unchanged": false
+    },
+    {
+      "name": "executor.mjs",
+      "originalSha256": "d0d3772e4113fefa5277f832f44e8a13bc9fe4f28a96a80cae9a77f072be6039",
+      "patchedSha256": "0a015a803f8ad84d2efc23ded3ec3397122d2693a55796b2e7b4b2ee4a1ae2e8",
+      "unchanged": false
+    },
+    {
+      "name": "launch.mjs",
+      "originalSha256": "4ea7a139fdb6927a51eeb1a35f24488f9e532750ca89dd8a3b2f46dbb0000743",
+      "patchedSha256": "ab573ea62158fee2a87d7da401543fad466ccffe314423c3f9d44ecc72f1a3a4",
+      "unchanged": false
+    }
+  ],
+  "replacements": [
+    {
+      "label": "preload-guard-receipt-only",
+      "before": "assert.equal(fs.realpathSync(path), path); assert.ok(Object.hasOwn(config.loads, path), `UNBOUND_MODULE:${path}`); return path;",
+      "after": "assert.equal(fs.realpathSync(path), path); if (!Object.hasOwn(config.loads, path)) trace({ kind: 'strict-load-allowlist-denial', path, guard: 'Object.hasOwn(config.loads,path)', beforeProductLoad: true }); assert.ok(Object.hasOwn(config.loads, path), `UNBOUND_MODULE:${path}`); return path;"
+    },
+    {
+      "label": "diagnostic-serialization-no-verdict",
+      "before": "function integrity() {",
+      "after": "\nfunction diagnosticOutcome(outcome, sentinel) {\n  if (outcome.status === 'pending') return { status: 'pending' };\n  if (outcome.status === 'rejected') return { status: 'rejected', sameSentinel: Object.is(outcome.reason, sentinel), reason: encodeReason(outcome.reason) };\n  const value = outcome.value;\n  return { status: 'fulfilled', exitCode: value?.exitCode, stdout: value?.stdout, stderr: value?.stderr,\n    stdoutBase64: value?.stdoutBytes === undefined ? null : Buffer.from(value.stdoutBytes).toString('base64'),\n    stderrBase64: value?.stderrBytes === undefined ? null : Buffer.from(value.stderrBytes).toString('base64') };\n}\nfunction preserveDiagnostic(kind, observation) {\n  (receipt.diagnosticObservations ??= []).push({ kind, ...observation });\n  fs.appendFileSync(config.output + '/PRE-ASSERTION-OBSERVATIONS.jsonl', JSON.stringify({ kind, ...observation }) + '\\n');\n}\n\nfunction integrity() {"
+    },
+    {
+      "label": "PC02-retain-activation-before-original-assertion",
+      "before": "const run = await pending.finish();\n    assertDirectRetirementCollision({ localSignal: pending.signal,",
+      "after": "const run = await pending.finish();\n    preserveDiagnostic('PC02-direct-retirement', { entered, threw: thrown, sameSentinel: Object.is(observed, pending.signal.reason), before: diagnosticOutcome(before, observed), handler: diagnosticOutcome(run.outcome, observed), childClosed: pending.childClosed, resources: timing.live, registeredCleanupRejections: run.cleanup.filter(row => row.status === 'rejected').length });\n    assertDirectRetirementCollision({ localSignal: pending.signal,"
+    },
+    {
+      "label": "PC01-observation-state-only",
+      "before": "let childSignal, handlerObservation, childClosed = false;\n  const instance = shell({}, timing); const actual",
+      "after": "let childSignal, handlerObservation, childClosed = false;\n  const dispatch = { timeout: 0, child: 0, outer: 0 }; let invokeObservation, handlerSignal;\n  const instance = shell({}, timing); const actual"
+    },
+    {
+      "label": "PC01-actual-timeout-dispatch-counter",
+      "before": "instance.register({ name: 'timeout', execute(context) { handlerObservation = watch(actual.execute(context)); return handlerObservation.settled.then(row => { if (row.status === 'rejected') throw row.reason; return row.value; }); } }, { replace: true });",
+      "after": "instance.register({ name: 'timeout', execute(context) { dispatch.timeout++; handlerSignal = context.signal; handlerObservation = watch(actual.execute(context)); return handlerObservation.settled.then(row => { if (row.status === 'rejected') throw row.reason; return row.value; }); } }, { replace: true });"
+    },
+    {
+      "label": "PC01-actual-child-dispatch-counter",
+      "before": "instance.register({ name: 'child', execute(context) { childSignal = context.signal; context.registerCleanup(async () => { await childGate.promise; childClosed = true; }); childEntered.resolve(); return { exitCode: 0 }; } });",
+      "after": "instance.register({ name: 'child', execute(context) { dispatch.child++; childSignal = context.signal; context.registerCleanup(async () => { await childGate.promise; childClosed = true; }); childEntered.resolve(); return { exitCode: 0 }; } });"
+    },
+    {
+      "label": "PC01-observe-raw-invoke-preserve-returned-promise-identity",
+      "before": "if (outerContext) instance.register({ name: 'outer', execute: context => context.invoke('timeout', ['.001', 'child'], { signal: controller.signal }) });",
+      "after": "if (outerContext) instance.register({ name: 'outer', execute(context) { dispatch.outer++; const pending = context.invoke('timeout', ['.001', 'child'], { signal: controller.signal }); invokeObservation = watch(pending); return pending; } });"
+    },
+    {
+      "label": "PC01-retain-full-new-boundary-observations-before-unchanged-assertions",
+      "before": "childGate.resolve(); const handler = await handlerObservation.settled, outerResult = await outer.settled; assert.equal(childClosed, true);\n  if (collision) assertCallerCollision",
+      "after": "childGate.resolve(); const handler = await handlerObservation.settled, outerResult = await outer.settled; assert.equal(childClosed, true);\n  preserveDiagnostic('PC01-boundaries', { route: outerContext ? 'borrowed-outer-invoke' : 'root-caller', dispatch: { ...dispatch }, observedOwnReason: encodeReason(observed), callerAborted: controller.signal.aborted, sameCallerSentinel: Object.is(controller.signal.reason, observed), handlerSignalAborted: handlerSignal.aborted, sameHandlerSignalReason: Object.is(handlerSignal.reason, observed), beforeRelease: { handler: diagnosticOutcome(beforeRelease.handler, observed), outer: diagnosticOutcome(beforeRelease.outer, observed) }, handler: diagnosticOutcome(handler, observed), rawInvoke: invokeObservation ? diagnosticOutcome(await invokeObservation.settled, observed) : null, outer: diagnosticOutcome(outerResult, observed), childClosed, resources: timing.live });\n  if (collision) assertCallerCollision"
+    },
+    {
+      "label": "selected-diagnostic-envelope-not-semantic-rescore",
+      "before": "receipt.status = config.caseIds ? (passed ? 'MUTANT_SURVIVED' : 'MUTANT_REJECTED') : (passed ? 'FROZEN_RUNTIME_ASSERTIONS_PASSED' : 'FROZEN_RUNTIME_ASSERTIONS_FAILED');",
+      "after": "receipt.status = config.intentionalMutation ? (passed ? 'MUTANT_SURVIVED' : 'MUTANT_REJECTED') : (passed ? 'DIAGNOSTIC_FROZEN_ASSERTIONS_PASSED' : 'DIAGNOSTIC_FROZEN_ASSERTIONS_FAILED');"
+    },
+    {
+      "label": "import-exact-reconciliation-predicates",
+      "before": "const bindings = read(join(recipe, 'BINDINGS.json'));",
+      "after": "import { assertRootMissing, assertImportDenied } from './predicates.mjs';\nimport { focusedControls } from './controls.mjs';\n\nconst bindings = read(join(recipe, 'BINDINGS.json'));"
+    },
+    {
+      "label": "versioned-receipt-schema",
+      "before": "schema: 'timeout-independent-actual-review/1'",
+      "after": "schema: 'timeout-independent-verifier-reconciliation/1'"
+    },
+    {
+      "label": "only-root-type-correction-not-other-types",
+      "before": "const rows = [['positive', 0, null], ['readonly', 2, 2540], ['array', 2, 2339], ['unknown', 2, 2353], ['number', 2, 2322], ['replace', 2, 2353], ['root', 2, 2305], ['subpath', 2, 2307]];",
+      "after": "const rows = [['root', 2, 2724]];"
+    },
+    {
+      "label": "exact-root-name-location-message-status-LF-not-keywords",
+      "before": "      assert.equal(result.code, status); assert.equal(result.signal, null); assert.equal(result.stderr, '');\n      assert.equal(diagnostics.length, code === null ? 0 : 1); if (code !== null) { assert.equal(Number(diagnostics[0][3]), code); assert.equal(Number(diagnostics[0][1]), ['root', 'subpath'].includes(name) ? 1 : 2); const keywords = { readonly: 'maxTimerMilliseconds', array: 'push', unknown: 'notAnOption', number: 'number', replace: 'replace', root: 'createTimeoutCommand', subpath: 'virtual-bash/commands/timeout' }; assert.ok(diagnostics[0][4].includes(keywords[name])); }\n      assert.equal(result.stdout.trim().split('\\n').filter(Boolean).length, diagnostics.length);\n",
+      "after": "      assertRootMissing(result);\n"
+    },
+    {
+      "label": "PC01-only-diagnostics-original-mutant-selection",
+      "before": "...(mutation ? { caseIds: [mutation.caseId], intentionalMutation: mutation } : {})",
+      "after": "...(mutation ? { caseIds: [mutation.caseId], intentionalMutation: mutation } : { caseIds: ['PC01'] })"
+    },
+    {
+      "label": "mutant-ordinary-failure-record-and-continue-after-closure",
+      "before": "  if (mutation) {\n    const failed = captured.cases.find(row => row.status === 'FAIL'); assert.equal(result.code, 1); assert.equal(failed?.id, mutation.caseId); assert.ok(failed.error.text.includes(mutation.failure), `DESIGNATED_MUTANT_FAILURE:${mutation.id}`);\n    state.mutants.push({ id: mutation.id, actualModuleSha256: mutation.mutantSha256, expectedFailure: mutation.failure, actualFailure: failed.error, cleanup: captured.cleanup, loads: captured.loadProof });\n  } else { state[profile] = captured; assert.ok(['FROZEN_RUNTIME_ASSERTIONS_PASSED', 'FROZEN_RUNTIME_ASSERTIONS_FAILED'].includes(captured.status), `${profile}:${captured.failure?.text}`); assert.equal(result.code, captured.status === 'FROZEN_RUNTIME_ASSERTIONS_PASSED' ? 0 : 1); }",
+      "after": "  assert.deepEqual(captured.unexecuted, []);\n  assert.notEqual(captured.status, 'STOP_NO_RETRY');\n  if (mutation) {\n    const failed = captured.cases.find(row => row.status === 'FAIL');\n    const record = { id: mutation.id, status: 'PASS', actualModuleSha256: mutation.mutantSha256, expectedFailure: mutation.failure, actualFailure: failed?.error, cleanup: captured.cleanup, loads: captured.loadProof, diagnosticObservations: captured.diagnosticObservations };\n    try {\n      assert.equal(result.code, 1); assert.equal(failed?.id, mutation.caseId); assert.ok(failed.error.text.includes(mutation.failure), 'DESIGNATED_MUTANT_FAILURE:' + mutation.id);\n      if (mutation.id === 'M02') {\n        const activation = captured.diagnosticObservations.find(row => row.kind === 'PC02-direct-retirement');\n        assert.equal(activation.entered, true); assert.equal(activation.threw, true); assert.equal(activation.sameSentinel, true); assert.equal(activation.resources, 0); assert.equal(activation.childClosed, true);\n      }\n    } catch (error) { record.status = 'FAIL'; record.verifierFailure = { name: error?.name, message: error?.message, stack: error?.stack }; }\n    state.mutants.push(record); save(join(raw, mutation.id + '-qualification.json'), record);\n  } else {\n    state[profile] = captured;\n    assert.ok(['DIAGNOSTIC_FROZEN_ASSERTIONS_PASSED', 'DIAGNOSTIC_FROZEN_ASSERTIONS_FAILED'].includes(captured.status));\n    assert.equal(result.code, captured.status === 'DIAGNOSTIC_FROZEN_ASSERTIONS_PASSED' ? 0 : 1);\n  }"
+    },
+    {
+      "label": "full-error-before-exact-guard-specific-parent-predicate",
+      "before": "async function importNegative(id, consumer, target, code, message, wrongHash = false) {\n  const output = join(raw, id); fs.mkdirSync(output);\n  const entry = join(consumer, `${id}.mjs`); write(entry, fs.readFileSync(join(recipe, 'negative-import.mjs')));\n  const internal = join(sourceRoot, 'src/commands/timeout/index.ts');\n  const loads = { [entry]: fileHash(entry) }; if (wrongHash) loads[internal] = '0'.repeat(64);\n  const configPath = join(work, `${id}-config.json`);\n  save(configPath, { profile: wrongHash ? 'source' : 'moved', sourceRoot, loads, targets: wrongHash ? { 'timeout-under-review': internal } : {}, trace: join(output, 'module-loads.jsonl') });\n  const parent = join(repository, 'tests/commands/timeout-independent-20260828');\n  const result = await child(id, ['--permission', `--allow-fs-read=${parent}`, `--allow-fs-write=${scope}`, '--import', join(recipe, 'preload.mjs'), entry], consumer, { TIMEOUT_CONFIG: configPath, TIMEOUT_CONFIG_SHA256: fileHash(configPath), NEGATIVE_TARGET: target, NEGATIVE_CODE: code, ...(message ? { NEGATIVE_MESSAGE: message } : {}) });\n  assert.equal(result.code, 0); assert.equal(result.stderr, '');\n  const observed = JSON.parse(result.stdout); assert.equal(observed.code, code);\n  const trace = fs.readFileSync(join(output, 'module-loads.jsonl'), 'utf8').trim().split('\\n').map(JSON.parse);\n  assert.equal(trace.filter(row => row.kind === 'actual-module-load').length, 1); assert.equal(trace.find(row => row.kind === 'actual-module-load').path, entry);\n  state.controls.push({ id, status: 'EXPECTED_REJECTION', observed, actualNegativeHelperLoad: true, productModuleLoads: 0 }); guard(`${id}-POST`);\n}\n",
+      "after": "async function importNegative(id, consumer, target, kind) {\n  const output = join(raw, id); fs.mkdirSync(output);\n  const entry = join(consumer, id + '.mjs'); write(entry, fs.readFileSync(join(recipe, 'negative-import.mjs')));\n  const configPath = join(work, id + '-config.json');\n  save(configPath, { profile: 'moved', sourceRoot, loads: { [entry]: fileHash(entry) }, targets: {}, trace: join(output, 'module-loads.jsonl') });\n  const parent = join(repository, 'tests/commands/timeout-independent-20260828');\n  const result = await child(id, ['--permission', '--allow-fs-read=' + parent, '--allow-fs-write=' + scope, '--import', join(recipe, 'preload.mjs'), entry], consumer,\n    { TIMEOUT_CONFIG: configPath, TIMEOUT_CONFIG_SHA256: fileHash(configPath), NEGATIVE_TARGET: kind === 'unbound-source' ? pathToFileURL(target).href : target, NEGATIVE_LABEL: target });\n  const trace = fs.readFileSync(join(output, 'module-loads.jsonl'), 'utf8').trim().split('\\n').filter(Boolean).map(JSON.parse);\n  const record = { id, status: 'PASS', kind, target, childCode: result.code, trace };\n  try {\n    record.observed = JSON.parse(result.stdout);\n    assertImportDenied({ result, observed: record.observed, trace, entry, entrySha256: fileHash(entry), target, kind, packageJson: join(consumer, 'node_modules/virtual-bash/package.json') });\n  } catch (error) { record.status = 'FAIL'; record.verifierFailure = { name: error?.name, message: error?.message, stack: error?.stack }; }\n  state.controls.push(record); save(join(output, 'QUALIFICATION.json'), record); guard(id + '-POST');\n}\n\n"
+    },
+    {
+      "label": "authenticate-new-committed-recipe-not-old-patched-bytes",
+      "before": "actual-v1/recipe/${name}",
+      "after": "verifier-reconciliation-v1/recipe/${name}"
+    }
+  ],
+  "executorScopeDelta": "Retained original supervisor/tool/type-load/runtime-load/closure functions; select root types plus PC01 diagnostics, authenticated retained package install/move instead of build/pack rerun, new A09 receipt, original A10 and both mutants; continue ordinary control classification failures only after guards and reaping.",
+  "assertions": "PC01 and PC02 assertion bodies unchanged; telemetry only before them. Only root-negative type predicate changes from TS2305 keyword to exact TS2724 complete stdout. A09 guard-specific classification is separately versioned, not generic ERR_ASSERTION acceptance."
+}

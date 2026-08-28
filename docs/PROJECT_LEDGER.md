@@ -3018,3 +3018,68 @@ that any implementation, command, fixture, or test currently exists.
   LET to recover464 byte-exact. This is scoped acceptance, not a default-count
   change or global gate. Root releases the runtime window to Poincare's stack
   work; fixed76 f5 and this worker's driver-only scope remain unchanged.
+
+### 2026-08-28T09:04Z — Final-route acceptance; fresh fixed76 release still absent
+
+- Root accepts independent97c081ec7c7f180889d3640c29d1cd5fd1b10752 for source
+  fe15f1e4/evidencecdf2803e:8/8 route groups,3/3 shipping-fenced phases and3
+  worker-side shadow refusals. Actual A10 records cold78/typecheck-all0, one
+  production build,23 maintained/3 source/3 negative groups and832 emitted files,
+  plus actual duplicate-compiler refusal. Historical Git/tar controls are bound,
+  not rerun; appended-link refusal proves cardinality only. FD/TOCTOU/system-
+  metadata/dynamic-image qualifications and all old results remain.
+- The NEW pending packet d9dd698a33421b197ee15432a6606ad91dd06c63 is
+  `tests/integration/full-gate-20260827/unified76-driver/release-packet-v2-final-routes/LAUNCH.md`.
+  It binds fixedf5/c109, driver25ee4ded, profile8c9363ea, routesb440b324 and exact
+  projectionb74e5756 to the accepted review. Metadata preparation executes no
+  product/build/native/private-engine/full-gate work. The invalid receipt template
+  does not inherit old GO; root must accept the packet then issue a fresh explicit
+  ROOT_RELEASE_UNIFIED76. Full14-phase finite-PATH compatibility is untested and
+  must be discovered without permission widening. Current live maintenance below
+  does not enter that fixed candidate.
+
+### 2026-08-28T09:04Z — Maintained standalone admission repair, metadata only
+
+- Source96ed7733 resolves seven tracked but unclassified `.mts` inputs: two
+  version-bound timeout F22 inputs, four sealed XAN review/compiler inputs and
+  one maintained WebDAV public declaration consumer. The original seven bytes
+  remain. Six frozen roles bind source/package/owning seals; WebDAV gets an
+  unchanged strict type-only route. A new maintained timeout counterpart keeps
+  the original options assertions with only the public import specifier changed.
+- The current census grows192→200 (199 existing paths plus the new counterpart):
+  153 frozen-evidence,36 current,7 declaration,1 frozen-oracle,3 negative-types.
+  All192 previous entries and existing negative routes remain unchanged. The
+  actual metadata admission and15 read-only checks pass; no compiler/build/global
+  tests or XAN execution ran. Strict consumer compilation remains pending. Exact
+  paths, roles, original failure and controls are in
+  `tests/plugins/qualified-current-release/inventory-maintenance-20260828/REPORT.md`.
+  Fixed76 retains192 and is not rescored. AGENTS already states the durable
+  classification/history rules; no timeline/count rules were added there.
+
+### 2026-08-28T09:04Z — Current accepted components versus author-only work
+
+- CD464 acceptance2585f78d/192ab78b and LETc26892c3 acceptance08b05531 remain
+  scoped, not a current whole-product gate. LET's original81/84 stays separate
+  from three versioned checks; original set-u remains unsupported, and the new
+  absent-variable check covers the `let` builtin's default zero only. Prior detailed CD/L24,
+  invariant-role and mutant qualifications above remain authoritative.
+- Noncollecting jq length74361026/independent16c4502d includes the additive
+  full846 README package proof6d5cf6c6, recipe4e4fbb56, packff230f2e9079cc843198533e412f836abb62e4ade63f4fa210b7269f7deb4eff.
+  Common845 bytes/modes stay exact; no new behavioral replay or automatic live
+  composition claim. The old README-omitting projection remains qualified.
+- Timeout/curl/actualSafeJS acceptance composes original144e0fca11/12 per layout
+  with W05-only01b8e0e7 one per layout, not a rescore. Original24 wrapper
+  invocations cover7 programs across layouts,12 successful/12 expected rejects;
+  W05 continuation has0 guest evaluations. Actual-engine/private guards and
+  native/provider/full-gate limitations remain separate.
+- Stack3e4cd743/evidence92b60355 is AUTHOR-ONLY under Locke review. Its selected
+  composition and author results are not independent acceptance or fixedf5
+  changes. YQ35da1854/evidenceef6032b2/handoffbcec1ead is AUTHOR-ONLY under Sagan
+  review, without root/default wiring. No implementation or validation of either
+  module was performed by this maintenance task.
+- XAN remains execution-held, unaccepted and unregistered. Artifact-only88608b65
+  adds30 diagnostic-data/976 counterexample-data controls,0 product executions;
+  all195 original nonpass rows/161 obligation mappings remain unqualified.
+  F11 annotations are adapter static arithmetic, not telemetry. No retry,
+  rephrasing, alternate executor/agent bypass or inferred OS-denial/security
+  claim is authorized by classification or documentation.

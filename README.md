@@ -597,7 +597,12 @@ Dispose the returned shell after use. Explicitly registering the optional plugin
 without a runtime does not enable execution: source execution returns status
 127. There is no host JavaScript evaluator or native-process fallback. See the
 [command documentation](src/commands/safejs/README.md) for guest modules, limits
-and actual-host setup. Actual SafeJS integration is not closed. The upstream
+and actual-host setup. Scoped timeout/curl/actual-engine companion workflows have
+[accepted composed evidence](tests/integration/timeout-curl-safejs-20260828/HANDOFF.md)
+with a [separate W05 continuation](tests/integration/timeout-curl-safejs-20260828/w05-literal-v1/HANDOFF.md);
+that continuation performs no guest evaluation. This is not acceptance of every
+guest lifecycle or replay behavior. Broader actual SafeJS integration remains
+open. The upstream
 proposal 0c1bfe2 is not approved; isolated patched runs do not establish accepted integration, guest
 lifecycle success or replay durability. See the ledger for separate cohorts.
 

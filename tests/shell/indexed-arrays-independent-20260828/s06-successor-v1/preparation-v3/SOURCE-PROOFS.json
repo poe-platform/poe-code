@@ -1,0 +1,63 @@
+[
+  {
+    "id": "M03",
+    "premises": [
+      { "path": "src/shell/runtime.ts", "literal": "stateMonitor(state)!.publish(typed.tickets, name, () => {", "occurrences": 1 },
+      { "path": "src/shell/runtime.ts", "literal": "released = store.publish(name, typed.binding, typed.tickets, typed.prepared, true);", "occurrences": 1 }
+    ],
+    "argument": "Saved typed tickets, not a numeric newer-than predicate, are used by restoreVariable. Prepaid publication restores the retained binding. The separate actual public nested-frame control records inner then outer restoration; the direct helper fixes numeric 4/5/6 versus10/11/12 and next13/14/15.",
+    "limitation": "Manual dataflow argument on bound source plus two specified dynamics, not arbitrary scheduler exploration. Native private fields and lexical saved-variable WeakMap are not fabricated as accessible observations."
+  },
+  {
+    "id": "M07",
+    "premises": [
+      { "path": "src/shell/arrays/ledger.ts", "literal": "readonly completion: Promise<void>;", "occurrences": 1 },
+      { "path": "src/shell/arrays/ledger.ts", "literal": "if (!this.#started) {", "occurrences": 1 },
+      { "path": "src/shell/arrays/ledger.ts", "literal": "while (this.#firstChild) {", "occurrences": 1 },
+      { "path": "src/shell/arrays/ledger.ts", "literal": "return this.completion;", "occurrences": 1 }
+    ],
+    "argument": "Completion is created at owner construction. close publishes only the existing completion and starts one drain. Drain follows intrusive child/admission links, not a growing queue/Set. The actual27-owner/three-close control checks identity and terminal live0.",
+    "limitation": "At-most27 distinct owner visits is a source-structure argument for this27-owner graph. Engine Promise/reaction allocation is not an RSS bound; no claim that arbitrary promises allocate zero memory."
+  },
+  {
+    "id": "M14",
+    "premises": [
+      { "path": "src/shell/arrays/bindings.ts", "literal": "this.owner.reserve({ slots: 1, metadata: 96, generation: true, version: true, work: 9 })", "occurrences": 1 },
+      { "path": "src/shell/arrays/bindings.ts", "literal": "const slot = this.owner.reserve({ slots: 1, metadata: 32, work: 5 });", "occurrences": 1 },
+      { "path": "src/shell/arrays/ledger.ts", "literal": "const slots = charge.slots ?? 0;", "occurrences": 1 }
+    ],
+    "argument": "Watch table and element slots both charge the same live Map-slot category before publication. Separate vector allocatedSlots is not substituted for live slots. The original4-slot arithmetic control remains; a genuine store watch uses F128 because F4 metadata cannot construct that graph.",
+    "limitation": "No claim that F equals usable element capacity. This is the exact widened category source argument plus reachable finite helper control, not a silently substituted full-store F4 observation."
+  },
+  {
+    "id": "M15",
+    "premises": [
+      { "path": "src/shell/arrays/ledger.ts", "literal": "const labels = [\"wrapper\", \"Map slot\", \"payload\", \"metadata\", \"allocated byte\", \"allocated slot\", \"work\"] as const;", "occurrences": 1 },
+      { "path": "src/shell/arrays/ledger.ts", "literal": "this.#lastIssued = cursor;", "occurrences": 1 },
+      { "path": "src/shell/arrays/ledger.ts", "literal": "for (let index = 0; index < requested.length; index++) this.#used[index]! += Number(requested[index]!);", "occurrences": 1 }
+    ],
+    "argument": "Checked ticket requests precede the seven category checks; category labels follow the ratified order. Only after all checks does reserve commit cursor/counters. Failed reserve never calls release on prior admissions. Ten prior real reservations remain spent (640 cumulative bytes/150 work), rather than relabeling model scalar10 as runtime work.",
+    "limitation": "Finite metadata/work conflict and before/after snapshots plus source order argument; no exhaustive floating-point/input-domain proof. Checked BigInt derivation and near-MAX cases are separate M01/M02/M13."
+  },
+  {
+    "id": "M20",
+    "premises": [
+      { "path": "src/shell/arrays/ledger.ts", "literal": "const metadataRequest = BigInt(charge.metadata ?? 0) + 64n;", "occurrences": 1 },
+      { "path": "src/shell/arrays/ledger.ts", "literal": "const work = BigInt(charge.work ?? 0) + 15n;", "occurrences": 1 },
+      { "path": "src/shell/arrays/ledger.ts", "literal": "this.#used[3] -= admission.metadata;", "occurrences": 1 }
+    ],
+    "argument": "The frozen2610/21/445 reference is tested through real reserve/release after accounting for the real64 metadata/15 work header. release touches only the four live counters; cumulative byte/slot/work remain spent. Double release is idempotent. Ownership topology is justified separately by M21, not inferred from these numerical totals.",
+    "limitation": "This exact numerical input is not claimed to be a full Runtime graph census or actual host peak/RSS. Actual Runtime terminal checks separately require live0 and retain real cumulative counters."
+  },
+  {
+    "id": "M21",
+    "premises": [
+      { "path": "src/shell/arrays/ledger.ts", "literal": "private constructor(readonly ledger: ArrayLedger, readonly parent: ArrayOwner | undefined, readonly header: Admission)", "occurrences": 1 },
+      { "path": "src/shell/arrays/ledger.ts", "literal": "const owner = new ArrayOwner(ledger, parent, header);", "occurrences": 1 },
+      { "path": "src/shell/arrays/ledger.ts", "literal": "while (this.#firstChild) {", "occurrences": 1 },
+      { "path": "src/shell/arrays/ledger.ts", "literal": "admission.owner?.detach(admission);", "occurrences": 1 }
+    ],
+    "argument": "Owning owner edges are parent-to-newly-created-child and owner-to-admission. Creation can only attach a fresh node to an existing open parent, so those edges cannot create an owning ancestor cycle. parent and admission.owner are borrowed backreferences used for ancestry/detachment, not additional close/refcount ownership. Transfer detaches the admission first. No supported reparent operation exists. A hypothetical parent-owning-child AND child-owning-parent graph is rejected as a model, not instantiated through invented hostile JS field mutation.",
+    "limitation": "Source-only lifetime/ownership argument, not a dynamic graph census or a sandbox claim about arbitrary trusted-host mutation of emitted JavaScript fields. Native-private linked heads and lexical maps are deliberately not exposed or guessed."
+  }
+]

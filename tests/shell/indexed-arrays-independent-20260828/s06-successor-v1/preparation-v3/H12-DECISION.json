@@ -1,0 +1,11 @@
+{
+  "original": "executor-v1/HOLDOUTS.json:H12 remains byte-identical and held",
+  "counts": { "existingExecutableHoldouts": 15, "extraUnratifiedQuestion": 1 },
+  "script": "a=([0]=v [2]=w); b=\"${a[@]}:${a[@]}\"; printf '%s\\n' \"$b\"",
+  "proposedVersion": "H12-v2",
+  "proposedPolicy": "Assignment-mode split=false retains scalar joining; each aggregate joins members with the first IFS code point, then ordinary word concatenation joins surrounding parts. This does not apply ordinary argv splice or Cartesian semantics.",
+  "proposedExpected": { "stdout": "v w:v w\n", "stderr": "", "exitCode": 0 },
+  "evidence": "Static successor runtime partValue joins selected members with first IFS code point, word is called with split=false for scalar assignment. Prior freeze explicitly held this policy; deriving output from candidate code is not independent normative acceptance.",
+  "rootDecisionNeeded": "Ratify this exact assignment-context policy/output or supply a different precise rule. H12 cannot honestly be promoted to normative pass merely because the implementation predicts it.",
+  "effectOnOtherPreparation": "Does not block the15 frozen holdouts,33 vectors,22 mechanisms or other scaffolding. No H12 dispatch before explicit root choice. No native rerun."
+}

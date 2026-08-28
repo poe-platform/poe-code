@@ -1,0 +1,13 @@
+import { parseShell } from 'virtual-bash';
+type Command = ReturnType<typeof parseShell>['lists'][number]['pipelines'][number]['commands'][number];
+type WordPart = Extract<Command, { kind: 'simple' }>['words'][number]['parts'][number];
+export function existingAst(part: WordPart | { kind: 'synthetic-unhandled' }): string {
+  switch (part.kind) {
+    case 'text': return part.value;
+    case 'arithmetic': return part.source;
+    case 'variable': return part.name;
+    case 'failed-substitution': return part.diagnostic;
+    case 'substitution': return String(part.script.lists.length);
+    default: { const exhaustive: never = part; return exhaustive; }
+  }
+}

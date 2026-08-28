@@ -1,0 +1,14 @@
+declare -a decl_outer=([2]=outer [7]='')
+decl_scope() {
+  declare decl_outer
+  declare -p decl_outer
+  declare decl_outer=inner
+  declare -p decl_outer
+  return 7
+}
+decl_scope
+printf 'function=%s\n' "$?"
+declare -p decl_outer
+typeset -a decl_typed=(one)
+typeset -p decl_typed
+printf 'END D05\n'

@@ -1,0 +1,6 @@
+declare decl_quote=$'apostrophe\' slash\\ dollar$ backtick` newline\n'
+declare decl_unicode='λ😀'
+declare decl_controls=$'\001\177\377'
+declare -a decl_sparse=([2]='' [9]="$decl_quote" [12]="$decl_unicode")
+declare -p decl_quote decl_unicode decl_controls decl_sparse
+printf 'END D07\n'

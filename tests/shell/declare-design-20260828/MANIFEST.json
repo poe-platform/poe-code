@@ -1,0 +1,249 @@
+{
+  "schema": "virtual-bash-declare-native-preseal-v1",
+  "status": "PREPARED_ONLY_NOT_AUTHORIZATION",
+  "preparedDate": "2026-08-28",
+  "actualNativeLaunches": 0,
+  "semanticPassCount": null,
+  "prerequisite": "Different freeze, independently reviewed supervisor/control seal and ROOT GO naming this manifest SHA256",
+  "candidateBinding": {
+    "product": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+    "sourceTests": "50117fc54fdfd650e8f57e84b82ba21297ab8a0f",
+    "selectedSourceIdentity": "d6c17f62d2d3062b5ab074044a86b8a455820373",
+    "acceptance": "FROZEN_UNACCEPTED_PLATO_REVIEW",
+    "candidateNotExecutionTarget": true
+  },
+  "binary": {
+    "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+    "bytes": 1395864,
+    "modeOctal": "0755",
+    "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+    "identityStatus": "HISTORICAL_PIN_NOT_REQUALIFIED"
+  },
+  "manual": {
+    "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+    "bytes": 415804,
+    "modeOctal": "0644",
+    "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5",
+    "identityStatus": "HISTORICAL_PIN_NOT_REQUALIFIED",
+    "officialEdition": "5.3",
+    "editionUpdated": "2025-05-18",
+    "officialWebAccessed": "2026-08-28"
+  },
+  "launch": {
+    "executableIsBinaryPath": true,
+    "argvTemplate": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "<EXACT_ROW_FILE_UTF8_INCLUDING_FINAL_LF>",
+      "declare-native-v1"
+    ],
+    "shell": false,
+    "detached": true,
+    "cwd": "<ROOT>",
+    "stdin": "PIPE_CLOSED_TO_EOF",
+    "environmentReplacement": {
+      "PATH": "",
+      "HOME": "<ROOT>/home",
+      "TMPDIR": "<ROOT>/tmp",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    },
+    "requiredAbsentEnvironmentKeys": [
+      "BASH_ENV",
+      "ENV",
+      "SHELLOPTS",
+      "BASHOPTS",
+      "CDPATH"
+    ]
+  },
+  "fixture": {
+    "rootTemplate": "/private/tmp/virtual-bash-declare-native-v1-<32-lowercase-hex-digits>",
+    "exclusive": true,
+    "collisionRetries": 0,
+    "modeOctal": "0700",
+    "children": [
+      "home",
+      "tmp"
+    ],
+    "externalFixtureAccess": false,
+    "scriptFilesystemEffects": false,
+    "captureTemplate": "tests/shell/declare-design-20260828/native-captures-v1/<same-suffix>",
+    "allocatedNow": false
+  },
+  "limits": {
+    "maxNativeLaunchAttempts": 8,
+    "maxAllSupervisedProcessStarts": 10,
+    "maxNodeSupervisorStarts": 1,
+    "maxNodeWatchdogStarts": 1,
+    "maxOtherProcessStarts": 0,
+    "maxNativeSuccessfulSpawns": 8,
+    "concurrency": 1,
+    "retries": 0,
+    "replacements": 0,
+    "descendantProcessAllowance": 0,
+    "maxScriptBytesEach": 1024,
+    "maxScriptBytesTotal": 8192,
+    "actualScriptBytesTotal": 2455,
+    "maxStdoutBytesEach": 8192,
+    "maxStderrBytesEach": 8192,
+    "maxOutputBytesTotal": 131072,
+    "executeDeadlineMsEach": 2000,
+    "termAtMs": 2000,
+    "killAtMs": 2250,
+    "terminalReportingDeadlineMsEach": 3000,
+    "acquisitionDeadlineMs": 5000,
+    "finalAuthenticationDeadlineMs": 5000,
+    "cleanupDeadlineMs": 5000,
+    "absoluteCohortDeadlineMs": 45000
+  },
+  "failClosed": {
+    "stopOnIdentityOrProtocolDrift": true,
+    "noFallback": true,
+    "noToolVersionOrHelpExecution": true,
+    "noEvalOrSource": true,
+    "noHostSubprocessesInsideScripts": true,
+    "noPartialResume": true,
+    "requireRealExitAndClose": true,
+    "requireGroupAbsentAfterCloseAndFinal": true,
+    "missingSettlementStatus": "STOPPED_UNREAPED",
+    "postcheckIncludesNewEntriesOutsideAuthorizedCaptureSubtree": true
+  },
+  "supervisor": {
+    "implemented": false,
+    "approved": false,
+    "requiredSpecification": "PRESEAL.md",
+    "futureControlSealRequired": true
+  },
+  "rows": [
+    {
+      "id": "D01",
+      "file": "native-prepared/D01.txt",
+      "bytes": 271,
+      "sha256": "850aea6f90b33903471043479c5584c68acf42e1ad39ad766c000e888e4e6b0a",
+      "question": "Repeated and signed export/readonly options",
+      "status": "PREPARED_ONLY",
+      "semanticExpectedStdout": null,
+      "semanticExpectedStderr": null,
+      "semanticExpectedBuiltinStatuses": null,
+      "terminalProtocol": {
+        "directExitCode": 0,
+        "signal": null,
+        "finalStdoutLine": "END D01\n"
+      }
+    },
+    {
+      "id": "D02",
+      "file": "native-prepared/D02.txt",
+      "bytes": 302,
+      "sha256": "8ace73a4859c6d4e6e16aa3a46e099b99359c18e635543fbc155d5b25e4177db",
+      "question": "Named display options versus attribute filters and missing names",
+      "status": "PREPARED_ONLY",
+      "semanticExpectedStdout": null,
+      "semanticExpectedStderr": null,
+      "semanticExpectedBuiltinStatuses": null,
+      "terminalProtocol": {
+        "directExitCode": 0,
+        "signal": null,
+        "finalStdoutLine": "END D02\n"
+      }
+    },
+    {
+      "id": "D03",
+      "file": "native-prepared/D03.txt",
+      "bytes": 302,
+      "sha256": "6f3ec84c8061414631b1b33bce9893dcbccf2665e7da6642a7b0cb5317c75f3c",
+      "question": "Scalar conversion, element-zero assignment, append and empty declaration",
+      "status": "PREPARED_ONLY",
+      "semanticExpectedStdout": null,
+      "semanticExpectedStderr": null,
+      "semanticExpectedBuiltinStatuses": null,
+      "terminalProtocol": {
+        "directExitCode": 0,
+        "signal": null,
+        "finalStdoutLine": "END D03\n"
+      }
+    },
+    {
+      "id": "D04",
+      "file": "native-prepared/D04.txt",
+      "bytes": 304,
+      "sha256": "86e623828720bf4040d0355923ae39cb04dcc442626b966f984048c3204b22fd",
+      "question": "Readonly scalar and compound RHS effect timing",
+      "status": "PREPARED_ONLY",
+      "semanticExpectedStdout": null,
+      "semanticExpectedStderr": null,
+      "semanticExpectedBuiltinStatuses": null,
+      "terminalProtocol": {
+        "directExitCode": 0,
+        "signal": null,
+        "finalStdoutLine": "END D04\n"
+      }
+    },
+    {
+      "id": "D05",
+      "file": "native-prepared/D05.txt",
+      "bytes": 295,
+      "sha256": "8174c225c19512c8c20ef3fd01febbfd0acc98bef697ce0eb854d407be66f040",
+      "question": "Function declaration local kind and restoration; typeset",
+      "status": "PREPARED_ONLY",
+      "semanticExpectedStdout": null,
+      "semanticExpectedStderr": null,
+      "semanticExpectedBuiltinStatuses": null,
+      "terminalProtocol": {
+        "directExitCode": 0,
+        "signal": null,
+        "finalStdoutLine": "END D05\n"
+      }
+    },
+    {
+      "id": "D06",
+      "file": "native-prepared/D06.txt",
+      "bytes": 345,
+      "sha256": "274b9f1847ddee45b82261b7c2ca4858006d0104f149c46891263ad3b6889c8b",
+      "question": "Multiple-operand expansion and compound attribute timing",
+      "status": "PREPARED_ONLY",
+      "semanticExpectedStdout": null,
+      "semanticExpectedStderr": null,
+      "semanticExpectedBuiltinStatuses": null,
+      "terminalProtocol": {
+        "directExitCode": 0,
+        "signal": null,
+        "finalStdoutLine": "END D06\n"
+      }
+    },
+    {
+      "id": "D07",
+      "file": "native-prepared/D07.txt",
+      "bytes": 290,
+      "sha256": "31565b7d7a75403c57d6bb10c547dc45583a45d5f1222503edab1c6dea98ced5",
+      "question": "Unicode, quotation, control characters and invalid byte display",
+      "status": "PREPARED_ONLY",
+      "semanticExpectedStdout": null,
+      "semanticExpectedStderr": null,
+      "semanticExpectedBuiltinStatuses": null,
+      "terminalProtocol": {
+        "directExitCode": 0,
+        "signal": null,
+        "finalStdoutLine": "END D07\n"
+      }
+    },
+    {
+      "id": "D08",
+      "file": "native-prepared/D08.txt",
+      "bytes": 346,
+      "sha256": "dde7aba929f822976c66288047510754f8550f191adc48e50b32b77f4afcd67b",
+      "question": "Unknown/positive options, terminator and operand-boundary statuses",
+      "status": "PREPARED_ONLY",
+      "semanticExpectedStdout": null,
+      "semanticExpectedStderr": null,
+      "semanticExpectedBuiltinStatuses": null,
+      "terminalProtocol": {
+        "directExitCode": 0,
+        "signal": null,
+        "finalStdoutLine": "END D08\n"
+      }
+    }
+  ]
+}

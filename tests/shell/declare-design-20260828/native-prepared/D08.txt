@@ -1,0 +1,13 @@
+declare -Q decl_bad
+printf 'unknown=%s\n' "$?"
+declare +p decl_none
+printf 'plus_p=%s\n' "$?"
+declare -a decl_array=(one)
+declare +a decl_array
+printf 'plus_a=%s\n' "$?"
+declare -- decl_end=value
+printf 'terminator=%s\n' "$?"
+declare decl_later=value -x
+printf 'late_option=%s\n' "$?"
+declare -p decl_end decl_later decl_array
+printf 'END D08\n'

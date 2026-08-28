@@ -1,0 +1,180 @@
+{
+  "schema": "apply-patch-postrun-source-data-diagnosis-v1",
+  "classification": "DATA validation; no product execution, acceptance, rescore or retry",
+  "date": "2026-08-28",
+  "authorityCommit": "42e2529034a1a39d7c23945c3bfb22b228df180f",
+  "candidate": "58be2d6c5706f3e90f01d48e695ecfd9daa52669",
+  "authorEvidence": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+  "evidenceRoot": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3",
+  "resultSeal": {
+    "path": "runs/RESULT-SEAL.json",
+    "gitBlobAtAuthority": "bdc7a53db272b036f3bd916e9c3ebc4d1a0a8fd9",
+    "sha256": "98f9cc619f216ddcb86644db05e2da190f4c2841eda5f845633a190e27c2364e"
+  },
+  "archive": {
+    "path": "evidence/work-archive.json.gz.base64",
+    "compressedBytes": 4839664,
+    "compressedSha256": "95d29ab19d665ff0816a7d8703656fcb8fcb8f5e769cc66caf9e5727ea9ff69c",
+    "entries": 2231,
+    "files": 2078,
+    "decodedFileBytes": 14210103,
+    "postbuildSourceInventoryEntries": 1243,
+    "postbuildSourceInventorySha256": "23b81ceaf2c59e9b3b0f3d9bdac008cc095feb430a4f3753f8a0c545c1d23c3b"
+  },
+  "fixtures": {
+    "worker": {
+      "path": "worker.mjs",
+      "sha256": "6563b3319cb495dea5c0b5c0499d166eaf5bf63806fd9e12487ed42b6f046296"
+    },
+    "original": {
+      "pathRelativeToMatrixRoot": "ORIGINAL32-v1.json",
+      "sha256": "b10cd0aeb7272ddb029baaa871b58f73ef645278e5bc3d9ef9bea1a1d1d6fe29"
+    },
+    "supplement": {
+      "pathRelativeToMatrixRoot": "SUPPLEMENT-v1.json",
+      "sha256": "44074ff7627215afdc92dd4565c2154ca3eb5b34870dafc0cae0433f912ed558",
+      "caseIdLines": { "S54": 3343, "S62": 3998, "S64": 4140, "S71": 4524, "S74": 4758 }
+    }
+  },
+  "moduleSources": [
+    {
+      "archivePath": "source/src/commands/apply-patch/apply.ts",
+      "bytes": 11977,
+      "sha256": "4722032feaf1cef0f3f65a79370292df0f4b6e7dbe061bf609f94ec8867db545",
+      "gitBlob": "35ee95b3a286007917c5eb46ba48a3a96a77075e",
+      "emittedJsSha256": "83959a894b059aaf3e0bae61b1cbc036af0a73f6d213a40ee22a13b68463cf00"
+    },
+    {
+      "archivePath": "source/src/commands/apply-patch/index.ts",
+      "bytes": 1298,
+      "sha256": "98dbcac5b211bd3d789ae4da451df3794ceaaca269b70cb10ed99fc3ce73050b",
+      "gitBlob": "55df2f886bc662ddb143b682dd82ca7866a71207",
+      "emittedJsSha256": "45f3d0b52c8de30b6fb7191c7e5c47dd9aad197fd511b85ad6b9eec8e7bf04bf"
+    },
+    {
+      "archivePath": "source/src/commands/apply-patch/matcher.ts",
+      "bytes": 5261,
+      "sha256": "44063ee95bd503f4ce55d0d9bd688a8bc69e2e860320985878f26a2151e0408f",
+      "gitBlob": "a977a737809a94cf99538669e876abadbd90722d",
+      "emittedJsSha256": "34331006a8e0abb7712d1f1323b4d3f63a31be0b47e5ce66eac4122eb174adca"
+    },
+    {
+      "archivePath": "source/src/commands/apply-patch/options.ts",
+      "bytes": 1864,
+      "sha256": "3d0aad73e4b6482813fd2aebc117236b5f091bebe6531d7b1c35f019b8c50de3",
+      "gitBlob": "feaeee920c501ded8aae91b53b6631167e8328db",
+      "emittedJsSha256": "ec22265fffabb5683a0777fcd504b717a4907856434c6382bded4e8a24b2129b"
+    },
+    {
+      "archivePath": "source/src/commands/apply-patch/parser.ts",
+      "bytes": 6458,
+      "sha256": "9e6fbbed387d30a5dc1397d79ee77dde8db934abbefce7ba97845a697adbfc1a",
+      "gitBlob": "9c79540ab41a1146cdbeb235c4c5baa49f89a78e",
+      "emittedJsSha256": "b46cfbfee042b4770efaa6e3241698704fda960fdaba1f9d48483240b651c44c"
+    },
+    {
+      "archivePath": "source/src/commands/apply-patch/shared.ts",
+      "bytes": 5645,
+      "sha256": "45ec3a0b93705142e43235cf2ef69c1984d4148a5c77a88d140d3ad40e2f04da",
+      "gitBlob": "f58867b3c032ecae80403b5320fd10326e9e5e06",
+      "emittedJsSha256": "b9eff526f70e84004127d25697a22c791b8c30951c403c170ac978a7f275d18d"
+    }
+  ],
+  "supportSources": [
+    {
+      "archivePath": "source/src/fs/memory/index.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "bytes": 23533,
+      "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "gitBlob": "29551d4afa95503783f915410fcdafaf518a6786"
+    },
+    {
+      "archivePath": "source/src/shell/input.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "bytes": 9881,
+      "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+      "gitBlob": "3eec71b72f87dd48ddac572d6e7feb9097d32be4"
+    },
+    {
+      "archivePath": "source/src/shell/shell.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "gitBlob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7"
+    },
+    {
+      "archivePath": "source/src/shell/runtime.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "bytes": 154603,
+      "sha256": "100361256ee71d7a263c92fa607de31ec1d3be9b1fb5c601b337c19e700ac4b3",
+      "gitBlob": "69125acc1d3afefcaeba642e71539ab0cc40e055"
+    }
+  ],
+  "rawStreams": [
+    {
+      "layout": "source",
+      "receipt": "evidence/011-source-supplement-b.json",
+      "stdoutSha256": "eae44ff9b98f2ccd2a9f2a8f2e17b0e8c53699362eb5787616b740805387e7a6"
+    },
+    {
+      "layout": "installed",
+      "receipt": "evidence/019-installed-supplement-b.json",
+      "stdoutSha256": "cc1f1641960a72af06caa840fa4e9f449dffb2d601863bdf852a078018995cec"
+    },
+    {
+      "layout": "moved",
+      "receipt": "evidence/027-moved-supplement-b.json",
+      "stdoutSha256": "27b8a2c483ab17b9d06dbdd8daa4b3fdfea9465675bb696433c30166d7bfe400"
+    }
+  ],
+  "rawRecordConvention": "Zero-based byte offset and length excluding terminating LF, SHA256 of exact JSONL bytes excluding LF; line is one-based; layouts are explicit.",
+  "rawRecords": [
+    {
+      "id": "S54", "layouts": ["source", "installed", "moved"],
+      "line": 14, "offset": 29761, "bytes": 210,
+      "sha256": "86f83926ea9c945887e6e280743ff348d3f1dc52989128f61a275db7bc236e93",
+      "status": "STATIC_NONCONFORMANCE", "rawPayloadPresent": false
+    },
+    {
+      "id": "S62", "layouts": ["source", "installed", "moved"],
+      "line": 33, "offset": 52800, "bytes": 1832,
+      "sha256": "805bc201cab4cac2c8a93b516b6dca73f58a53c3b4a17f9dcca1669e244e4790",
+      "status": "FAIL", "classification": "diagnostic policy assumption"
+    },
+    {
+      "id": "S64", "layouts": ["source", "installed", "moved"],
+      "line": 35, "offset": 56243, "bytes": 2412,
+      "sha256": "fdd33f54a62cf9dfa749c315eedf341e0808eccdbdeb9d00eeb322f5f5127a62",
+      "status": "FAIL", "classification": "root-route confound; eager root and child Shell input source behavior"
+    },
+    {
+      "id": "S71", "layouts": ["source", "installed", "moved"],
+      "line": 45, "offset": 71128, "bytes": 1778,
+      "sha256": "0400352f31e447747aa11316ed36f8dcb457fad97033dce5bcdb7606e9e27777",
+      "status": "FAIL", "classification": "observer omits access mode"
+    },
+    {
+      "id": "S74", "layouts": ["source", "installed"],
+      "line": 48, "offset": 76999, "bytes": 3518,
+      "sha256": "51f4dbb5483c2b20e866ba030d44b47e34a2b3eb4745ad384a0e2767582365a4",
+      "status": "FAIL", "classification": "byte-change branch; over-specific diagnostic predicate"
+    },
+    {
+      "id": "S74", "layouts": ["moved"],
+      "line": 48, "offset": 76999, "bytes": 3225,
+      "sha256": "b295541aab5352a6eb5e4a967410e121c4ca77872c3188b582d3afb675e0db07",
+      "status": "PASS", "classification": "metadata-change branch; exact stat differences unrecorded"
+    }
+  ],
+  "preservedCounts": {
+    "order": ["PASS", "FAIL", "NOT_RUN", "STATIC_NONCONFORMANCE"],
+    "source": [115, 4, 6, 1],
+    "installed": [115, 4, 6, 1],
+    "moved": [116, 3, 6, 1],
+    "observed378": [346, 11, 18, 3],
+    "obligations422": [346, 11, 62, 3],
+    "executedJobs": 27,
+    "plannedJobs": 70,
+    "unrunJobs": 43
+  }
+}

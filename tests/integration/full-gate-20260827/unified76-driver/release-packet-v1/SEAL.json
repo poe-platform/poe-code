@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "sealedAt": "2026-08-28T03:43:36.049Z",
+  "status": "PREPARED_NOT_RELEASED",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driverSource": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+  "driverSha256": "3d8d2a15214f12c07b64e3223f5e0088989845b8f60a74abb0a521dba32fa018",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "expectedPackageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "files": {
+    "PACKET.json": {
+      "bytes": 66567,
+      "sha256": "078673186ca484ac3d92a20fa9b28c7305755162483e0755b0826187ea054cbf"
+    },
+    "PHASES.json": {
+      "bytes": 6306,
+      "sha256": "a568c1a938b4ef97aa36b96999c92bbe4e644d9cef4509504b4a0147806e974c"
+    },
+    "ROOT-RECEIPT.template.json": {
+      "bytes": 703,
+      "sha256": "f934f5792b3cf397ce7597a87ad3a73fd9e391c8e11d1f3346828a11c15e77f4"
+    },
+    "LAUNCH.md": {
+      "bytes": 9478,
+      "sha256": "8b32bae6feb687c21381d3370da6df9e0904ef694f1057cc8ecd9b48ebd931bf"
+    },
+    "VALIDATION.json": {
+      "bytes": 4722,
+      "sha256": "9335965d1fea3998f51b2ed18f87b4e64262af5b5b01e5bafb392e73dc0126ec"
+    }
+  },
+  "qualification": "Packet data/docs only. No executable release receipt or automatic launcher. Dirac driver acceptance and explicit root release remain mandatory.",
+  "fullGateLaunched": false,
+  "newProductMaterialization": false
+}

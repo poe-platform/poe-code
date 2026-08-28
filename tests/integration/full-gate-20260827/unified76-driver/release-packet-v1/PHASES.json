@@ -1,0 +1,150 @@
+{
+  "schema": 1,
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driverSource": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+  "authority": {
+    "policy": {
+      "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/policy.mjs",
+      "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
+      "bytes": 4441
+    },
+    "ordering": {
+      "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/admission.mjs",
+      "sha256": "3a41490a765978c216d0609375cdd68eb1e9e1e7c6f19d6a7ef347389b5237a3",
+      "bytes": 4319
+    },
+    "execution": {
+      "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "sha256": "b43c65b692d24dafccabd8be386eb9298df70a0d5112ebed32b6078626f4b9c7",
+      "bytes": 19919
+    },
+    "phaseRunner": {
+      "commit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/phase-runner.mjs",
+      "sha256": "efad78d7e558136550de5342a673f77441d8226696ab7fee61166eb1b6aecce3",
+      "bytes": 2504
+    }
+  },
+  "phases": [
+    {
+      "position": 1,
+      "name": "safejs-availability",
+      "expectedStatus": 0,
+      "expectedNonzeroIsNegativeControl": false,
+      "effectiveTimeoutMs": 1800000,
+      "meaning": "Execute the actual copied engine through its copied src/run.ts; require result.ok, not a mock or private-source execution."
+    },
+    {
+      "position": 2,
+      "name": "cold-typecheck",
+      "expectedStatus": 78,
+      "expectedNonzeroIsNegativeControl": true,
+      "effectiveTimeoutMs": 1800000,
+      "meaning": "Require the documented cold prerequisite refusal without a production compiler invocation."
+    },
+    {
+      "position": 3,
+      "name": "typecheck-all",
+      "expectedStatus": 0,
+      "expectedNonzeroIsNegativeControl": false,
+      "effectiveTimeoutMs": 1800000,
+      "meaning": "One actual audited production build, source/tests and maintained strict consumers/negatives; authenticate reuse of the emitted declaration set."
+    },
+    {
+      "position": 4,
+      "name": "benchmark-types",
+      "expectedStatus": 0,
+      "expectedNonzeroIsNegativeControl": false,
+      "effectiveTimeoutMs": 1800000,
+      "meaning": "Check the frozen benchmark TypeScript project with the bound benchmark compiler."
+    },
+    {
+      "position": 5,
+      "name": "env-source-binding",
+      "expectedStatus": 0,
+      "expectedNonzeroIsNegativeControl": false,
+      "effectiveTimeoutMs": 1800000,
+      "meaning": "Import frozen execution.ts and env-split.ts under their exact critical-source hashes."
+    },
+    {
+      "position": 6,
+      "name": "canonical",
+      "expectedStatus": 0,
+      "expectedNonzeroIsNegativeControl": false,
+      "effectiveTimeoutMs": 1800000,
+      "meaning": "Exact632 candidate paths, explicit TAP and concurrency2; reconcile all footer/case statuses and observed main-thread file coverage."
+    },
+    {
+      "position": 7,
+      "name": "current-consumers",
+      "expectedStatus": 0,
+      "expectedNonzeroIsNegativeControl": false,
+      "effectiveTimeoutMs": 900000,
+      "meaning": "Use exact candidate inventory/runtime/type bodies and fences. The reviewed external verifier only replaces the cold/build seam and five import bindings; productionBuildsInThisPhase must be0."
+    },
+    {
+      "position": 8,
+      "name": "pack",
+      "expectedStatus": 0,
+      "expectedNonzeroIsNegativeControl": false,
+      "effectiveTimeoutMs": 1800000,
+      "meaning": "Offline script-disabled npm pack of the single built source; require complete expected c109 tarball SHA."
+    },
+    {
+      "position": 9,
+      "name": "public-runtime",
+      "expectedStatus": 0,
+      "expectedNonzeroIsNegativeControl": false,
+      "effectiveTimeoutMs": 1800000,
+      "meaning": "Moved-package permission-fenced exact76 registry, explicit imports, optional curl/SafeJS absence and five frozen public workflows."
+    },
+    {
+      "position": 10,
+      "name": "public-types",
+      "expectedStatus": 0,
+      "expectedNonzeroIsNegativeControl": false,
+      "effectiveTimeoutMs": 1800000,
+      "meaning": "Strict moved-package positive types with authenticated root/subpath resolution to the same candidate declarations."
+    },
+    {
+      "position": 11,
+      "name": "negative-types",
+      "expectedStatus": 2,
+      "expectedNonzeroIsNegativeControl": true,
+      "effectiveTimeoutMs": 1800000,
+      "meaning": "Require exact TS2305,TS2353,TS2353 diagnostic sequence; exit2 is an expected negative-control outcome."
+    },
+    {
+      "position": 12,
+      "name": "missing-root",
+      "expectedStatus": 1,
+      "expectedNonzeroIsNegativeControl": true,
+      "effectiveTimeoutMs": 1800000,
+      "meaning": "Remove root entry only in a separate test-owned package copy; require exit1 and ERR_MODULE_NOT_FOUND."
+    },
+    {
+      "position": 13,
+      "name": "missing-contracts",
+      "expectedStatus": 1,
+      "expectedNonzeroIsNegativeControl": true,
+      "effectiveTimeoutMs": 1800000,
+      "meaning": "Remove contracts entry only in a separate test-owned package copy; require exit1 and ERR_MODULE_NOT_FOUND."
+    },
+    {
+      "position": 14,
+      "name": "final-sweep",
+      "expectedStatus": 0,
+      "expectedNonzeroIsNegativeControl": false,
+      "effectiveTimeoutMs": null,
+      "meaning": "Internal final ordered check of source/dependencies/driver/native/package/private state and exactly one audited production build; no subprocess for this row."
+    }
+  ],
+  "timeoutQualification": "phase-runner clamps the canonical caller request of3600000ms to the reviewed1800000ms cap; current-consumers requests900000ms. Final sweep is internal and bounded by the outer deadline. Test-owned timeouts remain their exact source profile.",
+  "outerTimeoutMs": 25805000,
+  "expectedTestCaseCount": null,
+  "testCaseCountQualification": "632 canonical file paths are fixed; do not invent a total TAP test count. Actual reconciled pass/fail/SKIP/TODO/cancel and every missing path must be captured.",
+  "notExecuted": true
+}

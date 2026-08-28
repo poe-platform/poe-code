@@ -1,0 +1,14 @@
+{
+  "action": "PENDING_ROOT_RELEASE_UNIFIED76",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driverSha256": "3d8d2a15214f12c07b64e3223f5e0088989845b8f60a74abb0a521dba32fa018",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "public74": true,
+  "public75": true,
+  "public76": true,
+  "independentDriverAccepted": false,
+  "authorization": "",
+  "independentEvidence": "",
+  "qualification": "Non-authorizing template. Root must explicitly release after receiving the exact e062 independent driver acceptance. This file intentionally fails requireRelease."
+}

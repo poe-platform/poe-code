@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "checkedAt": "2026-08-28T03:42:39.150Z",
+  "scope": "Static fixed-receipt/graph/hash and inert admission checks only; no candidate archive/build/pack/native/private/full-gate execution.",
+  "assembly": {
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+    "sourceTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+    "paths": 4
+  },
+  "driverSource": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+  "driverFileHashesMatched": 30,
+  "supportFileHashesMatched": 10,
+  "manifestBindings": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CANDIDATE.json",
+      "sha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+      "authority": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+      "sha256": "e8ac0521c44d6c76c5a1b670f89296caa65640291a24703f36bdbd8abfc8ce10",
+      "authority": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE.json.gz.base64",
+      "sha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+      "authority": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE-RECEIPT.json",
+      "sha256": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+      "authority": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CLEANUP.json",
+      "sha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+      "authority": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL.json.gz.base64",
+      "sha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+      "authority": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL-RECEIPT.json",
+      "sha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+      "authority": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a"
+    }
+  ],
+  "counts": {
+    "canonicalPaths": 632,
+    "classifiedMts": 192,
+    "cleanupInputs": 256,
+    "nativeBase": 49,
+    "nativeExtensions": 2,
+    "defaultNames": 76,
+    "phases": 14
+  },
+  "pendingTemplateRefused": true,
+  "phaseOrderMatchesSealedPolicy": true,
+  "sourceAncestryAndExclusionChecks": [
+    {
+      "revision": "eba049535d154f4e028f57ffd8efd7622b2239ca",
+      "ancestor": true
+    },
+    {
+      "revision": "618d8967009117547ab476256bc6eb0a9463309a",
+      "ancestor": true
+    },
+    {
+      "revision": "fbbe1ef793b7434871403125efbeb46624a8e081",
+      "ancestor": true
+    },
+    {
+      "revision": "073d39c6c49d5ee24172706e02179dd6da484483",
+      "ancestor": true
+    },
+    {
+      "revision": "e422ad06b3470477b7f9323c89289d2963a00407",
+      "ancestor": true
+    },
+    {
+      "revision": "373437cf84424939e1792470805cdd9e60bd3898",
+      "ancestor": false
+    },
+    {
+      "revision": "57855a0293edb83bff98113123806497b4427416",
+      "ancestor": false
+    },
+    {
+      "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+      "ancestor": false
+    },
+    {
+      "revision": "284857d7aa9b0ee0df2b6fdd1a71f41115d7b909",
+      "ancestor": false
+    }
+  ],
+  "composedExprMatrix": {
+    "commit": "dc5ca91d8405961784ca40a8b439aa8936ecbba3",
+    "path": "tests/integration/expr-public-independent-20260827/r21-composed-public-v1/MATRIX.json",
+    "sha256": "c4be9baa4b72bccd0311e70fbbcf74332dd4b7d3476f40b9eefaf3bce29ab595",
+    "bytes": 50115,
+    "matched": true,
+    "productBase": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "P01ActualPackSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "independentFullCandidateArchive": false,
+    "qualification": "Exact composed P01/base fields matched; no new build, pack or independent full-archive proof."
+  },
+  "nativeAvailabilityQualification": "No new external asset scan: bound external identity receipts are retained; mandatory fresh admission remains required at authorized launch.",
+  "noNewProductMaterialization": true,
+  "noNewBuildOrPack": true,
+  "noPrivateInspection": true,
+  "wholeGateLaunched": false,
+  "observedCheckoutHead": "271e2cb951a01a860dc983943fc73f6a13d7e91d",
+  "observedCheckoutNotCandidate": true,
+  "indexStatusBeforePacketCommit": "",
+  "independentAcceptance": false
+}

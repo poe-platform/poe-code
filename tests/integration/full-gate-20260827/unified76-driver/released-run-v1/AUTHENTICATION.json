@@ -1,0 +1,13 @@
+{
+  "at": "2026-08-28T09:19:41.712Z",
+  "receiptSha256": "f29a198d05e113a2a0b913a57bd7a2b088a7f731d6121947527652c40d2b8e74",
+  "packetCommit": "d9dd698a33421b197ee15432a6606ad91dd06c63",
+  "metadataReview": "7fd7c7aee3902e8a8a0cc66460858e8ea6966e13",
+  "driverReview": "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+  "records": 46,
+  "requireRelease": "passed",
+  "externalReceipt": "/tmp/unified76-release-f5-fe15-finalroutes-20260828-r1.json",
+  "outputStillAbsent": true,
+  "fullGateLaunches": 0,
+  "qualification": "Fresh user authorization plus committed byte bindings; not admission/tool/product execution or a cryptographically consumed token."
+}

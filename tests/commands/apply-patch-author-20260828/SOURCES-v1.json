@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "retrievedDate": "2026-08-28",
+  "role": "source inspection and proposed profile only; no upstream/product execution",
+  "official": {
+    "repository": "https://github.com/openai/codex",
+    "tag": "rust-v0.145.0",
+    "tagObject": "1635de866c61d1b76e50b31928ee6d61482435a8",
+    "tagTime": "2026-07-21T17:29:36Z",
+    "tagSignature": "GitHub API reports unsigned; no cryptographic publisher-signature claim",
+    "commit": "25af12f7e61572b0bc18ddb1008be543b91519b0",
+    "resolution": "https://api.github.com/repos/openai/codex/git/ref/tags/rust-v0.145.0 then annotated tag object",
+    "rawTemplate": "https://raw.githubusercontent.com/openai/codex/25af12f7e61572b0bc18ddb1008be543b91519b0/{path}",
+    "files": [
+      {"path":"codex-rs/apply-patch/src/parser.rs","bytes":21697,"sha256":"86832fc1ca65a90038a2f1a71112922620d3d135d1ae2d191ab728faa3629cb2","anchors":"parse_patch_text 178-194; strict/lenient boundaries 200-257; absolute path tests 436 onward"},
+      {"path":"codex-rs/apply-patch/src/streaming_parser.rs","bytes":35903,"sha256":"f64f6dfccae88552eac54f282964e85c604539f28cd1f69dbb221fb2d97bb953","anchors":"line framing 139-149; update grammar 228-399 including consecutive-empty-chunk refusal 262-273"},
+      {"path":"codex-rs/apply-patch/src/seek_sequence.rs","bytes":5859,"sha256":"65d8e699fc3b12a8c631c49d7bdd8e55c124c235695c7a0db02853bcdcd3715c","anchors":"search_start 29-33 differs from EOF-fallback comment 4-6; matching passes 34-110"},
+      {"path":"codex-rs/apply-patch/src/lib.rs","bytes":56442,"sha256":"0559ea342b8783ba082ec6922c75b7cf29215b0870835ddaec1e1edb9795c9a3","anchors":"apply_hunks_to_files 361 onward; add overwrite 395-407; move write-before-remove 473-537; missing parents 630-665; update newlines 691-706; original-buffer matching 716-802"},
+      {"path":"codex-rs/apply-patch/src/main.rs","bytes":53,"sha256":"31de3e573a13c50c81af81d262a11fdb758540408cbab3fafb5e638c66a50117","anchors":"delegating entry point only; not CLI execution"},
+      {"path":"codex-rs/prompts/templates/apply_patch_tool_instructions.md","bytes":3084,"sha256":"061ad07965f437292a604be2518a6fe445c19324946f9e827fffa0a3e8695d94","anchors":"envelope/operation grammar; chained named context example; relative-only instruction"}
+    ],
+    "documentation": {
+      "url":"https://developers.openai.com/cookbook/examples/gpt-5/codex_prompting_guide#apply_patch",
+      "markdownUrl":"https://developers.openai.com/cookbook/examples/gpt-5/codex_prompting_guide.md",
+      "bytes":41694,
+      "sha256":"314dec7a7ba1107569eeeba7244c24e90773b1da688d6ce88d89fe3db280b4f8",
+      "qualification":"retrieval hash of mutable official documentation, not an immutable publication version; distinguishes API JSON operation from freeform grammar"
+    },
+    "retrievalMisses": [
+      {"path":"codex-rs/apply-patch/apply_patch_tool_instructions.md","status":404},
+      {"path":"codex-rs/apply-patch/src/cli.rs","status":404}
+    ]
+  },
+  "local": {
+    "root":"/Users/kjopek/Workspace/safe-bash",
+    "headAtInitialInspection":"772cc057cc8faf2959eea86568e6901866e900cf",
+    "headAtLaterInspection":"28c86563d340ad3f272ebe32b1632611d9796796",
+    "qualification":"shared checkout advanced during read-only inspection; exact per-file bytes below, not a selected release composition or executed candidate; no AGENTS/source bodies copied",
+    "files": [
+      {"path":"AGENTS.md","bytes":14250,"sha256":"e6a7bca2ab72cc8e4448a67cc315dda84a1823d3b32214360697157a274626e6"},
+      {"path":"src/contracts/command.ts","bytes":2968,"sha256":"d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c"},
+      {"path":"src/contracts/command.md","bytes":9253,"sha256":"ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6"},
+      {"path":"src/contracts/filesystem.ts","bytes":3897,"sha256":"e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522"},
+      {"path":"src/contracts/filesystem.md","bytes":20876,"sha256":"fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a"},
+      {"path":"src/contracts/io.ts","bytes":7663,"sha256":"ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"},
+      {"path":"src/contracts/output.ts","bytes":4661,"sha256":"5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e"},
+      {"path":"src/contracts/path.ts","bytes":1675,"sha256":"948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"},
+      {"path":"src/contracts/plugin.ts","bytes":2359,"sha256":"b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"},
+      {"path":"src/contracts/errors.ts","bytes":3457,"sha256":"66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"},
+      {"path":"src/commands/which/index.ts","bytes":985,"sha256":"30286503e52a17e8d2f3e7e6bb590dc8d0307c3fb6e696ace00fc9a996ec7d9a"},
+      {"path":"src/commands/diff-patch/shared.ts","bytes":6906,"sha256":"81ab0a3d1fbb29feb91761a7a60a535ca5768079ee0415e0788cbebfb1f3617e"},
+      {"path":"src/commands/diff-patch/patch-path.ts","bytes":4210,"sha256":"053f471db60b5a2878144451a821f8590415a85535cb86e5d9ee0367e257ef94"},
+      {"path":"src/fs/overlay/index.ts","bytes":41526,"sha256":"829352e34a662868ddac3385317bf2f7eea8f605ea55e995865a6dd95ddc0d17"},
+      {"path":"src/fs/s3/filesystem.ts","bytes":51254,"sha256":"9ac11951d681db45cee474568ca46d227cfb5bbd9b0d5ce2d6c176d0c4f94833"},
+      {"path":"src/fs/webdav/webdav.ts","bytes":54400,"sha256":"cf65b82429bd92ca52b73490e1d6c1070545b5912fbddaba7037e01c57cc21f5"},
+      {"path":"src/fs/readonly/index.ts","bytes":5961,"sha256":"2d5057de23f90cfef1f98c45f41063545bcd6c5a4439aa57d9aa0a058645b7b2"},
+      {"path":"src/shell/runtime.ts","bytes":195094,"sha256":"ce770214b1f712b2e8f6fde9290ca4b4f0d89ea5f71ad98274e165d95a1ac9cd"},
+      {"path":"src/shell/parser.ts","bytes":38763,"sha256":"c27fd9dc218ae20be18c99eec7ab037910f222ef927cbdec75c3c513f512a779"}
+    ],
+    "interfaceAnchors":[
+      "src/contracts/command.ts:25 CommandContext: VFS/signal/sinks/cleanup/invoke but no public Budget",
+      "src/contracts/filesystem.ts:44 FsOptions; :48 maxBytes; :53 write flags; :84 FileSystem",
+      "src/contracts/filesystem.md:186 onward identity/write-target distinction and authority constraints",
+      "src/contracts/io.ts:140 writeBytes; :154 collectBytes; :208 readBytes iterator finalization",
+      "src/contracts/output.ts:14 createOutputOperation registers before destination-owned acquisition",
+      "src/contracts/command.md:75 onward close admission and cooperative cleanup settlement",
+      "src/commands/diff-patch/shared.ts:135 inspect refuses all observed symlink components",
+      "src/fs/overlay/index.ts:146 run defaults cleanup true; :499 readFile uses it",
+      "src/fs/webdav/webdav.ts:985 access write-bit ENOTSUP despite mutation methods",
+      "src/fs/readonly/index.ts:76 W_OK gives EROFS",
+      "src/fs/s3/filesystem.ts:730 best-effort access differs from permissions guarantee",
+      "src/shell/runtime.ts:68 shared Budget; :1928 supplied context preserves budgeted IO",
+      "src/shell/parser.ts:151 heredoc operators are already parsed by shell"
+    ]
+  }
+}

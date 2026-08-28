@@ -1,0 +1,1021 @@
+{
+  "schema": "engine-run-vs-guest-evaluation-readonly-reconciliation-v1",
+  "originalEvidenceCommit": "144e0fca945b40dc8f04cbd9d69fa6e23f770ac8",
+  "originalArchiveSHA256": "2eaa34833a024ab02ff75940033cff1e84304f1b14cd2824e51c9504a8b720c8",
+  "unchangedChildSHA256": "51facb8c7ec0a367f211ff7e4d18df9a97ce4b12d6182bef504cab14728d1c03",
+  "interpretation": {
+    "engineRuns": 24,
+    "meaning": "Runtime wrapper invocation counter increments before its Promise calls the authenticated run function; not a module-import count, unique-program count, or successful-completion count.",
+    "guestEvaluationStartsEvidenced": 24,
+    "evidence": "16 guest bridge entries +6 direct guest-output invocations +2 intentional guest throws; actual per-invocation guest activity beyond entry counter.",
+    "successfulEngineReturns": 12,
+    "expectedRejections": {
+      "cancellation": 6,
+      "shellBudget": 4,
+      "intentionalGuestError": 2
+    },
+    "allEngineInvocationsSettled": 24,
+    "distinctGuestPrograms": 7,
+    "guestWorkflowFamilies": 10,
+    "layouts": 2,
+    "internalInterpreterStepCounterCaptured": false,
+    "qualification": "24 body entries/evaluation attempts evidenced, not24 successful guest completions. No replay/restore/retry claim. Same programs repeated across installed+moved."
+  },
+  "rows": [
+    {
+      "id": "W01",
+      "layout": "installed",
+      "rawPath": "installed-W01/RESULT.json",
+      "sha256": "1c86bf07832d931ea83b76b41764a0ae410872a22dfecb574c238b62af840e48",
+      "engineRunsCounter": 1,
+      "engineSettled": 1,
+      "engineReturnsOk": 1,
+      "engineRejections": [],
+      "guestEvaluationStartsEvidenced": 1,
+      "evidenceBasis": "Actual guest-only stdio output and successful engine return, with frozen source bound.",
+      "bridgeEntered": 0,
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 0,
+            "stdout": "guest:pipe\n",
+            "stderr": "",
+            "stdoutHex": "67756573743a706970650a",
+            "stderrHex": ""
+          }
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W02",
+      "layout": "installed",
+      "rawPath": "installed-W02/RESULT.json",
+      "sha256": "130838166099a978383ec9baf2e9ef47ad4eaab5e1a792d63a25998990656d42",
+      "engineRunsCounter": 1,
+      "engineSettled": 1,
+      "engineReturnsOk": 1,
+      "engineRejections": [],
+      "guestEvaluationStartsEvidenced": 1,
+      "evidenceBasis": "Actual guest-only stdio output and successful engine return, with frozen source bound.",
+      "bridgeEntered": 0,
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 7,
+            "stdout": "seven\n",
+            "stderr": "",
+            "stdoutHex": "736576656e0a",
+            "stderrHex": ""
+          }
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W03",
+      "layout": "installed",
+      "rawPath": "installed-W03/RESULT.json",
+      "sha256": "b27b4239e3dac21dc1b9cd5a210a4269d529b721f40b1dae5c751f9c3cb96c1e",
+      "engineRunsCounter": 1,
+      "engineSettled": 1,
+      "engineReturnsOk": 1,
+      "engineRejections": [],
+      "guestEvaluationStartsEvidenced": 1,
+      "evidenceBasis": "Each run reaches guest-only shell.exec bridge; baseline+tight run2 distinguished by event order.",
+      "bridgeEntered": 1,
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 7,
+            "stdout": "nested\n",
+            "stderr": "",
+            "stdoutHex": "6e65737465640a",
+            "stderrHex": ""
+          }
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W04",
+      "layout": "installed",
+      "rawPath": "installed-W04/RESULT.json",
+      "sha256": "550e7a0e9e30be0d37d133e6412cfea52a4789f9432eedcee6ac8429c3f17ca4",
+      "engineRunsCounter": 0,
+      "engineSettled": 0,
+      "engineReturnsOk": 0,
+      "engineRejections": [],
+      "guestEvaluationStartsEvidenced": 0,
+      "evidenceBasis": "No guest evaluation (HTTP-only route)",
+      "bridgeEntered": 0,
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 124,
+            "stdout": "",
+            "stderr": "",
+            "stdoutHex": "",
+            "stderrHex": ""
+          }
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W05",
+      "layout": "installed",
+      "rawPath": "installed-W05/RESULT.json",
+      "sha256": "444155f3a79775809c30a691e5e0291dc9bf217411d0be3cc9b15af82406b2d0",
+      "engineRunsCounter": 0,
+      "engineSettled": 0,
+      "engineReturnsOk": 0,
+      "engineRejections": [],
+      "guestEvaluationStartsEvidenced": 0,
+      "evidenceBasis": "No guest evaluation (HTTP-only route)",
+      "bridgeEntered": 0,
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 7,
+            "stdout": "",
+            "stderr": "curl: (7) Network access denied by host policy\n",
+            "stdoutHex": "",
+            "stderrHex": "6375726c3a20283729204e6574776f726b206163636573732064656e69656420627920686f737420706f6c6963790a"
+          }
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W06",
+      "layout": "installed",
+      "rawPath": "installed-W06/RESULT.json",
+      "sha256": "4c66f0174d0424792f2796028c044f987668f3c39d10cd84028a5137623e672a",
+      "engineRunsCounter": 1,
+      "engineSettled": 1,
+      "engineReturnsOk": 0,
+      "engineRejections": [
+        {
+          "name": "Error",
+          "message": "{}",
+          "stack": "Error: {}"
+        }
+      ],
+      "guestEvaluationStartsEvidenced": 1,
+      "evidenceBasis": "Each run reaches guest-only shell.exec bridge; baseline+tight run2 distinguished by event order.",
+      "bridgeEntered": 1,
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 124,
+            "stdout": "",
+            "stderr": "",
+            "stdoutHex": "",
+            "stderrHex": ""
+          }
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W07",
+      "layout": "installed",
+      "rawPath": "installed-W07/RESULT.json",
+      "sha256": "e561bfa6bc251199a4e33a52314991a7db2877cbbd0ed6e7ef319ec791055ff5",
+      "engineRunsCounter": 1,
+      "engineSettled": 1,
+      "engineReturnsOk": 0,
+      "engineRejections": [
+        {
+          "name": "Error",
+          "message": "{\"tag\":\"WORKFLOW_HOST_CALLER\"}",
+          "stack": "Error: {\"tag\":\"WORKFLOW_HOST_CALLER\"}"
+        }
+      ],
+      "guestEvaluationStartsEvidenced": 1,
+      "evidenceBasis": "Each run reaches guest-only shell.exec bridge; baseline+tight run2 distinguished by event order.",
+      "bridgeEntered": 1,
+      "observations": [
+        {
+          "kind": "rejected",
+          "error": {
+            "message": "[object Object]"
+          },
+          "hostCallerIdentity": true
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W08",
+      "layout": "installed",
+      "rawPath": "installed-W08/RESULT.json",
+      "sha256": "aeebdabb84714d47babe7c157530bc10dfe7d5e047de396a4f5d6dbefe3f2ee2",
+      "engineRunsCounter": 1,
+      "engineSettled": 1,
+      "engineReturnsOk": 0,
+      "engineRejections": [
+        {
+          "name": "Error",
+          "message": "{}",
+          "stack": "Error: {}"
+        }
+      ],
+      "guestEvaluationStartsEvidenced": 1,
+      "evidenceBasis": "Each run reaches guest-only shell.exec bridge; baseline+tight run2 distinguished by event order.",
+      "bridgeEntered": 1,
+      "observations": [
+        {
+          "kind": "rejected",
+          "error": {
+            "message": "[object Object]"
+          },
+          "hostCallerIdentity": true
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W09",
+      "layout": "installed",
+      "rawPath": "installed-W09/RESULT.json",
+      "sha256": "b070dba39ac69171e283a8bf95e424a78311511df4def125494a48869d31ae2e",
+      "engineRunsCounter": 2,
+      "engineSettled": 2,
+      "engineReturnsOk": 1,
+      "engineRejections": [
+        {
+          "name": "Error",
+          "message": "Shell limit exceeded: maxOutputBytes",
+          "stack": "Error: Shell limit exceeded: maxOutputBytes"
+        }
+      ],
+      "guestEvaluationStartsEvidenced": 2,
+      "evidenceBasis": "Each run reaches guest-only shell.exec bridge; baseline+tight run2 distinguished by event order.",
+      "bridgeEntered": 2,
+      "observations": [
+        {
+          "phase": "baseline",
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 0,
+            "stdout": "abcd",
+            "stderr": "",
+            "stdoutHex": "61626364",
+            "stderrHex": ""
+          }
+        },
+        {
+          "phase": "tight",
+          "kind": "rejected",
+          "error": {
+            "name": "ShellLimitError",
+            "message": "Shell limit exceeded: maxOutputBytes",
+            "limit": "maxOutputBytes",
+            "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/shell/runtime.js:52:23)\n    at Object.write (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/shell/runtime.js:94:26)\n    at Object.write (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/shell/runtime.js:206:75)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/contracts/io.js:125:32\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/contracts/io.js:172:29\n    at new Promise (<anonymous>)\n    at abortable (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/contracts/io.js:165:12)\n    at writeBytes (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/contracts/io.js:125:11)\n    at Object.write (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/contracts/output.js:80:23)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/contracts/io.js:125:32"
+          },
+          "hostCallerIdentity": false,
+          "requestsBefore": 1,
+          "requestsAfter": 2,
+          "engineRunsBefore": 1,
+          "engineRunsAfter": 2
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W10",
+      "layout": "installed",
+      "rawPath": "installed-W10/RESULT.json",
+      "sha256": "f79d3379a630da3f62f8c1e4248fd6f146c46d81b64ce49ce05babbaf938d75c",
+      "engineRunsCounter": 2,
+      "engineSettled": 2,
+      "engineReturnsOk": 1,
+      "engineRejections": [
+        {
+          "name": "Error",
+          "message": "Shell limit exceeded: maxCommands",
+          "stack": "Error: Shell limit exceeded: maxCommands"
+        }
+      ],
+      "guestEvaluationStartsEvidenced": 2,
+      "evidenceBasis": "Each run reaches guest-only shell.exec bridge; baseline+tight run2 distinguished by event order.",
+      "bridgeEntered": 2,
+      "observations": [
+        {
+          "phase": "baseline",
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 0,
+            "stdout": "cd",
+            "stderr": "",
+            "stdoutHex": "6364",
+            "stderrHex": ""
+          }
+        },
+        {
+          "phase": "tight",
+          "kind": "rejected",
+          "error": {
+            "name": "ShellLimitError",
+            "message": "Shell limit exceeded: maxCommands",
+            "limit": "maxCommands",
+            "stack": "ShellLimitError: Shell limit exceeded: maxCommands\n    at Budget.fail (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/shell/runtime.js:52:23)\n    at Budget.tick (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/shell/runtime.js:59:18)\n    at Runtime.executeCommand (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/shell/runtime.js:800:21)\n    at Runtime.command (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/shell/runtime.js:785:35)\n    at Runtime.runCommandIsolated (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/shell/runtime.js:770:31)\n    at Runtime.invokeScoped (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/shell/runtime.js:2178:43)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/shell/runtime.js:2142:40\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/shell/runtime.js:552:54\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/installed/consumer/node_modules/virtual-bash/dist/shell/runtime.js:395:39\n    at new Promise (<anonymous>)"
+          },
+          "hostCallerIdentity": false,
+          "requestsBefore": 1,
+          "requestsAfter": 1,
+          "engineRunsBefore": 1,
+          "engineRunsAfter": 2
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W11",
+      "layout": "installed",
+      "rawPath": "installed-W11/RESULT.json",
+      "sha256": "a8b7e24efc9cd693661977c23eb9baa51cef506ae3746bfa3497a3683c2340da",
+      "engineRunsCounter": 1,
+      "engineSettled": 1,
+      "engineReturnsOk": 0,
+      "engineRejections": [
+        {
+          "name": "Error",
+          "message": "guest-boom",
+          "stack": "Error: guest-boom\n    at Error (line 1, column 7)"
+        }
+      ],
+      "guestEvaluationStartsEvidenced": 1,
+      "evidenceBasis": "Frozen guest throws guest-boom; actual engine rejection and public diagnostic captured.",
+      "bridgeEntered": 0,
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 1,
+            "stdout": "",
+            "stderr": "safejs: guest-boom\n",
+            "stdoutHex": "",
+            "stderrHex": "736166656a733a2067756573742d626f6f6d0a"
+          }
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W12",
+      "layout": "installed",
+      "rawPath": "installed-W12/RESULT.json",
+      "sha256": "21367d2f6ba86ab5eb31b66234b4836cf6e0215e61d93535c0128cf701efe701",
+      "engineRunsCounter": 1,
+      "engineSettled": 1,
+      "engineReturnsOk": 1,
+      "engineRejections": [],
+      "guestEvaluationStartsEvidenced": 1,
+      "evidenceBasis": "Actual guest-only stdio output and successful engine return, with frozen source bound.",
+      "bridgeEntered": 0,
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 0,
+            "stdout": "clock\n",
+            "stderr": "",
+            "stdoutHex": "636c6f636b0a",
+            "stderrHex": ""
+          }
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W01",
+      "layout": "moved",
+      "rawPath": "moved-W01/RESULT.json",
+      "sha256": "27348d0a61119e31dabec94cea565fd126c3f5c2eb5cd54d69aa7c81afdb5bb1",
+      "engineRunsCounter": 1,
+      "engineSettled": 1,
+      "engineReturnsOk": 1,
+      "engineRejections": [],
+      "guestEvaluationStartsEvidenced": 1,
+      "evidenceBasis": "Actual guest-only stdio output and successful engine return, with frozen source bound.",
+      "bridgeEntered": 0,
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 0,
+            "stdout": "guest:pipe\n",
+            "stderr": "",
+            "stdoutHex": "67756573743a706970650a",
+            "stderrHex": ""
+          }
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W02",
+      "layout": "moved",
+      "rawPath": "moved-W02/RESULT.json",
+      "sha256": "f44f3dea77c5128e806fae287885f921097e06602ef041d6824b44130b6400b8",
+      "engineRunsCounter": 1,
+      "engineSettled": 1,
+      "engineReturnsOk": 1,
+      "engineRejections": [],
+      "guestEvaluationStartsEvidenced": 1,
+      "evidenceBasis": "Actual guest-only stdio output and successful engine return, with frozen source bound.",
+      "bridgeEntered": 0,
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 7,
+            "stdout": "seven\n",
+            "stderr": "",
+            "stdoutHex": "736576656e0a",
+            "stderrHex": ""
+          }
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W03",
+      "layout": "moved",
+      "rawPath": "moved-W03/RESULT.json",
+      "sha256": "dbc71a74e5ffcb167f36486a0cd41d1c9fff7a1647215737c8772c31fa9410ca",
+      "engineRunsCounter": 1,
+      "engineSettled": 1,
+      "engineReturnsOk": 1,
+      "engineRejections": [],
+      "guestEvaluationStartsEvidenced": 1,
+      "evidenceBasis": "Each run reaches guest-only shell.exec bridge; baseline+tight run2 distinguished by event order.",
+      "bridgeEntered": 1,
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 7,
+            "stdout": "nested\n",
+            "stderr": "",
+            "stdoutHex": "6e65737465640a",
+            "stderrHex": ""
+          }
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W04",
+      "layout": "moved",
+      "rawPath": "moved-W04/RESULT.json",
+      "sha256": "d4f74eac55a75d2272f7843eba4508a18dbefd9b23abd1ad2abc58e82bb7b732",
+      "engineRunsCounter": 0,
+      "engineSettled": 0,
+      "engineReturnsOk": 0,
+      "engineRejections": [],
+      "guestEvaluationStartsEvidenced": 0,
+      "evidenceBasis": "No guest evaluation (HTTP-only route)",
+      "bridgeEntered": 0,
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 124,
+            "stdout": "",
+            "stderr": "",
+            "stdoutHex": "",
+            "stderrHex": ""
+          }
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W05",
+      "layout": "moved",
+      "rawPath": "moved-W05/RESULT.json",
+      "sha256": "77944c4e0476d38d8aaeaf4f74fc770c79fe0b2de90f99735d5c20c5d6a1052f",
+      "engineRunsCounter": 0,
+      "engineSettled": 0,
+      "engineReturnsOk": 0,
+      "engineRejections": [],
+      "guestEvaluationStartsEvidenced": 0,
+      "evidenceBasis": "No guest evaluation (HTTP-only route)",
+      "bridgeEntered": 0,
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 7,
+            "stdout": "",
+            "stderr": "curl: (7) Network access denied by host policy\n",
+            "stdoutHex": "",
+            "stderrHex": "6375726c3a20283729204e6574776f726b206163636573732064656e69656420627920686f737420706f6c6963790a"
+          }
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W06",
+      "layout": "moved",
+      "rawPath": "moved-W06/RESULT.json",
+      "sha256": "d66bad7579a942ce1d42e32fdd185ededd0798f346307b40079c0a5cd48957f7",
+      "engineRunsCounter": 1,
+      "engineSettled": 1,
+      "engineReturnsOk": 0,
+      "engineRejections": [
+        {
+          "name": "Error",
+          "message": "{}",
+          "stack": "Error: {}"
+        }
+      ],
+      "guestEvaluationStartsEvidenced": 1,
+      "evidenceBasis": "Each run reaches guest-only shell.exec bridge; baseline+tight run2 distinguished by event order.",
+      "bridgeEntered": 1,
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 124,
+            "stdout": "",
+            "stderr": "",
+            "stdoutHex": "",
+            "stderrHex": ""
+          }
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W07",
+      "layout": "moved",
+      "rawPath": "moved-W07/RESULT.json",
+      "sha256": "842710eeaa76eb183c7632e9b9c1d8e8632a381dbccd82997dddf31b0b92476a",
+      "engineRunsCounter": 1,
+      "engineSettled": 1,
+      "engineReturnsOk": 0,
+      "engineRejections": [
+        {
+          "name": "Error",
+          "message": "{\"tag\":\"WORKFLOW_HOST_CALLER\"}",
+          "stack": "Error: {\"tag\":\"WORKFLOW_HOST_CALLER\"}"
+        }
+      ],
+      "guestEvaluationStartsEvidenced": 1,
+      "evidenceBasis": "Each run reaches guest-only shell.exec bridge; baseline+tight run2 distinguished by event order.",
+      "bridgeEntered": 1,
+      "observations": [
+        {
+          "kind": "rejected",
+          "error": {
+            "message": "[object Object]"
+          },
+          "hostCallerIdentity": true
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W08",
+      "layout": "moved",
+      "rawPath": "moved-W08/RESULT.json",
+      "sha256": "412d0423e11a1089ca98a4a3ad813529701ecf3ae7e381a20d2d32b8b9cdf636",
+      "engineRunsCounter": 1,
+      "engineSettled": 1,
+      "engineReturnsOk": 0,
+      "engineRejections": [
+        {
+          "name": "Error",
+          "message": "{}",
+          "stack": "Error: {}"
+        }
+      ],
+      "guestEvaluationStartsEvidenced": 1,
+      "evidenceBasis": "Each run reaches guest-only shell.exec bridge; baseline+tight run2 distinguished by event order.",
+      "bridgeEntered": 1,
+      "observations": [
+        {
+          "kind": "rejected",
+          "error": {
+            "message": "[object Object]"
+          },
+          "hostCallerIdentity": true
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W09",
+      "layout": "moved",
+      "rawPath": "moved-W09/RESULT.json",
+      "sha256": "61382c562554b54b2eb1743e37aeb38baae83cc7179d41e658e24a6e05c4ede4",
+      "engineRunsCounter": 2,
+      "engineSettled": 2,
+      "engineReturnsOk": 1,
+      "engineRejections": [
+        {
+          "name": "Error",
+          "message": "Shell limit exceeded: maxOutputBytes",
+          "stack": "Error: Shell limit exceeded: maxOutputBytes"
+        }
+      ],
+      "guestEvaluationStartsEvidenced": 2,
+      "evidenceBasis": "Each run reaches guest-only shell.exec bridge; baseline+tight run2 distinguished by event order.",
+      "bridgeEntered": 2,
+      "observations": [
+        {
+          "phase": "baseline",
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 0,
+            "stdout": "abcd",
+            "stderr": "",
+            "stdoutHex": "61626364",
+            "stderrHex": ""
+          }
+        },
+        {
+          "phase": "tight",
+          "kind": "rejected",
+          "error": {
+            "name": "ShellLimitError",
+            "message": "Shell limit exceeded: maxOutputBytes",
+            "limit": "maxOutputBytes",
+            "stack": "ShellLimitError: Shell limit exceeded: maxOutputBytes\n    at Budget.fail (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/shell/runtime.js:52:23)\n    at Object.write (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/shell/runtime.js:94:26)\n    at Object.write (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/shell/runtime.js:206:75)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/contracts/io.js:125:32\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/contracts/io.js:172:29\n    at new Promise (<anonymous>)\n    at abortable (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/contracts/io.js:165:12)\n    at writeBytes (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/contracts/io.js:125:11)\n    at Object.write (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/contracts/output.js:80:23)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/contracts/io.js:125:32"
+          },
+          "hostCallerIdentity": false,
+          "requestsBefore": 1,
+          "requestsAfter": 2,
+          "engineRunsBefore": 1,
+          "engineRunsAfter": 2
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W10",
+      "layout": "moved",
+      "rawPath": "moved-W10/RESULT.json",
+      "sha256": "fdd2bb517a2da5c723fb1308b8e86f1aeba47b78dad9e3252fdc3987b9f30e1b",
+      "engineRunsCounter": 2,
+      "engineSettled": 2,
+      "engineReturnsOk": 1,
+      "engineRejections": [
+        {
+          "name": "Error",
+          "message": "Shell limit exceeded: maxCommands",
+          "stack": "Error: Shell limit exceeded: maxCommands"
+        }
+      ],
+      "guestEvaluationStartsEvidenced": 2,
+      "evidenceBasis": "Each run reaches guest-only shell.exec bridge; baseline+tight run2 distinguished by event order.",
+      "bridgeEntered": 2,
+      "observations": [
+        {
+          "phase": "baseline",
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 0,
+            "stdout": "cd",
+            "stderr": "",
+            "stdoutHex": "6364",
+            "stderrHex": ""
+          }
+        },
+        {
+          "phase": "tight",
+          "kind": "rejected",
+          "error": {
+            "name": "ShellLimitError",
+            "message": "Shell limit exceeded: maxCommands",
+            "limit": "maxCommands",
+            "stack": "ShellLimitError: Shell limit exceeded: maxCommands\n    at Budget.fail (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/shell/runtime.js:52:23)\n    at Budget.tick (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/shell/runtime.js:59:18)\n    at Runtime.executeCommand (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/shell/runtime.js:800:21)\n    at Runtime.command (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/shell/runtime.js:785:35)\n    at Runtime.runCommandIsolated (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/shell/runtime.js:770:31)\n    at Runtime.invokeScoped (file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/shell/runtime.js:2178:43)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/shell/runtime.js:2142:40\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/shell/runtime.js:552:54\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/timeout-curl-safejs-20260828/node_modules/attempt-01/moved/deep/consumer/node_modules/virtual-bash/dist/shell/runtime.js:395:39\n    at new Promise (<anonymous>)"
+          },
+          "hostCallerIdentity": false,
+          "requestsBefore": 1,
+          "requestsAfter": 1,
+          "engineRunsBefore": 1,
+          "engineRunsAfter": 2
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W11",
+      "layout": "moved",
+      "rawPath": "moved-W11/RESULT.json",
+      "sha256": "542eedbf6834a92e5a7517f138b0b40b4b6860aab06bbd6eaeb4f3bffa99737f",
+      "engineRunsCounter": 1,
+      "engineSettled": 1,
+      "engineReturnsOk": 0,
+      "engineRejections": [
+        {
+          "name": "Error",
+          "message": "guest-boom",
+          "stack": "Error: guest-boom\n    at Error (line 1, column 7)"
+        }
+      ],
+      "guestEvaluationStartsEvidenced": 1,
+      "evidenceBasis": "Frozen guest throws guest-boom; actual engine rejection and public diagnostic captured.",
+      "bridgeEntered": 0,
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 1,
+            "stdout": "",
+            "stderr": "safejs: guest-boom\n",
+            "stdoutHex": "",
+            "stderrHex": "736166656a733a2067756573742d626f6f6d0a"
+          }
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    },
+    {
+      "id": "W12",
+      "layout": "moved",
+      "rawPath": "moved-W12/RESULT.json",
+      "sha256": "9a18cbcf0fcbe05eba73222db1c0484cecbd450b84e037f58921513f49709deb",
+      "engineRunsCounter": 1,
+      "engineSettled": 1,
+      "engineReturnsOk": 1,
+      "engineRejections": [],
+      "guestEvaluationStartsEvidenced": 1,
+      "evidenceBasis": "Actual guest-only stdio output and successful engine return, with frozen source bound.",
+      "bridgeEntered": 0,
+      "observations": [
+        {
+          "kind": "fulfilled",
+          "value": {
+            "exitCode": 0,
+            "stdout": "clock\n",
+            "stderr": "",
+            "stdoutHex": "636c6f636b0a",
+            "stderrHex": ""
+          }
+        }
+      ],
+      "finalResources": {
+        "enginePending": 0,
+        "bridgePending": 0,
+        "activeTrackedTimers": 0,
+        "activeTimeoutResources": 0,
+        "unhandled": 0,
+        "clockLive": 0,
+        "pendingBodyNext": 0,
+        "disposeOutstanding": 0,
+        "cleanupOutstanding": 0
+      }
+    }
+  ],
+  "W05Continuation": {
+    "evidenceCommit": "01b8e0e785d05078cdb88f330d141d23c0b0988d",
+    "executions": 2,
+    "engineModulesPerLayout": 63,
+    "guestEvaluations": 0
+  },
+  "newProductExecutions": 0
+}

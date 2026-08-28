@@ -1,0 +1,135 @@
+{
+  "schema": "readonly-sidecar-input-bindings-v1",
+  "at": "2026-08-28T06:44:40.267Z",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "historicalCandidate": "e33974b8c643077453227a9679d8ceca8367998c",
+  "comparatorVersion": "3.4.2 only; no latest claim",
+  "baselineArchive": {
+    "root": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts",
+    "path": "just-bash-3.4.2.tgz",
+    "bytes": 9879070,
+    "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d"
+  },
+  "referenceFiles": [
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/measurement-review/FINAL_REVIEW_RECEIPT.json",
+      "bytes": 15703,
+      "sha256": "43978ce901a1e498620bed4b1a2309158ba11488a43c22814d50b7f2b7e51fc2"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/measurement-review/FINAL_REVIEW.md",
+      "bytes": 12670,
+      "sha256": "18c9f2944973f986946b35d884968c406e580c474ef416090ddce01efb01f239"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/measurement-review/final-attempt-004-breadth-table.json",
+      "bytes": 191731,
+      "sha256": "cde0c841018ba11c2dd96d5fb1670cb697fded30f3d51be1cdd1eb870319ed05"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/measurement/RAW_MANIFEST.json",
+      "bytes": 319127,
+      "sha256": "5c15aa518743449029f975b3e133544ede2f9ff6df9ed734bb8f9a1d575f9ba1"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/measurement/ARCHIVE_MANIFEST.json",
+      "bytes": 319963,
+      "sha256": "0fc4f2d13e07ac4e59556540810849b659ba0db867f10835114170d821d54dcb"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/measurement-freeze/runner-cohort-bindings.json",
+      "bytes": 5922,
+      "sha256": "752b6a910fd2e2884c706026be15c4982d792d4733704feeaad031c8d04a96ab"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/measurement-freeze/execution-binding.json",
+      "bytes": 1172804,
+      "sha256": "1c74655402eba80a12e1c190fa43ba6923faace8a7db81c7f17da8a3b4528b1e"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/historical-breadth.json",
+      "bytes": 550134,
+      "sha256": "c4e322ce7a81c7909cd54121e4a435152c4a2eb9e1b2f69b5c09ba0f858e396a"
+    },
+    {
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/profiles.json",
+      "bytes": 182510,
+      "sha256": "6f7f6bbc1599f6adea468a40b9b2df4354e817f99dfc9248fb291e542df95a80"
+    },
+    {
+      "path": "tests/integration/timeout-curl-safejs-20260828/EVIDENCE-MANIFEST.json",
+      "bytes": 3930,
+      "sha256": "5198c32b5c9793396c8db534419413168d6929d52baceaffea3fd5d7bc86da40"
+    },
+    {
+      "path": "tests/integration/timeout-curl-safejs-20260828/RAW-MANIFEST.json",
+      "bytes": 39429,
+      "sha256": "aa2b781ff5c20a320672853005bdb78d57814433b0c5047d7d87edd42e86ae63"
+    },
+    {
+      "path": "tests/integration/timeout-curl-safejs-20260828/RESULT.json",
+      "bytes": 461986,
+      "sha256": "79e7a0c059ae54c6b251292438b8c44d4a8c460fc46771fee4c8e736743970a3"
+    },
+    {
+      "path": "tests/integration/timeout-curl-safejs-20260828/child.mjs",
+      "bytes": 18151,
+      "sha256": "51facb8c7ec0a367f211ff7e4d18df9a97ce4b12d6182bef504cab14728d1c03"
+    },
+    {
+      "path": "tests/integration/timeout-curl-safejs-20260828/CASES.json",
+      "bytes": 5843,
+      "sha256": "d9acce9d4eb0d58bda2ffe4359f49a283adaa04c3ff2ebbb1c73d5f8ea4938d0"
+    },
+    {
+      "path": "tests/integration/timeout-curl-safejs-20260828/w05-literal-v1/EVIDENCE-MANIFEST.json",
+      "bytes": 3259,
+      "sha256": "e32df8a26d5d3713f3a338f5240d8e37e3cd71384e138e6bf47bb28f8d48b5ce"
+    },
+    {
+      "path": "tests/integration/timeout-curl-safejs-20260828/w05-literal-v1/RESULT.json",
+      "bytes": 308675,
+      "sha256": "420f23d6025f13217b4092a33d7affd6432673ba7ee3a8195753d1b2a1a5e131"
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/cases.mjs",
+      "bytes": 21906,
+      "sha256": "e9b6408731e74c9e61523684146f9863d42a9b5e1d5208e4e6f29a055a5966e2"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/source-audit-v1/PINNED-INPUTS.json",
+      "bytes": 15018,
+      "sha256": "8aaac1c8562575ce03b217003b164c25a34554b3ccc223de4325f623a595c6c6"
+    }
+  ],
+  "directArchiveAuthentication": {
+    "path": "benchmarks/reports/current-comparison-20260827/measurement/raw-attempt-001.tar.gz",
+    "bytes": 25956442,
+    "sha256": "9e2d3c24c709e7b5cd9ca6a7a8022e13f1e97c58ca235587562b5354cdf5932a"
+  },
+  "actualEngineArchive": {
+    "path": "tests/integration/timeout-curl-safejs-20260828/RAW.json.gz",
+    "bytes": 694093,
+    "sha256": "2eaa34833a024ab02ff75940033cff1e84304f1b14cd2824e51c9504a8b720c8"
+  },
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/usr/bin/python3",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "productExecutions": 0,
+  "comparatorExecutions": 0,
+  "nativeCalls": 0,
+  "thirdPartyDownloads": 0,
+  "privateRepoAccess": 0,
+  "classificationPolicy": "Source absence/registration cannot change historical scores. Ongoing-work status taken from root, with pinned source/docs corroboration only."
+}

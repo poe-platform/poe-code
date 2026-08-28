@@ -1,0 +1,111 @@
+{
+  "schema": "wrq-v5-exact-proposed-worker-activation",
+  "authorized": false,
+  "compiler": false,
+  "rootGrantFile": "ROOT-WORKER-GO.json",
+  "launcher": {
+    "module": "future-owner.mjs",
+    "export": "runWorkerQualification",
+    "argument": "sha256(exact fresh ROOT-WORKER-GO.json)",
+    "transport": "trusted literal local ESM in existing tool host; one pinned Node parent OS child"
+  },
+  "node": {
+    "role": "node",
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "mode": 493,
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "maximumWorkers": 11,
+  "maximumGuestEvaluations": 10,
+  "peakWorkers": 1,
+  "retries": 0,
+  "orderedCases": [
+    "WRQ01-L01-v3",
+    "WRQ02-L02-v3",
+    "WRQ03-L03-v3",
+    "WRQ04-L04-v3",
+    "WRQ05-L05-undefined-v3",
+    "WRQ05-L05-false-v3",
+    "WRQ05-L05-object-v3",
+    "WRQ06-L06a-v3",
+    "WRQ06-L06b-v3",
+    "WRQ07-L07-v3",
+    "WRQ08-L08-v3"
+  ],
+  "wall": {
+    "outerMs": 180000,
+    "termToKillMs": 2000,
+    "unknownRetirement": "never clean",
+    "admissionMs": 120000,
+    "perInvocationAdmissionMs": 5000
+  },
+  "resources": {
+    "maximumWorkers": 11,
+    "maximumGuestEvaluations": 10,
+    "peakWorkers": 1,
+    "retries": 0,
+    "totalAdmissionMs": 120000,
+    "invocationAdmissionMs": 5000,
+    "stopGraceMs": 0,
+    "capturePerInstance": 65536,
+    "captureTotal": 1048576,
+    "commandOwnedBytes": 16777216,
+    "sabBytes": 197056,
+    "physicalSlots": 3,
+    "activeSlots": 1,
+    "oldGenerationMiB": 32,
+    "youngGenerationMiB": 8,
+    "codeMiB": 8,
+    "stackMiB": 4,
+    "operations": 128,
+    "frames": 4096,
+    "wakeEpochs": 8192,
+    "sourceBytes": 262144,
+    "contextBytes": 65536,
+    "pathBytes": 1024,
+    "metadataBytes": 8192,
+    "errorFieldBytes": 1024,
+    "perOperationBytes": 1048576,
+    "readBytes": 4194304,
+    "writeBytes": 4194304,
+    "outputBytes": 1048576
+  },
+  "capture": {
+    "parentRawBytes": 1048576,
+    "perCaseReceiptBytes": 65536,
+    "aggregateReceipts": 1048576,
+    "copyBytes": 16777216,
+    "artifactBytes": 33554432
+  },
+  "hostFilesystem": {
+    "read": "exact presealed composition files only; regular canonical copies; explicit Worker execArgv repeats permission grants, no inheritance assumption",
+    "write": "parent owned capsule/runtime only; Worker no write grant; parent VFS Map paths remain virtual",
+    "forbidden": "no default native FsImplementation or snapshot backend activation; no guest native imports/process/Worker/SAB"
+  },
+  "bootstrap": {
+    "preHookFiles": [
+      "parent-entry.mjs",
+      "worker-entry.mjs",
+      "heap-worker.mjs",
+      "load-guard.mjs",
+      "import-policy.mjs",
+      "worker-permissions.mjs"
+    ],
+    "authenticatedBy": "outer composition exact byte copy before spawn; permission flags admit only these files and manifest-selected closure",
+    "package": "owned type:module root and exact original engine package metadata; no package install/search"
+  },
+  "historical": {
+    "compilerEvidence": "463a945125b900cbb98436b9e9292d78ca6c98aa",
+    "compilerRetry": 0,
+    "F05": "DEFERRED d831fcd4 0/34",
+    "independentHelperGroups": 10,
+    "controlRecipes": 12,
+    "S5": "DATA/source",
+    "L08": "source only until real OOM/exit"
+  },
+  "qualification": "K1-K4 actual Worker observations unqualified; launch recipe requires different review and fresh ROOT GO"
+}

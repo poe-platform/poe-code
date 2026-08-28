@@ -1,0 +1,83 @@
+{
+  "schema": "v5-source-synthetic-preseal",
+  "authority": "current ROOT DATA/SYNTHETIC only",
+  "positiveReceipts": [
+    "J-WRQ01-L01-v3",
+    "J-WRQ02-L02-v3",
+    "J-WRQ03-L03-v3",
+    "J-WRQ04-L04-v3",
+    "J-WRQ05-L05-undefined-v3",
+    "J-WRQ05-L05-false-v3",
+    "J-WRQ05-L05-object-v3",
+    "J-WRQ06-L06a-v3",
+    "J-WRQ06-L06b-v3",
+    "J-WRQ07-L07-v3",
+    "J-WRQ08-L08-v3"
+  ],
+  "negativeReceipts": [
+    "N-extra-top-key",
+    "N-extra-facts-key",
+    "N-extra-raw-key",
+    "N-extra-event-key",
+    "N-extra-effect-key",
+    "N-extra-terminal-key",
+    "N-extra-outcome-key",
+    "N-extra-heap-key",
+    "N-accessor-not-invoked",
+    "N-array-hole",
+    "N-array-extra",
+    "N-wrong-scalar-type",
+    "N-negative-zero",
+    "N-missing-normal-terminal",
+    "N-cleanup-before-exit",
+    "N-unclean-marked-clean",
+    "N-hidden-private-failure",
+    "N-wrong-raw-reference",
+    "N-wrong-raw-provenance",
+    "N-normal-L08-exit",
+    "N-contradictory-channel",
+    "N-duplicate-outcome",
+    "N-undelivered-typed-error",
+    "N-missing-load-report",
+    "N-terminal-sequence-mismatch"
+  ],
+  "authorityControls": [
+    "A-allowed-fs-edge",
+    "A-wrong-importer",
+    "A-wrong-source-hash",
+    "A-wrong-role",
+    "A-alias-builtin",
+    "A-public-root-refusal",
+    "A-private-deep-import",
+    "A-allowed-support-util"
+  ],
+  "bootstrapControls": [
+    "B-exact",
+    "B-body-change",
+    "B-order-change",
+    "B-extra-record",
+    "B-accessor",
+    "B-prototype-agnostic"
+  ],
+  "loadControls": [
+    "L-complete",
+    "L-missing-core",
+    "L-wrong-hash",
+    "L-duplicate"
+  ],
+  "counts": {
+    "positive": 11,
+    "negative": 25,
+    "authority": 8,
+    "bootstrap": 6,
+    "load": 4,
+    "total": 54
+  },
+  "limits": {
+    "childStarts": 1,
+    "childMs": 60000,
+    "captureBytes": 1048576,
+    "workBytes": 16777216
+  },
+  "notProof": "Inert data receipts and actual pure helper predicates only. NO emitted/engine/Worker/compiler/private loads; not whole-runtime traces or new guest evaluations."
+}

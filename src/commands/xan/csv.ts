@@ -7,7 +7,7 @@ export interface Cell { decoded: Bytes; raw: Bytes; faithful: boolean }
 export interface RecordRow { cells: Cell[]; width: number; offset: number; number: number; free(): void }
 export class Scanner {
   private readonly iterator: AsyncIterator<Uint8Array>;
-  private chunk = new Uint8Array(0);
+  private chunk: Uint8Array = new Uint8Array(0);
   private cursor = 0;
   private absolute = 0;
   private initial = true;
@@ -56,6 +56,7 @@ export class Scanner {
     let raw = new Bytes(this.budget);
     let decoded = new Bytes(this.budget);
     let state: "start" | "plain" | "quoted" | "closed" = "start";
+    const quoted = (): boolean => state === "quoted";
     let active = false;
     let recordBytes = 0;
     let cellBytes = 0;
@@ -101,7 +102,7 @@ export class Scanner {
         if (byte === undefined) {
           if (pendingCR && this.dialect !== "slice") content(13);
           if (!active) return undefined;
-          if (state === "quoted") faithful = false;
+          if (quoted()) faithful = false;
           cell(); break;
         }
         if (this.skipLF) { this.skipLF = false; if (byte === 10) { offset = this.absolute; continue; } }
@@ -110,7 +111,7 @@ export class Scanner {
           if (byte === 10) { cell(); break; }
           content(13);
         }
-        if (state !== "quoted") {
+        if (!quoted()) {
           if (!active && (byte === 10 || byte === 13)) { offset = this.absolute; continue; }
           if (byte === 10 || (byte === 13 && this.dialect === "headers")) { if (byte === 13) this.skipLF = true; cell(); break; }
           if (byte === 13) { pendingCR = true; continue; }

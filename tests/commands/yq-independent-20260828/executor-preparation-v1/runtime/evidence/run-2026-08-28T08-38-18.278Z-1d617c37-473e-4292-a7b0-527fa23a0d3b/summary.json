@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "aggregate": "FAIL",
+  "requested": 2,
+  "admitted": 2,
+  "stop": null,
+  "results": [
+    {
+      "jobId": "failure-continue-0",
+      "admitted": true,
+      "outcome": "FAIL",
+      "failures": [
+        "assertion: AssertionError [ERR_ASSERTION]: Child receipt reports failure"
+      ],
+      "integrity": true,
+      "reapProof": true,
+      "metadata": {
+        "pid": 12742,
+        "group": 12742,
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "spawnError": null,
+        "closed": true,
+        "reaped": true,
+        "kills": [],
+        "elapsedMs": 46
+      }
+    },
+    {
+      "jobId": "failure-continue-1",
+      "admitted": true,
+      "outcome": "PASS",
+      "failures": [],
+      "integrity": true,
+      "reapProof": true,
+      "metadata": {
+        "pid": 12769,
+        "group": 12769,
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "spawnError": null,
+        "closed": true,
+        "reaped": true,
+        "kills": [],
+        "elapsedMs": 46
+      }
+    }
+  ],
+  "activeChildren": [],
+  "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-18.278Z-1d617c37-473e-4292-a7b0-527fa23a0d3b"
+}

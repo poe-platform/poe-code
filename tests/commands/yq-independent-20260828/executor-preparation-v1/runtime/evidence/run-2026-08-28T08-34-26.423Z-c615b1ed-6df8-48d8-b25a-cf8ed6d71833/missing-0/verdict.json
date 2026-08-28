@@ -1,0 +1,23 @@
+{
+  "jobId": "missing-0",
+  "admitted": true,
+  "outcome": "FAIL",
+  "failures": [
+    "assertion: AssertionError [ERR_ASSERTION]: Receipt must end with LF"
+  ],
+  "integrity": true,
+  "reapProof": true,
+  "metadata": {
+    "pid": 99212,
+    "group": 99212,
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [],
+    "elapsedMs": 54
+  }
+}

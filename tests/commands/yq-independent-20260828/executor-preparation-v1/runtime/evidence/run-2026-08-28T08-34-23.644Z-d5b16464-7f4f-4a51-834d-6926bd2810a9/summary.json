@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "aggregate": "FAIL",
+  "requested": 1,
+  "admitted": 1,
+  "stop": null,
+  "results": [
+    {
+      "jobId": "pass-exit-nonzero-0",
+      "admitted": true,
+      "outcome": "FAIL",
+      "failures": [
+        "child-process"
+      ],
+      "integrity": true,
+      "reapProof": true,
+      "metadata": {
+        "pid": 99163,
+        "group": 99163,
+        "exitCode": 7,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "spawnError": null,
+        "closed": true,
+        "reaped": true,
+        "kills": [],
+        "elapsedMs": 68
+      }
+    }
+  ],
+  "activeChildren": [],
+  "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-34-23.644Z-d5b16464-7f4f-4a51-834d-6926bd2810a9"
+}

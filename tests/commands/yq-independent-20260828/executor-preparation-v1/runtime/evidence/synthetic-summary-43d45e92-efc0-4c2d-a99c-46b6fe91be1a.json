@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "classification": "SYNTHETIC_ONLY_NOT_YQ_SEMANTIC_RESULTS",
+  "preseal": "0f138190073cb5419aa86c63e0a10075fe67f88f",
+  "sourceCommit": "c49d494dd5a36b19198680239a72e0c95cb90d8d",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "results": [
+    {
+      "id": "pass",
+      "outcome": "PASS",
+      "aggregateObserved": "PASS",
+      "admitted": 1,
+      "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-18.102Z-627fa6bf-5ee2-4936-9ded-5484c79f884a",
+      "activeChildren": []
+    },
+    {
+      "id": "pass-exit-nonzero",
+      "outcome": "PASS",
+      "aggregateObserved": "FAIL",
+      "admitted": 1,
+      "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-18.199Z-96843a1d-1ecd-46e5-8367-e4d747172432",
+      "activeChildren": []
+    },
+    {
+      "id": "failure-continue",
+      "outcome": "PASS",
+      "aggregateObserved": "FAIL",
+      "admitted": 2,
+      "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-18.278Z-1d617c37-473e-4292-a7b0-527fa23a0d3b",
+      "activeChildren": []
+    },
+    {
+      "id": "capture-before-assert",
+      "outcome": "PASS",
+      "aggregateObserved": "FAIL",
+      "admitted": 2,
+      "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-18.436Z-27dab067-c6d7-4208-9fbf-f0c95060643f",
+      "activeChildren": []
+    },
+    {
+      "id": "integrity-add",
+      "outcome": "PASS",
+      "aggregateObserved": "FAIL",
+      "admitted": 1,
+      "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-18.606Z-8a7fa284-e259-4631-a90c-b5a3bdeb7008",
+      "activeChildren": []
+    },
+    {
+      "id": "integrity-content",
+      "outcome": "PASS",
+      "aggregateObserved": "FAIL",
+      "admitted": 1,
+      "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-18.690Z-a37864e4-212c-4afd-9c39-bf648e9444e0",
+      "activeChildren": []
+    },
+    {
+      "id": "integrity-mode",
+      "outcome": "PASS",
+      "aggregateObserved": "FAIL",
+      "admitted": 1,
+      "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-18.770Z-5aa4e24e-efa0-42a5-adae-91b4e65dfa65",
+      "activeChildren": []
+    },
+    {
+      "id": "deadline-reaped",
+      "outcome": "PASS",
+      "aggregateObserved": "FAIL",
+      "admitted": 2,
+      "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-18.850Z-5f7a263f-9012-49de-9406-a58a45d5ae79",
+      "activeChildren": []
+    },
+    {
+      "id": "reap-proof-gate",
+      "outcome": "PASS",
+      "aggregateObserved": "FAIL",
+      "admitted": 1,
+      "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-20.468Z-59b974bc-8d69-461a-81bf-a171805509fc",
+      "activeChildren": []
+    },
+    {
+      "id": "malformed",
+      "outcome": "PASS",
+      "aggregateObserved": "FAIL",
+      "admitted": 2,
+      "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-20.537Z-40899b93-e7ac-49cc-a5b1-619bae92aa82",
+      "activeChildren": []
+    },
+    {
+      "id": "duplicate",
+      "outcome": "PASS",
+      "aggregateObserved": "FAIL",
+      "admitted": 1,
+      "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-20.692Z-b9c6b23b-2821-46a3-94f1-517a91dd79ca",
+      "activeChildren": []
+    },
+    {
+      "id": "missing",
+      "outcome": "PASS",
+      "aggregateObserved": "FAIL",
+      "admitted": 1,
+      "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-20.767Z-e5cbd399-e0a3-4d3d-af14-7cadb81808a4",
+      "activeChildren": []
+    },
+    {
+      "id": "wrong-job",
+      "outcome": "PASS",
+      "aggregateObserved": "FAIL",
+      "admitted": 1,
+      "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-20.845Z-93b60699-b8dc-4036-af98-9a632b8c9a40",
+      "activeChildren": []
+    },
+    {
+      "id": "signal",
+      "outcome": "PASS",
+      "aggregateObserved": "FAIL",
+      "admitted": 2,
+      "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-20.932Z-449d44d5-69bb-4d57-945c-3ce5ad74f61c",
+      "activeChildren": []
+    },
+    {
+      "id": "overflow",
+      "outcome": "PASS",
+      "aggregateObserved": "FAIL",
+      "admitted": 2,
+      "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-38-21.081Z-89d3424e-8928-4c8e-8911-93471d9286fe",
+      "activeChildren": []
+    }
+  ],
+  "activeChildren": [],
+  "aggregate": "PASS",
+  "productExecutions": 0,
+  "nativeOracles": 0,
+  "work": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/synthetic-work-777ab0af-c363-4b3b-ace0-f66895021e81"
+}

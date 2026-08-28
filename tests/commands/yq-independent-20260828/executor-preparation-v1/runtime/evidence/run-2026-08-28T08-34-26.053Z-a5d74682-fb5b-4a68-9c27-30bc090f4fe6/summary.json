@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "aggregate": "FAIL",
+  "requested": 2,
+  "admitted": 1,
+  "stop": "reap",
+  "results": [
+    {
+      "jobId": "reap-proof-gate-0",
+      "admitted": true,
+      "outcome": "FAIL",
+      "failures": [
+        "reap"
+      ],
+      "integrity": true,
+      "reapProof": false,
+      "metadata": {
+        "pid": 99207,
+        "group": 99207,
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "overflow": false,
+        "spawnError": null,
+        "closed": true,
+        "reaped": true,
+        "kills": [],
+        "elapsedMs": 52
+      }
+    }
+  ],
+  "activeChildren": [],
+  "evidence": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/evidence/run-2026-08-28T08-34-26.053Z-a5d74682-fb5b-4a68-9c27-30bc090f4fe6"
+}

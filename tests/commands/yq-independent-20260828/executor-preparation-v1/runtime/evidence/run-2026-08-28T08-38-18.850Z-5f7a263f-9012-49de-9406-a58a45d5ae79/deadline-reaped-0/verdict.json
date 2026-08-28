@@ -1,0 +1,26 @@
+{
+  "jobId": "deadline-reaped-0",
+  "admitted": true,
+  "outcome": "FAIL",
+  "failures": [
+    "child-process",
+    "assertion: AssertionError [ERR_ASSERTION]: Receipt must end with LF"
+  ],
+  "integrity": true,
+  "reapProof": true,
+  "metadata": {
+    "pid": 12980,
+    "group": 12980,
+    "exitCode": null,
+    "signal": "SIGTERM",
+    "timedOut": true,
+    "overflow": false,
+    "spawnError": null,
+    "closed": true,
+    "reaped": true,
+    "kills": [
+      "SIGTERM"
+    ],
+    "elapsedMs": 1512
+  }
+}

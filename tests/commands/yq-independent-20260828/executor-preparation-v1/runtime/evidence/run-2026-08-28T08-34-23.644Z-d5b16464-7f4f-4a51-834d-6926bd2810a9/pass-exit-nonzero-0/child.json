@@ -1,0 +1,13 @@
+{
+  "pid": 99163,
+  "group": 99163,
+  "exitCode": 7,
+  "signal": null,
+  "timedOut": false,
+  "overflow": false,
+  "spawnError": null,
+  "closed": true,
+  "reaped": true,
+  "kills": [],
+  "elapsedMs": 68
+}

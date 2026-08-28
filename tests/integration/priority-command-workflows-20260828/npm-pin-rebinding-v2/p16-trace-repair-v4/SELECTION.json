@@ -1,0 +1,484 @@
+{
+  "schema": "priority-selected-calls-preparation-v3",
+  "status": "PREPARATION_ONLY_NOT_A_GRANT",
+  "calls": [
+    {
+      "layout": "source-build",
+      "id": "P16",
+      "version": "p16-trace-repair-v4",
+      "role": "new-version-repeat"
+    },
+    {
+      "layout": "source-build",
+      "id": "P17",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "source-build",
+      "id": "P18",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "source-build",
+      "id": "P19",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "source-build",
+      "id": "P20",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "source-build",
+      "id": "P21",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "source-build",
+      "id": "P22",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "source-build",
+      "id": "P23",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "source-build",
+      "id": "P24",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "source-build",
+      "id": "C01",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "source-build",
+      "id": "C02",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "source-build",
+      "id": "C03",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "source-build",
+      "id": "C04",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "source-build",
+      "id": "C05",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "source-build",
+      "id": "C06",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "source-build",
+      "id": "C07",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P01",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P02",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P03",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P04",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P05",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P06",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P07",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P08",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P09",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P10",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P11",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P12",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P13",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P14",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P15",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P16",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P17",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P18",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P19",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P20",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P21",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P22",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P23",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "P24",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C01",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C02",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C03",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C04",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C05",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C06",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "offline-installed",
+      "id": "C07",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P01",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P02",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P03",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P04",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P05",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P06",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P07",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P08",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P09",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P10",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P11",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P12",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P13",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P14",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P15",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P16",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P17",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P18",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P19",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P20",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P21",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P22",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P23",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "P24",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C01",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C02",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C03",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C04",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C05",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C06",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    },
+    {
+      "layout": "physically-moved",
+      "id": "C07",
+      "version": "p16-trace-repair-v4",
+      "role": "originally-unrun"
+    }
+  ],
+  "counts": {
+    "total": 78,
+    "originallyUnrun": 77,
+    "sourceOriginallyUnrun": 15,
+    "installedOriginallyUnrun": 31,
+    "movedOriginallyUnrun": 31,
+    "newVersionSourceP16Repeat": 1
+  },
+  "originalSourceP01ThroughP15": "NO_REPLAY",
+  "oldP16": "STOP_UNCHANGED_NO_RESCORE"
+}

@@ -1,0 +1,154 @@
+{
+  "schema": "priority-packet-structural-contract-v1",
+  "date": "2026-08-28",
+  "role": "Finite metadata validator contract, not a shell parser, command evaluator, runtime proof or general JSON Schema implementation",
+  "files": [
+    "READY.md",
+    "CASES.json",
+    "FIXTURES.json",
+    "SCHEMA.json",
+    "BINDINGS.json",
+    "EXECUTION-RECIPE.md",
+    "verify.mjs",
+    "MANIFEST.json"
+  ],
+  "fixedIds": {
+    "workflows": [
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P05",
+      "P06",
+      "P07",
+      "P08",
+      "P09",
+      "P10",
+      "P11",
+      "P12",
+      "P13",
+      "P14",
+      "P15",
+      "P16",
+      "P17",
+      "P18",
+      "P19",
+      "P20",
+      "P21",
+      "P22",
+      "P23",
+      "P24"
+    ],
+    "controls": [
+      "C01",
+      "C02",
+      "C03",
+      "C04",
+      "C05",
+      "C06",
+      "C07"
+    ]
+  },
+  "requiredCaseKeys": [
+    "id",
+    "title",
+    "classification",
+    "script",
+    "argv",
+    "expected",
+    "reason",
+    "anchors"
+  ],
+  "optionalCaseKeys": [
+    "mutationGuard",
+    "literalChildArgv",
+    "childObservation",
+    "qualification",
+    "stdinGuard",
+    "readGuard",
+    "networkGuard",
+    "lifecycleGuard",
+    "traceContract"
+  ],
+  "requiredExpectationKeys": [
+    "kind",
+    "exitCode",
+    "stdoutBase64",
+    "stderrBase64",
+    "stageExitCodes",
+    "changedFiles",
+    "absent"
+  ],
+  "optionalExpectationKeys": [
+    "reasonIdentity"
+  ],
+  "requiredFixtureKeys": [
+    "id",
+    "files",
+    "stdin",
+    "infrastructure"
+  ],
+  "optionalFixtureKeys": [
+    "network",
+    "fault",
+    "reasonTokens",
+    "lifecycle",
+    "sink",
+    "authorization"
+  ],
+  "byteFields": "Canonical base64; Uint8Array at future boundary. No implicit transcoding. Script and argv are literal Unicode JSON strings, not executable test files.",
+  "pathFields": "Relative to /work; nonempty; no NUL, empty path segment, dot or dotdot segments. Leading dash, whitespace, quotes and literal newlines are valid filename data.",
+  "oracleContract": "Initial files and all ancestor directories plus / and /work; changedFiles replaces/adds only named regular files. All initial content not replaced stays exact; every additional path or missing initial entry fails. absent adds explicit checks, not the entire absence oracle. Initial permission bits preserved. New permissions and timestamps not claimed.",
+  "stageContract": "argv is shell command source-order, not concurrent execution order. stageExitCodes parallels argv. literalChildArgv records find-selected invocations separately. A null stage status denotes thrown outcome, not exit0. ShellResult status is asserted separately. traceContract predeclares exact observable tuples and indexed before edges. Independent pipeline entries may swap. Only P16 declares child tuples; no generic nested-command allowance. Identical observable tuple origin is unobservable.",
+  "limits": {
+    "maxPacketBytes": 262144,
+    "maxScriptBytes": 16384,
+    "maxCaseFileBytes": 4096,
+    "maxCaseOutputBytes": 65536,
+    "maxFixtureEntries": 64,
+    "maxFixtureBytes": 16384
+  },
+  "syntheticMutationControls": [
+    {
+      "id": "M01",
+      "mutation": "remove P24",
+      "reject": "fixed24 denominator"
+    },
+    {
+      "id": "M02",
+      "mutation": "duplicate P01 id",
+      "reject": "fixed sequence/uniqueness"
+    },
+    {
+      "id": "M03",
+      "mutation": "noncanonical stdout base64",
+      "reject": "byte encoding"
+    },
+    {
+      "id": "M04",
+      "mutation": "add ../escape fixture path",
+      "reject": "namespace containment"
+    },
+    {
+      "id": "M05",
+      "mutation": "result status256",
+      "reject": "finite valid exit status"
+    },
+    {
+      "id": "M06",
+      "mutation": "drop stage exit status",
+      "reject": "argv/status cardinality"
+    },
+    {
+      "id": "M07",
+      "mutation": "add unrecognized case key",
+      "reject": "exact case schema"
+    },
+    {
+      "id": "M08",
+      "mutation": "replace one script byte while keeping manifest",
+      "reject": "artifact digest binding"
+    }
+  ],
+  "syntheticScope": "Eight in-memory malformed-data controls only. No source mutants, subject imports, current full gate or product pass count."
+}

@@ -192,8 +192,10 @@ async function realControls(){
   assert.equal(process.execPath,node);assert.equal(process.version,'v24.11.1');
   assert.equal(await hashFile(node),nodeHash);assert.equal(await hashFile('/bin/ps'),psHash);
   const manifest=JSON.parse(gunzipSync(Buffer.from(fs.readFileSync(path.join(launcher,'EXTERNAL.json.gz.base64'),'utf8').trim(),'base64')));
-  const bindings=[];function visit(value){if(!value||typeof value!=='object')return;if(value.origin===node||value.origin==='/bin/ps')bindings.push(value);for(const child of Object.values(value))if(child&&typeof child==='object')visit(child);}visit(manifest);
-  for(const [file,expected]of [[node,nodeHash],['/bin/ps',psHash]]){const rows=bindings.filter(row=>row.origin===file);assert.equal(rows.length,1);assert.equal(rows[0].physical,file);assert.equal(rows[0].sha256,expected);const stat=fs.lstatSync(file);assert.ok(stat.isFile()&&!stat.isSymbolicLink());assert.equal(stat.size,rows[0].bytes);assert.equal(stat.mode&0o777,rows[0].mode);}
+  const validateTools=input=>{assert.ok(Array.isArray(input.tools));for(const [file,expected]of [[node,nodeHash],['/bin/ps',psHash]]){const rows=input.tools.filter(row=>row.origin===file);assert.equal(rows.length,1);assert.equal(rows[0].physical,file);assert.equal(rows[0].sha256,expected);const stat=fs.lstatSync(file);assert.ok(stat.isFile()&&!stat.isSymbolicLink());assert.equal(stat.size,rows[0].bytes);assert.equal(stat.mode&0o777,rows[0].mode);}};
+  validateTools(manifest);
+  for(const tools of [manifest.tools.filter(row=>row.origin!==node),[...manifest.tools,manifest.tools.find(row=>row.origin===node)],manifest.tools.map(row=>row.origin===node?{...row,sha256:'changed'}:row),manifest.linkage])assert.throws(()=>validateTools({...manifest,tools}));
+  report.toolRoleControls={positive:1,negative:4,selection:'EXTERNAL.tools exact executable identities; linkage is not an executable record'};
   for(const id of ['R01','R02','R03']){
     assert.equal(deadlineExceeded,false,'no new actual child after outer deadline');
     const root=path.join(output,id);fs.mkdirSync(root,{mode:0o700});fs.mkdirSync(path.join(root,'home'));fs.mkdirSync(path.join(root,'tmp'));
@@ -249,6 +251,14 @@ async function realControls(){
   report.tools={node:{path:node,sha256:nodeHash},ps:{path:'/bin/ps',sha256:psHash,args:psArgs},qualification:'exact existing tools hashed before/after; no fresh full dynamic-library or OS attestation'};
 }
 
-try{await syntheticControls();await realControls();assert.equal(deadlineExceeded,false);report.status='AUTHOR_BOUNDED_CONTROLS_PASS';}
+try{
+  if(process.argv[3]==='--remaining-real-v2'){
+    const previous=gunzipSync(Buffer.from(fs.readFileSync(path.join(directory,'results-v1/REPORT.json.gz.base64'),'utf8').trim(),'base64'));
+    assert.equal(hash(previous),'7cc5e7058a29f9c7424ec032b7a38c6ecb8ee24ecdeffac83cdd82162ebc3e99');
+    const prior=JSON.parse(previous);assert.equal(prior.sourceSha256,hash(source));assert.deepEqual(prior.cases.map(row=>[row.id,row.status]),Array.from({length:13},(_value,index)=>[`S${String(index+1).padStart(2,'0')}`,'PASS']));assert.deepEqual(prior.real,[]);assert.deepEqual(prior.remainingOwnedChildren,[]);
+    report.carriedSynthetic={source:'results-v1/REPORT.json.gz.base64',sha256:hash(previous),pass:13,rerun:false};
+  }else{assert.equal(process.argv[3],undefined);await syntheticControls();}
+  await realControls();assert.equal(deadlineExceeded,false);report.status='AUTHOR_BOUNDED_CONTROLS_PASS';
+}
 catch(error){report.status='AUTHOR_CONTROL_FAILURE';report.error={message:error?.message??String(error),stack:error?.stack};process.exitCode=1;}
 finally{clearTimeout(wholeDeadline);report.remainingOwnedChildren=[...liveChildren].map(child=>child.pid);report.finishedAt=new Date().toISOString();save();console.log(JSON.stringify({output,status:report.status,synthetic:report.cases.map(({id,status})=>({id,status})),real:report.real.map(({id,status})=>({id,status}))}));}

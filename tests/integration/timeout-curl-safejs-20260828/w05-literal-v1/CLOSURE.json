@@ -1,0 +1,146 @@
+{
+  "at": "2026-08-28T06:35:30.152Z",
+  "rawFilesVerifiedRemoved": 16,
+  "stagedEntriesVerifiedRemoved": 1348,
+  "privateUnchanged": true,
+  "originalFilesUnchanged": true,
+  "removedOnly": [
+    "raw-01",
+    "node_modules/attempt-01"
+  ],
+  "postOnlyGitChildren": [
+    {
+      "argv": [
+        "--no-replace-objects",
+        "-C",
+        "/Users/kjopek/Workspace/poe-code",
+        "rev-parse",
+        "--git-path",
+        "index"
+      ],
+      "pid": 85595,
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 11,
+      "stdoutSHA256": "742e1586a644af64934a892663d03c75415bfb01edafdfdd924a8627573bfb9c",
+      "stderrBase64": "",
+      "reaped": true
+    },
+    {
+      "argv": [
+        "--no-replace-objects",
+        "-C",
+        "/Users/kjopek/Workspace/poe-code",
+        "rev-parse",
+        "HEAD"
+      ],
+      "pid": 85596,
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 41,
+      "stdoutSHA256": "baa815c281f83a0a65760554b1b2e0095b2d39ee3425b5650d58adb6baba6c50",
+      "stderrBase64": "",
+      "reaped": true
+    },
+    {
+      "argv": [
+        "--no-replace-objects",
+        "-C",
+        "/Users/kjopek/Workspace/poe-code",
+        "status",
+        "--porcelain=v1"
+      ],
+      "pid": 85597,
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 335,
+      "stdoutSHA256": "669808b3a9788bc30be0b520ec8befaaf98d8e5ba9efa99454117d68d032c333",
+      "stderrBase64": "",
+      "reaped": true
+    },
+    {
+      "argv": [
+        "--no-replace-objects",
+        "-C",
+        "/Users/kjopek/Workspace/poe-code",
+        "diff",
+        "--cached",
+        "--name-status"
+      ],
+      "pid": 85599,
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBase64": "",
+      "reaped": true
+    },
+    {
+      "argv": [
+        "--no-replace-objects",
+        "-C",
+        "/Users/kjopek/Workspace/poe-code",
+        "rev-parse",
+        "--git-path",
+        "index"
+      ],
+      "pid": 85601,
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 11,
+      "stdoutSHA256": "742e1586a644af64934a892663d03c75415bfb01edafdfdd924a8627573bfb9c",
+      "stderrBase64": "",
+      "reaped": true
+    },
+    {
+      "argv": [
+        "--no-replace-objects",
+        "-C",
+        "/Users/kjopek/Workspace/poe-code",
+        "rev-parse",
+        "HEAD"
+      ],
+      "pid": 85602,
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 41,
+      "stdoutSHA256": "baa815c281f83a0a65760554b1b2e0095b2d39ee3425b5650d58adb6baba6c50",
+      "stderrBase64": "",
+      "reaped": true
+    },
+    {
+      "argv": [
+        "--no-replace-objects",
+        "-C",
+        "/Users/kjopek/Workspace/poe-code",
+        "status",
+        "--porcelain=v1"
+      ],
+      "pid": 85603,
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 335,
+      "stdoutSHA256": "669808b3a9788bc30be0b520ec8befaaf98d8e5ba9efa99454117d68d032c333",
+      "stderrBase64": "",
+      "reaped": true
+    },
+    {
+      "argv": [
+        "--no-replace-objects",
+        "-C",
+        "/Users/kjopek/Workspace/poe-code",
+        "diff",
+        "--cached",
+        "--name-status"
+      ],
+      "pid": 85605,
+      "status": 0,
+      "signal": null,
+      "stdoutBytes": 0,
+      "stdoutSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBase64": "",
+      "reaped": true
+    }
+  ],
+  "productExecutions": 0
+}

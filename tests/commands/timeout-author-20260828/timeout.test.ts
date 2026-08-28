@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CommandRegistry, createAgentCommands, type CommandContext, type CommandInvokeOptions, type PluginHost } from "../../../src/index.js";
+import { CommandRegistry, Shell, createAgentCommands, createMemoryFileSystem, type CommandContext, type CommandInvokeOptions, type PluginHost } from "../../../src/index.js";
 import {
   createTimeoutCommand,
   createTimeoutCommands,
@@ -95,6 +95,7 @@ test("help performs only its exact stdout write", async () => {
   let writes = 0;
   const target = {
     args: ["--help"],
+    signal: new AbortController().signal,
     stdout: { async write(chunk: Uint8Array) { writes++; assert.deepEqual(chunk, bytes(help)); } },
   };
   const context = new Proxy(target, {
@@ -103,7 +104,7 @@ test("help performs only its exact stdout write", async () => {
       return Reflect.has(target, key);
     },
     get(value, key, receiver) {
-      if (!["args", "stdout"].includes(String(key))) throw new Error(`unexpected context read: ${String(key)}`);
+      if (!["args", "signal", "stdout"].includes(String(key))) throw new Error(`unexpected context read: ${String(key)}`);
       return Reflect.get(value, key, receiver);
     },
   });
@@ -159,7 +160,8 @@ test("present malformed invoke never falls back and absent invoke uses standalon
     fallbackReceiver = this;
     return { exitCode: 3 };
   };
-  const malformed = captureContext(["0", "child"], { invoke: undefined });
+  const malformed = captureContext(["0", "child"]);
+  Object.defineProperty(malformed.context, "invoke", { value: undefined, configurable: true });
   assert.deepEqual(await createTimeoutCommand({ invoke: fallback }).execute(malformed.context), { exitCode: 125 });
   assert.equal(malformed.stderr(), "timeout: command invocation is unavailable\n");
   const absent = captureContext(["0", "child"]);
@@ -224,7 +226,7 @@ test("timer remains owned through cooperative child closure and maps own deadlin
       throw signal.reason;
     },
   });
-  const pending = createTimeoutCommand({ scheduler }).execute(capture.context);
+  const pending = Promise.resolve(createTimeoutCommand({ scheduler }).execute(capture.context));
   await admitted;
   scheduler.fire(1000);
   await turn();
@@ -256,11 +258,11 @@ test("outer cancellation wins when its reason is the observed own deadline senti
       throw signal.reason;
     },
   });
-  const pending = createTimeoutCommand({ scheduler }).execute(capture.context);
+  const pending = Promise.resolve(createTimeoutCommand({ scheduler }).execute(capture.context));
   await admitted;
   scheduler.fire(1000);
   cleanup.release();
-  await assert.rejects(pending, error => error === observed && error === outer.signal.reason);
+  await assert.rejects(pending, (error: unknown) => error === observed && error === outer.signal.reason);
 });
 
 test("clear failure equal to own deadline sentinel remains cleanup failure", async () => {
@@ -280,15 +282,34 @@ test("clear failure equal to own deadline sentinel remains cleanup failure", asy
       throw signal.reason;
     },
   });
-  const pending = createTimeoutCommand({ scheduler }).execute(capture.context);
+  const pending = Promise.resolve(createTimeoutCommand({ scheduler }).execute(capture.context));
   await admitted;
   scheduler.fire(1000);
-  await assert.rejects(pending, error => error === observed);
+  await assert.rejects(pending, (error: unknown) => error === observed);
   assert.deepEqual(scheduler.clearCalls, [0]);
+});
+
+test("actual Shell registry invocation preserves literal argv and child status", async () => {
+  const commands = new CommandRegistry([createTimeoutCommand()]);
+  let observed: readonly string[] | undefined;
+  commands.register({
+    name: "child",
+    execute(context) {
+      observed = context.args;
+      return { exitCode: 126 };
+    },
+  });
+  const shell = new Shell({ fs: createMemoryFileSystem(), commands });
+  try {
+    const result = await shell.exec("timeout 0 child --signal '$literal'");
+    assert.equal(result.exitCode, 126);
+    assert.deepEqual(observed, ["--signal", "$literal"]);
+  } finally {
+    await shell.dispose();
+  }
 });
 
 test("internal leaf does not alter the public default aggregate", () => {
   assert.equal(createAgentCommands().length, 77);
   assert.equal(createAgentCommands().some(command => command.name === "timeout"), false);
 });
-

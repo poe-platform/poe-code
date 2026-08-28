@@ -18,6 +18,12 @@ this command. Candidate source and compiled output must already be materialized
 in separate canonical regular directory trees with no symlinks. The recipe
 requires POSIX process groups and hashes the executable too.
 
+Receipts use exactly the child emitter's canonical `JSON.stringify` bytes plus
+one LF; duplicate JSON keys, extra whitespace/lines and malformed/missing fields
+refuse. Raw bytes are retained even on receipt rejection. Diagnostic assertions
+validate category/code framing, literal source and coordinate grammar rather
+than accepting arbitrary text after a matching diagnostic code.
+
 ## Authorization fields
 
 `schemaVersion: 1`, `purpose: "YQ_CANDIDATE_EXECUTION_EXPLICIT_HANDOFF"`,

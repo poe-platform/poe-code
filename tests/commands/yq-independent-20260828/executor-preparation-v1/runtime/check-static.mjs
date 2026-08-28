@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { authorize } from './recipe/authorization.mjs';
 import { createFixtureContext } from './recipe/context.mjs';
 import { loadData, materializeJobs } from './recipe/fixtures.mjs';
+import { parseReceipt } from './recipe/host.mjs';
 import { jsonHash, sha256, treeSnapshot, verifyGuards } from './recipe/integrity.mjs';
 
 const runtime = dirname(fileURLToPath(import.meta.url));
@@ -51,6 +52,9 @@ assert.throws(() => materializeJobs(data, ['ENC-08']), /Missing adapter binding/
 assert.throws(() => materializeJobs(data, ['CMD-01', 'CMD-01']), /Duplicate selected ID/);
 assert.throws(() => authorize({}), /Missing explicit candidate authorization/);
 assert.throws(() => authorize({ authorizationPath: '/not-admitted', authorizationSha256: 'wrong' }), /Missing explicit candidate authorization/);
+assert.throws(() => parseReceipt(Buffer.from('{"schemaVersion":1,"jobId":"wrong","jobId":"job","outcome":"PASS"}\n'), 'job'), /duplicate-key/);
+assert.throws(() => parseReceipt(Buffer.from('{"schemaVersion":1,"outcome":"PASS"}\n'), 'job'), /Wrong or missing/);
+assert.throws(() => parseReceipt(Buffer.from('{"schemaVersion":1,"jobId":"job","outcome":"PASS"}\n\n'), 'job'), /Exactly one/);
 const guards = data.bindings.scopes.map((scope) => ({ kind: 'tree', path: join(repository, scope.path), sha256: jsonHash(scope.entries) }));
 verifyGuards(guards);
 const recipeHash = jsonHash(treeSnapshot(recipe));

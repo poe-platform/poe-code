@@ -33,6 +33,18 @@ export function assertCapture(receipt, job, evidence, catalogue) {
     const text = new TextDecoder('utf-8', { fatal: true }).decode(stderr);
     const prefix = `yq: ${diagnostic.category}: ${diagnostic.code}`;
     assert(text === `${prefix}\n` || (text.startsWith(`${prefix} at `) && text.endsWith('\n') && text.indexOf('\n') === text.length - 1), 'Exact diagnostic category/code/frame');
+    if (text !== `${prefix}\n`) {
+      const location = text.slice(prefix.length + 4, -1);
+      const match = /^(<stdin>|"(?:[^"\\\u0000-\u001f]|\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}))*")(?::([1-9][0-9]*):([1-9][0-9]*))?$/u.exec(location);
+      assert(match, 'Malformed diagnostic source/coordinates');
+      const source = match[1];
+      if (source !== '<stdin>') {
+        assert(Buffer.byteLength(source) <= 256, 'Displayed filename cap');
+        const filename = JSON.parse(source);
+        assert(job.files.some((file) => file.path === filename), 'Diagnostic source is not a literal fixture operand');
+      }
+      if (match[2]) assert(['input', 'schema', 'alias'].includes(diagnostic.category), 'Opaque query/VFS/encoder error cannot invent coordinates');
+    }
   }
   if (['information', 'cli-rejection', 'compile-rejection'].includes(job.expected.effectProfile)) {
     assert.equal(reads.length, 0, 'Pre-input path read a VFS operand');

@@ -18,7 +18,8 @@ const files = ['PROTOCOL.md', 'controls.json', 'synthetic-child.mjs'];
 const guards = files.map((path) => {
   const bytes = readCommit(preseal, `${prefix}/${path}`);
   assert.deepEqual(regularBytes(join(runtime, path)), bytes, `Presealed fixture changed: ${path}`);
-  return { kind: 'file', path: join(runtime, path), sha256: sha256(bytes), mode: lstatSync(join(runtime, path)).mode & 0o7777 };
+  assert.equal(lstatSync(join(runtime, path)).mode & 0o7777, 0o644, 'Presealed fixture mode');
+  return { kind: 'file', path: join(runtime, path), sha256: sha256(bytes), mode: 0o644 };
 });
 const recipeRoot = join(runtime, 'recipe');
 const recipeEntries = treeSnapshot(recipeRoot);

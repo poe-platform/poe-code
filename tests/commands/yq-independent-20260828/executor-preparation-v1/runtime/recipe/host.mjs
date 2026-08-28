@@ -93,6 +93,7 @@ export function parseReceipt(bytes, jobId) {
   const lines = text.slice(0, -1).split('\n');
   assert.equal(lines.length, 1, 'Exactly one receipt is required');
   const receipt = JSON.parse(lines[0]);
+  assert.equal(JSON.stringify(receipt), lines[0], 'Noncanonical or duplicate-key receipt');
   assert(receipt && typeof receipt === 'object' && !Array.isArray(receipt));
   assert.equal(receipt.schemaVersion, 1);
   assert.equal(receipt.jobId, jobId, 'Wrong or missing receipt job');

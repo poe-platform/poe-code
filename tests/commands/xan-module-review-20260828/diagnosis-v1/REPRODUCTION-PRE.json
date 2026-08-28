@@ -1,0 +1,32 @@
+{
+  "classification": "PRE_READONLY_REPRODUCTION_CORRECTION",
+  "created": "2026-08-28T07:04:07.420Z",
+  "originalSeal": "88aeebac7b0d948e0335e23acfa9592d831994ac",
+  "inputs": [
+    {
+      "path": "diagnose-v2.mjs",
+      "sha256": "163da77d147c7b6faee443a6c7fca4c8e1b789cae3606359863bfa6383ef8534"
+    },
+    {
+      "path": "REPRODUCTION-ADDENDUM.md",
+      "sha256": "262460cbde505e857563d32b1c0c80f7e3f4c0563e9c9adb854b0b5a2e11e6b7"
+    },
+    {
+      "path": "REPRODUCTION-RESULT.json",
+      "sha256": "9e2544dd90e54cd3ebc531b064169102ebb450ad5cc9b12551cbf84eccc18211"
+    },
+    {
+      "path": "CASES.json",
+      "sha256": "a06d2279cebad1cd5806909918197cb73e2f94a3f5f10e7a6447b31791d0137b"
+    },
+    {
+      "path": "BINDINGS.json",
+      "sha256": "99db2bb6b32ce5437b800c012b85c4ae6b397585c6f7fb5e171e2ddc245f2d9b"
+    },
+    {
+      "path": "CORRECTIONS.json",
+      "sha256": "508024fe8eb823a3c7655d737ebe33daa3b0125ab48c7b24dfaa31ce378bc3f4"
+    }
+  ],
+  "productRuns": 0
+}

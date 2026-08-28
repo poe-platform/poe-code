@@ -1,0 +1,7 @@
+{
+  "version": 4,
+  "prior": "v3 33 passes and1 fixture ENOENT; no product assertion failed",
+  "error": "N08 shared-source.data not included in initial dynamically reachable fixture census",
+  "correction": "pin second and final corpus fixture from baseline; rerun only unchanged N08",
+  "time": "2026-08-28T09:36:53.687Z"
+}

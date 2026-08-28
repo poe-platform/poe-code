@@ -1,0 +1,35 @@
+[
+  {
+    "id": "wrong-raw",
+    "file": "dist/commands/git/queries.js",
+    "needle": "await session.output(content.bytes);",
+    "replacement": "await session.output(Buffer.from(\"independent-mutant\"));",
+    "cases": [
+      "A04"
+    ],
+    "originalSha256": "804f40f48b8f0d206c23ebb0e6dd94b0ea8fc69fb297377f70d0ec23cce6d55d",
+    "mutatedSha256": "d5be34dda7b2c330c08453aeca572b953933bb27025d4a116f5ec9abce32dc7d"
+  },
+  {
+    "id": "guessed-mode",
+    "file": "dist/commands/git/repository.js",
+    "needle": "this.session.context.fs.capabilities.permissions === true",
+    "replacement": "true",
+    "cases": [
+      "H06"
+    ],
+    "originalSha256": "82142be3b5911024274baf00d5ec1bd66bf9f7df0eb0efd633873f81d0006ec8",
+    "mutatedSha256": "a2316b67122970cc9b3a0212897f917da37ce625ffd74ce34c9897b52ea7c7ff"
+  },
+  {
+    "id": "unmerged-diff",
+    "file": "dist/commands/git/queries.js",
+    "needle": "!index.some(entry => entry.stage && selected(entry.path, specs))",
+    "replacement": "true",
+    "cases": [
+      "A26"
+    ],
+    "originalSha256": "804f40f48b8f0d206c23ebb0e6dd94b0ea8fc69fb297377f70d0ec23cce6d55d",
+    "mutatedSha256": "60d2072a4f233c224b9d0636060ac0c3da497aece3210a7220816b8942715687"
+  }
+]

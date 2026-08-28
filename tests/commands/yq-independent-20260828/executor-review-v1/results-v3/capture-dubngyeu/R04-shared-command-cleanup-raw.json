@@ -1,0 +1,74 @@
+{
+  "returned": {
+    "rejection": {
+      "kind": "object",
+      "identity": {
+        "scope": "fe710ba6-a797-412a-897c-28a810d6209e",
+        "token": 3
+      },
+      "name": "same",
+      "message": "same",
+      "code": "",
+      "stack": ""
+    },
+    "cleanupErrors": [
+      {
+        "kind": "object",
+        "identity": {
+          "scope": "fe710ba6-a797-412a-897c-28a810d6209e",
+          "token": 3
+        },
+        "name": "same",
+        "message": "same",
+        "code": "",
+        "stack": ""
+      },
+      {
+        "kind": "object",
+        "identity": {
+          "scope": "fe710ba6-a797-412a-897c-28a810d6209e",
+          "token": 4
+        },
+        "name": "same",
+        "message": "same",
+        "code": "",
+        "stack": ""
+      }
+    ],
+    "capture": {
+      "stdoutHex": "",
+      "stderrHex": "",
+      "effects": {
+        "before": [],
+        "after": []
+      },
+      "events": [
+        {
+          "index": 0,
+          "kind": "command-reject",
+          "rejection": {
+            "kind": "object",
+            "identity": {
+              "scope": "fe710ba6-a797-412a-897c-28a810d6209e",
+              "token": 3
+            },
+            "name": "same",
+            "message": "same",
+            "code": "",
+            "stack": ""
+          }
+        },
+        {
+          "index": 1,
+          "kind": "register-cleanup"
+        },
+        {
+          "index": 2,
+          "kind": "register-cleanup"
+        }
+      ]
+    }
+  },
+  "rejected": null,
+  "activeChildren": []
+}

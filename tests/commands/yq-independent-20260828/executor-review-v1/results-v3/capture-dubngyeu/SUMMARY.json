@@ -1,0 +1,112 @@
+{
+  "count": 20,
+  "matched": 20,
+  "observations": [
+    {
+      "id": "R01-original-F01",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R02-original-F02",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R03-primitive-scope",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R04-shared-command-cleanup",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R05-projection-only",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R06-original-partial",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R07-unknown-field",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R08-pass-exit7",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R09-fail-then-pass",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R10-capture-before-assert",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R11-integrity-stop",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R12-reap-stop",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R13-timeout-boundaries",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R14-only-added-timer",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R15-fence-refusals",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R16-added-recipe-entry",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R17-recipe-mode",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R18-roles-gaps",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R19-pending-projection",
+      "matched": true,
+      "failure": null
+    },
+    {
+      "id": "R20-untrusted-receipts",
+      "matched": true,
+      "failure": null
+    }
+  ],
+  "activeChildren": [],
+  "productImports": 0,
+  "productRuns": 0,
+  "builds": 0,
+  "compilerRuns": 0,
+  "semanticPasses": 0
+}

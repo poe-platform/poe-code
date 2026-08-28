@@ -1,0 +1,107 @@
+{
+  "returned": [
+    {
+      "input": {
+        "schema": 1,
+        "purpose": "YQ_COMPOUND_V2_AFTER_ROOT_PRESEAL",
+        "execute": true,
+        "rootApproval": "SYNTHETIC_METADATA_ONLY_NOT_ROOT_AUTHORIZATION",
+        "integrationSealSha256": "47c3874f520efee18062d4b2e687159a52039a86d35945a7f5371e85eb00fdff",
+        "authorSourceCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+        "consumerCandidateCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+        "sourceBase": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+        "rootSourceCompositionAccepted": true,
+        "consumerReceipt": {
+          "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/candidate-35da1854-v1/FULL-RECEIPT.json",
+          "sha256": "acd5644c6f148bd25d16af8c12a3e01b9319f682b3830ec5f8b19a23e6ae4a56"
+        },
+        "admissionReceipt": {
+          "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/candidate-35da1854-v1/RESULT.json",
+          "sha256": "d0bacd61dd564b6ecfec6530aaea28b9b732af2f2677c68739b25b1ff546c2b3"
+        },
+        "frameworkReviewReceipt": {
+          "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/NOT-A-ROOT-REVIEW.json",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "sourceArchive": {
+          "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/UNOPENED-SOURCE.tar",
+          "sha256": "e4e6880a3622952b153a8261fec007908e1495584abf705ba2b150e95badcedc"
+        },
+        "packageArchive": {
+          "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/UNOPENED-PACKAGE.tgz",
+          "sha256": "2942ba1f6982a2e217350bbbad420e93d43e9336324b6db8a3d1d88b5a7aee4d"
+        },
+        "archiveSourceRoot": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/archive273",
+        "consumerSourceRoot": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/source271",
+        "packageRoot": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/package870",
+        "runtimeRecipeRoot": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/runtime",
+        "outputParent": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/future-output",
+        "buildProof": {
+          "classification": "INDEPENDENT_REPRODUCTION_ROOT_ACCEPTED",
+          "receipt": null
+        }
+      },
+      "error": {
+        "name": "AssertionError",
+        "message": "Independent compilation is not yet bound\n+ actual - expected\n\n  {\n+   classification: 'INDEPENDENT_REPRODUCTION_ROOT_ACCEPTED',\n-   classification: 'AUTHOR_ARTIFACT_BINDING_ONLY',\n    receipt: null\n  }\n",
+        "code": "ERR_ASSERTION",
+        "stack": "AssertionError [ERR_ASSERTION]: Independent compilation is not yet bound\n+ actual - expected\n\n  {\n+   classification: 'INDEPENDENT_REPRODUCTION_ROOT_ACCEPTED',\n-   classification: 'AUTHOR_ARTIFACT_BINDING_ONLY',\n    receipt: null\n  }\n\n    at Module.validateEnvelope (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/translation.mjs:57:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:43:124\n    at Array.map (<anonymous>)\n    at mutations (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:43:18)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:57:108\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:32:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:57:9"
+      }
+    },
+    {
+      "input": {
+        "schema": 1,
+        "purpose": "YQ_COMPOUND_V2_AFTER_ROOT_PRESEAL",
+        "execute": true,
+        "rootApproval": "SYNTHETIC_METADATA_ONLY_NOT_ROOT_AUTHORIZATION",
+        "integrationSealSha256": "47c3874f520efee18062d4b2e687159a52039a86d35945a7f5371e85eb00fdff",
+        "authorSourceCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+        "consumerCandidateCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+        "sourceBase": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+        "rootSourceCompositionAccepted": true,
+        "consumerReceipt": {
+          "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/candidate-35da1854-v1/FULL-RECEIPT.json",
+          "sha256": "acd5644c6f148bd25d16af8c12a3e01b9319f682b3830ec5f8b19a23e6ae4a56"
+        },
+        "admissionReceipt": {
+          "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/candidate-35da1854-v1/RESULT.json",
+          "sha256": "d0bacd61dd564b6ecfec6530aaea28b9b732af2f2677c68739b25b1ff546c2b3"
+        },
+        "frameworkReviewReceipt": {
+          "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/NOT-A-ROOT-REVIEW.json",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "sourceArchive": {
+          "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/UNOPENED-SOURCE.tar",
+          "sha256": "e4e6880a3622952b153a8261fec007908e1495584abf705ba2b150e95badcedc"
+        },
+        "packageArchive": {
+          "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/UNOPENED-PACKAGE.tgz",
+          "sha256": "2942ba1f6982a2e217350bbbad420e93d43e9336324b6db8a3d1d88b5a7aee4d"
+        },
+        "archiveSourceRoot": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/archive273",
+        "consumerSourceRoot": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/source271",
+        "packageRoot": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/package870",
+        "runtimeRecipeRoot": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/runtime",
+        "outputParent": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/future-output",
+        "buildProof": {
+          "classification": "AUTHOR_ARTIFACT_BINDING_ONLY",
+          "receipt": {
+            "path": "/not-a-build",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        }
+      },
+      "error": {
+        "name": "AssertionError",
+        "message": "Independent compilation is not yet bound\n+ actual - expected\n\n  {\n    classification: 'AUTHOR_ARTIFACT_BINDING_ONLY',\n+   receipt: {\n+     path: '/not-a-build',\n+     sha256: '0000000000000000000000000000000000000000000000000000000000000000'\n+   }\n-   receipt: null\n  }\n",
+        "code": "ERR_ASSERTION",
+        "stack": "AssertionError [ERR_ASSERTION]: Independent compilation is not yet bound\n+ actual - expected\n\n  {\n    classification: 'AUTHOR_ARTIFACT_BINDING_ONLY',\n+   receipt: {\n+     path: '/not-a-build',\n+     sha256: '0000000000000000000000000000000000000000000000000000000000000000'\n+   }\n-   receipt: null\n  }\n\n    at Module.validateEnvelope (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/translation.mjs:57:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:43:124\n    at Array.map (<anonymous>)\n    at mutations (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:43:18)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:57:108\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:32:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:57:9"
+      }
+    }
+  ],
+  "rejected": null,
+  "classification": "CANNED_METADATA_NOT_ROOT_AUTHORIZATION"
+}

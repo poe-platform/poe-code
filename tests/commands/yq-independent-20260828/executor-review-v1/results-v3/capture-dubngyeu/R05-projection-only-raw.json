@@ -1,0 +1,21 @@
+{
+  "returned": {
+    "error": null,
+    "files": {
+      "command-stderr.bin": {
+        "base64": "",
+        "mode": 384
+      },
+      "command-stdout.bin": {
+        "base64": "ImEiOiAxCg==",
+        "mode": 384
+      },
+      "obligations.json": {
+        "base64": "eyJzY2hlbWFWZXJzaW9uIjoyLCJzdGF0dXMiOiJCT1VORF9QUk9KRUNUSU9OX09OTFkiLCJ1bmZ1bGZpbGxlZCI6W10sInNlbWFudGljRnVsbFJlY29yZFBhc3MiOmZhbHNlfQo=",
+        "mode": 384
+      }
+    }
+  },
+  "rejected": null,
+  "activeChildren": []
+}

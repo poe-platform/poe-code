@@ -1,0 +1,24 @@
+{
+  "returned": [
+    {
+      "name": "AssertionError",
+      "message": "Receipt must end with LF",
+      "code": "ERR_ASSERTION",
+      "stack": "AssertionError [ERR_ASSERTION]: Receipt must end with LF\n    at Module.parseReceipt (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-runtime-independent-v3-3gs_f8zd/recipe/host.mjs:92:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:191:133\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:66:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:188:9"
+    },
+    {
+      "name": "AssertionError",
+      "message": "Exactly one receipt is required\n\n2 !== 1\n",
+      "code": "ERR_ASSERTION",
+      "stack": "AssertionError [ERR_ASSERTION]: Exactly one receipt is required\n\n2 !== 1\n\n    at Module.parseReceipt (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-runtime-independent-v3-3gs_f8zd/recipe/host.mjs:94:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:191:133\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:66:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:188:9"
+    },
+    {
+      "name": "AssertionError",
+      "message": "Noncanonical or duplicate-key receipt\n+ actual - expected\n\n+ '{\"schemaVersion\":1,\"jobId\":\"job0\",\"outcome\":\"PASS\"}'\n- '{\"schemaVersion\":1,\"jobId\":\"job0\",\"outcome\":\"FAIL\",\"outcome\":\"PASS\"}'\n",
+      "code": "ERR_ASSERTION",
+      "stack": "AssertionError [ERR_ASSERTION]: Noncanonical or duplicate-key receipt\n+ actual - expected\n\n+ '{\"schemaVersion\":1,\"jobId\":\"job0\",\"outcome\":\"PASS\"}'\n- '{\"schemaVersion\":1,\"jobId\":\"job0\",\"outcome\":\"FAIL\",\"outcome\":\"PASS\"}'\n\n    at Module.parseReceipt (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-runtime-independent-v3-3gs_f8zd/recipe/host.mjs:96:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:191:133\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:66:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:188:9"
+    }
+  ],
+  "rejected": null,
+  "activeChildren": []
+}

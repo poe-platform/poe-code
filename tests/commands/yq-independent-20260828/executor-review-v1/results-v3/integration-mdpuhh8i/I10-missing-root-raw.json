@@ -1,0 +1,10 @@
+{
+  "returned": null,
+  "rejected": {
+    "name": "AssertionError",
+    "message": "Missing explicit root binding; no child/import/output admitted",
+    "code": "ERR_ASSERTION",
+    "stack": "AssertionError [ERR_ASSERTION]: Missing explicit root binding; no child/import/output admitted\n    at Module.bind (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/binding.mjs:14:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:90:79\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:32:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:90:9"
+  },
+  "classification": "CANNED_METADATA_NOT_ROOT_AUTHORIZATION"
+}

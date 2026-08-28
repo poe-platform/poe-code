@@ -1,0 +1,26 @@
+{
+  "returned": {
+    "error": {
+      "name": "AssertionError",
+      "message": "UNFULFILLED_OBLIGATIONS: see obligations.json; no full-record or semantic PASS\n\n1 !== 0\n",
+      "code": "ERR_ASSERTION",
+      "stack": "AssertionError [ERR_ASSERTION]: UNFULFILLED_OBLIGATIONS: see obligations.json; no full-record or semantic PASS\n\n1 !== 0\n\n    at Module.assertCapture (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-runtime-independent-v3-3gs_f8zd/recipe/assert-capture.mjs:35:10)\n    at directAssertion (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:115:20)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:152:90\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:66:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/check.mjs:152:9"
+    },
+    "files": {
+      "command-stderr.bin": {
+        "base64": "",
+        "mode": 384
+      },
+      "command-stdout.bin": {
+        "base64": "ImEiOiAxCg==",
+        "mode": 384
+      },
+      "obligations.json": {
+        "base64": "eyJzY2hlbWFWZXJzaW9uIjoyLCJzdGF0dXMiOiJJTkNPTVBMRVRFIiwidW5mdWxmaWxsZWQiOlt7InBhdGgiOiJleHBlY3RlZC51bmJvdW5kSW5kZXBlbmRlbnRGaWVsZCIsInZhbHVlIjp0cnVlLCJyZWFzb24iOiJObyBhc3NlcnRpb24gYWRhcHRlciBib3VuZCJ9XSwic2VtYW50aWNGdWxsUmVjb3JkUGFzcyI6ZmFsc2V9Cg==",
+        "mode": 384
+      }
+    }
+  },
+  "rejected": null,
+  "activeChildren": []
+}

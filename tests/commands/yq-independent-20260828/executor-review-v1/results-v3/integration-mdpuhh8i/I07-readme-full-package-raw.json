@@ -1,0 +1,38 @@
+{
+  "returned": [
+    {
+      "error": {
+        "name": "AssertionError",
+        "message": "Complete package must have 870 files\n\n869 !== 870\n",
+        "code": "ERR_ASSERTION",
+        "stack": "AssertionError [ERR_ASSERTION]: Complete package must have 870 files\n\n869 !== 870\n\n    at Module.assertFullPackage (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/translation.mjs:34:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:76:343\n    at Array.map (<anonymous>)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:76:219\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:32:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:74:9"
+      }
+    },
+    {
+      "error": {
+        "name": "AssertionError",
+        "message": "Complete baseline README identity\n+ actual - expected\n\n  {\n    bytes: 36273,\n    mode: 420,\n+   sha256: '0000000000000000000000000000000000000000000000000000000000000000'\n-   sha256: '87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1'\n  }\n",
+        "code": "ERR_ASSERTION",
+        "stack": "AssertionError [ERR_ASSERTION]: Complete baseline README identity\n+ actual - expected\n\n  {\n    bytes: 36273,\n    mode: 420,\n+   sha256: '0000000000000000000000000000000000000000000000000000000000000000'\n-   sha256: '87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1'\n  }\n\n    at Module.assertFullPackage (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/translation.mjs:35:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:76:343\n    at Array.map (<anonymous>)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:76:219\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:32:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:74:9"
+      }
+    },
+    {
+      "error": {
+        "name": "AssertionError",
+        "message": "Complete package must have 870 files\n\n871 !== 870\n",
+        "code": "ERR_ASSERTION",
+        "stack": "AssertionError [ERR_ASSERTION]: Complete package must have 870 files\n\n871 !== 870\n\n    at Module.assertFullPackage (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/translation.mjs:34:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:76:343\n    at Array.map (<anonymous>)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:76:219\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:32:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:74:9"
+      }
+    },
+    {
+      "error": {
+        "name": "AssertionError",
+        "message": "Complete package must have 870 files\n\n869 !== 870\n",
+        "code": "ERR_ASSERTION",
+        "stack": "AssertionError [ERR_ASSERTION]: Complete package must have 870 files\n\n869 !== 870\n\n    at Module.assertFullPackage (file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/yq-integration-independent-v3-eb9afb_r/mirror/tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/translation.mjs:34:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:76:343\n    at Array.map (<anonymous>)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:76:219\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:32:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v3/integration-check.mjs:74:9"
+      }
+    }
+  ],
+  "rejected": null,
+  "classification": "CANNED_METADATA_NOT_ROOT_AUTHORIZATION"
+}

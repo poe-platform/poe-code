@@ -1,0 +1,3245 @@
+{
+  "classification": "actual different scoped review complete; ROOT acceptance remains authoritative",
+  "candidate": {
+    "state": "routed-candidate",
+    "candidateCommit": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+    "candidateComposedTree": "b820fa91a3bcc904005c690d48038d9a3900cede",
+    "runtime": {
+      "commit": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+      "path": "src/shell/runtime.ts",
+      "blob": "d32239c31e5b4cdf11fd7863a407283119a209ec",
+      "sha256": "93c06908aec9d5d61d801657f99ab75122cadb6688f038e1941c587b4a8d4ed3",
+      "bytes": 137389
+    },
+    "evidence": {
+      "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+      "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/HANDOFF.md",
+      "blob": "0b19cd346aad640402e439fefe5dc1b10147536c",
+      "sha256": "cdf2ee8a56fd28acb355d2dd03d6ff05a63d524bb67aad351534abe4933111c2",
+      "bytes": 7132
+    },
+    "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "provider": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+    "composition": "7c68831a81fc49c94ad9177e58ca9fd7d0aca352"
+  },
+  "presealCommit": "3d8174864eeed5c5cda4d6f1db22c2b7673b3639",
+  "findings": {
+    "productDefectsFound": [],
+    "frozenFixtureQualification": {
+      "id": "L24",
+      "issue": "Original Memory label cannot admit its65535-byte component; accepted Memory enforces255 bytes/component.",
+      "correctedEvidence": "Unchanged UTF16/target/stat/access/state assertions pass using the scripted public FileSystem. Not literal-Memory long-name support.",
+      "acceptanceOwner": "ROOT"
+    }
+  },
+  "layouts": [
+    {
+      "mode": "source",
+      "publicAssertions": {
+        "pass": 86,
+        "fail": 0,
+        "blocked": 0,
+        "untested": 0
+      },
+      "frozenAdapterQualification": {
+        "fullyBound": 85,
+        "scriptedOnly": [
+          "L24"
+        ]
+      },
+      "types": {
+        "positive": 10,
+        "negative": 10,
+        "inversions": 10
+      },
+      "productModulesLoaded": 207,
+      "extraAdapterControls": [
+        {
+          "name": "Real",
+          "status": "pass",
+          "service": false
+        },
+        {
+          "name": "S3-mock",
+          "status": "pass",
+          "service": false
+        }
+      ]
+    },
+    {
+      "mode": "installed",
+      "publicAssertions": {
+        "pass": 86,
+        "fail": 0,
+        "blocked": 0,
+        "untested": 0
+      },
+      "frozenAdapterQualification": {
+        "fullyBound": 85,
+        "scriptedOnly": [
+          "L24"
+        ]
+      },
+      "types": {
+        "positive": 10,
+        "negative": 10,
+        "inversions": 10
+      },
+      "productModulesLoaded": 207,
+      "extraAdapterControls": [
+        {
+          "name": "Real",
+          "status": "pass",
+          "service": false
+        },
+        {
+          "name": "S3-mock",
+          "status": "pass",
+          "service": false
+        }
+      ]
+    },
+    {
+      "mode": "moved",
+      "publicAssertions": {
+        "pass": 86,
+        "fail": 0,
+        "blocked": 0,
+        "untested": 0
+      },
+      "frozenAdapterQualification": {
+        "fullyBound": 85,
+        "scriptedOnly": [
+          "L24"
+        ]
+      },
+      "types": {
+        "positive": 10,
+        "negative": 10,
+        "inversions": 10
+      },
+      "productModulesLoaded": 207,
+      "extraAdapterControls": [
+        {
+          "name": "Real",
+          "status": "pass",
+          "service": false
+        },
+        {
+          "name": "S3-mock",
+          "status": "pass",
+          "service": false
+        }
+      ]
+    }
+  ],
+  "frozenCounts": {
+    "command": 82,
+    "diagnostic": 4,
+    "invariants": 12,
+    "futureControls": 7,
+    "positiveTypes": 10,
+    "negativeTypes": 10
+  },
+  "perCase": {
+    "source": [
+      {
+        "id": "B01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B06",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B07",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B08",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B09",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B10",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B11",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B12",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B13",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B14",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B15",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B16",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P06",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "finalErrorCode"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P07",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P08",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P09",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P10",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P11",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P12",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P13",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P14",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "noModeInferenceInCd"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A06",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "readonly",
+          "noReadonlyAttributeRemoval"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "readonly"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "childState"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S06",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "childState"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S07",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "namespaceOtherChanges"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S08",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S09",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "O01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "events"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "O02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "O03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "O04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "O05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "C01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "publications"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "C02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "publication"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "C03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "publication"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "C04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "stateInvariant"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "C05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "firstYieldAfterChargedUnits",
+          "publications"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "chargedPrivateUnits"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "chargedPrivateUnits"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "chargedPrivateUnits"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "cdpathScannedBytes"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "cdpathScannedBytes"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L06",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "cdpathScannedBytes"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L07",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "unusedCwdScannedBytes"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L08",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "work"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L09",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L10",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "rawReserved"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L11",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "cdpathScannedBytes"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L12",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "rawReserved"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L13",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "rawReserved"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L14",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L15",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L16",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L17",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L18",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "work",
+          "yields",
+          "finalYieldRemainder"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L19",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "work",
+          "yields",
+          "finalYieldRemainder"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L20",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "work",
+          "yields",
+          "failedReservation",
+          "failedOperation",
+          "unconstrainedWork"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L21",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "work",
+          "remaining",
+          "failedReservation",
+          "failedOperation"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L22",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L23",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L24",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [],
+        "literalAdapterQualification": "invalid original Memory label; scripted public FileSystem only"
+      },
+      {
+        "id": "L25",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "commandsAdmitted",
+          "controllerReset"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L26",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "noPerByteCommandCharges",
+          "state: no observer command is admissible under the unchanged maxCommands=2/source; final cwd requires candidate source review"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L27",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "stateInvariant"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "D01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "incremental bounded diagnostic construction: source review, not an RSS assertion"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "D02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "incremental bounded diagnostic construction: source review, not an RSS assertion"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "D03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "incremental bounded diagnostic construction: source review, not an RSS assertion"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "D04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "incremental bounded diagnostic construction: source review, not an RSS assertion"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      }
+    ],
+    "installed": [
+      {
+        "id": "B01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B06",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B07",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B08",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B09",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B10",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B11",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B12",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B13",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B14",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B15",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B16",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P06",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "finalErrorCode"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P07",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P08",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P09",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P10",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P11",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P12",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P13",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P14",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "noModeInferenceInCd"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A06",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "readonly",
+          "noReadonlyAttributeRemoval"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "readonly"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "childState"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S06",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "childState"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S07",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "namespaceOtherChanges"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S08",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S09",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "O01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "events"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "O02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "O03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "O04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "O05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "C01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "publications"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "C02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "publication"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "C03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "publication"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "C04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "stateInvariant"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "C05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "firstYieldAfterChargedUnits",
+          "publications"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "chargedPrivateUnits"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "chargedPrivateUnits"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "chargedPrivateUnits"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "cdpathScannedBytes"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "cdpathScannedBytes"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L06",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "cdpathScannedBytes"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L07",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "unusedCwdScannedBytes"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L08",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "work"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L09",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L10",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "rawReserved"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L11",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "cdpathScannedBytes"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L12",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "rawReserved"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L13",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "rawReserved"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L14",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L15",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L16",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L17",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L18",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "work",
+          "yields",
+          "finalYieldRemainder"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L19",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "work",
+          "yields",
+          "finalYieldRemainder"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L20",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "work",
+          "yields",
+          "failedReservation",
+          "failedOperation",
+          "unconstrainedWork"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L21",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "work",
+          "remaining",
+          "failedReservation",
+          "failedOperation"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L22",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L23",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L24",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [],
+        "literalAdapterQualification": "invalid original Memory label; scripted public FileSystem only"
+      },
+      {
+        "id": "L25",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "commandsAdmitted",
+          "controllerReset"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L26",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "noPerByteCommandCharges",
+          "state: no observer command is admissible under the unchanged maxCommands=2/source; final cwd requires candidate source review"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L27",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "stateInvariant"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "D01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "incremental bounded diagnostic construction: source review, not an RSS assertion"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "D02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "incremental bounded diagnostic construction: source review, not an RSS assertion"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "D03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "incremental bounded diagnostic construction: source review, not an RSS assertion"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "D04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "incremental bounded diagnostic construction: source review, not an RSS assertion"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      }
+    ],
+    "moved": [
+      {
+        "id": "B01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B06",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B07",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B08",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B09",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B10",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B11",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B12",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B13",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B14",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B15",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "B16",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P06",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "finalErrorCode"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P07",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P08",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P09",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P10",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P11",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P12",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P13",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "P14",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "noModeInferenceInCd"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "A06",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "readonly",
+          "noReadonlyAttributeRemoval"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "readonly"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "childState"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S06",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "childState"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S07",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "namespaceOtherChanges"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S08",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "S09",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "O01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "events"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "O02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "O03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "O04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "O05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "C01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "publications"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "C02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "publication"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "C03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "publication"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "C04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "stateInvariant"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "C05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "firstYieldAfterChargedUnits",
+          "publications"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "chargedPrivateUnits"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "chargedPrivateUnits"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "chargedPrivateUnits"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "cdpathScannedBytes"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L05",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "cdpathScannedBytes"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L06",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "cdpathScannedBytes"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L07",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "unusedCwdScannedBytes"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L08",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "work"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L09",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L10",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "rawReserved"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L11",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "cdpathScannedBytes"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L12",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "rawReserved"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L13",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "rawReserved"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L14",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L15",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L16",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L17",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L18",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "work",
+          "yields",
+          "finalYieldRemainder"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L19",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "work",
+          "yields",
+          "finalYieldRemainder"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L20",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "work",
+          "yields",
+          "failedReservation",
+          "failedOperation",
+          "unconstrainedWork"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L21",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order",
+          "work",
+          "remaining",
+          "failedReservation",
+          "failedOperation"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L22",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L23",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "order"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L24",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [],
+        "literalAdapterQualification": "invalid original Memory label; scripted public FileSystem only"
+      },
+      {
+        "id": "L25",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "commandsAdmitted",
+          "controllerReset"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L26",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "noPerByteCommandCharges",
+          "state: no observer command is admissible under the unchanged maxCommands=2/source; final cwd requires candidate source review"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "L27",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "stateInvariant"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "D01",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "incremental bounded diagnostic construction: source review, not an RSS assertion"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "D02",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "incremental bounded diagnostic construction: source review, not an RSS assertion"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "D03",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "incremental bounded diagnostic construction: source review, not an RSS assertion"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      },
+      {
+        "id": "D04",
+        "publicAssertions": "pass",
+        "cleanup": "clean",
+        "privateFields": [
+          "incremental bounded diagnostic construction: source review, not an RSS assertion"
+        ],
+        "literalAdapterQualification": "bound as declared"
+      }
+    ]
+  },
+  "invariants": [
+    {
+      "id": "I01",
+      "frozen": "I01: Only stat then delegated X_OK; no chmod, native chdir, realpath, ACL synthesis or directory-stack mutation.",
+      "classification": "mixed-public-and-source",
+      "evidence": "Ordinal stat-directory then delegated X_OK and no extra methods measured. Candidate added helpers contain no chdir/realpath/chmod/ACL or stack mutation; other58 members and13 non-cd statements byte-identical.",
+      "pinnedLocations": "runtime.ts:418-457; 2215-2238",
+      "status": "satisfied within stated evidence classification"
+    },
+    {
+      "id": "I02",
+      "frozen": "I02: P1 checked publication before awaited print; readonly OLD blocks cwd; readonly PWD retains OLD/cwd; no rollback.",
+      "classification": "mixed-public-and-source",
+      "evidence": "S01/S02 readonly and O01-O04/C04/L27 public effects measured; exact checked OLD->cwd->checked PWD->exports->awaited print source order. L26 final private state follows those two unchanged cd transitions, not a fabricated public getter.",
+      "pinnedLocations": "runtime.ts:794-801; 2231-2236",
+      "status": "satisfied within stated evidence classification"
+    },
+    {
+      "id": "I03",
+      "frozen": "I03: Same runtime signal for stat/access; live caller/shared abort before failure classification; no reason-shape inference.",
+      "classification": "mixed-public-and-source",
+      "evidence": "C01-C05 exact caller reasons, errno-shaped cancellation and cooperative closure measured. CdLookup uses the same borrowed signal before/after awaits and before classifying misses.",
+      "pinnedLocations": "runtime.ts:373-388; 435-455; 2216-2229",
+      "status": "satisfied within stated evidence classification"
+    },
+    {
+      "id": "I04",
+      "frozen": "I04: Only actual FsError ENOENT/ENOTDIR/EACCES search misses; fresh duplicate fallback; first success stops.",
+      "classification": "mixed-public-and-source",
+      "evidence": "Ordered eligible CDPATH, empty/dot components, duplicate fresh fallback, final diagnostic, first success and typed-only misses measured. EPERM/ELOOP remain fatal intentional profile gaps.",
+      "pinnedLocations": "runtime.ts:418-457",
+      "status": "satisfied within stated evidence classification"
+    },
+    {
+      "id": "I05",
+      "frozen": "I05: All inputs/preflight bounded before first probe; raw length before allocation; normalized bound defensive.",
+      "classification": "mixed-public-and-source",
+      "evidence": "Inclusive65536 bytes and4096 slots admission cases measured; scan checks before charging/pushing and rawBytes before2R reservation/join. Missing HOME/OLDPWD precedes lookup construction.",
+      "pinnedLocations": "runtime.ts:390-434; 2217-2223",
+      "status": "satisfied within stated evidence classification"
+    },
+    {
+      "id": "I06",
+      "frozen": "I06: Shared Budget identity/accounting unchanged; no private ShellLimits key, tick/loop charge, reset or private-controller abort.",
+      "classification": "mixed-public-and-source",
+      "evidence": "L25/L26/L27 and20 unique type controls measured. Unchanged Budget class and all58 other Runtime members establish no reset/new keys/per-byte tick. CdLookup only owns spent/probes and borrowed signal.",
+      "pinnedLocations": "runtime.ts:28-36; 60-147; 370-388; SOURCE-REVIEW.json",
+      "status": "satisfied within stated evidence classification"
+    },
+    {
+      "id": "I07",
+      "frozen": "I07: Probe4098 is unreachable under4096-slot preflight; normalized bytes cannot exceed admitted absolute raw join. Verify defensively by source review, not fake public runtime passes.",
+      "classification": "source-proof-only",
+      "evidence": "At most4096 scanned search components plus one unconditional fallback implies probe4098 unreachable. Each raw candidate is absolute; baseline POSIX resolve only removes redundant separators/dot components, so normalized UTF8 bytes cannot exceed raw bytes. Defensive checks remain present; no fake public pass.",
+      "pinnedLocations": "runtime.ts:390-457; accepted5137 src/contracts/path.ts:17-24",
+      "status": "satisfied within stated evidence classification"
+    },
+    {
+      "id": "I08",
+      "frozen": "I08: Work reservations subtraction-first and all-or-nothing; reached128-unit boundaries yield including exact last boundary; no failed-probe refunds.",
+      "classification": "mixed-public-and-source",
+      "evidence": "Exact L18-L21 public stat/access boundaries measured. Work/yield values are source-bound arithmetic, NOT instrumented counters: reservation test precedes any mutation, charge advances only to128 boundaries and yields even on the last exact boundary; no decrement/refund/reset.",
+      "pinnedLocations": "runtime.ts:376-388; 419-456",
+      "status": "satisfied within stated evidence classification"
+    },
+    {
+      "id": "I09",
+      "frozen": "I09: Diagnostic incremental bounded construction; scalar-safe payload prefix including cd: ; exact suffix; origin/newline outside private cap but parent-budgeted.",
+      "classification": "mixed-public-and-source",
+      "evidence": "D01-D04 actual cd commands inject EIO.message: filesystemDiagnostic has no EIO translation, so executed cd catch calls cdDiagnostic([message(error)]). Exact output/scalar limits and O05 non-cd control measured. Incremental bounded construction is source-proven, not global stderr/RSS evidence.",
+      "pinnedLocations": "runtime.ts:331-340; 343-367; 2223-2227",
+      "status": "satisfied within stated evidence classification"
+    },
+    {
+      "id": "I10",
+      "frozen": "I10: Prefix/clone/middleware/cleanup semantics stay baseline; post-rejection state is a source invariant, not a fabricated persistent Shell getter.",
+      "classification": "mixed-public-and-source",
+      "evidence": "Prefix/function/clone/middleware and cleanup cases measured. Unchanged58 members plus top-level clone/restore helpers bind baseline prefix/error/control/caller semantics. Rejected-exec private state remains source proof.",
+      "pinnedLocations": "SOURCE-REVIEW.json; runtime.ts:2231-2236",
+      "status": "satisfied within stated evidence classification"
+    },
+    {
+      "id": "I11",
+      "frozen": "I11: Provider acceptance is exact fixed composition and virtual traversal only; internal HTTP requests are not VFS-call budget units.",
+      "classification": "mixed-public-and-source",
+      "evidence": "Exact fixed provider composition authenticated. Memory/readonly/mount/DAV frozen adapters plus local Real/injected S3 controls executed. S3 internal root listing is provider work, not another cd VFS probe. No remote service or ACL enforcement claim.",
+      "pinnedLocations": "TREE-PROOF.json; public/adapter receipts",
+      "status": "satisfied within stated evidence classification"
+    },
+    {
+      "id": "I12",
+      "frozen": "I12: Scoped PRECODE controls are future evidence obligations; no native, adapter, product, source/moved or all-feature pass is claimed.",
+      "classification": "provenance-discipline",
+      "evidence": "Original native28, provider acceptance and author results remain immutable history, not independent passes. This actual different review is limited to its stated rows/types/controls and fixture qualifications.",
+      "pinnedLocations": "CONTROL-IDENTITY.json; PRESEAL.json; adaptation records",
+      "status": "satisfied within stated evidence classification"
+    }
+  ],
+  "integrationControls": [
+    {
+      "id": "F01",
+      "obligation": "Authenticated future runtime-only delta over exact composed baseline; unchanged source/docs/providers/root exports and public API inventories; record full commit/blob inputs.",
+      "status": "authenticated-composition-and-byte-AST-proof"
+    },
+    {
+      "id": "F02",
+      "obligation": "Source public-root execution of frozen cases with actual provider/root FsError identity, no live-source fallback; separate denominator.",
+      "status": "source86-public-pass-with-L24-qualification"
+    },
+    {
+      "id": "F03",
+      "obligation": "Build/package/install only after ROOT go; actual bare virtual-bash public-root runtime and declaration identity; authenticate complete package and consumer membership.",
+      "status": "actual-full-package-installed86-types10+10"
+    },
+    {
+      "id": "F04",
+      "obligation": "Physically move installed package+consumer, original absent; rerun same cases/types; separately report source/installed/moved counts without summing unique coverage.",
+      "status": "physically-moved86-types10+10-original-absent"
+    },
+    {
+      "id": "F05",
+      "obligation": "Negative controls reject missing public entry, modified packed runtime/provider bytes, and outside-source/dist fallback before case success; no loader error is a semantic mutant kill.",
+      "status": "12-actual-import-negative-controls-pass"
+    },
+    {
+      "id": "F06",
+      "obligation": "10 positive and10 intended-location negative public type checks per future layout; each negative independently inverted; no missing-import/fixture pass.",
+      "status": "10positive10negative10-inversions-per-layout-pass"
+    },
+    {
+      "id": "F07",
+      "obligation": "After ROOT go only: scoped existing shell/contracts/adapter regression selection authenticated against candidate; preserve original native28/provider cohorts, no current full-gate claim.",
+      "status": "20-exact-existing-fs-error-regressions-pass"
+    }
+  ],
+  "package": {
+    "sha256": "06ea635b201a1296268adaa452a2419682f92ec93906cb9083e327dc69f85914",
+    "bytes": 745084,
+    "regularFiles": 846,
+    "measuredNotAssumed": true
+  },
+  "minimalMutants": [
+    {
+      "name": "M01-no-CDPATH-print",
+      "case": "B01",
+      "passingWitness": "attempt-02 source public result",
+      "status": "semantic-mutant-killed",
+      "captureStatus": 1,
+      "loadedRuntime": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/auxiliary-01/source/src/shell/runtime.ts",
+        "sha256": "93c06908aec9d5d61d801657f99ab75122cadb6688f038e1941c587b4a8d4ed3",
+        "variantSha256": "82e77fa5eb72f9ab24057feeb6884eb16047cd4286872fec6b620f69b228e834",
+        "transformedSha256": "e122144f05532568cfe2010d255e2ecbe2e96ee8ec51acb9ebba9a5c4537c830"
+      },
+      "assertion": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n\n'' !== '/p/t\\n'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'' !== '/p/t\\n'\n\n    at executeCase (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/auxiliary-01/consumer/fixtures.mjs:249:52)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/auxiliary-01/consumer/entry.mjs:98:18\n    at async series (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/auxiliary-01/consumer/series.mjs:9:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/auxiliary-01/consumer/entry.mjs:97:18"
+      }
+    },
+    {
+      "name": "M02-unchecked-OLDPWD",
+      "case": "S01",
+      "passingWitness": "attempt-02 source public result",
+      "status": "semantic-mutant-killed",
+      "captureStatus": 1,
+      "loadedRuntime": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/auxiliary-01/source/src/shell/runtime.ts",
+        "sha256": "93c06908aec9d5d61d801657f99ab75122cadb6688f038e1941c587b4a8d4ed3",
+        "variantSha256": "7741486761e1aabe6aa822f83779052e19d0286e67d1e334ab685777ef3c95ec",
+        "transformedSha256": "949ae0e1bcc4f9a41f10a3cba5f9b280d5901062c824263949c2fad6b3eabd86"
+      },
+      "assertion": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n\n0 !== 1\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 1\n\n    at executeCase (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/auxiliary-01/consumer/fixtures.mjs:244:14)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/auxiliary-01/consumer/entry.mjs:98:18\n    at async series (file:///Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/auxiliary-01/consumer/series.mjs:9:20)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/auxiliary-01/consumer/entry.mjs:97:18"
+      }
+    }
+  ],
+  "regression": {
+    "tests": 20,
+    "pass": 20,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "input": {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "tests/shell/fs-error-diagnostics.test.ts",
+      "blob": "283143fe2eb2b231dc32168edefabf27d0cb3f49",
+      "sha256": "5ac1508bc8416b6de0824577dab5ae518fad28bbf05f7c2e9fd5bc01c05befea",
+      "bytes": 6791
+    }
+  },
+  "fullImportNegatives": [
+    {
+      "mode": "source",
+      "kind": "outside",
+      "status": "pass",
+      "actualExistingOutside": true,
+      "actualPublicRootImport": false,
+      "loadedBeforeAdmissionFailure": 0
+    },
+    {
+      "mode": "source",
+      "kind": "missing",
+      "status": "pass",
+      "actualExistingOutside": false,
+      "actualPublicRootImport": true,
+      "loadedBeforeAdmissionFailure": 0
+    },
+    {
+      "mode": "source",
+      "kind": "runtime",
+      "status": "pass",
+      "actualExistingOutside": false,
+      "actualPublicRootImport": true,
+      "loadedBeforeAdmissionFailure": 203
+    },
+    {
+      "mode": "source",
+      "kind": "provider",
+      "status": "pass",
+      "actualExistingOutside": false,
+      "actualPublicRootImport": true,
+      "loadedBeforeAdmissionFailure": 205
+    },
+    {
+      "mode": "installed",
+      "kind": "outside",
+      "status": "pass",
+      "actualExistingOutside": true,
+      "actualPublicRootImport": false,
+      "loadedBeforeAdmissionFailure": 0
+    },
+    {
+      "mode": "installed",
+      "kind": "missing",
+      "status": "pass",
+      "actualExistingOutside": false,
+      "actualPublicRootImport": true,
+      "loadedBeforeAdmissionFailure": 0
+    },
+    {
+      "mode": "installed",
+      "kind": "runtime",
+      "status": "pass",
+      "actualExistingOutside": false,
+      "actualPublicRootImport": true,
+      "loadedBeforeAdmissionFailure": 203
+    },
+    {
+      "mode": "installed",
+      "kind": "provider",
+      "status": "pass",
+      "actualExistingOutside": false,
+      "actualPublicRootImport": true,
+      "loadedBeforeAdmissionFailure": 205
+    },
+    {
+      "mode": "moved",
+      "kind": "outside",
+      "status": "pass",
+      "actualExistingOutside": true,
+      "actualPublicRootImport": false,
+      "loadedBeforeAdmissionFailure": 0
+    },
+    {
+      "mode": "moved",
+      "kind": "missing",
+      "status": "pass",
+      "actualExistingOutside": false,
+      "actualPublicRootImport": true,
+      "loadedBeforeAdmissionFailure": 0
+    },
+    {
+      "mode": "moved",
+      "kind": "runtime",
+      "status": "pass",
+      "actualExistingOutside": false,
+      "actualPublicRootImport": true,
+      "loadedBeforeAdmissionFailure": 203
+    },
+    {
+      "mode": "moved",
+      "kind": "provider",
+      "status": "pass",
+      "actualExistingOutside": false,
+      "actualPublicRootImport": true,
+      "loadedBeforeAdmissionFailure": 205
+    }
+  ],
+  "earlierPredicateGuardNegatives": "12 retained separately, not substituted for actual full-import negatives",
+  "privateHelperFixturesExecuted": 0,
+  "workAndYieldEvidence": "precise pinned source/AST/arithmetic paired with actual public boundary outcomes; no claim of dynamic private-counter instrumentation",
+  "originalNonpasses": [
+    {
+      "driver": "DRIVER-01.json",
+      "kind": "metadata launch PATH omitted git; no product execution"
+    },
+    {
+      "driver": "DRIVER-02.json",
+      "kind": "Memory setup ENAMETOOLONG at L07; original61 public passes,1 setup nonpass,24 source rows blocked,86 installed/moved each blocked"
+    },
+    {
+      "driver": "DRIVER-03.json",
+      "kind": "source86 public checks passed; original21,449,775-byte repeated-error capture exceeded harness8MiB artifact bound; lossless interning repair, no rescore"
+    },
+    {
+      "driver": "DRIVER-04.json",
+      "kind": "source types passed; auxiliary S3 fixture omitted existing ancestor list; corrected exact sequence separately"
+    },
+    {
+      "driver": "DRIVER-05.json",
+      "kind": "source controls completed; npm rejected duplicate user/global config filename before pack; distinct owned paths repaired"
+    }
+  ],
+  "recordedSettlements": [
+    {
+      "path": "attempt-01/records/001-build.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "a0c9cf299a3564cb1b7a778c1f1bfa55de74f63c0b4f032c101efc86bc414c18"
+    },
+    {
+      "path": "attempt-01/records/002-source-cases.json",
+      "status": 1,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "b546117693284329018c01e1acc586ffb8ca5b34ac0c09f76257f1e66086d278"
+    },
+    {
+      "path": "attempt-02/records/001-build.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "319a40aef3b54e189769d83696c77d8094d5f2dca2d5808f1f67bc566282ac31"
+    },
+    {
+      "path": "attempt-02/records/002-source-cases.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "a0665de1947cfa7f6ff62b7c92a30ddca4caf2549d1058c88fbfcff3399fb1d2"
+    },
+    {
+      "path": "continuation-01/records/1-source-types-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "b9b445c67800baa70d2726c119a8a8df4bd389614b6528f4a5cb72cd71627484"
+    },
+    {
+      "path": "continuation-01/records/2-source-adapters-child.json",
+      "status": 1,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "22b867f3de29797424bf46b9f262d906499162b9d5cb01b41a71e9f64ec7df85"
+    },
+    {
+      "path": "continuation-02/records/1-source-adapters-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "2460121a8b3f117cbd58f089a3b25ac8ddee6ea6e004729260caed158c59c43d"
+    },
+    {
+      "path": "continuation-02/records/2-source-negative-outside-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "bd5adb3b0e8067098e6f0858423a464b56e03dfd3eabd7cc5568e9ba5283ff99"
+    },
+    {
+      "path": "continuation-02/records/3-source-negative-missing-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "735f16219a5d03d2cfb72685b8986beca076166401c8564d8a5b74dc377b192a"
+    },
+    {
+      "path": "continuation-02/records/4-source-negative-runtime-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "7091a75ee6427d037ca027683d04208c7901cbbe44581e535a677127604f7078"
+    },
+    {
+      "path": "continuation-02/records/5-source-negative-provider-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "5061e0555d95566181bd5b79ae833b47475dc6c40bc4e24d9cc17caa71362b33"
+    },
+    {
+      "path": "continuation-02/records/6-pack-child.json",
+      "status": 1,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "43b2f1ef7a092108d1385e90669abed1aaeb1ec4df09035a22823cc96a18ea82"
+    },
+    {
+      "path": "continuation-03/records/1-pack-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "c100d4b7c615eb09f4113aadaac9e5ae9799f3ff742ac36d0bd5126ec9fcebd8"
+    },
+    {
+      "path": "continuation-03/records/10-moved-cases-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "871d04354711a5cd3ec394390758ceb88be6d7915df250dba6d0ba5f4879524a"
+    },
+    {
+      "path": "continuation-03/records/11-moved-types-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "e01a143b1dd87cdda6899fa1bcf846baffdad51505040857be2af8b479a94269"
+    },
+    {
+      "path": "continuation-03/records/12-moved-adapters-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "c7100d778bde027559082fc9dba06b189da9e38230905e55f09d3b07d9f08a35"
+    },
+    {
+      "path": "continuation-03/records/13-moved-negative-outside-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "29f4b189f1075262885b1622f1febba11a23f0cb491a538a197378fb50133fed"
+    },
+    {
+      "path": "continuation-03/records/14-moved-negative-missing-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "f584a5080db06319f58c1d7e05344a4e5721ec8c9c36348654a3d851d920df0f"
+    },
+    {
+      "path": "continuation-03/records/15-moved-negative-runtime-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "3918a281483d24964bc619275cc16a5e1c0593dbdcb0023c81d525e780d3d089"
+    },
+    {
+      "path": "continuation-03/records/16-moved-negative-provider-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "691ea9614988fdbf7329bd17d983404f639f1645d077feaa98cad1777f4b8f89"
+    },
+    {
+      "path": "continuation-03/records/2-install-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "378d0471474c349bd3a78785436fb6ce8d1c73bd4d06f6a42fd84597e0e37f01"
+    },
+    {
+      "path": "continuation-03/records/3-installed-cases-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "b8fe9055ed581c38577d1e0ceb8fc2d318ee866497023f73d6281bce48711137"
+    },
+    {
+      "path": "continuation-03/records/4-installed-types-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "2b54bdc78f0c35c4865116a3c15c38bd1b56a053a4f234114355a08255e894b2"
+    },
+    {
+      "path": "continuation-03/records/5-installed-adapters-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "f2949b227aaad6174db5d89aba287fec33a2785eb7480462800a9711796d2de2"
+    },
+    {
+      "path": "continuation-03/records/6-installed-negative-outside-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "271397ed901fa2a1c9803652c3c85cbfe935cab6b188b9f528eae5f658098875"
+    },
+    {
+      "path": "continuation-03/records/7-installed-negative-missing-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "9f0cced8c36a5632c210dfdfb3028733be48c3d44aee3c96608818172e7c82b5"
+    },
+    {
+      "path": "continuation-03/records/8-installed-negative-runtime-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "b93daf73ec7aa84cb262d96eb22a9d2134338a7cccc0be15df0e384fe6a911b9"
+    },
+    {
+      "path": "continuation-03/records/9-installed-negative-provider-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "0f929ebb5fa7a4d03eda51e428afa9ab754c4c53644f39f7a580c194d3fbac2d"
+    },
+    {
+      "path": "auxiliary-01/records/F07-regression-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "b15359609d98b9d514f961b9a1acf8d9c99210d400c2740a043e7d486075347a"
+    },
+    {
+      "path": "auxiliary-01/records/M01-no-CDPATH-print-child.json",
+      "status": 1,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "72dbf97c9e56473e75e3e42f2bb18b8368dc901df7d84a056f4404a3b3552df3"
+    },
+    {
+      "path": "auxiliary-01/records/M02-unchecked-OLDPWD-child.json",
+      "status": 1,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "c54703df71d64c852fc27a5f80cc66548f8bba609685aa818cb962e377e8f65e"
+    },
+    {
+      "path": "load-controls-01/records/installed-missing-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "df16352f0bda2fdb5823f296498116573664e1b8249894ebbd91cc47ad64cf39"
+    },
+    {
+      "path": "load-controls-01/records/installed-outside-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "70390d9c70592bb576c69f33b170ceb78c2a98ab47998de5e75a8ea95b7c3dd7"
+    },
+    {
+      "path": "load-controls-01/records/installed-provider-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "427027121010a83600f93efa03f658362ea7befa78024de13bc5b2de75221b2b"
+    },
+    {
+      "path": "load-controls-01/records/installed-runtime-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "b7ae2b4ef37ce6bef08bdc8712a393450d5016cb606011d3d948173985cbe571"
+    },
+    {
+      "path": "load-controls-01/records/moved-missing-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "9de408d1a5fed519b1ff9b1080dc211de432e07122be1b55424f1d8ffa22bf1a"
+    },
+    {
+      "path": "load-controls-01/records/moved-outside-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "6aef517c438d40e4f89082e65630c77095ff1f0290c9d058e776c1ab65d85cf4"
+    },
+    {
+      "path": "load-controls-01/records/moved-provider-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "21a6aec91dfb644aeb7810c83ba661b13953b26ffccc382d6d9fef5d832c4739"
+    },
+    {
+      "path": "load-controls-01/records/moved-runtime-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "43e0f922ab1b06ac30d68470bfc5737434677c7c78ff5b135467409a5550fed3"
+    },
+    {
+      "path": "load-controls-01/records/source-missing-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "27286c23c0993ce29e75790d458aedd5d567e94d520e72c9eac78dcde0040f08"
+    },
+    {
+      "path": "load-controls-01/records/source-outside-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "5abc22684b1b7c4dc39d7c00487f5f9f1cf131ed52b41c27a6e96290f4c883c9"
+    },
+    {
+      "path": "load-controls-01/records/source-provider-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "f5a6a74d1f3cb95dd58748d65688fe3bf5501e62c0b44e42dd11a42a62d36b36"
+    },
+    {
+      "path": "load-controls-01/records/source-runtime-child.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "a42fd14a28b3f996b7a9ca698d464aa4c5c83d1593cc55d62088edcd8fd5fa3a"
+    },
+    {
+      "path": "DRIVER-01.json",
+      "status": 1,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "c29a9d033675499493436dcb9e9feef8d890e590344995411cc5281d2a6a7c4e"
+    },
+    {
+      "path": "DRIVER-02.json",
+      "status": 1,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "c3a34e9268bbbe4f4c46ccdf3024857a69cc893cb185be1282e1e06698975a27"
+    },
+    {
+      "path": "DRIVER-03.json",
+      "status": 1,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "0d3808fe44ddbb7faf9ee0db063c8a30348ba7f50c6a3a35ac658a22b613b013"
+    },
+    {
+      "path": "DRIVER-04.json",
+      "status": 1,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "68691f9bd77c54322dbf74b176db01a1c1e2e9814a604b2fe31c42b64e17b79a"
+    },
+    {
+      "path": "DRIVER-05.json",
+      "status": 1,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "1a1617eb961c2d92e6ef35ff79f0ef8ecd36c2352c0760c76ba894a1fcc1e3fe"
+    },
+    {
+      "path": "DRIVER-06.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "73b477074506fcb0e4d7f50a157a316be3b8e2d82ddc83ad61e9532e1857c1db"
+    },
+    {
+      "path": "DRIVER-07.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "107d6ee5fd40b6f53f38a163d98cbaa804192770d399b5ec0ce264480a1a3bb6"
+    },
+    {
+      "path": "DRIVER-08.json",
+      "status": 0,
+      "naturalSettlement": true,
+      "cleanupClean": true,
+      "sha256": "6d8bdc2fc2ef2f0c64d91d6dc4711cd5fcfafa72efe34a6cac015b5a93698f22"
+    }
+  ],
+  "preservation": {
+    "inheritedFiles": 41,
+    "nativeProviderAuthorHistory": "unchanged; not rescored",
+    "directoryStack": "not implemented or released by this review",
+    "actualNativeRuns": 0,
+    "actualRemoteServiceRuns": 0,
+    "privateCheckoutAccess": 0,
+    "productSourceEdits": 0
+  }
+}

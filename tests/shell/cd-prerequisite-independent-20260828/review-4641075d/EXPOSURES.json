@@ -1,0 +1,16 @@
+{
+  "beforePreseal": "Committed author HANDOFF description/hashes/history; runtime bytes hashed, not inspected until binding commit3d817486",
+  "afterPreseal": [
+    "Exact464 runtime and accepted5137 runtime diff/source AST;58 other members/13 non-cd statements text comparison",
+    "Accepted5137 public shell types, command contract, Memory path bound, Real/S3 API and S3 lookup implementation, contracts/path.ts, baseline build/package configs",
+    "Exact accepted provider source/doc and full265-file source closure read for reconstruction/build",
+    "Existing accepted5137 fs-error-diagnostics.test.ts selected and executed20 tests; no native helper imported",
+    "Original independent preparation utilities and own versioned adaptations; author raw result archives authenticated as immutable history, not executed"
+  ],
+  "inheritedPriorExposure": "../EXPOSURES-v1.json unchanged",
+  "noUnroutedSourceInspection": true,
+  "sourceComposition": "7c68831a81fc49c94ad9177e58ca9fd7d0aca352",
+  "routedCandidate": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+  "currentLiveSourceOverlay": false,
+  "noClaimAboutUnknownScratchElsewhere": true
+}

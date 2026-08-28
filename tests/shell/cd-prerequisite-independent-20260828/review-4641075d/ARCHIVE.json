@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "format": "CD-REVIEW-BLOBS-v1",
+  "parts": [
+    {
+      "name": "ARTIFACTS-01.gz.part",
+      "bytes": 16777216,
+      "sha256": "33faf1785ceaafc62e2711f9eece093767273aaea88b2139ea62960ea68e290f"
+    },
+    {
+      "name": "ARTIFACTS-02.gz.part",
+      "bytes": 16777216,
+      "sha256": "87d47e00dac009baadd86d404e5ae68d3d890ad1da617e945a50720dbde54ca8"
+    },
+    {
+      "name": "ARTIFACTS-03.gz.part",
+      "bytes": 16777216,
+      "sha256": "2f4bed9d007d6d36833b36aeb46737ab3d109aa71a1d56b6a93676b47d83ee45"
+    },
+    {
+      "name": "ARTIFACTS-04.gz.part",
+      "bytes": 7625973,
+      "sha256": "4b85f308ef7079462a76a4ba29bf79f26fda70b98d5c771f5a794f1483f31c42"
+    }
+  ],
+  "index": {
+    "name": "ARCHIVE-INDEX.json.gz",
+    "sha256": "09ca77e10d7303458db1c50db3292c56d2692d3c910680a7898b3f4a695e3314"
+  },
+  "roots": [
+    "tool-inputs",
+    "attempt-01",
+    "attempt-02",
+    "continuation-01",
+    "continuation-02",
+    "continuation-03",
+    "auxiliary-01",
+    "load-controls-01"
+  ],
+  "files": 11764,
+  "logicalBytes": 571333775,
+  "uniqueBlobs": 3884,
+  "uniqueBytes": 231021360,
+  "compressedBytes": 57957621,
+  "capturedAt": "2026-08-28T06:31:15.135Z",
+  "foreignStaging": []
+}

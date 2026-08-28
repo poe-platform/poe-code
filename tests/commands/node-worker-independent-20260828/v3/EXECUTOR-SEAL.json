@@ -1,0 +1,15 @@
+{
+  "date": "2026-08-28",
+  "phase": "before DATA checker execution; source inspection already begun",
+  "subject": "f9bf774409eca40b0518b322db6fcb652cd6cd7f",
+  "authorDataEvidence": "10f49933f430dccfd828dce1c5339ab8b2851458",
+  "files": {
+    "PRESEAL.md": "0a82c277a6435642695964023e8f4a64eda1d6580d9fda9d6dd6f942cbee8dd9",
+    "check-data.mjs": "9e1f782d4e440928ee692b52662b41ddffbb6e20bbc48a94a599b46c60e1292d"
+  },
+  "plannedDataProcessesIncludingChecker": 4,
+  "subjectImports": 0,
+  "compilerInvocations": 0,
+  "workerAdmissions": 0,
+  "engineEvaluations": 0
+}

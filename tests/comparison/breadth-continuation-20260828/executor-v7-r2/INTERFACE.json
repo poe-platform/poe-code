@@ -1,0 +1,359 @@
+{
+  "schema": "BREADTH_V7_R2_ADMISSION_INTERFACE",
+  "date": "2026-08-28",
+  "authorizationNow": "IMPLEMENTATION_DATA_STUB_ONLY",
+  "freshDifferentReviewAndRootGrantRequired": true,
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+  "comparatorVersion": "3.4.2",
+  "latestClaim": false,
+  "recipe": {
+    "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r2/SEAL.json",
+    "hashRule": "SHA256 of exact final SEAL.json bytes, supplied in final handoff; no circular placeholder hash is accepted"
+  },
+  "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+  "command": {
+    "entry": "coordinator.mjs",
+    "phase": "admission",
+    "runId": "FRESH_ROOT_RUN_ID",
+    "nodeArgs": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=256"
+    ]
+  },
+  "outerCommand": {
+    "node": {
+      "role": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "nodeArgs": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=256"
+    ],
+    "entry": {
+      "path": "launch.mjs",
+      "bytes": 2584,
+      "mode": 420,
+      "sha256": "928900c9e495763a45ac2a9860aec6b3d3d82a679ea9649eb72a2c1481bf20ed",
+      "role": "r2-successor-source"
+    },
+    "argv": [
+      "admission",
+      "FRESH_ROOT_RUN_ID",
+      "ABSOLUTE_AUTH_JSON",
+      "EXACT_AUTH_JSON_SHA256"
+    ]
+  },
+  "innerCommand": {
+    "entry": {
+      "path": "coordinator.mjs",
+      "bytes": 1819,
+      "mode": 420,
+      "sha256": "766b6ca082c28e91b8e5c80b0a83775d0d6777572e213ae271de5990c19d371c",
+      "role": "r2-successor-source"
+    },
+    "argv": [
+      "admission",
+      "FRESH_ROOT_RUN_ID",
+      "ABSOLUTE_AUTH_JSON",
+      "EXACT_AUTH_JSON_SHA256"
+    ],
+    "stdio": [
+      "ignore",
+      "pipe",
+      "pipe",
+      "pipe"
+    ]
+  },
+  "executableBindings": [
+    {
+      "path": "body.mjs",
+      "bytes": 12492,
+      "mode": 420,
+      "sha256": "4bc45f6005a64ff7ae5bd589de9d0c89fdbd7c177283de0f2dde95dc28c0b8ee",
+      "role": "r2-successor-source"
+    },
+    {
+      "path": "production.mjs",
+      "bytes": 4117,
+      "mode": 420,
+      "sha256": "fe1c8d5a475094bc06cac17b7d73dcf7b3e4b12a86126e7ede569b5ff3d00d0d",
+      "role": "r2-successor-source"
+    },
+    {
+      "path": "worker.mjs",
+      "bytes": 10994,
+      "mode": 420,
+      "sha256": "5ed04fba1c4507329a53f3da1633d296774d9ff14e81f3497169d27c208a08d8",
+      "role": "r2-successor-source"
+    },
+    {
+      "path": "synthetic-worker.mjs",
+      "bytes": 5636,
+      "mode": 420,
+      "sha256": "d73b2b6b6581f5877c070f78629ddecc1f93a41226ce60f727bfee16dd465852",
+      "role": "r2-successor-source"
+    },
+    {
+      "path": "bootstrap.mjs",
+      "bytes": 137,
+      "mode": 420,
+      "sha256": "2973091e0629985a8bcf8aec7c3781a73a37fc142f94289f7bb9671b42c142e0",
+      "role": "r2-successor-source"
+    },
+    {
+      "path": "authorization.mjs",
+      "bytes": 7498,
+      "mode": 420,
+      "sha256": "6f2ded3e9880c7c4fcb2bc00025f1acfa3ac123e8ab236c0e00a3e20682ea82d",
+      "role": "r2-successor-source"
+    },
+    {
+      "path": "loader.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "1f97443a46f5b6259f8890cb084e98b610ab8878b50636d86df996d4a1bd48ec",
+      "role": "r2-successor-source"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 59,
+      "mode": 420,
+      "sha256": "5910c8b742ce0b57451cbdf08ee721afa384eccff1dbc71f53d9e1b6a488fb71",
+      "role": "r2-successor-source"
+    },
+    {
+      "path": "launch-ledger.mjs",
+      "bytes": 80,
+      "mode": 420,
+      "sha256": "4857ce2b799954ea33d98b355d0484aea37c4e285f3fe4c2136e919e29022328",
+      "role": "r2-successor-source"
+    },
+    {
+      "path": "outer.mjs",
+      "bytes": 3180,
+      "mode": 420,
+      "sha256": "ad29e8d1407a65d6bf11713aa1a4b81a61bdba51b1f75015926c9f809b810eb8",
+      "role": "r2-successor-source"
+    },
+    {
+      "path": "report.mjs",
+      "bytes": 13203,
+      "mode": 420,
+      "sha256": "cccd352c86bb62b8a7867a465f38a372171d13d2e92f25f1eb291691a477fe4c",
+      "role": "r2-successor-source"
+    },
+    {
+      "path": "records.mjs",
+      "bytes": 9365,
+      "mode": 420,
+      "sha256": "9e4ef93e57fb40e5d34ed1cbc49383a42785aa2e91c7e8aacc5af7c0c907048c",
+      "role": "r2-successor-source"
+    },
+    {
+      "path": "evidence.mjs",
+      "bytes": 107,
+      "mode": 420,
+      "sha256": "b36896e046bd1301a23dad0dbaa958fba9a44449feca155fba5237019fff18db",
+      "role": "r2-successor-source"
+    },
+    {
+      "path": "transport.mjs",
+      "bytes": 74,
+      "mode": 420,
+      "sha256": "0e86cd4d2570f36efd7dc4e0087d76df3c911684ceea917b02a107d6191e6da2",
+      "role": "r2-successor-source"
+    },
+    {
+      "path": "schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed",
+      "role": "r2-successor-source"
+    },
+    {
+      "path": "contracts.mjs",
+      "bytes": 5876,
+      "mode": 420,
+      "sha256": "59aeabe3dc6401971a824f25fc48f56b05036c0914c16f5d16734ed5e6675454",
+      "role": "r2-successor-source"
+    }
+  ],
+  "authorization": {
+    "inputKeys": [
+      "review",
+      "grant"
+    ],
+    "referenceKeys": [
+      "commit",
+      "path",
+      "sha256"
+    ],
+    "inputPath": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/ROOT_GRANT_NAMESPACE/AUTH.json",
+    "inputMaxBytes": 65536,
+    "inputMode": 420,
+    "grantRequired": {
+      "role": "root",
+      "phase": "admission",
+      "attempts": 1,
+      "runId": "FRESH_ROOT_RUN_ID",
+      "outputRoot": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/FRESH_ROOT_RUN_ID",
+      "recipeSha256": "FINAL_SEAL_SHA256",
+      "reviewSha256": "EXACT_POSITIVE_DIFFERENT_REVIEW_SHA256",
+      "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+      "bootstrapProfile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+      "reportProtocol": "BOUNDED_TERMINAL_V3",
+      "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+      "command": {
+        "entry": "coordinator.mjs",
+        "phase": "admission",
+        "runId": "FRESH_ROOT_RUN_ID",
+        "nodeArgs": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=256"
+        ]
+      }
+    },
+    "reviewRequired": {
+      "role": "different-reviewer",
+      "verdict": "PREEXECUTION_ACCEPTED",
+      "recipeSha256": "FINAL_SEAL_SHA256"
+    },
+    "actualGitChildrenSeparatelyAccounted": true,
+    "exactOwnData": {
+      "envelopeKeys": [
+        "review",
+        "grant"
+      ],
+      "referenceKeys": [
+        "commit",
+        "path",
+        "sha256"
+      ],
+      "primitiveCommit": "40 lowercase hex primitive string only",
+      "primitiveHash": "64 lowercase hex primitive string only",
+      "reviewKeys": [
+        "role",
+        "verdict",
+        "recipeSha256"
+      ],
+      "admissionGrantKeys": [
+        "role",
+        "phase",
+        "attempts",
+        "runId",
+        "outputRoot",
+        "recipeSha256",
+        "reviewSha256",
+        "planSha256",
+        "bootstrapProfile",
+        "reportProtocol",
+        "candidate",
+        "packSha256",
+        "command"
+      ],
+      "commandKeysInOrder": [
+        "entry",
+        "phase",
+        "runId",
+        "nodeArgs"
+      ],
+      "gettersInheritedRequiredExtrasMissingCoercion": "refuse"
+    }
+  },
+  "outputs": {
+    "body": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/FRESH_ROOT_RUN_ID",
+    "collector": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/FRESH_ROOT_RUN_ID-supervision",
+    "bodyBudget": 260046848,
+    "collectorBudget": 8388608,
+    "combinedBudget": 268435456,
+    "perRecordBytes": 262144,
+    "logicalDocumentBytes": 33554432,
+    "stdoutBytes": 65536,
+    "stderrBytes": 65536,
+    "metadataStreamBytes": 262144,
+    "instructionPlaintextAllowed": false,
+    "configBytesIncludingLF": 2097151,
+    "stagedBytesIncludingLF": 2097152
+  },
+  "lifecycle": {
+    "workersPlanned": 14,
+    "workerCap": 27,
+    "concurrency": 1,
+    "C11EmptySetups": 2,
+    "semanticCalls": 0,
+    "childOldSpaceMiB": 256,
+    "childMs": 30000,
+    "termGraceMs": 2000,
+    "killGraceMs": 1000,
+    "outerCheckedMs": 4500000,
+    "heapIsNotRSS": true,
+    "notHardPreemption": true
+  },
+  "acceptance": [
+    "default production assessTerminal true",
+    "ADMISSION_ACCEPTED",
+    "unsafe false",
+    "all PASS",
+    "all actual exit/close and reaping",
+    "natural outer exit zero, no truncation/signals/failures",
+    "all closure/projection/load/asset/C11 predicates",
+    "postintegrity and full registered evidence census"
+  ],
+  "exclusions": [
+    "No existing grant authorizes V7",
+    "No actual engine or C11 executed by synthetic tests",
+    "W07 comparator nonexecution remains UNQUALIFIED and UNCREDITED",
+    "Separate 99 semantic authorization required",
+    "No native/private/network/capability-equivalence/caller-authentication/full-gate claims"
+  ],
+  "composition": {
+    "previousIndependent": "30/30 plus1 supplement preserved;7of8 A02 defect;F08 EPERM observation-qualified",
+    "previousAuthor": "31/33 original preserved; r1 separate correction preserved",
+    "currentScope": "Affected DATA/own-stub controls only; whole production authority/worker chain remains unexecuted",
+    "full248Plus8MiBBoundaries": "STATIC_ONLY"
+  },
+  "observerContract": {
+    "protocol": "BOUNDED_TERMINAL_V3",
+    "authorityEvents": 2,
+    "eventKeys": [
+      "sequence",
+      "kind",
+      "receipt"
+    ],
+    "orderedReferences": [
+      "review",
+      "grant"
+    ],
+    "metadataReceiptKeys": [
+      "role",
+      "ordinal",
+      "reference",
+      "pid",
+      "group",
+      "status",
+      "signal",
+      "errorCode",
+      "stdoutBytes",
+      "stdoutSha256",
+      "stderrBase64",
+      "reaped"
+    ],
+    "finalReportKeys": [
+      "mode",
+      "runId",
+      "status",
+      "unsafe",
+      "result",
+      "children",
+      "allChildrenReaped"
+    ],
+    "finalChildren": "integer equals terminal array and accounting and authenticated actual ledger/planned operations",
+    "childRoles": "normal natural0; C09-status intentional7; C09-deadline completed TERM negative; all exact typed exit/close/reaping",
+    "noCallerAuthenticationClaim": true
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "schema": 1,
+  "id": "yq-coverage-additive-v1",
+  "date": "2026-08-28",
+  "status": "COMMON_LOCAL_INTEGRATION_ABI_NOT_EXECUTION_AUTHORITY",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "baseline": {
+    "commit": "0e8ee2900e7810b911f1335b0d3f05f23ce740c5",
+    "recipeSha256": "92b4c7b958b9f07b75c2f55fa719e83093317a506bb41f74526a4df09eed7c90",
+    "workerApi": "yq-b8-core-worker-v1",
+    "entry": "export async function runWorker(api)",
+    "unchangedMethods": [
+      "phase",
+      "note",
+      "writeJson",
+      "writeBytes",
+      "readBoundJson",
+      "guard",
+      "runTool"
+    ],
+    "toolAuthority": "Parent-only existing compiler/git roles; no peer native spawn or new runTool role"
+  },
+  "common": {
+    "ownData": "Exact finite own keys/data descriptors/primitive values and dense arrays; reject accessors/symbol/nonenumerable/undefined extras before serialization, no prototype equality/coercion. Local reason references excluded from JSON.",
+    "bindingIds": "Exact original gap.id or fragment.id; record IDs alone cannot discharge all obligations.",
+    "statuses": [
+      "MATCH",
+      "CONTRADICTION",
+      "UNOBSERVED"
+    ],
+    "aggregate": "Any contradiction =>FAIL; otherwise any unobserved=>INCOMPLETE; no unsupported-as-pass. Evaluate independent primitive obligations even when other facts are absent.",
+    "sourceRole": "Source arguments may satisfy designated source-role bindings only; never replace required runtime observation or produce a semantic pass.",
+    "identity": "Keep actual thrown reason references in local channel. Strict reference comparisons occur within actor child before serialization; labels/digests never prove identity. Propagate actual throws unchanged."
+  },
+  "assertions": {
+    "export": "evaluateAssertions(input)",
+    "call": "async or synchronous local function; no IO/import/spawn",
+    "inputKeys": [
+      "schema",
+      "job",
+      "receipt",
+      "fragments",
+      "observations",
+      "sourceArguments",
+      "local"
+    ],
+    "schema": 1,
+    "receipt": "Existing v4 receipt.capture shape, raw artifact already persisted; no golden rewriting.",
+    "fragments": "Exact FRAGMENTS-371 rows selected by projectionId; unknown/duplicate/missing bindings remain unobserved or error, not ignored.",
+    "observations": "Array of observation rows, schema below; assertions consume only authorized matching bindingIds.",
+    "sourceArguments": "Array of bound source results, each role source-static-counterproof; do not infer runtime facts from them.",
+    "local": "Null or caller-owned identity-reference object; must not serialize or inspect arbitrary getters; peer declares exact enrolled identity keys.",
+    "resultKeys": [
+      "schema",
+      "jobId",
+      "status",
+      "results",
+      "unbound"
+    ],
+    "resultStatus": [
+      "PASS",
+      "FAIL",
+      "INCOMPLETE"
+    ],
+    "resultRowKeys": [
+      "bindingId",
+      "recordId",
+      "role",
+      "status",
+      "evidenceRefs",
+      "detail"
+    ],
+    "roles": [
+      "runtime",
+      "source",
+      "data"
+    ],
+    "detail": "finite string; evidenceRefs exact capture/source artifact references; unbound is dense array of original binding IDs"
+  },
+  "actors": {
+    "export": "captureActor(input)",
+    "inputKeys": [
+      "schema",
+      "task",
+      "namespace",
+      "limits"
+    ],
+    "task": "Own-data descriptor with id,recordId,bindingIds,fragmentIds,environment,fixtureReference,actorKind. No new policy expected values.",
+    "namespace": "Locally supplied already authenticated compiled direct-module namespace; use only declared factories, no public YqLimits/private DI/hooks. Not serializable and never supplied by synthetic packet as candidate code.",
+    "limits": "Explicit caller-selected finite capture/event/time/storage values; peer declares requirements. Missing admission => refuse before work.",
+    "resultKeys": [
+      "schema",
+      "taskId",
+      "capture",
+      "observations",
+      "local"
+    ],
+    "capture": "Existing capture fields stdoutHex,stderrHex,status,rejected,rejection,effects,events,cleanupErrors; captured before assertions. Rejection JSON is descriptive only, actual identity stays local.",
+    "observationRowKeys": [
+      "bindingId",
+      "recordId",
+      "role",
+      "status",
+      "facts",
+      "evidenceRefs"
+    ],
+    "role": "runtime",
+    "statuses": [
+      "OBSERVED",
+      "UNOBSERVED"
+    ],
+    "facts": "Finite own-data facts with actor-declared keys, no private instrumentation fiction.",
+    "local": "Null or in-child identity references. Future bridge owns serialization exclusion.",
+    "runWorkerCompatibility": "Peers may export runWorker(api) wrappers but may not assume new api.captureActor or namespace API. Common local captureActor runs only inside a future separately sealed loader bridge. Existing captureSemantic cannot provide arbitrary actor namespace: that bridge is an explicit pending integration dependency, not implemented by this ABI."
+  },
+  "sourceArguments": {
+    "export": "ingestSourceArguments(input)",
+    "inputKeys": [
+      "candidate",
+      "manifest",
+      "origins",
+      "plan",
+      "bundle",
+      "allocation",
+      "readSource"
+    ],
+    "readSource": "Harness callback reads only selected source bytes as DATA; no product module evaluation. Worker binds complete guarded271 source tree.",
+    "bundleKeys": [
+      "schema",
+      "candidate",
+      "sourceManifestSha256",
+      "originMapSha256",
+      "arguments"
+    ],
+    "argumentKeys": [
+      "id",
+      "recordId",
+      "bindingIds",
+      "fragmentIds",
+      "role",
+      "authority",
+      "dependencies",
+      "claims",
+      "qualification",
+      "observationRequirements"
+    ],
+    "role": "source-static-counterproof",
+    "authority": "{commit,path,sha256,pointer,role}; independently sealed source inspection, never product author pass.",
+    "dependency": "{path,revision,sha256,bytes,mode,spans:[{startLine,endLine,sha256}]}; exact selected origin/manifest equality; UTF8 line spans include final LF as explicitly declared by argument data.",
+    "result": "Bound source rows use SOURCE_ARGUMENT_BOUND, absent rows UNRUN_SOURCE_ARGUMENT; malformed/unbound provenance refuses. Binding is not proof-truth, independent review or full record PASS.",
+    "worker": "New source-audit runWorker(api) reads sourceManifest/sourceProofPlan/sourceOrigins/coverageAllocation/sourceArguments through existing readBoundJson, captures raw identities+argument bundle before evaluating binding, writes source-only report, guards before/after.",
+    "dataAliases": [
+      "sourceManifest",
+      "sourceProofPlan",
+      "sourceOrigins",
+      "coverageAllocation",
+      "sourceArguments"
+    ]
+  },
+  "contribution": {
+    "manifestKeys": [
+      "schema",
+      "abi",
+      "owner",
+      "module",
+      "exports",
+      "bindingIds",
+      "fragmentIds",
+      "recordIds",
+      "dependencies",
+      "costs",
+      "status"
+    ],
+    "status": "SEALED_IMPLEMENTATION_UNRUN_TARGET",
+    "module": "{path,sha256,bytes,mode}; exact complete peer source/tool/import seal required before integration",
+    "costs": "{outerSlots,nestedTools,wallMs,stdoutBytes,stderrBytes,metadataBytes,storageBytes,events}; explicit nonnegative integer requirements, not granted budgets"
+  },
+  "limits": "No whole recipe/targetGO created; future root reviews exact assembly/source/tool/loader and amended cost accounting.",
+  "executionNow": "Only separately committed finite synthetic recipe; no candidate imports/compiler/target controls",
+  "RootGO": false
+}

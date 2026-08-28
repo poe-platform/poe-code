@@ -1,0 +1,844 @@
+{
+  "schema": "INDEPENDENT_SOURCE_DATA_REVIEW_V1",
+  "date": "2026-08-28",
+  "presealSha256": "181b1a751cb367d18d24ab239b505100fd2291bbf9283cef67473b7b7a34e8ab",
+  "checkerSha256": "16c23fba37e29d523c9178ec79efb942def659e1865b9cf8a0f1034c363e7a2e",
+  "scope": {
+    "engineImports": 0,
+    "engineExecutions": 0,
+    "deniedBuiltinCalls": 0,
+    "archiveReads": 0,
+    "policyImplementation": false,
+    "appendProof": false
+  },
+  "tooling": {
+    "path": "node_modules/typescript/lib/typescript.js",
+    "version": "5.9.3",
+    "sha256Before": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+    "sha256After": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+    "node": "v22.22.2"
+  },
+  "authenticated": [
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/builtin-bootstrap-diagnosis-v1/README.md",
+      "authority": "096c204c38fd7f1b6c096b9cb09e0ea877737fec",
+      "bytes": 6633,
+      "sha256Before": "1c44999fc1cbdaa977211a137cc6054c3b05a92e11020fd6069ffb957a2038ab",
+      "sha256After": "1c44999fc1cbdaa977211a137cc6054c3b05a92e11020fd6069ffb957a2038ab"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/builtin-bootstrap-diagnosis-v1/REFERENCES.json",
+      "authority": "096c204c38fd7f1b6c096b9cb09e0ea877737fec",
+      "bytes": 531,
+      "sha256Before": "099290919fc32e90fe492b3e59ff89fc471801f2ca2b98f8cedba7c7ed51472f",
+      "sha256After": "099290919fc32e90fe492b3e59ff89fc471801f2ca2b98f8cedba7c7ed51472f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/builtin-bootstrap-diagnosis-v1/inspect.mjs",
+      "authority": "096c204c38fd7f1b6c096b9cb09e0ea877737fec",
+      "bytes": 3143,
+      "sha256Before": "f3dd7b007d819c9d038cc3c633252453d659d35a30d24be1e112e459072af62d",
+      "sha256After": "f3dd7b007d819c9d038cc3c633252453d659d35a30d24be1e112e459072af62d"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/builtin-bootstrap-diagnosis-v1/OBSERVATIONS.json",
+      "authority": "096c204c38fd7f1b6c096b9cb09e0ea877737fec",
+      "bytes": 17831,
+      "sha256Before": "9edee03f7b259a951ee49d4cd255f18bbf4ac95066a7e059da1554259620fb8f",
+      "sha256After": "9edee03f7b259a951ee49d4cd255f18bbf4ac95066a7e059da1554259620fb8f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/EVIDENCE-MANIFEST.json",
+      "authority": "becd1647a1572995750585b5c60d2be7d5fb77d4",
+      "bytes": 6108,
+      "sha256Before": "168e7422b0d969ddb8e5e7e7db3003abfdce0497e41217918c293c24ac22fcca",
+      "sha256After": "168e7422b0d969ddb8e5e7e7db3003abfdce0497e41217918c293c24ac22fcca"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/HANDOFF.md",
+      "authority": "becd1647a1572995750585b5c60d2be7d5fb77d4",
+      "bytes": 5691,
+      "sha256Before": "729b896e1a0ca37dfeb1c36e579df5fa796468ef1497576e5bafe2abf74a1f9a",
+      "sha256After": "729b896e1a0ca37dfeb1c36e579df5fa796468ef1497576e5bafe2abf74a1f9a"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/worker.mjs",
+      "authority": "becd1647a1572995750585b5c60d2be7d5fb77d4",
+      "bytes": 9011,
+      "sha256Before": "aa18dd6294fab08bd1f74132f0ca292f0dc0227138cf5956f25ba8c4084e568f",
+      "sha256After": "aa18dd6294fab08bd1f74132f0ca292f0dc0227138cf5956f25ba8c4084e568f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/loader.mjs",
+      "authority": "becd1647a1572995750585b5c60d2be7d5fb77d4",
+      "bytes": 5431,
+      "sha256Before": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97",
+      "sha256After": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/projection.mjs",
+      "authority": "becd1647a1572995750585b5c60d2be7d5fb77d4",
+      "bytes": 161,
+      "sha256Before": "bae12ed78c57f801ae5f036a0a56ef0bae516192edc7a817e20d75922e42d031",
+      "sha256After": "bae12ed78c57f801ae5f036a0a56ef0bae516192edc7a817e20d75922e42d031"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/authorization.mjs",
+      "authority": "becd1647a1572995750585b5c60d2be7d5fb77d4",
+      "bytes": 3564,
+      "sha256Before": "0ddc0a6acce5bdff205d3b85d2f4ae5211b72a9eb7c09c69663a50c05423a5ca",
+      "sha256After": "0ddc0a6acce5bdff205d3b85d2f4ae5211b72a9eb7c09c69663a50c05423a5ca"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+      "authority": "becd1647a1572995750585b5c60d2be7d5fb77d4",
+      "bytes": 8590,
+      "sha256Before": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3",
+      "sha256After": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/projection.mjs",
+      "authority": "becd1647a1572995750585b5c60d2be7d5fb77d4",
+      "bytes": 8872,
+      "sha256Before": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1",
+      "sha256After": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+      "authority": "becd1647a1572995750585b5c60d2be7d5fb77d4",
+      "bytes": 999,
+      "sha256Before": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb",
+      "sha256After": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/child-003.json",
+      "authority": "becd1647a1572995750585b5c60d2be7d5fb77d4:EVIDENCE-MANIFEST.json member metadata",
+      "bytes": 685153,
+      "sha256Before": "c7b52b2a586a1b8baa7d3a8d4a3c9b14f065563d7f59a553cae555ec7d966c12",
+      "sha256After": "c7b52b2a586a1b8baa7d3a8d4a3c9b14f065563d7f59a553cae555ec7d966c12"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/child-003.receipt.json",
+      "authority": "becd1647a1572995750585b5c60d2be7d5fb77d4:EVIDENCE-MANIFEST.json member metadata",
+      "bytes": 47115,
+      "sha256Before": "78bbe43ff593aebc98e603b69c14ac0fc51e330a1863d95761aa90285a1d0dd6",
+      "sha256After": "78bbe43ff593aebc98e603b69c14ac0fc51e330a1863d95761aa90285a1d0dd6"
+    }
+  ],
+  "sources": [
+    {
+      "path": "benchmarks/consumer-v5/consumer.mjs",
+      "bytes": 58,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1",
+      "mode": 420,
+      "sha256Before": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "bytes": 510637,
+      "sha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+      "mode": 292,
+      "sha256Before": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+      "getBuiltinModuleTokens": [
+        {
+          "byteStart": 503554,
+          "byteEndExclusive": 503570,
+          "lineStart": 808,
+          "lineEnd": 808
+        }
+      ],
+      "sha256After": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-WNH3HOQA.js",
+      "bytes": 1224,
+      "sha256": "d67fdae1502578f0496faa1a24bb7c110fb198f3afe103b51354fbed07785ae6",
+      "mode": 292,
+      "sha256Before": "d67fdae1502578f0496faa1a24bb7c110fb198f3afe103b51354fbed07785ae6",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "d67fdae1502578f0496faa1a24bb7c110fb198f3afe103b51354fbed07785ae6"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-BRJERIF4.js",
+      "bytes": 513,
+      "sha256": "d3bc5891e4add91bbde6fbd3b6d3871df4b6813db51fc617e9a9a533848f9286",
+      "mode": 292,
+      "sha256Before": "d3bc5891e4add91bbde6fbd3b6d3871df4b6813db51fc617e9a9a533848f9286",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "d3bc5891e4add91bbde6fbd3b6d3871df4b6813db51fc617e9a9a533848f9286"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-KIGPB52X.js",
+      "bytes": 262,
+      "sha256": "1373074a82cfcffe84e6b0834a77c9d962f0720d8488279ee92e898655b114c2",
+      "mode": 292,
+      "sha256Before": "1373074a82cfcffe84e6b0834a77c9d962f0720d8488279ee92e898655b114c2",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "1373074a82cfcffe84e6b0834a77c9d962f0720d8488279ee92e898655b114c2"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-WXPNKIIH.js",
+      "bytes": 784,
+      "sha256": "18c806ccbfc476277f24d3a7a4327521ebb06659f76b217731632bac22be36b4",
+      "mode": 292,
+      "sha256Before": "18c806ccbfc476277f24d3a7a4327521ebb06659f76b217731632bac22be36b4",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "18c806ccbfc476277f24d3a7a4327521ebb06659f76b217731632bac22be36b4"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-J2OBOJ64.js",
+      "bytes": 1240,
+      "sha256": "b62747dc35ddaba6076217d2081378133085eb37566d5004f41f7eb0c0207d6c",
+      "mode": 292,
+      "sha256Before": "b62747dc35ddaba6076217d2081378133085eb37566d5004f41f7eb0c0207d6c",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "b62747dc35ddaba6076217d2081378133085eb37566d5004f41f7eb0c0207d6c"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-L2UW7DWF.js",
+      "bytes": 193,
+      "sha256": "8e99a628dbf990431e09974dfe5d44b1a963f834c542ebe34a86ac4c6c84a1a8",
+      "mode": 292,
+      "sha256Before": "8e99a628dbf990431e09974dfe5d44b1a963f834c542ebe34a86ac4c6c84a1a8",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "8e99a628dbf990431e09974dfe5d44b1a963f834c542ebe34a86ac4c6c84a1a8"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-DLL7UR66.js",
+      "bytes": 335,
+      "sha256": "ac036932142d587b7188b00b5276f98394777bd0eaf0a298f1f0171df8436dde",
+      "mode": 292,
+      "sha256Before": "ac036932142d587b7188b00b5276f98394777bd0eaf0a298f1f0171df8436dde",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "ac036932142d587b7188b00b5276f98394777bd0eaf0a298f1f0171df8436dde"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-BKUWXPEM.js",
+      "bytes": 635,
+      "sha256": "9fe4590aa23131e8a8a2b0fd4c31d39fc427b73749616f8ae8af24d224616b7f",
+      "mode": 292,
+      "sha256Before": "9fe4590aa23131e8a8a2b0fd4c31d39fc427b73749616f8ae8af24d224616b7f",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "9fe4590aa23131e8a8a2b0fd4c31d39fc427b73749616f8ae8af24d224616b7f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-KVG5FR5F.js",
+      "bytes": 179119,
+      "sha256": "d62791ae792082a337660bfe8e0abbf4aeb40c159b369dfe25c2e863650e943a",
+      "mode": 292,
+      "sha256Before": "d62791ae792082a337660bfe8e0abbf4aeb40c159b369dfe25c2e863650e943a",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "d62791ae792082a337660bfe8e0abbf4aeb40c159b369dfe25c2e863650e943a"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "bytes": 35477,
+      "sha256": "d9edb8f7a5e67c1b64a69e9b2614fe786deec2caeda3fec68f377b6e4c93dcc0",
+      "mode": 292,
+      "sha256Before": "d9edb8f7a5e67c1b64a69e9b2614fe786deec2caeda3fec68f377b6e4c93dcc0",
+      "getBuiltinModuleTokens": [
+        {
+          "byteStart": 1751,
+          "byteEndExclusive": 1767,
+          "lineStart": 2,
+          "lineEnd": 2
+        },
+        {
+          "byteStart": 1860,
+          "byteEndExclusive": 1876,
+          "lineStart": 2,
+          "lineEnd": 2
+        }
+      ],
+      "sha256After": "d9edb8f7a5e67c1b64a69e9b2614fe786deec2caeda3fec68f377b6e4c93dcc0"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-6D3WD6YU.js",
+      "bytes": 2384,
+      "sha256": "efa3a4bff3026db9d13f7bb33f7ca474511fce7f02523a172adc7718dd22fca9",
+      "mode": 292,
+      "sha256Before": "efa3a4bff3026db9d13f7bb33f7ca474511fce7f02523a172adc7718dd22fca9",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "efa3a4bff3026db9d13f7bb33f7ca474511fce7f02523a172adc7718dd22fca9"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-AH7VTVWU.js",
+      "bytes": 1539,
+      "sha256": "af1315b60ffafafa6ec6e9f72c024826f78e7bb8acc41709622d8c5df0ca23cf",
+      "mode": 292,
+      "sha256Before": "af1315b60ffafafa6ec6e9f72c024826f78e7bb8acc41709622d8c5df0ca23cf",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "af1315b60ffafafa6ec6e9f72c024826f78e7bb8acc41709622d8c5df0ca23cf"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-STHBFACM.js",
+      "bytes": 86,
+      "sha256": "a4ec084819a8f751dcef21036eea2adf92f8b161d35e6c81e7e47673a956ab29",
+      "mode": 292,
+      "sha256Before": "a4ec084819a8f751dcef21036eea2adf92f8b161d35e6c81e7e47673a956ab29",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "a4ec084819a8f751dcef21036eea2adf92f8b161d35e6c81e7e47673a956ab29"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-YUSFCOM7.js",
+      "bytes": 881,
+      "sha256": "1f00b49cf5a44929f02af974fbc9f14f9cccc39df309bd86b040b89d4d7a4c33",
+      "mode": 292,
+      "sha256Before": "1f00b49cf5a44929f02af974fbc9f14f9cccc39df309bd86b040b89d4d7a4c33",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "1f00b49cf5a44929f02af974fbc9f14f9cccc39df309bd86b040b89d4d7a4c33"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-EFORKKSH.js",
+      "bytes": 2346,
+      "sha256": "cb672598615f6f4cf5fbb99e83fe7c90298e8715193883714f7e1d827b8c0be2",
+      "mode": 292,
+      "sha256Before": "cb672598615f6f4cf5fbb99e83fe7c90298e8715193883714f7e1d827b8c0be2",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "cb672598615f6f4cf5fbb99e83fe7c90298e8715193883714f7e1d827b8c0be2"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-GN6CQ3J4.js",
+      "bytes": 1712,
+      "sha256": "b87766dab2a645753e635c4e0d728443c601b737fb7feb034244d2fa242185ec",
+      "mode": 292,
+      "sha256Before": "b87766dab2a645753e635c4e0d728443c601b737fb7feb034244d2fa242185ec",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "b87766dab2a645753e635c4e0d728443c601b737fb7feb034244d2fa242185ec"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-FOCWZZDE.js",
+      "bytes": 710,
+      "sha256": "3a3047587efa3b70633d3ffab3202ae039d9890539ffd567e248efe0d14caf9e",
+      "mode": 292,
+      "sha256Before": "3a3047587efa3b70633d3ffab3202ae039d9890539ffd567e248efe0d14caf9e",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "3a3047587efa3b70633d3ffab3202ae039d9890539ffd567e248efe0d14caf9e"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-W5DWRFSU.js",
+      "bytes": 162,
+      "sha256": "1814b49ec6cf08d85a64259cc9ae5a681e71208121a0bcc8103e1647f24377d8",
+      "mode": 292,
+      "sha256Before": "1814b49ec6cf08d85a64259cc9ae5a681e71208121a0bcc8103e1647f24377d8",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "1814b49ec6cf08d85a64259cc9ae5a681e71208121a0bcc8103e1647f24377d8"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "bytes": 886,
+      "sha256": "fae9347ddabceda17cfed0562a36d8dd570134e42a0d631122a6f85d7c6975f0",
+      "mode": 292,
+      "sha256Before": "fae9347ddabceda17cfed0562a36d8dd570134e42a0d631122a6f85d7c6975f0",
+      "getBuiltinModuleTokens": [],
+      "sha256After": "fae9347ddabceda17cfed0562a36d8dd570134e42a0d631122a6f85d7c6975f0"
+    }
+  ],
+  "bindings": {
+    "Mf": [
+      {
+        "kind": "Identifier",
+        "parentKind": "VariableDeclaration",
+        "byteStart": 503528,
+        "byteEndExclusive": 503530,
+        "lineStart": 808,
+        "lineEnd": 808,
+        "text": "Mf"
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "BinaryExpression",
+        "byteStart": 503651,
+        "byteEndExclusive": 503653,
+        "lineStart": 808,
+        "lineEnd": 808,
+        "text": "Mf"
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "BinaryExpression",
+        "byteStart": 503778,
+        "byteEndExclusive": 503780,
+        "lineStart": 808,
+        "lineEnd": 808,
+        "text": "Mf"
+      }
+    ],
+    "e": [
+      {
+        "kind": "Identifier",
+        "parentKind": "VariableDeclaration",
+        "byteStart": 503544,
+        "byteEndExclusive": 503545,
+        "lineStart": 808,
+        "lineEnd": 808,
+        "text": "e"
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "TypeOfExpression",
+        "byteStart": 503580,
+        "byteEndExclusive": 503581,
+        "lineStart": 808,
+        "lineEnd": 808,
+        "text": "e"
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "CallExpression",
+        "byteStart": 503594,
+        "byteEndExclusive": 503595,
+        "lineStart": 808,
+        "lineEnd": 808,
+        "text": "e"
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "TypeOfExpression",
+        "byteStart": 503689,
+        "byteEndExclusive": 503690,
+        "lineStart": 808,
+        "lineEnd": 808,
+        "text": "e"
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "CallExpression",
+        "byteStart": 503704,
+        "byteEndExclusive": 503705,
+        "lineStart": 808,
+        "lineEnd": 808,
+        "text": "e"
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "CallExpression",
+        "byteStart": 503744,
+        "byteEndExclusive": 503745,
+        "lineStart": 808,
+        "lineEnd": 808,
+        "text": "e"
+      }
+    ],
+    "t": [
+      {
+        "kind": "Identifier",
+        "parentKind": "VariableDeclaration",
+        "byteStart": 503571,
+        "byteEndExclusive": 503572,
+        "lineStart": 808,
+        "lineEnd": 808,
+        "text": "t"
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 503654,
+        "byteEndExclusive": 503655,
+        "lineStart": 808,
+        "lineEnd": 808,
+        "text": "t"
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 503665,
+        "byteEndExclusive": 503666,
+        "lineStart": 808,
+        "lineEnd": 808,
+        "text": "t"
+      }
+    ],
+    "Ks": [
+      {
+        "kind": "Identifier",
+        "parentKind": "ImportSpecifier",
+        "byteStart": 1275,
+        "byteEndExclusive": 1277,
+        "lineStart": 2,
+        "lineEnd": 2,
+        "text": "Ks"
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "TypeOfExpression",
+        "byteStart": 503613,
+        "byteEndExclusive": 503615,
+        "lineStart": 808,
+        "lineEnd": 808,
+        "text": "Ks"
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "CallExpression",
+        "byteStart": 503628,
+        "byteEndExclusive": 503630,
+        "lineStart": 808,
+        "lineEnd": 808,
+        "text": "Ks"
+      }
+    ]
+  },
+  "calls": [
+    {
+      "kind": "CallExpression",
+      "parentKind": "ConditionalExpression",
+      "byteStart": 503594,
+      "byteEndExclusive": 503605,
+      "lineStart": 808,
+      "lineEnd": 808,
+      "text": "e(\"module\")",
+      "receiver": "e",
+      "arguments": [
+        "\"module\""
+      ],
+      "optionalCall": false
+    },
+    {
+      "kind": "CallExpression",
+      "parentKind": "ConditionalExpression",
+      "byteStart": 503628,
+      "byteEndExclusive": 503645,
+      "lineStart": 808,
+      "lineEnd": 808,
+      "text": "Ks(\"node:module\")",
+      "receiver": "Ks",
+      "arguments": [
+        "\"node:module\""
+      ],
+      "optionalCall": false
+    },
+    {
+      "kind": "CallExpression",
+      "parentKind": "PropertyAccessExpression",
+      "byteStart": 503704,
+      "byteEndExclusive": 503723,
+      "lineStart": 808,
+      "lineEnd": 808,
+      "text": "e(\"worker_threads\")",
+      "receiver": "e",
+      "arguments": [
+        "\"worker_threads\""
+      ],
+      "optionalCall": false
+    },
+    {
+      "kind": "CallExpression",
+      "parentKind": "BinaryExpression",
+      "byteStart": 503744,
+      "byteEndExclusive": 503771,
+      "lineStart": 808,
+      "lineEnd": 808,
+      "text": "e(\"crypto\")?.randomUUID?.()",
+      "receiver": "e(\"crypto\")?.randomUUID",
+      "arguments": [],
+      "optionalCall": true
+    },
+    {
+      "kind": "CallExpression",
+      "parentKind": "PropertyAccessExpression",
+      "byteStart": 503744,
+      "byteEndExclusive": 503755,
+      "lineStart": 808,
+      "lineEnd": 808,
+      "text": "e(\"crypto\")",
+      "receiver": "e",
+      "arguments": [
+        "\"crypto\""
+      ],
+      "optionalCall": false
+    }
+  ],
+  "excerpts": [
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "purpose": "complete bootstrap and preceding binding declaration",
+      "byteStart": 503524,
+      "byteEndExclusive": 503786,
+      "lineStart": 808,
+      "lineEnd": 808,
+      "text": "var Mf=null;try{let e=process.getBuiltinModule,t=typeof e==\"function\"?e(\"module\"):typeof Ks==\"function\"?Ks(\"node:module\"):null;Mf=t?.Module??t?.default??null,typeof e==\"function\"&&e(\"worker_threads\")?.isMainThread===!1&&e(\"crypto\")?.randomUUID?.()}catch{Mf=null}"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "purpose": "Ks import declaration",
+      "byteStart": 1263,
+      "byteEndExclusive": 1311,
+      "lineStart": 2,
+      "lineEnd": 2,
+      "text": "import{a as Ks}from\"./chunks/chunk-NCUTH6QL.js\";"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "purpose": "require prelude/shim statement",
+      "byteStart": 0,
+      "byteEndExclusive": 40,
+      "lineStart": 1,
+      "lineEnd": 1,
+      "text": "import{createRequire} from\"node:module\";"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "purpose": "require prelude/shim statement",
+      "byteStart": 40,
+      "byteEndExclusive": 85,
+      "lineStart": 1,
+      "lineEnd": 1,
+      "text": "const require=createRequire(import.meta.url);"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "purpose": "require prelude/shim statement",
+      "byteStart": 0,
+      "byteEndExclusive": 40,
+      "lineStart": 1,
+      "lineEnd": 1,
+      "text": "import{createRequire} from\"node:module\";"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "purpose": "require prelude/shim statement",
+      "byteStart": 40,
+      "byteEndExclusive": 85,
+      "lineStart": 1,
+      "lineEnd": 1,
+      "text": "const require=createRequire(import.meta.url);"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "purpose": "require prelude/shim statement",
+      "byteStart": 267,
+      "byteEndExclusive": 516,
+      "lineStart": 2,
+      "lineEnd": 2,
+      "text": "var m=(a=>typeof require<\"u\"?require:typeof Proxy<\"u\"?new Proxy(a,{get:(b,c)=>(typeof require<\"u\"?require:b)[c]}):a)(function(a){if(typeof require<\"u\")return require.apply(this,arguments);throw Error('Dynamic require of \"'+a+'\" is not supported')});"
+    }
+  ],
+  "checkResults": [
+    {
+      "name": "one token, expected exact location",
+      "pass": false,
+      "error": "Expected values to be strictly equal:\n\n3 !== 1\n"
+    },
+    {
+      "name": "parser diagnostics: benchmarks/consumer-v5/consumer.mjs",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-WNH3HOQA.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-BRJERIF4.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-KIGPB52X.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-WXPNKIIH.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-J2OBOJ64.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-L2UW7DWF.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-DLL7UR66.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-BKUWXPEM.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-KVG5FR5F.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-6D3WD6YU.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-AH7VTVWU.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-STHBFACM.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-YUSFCOM7.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-EFORKKSH.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-GN6CQ3J4.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-FOCWZZDE.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-W5DWRFSU.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "parser diagnostics: benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "Mf entire AST single binding, declaration and two writes only",
+      "pass": true,
+      "detail": [
+        {
+          "kind": "Identifier",
+          "parentKind": "VariableDeclaration",
+          "byteStart": 503528,
+          "byteEndExclusive": 503530,
+          "lineStart": 808,
+          "lineEnd": 808,
+          "text": "Mf"
+        },
+        {
+          "kind": "Identifier",
+          "parentKind": "BinaryExpression",
+          "byteStart": 503651,
+          "byteEndExclusive": 503653,
+          "lineStart": 808,
+          "lineEnd": 808,
+          "text": "Mf"
+        },
+        {
+          "kind": "Identifier",
+          "parentKind": "BinaryExpression",
+          "byteStart": 503778,
+          "byteEndExclusive": 503780,
+          "lineStart": 808,
+          "lineEnd": 808,
+          "text": "Mf"
+        }
+      ]
+    },
+    {
+      "name": "unshadowed global process receiver",
+      "pass": true,
+      "detail": {
+        "kind": "PropertyAccessExpression",
+        "parentKind": "VariableDeclaration",
+        "byteStart": 503546,
+        "byteEndExclusive": 503570,
+        "lineStart": 808,
+        "lineEnd": 808,
+        "text": "process.getBuiltinModule"
+      }
+    },
+    {
+      "name": "ordered exact lexical query callsites",
+      "pass": true,
+      "detail": [
+        {
+          "kind": "CallExpression",
+          "parentKind": "ConditionalExpression",
+          "byteStart": 503594,
+          "byteEndExclusive": 503605,
+          "lineStart": 808,
+          "lineEnd": 808,
+          "text": "e(\"module\")",
+          "receiver": "e",
+          "arguments": [
+            "\"module\""
+          ],
+          "optionalCall": false
+        },
+        {
+          "kind": "CallExpression",
+          "parentKind": "PropertyAccessExpression",
+          "byteStart": 503704,
+          "byteEndExclusive": 503723,
+          "lineStart": 808,
+          "lineEnd": 808,
+          "text": "e(\"worker_threads\")",
+          "receiver": "e",
+          "arguments": [
+            "\"worker_threads\""
+          ],
+          "optionalCall": false
+        },
+        {
+          "kind": "CallExpression",
+          "parentKind": "PropertyAccessExpression",
+          "byteStart": 503744,
+          "byteEndExclusive": 503755,
+          "lineStart": 808,
+          "lineEnd": 808,
+          "text": "e(\"crypto\")",
+          "receiver": "e",
+          "arguments": [
+            "\"crypto\""
+          ],
+          "optionalCall": false
+        }
+      ]
+    },
+    {
+      "name": "bootstrap exact source shape",
+      "pass": true,
+      "detail": {
+        "kind": "TryStatement",
+        "parentKind": "SourceFile",
+        "byteStart": 503536,
+        "byteEndExclusive": 503786,
+        "lineStart": 808,
+        "lineEnd": 808,
+        "text": "try{let e=process.getBuiltinModule,t=typeof e==\"function\"?e(\"module\"):typeof Ks==\"function\"?Ks(\"node:module\"):null;Mf=t?.Module??t?.default??null,typeof e==\"function\"&&e(\"worker_threads\")?.isMainThread===!1&&e(\"crypto\")?.randomUUID?.()}catch{Mf=null}"
+      }
+    }
+  ],
+  "summary": {
+    "checks": 26,
+    "passed": 25,
+    "failed": 1,
+    "authenticatedSources": 21
+  }
+}

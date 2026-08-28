@@ -80,7 +80,12 @@ try {
     assert.throws(() => prepareInspection('/tmp/unknown-tool', {}), /unlisted inspection target/);
     const path = join(binding.path, 'undeclared'); symlinkSync(toolRoutes().git, path);
     try { assert.throws(() => verifyToolPath(binding, environment)); } finally { unlinkSync(path); }
-    return {negativeChecks: 3, qualification: 'Declared route/target admission, not a universal arbitrary-process allowlist.'};
+    const native = join(envelope.roots[0].path, 'native-path-control'); mkdirSync(native);
+    const withNative = {...environment, PATH: native + ':' + binding.path};
+    verifyToolPath(binding, withNative, native);
+    writeFileSync(join(native, 'git'), 'unexecuted shadow');
+    try { assert.throws(() => verifyToolPath(binding, withNative, native), /unbound native PATH entry/); } finally { unlinkSync(join(native, 'git')); }
+    return {negativeChecks: 4, nativePrestageEmptyAdmitted: true, qualification: 'Declared route/target admission, including extra native PATH entries, not a universal arbitrary-process allowlist. Mandatory native completeness remains the separate unchanged native staging check.'};
   });
   await test('R04', () => {
     const keys = ['DEVELOPER_DIR', 'TOOLCHAINS', 'SDKROOT', 'SDK_DIR', 'XCODE_DEVELOPER_DIR_PATH', 'xcrun_nocache', 'xcrun_log', 'DYLD_LIBRARY_PATH', 'LD_PRELOAD'];

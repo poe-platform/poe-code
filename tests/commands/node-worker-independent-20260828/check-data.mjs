@@ -156,7 +156,7 @@ for (const [path, sections] of Object.entries(ranges)) {
   const lines = files.get(path).toString().split('\n');
   for (const [first, last] of sections) excerpts.push({ path, first, text: lines.slice(first - 1, last).join('\n') });
 }
-const result = { role: 'DATA authentication/arithmetic only; zero engine/Worker executions', tool: { version: process.version, binarySha256: createHash('sha256').update(readFileSync(process.execPath)).digest('hex') }, inventories, archive: manifest.archive, engineCommit: bindings.frozenEngine.commit, rootTree, treeShapes, verifiedMembers: files.size, bodies, obligations: obligations.obligations.map(entry => ({ id: entry.id, mapsTo: entry.mapsTo })), sharedBytes: 197056, sequenceArithmeticNotProtocolProof: true, processedBytes: processed, elapsedMs: performance.now() - start };
+const result = { role: 'DATA authentication/arithmetic only; zero engine/Worker executions', tool: { version: process.version, execPath: process.execPath, binaryHash: 'not reread; not runtime qualification' }, inventories, archive: manifest.archive, engineCommit: bindings.frozenEngine.commit, rootTree, treeShapes, verifiedMembers: files.size, bodies, obligations: obligations.obligations.map(entry => ({ id: entry.id, mapsTo: entry.mapsTo })), sharedBytes: 197056, sequenceArithmeticNotProtocolProof: true, processedBytes: processed, elapsedMs: performance.now() - start };
 for (const [name, value] of [['RESULT-v1.json', result], ['source-excerpts.data', excerpts]]) {
   const text = JSON.stringify(value, null, 2) + '\n';
   assert(Buffer.byteLength(text) < 1024 * 1024);

@@ -1,0 +1,1156 @@
+{
+  "schema": "expr-v5-pins/1",
+  "authorizationDate": "2026-08-28",
+  "history": [
+    {
+      "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+      "prefix": "tests/integration/expr-public-independent-20260827/component-execution-v1",
+      "entries": [
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/.gitignore",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "76b5fe44282c2f12e707bf76e240bad731641c42",
+          "bytes": 7,
+          "sha256": "07cc0e3f57247b75f5278d110feba3719a32f4b2383e41234cf01325de774d40"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/EVIDENCE-SEAL.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "fb50a3bf932b7fedbe8e1c3637af7e506bfbc0a8",
+          "bytes": 1762,
+          "sha256": "b71a2eacd98a99d36049c4ac76b875457eeda948941b3e2a4a7dc80368f2a1a7"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/EXECUTION.raw.txt",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "7007369d5e2d04e2c112180a3b9d89984d3e326a",
+          "bytes": 2716,
+          "sha256": "3fe96a2dfb02edea31151ba74b6ffb05952b57a97e3f03bd6231098cd3774926"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/FINALIZATION.raw.txt",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "ec39b742d4a11de8bbcb1fc770420cfb55e068f6",
+          "bytes": 693,
+          "sha256": "97f117781cf20f861b9f4c158ed2b2e6619824102071efd26459eb201f9f880c"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/FREEZE.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "cec7c00f32d6299fc01fcac5bb72f1501448ff06",
+          "bytes": 4316,
+          "sha256": "b8a89ba9d399696987f2a68a1e3480fe925f9aac568e8dc51334707e57333f60"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/INPUTS.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "df4d3dc8597ffd32ff5af09d1984deaa37b4a948",
+          "bytes": 816134,
+          "sha256": "0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/LAYOUT-PREPARATION.raw.txt",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "3efe57fceda52ed9796125bb8b65b32e1cf69094",
+          "bytes": 181,
+          "sha256": "00456322b525f2b9acb3c7aee906a9bcc84f0f370e42d42e5fc0a159966204f3"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/LAYOUTS.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "107306a8e4a3450cbbacbee0a5c69e37e118e72b",
+          "bytes": 4644868,
+          "sha256": "bd87688f4e107bbd14d55b4c8761d0c8bc2880bb8a8d94d0575f591f7d6417d9"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/MANIFEST.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "34487f627397887a778c868852737ac2e7f9acd2",
+          "bytes": 2688,
+          "sha256": "cde888c0c9afab7cbe19d7d21dfd85b031412776b2e2154dd87552141b62b5cb"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/POSTCHECK-ATTEMPT-1.raw.txt",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "166e8235eb8e57eb46c987f8909172544528783a",
+          "bytes": 2457,
+          "sha256": "03edcde77556deb04241d1f829cfc812b2de0fb4d15b5e6289c777d28100da2e"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/POSTCHECK.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "9d4287019c941bd62611d7d7c2dd837442d41d85",
+          "bytes": 8644,
+          "sha256": "d4a60279dab9e1805668d2c1449e228442fe600a9d77918ac8501b496ba61a4d"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/PREPARATION-NOTES.md",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "9bbc282dca2e249155bfa98919027c4e6619b1bc",
+          "bytes": 651,
+          "sha256": "2d72ddfac0d13a9c4566749f0248b9ab0b99af8d36e81d05aa51114c63b41023"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/PREPARATION.raw.txt",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "8d34b97046faeb4a8b3204da8b2297b9a6e3c092",
+          "bytes": 364,
+          "sha256": "f85ea0ffc12324b7fe2c33cbcd9552f97f55f53c7b4d871b677003522507daea"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/RECIPE.md",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "dac600c53ff6677103ef33029d40ce6b30b5ae06",
+          "bytes": 4920,
+          "sha256": "f4ef309b148778515c876ee9ec15fece5f6aa8144e97de9be8057a1adb10e436"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/REPORT.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "26012b72900a3684c9075e9184d866948a491140",
+          "bytes": 25198,
+          "sha256": "ae9d5df9c89f15dba412c92fa9ed6419e05bb6554074d40179245354fd3e3236"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/REPORT.md",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "400ee234eeb8bf4b0571c6f271f0e38addde6816",
+          "bytes": 2861,
+          "sha256": "2d3542515761c4a2213e1cde34288bb16f40add718729a7cb224f4068e8841e8"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/cases.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "53382467b3399f8142e6aeb2051437bc95ba7723",
+          "bytes": 5911,
+          "sha256": "215f5e8f44ccf8792cfc175437fe9701fa7f176d29081d5d561cd828f1269b16"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/child.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "58ec4b7a905ca561161bdfc0e80ca907ba0bab87",
+          "bytes": 10510,
+          "sha256": "12076360e83881be5ec755e121728efd7dc7378572d3fae06009b2145d6c2c19"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/common.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "d196c798d9b6a2fb356b79ac7993080597b69a99",
+          "bytes": 3294,
+          "sha256": "2f14179589b14f83ce6485b47111a0716a8fe815bf49ea02b2e2a4f8b76a2b9d"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/consumer-component.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "9b4258950bd810c639c2bc032031399a205f0172",
+          "bytes": 8853,
+          "sha256": "5ccaaa9967b3528927c30f7a63438d725f1ef7f8c7c87d69de7b9af9af13d16e"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/finalize-abort-v2.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "d94bc190aa680143060152bc520e80eb342e05f8",
+          "bytes": 8361,
+          "sha256": "6f1a7437e399df0c9f5527ed6fe37cf51740edc807bc72199f9363b113afbcc8"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/finalize-abort.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "3b8c1b25748087ec0b9b850f6623560702376b61",
+          "bytes": 7907,
+          "sha256": "2a2569a566a44f7650abbbab8bdb46f5ac29b5fa576e82115515ea5d31e8c0f9"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/guard.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "71d47c9ca9952c7069e366fc43102769d244242a",
+          "bytes": 1453,
+          "sha256": "cdb6a9678e0226e82384bcd8e9424fbbe5b453427e7011de645df823962f2448"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/negative.ts.fixture",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "de9ef8ca6a2b4fd2dda7e4169d7be720064720f5",
+          "bytes": 907,
+          "sha256": "5585338e666d821baacafbde4c19641e1f73c0722a63366b5dc217d67b7d41d3"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/observer.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "b214bf3e5b0736234312ca8e43f025abd746edf9",
+          "bytes": 5078,
+          "sha256": "1fffd7e99be072e87127be1af56461334a6db529d37c8be38b5418762548e37c"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/positive.ts.fixture",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "1379b7e366cda2384d8b5f0d6d3c884bbd2a5995",
+          "bytes": 2382,
+          "sha256": "43756d6555472d6dc57ad9c01b9083880b03538c49bd215c7fe8eda2bc979e81"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/prepare-layouts.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "3319d0ec02b8179896cd3dbfe106565a06addcae",
+          "bytes": 3811,
+          "sha256": "5b4f45c30678f2509da261fd7ba044d969bf2a1a727a8dfb5b9c80ab4fcfa6cb"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/prepare.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "0c1842530d0e9823e2b07a94877271c0f38268d1",
+          "bytes": 4320,
+          "sha256": "2ac0aca8477b2ca52e4a97442ea6c8cbc8fbd46c447263617105b788bbb365cd"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/run.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "5892d483c8c7ba0b0539c30737031964874e4e55",
+          "bytes": 27238,
+          "sha256": "b7b254bb248a9cf8eabfabc0d1c92551f8b1cde5806a3406a4e6411fa76f7227"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/silent-worker.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "00bb7bf4461c8f2752d26489cc95c83dbf02a1d3",
+          "bytes": 178,
+          "sha256": "fbd03925f44cda3e46a012e3060e4c2e5547773dc4c26ca40a0dcb53bc5ef9ed"
+        },
+        {
+          "commit": "4a091ba091413a6466034a8d1f9b84033517f913",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/worker-guard.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "200f106a89ea386e6296e8834ecf7b1a90e1230b",
+          "bytes": 22,
+          "sha256": "fbb63fe38bed0564672e83bc960b7538059e332e34481ff44211124460ddb142"
+        }
+      ]
+    },
+    {
+      "commit": "e87d3f16d9688d2449050ebc66f50ac93eb9c17b",
+      "prefix": "tests/integration/expr-public-independent-20260827/component-execution-v2",
+      "entries": [
+        {
+          "commit": "e87d3f16d9688d2449050ebc66f50ac93eb9c17b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v2/.gitignore",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "9d931c43c2cc015a0a4aaa2d110bee8ab2ada230",
+          "bytes": 6,
+          "sha256": "61f65dd9598c7421870bf4918332637f83f34abe1f9fc7cc095852ef7a1b44f7"
+        },
+        {
+          "commit": "e87d3f16d9688d2449050ebc66f50ac93eb9c17b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v2/CHECKPOINT.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "179807bee2b855f27e734584e3845381ae0cef26",
+          "bytes": 1791,
+          "sha256": "b5fa2f7e5b10f3c26dc73a07ac65d80c1e0ee6981127b2e684814dc116a2d089"
+        },
+        {
+          "commit": "e87d3f16d9688d2449050ebc66f50ac93eb9c17b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v2/CHECKPOINT.md",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "eb6e3af2ffb8795a0803be8f93bee8c1963f8908",
+          "bytes": 761,
+          "sha256": "6687a947770ae861a78ee2fe286cfad09e8379814d97c3c2433c084305e34e24"
+        },
+        {
+          "commit": "e87d3f16d9688d2449050ebc66f50ac93eb9c17b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v2/control-producer.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "5255c8b8013cecca2c7d4c1ff881e5195258352a",
+          "bytes": 422,
+          "sha256": "c5eb025b5d8194a5980d661d04077f40e05f649893c4c808fe2076f4351ec8c7"
+        },
+        {
+          "commit": "e87d3f16d9688d2449050ebc66f50ac93eb9c17b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v2/stream-reader.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "d19eb335eb0aeab7bc76ab8888259c87645c10f3",
+          "bytes": 6651,
+          "sha256": "d54cc0f1d745d4eafb7f16c62b17ac5c3962c570f3ccc7cedc9612db0201d6a6"
+        }
+      ]
+    },
+    {
+      "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+      "prefix": "tests/integration/expr-public-independent-20260827/component-execution-v3",
+      "entries": [
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/.gitignore",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "9d931c43c2cc015a0a4aaa2d110bee8ab2ada230",
+          "bytes": 6,
+          "sha256": "61f65dd9598c7421870bf4918332637f83f34abe1f9fc7cc095852ef7a1b44f7"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/ADMISSION.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "775337b366dfe8d96298e23c6261dabcfe3ebf3a",
+          "bytes": 37247,
+          "sha256": "fbb973f74234a553974d6d230e2537e3a7405cd45e5a14537d53d0d0c39b4373"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/ADMISSION.raw.jsonl",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "312a355ab562db3a2bd9188dadd807dde8ef2893",
+          "bytes": 1383597,
+          "sha256": "0e2bc4f8c4553d3909a5363de6afec250e7aedf4bd3e7e06e7876e6028fb29d6"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/EVIDENCE-SEAL.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "eb664d8c89852b6ebba4c3191e3329a971d59768",
+          "bytes": 23145,
+          "sha256": "03b306734d7ce62993b519810cd3d1de4931bfd6f27e35c2bfb977c79dcfef3c"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/EXECUTION.raw.txt",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "ab9a2b0e68cc7e53f965f7965030da57814135fc",
+          "bytes": 1544,
+          "sha256": "d714870f598de6004d4b66565ca305aaaa47838e7ba73bc95fbc1881a4dc9a9b"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/FINALIZATION.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "3503d323a3f20bb16e36c83f8f0e3c3a557ef6e7",
+          "bytes": 316,
+          "sha256": "e2cdcd794aeb38da9e5f31a066f2b3b523c979d0b7ed6dd85934c390ae93aa80"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/MANIFEST.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "8487b2807ebdf93ec1ab5f3288abf6baa7da4fc4",
+          "bytes": 2706,
+          "sha256": "f2344a8bac78bf32599ba78b73eafa98e8102cf53976e5628b3d9bbf1b2af5c3"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/OVERLAY.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "a6a8e8cf3008ee23e9ee14feebe716e0f0b065bc",
+          "bytes": 7138,
+          "sha256": "4f3623d2f05b42fea31a7aa647b2abcbb97cb3b93122906d88a8a079fdd2abc0"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/PINS.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "b11b8ef6db59c3b8ec8ad89ae6121c1aa9a2cfa0",
+          "bytes": 142480,
+          "sha256": "b321260e2f0a20deef0f5eb7df50538072a57c1313e34163216abae01a2e2231"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/PREPARATION.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "b861b157296ed28b8759779ddad439085eb64a65",
+          "bytes": 1413,
+          "sha256": "58ff08006679da6d85eb17aa3092482d6638f294115a231f3930e23605be9a17"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/RAW.json.gz.base64",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "8038cb0af69be70134d264b6dc87b19cd3b35a35",
+          "bytes": 1664877,
+          "sha256": "46cdd958182327698dfc24b5fd36a963b3107665e57b2d9c883fff68288b8066"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/RECIPE-SEAL.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "d51a6a07726b6cf8c0dc25a33233229e4ee16328",
+          "bytes": 3011,
+          "sha256": "fbea38f27740e7c750a3f3a72f37378ee708dbcc2122e62e49f7d9797397aade"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/RECIPE.md",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "3cef63c31bdbd3800baad56da368916dd655d047",
+          "bytes": 6593,
+          "sha256": "b52627a26732c0c797b1963ac70762d6d0ba20613fb2fadaf957916473405988"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/REPORT.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "690b920a9c5388d7b81b73c0b53c82115da235ea",
+          "bytes": 3192,
+          "sha256": "aaadfe52f29400fb6bd7c94683541780b276f56d1b40ef7e827e82551c97d6f7"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/REPORT.md",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "b949e1b6654f7eb08709c5698b41c20ee3705cd8",
+          "bytes": 1697,
+          "sha256": "71a87101e69e02a423fb482f49098e888bc3718018d65d96c13102b7e88b06d9"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/admission.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "f052b51525a770a73c9ae766ed248b56372bc10d",
+          "bytes": 8908,
+          "sha256": "63d45cdbf628155234a791b6e39f98d81ebab07c6d2a7a50fd0adbc6afda67fe"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/common.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "fff1a46b8d3f050d7d8d123f34ca1e843f97d980",
+          "bytes": 3125,
+          "sha256": "f187faeae304362884656f249692cc312aad1363526f950fef2c5d203620ed89"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/control-producer.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "92df88f0345c598a296df43a3f7692d7f349da55",
+          "bytes": 560,
+          "sha256": "9457d28ff1d36c97e999d4fc299a75c199b288f2b71107073f791836a6cfeebd"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/entry.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "6dcd0d9043b6a6324b3dccebf1ccc9375c0e46fc",
+          "bytes": 541,
+          "sha256": "7e719f1a9f0ed896f199fd7d5fad671fe9b759cc05c27bf24dae67fafc517f14"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/generate-run.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "490b065a905f528994ec323ccd62faf8c9b0c731",
+          "bytes": 6180,
+          "sha256": "d05b8c7b1ae5d98808b6e04aba642581c5b95033a5cdd62b5e7159b6bce859bf"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/prepare.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "1abc786fba0e58438a10fdaae680053c2f5a05f0",
+          "bytes": 7030,
+          "sha256": "5169f8f5102186a4a5b3c11284e5704d2d7949308ad1c66c4c2ef70c47a2b584"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/qualify.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "5a431eaf3b20c37047ed1ed31171b44fa0d9c5af",
+          "bytes": 4267,
+          "sha256": "8e96c872c97e0debb909d73ae66dc8287a7b739a32a147567dda984016073e18"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/run.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "6841efc6f92b5539671312fc79d7b2daf4745b74",
+          "bytes": 27520,
+          "sha256": "a23592d7ed2f9d7b7aef6324964523b6fd7900e79c8ed05d2429a7ffafc59ee9"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/seal-evidence.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "d388d40a03d0c6775700077a00090e2cc294f047",
+          "bytes": 4697,
+          "sha256": "f8b505c808b8a2edaf9d6782fc150d223ae1d0b3914ecf96c1c5931df8e16f8b"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/stream-reader.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "2b8df249e6f5901450c3600c637e2b4a723e0a4e",
+          "bytes": 7222,
+          "sha256": "5248d0c33f0a0282d80931c1ee7505bd379b802e377c4f2a7341a3e16df7932b"
+        }
+      ]
+    },
+    {
+      "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+      "prefix": "tests/integration/expr-public-independent-20260827/component-execution-v3-blocker",
+      "entries": [
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3-blocker/CHECKPOINT.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "4a24cee25b5bf267596390b9bb180dc79f7caa5a",
+          "bytes": 9796,
+          "sha256": "86f2862fae42e51794345d91ae08f3646fa29c64316f3ce5c17b52e194b17815"
+        },
+        {
+          "commit": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v3-blocker/CHECKPOINT.md",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "c4fba0af528a41626e81124e3d32f09fb4c092e9",
+          "bytes": 2629,
+          "sha256": "73c038d7b670ba295a7f33e8a3f4303dff458b34e2f08bd867c011de21aeabd5"
+        }
+      ]
+    },
+    {
+      "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+      "prefix": "tests/integration/expr-public-independent-20260827/component-execution-v4",
+      "entries": [
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/.gitignore",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "9d931c43c2cc015a0a4aaa2d110bee8ab2ada230",
+          "bytes": 6,
+          "sha256": "61f65dd9598c7421870bf4918332637f83f34abe1f9fc7cc095852ef7a1b44f7"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/ADMISSION.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "fe6a9cf11cd06073a8cf702e35c178e06b0a85ed",
+          "bytes": 20501,
+          "sha256": "ecb346d13fba8cfc091a8509fe48400da5a4e7ad0cb1e9453968207348e0b41e"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/ADMISSION.raw.jsonl",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "9474f53079b3074db4c5b7164f7c54b8e2ec6901",
+          "bytes": 1585935,
+          "sha256": "0e52ffd03aec6772ce3f77b701aed58d4dc96bd2824cf80b753f34cbf53485f8"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/EVIDENCE-SEAL.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "79492f80999002875d0ecb99f21c013c123041d2",
+          "bytes": 8867,
+          "sha256": "23678ecd1f6a8767b529ea85d72cf04ad2b9ba21437ca0ab1771ee99a5c997f4"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/EXECUTION.raw.txt",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "3cb774474185ce0af7e60dea1c6d8381ebea98c2",
+          "bytes": 5057,
+          "sha256": "4af56f307e3ccc084ee3cb36520819e2dc93904e75e567d94546b9a8dd625117"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/FINALIZATION.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "fd5ac0c46c9c4f76b6f02f693e6159d04fa7f81e",
+          "bytes": 316,
+          "sha256": "6b57c984ebf24cc573640a4763d9db0e4b39dfd34140980f9b248fcca220ac32"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/MANIFEST.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "c797dd1dacb706d6e00c4dbdb542cb3c2ee5a86d",
+          "bytes": 19117,
+          "sha256": "5baf947732e17db0e61d734de5c8bde3acfbe5daa14d634539dd1ecea4de7eb4"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/OUTER.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "17aa56ea6ada75c24a29d4c966b189cb7a7057d3",
+          "bytes": 538,
+          "sha256": "a7891206b68d217aa9618dcda2562bdd2f57ed59936bf166139b815b08ce96cb"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/OVERLAY.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "479286285fd651371962a5c0caf9f6e8e58fbc28",
+          "bytes": 7302,
+          "sha256": "8171e1d0d331efd82d751a744193b090f8e961c05b7daedac699dc8b05c187a3"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/PINS.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "4105bbab6ae16c7168046673f0a82588ed90520a",
+          "bytes": 33881,
+          "sha256": "de02308e2c25fb05a40705bb74f379d66f4cdb028ac26c16e58e340169a2a9e1"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/RAW.json.gz.base64",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "95a70a998beb23aab32de90f28e5b1ad3bed4594",
+          "bytes": 2525257,
+          "sha256": "adb61830273c511e346ae03d2270e406faf21aec91a71a41a67cba53bb048510"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/RECIPE-SEAL.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "d891d61625e7470578b2cecf6d8c88d95e3c17ed",
+          "bytes": 5629,
+          "sha256": "71ec5ec3a8b27cdcb0e3c6bfa27eec9b4d12396022f76d950c5b38ee9a2e1179"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/RECIPE.md",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "6660bd53cbfd6f018b987b8651beac2a88daac24",
+          "bytes": 6945,
+          "sha256": "a6be8d9b54df6a735a87758cd3c1954bc3dcb9eb3b3cbd9864eca5a9ae782d3e"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/REPAIR-CONTROLS.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "f1d7898662bec838beb44ff8e25619d7f945cfc9",
+          "bytes": 485252,
+          "sha256": "acbcb4b2a9ffe7f17ee749a5d5af93dd332ae8ba0ee93139a4db0143b851a752"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/REPORT.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "82c8292078bb6f35eb1efa5fdf32ca816e82ce1c",
+          "bytes": 542632,
+          "sha256": "d17c78beadbaba297a353843cd6da7634a816d0dff2dc4c6a51180b91e07df8f"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/REPORT.md",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "dcd617bc14d03eecdf3b3ded5a293902d77eafd2",
+          "bytes": 3121,
+          "sha256": "d504de586e5f9c666a472131b8eb131c7eb570cd95e36e85a1b8197a7db823bc"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/VERDICT.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "f0327749ee04007c49cdcec0f09c74746936c7f7",
+          "bytes": 644,
+          "sha256": "98666d5bfa9c1cb8ddbb233e6eaf6fa9037d0c6eb170089c464c3485f312eac6"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/admission.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "0592e8626cfb5084914b3d35e84363723cc35a2d",
+          "bytes": 8862,
+          "sha256": "0f0cbecbfc26f96d014a5292eaf1cd5adf5ddc3a2fb851851536e32bf73676c7"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/common.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "32d757c6686d95985cdda2b81dcec99e665ea256",
+          "bytes": 3388,
+          "sha256": "38063aa2bac52482b6a1df1081f0d642d5d1f79c0d867217ab59041d69b32440"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/entry.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "b2280859d8fec194edcb22e8e9f432f4a8cadaab",
+          "bytes": 1782,
+          "sha256": "7da169cfff200691c9a52224edb0308142e2245cc8f9162a10ac58e263752d37"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/evidence.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "cb1b039b8a0d96e00a8b3c97ecfff859eb098eed",
+          "bytes": 3885,
+          "sha256": "282a629a51fd65f25224edaf8e1024c02ae6f4798ff5c67527d515148f3a7646"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/fixture.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "1cd62831e9ca53d916ce9200f5aa3e83bfea9e1c",
+          "bytes": 472,
+          "sha256": "cad47bb64c61fb8b0221b09d6da8bce8f200c08f3fa39283ce112e8581f56e57"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/history.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "c75d80b421a553181e6c58ad3686bb0622646ef6",
+          "bytes": 3197,
+          "sha256": "12e8f9d392093d827b9a5ff0bf93d7dd5ecab52c49ede442eafd4671bf0b7ee6"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/launch.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "f7de76afb746b7531b146ca339969db84ef421d7",
+          "bytes": 3465,
+          "sha256": "566a2780704f4a3ab46a80145079c626cbff9e6c7aa857c2dcee3ef498806df5"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/prepare.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "d08a79de8b6eab7a75eb72f5c8360c1f7862578b",
+          "bytes": 6568,
+          "sha256": "ef9307135d3abd6299b9f9034af76cbd3a91bfdd2814c6150ad6e46cd461ec78"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/probe.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "766f1b88634a9cdfd9b2af2f450f5001867283e2",
+          "bytes": 2138,
+          "sha256": "2c3269f17ec4aafa130f1d3538491d7e93a603783b135927eb6b985c9c94201f"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/repair.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "91b911642571431b4a373005b052cda6b6613b73",
+          "bytes": 7582,
+          "sha256": "45f87db8debdc47d61c542c93d3c48fa143e7591548332cb528c3b89cb671939"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/run.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "1c733427053688ae8f2b61632eccac134a082d9b",
+          "bytes": 30513,
+          "sha256": "728ddb1297dfda45fd1ef6ccf4e8f51f0ca9f9f4163a124827dce32b9e94a776"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/verdict.mjs",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "e81306780f7be8583645d158acca9b696188311c",
+          "bytes": 4879,
+          "sha256": "ac22ee97dd1e86029998a48b8180b839fcda5ed5f44c5b1889bca5a8fe75a280"
+        }
+      ]
+    },
+    {
+      "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+      "prefix": "tests/integration/expr-public-independent-20260827/component-execution-v4-blocker",
+      "entries": [
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4-blocker/CHECKPOINT.json",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "02eccc312a46a440e193b2fbaf28b088bf27d9cc",
+          "bytes": 17055,
+          "sha256": "2bf909c4b66c91ed63d36c4f60a671f332e910d08f6b29b337c1372c0eede22b"
+        },
+        {
+          "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+          "path": "tests/integration/expr-public-independent-20260827/component-execution-v4-blocker/CHECKPOINT.md",
+          "mode": "100644",
+          "type": "blob",
+          "objectId": "ba1525920b828dc29e0fc97e595b2d2da03779dd",
+          "bytes": 4013,
+          "sha256": "219c8eecf55576bf63d430fdc9d9097749017dabb7881b150fec2d02ab2595e6"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/cases.json",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "53382467b3399f8142e6aeb2051437bc95ba7723",
+      "bytes": 5911,
+      "sha256": "215f5e8f44ccf8792cfc175437fe9701fa7f176d29081d5d561cd828f1269b16"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/consumer.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "75acbb977090f261e16fb8ebc15bd6ee04dc3731",
+      "bytes": 8827,
+      "sha256": "0e4f011b37009faf83a8289bbf517c2cdecc6b409bec1b9abe1315a41f8e7cab"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/positive.ts.fixture",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "1379b7e366cda2384d8b5f0d6d3c884bbd2a5995",
+      "bytes": 2382,
+      "sha256": "43756d6555472d6dc57ad9c01b9083880b03538c49bd215c7fe8eda2bc979e81"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/negative.ts.fixture",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "de9ef8ca6a2b4fd2dda7e4169d7be720064720f5",
+      "bytes": 907,
+      "sha256": "5585338e666d821baacafbde4c19641e1f73c0722a63366b5dc217d67b7d41d3"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/README.md",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "17974d7b45f9ccb7af77ac372cec221c5305252d",
+      "bytes": 6594,
+      "sha256": "be1f7097901df77b55d16e9604eba1f3778bc5b6ecca231a1134441664a626d8"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/PROTOCOL.md",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "d567dd7d829d7ce80eecd38b71850094538355c7",
+      "bytes": 9749,
+      "sha256": "4d5606e192b3f52fdfaec64c9de090f0c2e0938ca98afd70cf0b497b257a7568"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/self-check.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "57152e7bde69ef3c0bfe42e09b5a25cccf181144",
+      "bytes": 2291,
+      "sha256": "567d18fc33468e4c516c209416260ca1e65c77fdbe0eff9de9a4bec38c9f1040"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/provenance.json",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "89a305a44c9fa4a5aa6072f45f27be947a5c577d",
+      "bytes": 6564,
+      "sha256": "bdd6ccf8948658032b3c8c0a10953d767ff43fd223492edddf30d5867a6e156e"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/FREEZE-CHECKS.json",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "76d18286176437435528547200279ef1b7e96ebc",
+      "bytes": 1190,
+      "sha256": "18d27f15fba9fab03b308510520c3dcd33e061de84ed4c00a4038ed76a524c1c"
+    },
+    {
+      "commit": "a0142c7711c4be2cc33384c87bd6d8dea9e3d07d",
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/ADDENDUM.md",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "1cbc5b063cf16ba53b802d063d0bb60e494d2898",
+      "bytes": 9939,
+      "sha256": "d4c894e971725f0a6b0ee6f8d6c20f8ad3d39a63c9ac8aa114788474e898d1b7"
+    },
+    {
+      "commit": "a0142c7711c4be2cc33384c87bd6d8dea9e3d07d",
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/AUTHENTICATION.json",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "5d5de81d3015cdb7cc8a5f19b79114df20155528",
+      "bytes": 20548,
+      "sha256": "9834df838d5aca6f9bf756b9af6e0a8f6e448e6c0ab7d477c02925e39ac11d2e"
+    },
+    {
+      "commit": "a0142c7711c4be2cc33384c87bd6d8dea9e3d07d",
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/CHECKS.json",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "99291058e2ef32c06a8c251a70e2ae95a10b20b4",
+      "bytes": 1900,
+      "sha256": "1825a868610b89cdaa4d7ed8c2fedec5f686e0470a436c05ac489956196db198"
+    },
+    {
+      "commit": "a0142c7711c4be2cc33384c87bd6d8dea9e3d07d",
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/SEAL.json",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "60651869490f65d7a85337c12802e027cd25357a",
+      "bytes": 3334,
+      "sha256": "3a0dea0fbb822af2451c249c0b29310cf17d4f6f2d13af80db84b6087ffd02ca"
+    },
+    {
+      "commit": "a0142c7711c4be2cc33384c87bd6d8dea9e3d07d",
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/inspect.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "bfa46a663617cdd7b9fae413fb0e8a72c5627f9f",
+      "bytes": 13203,
+      "sha256": "3e294b4a9d24aa9f3159ed8671e61cd10461b48862283b409074efae041b5515"
+    },
+    {
+      "commit": "8d07bd6e7549aaa9a1096c3e9278b231692bc699",
+      "path": "tests/plugins/expr-public-author/evidence-v1/REVIEW-HANDOFF.json",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "428199c85336a8bbc2258847e7fa87278c8b65a9",
+      "bytes": 277983,
+      "sha256": "23934ad85743186b91adc772b459e78d46c802091f1b2d2aac8357480dbf8be1"
+    },
+    {
+      "commit": "8d07bd6e7549aaa9a1096c3e9278b231692bc699",
+      "path": "tests/plugins/expr-public-author/POLICY.md",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "308e3a00a619f0f1904ac4250df5add08ecfe527",
+      "bytes": 6429,
+      "sha256": "bc46fa95776b26c71977530b13c88d62449efc3dc3e1dfd1ec6511a5b3472c2e"
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/git",
+      "bytes": 7604272,
+      "mode": 493,
+      "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "bytes": 117591472,
+      "mode": 493,
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+    }
+  ],
+  "acceptedP01": {
+    "status": "BOUND_ACCEPTED_PROOF",
+    "accepted": true,
+    "independentlyBuiltIn": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+    "recipe": "8a28b7bffa5ef093cff2374ec32cba4ec4ca83f0",
+    "buildExecuted": false,
+    "packExecuted": false,
+    "independentInputsBound": 357,
+    "actualPackSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packBytes": 727526,
+    "members": 834,
+    "manifestSha256": "5baf947732e17db0e61d734de5c8bde3acfbe5daa14d634539dd1ecea4de7eb4",
+    "authorpackFallback": false
+  },
+  "reader": {
+    "status": "qualified-evidence-reused",
+    "controls": 16,
+    "newControls": 0,
+    "evidence": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+    "semanticsChanged": false
+  },
+  "repair": {
+    "status": "qualified-evidence-reused",
+    "pass": 28,
+    "planned": 28,
+    "newControls": 0,
+    "evidence": "1ec1912001db43f803af46bb5dea89a7e397b83b"
+  },
+  "cases": {
+    "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/cases.json",
+    "sha256": "215f5e8f44ccf8792cfc175437fe9701fa7f176d29081d5d561cd828f1269b16",
+    "bytes": 5911,
+    "unchanged": true
+  },
+  "observerSha256": "1fffd7e99be072e87127be1af56461334a6db529d37c8be38b5418762548e37c",
+  "silentWorkerSha256": "fbd03925f44cda3e46a012e3060e4c2e5547773dc4c26ca40a0dcb53bc5ef9ed",
+  "limits": {
+    "preview": 1048576,
+    "trace": 67108864,
+    "chunk": 65536,
+    "line": 131072,
+    "diagnostics": 256,
+    "diagnosticBytes": 262144,
+    "reapMs": 5000
+  },
+  "transportControls": [
+    "compiler-positive",
+    "compiler-late-error",
+    "compiler-forbidden",
+    "overflow",
+    "nonzero",
+    "line-overflow",
+    "diagnostic-overflow",
+    "ordinary-cap"
+  ],
+  "aggregateControls": [
+    "positive",
+    "failed-P01",
+    "missing-P01",
+    "missing-admission",
+    "missing-repair",
+    "failed-repair",
+    "missing-controls",
+    "failed-control",
+    "missing-types",
+    "failed-type",
+    "unrun-case",
+    "missing-context",
+    "missing-finalization",
+    "failed-finalization",
+    "failed-check",
+    "unclosed-child",
+    "integrity-held",
+    "missing-bound-proof",
+    "failed-trace-control",
+    "missing-trace-control",
+    "supervised-type",
+    "missing-phase"
+  ],
+  "counts": {
+    "newTransportControls": 16,
+    "newAggregateControls": 22,
+    "newControls": 38,
+    "runtime": 104,
+    "types": 40,
+    "packageControls": 36
+  },
+  "generatedTopLevel": [
+    "work",
+    "EXECUTION.raw.txt",
+    "PRE-BINDINGS.json",
+    "POST-BINDINGS.json",
+    "TRACE-CONTROLS.json",
+    "REPORT.json",
+    "MANIFEST.json",
+    "RAW.jsonl.gz",
+    "FINALIZATION.json",
+    "VERDICT.json",
+    "OUTER.json",
+    "EVIDENCE-SEAL.json",
+    "REPORT.md"
+  ]
+}

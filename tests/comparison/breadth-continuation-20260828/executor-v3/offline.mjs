@@ -25,6 +25,7 @@ export function installOffline(view, emit) {
   const assets = [];
   const descriptors = new Set();
   const openDescriptor = fs.openSync.bind(fs), closeDescriptor = fs.closeSync.bind(fs), readDescriptor = fs.readSync.bind(fs), statDescriptor = fs.fstatSync.bind(fs);
+  const realpath = fs.realpathSync.native.bind(fs.realpathSync);
   const createRequire = moduleAPI.createRequire;
   function replace(object, name, value) {
     const previous = object[name];
@@ -85,6 +86,15 @@ export function installOffline(view, emit) {
   replace(fs, 'readSync', (descriptor, ...args) => { if (!descriptors.has(descriptor)) return deny('fs.readSync.unowned')(descriptor); return readDescriptor(descriptor, ...args); });
   replace(fs, 'fstatSync', descriptor => { if (!descriptors.has(descriptor)) return deny('fs.fstatSync.unowned')(descriptor); return statDescriptor(descriptor); });
   replace(fs, 'closeSync', descriptor => { if (!descriptors.has(descriptor)) return deny('fs.closeSync.unowned')(descriptor); closeDescriptor(descriptor); descriptors.delete(descriptor); });
+  const guardedRealpath = (filename, options) => {
+    const absolute = filename instanceof URL ? fileURLToPath(filename) : path.resolve(filename);
+    asset(absolute);
+    const actual = realpath(absolute);
+    requireThat(actual === absolute, 'REALPATH_ALIAS', { actual, absolute });
+    return options === 'buffer' || options?.encoding === 'buffer' ? Buffer.from(actual) : actual;
+  };
+  guardedRealpath.native = guardedRealpath;
+  replace(fs, 'realpathSync', guardedRealpath);
   for (const [object, names] of [[http, ['request', 'get', 'createServer']], [https, ['request', 'get', 'createServer']], [net, ['connect', 'createConnection', 'createServer', 'Socket', 'Server']], [tls, ['connect', 'createServer', 'TLSSocket']], [dns, Object.keys(dns)], [dns.promises, Object.keys(dns.promises)], [dgram, ['createSocket']], [childProcess, Object.keys(childProcess)], [workers, ['Worker']]]) for (const name of names) replace(object, name, deny(name === 'Worker' ? 'UNSUPPORTED_WORKER_ASSET_ADMISSION' : name));
   replace(globalThis, 'fetch', deny('fetch'));
   replace(globalThis, 'WebSocket', deny('WebSocket'));

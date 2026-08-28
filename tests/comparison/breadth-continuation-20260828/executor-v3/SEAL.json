@@ -404,6 +404,12 @@
       "sha256": "53ae9f8b4937336a93624327d973da5de5b8834bbb41d05f8a203b01b14a25dc"
     },
     {
+      "path": "REPAIR-02.md",
+      "bytes": 1219,
+      "mode": 420,
+      "sha256": "19f63a595cd83080cd052e4ed0eb6a4a3a5cbc73c260bfe1409ec801b9e75baf"
+    },
+    {
       "path": "adapter.mjs",
       "bytes": 8558,
       "mode": 420,
@@ -417,15 +423,15 @@
     },
     {
       "path": "controls.mjs",
-      "bytes": 12231,
+      "bytes": 12256,
       "mode": 420,
-      "sha256": "b3f27f0a698491ad1045675c14d1a697fca25a7489e36a31b586353f94498fbf"
+      "sha256": "9edbcb010afc7f7de2b4cf26eb0aaca6126cdbb81de83aa0639d751f03392fc6"
     },
     {
       "path": "coordinator.mjs",
-      "bytes": 10162,
+      "bytes": 10270,
       "mode": 420,
-      "sha256": "8aeaec93a72007b7704293df01666005922606c56c58f4edb1583847d7394b78"
+      "sha256": "f24735f6370ab687b387f2a71dbe237ab394630becb1ba6c83587412d17fa2fb"
     },
     {
       "path": "fixtures/forbidden.mjs",
@@ -459,9 +465,9 @@
     },
     {
       "path": "offline.mjs",
-      "bytes": 8044,
+      "bytes": 8590,
       "mode": 420,
-      "sha256": "6dac37c0f6062d48cbddddc264c40c7dd83e8de4142f6a15f0cedd5f2496b00f"
+      "sha256": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
     },
     {
       "path": "predicates.mjs",
@@ -527,10 +533,10 @@
   "mutableOutputNamespace": "runs",
   "authorization": "synthetic only; product/comparator phases require later exact different freeze and root grants",
   "priorReview": "a66683b5bf9b0274705f5f6e61ff1e35aee1db46",
-  "version": 2,
+  "version": 3,
   "priorRecipe": {
-    "commit": "d5a68a9f",
-    "sha256": "f6d8c07d75e11123eb08af6ff07c43200d24a76fb8d515bc5eb98f74b133ed89",
-    "firstEvidenceCommit": "446206f6"
+    "commit": "4ad7eefb",
+    "sha256": "950626b647233848133080f6e2d3446cf27d34d3b0efde2a24ad6841a935793b",
+    "evidenceCommit": "8abf1f29"
   }
 }

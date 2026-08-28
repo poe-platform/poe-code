@@ -25,7 +25,7 @@ export function syntheticReport(specimen) {
 }
 export async function controls({ root, work, workflows, child, integrity, actualC11, only = null }) {
   const families = Array.from({ length: 12 }, (_, index) => ({ id: `C${String(index + 1).padStart(2, '0')}` })).filter(row => !only || only.includes(row.id));
-  requireThat(only === null || JSON.stringify(only) === '["C03","C04","C05"]', 'CONTROL_SELECTION', only);
+  requireThat(only === null || ['["C03","C04","C05"]', '["C03","C04"]'].includes(JSON.stringify(only)), 'CONTROL_SELECTION', only);
   const fixtures = ['loaded.mjs', 'loaded.cjs', 'require-consumer.mjs'].map(name => { const bytes = fs.readFileSync(path.join(root, 'fixtures', name)); return { path: name, mode: 0o644, bytes: bytes.length, sha256: hash(bytes) }; });
   const view = { root: path.join(work, 'synthetic-view'), files: fixtures };
   writeView(view.root, fixtures, entry => fs.readFileSync(path.join(root, 'fixtures', entry.path)));

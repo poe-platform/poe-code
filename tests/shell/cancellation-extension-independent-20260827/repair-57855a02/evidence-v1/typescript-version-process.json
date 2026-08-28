@@ -1,0 +1,27 @@
+{
+  "name": "typescript-version",
+  "executable": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/node",
+  "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/tsc.js",
+    "--version"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "NODE_NO_WARNINGS": "1"
+  },
+  "started": "2026-08-28T00:45:40.625Z",
+  "ended": "2026-08-28T00:45:40.749Z",
+  "pid": 13229,
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "4985b444236c5acdb5b850e5d754975e130eed5b033c53f201cdf471e83d7f13",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

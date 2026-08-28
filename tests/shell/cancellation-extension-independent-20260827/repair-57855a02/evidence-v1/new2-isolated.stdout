@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: N1 control-first and invoke-first preserve original control through both authenticated routes
+ok 1 - N1 control-first and invoke-first preserve original control through both authenticated routes
+  ---
+  duration_ms: 1.886167
+  type: 'test'
+  ...
+# Subtest: N2 false and NaN control reports do not authenticate unrelated or sibling throws
+ok 2 - N2 false and NaN control reports do not authenticate unrelated or sibling throws
+  ---
+  duration_ms: 0.753625
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 59.815

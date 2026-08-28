@@ -1,0 +1,84 @@
+{
+  "candidate": "57855a0293edb83bff98113123806497b4427416",
+  "authorFreeze": "2d02ebe87bf7b18548190ba6a607649cef8d04e3",
+  "independentFreeze": "589f90eae8dfa493558b5c62221590c86805f05a",
+  "ownParent": "49a35b8944728e05f3730a5a79aad91a5c9f8390",
+  "helperBlob": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+  "helperSha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2",
+  "changedPaths": [
+    "src/shell/cancellation.ts"
+  ],
+  "exactTwoLineRepair": true,
+  "priorBodyBeforeRuntimeSelectorUnchanged": true,
+  "preserved": [
+    {
+      "path": "src/contracts",
+      "oid": "c205b529c7668be305dd211ff564af0076463e79",
+      "type": "tree"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "oid": "b826b1f3d8cb8a0f3703c949bda5003cce06f326",
+      "type": "blob"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "oid": "013889cd158e77267341867f1e360d7b5eb22e94",
+      "type": "blob"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "oid": "4684a5ad1f8b76c721a6f827646f289eda4c44ef",
+      "type": "blob"
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "oid": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "type": "blob"
+    },
+    {
+      "path": "src/index.ts",
+      "oid": "32d3f6a2de96369954005c0689da00a4c2e1e7e1",
+      "type": "blob"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "oid": "b5685005ac287561413d59f9bc7bd00f92405761",
+      "type": "blob"
+    },
+    {
+      "path": "package.json",
+      "oid": "1e6bfc1e602dd0f22b8e0a3f064067d411c57e52",
+      "type": "blob"
+    },
+    {
+      "path": "package-lock.json",
+      "oid": "5d6562da663aa1b363c5ce5f101ed8469cece4da",
+      "type": "blob"
+    },
+    {
+      "path": "tests/shell/cancellation-stage1-independent-20260827",
+      "oid": "df695b3e4967d81b192f64fd43d67c377ac549b5",
+      "type": "tree"
+    },
+    {
+      "path": "tests/shell/cancellation-extension-independent-20260827",
+      "oid": "afc91c7c85a9622fdf1fef8dcecddca877351feb",
+      "type": "tree"
+    },
+    {
+      "path": "tests/shell/cancellation-stage1-20260827",
+      "oid": "da1cfde657887cf9bfdf217f44f8a9e34a1de9d8",
+      "type": "tree"
+    }
+  ],
+  "previousDeclarations": {
+    "commit": "8e62751d4b3b05cb493bed79aa1fd535df251da8",
+    "path": "tests/shell/cancellation-extension-independent-20260827/evidence-v2/artifacts/cancellation.d.ts.data",
+    "mode": "100644",
+    "name": "cancellation.d.ts.data",
+    "oid": "7bbcf6c571e1ead7a20c36193517600e0a5ded34",
+    "type": "blob",
+    "sha256": "7edba703edd9d09da8fc6b1b754722695d9af2fba9fac0669408bbe1e79eb79d"
+  }
+}

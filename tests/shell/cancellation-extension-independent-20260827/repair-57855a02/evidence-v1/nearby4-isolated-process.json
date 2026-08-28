@@ -1,0 +1,35 @@
+{
+  "name": "nearby4-isolated",
+  "executable": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/node",
+  "executableSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "args": [
+    "--import",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/fixtures/register-guard-v1.mjs",
+    "--test",
+    "--test-reporter=tap",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/fixtures/nearby4.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "NODE_NO_WARNINGS": "1",
+    "CANCELLATION_MODULE": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/build/cancellation.js",
+    "CANCELLATION_MODULE_SHA256": "4b8bfbd52a001ab307bae25230d63275ba2073e7d4e62893c66f075a45e67561",
+    "REVIEW_ALLOWED_FILES": "[\"/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/build/cancellation.js\",\"/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/fixtures/nearby4.mjs\"]",
+    "REVIEW_LOAD_LOG": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/evidence-v1/nearby4-isolated-loads.jsonl",
+    "REVIEW_EXIT_LOG": "/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/evidence-v1/nearby4-isolated-children.jsonl"
+  },
+  "started": "2026-08-28T00:45:58.470Z",
+  "ended": "2026-08-28T00:45:58.608Z",
+  "pid": 13506,
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "stdoutSha256": "3bc5cc1ef0b6ca277f5478b8197b24b3f3d1acd243073e5c8c214c950c613ad8",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

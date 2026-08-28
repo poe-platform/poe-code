@@ -1,0 +1,11 @@
+{
+  "oldLayerEqualExceptSoleAuthorizedAppend": true,
+  "originalStage1Equal": true,
+  "authorHistoryEqual": true,
+  "foreignStagingEqual": true,
+  "fullIndexIdentical": false,
+  "beforeHead": "3eb9767d5d6e6ec97c5e3c860aceb096d89d6575",
+  "afterHead": "add4e9db6d8c9b946cf1c854562c4d6b56241890",
+  "reservedLiveEqual": true,
+  "liveInputsNeverOverlaid": true
+}

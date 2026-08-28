@@ -1,0 +1,70 @@
+moved-internal/old-six-negative-moved.ts(2,49): error TS2322: Type 'null' is not assignable to type 'AbortSignal | undefined'.
+moved-internal/old-six-negative-moved.ts(3,55): error TS2740: Type 'AbortController' is missing the following properties from type 'AbortSignal': aborted, onabort, reason, throwIfAborted, and 3 more.
+moved-internal/old-six-negative-moved.ts(4,53): error TS2740: Type 'Promise<AbortSignal>' is missing the following properties from type 'AbortSignal': aborted, onabort, reason, throwIfAborted, and 3 more.
+moved-internal/old-six-negative-moved.ts(5,49): error TS2322: Type 'string' is not assignable to type 'AbortSignal'.
+moved-internal/old-six-negative-moved.ts(6,55): error TS2739: Type '{ aborted: false; reason: undefined; }' is missing the following properties from type 'AbortSignal': onabort, throwIfAborted, addEventListener, removeEventListener, dispatchEvent
+moved-internal/old-six-negative-moved.ts(7,52): error TS2322: Type 'number' is not assignable to type 'AbortSignal'.
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es5.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2015.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2016.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2017.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2018.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2019.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2020.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2021.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2022.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2023.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.dom.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2015.core.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2015.collection.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2015.generator.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2015.iterable.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2015.promise.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2015.proxy.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2015.reflect.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2015.symbol.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2015.symbol.wellknown.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2016.array.include.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2016.intl.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2017.arraybuffer.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2017.date.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2017.object.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2017.sharedmemory.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2017.string.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2017.intl.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2017.typedarrays.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2018.asyncgenerator.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2018.asynciterable.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2018.intl.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2018.promise.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2018.regexp.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2019.array.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2019.object.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2019.string.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2019.symbol.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2019.intl.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2020.bigint.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2020.date.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2020.promise.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2020.sharedmemory.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2020.string.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2020.symbol.wellknown.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2020.intl.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2020.number.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2021.promise.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2021.string.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2021.weakref.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2021.intl.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2022.array.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2022.error.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2022.intl.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2022.object.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2022.string.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2022.regexp.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2023.array.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2023.collection.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.es2023.intl.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.decorators.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/tools/typescript/lib/lib.decorators.legacy.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/moved-internal/cancellation.d.ts
+/Users/kjopek/Workspace/safe-bash/tests/shell/cancellation-extension-independent-20260827/repair-57855a02/.scratch-evidence-v1/moved-internal/old-six-negative-moved.ts

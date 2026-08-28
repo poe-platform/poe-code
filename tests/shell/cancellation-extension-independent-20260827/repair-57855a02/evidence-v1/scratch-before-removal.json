@@ -1,0 +1,1068 @@
+{
+  ".": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "fixtures": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "fixtures/extension-eight-negative.ts.data": {
+    "kind": "file",
+    "size": 908,
+    "mode": 420,
+    "sha256": "2a5c400b3e8332b847b601935e1bca64d6b16b6155ed7b0289fe5a620d30f72e"
+  },
+  "fixtures/extension-positive.ts.data": {
+    "kind": "file",
+    "size": 1779,
+    "mode": 420,
+    "sha256": "49211525cd597eaae6502fc35a06df95af513eded429f9cf48b54d43a119bc62"
+  },
+  "fixtures/extension-v1.mjs": {
+    "kind": "file",
+    "size": 18684,
+    "mode": 420,
+    "sha256": "4f4499b6ff9fca5f8a354056c8af6483b707ef2e2d07ccd2d2c8dcf5e7106dbc"
+  },
+  "fixtures/load-guard-v1.mjs": {
+    "kind": "file",
+    "size": 1333,
+    "mode": 420,
+    "sha256": "0e2735900984aeaa1a449e47568f0d5fcf45a3c887ef265146e7b56d898250ab"
+  },
+  "fixtures/nearby4.mjs": {
+    "kind": "file",
+    "size": 9258,
+    "mode": 420,
+    "sha256": "f71d8ff006545946f8c4aea9c5775ffec2b70ab19381e9d802ba81b36d773f2d"
+  },
+  "fixtures/new2.mjs": {
+    "kind": "file",
+    "size": 5785,
+    "mode": 420,
+    "sha256": "418f25d207a5f9e5c082df5f65d520d8fb3e4fa48a3b8b5fccfe8743140a705e"
+  },
+  "fixtures/old-positive.ts.data": {
+    "kind": "file",
+    "size": 1315,
+    "mode": 420,
+    "sha256": "508ae8d6c2277845f3477e20a5ba95cce62c19201ad5d9c80614a4f85607a03f"
+  },
+  "fixtures/old-six-negative.ts.data": {
+    "kind": "file",
+    "size": 683,
+    "mode": 420,
+    "sha256": "43a63f7795344ea6ad8b840954320a55241b916c592c6fa9bc1a6396bdf4fc9f"
+  },
+  "fixtures/original12.mjs": {
+    "kind": "file",
+    "size": 15971,
+    "mode": 420,
+    "sha256": "b195fe6ac3d547235835311bc95b259f60bbe767592a13056ea85cbcf5cd59e1"
+  },
+  "fixtures/register-guard-v1.mjs": {
+    "kind": "file",
+    "size": 371,
+    "mode": 420,
+    "sha256": "ee1ae15280234b76802584764f1f227ea4e552729423475d2ca5a7947a24f491"
+  },
+  "moved-internal": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "moved-internal/cancellation.d.ts": {
+    "kind": "file",
+    "size": 5113,
+    "mode": 420,
+    "sha256": "7edba703edd9d09da8fc6b1b754722695d9af2fba9fac0669408bbe1e79eb79d"
+  },
+  "moved-internal/cancellation.js": {
+    "kind": "file",
+    "size": 27650,
+    "mode": 420,
+    "sha256": "4b8bfbd52a001ab307bae25230d63275ba2073e7d4e62893c66f075a45e67561"
+  },
+  "moved-internal/extension-eight-negative-moved.ts": {
+    "kind": "file",
+    "size": 908,
+    "mode": 420,
+    "sha256": "2a5c400b3e8332b847b601935e1bca64d6b16b6155ed7b0289fe5a620d30f72e"
+  },
+  "moved-internal/extension-positive-moved.ts": {
+    "kind": "file",
+    "size": 1779,
+    "mode": 420,
+    "sha256": "49211525cd597eaae6502fc35a06df95af513eded429f9cf48b54d43a119bc62"
+  },
+  "moved-internal/old-positive-moved.ts": {
+    "kind": "file",
+    "size": 1315,
+    "mode": 420,
+    "sha256": "508ae8d6c2277845f3477e20a5ba95cce62c19201ad5d9c80614a4f85607a03f"
+  },
+  "moved-internal/old-six-negative-moved.ts": {
+    "kind": "file",
+    "size": 683,
+    "mode": 420,
+    "sha256": "43a63f7795344ea6ad8b840954320a55241b916c592c6fa9bc1a6396bdf4fc9f"
+  },
+  "moved-internal/package.json": {
+    "kind": "file",
+    "size": 23,
+    "mode": 420,
+    "sha256": "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a"
+  },
+  "moved-internal/tsconfig-extension-eight-negative-moved.json": {
+    "kind": "file",
+    "size": 372,
+    "mode": 420,
+    "sha256": "106c9cbe99c3aea87b74e7be2b3056c46bc103febe8668e9a27bea7b64afb3f4"
+  },
+  "moved-internal/tsconfig-extension-positive-moved.json": {
+    "kind": "file",
+    "size": 366,
+    "mode": 420,
+    "sha256": "a48872a6bbaca50a797c512a02962416c348fc1dd9e73cc1ff61c0d32b21b5a6"
+  },
+  "moved-internal/tsconfig-old-positive-moved.json": {
+    "kind": "file",
+    "size": 360,
+    "mode": 420,
+    "sha256": "b52a127cd23d060e344ba34158e1b10016351cac94b33a19f0bc7d1d067e84fc"
+  },
+  "moved-internal/tsconfig-old-six-negative-moved.json": {
+    "kind": "file",
+    "size": 364,
+    "mode": 420,
+    "sha256": "039fbf9ea718b4b09603f896afd9690b9d0455f1c9eb9c5d574889b1ca2cd6e4"
+  },
+  "revert-repair": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "revert-repair/cancellation.ts": {
+    "kind": "file",
+    "size": 31949,
+    "mode": 420,
+    "sha256": "f628801379acd1c86c247a778e973f4cb89f8bbe2c3089f8192c31f3c5b273a5"
+  },
+  "revert-repair/emitted": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "revert-repair/emitted/cancellation.d.ts": {
+    "kind": "file",
+    "size": 5113,
+    "mode": 420,
+    "sha256": "7edba703edd9d09da8fc6b1b754722695d9af2fba9fac0669408bbe1e79eb79d"
+  },
+  "revert-repair/emitted/cancellation.js": {
+    "kind": "file",
+    "size": 27613,
+    "mode": 420,
+    "sha256": "83a312b43649bd68929a57d113cb1c7cd09dfb2397461b465677dae9c5679d98"
+  },
+  "revert-repair/emitted/package.json": {
+    "kind": "file",
+    "size": 23,
+    "mode": 420,
+    "sha256": "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a"
+  },
+  "revert-repair/package.json": {
+    "kind": "file",
+    "size": 23,
+    "mode": 420,
+    "sha256": "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a"
+  },
+  "revert-repair/tsconfig.json": {
+    "kind": "file",
+    "size": 379,
+    "mode": 420,
+    "sha256": "8d66ac45c6de77bdf9dbaebda25eb86fc883ca3b605afd3686649beba4388d71"
+  },
+  "tmp": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tmp/node-compile-cache": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tmp/node-compile-cache/v22.22.2-arm64-2b4477fa-501": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tmp/node-compile-cache/v22.22.2-arm64-2b4477fa-501/6af24af9": {
+    "kind": "file",
+    "size": 1322132,
+    "mode": 384,
+    "sha256": "0e9a15134e5389418725ec33b9f3890547c6c46f58841e69a3f4257a4ae559c7"
+  },
+  "tools": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/node": {
+    "kind": "file",
+    "size": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "tools/typescript": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/typescript/LICENSE.txt": {
+    "kind": "file",
+    "size": 9197,
+    "mode": 420,
+    "sha256": "a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47"
+  },
+  "tools/typescript/README.md": {
+    "kind": "file",
+    "size": 2842,
+    "mode": 420,
+    "sha256": "73147458477d90cd6236627cdd9b0871df12e6e8a21d2d0fda6d1ad2826bdc0e"
+  },
+  "tools/typescript/SECURITY.md": {
+    "kind": "file",
+    "size": 2656,
+    "mode": 420,
+    "sha256": "7b6976eec43edfa68b79a459dd089c56b7a395916dbf1a01bd11e6d86e12128f"
+  },
+  "tools/typescript/ThirdPartyNoticeText.txt": {
+    "kind": "file",
+    "size": 37824,
+    "mode": 420,
+    "sha256": "1af3c68039c57e539422da82a4faada506ce6d0ea6f90e0b699d02dbcdb7a90c"
+  },
+  "tools/typescript/bin": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/typescript/bin/tsc": {
+    "kind": "file",
+    "size": 45,
+    "mode": 493,
+    "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+  },
+  "tools/typescript/bin/tsserver": {
+    "kind": "file",
+    "size": 50,
+    "mode": 493,
+    "sha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada"
+  },
+  "tools/typescript/lib": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/typescript/lib/_tsc.js": {
+    "kind": "file",
+    "size": 6213092,
+    "mode": 420,
+    "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+  },
+  "tools/typescript/lib/_tsserver.js": {
+    "kind": "file",
+    "size": 27888,
+    "mode": 420,
+    "sha256": "0efcc88cdf0593cc1dcc8b6afd605c7bed9eca6f648c70c8f0df8695114bf6d7"
+  },
+  "tools/typescript/lib/_typingsInstaller.js": {
+    "kind": "file",
+    "size": 10363,
+    "mode": 420,
+    "sha256": "62a69c574365f1c81633b86b3214f9df860aad08843028dd5244b00aa7f1e190"
+  },
+  "tools/typescript/lib/cs": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/typescript/lib/cs/diagnosticMessages.generated.json": {
+    "kind": "file",
+    "size": 320453,
+    "mode": 420,
+    "sha256": "5b30e58d35f877521e14c16551c86320b2ed19ddb70fe5f41841b561d27f18c2"
+  },
+  "tools/typescript/lib/de": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/typescript/lib/de/diagnosticMessages.generated.json": {
+    "kind": "file",
+    "size": 344426,
+    "mode": 420,
+    "sha256": "a4031a8028febc35f92ba317104878d93f02c1750e6ee16351c2270ab4dff517"
+  },
+  "tools/typescript/lib/es": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/typescript/lib/es/diagnosticMessages.generated.json": {
+    "kind": "file",
+    "size": 340054,
+    "mode": 420,
+    "sha256": "3c7844125e1f2a3a2227e16dd1fed75218a3454919706b34cd8a5da9d43cda22"
+  },
+  "tools/typescript/lib/fr": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/typescript/lib/fr/diagnosticMessages.generated.json": {
+    "kind": "file",
+    "size": 346016,
+    "mode": 420,
+    "sha256": "9fc1836d7575840a8b7a63dacdedd99e90e4144c0bbe29a4b7fa78a86e0e8bf5"
+  },
+  "tools/typescript/lib/it": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/typescript/lib/it/diagnosticMessages.generated.json": {
+    "kind": "file",
+    "size": 339409,
+    "mode": 420,
+    "sha256": "a740fe2b2338d72a8d165fb8c7c22ac1393a18b6aa7f1ed6d45b79887867f98a"
+  },
+  "tools/typescript/lib/ja": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/typescript/lib/ja/diagnosticMessages.generated.json": {
+    "kind": "file",
+    "size": 381398,
+    "mode": 420,
+    "sha256": "ae1a2d439bfb60b9fa32408bde0e9ec39840a33d621014fcb5b2fb4e69a606de"
+  },
+  "tools/typescript/lib/ko": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/typescript/lib/ko/diagnosticMessages.generated.json": {
+    "kind": "file",
+    "size": 346139,
+    "mode": 420,
+    "sha256": "31b27d2d556fc037eeac1672f771bf940ec70afba342e977faa75a2fa292a8be"
+  },
+  "tools/typescript/lib/lib.d.ts": {
+    "kind": "file",
+    "size": 992,
+    "mode": 420,
+    "sha256": "a7297ff837fcdf174a9524925966429eb8e5feecc2cc55cc06574e6b092c1eaa"
+  },
+  "tools/typescript/lib/lib.decorators.d.ts": {
+    "kind": "file",
+    "size": 13192,
+    "mode": 420,
+    "sha256": "8e7f8264d0fb4c5339605a15daadb037bf238c10b654bb3eee14208f860a32ea"
+  },
+  "tools/typescript/lib/lib.decorators.legacy.d.ts": {
+    "kind": "file",
+    "size": 1326,
+    "mode": 420,
+    "sha256": "782dec38049b92d4e85c1585fbea5474a219c6984a35b004963b00beb1aab538"
+  },
+  "tools/typescript/lib/lib.dom.asynciterable.d.ts": {
+    "kind": "file",
+    "size": 1887,
+    "mode": 420,
+    "sha256": "d7a3c8b952931daebdfc7a2897c53c0a1c73624593fa070e46bd537e64dcd20a"
+  },
+  "tools/typescript/lib/lib.dom.d.ts": {
+    "kind": "file",
+    "size": 1874901,
+    "mode": 420,
+    "sha256": "080941d9f9ff9307f7e27a83bcd888b7c8270716c39af943532438932ec1d0b9"
+  },
+  "tools/typescript/lib/lib.dom.iterable.d.ts": {
+    "kind": "file",
+    "size": 29802,
+    "mode": 420,
+    "sha256": "2e80ee7a49e8ac312cc11b77f1475804bee36b3b2bc896bead8b6e1266befb43"
+  },
+  "tools/typescript/lib/lib.es2015.collection.d.ts": {
+    "kind": "file",
+    "size": 5229,
+    "mode": 420,
+    "sha256": "dc2df20b1bcdc8c2d34af4926e2c3ab15ffe1160a63e58b7e09833f616efff44"
+  },
+  "tools/typescript/lib/lib.es2015.core.d.ts": {
+    "kind": "file",
+    "size": 22866,
+    "mode": 420,
+    "sha256": "c57796738e7f83dbc4b8e65132f11a377649c00dd3eee333f672b8f0a6bea671"
+  },
+  "tools/typescript/lib/lib.es2015.d.ts": {
+    "kind": "file",
+    "size": 1241,
+    "mode": 420,
+    "sha256": "45b7ab580deca34ae9729e97c13cfd999df04416a79116c3bfb483804f85ded4"
+  },
+  "tools/typescript/lib/lib.es2015.generator.d.ts": {
+    "kind": "file",
+    "size": 2557,
+    "mode": 420,
+    "sha256": "515d0b7b9bea2e31ea4ec968e9edd2c39d3eebf4a2d5cbd04e88639819ae3b71"
+  },
+  "tools/typescript/lib/lib.es2015.iterable.d.ts": {
+    "kind": "file",
+    "size": 18200,
+    "mode": 420,
+    "sha256": "0559b1f683ac7505ae451f9a96ce4c3c92bdc71411651ca6ddb0e88baaaad6a3"
+  },
+  "tools/typescript/lib/lib.es2015.promise.d.ts": {
+    "kind": "file",
+    "size": 3200,
+    "mode": 420,
+    "sha256": "0dc1e7ceda9b8b9b455c3a2d67b0412feab00bd2f66656cd8850e8831b08b537"
+  },
+  "tools/typescript/lib/lib.es2015.proxy.d.ts": {
+    "kind": "file",
+    "size": 5251,
+    "mode": 420,
+    "sha256": "ce691fb9e5c64efb9547083e4a34091bcbe5bdb41027e310ebba8f7d96a98671"
+  },
+  "tools/typescript/lib/lib.es2015.reflect.d.ts": {
+    "kind": "file",
+    "size": 6493,
+    "mode": 420,
+    "sha256": "8d697a2a929a5fcb38b7a65594020fcef05ec1630804a33748829c5ff53640d0"
+  },
+  "tools/typescript/lib/lib.es2015.symbol.d.ts": {
+    "kind": "file",
+    "size": 1649,
+    "mode": 420,
+    "sha256": "4ff2a353abf8a80ee399af572debb8faab2d33ad38c4b4474cff7f26e7653b8d"
+  },
+  "tools/typescript/lib/lib.es2015.symbol.wellknown.d.ts": {
+    "kind": "file",
+    "size": 11010,
+    "mode": 420,
+    "sha256": "fb0f136d372979348d59b3f5020b4cdb81b5504192b1cacff5d1fbba29378aa1"
+  },
+  "tools/typescript/lib/lib.es2016.array.include.d.ts": {
+    "kind": "file",
+    "size": 5204,
+    "mode": 420,
+    "sha256": "d15bea3d62cbbdb9797079416b8ac375ae99162a7fba5de2c6c505446486ac0a"
+  },
+  "tools/typescript/lib/lib.es2016.d.ts": {
+    "kind": "file",
+    "size": 965,
+    "mode": 420,
+    "sha256": "3facaf05f0c5fc569c5649dd359892c98a85557e3e0c847964caeb67076f4d75"
+  },
+  "tools/typescript/lib/lib.es2016.full.d.ts": {
+    "kind": "file",
+    "size": 1032,
+    "mode": 420,
+    "sha256": "807e0e0bdc67605dd28efe18f20ab5fcd75d944ef95936120702335f9379094b"
+  },
+  "tools/typescript/lib/lib.es2016.intl.d.ts": {
+    "kind": "file",
+    "size": 1484,
+    "mode": 420,
+    "sha256": "68d18b664c9d32a7336a70235958b8997ebc1c3b8505f4f1ae2b7e7753b87618"
+  },
+  "tools/typescript/lib/lib.es2017.arraybuffer.d.ts": {
+    "kind": "file",
+    "size": 915,
+    "mode": 420,
+    "sha256": "eb3d66c8327153d8fa7dd03f9c58d351107fe824c79e9b56b462935176cdf12a"
+  },
+  "tools/typescript/lib/lib.es2017.d.ts": {
+    "kind": "file",
+    "size": 1162,
+    "mode": 420,
+    "sha256": "e44bb8bbac7f10ecc786703fe0a6a4b952189f908707980ba8f3c8975a760962"
+  },
+  "tools/typescript/lib/lib.es2017.date.d.ts": {
+    "kind": "file",
+    "size": 1916,
+    "mode": 420,
+    "sha256": "38f0219c9e23c915ef9790ab1d680440d95419ad264816fa15009a8851e79119"
+  },
+  "tools/typescript/lib/lib.es2017.full.d.ts": {
+    "kind": "file",
+    "size": 1032,
+    "mode": 420,
+    "sha256": "1d242d5c24cf285c88bc4fb93c5ff903de8319064e282986edeb6247ba028d5e"
+  },
+  "tools/typescript/lib/lib.es2017.intl.d.ts": {
+    "kind": "file",
+    "size": 1449,
+    "mode": 420,
+    "sha256": "4de680d5bb41c17f7f68e0419412ca23c98d5749dcaaea1896172f06435891fc"
+  },
+  "tools/typescript/lib/lib.es2017.object.d.ts": {
+    "kind": "file",
+    "size": 2473,
+    "mode": 420,
+    "sha256": "69ab18c3b76cd9b1be3d188eaf8bba06112ebbe2f47f6c322b5105a6fbc45a2e"
+  },
+  "tools/typescript/lib/lib.es2017.sharedmemory.d.ts": {
+    "kind": "file",
+    "size": 7209,
+    "mode": 420,
+    "sha256": "a680117f487a4d2f30ea46f1b4b7f58bef1480456e18ba53ee85c2746eeca012"
+  },
+  "tools/typescript/lib/lib.es2017.string.d.ts": {
+    "kind": "file",
+    "size": 2378,
+    "mode": 420,
+    "sha256": "2f11ff796926e0832f9ae148008138ad583bd181899ab7dd768a2666700b1893"
+  },
+  "tools/typescript/lib/lib.es2017.typedarrays.d.ts": {
+    "kind": "file",
+    "size": 1542,
+    "mode": 420,
+    "sha256": "954296b30da6d508a104a3a0b5d96b76495c709785c1d11610908e63481ee667"
+  },
+  "tools/typescript/lib/lib.es2018.asyncgenerator.d.ts": {
+    "kind": "file",
+    "size": 2692,
+    "mode": 420,
+    "sha256": "ac9538681b19688c8eae65811b329d3744af679e0bdfa5d842d0e32524c73e1c"
+  },
+  "tools/typescript/lib/lib.es2018.asynciterable.d.ts": {
+    "kind": "file",
+    "size": 2257,
+    "mode": 420,
+    "sha256": "0a969edff4bd52585473d24995c5ef223f6652d6ef46193309b3921d65dd4376"
+  },
+  "tools/typescript/lib/lib.es2018.d.ts": {
+    "kind": "file",
+    "size": 1088,
+    "mode": 420,
+    "sha256": "5e1c4c362065a6b95ff952c0eab010f04dcd2c3494e813b493ecfd4fcb9fc0d8"
+  },
+  "tools/typescript/lib/lib.es2018.full.d.ts": {
+    "kind": "file",
+    "size": 1074,
+    "mode": 420,
+    "sha256": "95f1023b824c2c511c48f1201e2d1188bcb0ca1138a309a870b956d2e92e44ab"
+  },
+  "tools/typescript/lib/lib.es2018.intl.d.ts": {
+    "kind": "file",
+    "size": 3021,
+    "mode": 420,
+    "sha256": "9e9fbd7030c440b33d021da145d3232984c8bb7916f277e8ffd3dc2e3eae2bdb"
+  },
+  "tools/typescript/lib/lib.es2018.promise.d.ts": {
+    "kind": "file",
+    "size": 1353,
+    "mode": 420,
+    "sha256": "811ec78f7fefcabbda4bfa93b3eb67d9ae166ef95f9bff989d964061cbf81a0c"
+  },
+  "tools/typescript/lib/lib.es2018.regexp.d.ts": {
+    "kind": "file",
+    "size": 1232,
+    "mode": 420,
+    "sha256": "717937616a17072082152a2ef351cb51f98802fb4b2fdabd32399843875974ca"
+  },
+  "tools/typescript/lib/lib.es2019.array.d.ts": {
+    "kind": "file",
+    "size": 3163,
+    "mode": 420,
+    "sha256": "d7e7d9b7b50e5f22c915b525acc5a49a7a6584cf8f62d0569e557c5cfc4b2ac2"
+  },
+  "tools/typescript/lib/lib.es2019.d.ts": {
+    "kind": "file",
+    "size": 1071,
+    "mode": 420,
+    "sha256": "68d73b4a11549f9c0b7d352d10e91e5dca8faa3322bfb77b661839c42b1ddec7"
+  },
+  "tools/typescript/lib/lib.es2019.full.d.ts": {
+    "kind": "file",
+    "size": 1074,
+    "mode": 420,
+    "sha256": "08f6861df84fba9719c14d5adc3ba40be9f0c687639e6c4df3c05b9301b8ff94"
+  },
+  "tools/typescript/lib/lib.es2019.intl.d.ts": {
+    "kind": "file",
+    "size": 958,
+    "mode": 420,
+    "sha256": "74f7fa2d027d5b33eb0471c8e82a6c87216223181ec31247c357a3e8e2fddc5b"
+  },
+  "tools/typescript/lib/lib.es2019.object.d.ts": {
+    "kind": "file",
+    "size": 1473,
+    "mode": 420,
+    "sha256": "71c37f4c9543f31dfced6c7840e068c5a5aacb7b89111a4364b1d5276b852557"
+  },
+  "tools/typescript/lib/lib.es2019.string.d.ts": {
+    "kind": "file",
+    "size": 1528,
+    "mode": 420,
+    "sha256": "576711e016cf4f1804676043e6a0a5414252560eb57de9faceee34d79798c850"
+  },
+  "tools/typescript/lib/lib.es2019.symbol.d.ts": {
+    "kind": "file",
+    "size": 1006,
+    "mode": 420,
+    "sha256": "89c1b1281ba7b8a96efc676b11b264de7a8374c5ea1e6617f11880a13fc56dc6"
+  },
+  "tools/typescript/lib/lib.es2020.bigint.d.ts": {
+    "kind": "file",
+    "size": 38185,
+    "mode": 420,
+    "sha256": "d6d7ae4d1f1f3772e2a3cde568ed08991a8ae34a080ff1151af28b7f798e22ca"
+  },
+  "tools/typescript/lib/lib.es2020.d.ts": {
+    "kind": "file",
+    "size": 1201,
+    "mode": 420,
+    "sha256": "5efce4fc3c29ea84e8928f97adec086e3dc876365e0982cc8479a07954a3efd4"
+  },
+  "tools/typescript/lib/lib.es2020.date.d.ts": {
+    "kind": "file",
+    "size": 2956,
+    "mode": 420,
+    "sha256": "063600664504610fe3e99b717a1223f8b1900087fab0b4cad1496a114744f8df"
+  },
+  "tools/typescript/lib/lib.es2020.full.d.ts": {
+    "kind": "file",
+    "size": 1074,
+    "mode": 420,
+    "sha256": "1305d1e76ca44e30fb8b2b8075fa522b83f60c0bcf5d4326a9d2cf79b53724f8"
+  },
+  "tools/typescript/lib/lib.es2020.intl.d.ts": {
+    "kind": "file",
+    "size": 22438,
+    "mode": 420,
+    "sha256": "639e512c0dfc3fad96a84caad71b8834d66329a1f28dc95e3946c9b58176c73a"
+  },
+  "tools/typescript/lib/lib.es2020.number.d.ts": {
+    "kind": "file",
+    "size": 1587,
+    "mode": 420,
+    "sha256": "368af93f74c9c932edd84c58883e736c9e3d53cec1fe24c0b0ff451f529ceab1"
+  },
+  "tools/typescript/lib/lib.es2020.promise.d.ts": {
+    "kind": "file",
+    "size": 1803,
+    "mode": 420,
+    "sha256": "934019d7e3c81950f9a8426d093458b65d5aff2c7c1511233c0fd5b941e608ab"
+  },
+  "tools/typescript/lib/lib.es2020.sharedmemory.d.ts": {
+    "kind": "file",
+    "size": 5128,
+    "mode": 420,
+    "sha256": "52ada8e0b6e0482b728070b7639ee42e83a9b1c22d205992756fe020fd9f4a47"
+  },
+  "tools/typescript/lib/lib.es2020.string.d.ts": {
+    "kind": "file",
+    "size": 2556,
+    "mode": 420,
+    "sha256": "3bdefe1bfd4d6dee0e26f928f93ccc128f1b64d5d501ff4a8cf3c6371200e5e6"
+  },
+  "tools/typescript/lib/lib.es2020.symbol.wellknown.d.ts": {
+    "kind": "file",
+    "size": 1606,
+    "mode": 420,
+    "sha256": "59fb2c069260b4ba00b5643b907ef5d5341b167e7d1dbf58dfd895658bda2867"
+  },
+  "tools/typescript/lib/lib.es2021.d.ts": {
+    "kind": "file",
+    "size": 1036,
+    "mode": 420,
+    "sha256": "feecb1be483ed332fad555aff858affd90a48ab19ba7272ee084704eb7167569"
+  },
+  "tools/typescript/lib/lib.es2021.full.d.ts": {
+    "kind": "file",
+    "size": 1074,
+    "mode": 420,
+    "sha256": "4a66df3ab5de5cfcda11538cffddd67ff6a174e003788e270914c1e0248483cf"
+  },
+  "tools/typescript/lib/lib.es2021.intl.d.ts": {
+    "kind": "file",
+    "size": 8245,
+    "mode": 420,
+    "sha256": "965f36eae237dd74e6cca203a43e9ca801ce38824ead814728a2807b1910117d"
+  },
+  "tools/typescript/lib/lib.es2021.promise.d.ts": {
+    "kind": "file",
+    "size": 2262,
+    "mode": 420,
+    "sha256": "af3dd424cf267428f30ccfc376f47a2c0114546b55c44d8c0f1d57d841e28d74"
+  },
+  "tools/typescript/lib/lib.es2021.string.d.ts": {
+    "kind": "file",
+    "size": 1592,
+    "mode": 420,
+    "sha256": "995c005ab91a498455ea8dfb63aa9f83fa2ea793c3d8aa344be4a1678d06d399"
+  },
+  "tools/typescript/lib/lib.es2021.weakref.d.ts": {
+    "kind": "file",
+    "size": 3171,
+    "mode": 420,
+    "sha256": "959d36cddf5e7d572a65045b876f2956c973a586da58e5d26cde519184fd9b8a"
+  },
+  "tools/typescript/lib/lib.es2022.array.d.ts": {
+    "kind": "file",
+    "size": 4676,
+    "mode": 420,
+    "sha256": "3925a6c820dcb1a06506c90b1577db1fdbf7705d65b62b99dce4be75c637e26b"
+  },
+  "tools/typescript/lib/lib.es2022.d.ts": {
+    "kind": "file",
+    "size": 1108,
+    "mode": 420,
+    "sha256": "ee7bad0c15b58988daa84371e0b89d313b762ab83cb5b31b8a2d1162e8eb41c2"
+  },
+  "tools/typescript/lib/lib.es2022.error.d.ts": {
+    "kind": "file",
+    "size": 2379,
+    "mode": 420,
+    "sha256": "0a3d63ef2b853447ec4f749d3f368ce642264246e02911fcb1590d8c161b8005"
+  },
+  "tools/typescript/lib/lib.es2022.full.d.ts": {
+    "kind": "file",
+    "size": 1074,
+    "mode": 420,
+    "sha256": "3cbad9a1ba4453443026ed38e4b8be018abb26565fa7c944376463ad9df07c41"
+  },
+  "tools/typescript/lib/lib.es2022.intl.d.ts": {
+    "kind": "file",
+    "size": 7692,
+    "mode": 420,
+    "sha256": "8cdf8847677ac7d20486e54dd3fcf09eda95812ac8ace44b4418da1bbbab6eb8"
+  },
+  "tools/typescript/lib/lib.es2022.object.d.ts": {
+    "kind": "file",
+    "size": 1085,
+    "mode": 420,
+    "sha256": "8444af78980e3b20b49324f4a16ba35024fef3ee069a0eb67616ea6ca821c47a"
+  },
+  "tools/typescript/lib/lib.es2022.regexp.d.ts": {
+    "kind": "file",
+    "size": 1331,
+    "mode": 420,
+    "sha256": "b4b67b1a91182421f5df999988c690f14d813b9850b40acd06ed44691f6727ad"
+  },
+  "tools/typescript/lib/lib.es2022.string.d.ts": {
+    "kind": "file",
+    "size": 1155,
+    "mode": 420,
+    "sha256": "3287d9d085fbd618c3971944b65b4be57859f5415f495b33a6adc994edd2f004"
+  },
+  "tools/typescript/lib/lib.es2023.array.d.ts": {
+    "kind": "file",
+    "size": 40236,
+    "mode": 420,
+    "sha256": "df83c2a6c73228b625b0beb6669c7ee2a09c914637e2d35170723ad49c0f5cd4"
+  },
+  "tools/typescript/lib/lib.es2023.collection.d.ts": {
+    "kind": "file",
+    "size": 900,
+    "mode": 420,
+    "sha256": "436aaf437562f276ec2ddbee2f2cdedac7664c1e4c1d2c36839ddd582eeb3d0a"
+  },
+  "tools/typescript/lib/lib.es2023.d.ts": {
+    "kind": "file",
+    "size": 999,
+    "mode": 420,
+    "sha256": "27bdc30a0e32783366a5abeda841bc22757c1797de8681bbe81fbc735eeb1c10"
+  },
+  "tools/typescript/lib/lib.es2023.full.d.ts": {
+    "kind": "file",
+    "size": 1074,
+    "mode": 420,
+    "sha256": "785921608325fa246b450f05b238f4b3ed659f1099af278ce9ebbc9416a13f1d"
+  },
+  "tools/typescript/lib/lib.es2023.intl.d.ts": {
+    "kind": "file",
+    "size": 2645,
+    "mode": 420,
+    "sha256": "8e3c06ea092138bf9fa5e874a1fdbc9d54805d074bee1de31b99a11e2fec239d"
+  },
+  "tools/typescript/lib/lib.es2024.arraybuffer.d.ts": {
+    "kind": "file",
+    "size": 2637,
+    "mode": 420,
+    "sha256": "87dc0f382502f5bbce5129bdc0aea21e19a3abbc19259e0b43ae038a9fc4e326"
+  },
+  "tools/typescript/lib/lib.es2024.collection.d.ts": {
+    "kind": "file",
+    "size": 1224,
+    "mode": 420,
+    "sha256": "b1cb28af0c891c8c96b2d6b7be76bd394fddcfdb4709a20ba05a7c1605eea0f9"
+  },
+  "tools/typescript/lib/lib.es2024.d.ts": {
+    "kind": "file",
+    "size": 1166,
+    "mode": 420,
+    "sha256": "8fd575e12870e9944c7e1d62e1f5a73fcf23dd8d3a321f2a2c74c20d022283fe"
+  },
+  "tools/typescript/lib/lib.es2024.full.d.ts": {
+    "kind": "file",
+    "size": 1074,
+    "mode": 420,
+    "sha256": "b3e9cef4eed59f8a2249ed834ba4aabe9d0d4e9037d4679487fa17dad99004a3"
+  },
+  "tools/typescript/lib/lib.es2024.object.d.ts": {
+    "kind": "file",
+    "size": 1259,
+    "mode": 420,
+    "sha256": "2fef54945a13095fdb9b84f705f2b5994597640c46afeb2ce78352fab4cb3279"
+  },
+  "tools/typescript/lib/lib.es2024.promise.d.ts": {
+    "kind": "file",
+    "size": 1389,
+    "mode": 420,
+    "sha256": "ac77cb3e8c6d3565793eb90a8373ee8033146315a3dbead3bde8db5eaf5e5ec6"
+  },
+  "tools/typescript/lib/lib.es2024.regexp.d.ts": {
+    "kind": "file",
+    "size": 1073,
+    "mode": 420,
+    "sha256": "56e4ed5aab5f5920980066a9409bfaf53e6d21d3f8d020c17e4de584d29600ad"
+  },
+  "tools/typescript/lib/lib.es2024.sharedmemory.d.ts": {
+    "kind": "file",
+    "size": 3077,
+    "mode": 420,
+    "sha256": "4ece9f17b3866cc077099c73f4983bddbcb1dc7ddb943227f1ec070f529dedd1"
+  },
+  "tools/typescript/lib/lib.es2024.string.d.ts": {
+    "kind": "file",
+    "size": 1194,
+    "mode": 420,
+    "sha256": "0a6282c8827e4b9a95f4bf4f5c205673ada31b982f50572d27103df8ceb8013c"
+  },
+  "tools/typescript/lib/lib.es5.d.ts": {
+    "kind": "file",
+    "size": 218439,
+    "mode": 420,
+    "sha256": "c430d44666289dae81f30fa7b2edebf186ecc91a2d4c71266ea6ae76388792e1"
+  },
+  "tools/typescript/lib/lib.es6.d.ts": {
+    "kind": "file",
+    "size": 1032,
+    "mode": 420,
+    "sha256": "df039a67536fe2acc3affdcbfb645892f842db36fe599e8e652e2f0c640a90d1"
+  },
+  "tools/typescript/lib/lib.esnext.array.d.ts": {
+    "kind": "file",
+    "size": 1791,
+    "mode": 420,
+    "sha256": "1c9319a09485199c1f7b0498f2988d6d2249793ef67edda49d1e584746be9032"
+  },
+  "tools/typescript/lib/lib.esnext.collection.d.ts": {
+    "kind": "file",
+    "size": 3878,
+    "mode": 420,
+    "sha256": "e3a2a0cee0f03ffdde24d89660eba2685bfbdeae955a6c67e8c4c9fd28928eeb"
+  },
+  "tools/typescript/lib/lib.esnext.d.ts": {
+    "kind": "file",
+    "size": 1282,
+    "mode": 420,
+    "sha256": "2ab096661c711e4a81cc464fa1e6feb929a54f5340b46b0a07ac6bbf857471f0"
+  },
+  "tools/typescript/lib/lib.esnext.decorators.d.ts": {
+    "kind": "file",
+    "size": 1070,
+    "mode": 420,
+    "sha256": "d4b1d2c51d058fc21ec2629fff7a76249dec2e36e12960ea056e3ef89174080f"
+  },
+  "tools/typescript/lib/lib.esnext.disposable.d.ts": {
+    "kind": "file",
+    "size": 6806,
+    "mode": 420,
+    "sha256": "51ad4c928303041605b4d7ae32e0c1ee387d43a24cd6f1ebf4a2699e1076d4fa"
+  },
+  "tools/typescript/lib/lib.esnext.error.d.ts": {
+    "kind": "file",
+    "size": 1029,
+    "mode": 420,
+    "sha256": "73f78680d4c08509933daf80947902f6ff41b6230f94dd002ae372620adb0f60"
+  },
+  "tools/typescript/lib/lib.esnext.float16.d.ts": {
+    "kind": "file",
+    "size": 20528,
+    "mode": 420,
+    "sha256": "196cb558a13d4533a5163286f30b0509ce0210e4b316c56c38d4c0fd2fb38405"
+  },
+  "tools/typescript/lib/lib.esnext.full.d.ts": {
+    "kind": "file",
+    "size": 1074,
+    "mode": 420,
+    "sha256": "bde31fd423cd93b0eff97197a3f66df7c93e8c0c335cbeb113b7ff1ac35c23f4"
+  },
+  "tools/typescript/lib/lib.esnext.intl.d.ts": {
+    "kind": "file",
+    "size": 893,
+    "mode": 420,
+    "sha256": "811c71eee4aa0ac5f7adf713323a5c41b0cf6c4e17367a34fbce379e12bbf0a4"
+  },
+  "tools/typescript/lib/lib.esnext.iterator.d.ts": {
+    "kind": "file",
+    "size": 8676,
+    "mode": 420,
+    "sha256": "22adec94ef7047a6c9d1af3cb96be87a335908bf9ef386ae9fd50eeb37f44c47"
+  },
+  "tools/typescript/lib/lib.esnext.promise.d.ts": {
+    "kind": "file",
+    "size": 1658,
+    "mode": 420,
+    "sha256": "60037901da1a425516449b9a20073aa03386cce92f7a1fd902d7602be3a7c2e9"
+  },
+  "tools/typescript/lib/lib.esnext.sharedmemory.d.ts": {
+    "kind": "file",
+    "size": 1067,
+    "mode": 420,
+    "sha256": "c5239f5c01bcfa9cd32f37c496cf19c61d69d37e48be9de612b541aac915805b"
+  },
+  "tools/typescript/lib/lib.scripthost.d.ts": {
+    "kind": "file",
+    "size": 9451,
+    "mode": 420,
+    "sha256": "cd034f499c6cdca722b60c04b5b1b78e058487a7085a8e0d6fb50809947ee573"
+  },
+  "tools/typescript/lib/lib.webworker.asynciterable.d.ts": {
+    "kind": "file",
+    "size": 1887,
+    "mode": 420,
+    "sha256": "ca417afee74054e99d5a8252b35bef26ca6e2942d67d343fce6b42fc9f432993"
+  },
+  "tools/typescript/lib/lib.webworker.d.ts": {
+    "kind": "file",
+    "size": 609557,
+    "mode": 420,
+    "sha256": "6d08cde2bfb6ff909efbf7cb7d6d55be412cf4b9f48fd0430185986973fa91f5"
+  },
+  "tools/typescript/lib/lib.webworker.importscripts.d.ts": {
+    "kind": "file",
+    "size": 1041,
+    "mode": 420,
+    "sha256": "80e18897e5884b6723488d4f5652167e7bb5024f946743134ecc4aa4ee731f89"
+  },
+  "tools/typescript/lib/lib.webworker.iterable.d.ts": {
+    "kind": "file",
+    "size": 22768,
+    "mode": 420,
+    "sha256": "d6c6331ce67c41b2ad5bfb0c8c022403980b479a377a44da8f16b61120418f66"
+  },
+  "tools/typescript/lib/pl": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/typescript/lib/pl/diagnosticMessages.generated.json": {
+    "kind": "file",
+    "size": 342111,
+    "mode": 420,
+    "sha256": "0645575abe920de1ee4cf3f2f70c7abc7f6691daa01cf1e9ad6b1ce53917c9ff"
+  },
+  "tools/typescript/lib/pt-br": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/typescript/lib/pt-br/diagnosticMessages.generated.json": {
+    "kind": "file",
+    "size": 330482,
+    "mode": 420,
+    "sha256": "34a649eb937cd70fe7b15663c2e5479e753d42df0e5c2933636789b60c2c939d"
+  },
+  "tools/typescript/lib/ru": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/typescript/lib/ru/diagnosticMessages.generated.json": {
+    "kind": "file",
+    "size": 443587,
+    "mode": 420,
+    "sha256": "29bb8ea9d44f55bb7acdedfac0a57865ea40552f004d0d6e3b96746ac76666cc"
+  },
+  "tools/typescript/lib/tr": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/typescript/lib/tr/diagnosticMessages.generated.json": {
+    "kind": "file",
+    "size": 330684,
+    "mode": 420,
+    "sha256": "9466915f3e0cdb2625495bbe9c02c8b7ef9e3543fffae957ba034655563abf65"
+  },
+  "tools/typescript/lib/tsc.js": {
+    "kind": "file",
+    "size": 267,
+    "mode": 420,
+    "sha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983"
+  },
+  "tools/typescript/lib/tsserver.js": {
+    "kind": "file",
+    "size": 272,
+    "mode": 420,
+    "sha256": "e3ccfeec65ec5c470b8ffc5611878a31182650c7e8a062c38a719f83b523edcb"
+  },
+  "tools/typescript/lib/tsserverlibrary.d.ts": {
+    "kind": "file",
+    "size": 865,
+    "mode": 420,
+    "sha256": "73b15a0b7cf5c6df9076b9408c5ce682f11813453bf54c54cb284f075b5224cf"
+  },
+  "tools/typescript/lib/tsserverlibrary.js": {
+    "kind": "file",
+    "size": 1012,
+    "mode": 420,
+    "sha256": "7ca9b464de80a5382d9ccfed2b224323bc0274c8de61bf0464e89ee824677c76"
+  },
+  "tools/typescript/lib/typesMap.json": {
+    "kind": "file",
+    "size": 16788,
+    "mode": 420,
+    "sha256": "4143fb8b1c5d4421dfa19a4b80ddf2da375fc0835a349c3b18519fda5955e1d9"
+  },
+  "tools/typescript/lib/typescript.d.ts": {
+    "kind": "file",
+    "size": 588085,
+    "mode": 420,
+    "sha256": "e134052a6b1ded61693b4037f615dc72f14e2881e79c1ddbff6c514c8a516b05"
+  },
+  "tools/typescript/lib/typescript.js": {
+    "kind": "file",
+    "size": 9112572,
+    "mode": 420,
+    "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+  },
+  "tools/typescript/lib/typingsInstaller.js": {
+    "kind": "file",
+    "size": 280,
+    "mode": 420,
+    "sha256": "2d48a038523ea7c626fa2796a30fa5fdc07612ea5fab83544423009d7683a213"
+  },
+  "tools/typescript/lib/watchGuard.js": {
+    "kind": "file",
+    "size": 2313,
+    "mode": 420,
+    "sha256": "471200d4bc555ef8d8429358bdca2a68ea7c9bfff6c853b5b048d2512fe4092a"
+  },
+  "tools/typescript/lib/zh-cn": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/typescript/lib/zh-cn/diagnosticMessages.generated.json": {
+    "kind": "file",
+    "size": 295909,
+    "mode": 420,
+    "sha256": "6bd4ae6aea0991f6b73c46ec79ebb643b280a07e4808be363b07d01d2f6d399d"
+  },
+  "tools/typescript/lib/zh-tw": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "tools/typescript/lib/zh-tw/diagnosticMessages.generated.json": {
+    "kind": "file",
+    "size": 292532,
+    "mode": 420,
+    "sha256": "c35cf732ff01539090a3622b7a07f7bb4cadb28f6f13048b366012c458329be1"
+  },
+  "tools/typescript/package.json": {
+    "kind": "file",
+    "size": 3620,
+    "mode": 420,
+    "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+  }
+}

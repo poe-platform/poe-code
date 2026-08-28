@@ -1,0 +1,787 @@
+{
+  "schema": "expr-independent-component-aborted-v1",
+  "authorizationDate": "2026-08-28",
+  "finishedAt": "2026-08-28T00:52:11.897Z",
+  "freezeCommit": "eaca395fd0f90051676798971750515d04b0c005",
+  "candidate": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "candidateTree": "5905cf8d43233c68ea2bd499275ada2641223d9a",
+  "inputsSha256": "0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3",
+  "freezeManifestSha256": "b8a89ba9d399696987f2a68a1e3480fe925f9aac568e8dc51334707e57333f60",
+  "layoutsSha256": "bd87688f4e107bbd14d55b4c8761d0c8bc2880bb8a8d94d0575f591f7d6417d9",
+  "disposition": "HARNESS PREFLIGHT ABORT; NO CANDIDATE EXECUTION; NO RETRY OR FROZEN RECIPE CHANGE",
+  "P01": {
+    "status": "unexecuted",
+    "buildExecuted": false,
+    "packExecuted": false,
+    "completeSelectedInputsAuthenticatedInPreparation": 357,
+    "requiredWholepackSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "reproducedWholepack": false,
+    "authorpackRuntimeProof": false,
+    "authorpackReadOnlyLayoutPlanning": true,
+    "failureIsNotAProductBuildFailure": true
+  },
+  "firstFailure": {
+    "phase": "frozen-recipe-authentication",
+    "code": "ENOBUFS",
+    "command": "/usr/bin/git --no-replace-objects show eaca395fd0f90051676798971750515d04b0c005:tests/integration/expr-public-independent-20260827/component-execution-v1/LAYOUTS.json",
+    "configuredGitMaxBuffer": 4194304,
+    "actualLayoutsBytes": 4644868,
+    "gitSignalInThrownReceipt": "SIGTERM",
+    "nodeExitStatus": 1,
+    "rawPath": "EXECUTION.raw.txt",
+    "rawSha256": "3fe96a2dfb02edea31151ba74b6ffb05952b57a97e3f03bd6231098cd3774926",
+    "explanation": "The exact absolute load manifest exceeds the frozen common.mjs Git reader's 4 MiB buffer. run.mjs aborts before work/run-001 creation and before its try/finally report writer."
+  },
+  "evidenceWriterFirstFailure": {
+    "code": "ENOBUFS",
+    "command": "git ls-files --stage -z",
+    "candidateExecuted": false,
+    "sourcePreserved": "finalize-abort.mjs",
+    "verbatimToolOutputTranscription": "POSTCHECK-ATTEMPT-1.raw.txt",
+    "correction": "Separate read-only finalize-abort-v2.mjs streams index hashes; frozen runner is unchanged and not retried"
+  },
+  "preparationFailure": {
+    "phase": "shell-wrapper-after-successful-preparation",
+    "error": "zsh:33: read-only variable: status",
+    "productExecuted": false,
+    "evidence": "PREPARATION-NOTES.md"
+  },
+  "contexts": [
+    {
+      "label": "installed-node22",
+      "cases": [
+        {
+          "id": "R01",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R02",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R03",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R04",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R05",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R06",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R07",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R08",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R09",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R10",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R11",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R12",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R13",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R14",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R15",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R16",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R17",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R18",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R19",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R20",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R21",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R22",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R23",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R24",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R25",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R26",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        }
+      ],
+      "runtimeVariantCount": 28,
+      "controlsExecuted": 0,
+      "typeInvocations": 0,
+      "installed": false,
+      "moved": false,
+      "workerCreations": 0
+    },
+    {
+      "label": "installed-node24",
+      "cases": [
+        {
+          "id": "R01",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R02",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R03",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R04",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R05",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R06",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R07",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R08",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R09",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R10",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R11",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R12",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R13",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R14",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R15",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R16",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R17",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R18",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R19",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R20",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R21",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R22",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R23",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R24",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R25",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R26",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        }
+      ],
+      "runtimeVariantCount": 28,
+      "controlsExecuted": 0,
+      "typeInvocations": 0,
+      "installed": false,
+      "moved": false,
+      "workerCreations": 0
+    },
+    {
+      "label": "moved-node22",
+      "cases": [
+        {
+          "id": "R01",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R02",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R03",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R04",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R05",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R06",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R07",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R08",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R09",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R10",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R11",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R12",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R13",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R14",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R15",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R16",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R17",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R18",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R19",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R20",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R21",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R22",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R23",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R24",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R25",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R26",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        }
+      ],
+      "runtimeVariantCount": 28,
+      "controlsExecuted": 0,
+      "typeInvocations": 0,
+      "installed": false,
+      "moved": false,
+      "workerCreations": 0
+    },
+    {
+      "label": "moved-node24",
+      "cases": [
+        {
+          "id": "R01",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R02",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R03",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R04",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R05",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R06",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R07",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R08",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R09",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R10",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R11",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R12",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R13",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R14",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R15",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R16",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R17",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R18",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R19",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R20",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R21",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R22",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R23",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R24",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R25",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        },
+        {
+          "id": "R26",
+          "executed": false,
+          "status": "unrun",
+          "reason": "frozen recipe authentication aborted before candidate preparation"
+        }
+      ],
+      "runtimeVariantCount": 28,
+      "controlsExecuted": 0,
+      "typeInvocations": 0,
+      "installed": false,
+      "moved": false,
+      "workerCreations": 0
+    }
+  ],
+  "counts": {
+    "plannedRuntimeContexts": 4,
+    "plannedRuntimeIdsPerContext": 26,
+    "plannedRuntimeAssertions": 104,
+    "executed": 0,
+    "pass": 0,
+    "fail": 0,
+    "unrun": 104,
+    "controlsExecuted": 0,
+    "typeInvocations": 0,
+    "workerCreations": 0,
+    "candidateBuildInvocations": 0,
+    "packInvocations": 0,
+    "runtimeNaturalSettlements": 0,
+    "supervisedRuntimeKills": 0
+  },
+  "packageProtocols": [
+    {
+      "id": "P01",
+      "status": "unrun"
+    },
+    {
+      "id": "P02",
+      "status": "unrun"
+    },
+    {
+      "id": "P03",
+      "status": "unrun"
+    },
+    {
+      "id": "P04",
+      "status": "unrun"
+    },
+    {
+      "id": "P05",
+      "status": "unrun"
+    },
+    {
+      "id": "P06",
+      "status": "unrun"
+    },
+    {
+      "id": "P07",
+      "status": "unrun"
+    },
+    {
+      "id": "P08",
+      "status": "unrun"
+    }
+  ],
+  "R25": "UNRUN: no EXEC-only boundary or silent-ready qualification evidence",
+  "R26": "UNRUN: no direct/Shell cancellation, sibling, reason identity or cleanup evidence",
+  "readOnlyPostcheck": {
+    "originalNineUnchanged": true,
+    "admissionFiveUnchanged": true,
+    "freeze21Unchanged": true,
+    "toolsUnchangedWithNewEntryChecks": true,
+    "productPasses": 0
+  },
+  "sourceScope": "The full package includes separately authored private shell/cancellation.ts differing from DU75; not approved by this integration and not loaded in recorded public contexts. Nine expr/shared-regex TS sources remain accepted c3 bytes.",
+  "holds": [
+    "accepted-DU75 prerequisite HELD/unrescored; selected base is not accepted",
+    "HTML admission and HTML34 HELD",
+    "whole76/global acceptance HELD",
+    "original acceptance-gated consumer HELD",
+    "P01 independently reproduced wholepack NOT established"
+  ],
+  "nextAuthorizationNeeded": "Authorize a separately versioned/refrozen bounded streaming Git authentication recipe before any further attempt. Preserve this first failure; do not modify/retry v1 or count the postcheck as executable admission."
+}

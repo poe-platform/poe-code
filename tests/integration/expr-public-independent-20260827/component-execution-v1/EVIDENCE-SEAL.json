@@ -1,0 +1,55 @@
+{
+  "schema": "expr-independent-abort-final-seal-v1",
+  "freezeCommit": "eaca395fd0f90051676798971750515d04b0c005",
+  "freezeManifestSha256": "b8a89ba9d399696987f2a68a1e3480fe925f9aac568e8dc51334707e57333f60",
+  "evidenceManifestSha256": "cde888c0c9afab7cbe19d7d21dfd85b031412776b2e2154dd87552141b62b5cb",
+  "entries": [
+    {
+      "path": "EXECUTION.raw.txt",
+      "bytes": 2716,
+      "sha256": "3fe96a2dfb02edea31151ba74b6ffb05952b57a97e3f03bd6231098cd3774926"
+    },
+    {
+      "path": "POSTCHECK.json",
+      "bytes": 8644,
+      "sha256": "d4a60279dab9e1805668d2c1449e228442fe600a9d77918ac8501b496ba61a4d"
+    },
+    {
+      "path": "REPORT.json",
+      "bytes": 25198,
+      "sha256": "ae9d5df9c89f15dba412c92fa9ed6419e05bb6554074d40179245354fd3e3236"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 2861,
+      "sha256": "2d3542515761c4a2213e1cde34288bb16f40add718729a7cb224f4068e8841e8"
+    },
+    {
+      "path": "finalize-abort.mjs",
+      "bytes": 7907,
+      "sha256": "2a2569a566a44f7650abbbab8bdb46f5ac29b5fa576e82115515ea5d31e8c0f9"
+    },
+    {
+      "path": "finalize-abort-v2.mjs",
+      "bytes": 8361,
+      "sha256": "6f1a7437e399df0c9f5527ed6fe37cf51740edc807bc72199f9363b113afbcc8"
+    },
+    {
+      "path": "POSTCHECK-ATTEMPT-1.raw.txt",
+      "bytes": 2457,
+      "sha256": "03edcde77556deb04241d1f829cfc812b2de0fb4d15b5e6289c777d28100da2e"
+    },
+    {
+      "path": "MANIFEST.json",
+      "bytes": 2688,
+      "sha256": "cde888c0c9afab7cbe19d7d21dfd85b031412776b2e2154dd87552141b62b5cb"
+    },
+    {
+      "path": "FINALIZATION.raw.txt",
+      "bytes": 693,
+      "sha256": "97f117781cf20f861b9f4c158ed2b2e6619824102071efd26459eb201f9f880c"
+    }
+  ],
+  "candidateExecutions": 0,
+  "postcheckIsNotProductAcceptance": true
+}

@@ -1,0 +1,36 @@
+{
+  "role": "root",
+  "phase": "admission",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+  "recipeSha256": "fc1a0df0015ebd428810c8d86976f3507636eac1c308f366298511fca38cf0e8",
+  "reviewSha256": "c9ca7175e426140afccbca23b265918a263af55ff12e21efb4995ec6161584f4",
+  "attempts": 1,
+  "runId": "admission-v4-01",
+  "outputRoot": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01",
+  "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+  "command": {
+    "entry": "coordinator.mjs",
+    "phase": "admission",
+    "runId": "admission-v4-01",
+    "nodeArgs": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=256"
+    ]
+  },
+  "authoritySource": {
+    "kind": "fresh explicit root user message",
+    "date": "2026-08-28",
+    "path": "tests/comparison/breadth-continuation-20260828/executor-v4/runs/grant-admission-v4-01/ROOT-MESSAGE.txt",
+    "sha256": "1b5578fdb3b0d3bffbcb33c3fbfbf7766047734ee0573b62338fc33bd6801ad8",
+    "trailingNewline": "Message preserved with one file-final LF"
+  },
+  "interface": {
+    "commit": "91b7a93f60640a9496c65147fb29c8610d29f7f4",
+    "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/ADMISSION-INTERFACE.json",
+    "sha256": "51256f8574d0df670e8c5ee846595efa21858ef69a2366754654f3e27d4d1978"
+  },
+  "recipeCommit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+  "recipeSha256Meaning": "SHA256 of exact SEAL.json bytes; not raw coordinator.mjs or raw OPERATION-PLAN.json",
+  "scope": "Runtime admission only; no semantic cohort, retries, permission widening, native, timing, install, network, private writes, or XAN actions"
+}

@@ -1,0 +1,66 @@
+{
+  "date": "2026-08-28T11:32:50.801Z",
+  "status": "AUTHENTICATED_PRELAUNCH",
+  "recipeSha256": "fc1a0df0015ebd428810c8d86976f3507636eac1c308f366298511fca38cf0e8",
+  "recipeCommit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+  "review": {
+    "ADMISSION-INTERFACE.json": {
+      "commit": "91b7a93f60640a9496c65147fb29c8610d29f7f4",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/ADMISSION-INTERFACE.json",
+      "sha256": "51256f8574d0df670e8c5ee846595efa21858ef69a2366754654f3e27d4d1978"
+    },
+    "REVIEW.json": {
+      "commit": "91b7a93f60640a9496c65147fb29c8610d29f7f4",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/REVIEW.json",
+      "sha256": "c9ca7175e426140afccbca23b265918a263af55ff12e21efb4995ec6161584f4"
+    },
+    "SEAL.json": {
+      "commit": "91b7a93f60640a9496c65147fb29c8610d29f7f4",
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/SEAL.json",
+      "sha256": "d19fe2bec8b09ff3a523acd03539679c80b39eac251a06106f662674969272e1"
+    }
+  },
+  "tools": [
+    {
+      "role": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "role": "git",
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "nodeVersion": "v22.22.2",
+  "rawCoordinatorSha256": "491c8bf14b81b2e6318075a2a8618ff7e67858328376decb3b7a6dd06af94e94",
+  "rawPlanSha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4",
+  "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+  "authenticatedRecipeMembers": 179,
+  "commandArgvTemplate": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "tests/comparison/breadth-continuation-20260828/executor-v4/coordinator.mjs",
+    "admission",
+    "admission-v4-01",
+    "<ABSOLUTE_ROOT_SELECTED_AUTH_JSON>"
+  ],
+  "launchWrapperSha256": "1faf0e0083b6552fb0d39baea8bdefe8192495dca12bc7eddf8e525bdcdd5982",
+  "grantSha256": "31fac8c969b07d2a41c9b52720b0c8c1eeea8a895338ebdcea013d3e19293c52",
+  "admissionLaunched": false,
+  "realEngineImports": 0,
+  "priorPreparationFailure": {
+    "retained": true,
+    "kind": "Auxiliary metadata checker used nonexistent tool.size instead of tool.bytes",
+    "error": "Error: tool node",
+    "exitCode": 1,
+    "actualToolsMatch": true,
+    "changedFrozenRecipe": false,
+    "admissionAttemptConsumed": false
+  }
+}

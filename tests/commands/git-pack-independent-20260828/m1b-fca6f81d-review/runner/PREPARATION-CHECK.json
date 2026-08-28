@@ -1,0 +1,144 @@
+{
+  "schema": "m1b-runner-syntax-preseal-v1",
+  "role": "PREPARATION_SYNTAX_NO_TARGET_OR_HELPER_IMPORT",
+  "node": {
+    "name": "node",
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "mode": 493,
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "destination": "tools/bin/node",
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"
+  },
+  "wallMs": 120000,
+  "finalizeMs": 10000,
+  "maxChildren": 13,
+  "captureBytes": 2097152,
+  "workBytes": 4194304,
+  "peakProcessesIncludingChecker": 2,
+  "command": [
+    "__PINNED_NODE__",
+    "runner/check-syntax.mjs"
+  ],
+  "files": [
+    {
+      "path": "INTEGRATION-CONVENTIONS.md",
+      "mode": 420,
+      "bytes": 3688,
+      "sha256": "ee23215d238ebbf240191897d947d174f2e1648766622a6e8ece2dfcb724aad9"
+    },
+    {
+      "path": "INTERFACE.json",
+      "mode": 420,
+      "bytes": 1274,
+      "sha256": "98d6158260181ddadd37b110b1f5d06bce3c47d8febce33a99311b652f5045a9"
+    },
+    {
+      "path": "INTERFACE.md",
+      "mode": 420,
+      "bytes": 6961,
+      "sha256": "ec7348180748d18490ac873d1078e4585f09dde2f50f10ab2fbfd17acd827a5e"
+    },
+    {
+      "path": "PACKAGE-MAP.json",
+      "mode": 420,
+      "bytes": 170625,
+      "sha256": "800e13db20d0c9ea317078d706753804a3f2c5945e3402d735d2a4b2968bbb04"
+    },
+    {
+      "path": "SOURCE-MAP.json",
+      "mode": 420,
+      "bytes": 102180,
+      "sha256": "72519e90e6a69aa0d595ca3a6ba456513b3942ce7258214f8972efb921b0f128"
+    },
+    {
+      "path": "TOOLS.json",
+      "mode": 420,
+      "bytes": 653408,
+      "sha256": "3089de05f4d78c96997b1f7e18bc1ee8a853f8bf278411d5e268f546bc6d29da"
+    },
+    {
+      "path": "archive.mjs",
+      "mode": 420,
+      "bytes": 2967,
+      "sha256": "7d581b4326cb0f69f6285faf572084d44a9342f91a03dfcfde50314e89f11733"
+    },
+    {
+      "path": "budget.mjs",
+      "mode": 420,
+      "bytes": 3026,
+      "sha256": "f82640a61911f42b217bc3b9273f890052da314d18a23678b12e7479d31fb41d"
+    },
+    {
+      "path": "cases.mjs",
+      "mode": 420,
+      "bytes": 10030,
+      "sha256": "7e960f8bb44a8dadeae50886dee5be1ecf9965db2a09df40b8c386a2347607e2"
+    },
+    {
+      "path": "check-syntax.mjs",
+      "mode": 420,
+      "bytes": 2991,
+      "sha256": "cddba7505aed92f11e914c5ce92c8cb7efc560143e4a13069234159175b60290"
+    },
+    {
+      "path": "coordinator.mjs",
+      "mode": 420,
+      "bytes": 16935,
+      "sha256": "b71b85c526085a1dc410eccfb9af3b430708c84bb80a90e4f672b32fb21bfca1"
+    },
+    {
+      "path": "launch.mjs",
+      "mode": 420,
+      "bytes": 5037,
+      "sha256": "0aa7109e0f07bc3b28a4699c74e053e6fd1fc36fd20138aef6bc05087afe8504"
+    },
+    {
+      "path": "loader.mjs",
+      "mode": 420,
+      "bytes": 1825,
+      "sha256": "d291c49c5825a5b6b7118da0084b73d76e5ce3ecd421764bf28c7b04e03b9fe5"
+    },
+    {
+      "path": "materialize.mjs",
+      "mode": 420,
+      "bytes": 3494,
+      "sha256": "3d5f6b364dcd24f04995b79d246e24dfa865a869d8ecfb3c97535a162c3cdf25"
+    },
+    {
+      "path": "primitives.mjs",
+      "mode": 420,
+      "bytes": 6046,
+      "sha256": "1c3156ede145fcb2989146efd4192e5097fd89eca83a603df5e74d268804daa5"
+    },
+    {
+      "path": "source-admission.mjs",
+      "mode": 420,
+      "bytes": 5696,
+      "sha256": "5c79d0696b8b0ea09e2bffcdbcd682476116df95fd36e6047270568c676a16fb"
+    },
+    {
+      "path": "supervisor.mjs",
+      "mode": 420,
+      "bytes": 5502,
+      "sha256": "a412bda9157839004d568b36afc9a36e2e72e7b3faa85e8275d17a21dd6b1dae"
+    },
+    {
+      "path": "tool-fence.mjs",
+      "mode": 420,
+      "bytes": 1312,
+      "sha256": "d58c3b36f40e474a2da408c1754d56a8f9b5251d22dcdeb678ae1fe64f60536c"
+    },
+    {
+      "path": "worker.mjs",
+      "mode": 420,
+      "bytes": 5379,
+      "sha256": "6cf3c1c6474cb423924d48efbe30dbb9a5273b09b644d01870b42ad2e30f4769"
+    }
+  ],
+  "actualReviewBudgetConsumed": false,
+  "sourcePreparation": "Live source/tool/catalog reads prepared bindings, not candidate proof; no version probe. Peer preseal bodies inspected only for ABI compatibility.",
+  "nonzero": "FAIL_STOP_NO_AUTOMATIC_RETRY",
+  "raw": "runner/syntax-v1 exclusive new directory; raw capture before exit assertions; old raw untouched"
+}

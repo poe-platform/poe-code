@@ -1,0 +1,33 @@
+{
+  "ordinal": 3,
+  "administrative": false,
+  "argv": [
+    "--no-optional-locks",
+    "-c",
+    "core.hooksPath=/dev/null",
+    "-c",
+    "commit.gpgSign=false",
+    "-c",
+    "core.fsmonitor=false",
+    "-c",
+    "maintenance.auto=false",
+    "-c",
+    "gc.auto=0",
+    "-c",
+    "user.name=Codex",
+    "-c",
+    "user.email=codex@openai.com",
+    "cat-file",
+    "--batch"
+  ],
+  "pid": 51382,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "stdoutBytes": 9269084,
+  "stderrBytes": 0,
+  "stdoutSha256": "dc8f97a7562be33b715dfe2551930e5df64f5466bc826d4657384cf4edbedba6",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "elapsedMs": 170.6107910000137,
+  "parentElapsedMs": 38202.54754099995
+}

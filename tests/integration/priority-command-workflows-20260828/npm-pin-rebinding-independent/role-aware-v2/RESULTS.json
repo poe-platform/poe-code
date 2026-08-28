@@ -1,0 +1,318 @@
+{
+  "schema": "npm-pin-role-aware-v2-result",
+  "verdict": "SPECIFIC_RESIDUALS",
+  "acceptedRebind": false,
+  "aggregate": "FAIL_RETAINED_SAFE_ASSERTION",
+  "presealCommit": "a2ea2e8bb95d1355e0090e178088af9d0440dc4d",
+  "previousFailureCommit": "da0e025b1207e4a2834deaceb517da4b9bad6061",
+  "authority": {
+    "packet": "7ef6e6b816ccc6b2449605c7950ab825d148a529",
+    "sourceAuthorization": "a52819daa6ff2c867187b01a7a5bbbb189f0da02",
+    "sealEvidence": "d6d6ce89c2b87cd92c417c256fde16bf986c91d9"
+  },
+  "obligations": [
+    {
+      "id": "O1",
+      "status": "VERIFIED_DATA",
+      "scope": "2039 original rows and2027 projected rows; twelve link exclusions; exact ordered noLF canonical hashes and historical regular modes"
+    },
+    {
+      "id": "O2",
+      "status": "VERIFIED_SOURCE_AUTHORITY",
+      "scope": "Original root PRESEAL pins full inventory; old BINDINGS pins projection; new BINDINGS differs at that sole leaf"
+    },
+    {
+      "id": "O3",
+      "status": "VERIFIED_LITERAL_SOURCE_DELTA",
+      "scope": "Seven exact single-occurrence substitutions across three executables; all other bytes unchanged"
+    },
+    {
+      "id": "O4",
+      "status": "VERIFIED_PACKET_DATA",
+      "scope": "Six byte-identical files and exact dependent seven-member manifest"
+    },
+    {
+      "id": "O5",
+      "status": "VERIFIED_DECLARED_CLOSURE",
+      "scope": "314 actual Git records;8rebound306unchanged; complete envelope;110 frozen historical file bindings match;99artifact roles authenticated (16stored83historical)"
+    },
+    {
+      "id": "O6",
+      "status": "SPECIFIC_RESIDUAL",
+      "scope": "Seal/template/supervisor, code14, all93case bindings, encodedarchive,268inputtable and858-file whole package verified; all268stored/archivedsourcebytes match. Attempted derived-tree traversal incomplete for220inputs; failed assertion remains.",
+      "residual": "RV2-SOURCE-TRAVERSAL"
+    },
+    {
+      "id": "O7",
+      "status": "VERIFIED_STATIC_SCOPE",
+      "scope": "Exact source delta only; Git100644 modes unchanged; old/new template limits/layouts/budget/root identical. No runtime or retrospective POSIX mode claim"
+    },
+    {
+      "id": "O8",
+      "status": "ROLE_ASSESSED_NOT_REPLAYED",
+      "scope": "34authorDATA observations=12positive22negative; not runtime proof or inherited independent passes. Separate12reviewercontrols have zero children"
+    },
+    {
+      "id": "O9",
+      "status": "QUALIFIED_ACCOUNTING_ASSESSED",
+      "scope": "516115ms root-relayed final charge includes60000ms allowance;456115ms post-init portion;27710ms after preseal;83885ms headroom. Exact initial wall unavailable; final closure delegated to author handoff, not independently timestamped here. HOLD/budget unchanged"
+    }
+  ],
+  "checks": [
+    {
+      "id": "ROLE12",
+      "pass": true,
+      "detail": "4 positive and 8 negative reviewer-only controls, zero child requests"
+    },
+    {
+      "id": "root-new-seal",
+      "pass": true,
+      "detail": "root exact raw seal"
+    },
+    {
+      "id": "old-seal",
+      "pass": true,
+      "detail": "old seal authenticated by exact new seal"
+    },
+    {
+      "id": "source314",
+      "pass": true,
+      "detail": "complete frozen source authority metadata/hash closure"
+    },
+    {
+      "id": "O1-canonical",
+      "pass": true,
+      "detail": "ordered UTF8 JSON no BOM/LF"
+    },
+    {
+      "id": "O1-raw-domains",
+      "pass": true,
+      "detail": "raw HOLD/archive match; only twelve declared links omitted; regular modes retained"
+    },
+    {
+      "id": "O1-order",
+      "pass": true,
+      "detail": "sorted entries per directory, depth-first traversal; not global path sort"
+    },
+    {
+      "id": "O2-authority",
+      "pass": true,
+      "detail": "old BINDINGS wrong domain, original PRESEAL right domain"
+    },
+    {
+      "id": "O2-only-binding-delta",
+      "pass": true,
+      "detail": "one leaf changes; no other binding mutation"
+    },
+    {
+      "id": "O3-admission.mjs",
+      "pass": true,
+      "detail": "exact independent literal postimage; all other bytes unchanged"
+    },
+    {
+      "id": "O3-future-supervisor.mjs",
+      "pass": true,
+      "detail": "exact independent literal postimage; all other bytes unchanged"
+    },
+    {
+      "id": "O3-source-auth.mjs",
+      "pass": true,
+      "detail": "exact independent literal postimage; all other bytes unchanged"
+    },
+    {
+      "id": "O3-seven-declarations",
+      "pass": true,
+      "detail": "seven independently reconstructed changes agree with declared allowlist"
+    },
+    {
+      "id": "O4-six-unchanged",
+      "pass": true,
+      "detail": "all six raw files identical"
+    },
+    {
+      "id": "O4-manifest",
+      "pass": true,
+      "detail": "exact dependent manifest with unchanged membership/order and only BINDINGS digest rebound"
+    },
+    {
+      "id": "O5-rebound314",
+      "pass": true,
+      "detail": "all ordered rows compared; precisely eight rebound and306 byte-equivalent records"
+    },
+    {
+      "id": "O5-auth-envelope",
+      "pass": true,
+      "detail": "whole source authority envelope, not a subset of current hashes"
+    },
+    {
+      "id": "O5-original110",
+      "pass": true,
+      "detail": "110 root historical files match their declared immutable bindings"
+    },
+    {
+      "id": "O6-seal100",
+      "pass": true,
+      "detail": "all100 explicit new seal pins; original99 mapped and predecessor seal retained"
+    },
+    {
+      "id": "O6-root-hashes",
+      "pass": true,
+      "detail": "requested raw template and supervisor hashes"
+    },
+    {
+      "id": "O6-code14",
+      "pass": true,
+      "detail": "exact mapped code identity; only3 executable byte changes"
+    },
+    {
+      "id": "O6-derived8437",
+      "pass": false,
+      "detail": "Git tree bytes authenticated and every selected input traversed in derived8437; no stored synthetic commit assumption"
+    },
+    {
+      "id": "O6-input-table",
+      "pass": true,
+      "detail": "full268 ordered selected-input table identity"
+    },
+    {
+      "id": "O6-package858",
+      "pass": true,
+      "detail": "whole package bytes plus all858 regular members content/mode/size; in-memory DATA only"
+    },
+    {
+      "id": "O6-archive",
+      "pass": true,
+      "detail": "encoded and gzip identities preserved"
+    },
+    {
+      "id": "O7-template-only",
+      "pass": true,
+      "detail": "only packet/seal/supervisor/futureGO metadata differ; bounds, reservation and all layout paths identical"
+    },
+    {
+      "id": "O9-reservation-hold",
+      "pass": true,
+      "detail": "original exact reservation and HOLD, no setup or capacity action"
+    },
+    {
+      "id": "O6-cases93",
+      "pass": true,
+      "detail": "each of93 frozen layout/case/script/fixture byte bindings matched; no runtime execution"
+    },
+    {
+      "id": "O7-git-modes",
+      "pass": true,
+      "detail": "all99 mapped entries retain recorded Git regular-file mode; not a retrospective POSIX lstat claim"
+    },
+    {
+      "id": "O8-author-controls",
+      "pass": true,
+      "detail": "34 records classified independently as author DATA12positive22negative; no pass inheritance"
+    },
+    {
+      "id": "O9-accounting",
+      "pass": true,
+      "detail": "arithmetic and evidence roles checked; exact initial wall unavailable, no fresh budget"
+    }
+  ],
+  "failures": [
+    {
+      "id": "O6-derived8437",
+      "detail": "Git tree bytes authenticated and every selected input traversed in derived8437; no stored synthetic commit assumption"
+    }
+  ],
+  "domains": {
+    "original": {
+      "rows": 2039,
+      "bytes": 249034,
+      "sha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    "copy": {
+      "rows": 2027,
+      "bytes": 248103,
+      "sha256": "dddb66e1a4d791167c74de1226a4a1263be7485302658eeb7d3ce800c0636d9d"
+    },
+    "links": [
+      [
+        "node_modules/.bin/arborist",
+        "SYMLINK",
+        "../@npmcli/arborist/bin/index.js"
+      ],
+      [
+        "node_modules/.bin/cssesc",
+        "SYMLINK",
+        "../cssesc/bin/cssesc"
+      ],
+      [
+        "node_modules/.bin/glob",
+        "SYMLINK",
+        "../glob/dist/esm/bin.mjs"
+      ],
+      [
+        "node_modules/.bin/installed-package-contents",
+        "SYMLINK",
+        "../@npmcli/installed-package-contents/bin/index.js"
+      ],
+      [
+        "node_modules/.bin/node-gyp",
+        "SYMLINK",
+        "../node-gyp/bin/node-gyp.js"
+      ],
+      [
+        "node_modules/.bin/node-which",
+        "SYMLINK",
+        "../which/bin/which.js"
+      ],
+      [
+        "node_modules/.bin/nopt",
+        "SYMLINK",
+        "../nopt/bin/nopt.js"
+      ],
+      [
+        "node_modules/.bin/pacote",
+        "SYMLINK",
+        "../pacote/bin/index.js"
+      ],
+      [
+        "node_modules/.bin/qrcode-terminal",
+        "SYMLINK",
+        "../qrcode-terminal/bin/qrcode-terminal.js"
+      ],
+      [
+        "node_modules/.bin/semver",
+        "SYMLINK",
+        "../semver/bin/semver.js"
+      ],
+      [
+        "node_modules/@npmcli/metavuln-calculator/node_modules/.bin/pacote",
+        "SYMLINK",
+        "../pacote/bin/index.js"
+      ],
+      [
+        "node_modules/cross-spawn/node_modules/.bin/node-which",
+        "SYMLINK",
+        "../which/bin/node-which"
+      ]
+    ],
+    "byteDifference": 931
+  },
+  "roleCounts": {
+    "storedArtifacts": 16,
+    "historicalArtifacts": 83,
+    "sourceRows": 314,
+    "originalFiles": 110,
+    "reviewerControls": 12,
+    "reviewerPositive": 4,
+    "reviewerNegative": 8,
+    "authorData": 34,
+    "authorPositive": 12,
+    "authorNegative": 22,
+    "workflowExecutions": 0,
+    "workflowUnrun": 93
+  },
+  "goCreated": false,
+  "reservationActions": 0,
+  "sourceAdmissionsAfterUnsafeStop": 0,
+  "unsafeStop": false,
+  "retries": 0
+}

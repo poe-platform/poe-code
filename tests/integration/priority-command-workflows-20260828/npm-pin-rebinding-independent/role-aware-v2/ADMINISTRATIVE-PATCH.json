@@ -1,0 +1,12 @@
+{
+  "ordinal": 4,
+  "role": "administrative apply_patch report only",
+  "startedElapsedMs": 410346.26316599996,
+  "status": 0,
+  "toolCompletionRequired": true,
+  "completed": true,
+  "endedElapsedMs": 530395.478625,
+  "stdout": "Success. Updated the following files:\nA tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/role-aware-v2/REVIEW.md\n",
+  "stderr": "",
+  "toolReceipt": "238733"
+}

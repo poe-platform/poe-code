@@ -1,7 +1,7 @@
 import { ShellSyntaxError } from "./types.js";
 import { arithmeticEnd, prepareArithmetic } from "./arithmetic.js";
 import type { ArithmeticProgram } from "./arithmetic.js";
-import { arraySelector, compoundEntry, compoundHead, elementAssignment, getArrayAssignment, scalarAssignmentName, setArrayAssignment, setArraySelector } from "./arrays/syntax.js";
+import { arraySelector, compoundEntry, compoundHead, elementAssignment, getArrayAssignment, scalarAssignmentName, setArrayAssignment, setArraySelector, setQuoteMarker } from "./arrays/syntax.js";
 import type { ArrayEntry, ArraySelector } from "./arrays/syntax.js";
 
 export type WordPart =
@@ -281,10 +281,16 @@ class Lexer {
     let parentheses = 0;
     let conditionals = 0;
     let plain = true;
-    const text = (value: string, quoted: boolean) => {
+    const text = (value: string, quoted: boolean, synthetic = false) => {
       const previous = parts.at(-1);
-      if (previous?.kind === "text" && previous.quoted === quoted) previous.value += value;
-      else parts.push({ kind: "text", value, quoted });
+      if (previous?.kind === "text" && previous.quoted === quoted) {
+        previous.value += value;
+        if (!synthetic) setQuoteMarker(previous, false);
+      } else {
+        const part: WordPart = { kind: "text", value, quoted };
+        setQuoteMarker(part, synthetic);
+        parts.push(part);
+      }
     };
     while (this.position < this.source.length) {
       const current = this.source[this.position]!;
@@ -303,7 +309,8 @@ class Lexer {
         plain = false;
         const quoteLine = this.lineAt(this.position);
         this.position++;
-        text("", true);
+        text("", true, true);
+        const quoteParts = parts.length;
         while (this.position < this.source.length && this.source[this.position] !== '"') {
           const inner = this.source[this.position]!;
           if (!literal && (inner === "$" || inner === "`")) this.expansion(parts, true);
@@ -318,6 +325,7 @@ class Lexer {
           }
         }
         if (this.source[this.position] !== '"') this.error("Unterminated double quote", { quote: '"', line: quoteLine });
+        if (parts.length === quoteParts) setQuoteMarker(parts.at(-1)!, false);
         this.position++;
       } else if (current === "\\") {
         if (this.source[this.position + 1] !== "\n") plain = false;

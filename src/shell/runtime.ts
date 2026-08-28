@@ -24,7 +24,7 @@ import type {
   CancellationAdmissionSnapshot, CancellationBoundary, CancellationControlOriginInput, CancellationOrigin,
   CancellationReport, CancellationSelection, CapturedCancellationOutcome, PreparedChildCancellation,
 } from "./cancellation.js";
-import { getArrayAssignment, getArraySelector, copyArraySelector, numericIndex, literalIndex } from "./arrays/syntax.js";
+import { getArrayAssignment, getArraySelector, copyArraySelector, numericIndex, literalIndex, isQuoteMarker } from "./arrays/syntax.js";
 import type { ArrayAssignment } from "./arrays/syntax.js";
 import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
 import { controlNames, IndexedBinding, textToken } from "./arrays/bindings.js";
@@ -3670,6 +3670,7 @@ export class Runtime {
     const parts = word.parts.map((part) => ({ part, splitText: false }));
     for (let index = 0; index < parts.length; index++) {
       const { part, splitText } = parts[index]!;
+      const quotedPresence = part.quoted && !(arrayOwned && isQuoteMarker(part));
       if (part.kind === "variable" && ["-", "+", ":-", ":+"].includes(part.operator ?? "") && /^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(part.name)) {
         const value = this.variable(state, part.name);
         const missing = value === undefined || (part.operator!.startsWith(":") && value === "");
@@ -3713,7 +3714,7 @@ export class Runtime {
       } else if (part.kind === "text" && !splitText) {
         let value = part.value;
         if (index === 0 && !part.quoted && /^~(?:\/|$)/u.test(value)) value = (state.variables.HOME ?? "~") + value.slice(1);
-        append(value, !part.quoted, part.quoted || value.length > 0);
+        append(value, !part.quoted, quotedPresence || value.length > 0);
       } else if (part.kind === "variable" && part.name === "@" && part.quoted && !part.operator && split) {
         for (let position = 0; position < state.positional.length; position++) {
           if (position > 0) fields.push({ value: "", pattern: "", present: false });
@@ -3722,7 +3723,7 @@ export class Runtime {
         if (state.positional.length === 0 && word.parts.every((entry) => (entry.kind === "text" && entry.value === "") || entry === part)) fields[0]!.present = false;
       } else {
         const value = part.kind === "text" ? part.value : await this.part(part, state, io, hereString);
-        if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, part.quoted || !split || value.length > 0);
+        if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || value.length > 0);
         else {
           const separators = state.variables.IFS ?? " \t\n";
           let boundary = false;

@@ -20,6 +20,16 @@ export type ArrayAssignment =
 
 const assignments = new WeakMap<Word, ArrayAssignment>();
 const selectors = new WeakMap<WordPart, ArraySelector>();
+const quoteMarkers = new WeakSet<WordPart>();
+
+export function setQuoteMarker(part: WordPart, synthetic: boolean): void {
+  if (synthetic) quoteMarkers.add(part);
+  else quoteMarkers.delete(part);
+}
+
+export function isQuoteMarker(part: WordPart): boolean {
+  return quoteMarkers.has(part);
+}
 
 export function literalIndex(source: string, offset: number): LiteralIndex {
   let decimal = source;
@@ -53,6 +63,7 @@ export function getArraySelector(part: WordPart): ArraySelector | undefined {
 export function copyArraySelector(original: WordPart, copy: WordPart): WordPart {
   const selector = selectors.get(original);
   if (selector) selectors.set(copy, selector);
+  setQuoteMarker(copy, isQuoteMarker(original));
   return copy;
 }
 

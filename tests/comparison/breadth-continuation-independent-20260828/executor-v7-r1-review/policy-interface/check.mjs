@@ -24,6 +24,11 @@ const requests = [...local.map(entry => `${candidate}:${path.relative(repository
 const mode = process.argv[2];
 if (mode === 'requests') {
   process.stdout.write(`${requests.join('\n')}\n`);
+} else if (mode === 'tree') {
+  const wanted = new Set(local.map(entry => path.relative(repository, entry.absolute)));
+  const output = Buffer.from(`${fs.readFileSync(0, 'utf8').split('\n').filter(line => wanted.has(line.split('\t')[1])).join('\n')}\n`);
+  assert(output.length <= 262144, 'tree record cap');
+  fs.writeFileSync(path.join(own, 'CANDIDATE-TREE.txt'), output, { flag: 'wx', mode: 0o644 });
 } else {
   assert(['before', 'after'].includes(mode), 'capture phase');
   const input = fs.readFileSync(0);
@@ -33,6 +38,7 @@ if (mode === 'requests') {
   for (const request of requests) {
     const end = input.indexOf(10, offset);
     const header = input.subarray(offset, end).toString();
+    if (header === `${request} missing`) { offset = end + 1; continue; }
     const match = /^([0-9a-f]{40}) blob ([0-9]+)$/.exec(header);
     assert(match, `committed blob ${request}`);
     const bytes = Number(match[2]);
@@ -56,7 +62,7 @@ if (mode === 'requests') {
     const blob = blobs.get(`${candidate}:${relative}`);
     const git = tree.get(relative);
     const bodyMatches = blob ? hash(blob.body) === entry.sha256 && blob.body.length === entry.bytes && git?.oid === blob.oid && git.mode === ((entry.mode & 0o111) ? '100755' : '100644') : null;
-    const row = { path: entry.path, bytes: bytes.length, mode: info.mode & 0o7777, sha256: hash(bytes), committed: bodyMatches, gitMode: git?.mode ?? null, pass: info.isFile() && !info.isSymbolicLink() && bytes.length === entry.bytes && (info.mode & 0o7777) === entry.mode && hash(bytes) === entry.sha256 && (blob ? bodyMatches : true) };
+    const row = { path: entry.path, bytes: bytes.length, mode: info.mode & 0o7777, sha256: hash(bytes), committed: bodyMatches, provenance: blob ? 'exact-git-blob-and-seal' : entry.absolute.startsWith(`${repository}/`) ? 'materialized-bytes-bound-by-committed-seal-not-git-blob' : 'external-tool-bound-by-committed-seal', gitMode: git?.mode ?? null, pass: info.isFile() && !info.isSymbolicLink() && bytes.length === entry.bytes && (info.mode & 0o7777) === entry.mode && hash(bytes) === entry.sha256 && (blob ? bodyMatches : true) };
     results.files.push(row);
   }
   for (const [request, blob] of blobs) {
@@ -99,7 +105,7 @@ if (mode === 'requests') {
   let parsed = 0;
   for (const entry of local.filter(item => item.path.endsWith('.mjs'))) {
     const relative = path.relative(repository, entry.absolute);
-    const source = parser.createSourceFile(relative, blobs.get(`${candidate}:${relative}`).body.toString('utf8'), parser.ScriptTarget.Latest, true, parser.ScriptKind.JS);
+    const source = parser.createSourceFile(relative, (blobs.get(`${candidate}:${relative}`)?.body ?? fs.readFileSync(entry.absolute)).toString('utf8'), parser.ScriptTarget.Latest, true, parser.ScriptKind.JS);
     check(`parse ${relative}`, source.parseDiagnostics.length === 0);
     parsed++;
     const dependencies = [];

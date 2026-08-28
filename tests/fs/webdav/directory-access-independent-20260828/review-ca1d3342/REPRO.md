@@ -3,7 +3,7 @@
 From this directory in the final committed review, data-only checks are:
 
 ```
-node verify.mjs
+node verify-final.mjs
 node audit.mjs
 ```
 
@@ -21,7 +21,7 @@ tools must be available at the TOOLS.json origins (or restored byte-identically)
 missing/changed tools fail without installation or network fallback.
 
 ```
-node verify.mjs
+node verify-final.mjs
 node recreate.mjs
 node replay.mjs replay-unique-name
 ```

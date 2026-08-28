@@ -120,7 +120,7 @@ claim follows. Actual WebDAV service: **unavailable/not run**.
 
 ## Handoff
 
-Data-only verification: `node verify.mjs` and `node audit.mjs` here. REPRO.md
+Data-only verification: `node verify-final.mjs` and `node audit.mjs` here. REPRO.md
 documents a fresh authorized replay from archived bytes and pinned local tools;
 the fresh replay wrapper is syntax-checked, not an additional executed cohort.
 The exact scope's source/default/limit decisions are in SOURCE-REVIEW.md. Original
@@ -128,6 +128,9 @@ seven-file hashes and live provider/readonly/runtime/contracts/root package scop
 are preserved separately; live preservation is not mislabeled historical equality.
 The append-aware final seal excludes ONLY this owned review subtree when checking
 the parent, then authenticates this subtree's exact independent membership.
+The final wrapper also rejects empty-directory additions, without editing either
+the original precode verifier or the committed regular-file verifier. Both file
+and empty-directory addition negatives are recorded in SEAL-CONTROL.json.
 
 This is an independent provider prerequisite handoff, not cd-runtime acceptance.
 G fixtures test provider compatibility only. ROOT decides release and any later

@@ -40,3 +40,13 @@ reference counts confirmed, fallback export a→m confirmed. The original 25/26
 result remains unchanged, not retroactively passing. Supplemental contextual
 spelling/substring lists are explicitly not symbol or reachability proof; the
 final extraction preseal narrows the human-reviewed context to named methods.
+
+## Final DATA cross-check — completed
+
+Preseal/checker commit: `2c86b9c5`.
+Command: `node tests/comparison/breadth-continuation-independent-20260828/executor-v6-postadmission-review/source-policy/check-final-data.mjs`
+
+Exit 0; FINAL-DATA-RESULTS.json exclusively created (27367 bytes). 21/21 actual
+load records agree with config and source; 36/36 previously authenticated inputs
+retain their before/after hashes. Bounded named-method excerpts are source data,
+not executed controls. No engine executions, builtin probes or archive reads.

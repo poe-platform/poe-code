@@ -1,0 +1,250 @@
+{
+  "version": 1,
+  "kind": "synthetic-executor-preparation-only",
+  "freezeCommit": "302351279c8ca6122c618e72768782c8ad118878",
+  "ratificationBindingCommit": "8a930834c606f6a6688abb9eb0edeb3ba76924cb",
+  "authorityCommit": "232c2f357a1049cbf096dbef3051445c8f7c476b",
+  "firstRecordedClock": "2026-08-28T07:42:27Z",
+  "preparedAt": "2026-08-28T08:07:42.476Z",
+  "originalCounts": {
+    "rows": 138,
+    "invariants": 24,
+    "positiveTypes": 8,
+    "negativeTypes": 8,
+    "mutationFamilies": 16,
+    "importNegativeFamilies": 6
+  },
+  "originalFiles": [
+    {
+      "commit": "8a930834c606f6a6688abb9eb0edeb3ba76924cb",
+      "path": "tests/shell/directory-stack-independent-20260828/README.md",
+      "role": "immutable-original14",
+      "mode": "100644",
+      "blob": "138c2f9e2372195daecbff291f81ad15da92aa7e",
+      "bytes": 1290,
+      "sha256": "3cd42dafd7bf2bd49b2ea070a0b97cbf9587d88a5adbddfa92116971e2983f40"
+    },
+    {
+      "commit": "8a930834c606f6a6688abb9eb0edeb3ba76924cb",
+      "path": "tests/shell/directory-stack-independent-20260828/freeze-v1/BINDING.json",
+      "role": "immutable-original14",
+      "mode": "100644",
+      "blob": "001147beec9dca7bbdfca218dce6fec4d3f48159",
+      "bytes": 12104,
+      "sha256": "4aed58fe6f965bf01b7bc03d8e4aaed46947574892c8be96d980f863c1aae5f2"
+    },
+    {
+      "commit": "8a930834c606f6a6688abb9eb0edeb3ba76924cb",
+      "path": "tests/shell/directory-stack-independent-20260828/freeze-v1/CONTRACT.md",
+      "role": "immutable-original14",
+      "mode": "100644",
+      "blob": "6073a5c41d3473c831db92d1322d0cb737a09ef5",
+      "bytes": 12137,
+      "sha256": "24cb53d6fcbc2fcccb86fd722b568a56ed5650897bb33fff155554f39709ef78"
+    },
+    {
+      "commit": "8a930834c606f6a6688abb9eb0edeb3ba76924cb",
+      "path": "tests/shell/directory-stack-independent-20260828/freeze-v1/SEAL.json",
+      "role": "immutable-original14",
+      "mode": "100644",
+      "blob": "4008ef5e9e89d66b2a7fe5d2ca23a15c41cd5dad",
+      "bytes": 1361,
+      "sha256": "6ffff33033027db30c196aa2f153d6a7b7a23f304503008fd62afa649a4811f5"
+    },
+    {
+      "commit": "8a930834c606f6a6688abb9eb0edeb3ba76924cb",
+      "path": "tests/shell/directory-stack-independent-20260828/freeze-v1/STATIC-ATTEMPTS.json",
+      "role": "immutable-original14",
+      "mode": "100644",
+      "blob": "399bb9d954c31b86fc6432763c3f206e7868953a",
+      "bytes": 6460,
+      "sha256": "36c552ae74a5f2a4cb4767b7a85d512eea8dfa0415b8a49d28554a36f39d4fa4"
+    },
+    {
+      "commit": "8a930834c606f6a6688abb9eb0edeb3ba76924cb",
+      "path": "tests/shell/directory-stack-independent-20260828/freeze-v1/cases.json",
+      "role": "immutable-original14",
+      "mode": "100644",
+      "blob": "2e96680eb18a217126582187d516e0bdeff2417c",
+      "bytes": 27475,
+      "sha256": "6221e26160ebc3fbab38e6ab2e037a201693eb6c9ab00acd0394398003a817c1"
+    },
+    {
+      "commit": "8a930834c606f6a6688abb9eb0edeb3ba76924cb",
+      "path": "tests/shell/directory-stack-independent-20260828/freeze-v1/controls.json",
+      "role": "immutable-original14",
+      "mode": "100644",
+      "blob": "3d6b3e2eaae0915fd9fcefdcfa0dd4ab4e86e129",
+      "bytes": 6380,
+      "sha256": "28c64f21f1ee1b10ecdef21195b211dc53ca176e1c26190185a355285b85ab5f"
+    },
+    {
+      "commit": "8a930834c606f6a6688abb9eb0edeb3ba76924cb",
+      "path": "tests/shell/directory-stack-independent-20260828/freeze-v1/proofs.json",
+      "role": "immutable-original14",
+      "mode": "100644",
+      "blob": "29417f400aee0ffa13b35bc7deb1007f0926a9aa",
+      "bytes": 14570,
+      "sha256": "4eeb9f7a1cb70d16a0ad50cae41f8c283ed91fa13d7d10c0f03c80a2f6c2f080"
+    },
+    {
+      "commit": "8a930834c606f6a6688abb9eb0edeb3ba76924cb",
+      "path": "tests/shell/directory-stack-independent-20260828/freeze-v1/verify.mjs",
+      "role": "immutable-original14",
+      "mode": "100644",
+      "blob": "89634b57ad859a7402a805b8277d5b2f00ad14f0",
+      "bytes": 16591,
+      "sha256": "57916891df7ee80f57f8c677f24c3e8b9647a3ffe3bff1d3347fcc4093e5de45"
+    },
+    {
+      "commit": "8a930834c606f6a6688abb9eb0edeb3ba76924cb",
+      "path": "tests/shell/directory-stack-independent-20260828/ratification-v1/BINDING.json",
+      "role": "immutable-original14",
+      "mode": "100644",
+      "blob": "6299ec476bc43d8cc1f0ce9852666f8f3ba727a3",
+      "bytes": 17102,
+      "sha256": "2150662c897abbde9f570c2cdfeaa1d7fe147ffbe6d6a70978292e06cbb1bfa4"
+    },
+    {
+      "commit": "8a930834c606f6a6688abb9eb0edeb3ba76924cb",
+      "path": "tests/shell/directory-stack-independent-20260828/ratification-v1/HANDOFF.md",
+      "role": "immutable-original14",
+      "mode": "100644",
+      "blob": "fde48f47f353f267cc1b8829a11aafe9a4b2d338",
+      "bytes": 4946,
+      "sha256": "61f8f69235f999cf631401c419482aad22411a671d3a8cc678b41a13d1709306"
+    },
+    {
+      "commit": "8a930834c606f6a6688abb9eb0edeb3ba76924cb",
+      "path": "tests/shell/directory-stack-independent-20260828/ratification-v1/SEAL.json",
+      "role": "immutable-original14",
+      "mode": "100644",
+      "blob": "3fbf78a4751e333e168800a939fbba1aa57999b9",
+      "bytes": 839,
+      "sha256": "8fdba8a9c32cc34f959bd4c1ef8b30d814b7bb5f983ae839e2a802452697c721"
+    },
+    {
+      "commit": "8a930834c606f6a6688abb9eb0edeb3ba76924cb",
+      "path": "tests/shell/directory-stack-independent-20260828/ratification-v1/STATIC-ATTEMPTS.json",
+      "role": "immutable-original14",
+      "mode": "100644",
+      "blob": "8d4c989d41f1a3b32674406c89970b096a24d1bc",
+      "bytes": 3419,
+      "sha256": "3136c9dbf3b2fab2ff5979d9fd75e1a6ff40bcdf88ae0df23eb7e69a47fae677"
+    },
+    {
+      "commit": "8a930834c606f6a6688abb9eb0edeb3ba76924cb",
+      "path": "tests/shell/directory-stack-independent-20260828/ratification-v1/verify.mjs",
+      "role": "immutable-original14",
+      "mode": "100644",
+      "blob": "7c42f98da8add79ffdb9c766ae47efdad6f8b4cd",
+      "bytes": 12823,
+      "sha256": "4a3cd74dceba2b9745b044261534c65e3799c047078acf36fb02cfe90dfc657c"
+    }
+  ],
+  "acceptedApiReferences": [
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/types.ts",
+      "role": "existing declared API/reference",
+      "mode": "100644",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "bytes": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/command.ts",
+      "role": "existing declared API/reference",
+      "mode": "100644",
+      "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/filesystem.ts",
+      "role": "existing declared API/reference",
+      "mode": "100644",
+      "blob": "5c1a59a85e47bc9bc242a2e92b22680d785fcc89",
+      "bytes": 3897,
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/io.ts",
+      "role": "existing declared API/reference",
+      "mode": "100644",
+      "blob": "6dc0efb87132376763228a845b2e62638898268a",
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/plugin.ts",
+      "role": "existing declared API/reference",
+      "mode": "100644",
+      "blob": "69b685ebbf6cfb7d1068c419b7e4109e4f9179d4",
+      "bytes": 2359,
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/errors.ts",
+      "role": "existing declared API/reference",
+      "mode": "100644",
+      "blob": "d466866ce93c4feced56e2bd5fe4c41637e62226",
+      "bytes": 3457,
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/fs/memory/index.ts",
+      "role": "accepted signature inspection only; no new implementation inspection",
+      "mode": "100644",
+      "blob": "29551d4afa95503783f915410fcdafaf518a6786",
+      "bytes": 23533,
+      "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/shell/shell.ts",
+      "role": "accepted signature inspection only; no new implementation inspection",
+      "mode": "100644",
+      "blob": "0b96a82f4ec29da4dbdd447806cca6a2f514311a",
+      "bytes": 15002,
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/index.ts",
+      "role": "existing declared API/reference",
+      "mode": "100644",
+      "blob": "ff7ab9b4e4a2f2a25eb0fae8db1d3149c514ad16",
+      "bytes": 1593,
+      "sha256": "6d847ff37316fcdc851145024a422cb6541f0cbeab15895c5a972d7f1f97bb6b"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "package.json",
+      "role": "existing declared API/reference",
+      "mode": "100644",
+      "blob": "161191ea9e8e56bbea0e74b48af54ee57b646015",
+      "bytes": 4840,
+      "sha256": "64846cc0868630f863fade5119cef195a949aa0ed36ecc341bd9a076d6c363e2"
+    }
+  ],
+  "candidate": null,
+  "acceptedLet": null,
+  "rootStackGo": false,
+  "stackWindowReleased": false,
+  "noOriginalFilesModified": true,
+  "history": {
+    "nativeOriginal": 34,
+    "virtualOriginal": 34,
+    "virtualMatches": 0,
+    "topologyNativeOnly": 4,
+    "grammarNativeOnly": 8,
+    "grammarVirtualRuns": 0
+  }
+}

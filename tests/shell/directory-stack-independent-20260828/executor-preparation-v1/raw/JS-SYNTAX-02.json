@@ -1,0 +1,104 @@
+{
+  "kind": "JavaScript-syntax-only-no-imports",
+  "startedAt": "2026-08-28T08:17:53.705Z",
+  "finishedAt": "2026-08-28T08:17:54.203Z",
+  "checks": [
+    {
+      "file": "adapters.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "child-process.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "executor.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "import-probe.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "integrity.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "lifecycle.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "load-hook.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "mechanisms.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "public-cases.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "public-driver.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "synthetic.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "types.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "file": "verify.mjs",
+      "exitStatus": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "passed": 13,
+  "failed": 0,
+  "inputHashes": {
+    "adapters.mjs": "dc5bbd52207cde4c62edbd69f6ad2935342411f83045816d55efd152908aa6cd",
+    "child-process.mjs": "c11e0225d3e1cb8b96e247fb8b1a7914c6057a37c6dbf0e7ef157e533e6aa7e7",
+    "executor.mjs": "ed2a7bbebddbc60314ae57e82fc96723589f3b30a52282d58210fbe6751a014d",
+    "import-probe.mjs": "cf5f38a30b278b4cc1bce836bf15444b1f0f1ae92327b3eb8101a1bb63f1e83a",
+    "integrity.mjs": "61fca7caf2f939e65f90f7f6918e16b943602a81e26ae2877fb62fe59b430ff6",
+    "lifecycle.mjs": "33e1b730aa3244f29fcf9f1951f841b5d94e90c0fe86c8cd84e025dab273ae9e",
+    "load-hook.mjs": "f8dfa1c8c96c62d5c189326500855233ea3897e07931d3edd8b8d2265ddcd514",
+    "mechanisms.mjs": "b14cfbc8b3c3e081751cba19924c7f8956f87c255a249fc621ab96f4684aa0cb",
+    "public-cases.mjs": "65f2d3e7ff8d1c67e33075889789c206c29031eb5f88235d50e5b8942f8267df",
+    "public-driver.mjs": "2e6bec4678ecd23ad9714b0c3de3bb41509eea811b51c6d0859dae39edfd2609",
+    "synthetic.mjs": "eb372093bba3f50346620113495538bb0b4d338490be87a2214cdff21e14e296",
+    "types-negative.mts.fixture": "a3001650b87c80662a3fcc1a95d72d5f208a1af45ff97c12bea85b85924a2af1",
+    "types-positive.mts.fixture": "dbc90e27000cb9eaa3a9bbe0aa1d6a6bd81c1fd287d5d104c1f02e697b0d57d3",
+    "types.mjs": "154d1f8e5e0079efc856e81309917ac9d7c6c7c2f23946040f71d66a298dce71",
+    "verify.mjs": "b67e153e53172bc69288b8a376b7c906c326d0f11cf7b6e349620d9a1f7aeb65"
+  }
+}

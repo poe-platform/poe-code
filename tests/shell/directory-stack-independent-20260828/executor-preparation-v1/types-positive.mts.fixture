@@ -1,0 +1,12 @@
+import type { ByteSink, ByteSource, CommandContext, CommandInvokeOptions, FileSystem, ShellExecOptions, ShellInvokeOptions, ShellOptions, ShellResult } from "virtual-bash";
+declare const fs: FileSystem;
+declare const stdin: ByteSource;
+declare const signal: AbortSignal;
+export const TP01: ShellOptions = { fs };
+export const TP02: ShellExecOptions = { cwd: "/c", env: { PWD: "/c" }, limits: { maxOutputBytes: 1024 } };
+export const TP03: ShellInvokeOptions = { signal: undefined, replaceEnv: true, env: {} };
+export const TP04: CommandInvokeOptions = { signal: undefined, replaceEnv: true, env: {} };
+export const TP05: ByteSink = { async write(chunk: Uint8Array): Promise<void> { void chunk; } };
+export const TP06: ByteSink = { async write(chunk: Uint8Array): Promise<void> { void chunk; }, ownedOutput: { consumerClosed: signal, async write(chunk: Uint8Array): Promise<void> { void chunk; } } };
+export const TP07: ShellResult = { stdout: "", stderr: "", stdoutBytes: new Uint8Array(), stderrBytes: new Uint8Array(), exitCode: 0 };
+export const TP08: CommandContext = { command: "probe", args: [], stdin, stdout: TP05, stderr: TP05, cwd: "/c", env: {}, fs, signal };

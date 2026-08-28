@@ -1,0 +1,15 @@
+{
+  "kind": "static-only-append-aware-verification",
+  "startedAt": "2026-08-28T08:19:50.869Z",
+  "finishedAt": "2026-08-28T08:19:53.075Z",
+  "verifierSha256": "a98fcd675b9d99894fdb0431b4775be7d8c2350058db6d74322880bee8c22072",
+  "sealSha256": "1d2c7d1bc1e76a42ab4801887554eadc87481d3482584043da86cc76db4af8fc",
+  "verifierSyntax": {
+    "exitStatus": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "exitStatus": 0,
+  "stdout": "{\n  \"status\": \"static-only-pass\",\n  \"at\": \"2026-08-28T08:19:53.071Z\",\n  \"sealedCommit\": null,\n  \"immutableOriginalFiles\": 14,\n  \"preparationFiles\": 26,\n  \"apiReferencesAuthenticated\": 10,\n  \"originalCountsUnchanged\": {\n    \"rows\": 138,\n    \"invariants\": 24,\n    \"positiveTypes\": 8,\n    \"negativeTypes\": 8,\n    \"mutationFamilies\": 16,\n    \"importNegativeFamilies\": 6\n  },\n  \"preparedAdaptersUnexecuted\": 124,\n  \"boundedAdapterGaps\": 14,\n  \"sourceProofsPending\": 24,\n  \"typedFixtures\": {\n    \"positive\": 8,\n    \"negative\": 8,\n    \"inversions\": 8,\n    \"productCompiles\": 0\n  },\n  \"latestSynthetic\": {\n    \"passed\": 42,\n    \"failed\": 0\n  },\n  \"latestJavaScriptSyntax\": {\n    \"passed\": 13,\n    \"failed\": 0\n  },\n  \"staticNegativesRejected\": [\n    \"P01\",\n    \"P02\",\n    \"P03\",\n    \"P04\",\n    \"P05\",\n    \"P06\",\n    \"P07\",\n    \"P08\"\n  ],\n  \"appendAwareBeforeAfter\": true,\n  \"productBuilds\": 0,\n  \"productImports\": 0,\n  \"productTypeCompiles\": 0,\n  \"nativeOracleRuns\": 0,\n  \"providerRequests\": 0,\n  \"cohortRuns\": 0,\n  \"stackAuthorized\": false\n}\n",
+  "stderr": ""
+}

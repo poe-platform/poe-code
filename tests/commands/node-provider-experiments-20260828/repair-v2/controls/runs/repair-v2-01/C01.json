@@ -1,0 +1,40 @@
+{
+  "id": "C01",
+  "expected": "natural close and NATURAL LF",
+  "observation": {
+    "rejected": false,
+    "primary": null,
+    "subjectRow": {
+      "number": 1,
+      "role": "workflow",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch",
+        "--disallow-code-generation-from-strings",
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch/stub.mjs",
+        "natural"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch/C01",
+      "stdoutBytes": 8,
+      "stderrBytes": 0,
+      "containment": null,
+      "naturallyReaped": true,
+      "closeObserved": true,
+      "signalsRequested": [],
+      "pid": 11160,
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "b54c891bbff6c3a6fb8fdddca2796b7e1c0375b6371e4ff8c67f2a8a3944cd08",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "independentOrdinal": 1,
+    "remainingCalls": 2,
+    "subjectOwnedRetirement": true,
+    "expectedObserved": true
+  },
+  "safeToContinue": true
+}

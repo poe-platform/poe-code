@@ -1,0 +1,57 @@
+{
+  "id": "C02",
+  "expected": "postspawn clock primary retained; subject SIGTERM/close",
+  "observation": {
+    "rejected": true,
+    "primary": {
+      "type": "object",
+      "name": "Error",
+      "message": "POSTSPAWN_CLOCK"
+    },
+    "subjectRow": {
+      "number": 1,
+      "role": "workflow",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch",
+        "--disallow-code-generation-from-strings",
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch/stub.mjs",
+        "hold"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch/C02",
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "containment": "OWNED_FAILURE",
+      "naturallyReaped": false,
+      "closeObserved": true,
+      "signalsRequested": [
+        "SIGTERM"
+      ],
+      "pid": 11161,
+      "status": null,
+      "signal": "SIGTERM",
+      "primaryFailure": {
+        "type": "object",
+        "name": "Error",
+        "message": "POSTSPAWN_CLOCK"
+      },
+      "secondaryFailures": [
+        {
+          "type": "object",
+          "name": "Error",
+          "message": "POSTSPAWN_CLOCK"
+        }
+      ]
+    },
+    "independentOrdinal": 2,
+    "remainingCalls": 2,
+    "subjectOwnedRetirement": true,
+    "exactPrimary": true,
+    "expectedObserved": true
+  },
+  "safeToContinue": true
+}

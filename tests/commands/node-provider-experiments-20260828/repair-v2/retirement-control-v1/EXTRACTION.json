@@ -1,0 +1,72 @@
+{
+  "schema": "node-repair-whole-function-extraction-v2",
+  "classification": "whole exact functions, declared safe ports; no engine imports",
+  "sourceSha256": "e6a38d60595475d44989b28faa52670185a777e63bcf610811d2ad275373459f",
+  "subjectSha256": "9c12199286c437e714700340abe17ae7ab4637073a9d6f2b1065bc5602c47640",
+  "functions": [
+    {
+      "name": "child",
+      "sourcePath": "recipe/supervisor.mjs.data",
+      "startByte": 2442,
+      "endByte": 6787,
+      "startLine": 47,
+      "sha256": "7b17c20121a20305c7e8cc6be5de54cfc0b7043be9e0754e1841d891f38fc5d3"
+    },
+    {
+      "name": "retireActiveChild",
+      "sourcePath": "recipe/supervisor.mjs.data",
+      "startByte": 6788,
+      "endByte": 7015,
+      "startLine": 125,
+      "sha256": "a398b4d16951114d434beb0a32c08d246e72ae59f0e68cd73db7f37b9cb1a594"
+    },
+    {
+      "name": "ownRecord",
+      "sourcePath": "recipe/supervisor.mjs.data",
+      "startByte": 20480,
+      "endByte": 21071,
+      "startLine": 300,
+      "sha256": "c515d8d49ba2f1acda82faacfa2208d05928406a8103975d8d0bf7027bfd5828"
+    },
+    {
+      "name": "denseData",
+      "sourcePath": "recipe/supervisor.mjs.data",
+      "startByte": 21071,
+      "endByte": 21670,
+      "startLine": 309,
+      "sha256": "9f32358ee1cb53926d127d4409cf2dde817f4625cee792e60a04c017a1c08815"
+    },
+    {
+      "name": "primitiveData",
+      "sourcePath": "recipe/supervisor.mjs.data",
+      "startByte": 21670,
+      "endByte": 21901,
+      "startLine": 319,
+      "sha256": "87d7930dd7000ac58e15a314a98ab305b5e42097e89bffad721c7aa452db6e64"
+    },
+    {
+      "name": "reasonShape",
+      "sourcePath": "recipe/supervisor.mjs.data",
+      "startByte": 21901,
+      "endByte": 22481,
+      "startLine": 322,
+      "sha256": "d3b098b7476042697149df2f248b231b0d6353cf43bf0d64a34bcb90a5429f00"
+    },
+    {
+      "name": "reconcileReceipt",
+      "sourcePath": "recipe/supervisor.mjs.data",
+      "startByte": 22481,
+      "endByte": 38406,
+      "startLine": 331,
+      "sha256": "bca180f068eaf46d5ee982ddc4e9c59e8982675ff3914a082200e7c86dc56190"
+    },
+    {
+      "name": "acceptEvaluation",
+      "sourcePath": "recipe/supervisor.mjs.data",
+      "startByte": 38406,
+      "endByte": 39535,
+      "startLine": 452,
+      "sha256": "b68c4e63e9c792d81c6ba8f5855f68f4d28ba4c4b7db16542b271a4b6ddc60fe"
+    }
+  ]
+}

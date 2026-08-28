@@ -1,0 +1,58 @@
+{
+  "id": "C06",
+  "expected": "contradictory receipt rejected with all composed inert prerequisite ports",
+  "observation": {
+    "rejected": false,
+    "primary": null,
+    "subjectRow": {
+      "number": 1,
+      "role": "workflow",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch",
+        "--disallow-code-generation-from-strings",
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch/stub.mjs",
+        "receipt",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch/C06/fixture.json",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch/C06/logs/F01/receipt.json"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/runs/repair-v2-01/scratch/C06",
+      "stdoutBytes": 123,
+      "stderrBytes": 0,
+      "containment": null,
+      "naturallyReaped": true,
+      "closeObserved": true,
+      "signalsRequested": [],
+      "pid": 11173,
+      "status": 0,
+      "signal": null,
+      "stdoutSha256": "f06597e27a20d96f1dea19b2353b30fa5d1a633b38c44e6d5ba8d75636459e33",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "independentOrdinal": 6,
+    "remainingCalls": 2,
+    "subjectOwnedRetirement": true,
+    "composed": {
+      "accepted": false,
+      "refusal": {
+        "type": "object",
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '0000000000000000000000000000000000000000000000000000000000000000'\n- '536677e58f2fb4933bc587767a0b049e7ce648b3c1999a13d8fe2db9df633f84'\n"
+      },
+      "portCalls": [
+        "guard:after-F01",
+        "immutable:after-F01",
+        "auditLoads:F01"
+      ],
+      "enginePrerequisites": "authenticated INERT mock ports, not actual engine loads",
+      "actualEngineEvaluations": 0,
+      "claimedEngineEntriesInFixture": 1
+    },
+    "expectedObserved": true
+  },
+  "safeToContinue": true
+}

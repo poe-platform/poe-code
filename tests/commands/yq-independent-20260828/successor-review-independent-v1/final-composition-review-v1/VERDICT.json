@@ -1,0 +1,261 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "reviewerRole": "DIFFERENT_STATIC_VERIFIER",
+  "status": "CHANGES_REQUIRED",
+  "compositionCommit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+  "compositionRoot": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2",
+  "criteriaCommit": "33ce3f5850a6d8871e016cb49137d9dbfbd93ce7",
+  "priorPeerReview": "74fc2063a365c02553c4f7fe6a48608ed5f5f700",
+  "originalFindingsAndReviewsRescored": false,
+  "routedSeals": [
+    {
+      "path": "FINAL-SEAL.json",
+      "sha256": "e2d4dd59a490d71f498e7ca5a26eb37a17325500c6e7b535f78e82373cf88ebd",
+      "bytes": 19620,
+      "matches": true
+    },
+    {
+      "path": "ASSEMBLY-SEAL.json",
+      "sha256": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+      "bytes": 14288,
+      "matches": true
+    },
+    {
+      "path": "RECIPE.json",
+      "sha256": "40c9e4c0a407fd1ebebbb17a421a52d2949c3ef6316b4a46499504127b64174d",
+      "bytes": 316517,
+      "matches": true
+    },
+    {
+      "path": "TOOL-DATA-COPY.json",
+      "sha256": "0d0793d63f31b1d1f5cc91d2d77fe5b14c854c0c3980dd2d25e90c06a424e5b8",
+      "bytes": 203203,
+      "matches": true
+    },
+    {
+      "path": "LOAD-AND-TOOL-SEAL.json",
+      "sha256": "edfd944ea63674c3123ebb3036f1f43daf94bb938bd7660dccf611582b451e8a",
+      "bytes": 16148,
+      "matches": true
+    }
+  ],
+  "sourceIntegrityMismatches": [],
+  "codeFindings": [
+    {
+      "id": "FC-F01",
+      "commit": "2df1dab10c3176a35f4160fa12c460a7abc592fe",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/FC-F01-STATIC-WITNESS.json",
+      "sha256": "0eb85eb7515432bae8f8118e1016243216a1295d1d60120746bcd957cd2fbf31",
+      "bytes": 6096
+    },
+    {
+      "id": "FC-F02",
+      "commit": "cbf906a3ce6d92b2a587cb651014b068deb08532",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/FC-F02-STATIC-WITNESS.json",
+      "sha256": "85a4c10b669b7309f2ee0c44e344d3af18e74c936fb5fd64770b459e4b91f603",
+      "bytes": 11327
+    },
+    {
+      "id": "FC-F03",
+      "commit": "a3c3e6582a58ee0b0227856c0f1d95a1c083fad1",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/FC-F03-STATIC-WITNESS.json",
+      "sha256": "5eff1a429c4182a6f69ae736079b4438882e83787f97d04b0f28e9409e04249f",
+      "bytes": 6736
+    }
+  ],
+  "findingSummaries": {
+    "FC-F01": "Tool-call own-data validation occurs after serialization can invoke accessors or erase extras.",
+    "FC-F02": "Several parent/tool metadata publications bypass aggregate32MiB/job accounting; closing inspection does not enforce that cap.",
+    "FC-F03": "Phase transitions can remove an expired setup/semantic deadline before a periodic monitor observes it."
+  },
+  "criterionResults": {
+    "FC01": "EXACT_UNION_AUTHENTICATED_STATIC",
+    "FC02": "RAW_ARCHIVE_AND_PHYSICAL_TOOL_DATA_MATCH_STATIC",
+    "FC03": "CHANGES_REQUIRED_FC_F01_MODE_ROLE_POLICY_OTHERWISE_CONSISTENT",
+    "FC04": "CHANGES_REQUIRED_FC_F03_OWNED_TOPOLOGY_OTHERWISE_EXPLICIT",
+    "FC05": "NONZERO_RAW_REAP_GUARDS_PRESENT_CAPTURE_TOTAL_FC_F02",
+    "FC06": "ACTUAL_BUILD_ADAPTER_PRESENT_DYNAMIC_BUILD_UNRUN_SHARED_BUDGET_FINDINGS_RETAINED",
+    "FC07": "EXACT_CORRECTED_TYPE_LEAF_AND_CORE_ROUTE_STATIC_DYNAMIC_TYPES_UNRUN",
+    "FC08": "NO_PROMOTION_FOUR_KNOWN_GAPS_SIX_OTHER_MUTANTS_UNRUN",
+    "FC09": "COUNTS_AND_PROOF_ROLES_RETAINED_NO_CONFORMANCE_CREDIT",
+    "FC10": "ARITHMETIC_MATCHES_ENFORCEMENT_CHANGES_REQUIRED_FC_F02_FC_F03"
+  },
+  "staticCounts": {
+    "compositionFiles": 89,
+    "activeFiles": 70,
+    "activeModules": 31,
+    "sourceJsonFilesStrictParsed": 44,
+    "syntaxParses": 31,
+    "syntaxFailures": 0,
+    "originPairsVerified": 67,
+    "changedCoreModules": 6,
+    "changedCoreToolDataFiles": 1,
+    "newAssemblyPaths": 3,
+    "physicalToolFiles": 249,
+    "physicalToolBytes": 146740654,
+    "compilerSubtreeFiles": 248,
+    "gitSiblingFiles": 1,
+    "rawArchives": 2,
+    "sourceProjectionFiles": 271,
+    "sourceArchiveFiles": 273,
+    "fullPackageFiles": 870
+  },
+  "schedule": {
+    "phaseMatrix": [
+      {
+        "id": "AUTHENTICATION",
+        "capMs": 120000,
+        "absoluteCutoffOffsetMs": 120000,
+        "jobs": 1,
+        "sumSlotCapsMs": 120000
+      },
+      {
+        "id": "BUILD",
+        "capMs": 300000,
+        "absoluteCutoffOffsetMs": 420000,
+        "jobs": 1,
+        "sumSlotCapsMs": 300000
+      },
+      {
+        "id": "SETUP",
+        "capMs": 180000,
+        "absoluteCutoffOffsetMs": 600000,
+        "jobs": 2,
+        "sumSlotCapsMs": 180000
+      },
+      {
+        "id": "CONTROLS",
+        "capMs": 570000,
+        "absoluteCutoffOffsetMs": 1170000,
+        "jobs": 19,
+        "sumSlotCapsMs": 570000
+      },
+      {
+        "id": "SOURCE_AUDIT",
+        "capMs": 300000,
+        "absoluteCutoffOffsetMs": 1470000,
+        "jobs": 1,
+        "sumSlotCapsMs": 300000
+      },
+      {
+        "id": "SOURCE_RUNTIME",
+        "capMs": 6705000,
+        "absoluteCutoffOffsetMs": 8175000,
+        "jobs": 149,
+        "sumSlotCapsMs": 6705000
+      },
+      {
+        "id": "MOVED_RUNTIME",
+        "capMs": 13410000,
+        "absoluteCutoffOffsetMs": 21585000,
+        "jobs": 149,
+        "sumSlotCapsMs": 13410000
+      },
+      {
+        "id": "TYPES",
+        "capMs": 1560000,
+        "absoluteCutoffOffsetMs": 23145000,
+        "jobs": 3,
+        "sumSlotCapsMs": 1560000
+      },
+      {
+        "id": "LOADED_CONTROLS",
+        "capMs": 900000,
+        "absoluteCutoffOffsetMs": 24045000,
+        "jobs": 10,
+        "sumSlotCapsMs": 900000
+      },
+      {
+        "id": "FINALIZATION",
+        "capMs": 120000,
+        "absoluteCutoffOffsetMs": 24165000,
+        "jobs": 1,
+        "sumSlotCapsMs": 120000
+      }
+    ],
+    "outerReservations": 336,
+    "knownPreOuterRetainedViewDenials": 2,
+    "atMostOuterStartsIfNoOtherRefusals": 334,
+    "fullRuntimeProfiles": 2,
+    "runtimeJobsPerProfile": 149,
+    "sameUniqueRuntimeIdsPerProfile": 132,
+    "runtimeRoleJobsPerProfile": {
+      "command-semantic-runtime": 128,
+      "admission-error-boundary": 21
+    },
+    "compilerMaximumReserved": 18,
+    "currentlyPlannedDirectCompilerCalls": 12,
+    "currentlyPlannedBuildCompilerCalls": 1,
+    "publicCompilerCallsReservedButUnrun": 5,
+    "publicGapOuterReportingSlot": 1,
+    "loadedReservations": 10,
+    "knownLoadedRoleGaps": 4,
+    "otherMutantProofSlotsUnrun": 6,
+    "globalCeilingMs": 24165000,
+    "forecast": false,
+    "retries": 0
+  },
+  "proofRoles": {
+    "originalIds": 194,
+    "overlappingOverlays": 8,
+    "roles": {
+      "command-semantic-runtime": 111,
+      "admission-error-boundary": 34,
+      "source-static-counterproof": 23,
+      "lifecycle-cooperative": 11,
+      "materialized-package-infrastructure": 4,
+      "type-consumer": 5,
+      "negative-control": 6
+    },
+    "semanticEligibility": {
+      "completeProjection": 94,
+      "partial": 17
+    },
+    "gapRecords": 80,
+    "missingBindings": 135,
+    "wholeRecordAcceptance": false,
+    "semanticPassRate": null,
+    "authorSuccessInherited": false,
+    "sourceAtCProofIsPublicRuntimeSuccess": false
+  },
+  "modeDecision": {
+    "historical90aRole": "CONTENT_ONLY_ORIGINAL_MODE_UNATTESTED",
+    "oldDenyRescored": false,
+    "historicalPermissionGranted": false,
+    "activeFreshModesRequired": true,
+    "physicalModesCheckedAsDataOnly": true
+  },
+  "minimumOwnerCorrectionAreas": [
+    "Pre-serialization TOOL call own-data admission; preserve cross-realm value acceptance and strict parent route.",
+    "All job raw/metadata writers and terminal reservations/actual total enforcement.",
+    "Outgoing phase deadline validation with preserved transition evidence; no cap reset."
+  ],
+  "noNewPolicyDecisionRequiredForTheseCorrections": true,
+  "futureBuildTypeMoveControlObservations": "UNRUN_NOT_ADDITIONAL_STATIC_PREPARATION_DEFECTS",
+  "preparationErrorsRetained": 3,
+  "executionCounts": {
+    "candidate": 0,
+    "product": 0,
+    "compiler": 0,
+    "copiedTool": 0,
+    "coordinator": 0,
+    "worker": 0,
+    "loader": 0,
+    "materializer": 0,
+    "classifier": 0,
+    "predicate": 0,
+    "control": 0,
+    "authoredHelper": 0,
+    "authoredModuleImport": 0,
+    "runtimePasses": 0,
+    "semanticPasses": 0,
+    "controlPasses": 0
+  },
+  "rootGO": false,
+  "readyToRun": false,
+  "staticReady": false,
+  "goFileOrTokenCreated": false,
+  "foreignSourceFixes": false,
+  "fullYamlShellObjectivesComplete": false
+}

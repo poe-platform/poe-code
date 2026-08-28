@@ -1,0 +1,339 @@
+{
+  "schema": 1,
+  "role": "STATIC_DATA_BINDING_ARITHMETIC_NO_TARGET_HELPERS",
+  "compositionCommit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+  "recipeSha256": "40c9e4c0a407fd1ebebbb17a421a52d2949c3ef6316b4a46499504127b64174d",
+  "boundData": [
+    {
+      "name": "archiveManifest",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/archiveManifest.json",
+      "sha256": "8f20ea72dd51fd003197df1c75ee0bd6b1cc8e22fc940a5463873edccaa4a211",
+      "bytes": 47843
+    },
+    {
+      "name": "boundaryProofs",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/boundaryProofs.json",
+      "sha256": "5fade6551c744254bcc686c2b33ffe23df6bdfa25aa2912258f71b85e34d01c8",
+      "bytes": 20271
+    },
+    {
+      "name": "controls",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/controls.json",
+      "sha256": "e13b7f31f9809bb61bd966576815d387958d326759973dfcc202413d4705a74f",
+      "bytes": 9247
+    },
+    {
+      "name": "coverage",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/coverage.json",
+      "sha256": "bc87553b6197761d1325d65c382a76d91ab04dcf2d0ff309e70105d77c4d45c1",
+      "bytes": 825
+    },
+    {
+      "name": "diagnosticCatalogue",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/diagnosticCatalogue.json",
+      "sha256": "23e2ad8497108797a64e21f5431c0c39dc669b164bf079885f58a2da13049424",
+      "bytes": 9262
+    },
+    {
+      "name": "jobs",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/jobs.json",
+      "sha256": "96e72f94f0dbe57e96ec9ad6b394bd8257dda4ced130f8418bfa3a097c29bd80",
+      "bytes": 275927
+    },
+    {
+      "name": "ledger",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/ledger.json",
+      "sha256": "e7cafaa36105dd65501b2c8d35c802729c1da27abc03259eaad5257e1e6590e8",
+      "bytes": 268342
+    },
+    {
+      "name": "obligations",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/obligations.json",
+      "sha256": "03bddefe2f75af7e03345608aab69f47cdfeaeadb7213082d2f8722c15526df3",
+      "bytes": 290553
+    },
+    {
+      "name": "origins",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/origins.json",
+      "sha256": "e7dd0e579b2469ee5d86869d3f1a839e5be38734fd679d78e196be80906323ff",
+      "bytes": 78592
+    },
+    {
+      "name": "phases",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/phases.json",
+      "sha256": "56bbc2b685fdb305ddbd74eef7ea1aa3c792d0965cbae9a38fd508da1525e2f8",
+      "bytes": 2047
+    },
+    {
+      "name": "physicalBindings",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/physicalBindings.json",
+      "sha256": "2486769dd3347a0c5a771af5a4c6940989b918962653efd0d2cfcb35eee365ea",
+      "bytes": 103473
+    },
+    {
+      "name": "runtimeJobs",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/runtimeJobs.json",
+      "sha256": "c0fbd4490a171734352795a33729c5b2b6f28ec980f11752ca097f19e9b8c368",
+      "bytes": 1047583
+    },
+    {
+      "name": "sourceAuthority",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/sourceAuthority.json",
+      "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+      "bytes": 3766
+    },
+    {
+      "name": "sourceProofPlan",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/data/sourceProofPlan.json",
+      "sha256": "02d27ea317f1f4877279385097e3639892ee6be5d96c48c3b6a03ac5a3a6ca83",
+      "bytes": 13072
+    },
+    {
+      "name": "typePlan",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/TYPE-PLAN.json",
+      "sha256": "8eed676ec82857081c5103f0ccdd5514676e71eccbdfe26463352c34386fb9a2",
+      "bytes": 15023
+    },
+    {
+      "name": "mutantPlan",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/MUTANT-PLAN.json",
+      "sha256": "4b6ebde4b0e348ef6d4a0df3c5468002717c32dbbfb470fd112331cd7274181b",
+      "bytes": 20641
+    },
+    {
+      "name": "buildPlan",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/build-plan.json",
+      "sha256": "364115ed79bb648ab174d602a7e153e5de59c2753ba97ab3a4206a04a2241ec1",
+      "bytes": 170411
+    },
+    {
+      "name": "sourceManifest",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/build-source-manifest.json",
+      "sha256": "413432105677fcef5454d5f273d2b1dcb72ce014a52bf3e13e172af3a0a31286",
+      "bytes": 47504
+    },
+    {
+      "name": "packageManifest",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/build-package-manifest.json",
+      "sha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7",
+      "bytes": 152021
+    },
+    {
+      "name": "toolSources",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/TOOL-SOURCES.json",
+      "sha256": "8a7474ecbbbc1359920c6ea8477f1ac0d7e099306fe003cfa67d64130569e6c1",
+      "bytes": 145376
+    },
+    {
+      "name": "cmd22Controls",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/frozen/DEFERRED-CONTROLS.json",
+      "sha256": "7945be17c3a132cf94382d5bc4b33768fb7a6c2fc93546a0fb7d875054057bb8",
+      "bytes": 6480
+    },
+    {
+      "name": "cmd22Bases",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/frozen/CONTROL-BASES.json",
+      "sha256": "59ddf57809847adf8f5e43ff0e9b004ff5259c03412770e74fe908fac9ecbe3e",
+      "bytes": 8697
+    },
+    {
+      "name": "cmd22Binding",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/frozen/cmd22-binding.json",
+      "sha256": "ce3fafdda9008b13d90f23cc48254e0c7592c806b09711f3fcbdca39831efe71",
+      "bytes": 2321
+    }
+  ],
+  "singleUnionExact": true,
+  "dispatch": {
+    "build": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/build-worker.mjs",
+    "types": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/type-worker.mjs",
+    "loaded": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/loaded-worker.mjs",
+    "semantic": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/semantic-worker.mjs",
+    "sourceAudit": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/source-audit-worker.mjs",
+    "infrastructure": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/infrastructure-worker.mjs"
+  },
+  "phaseMatrix": [
+    {
+      "id": "AUTHENTICATION",
+      "capMs": 120000,
+      "absoluteCutoffOffsetMs": 120000,
+      "jobs": 1,
+      "sumSlotCapsMs": 120000
+    },
+    {
+      "id": "BUILD",
+      "capMs": 300000,
+      "absoluteCutoffOffsetMs": 420000,
+      "jobs": 1,
+      "sumSlotCapsMs": 300000
+    },
+    {
+      "id": "SETUP",
+      "capMs": 180000,
+      "absoluteCutoffOffsetMs": 600000,
+      "jobs": 2,
+      "sumSlotCapsMs": 180000
+    },
+    {
+      "id": "CONTROLS",
+      "capMs": 570000,
+      "absoluteCutoffOffsetMs": 1170000,
+      "jobs": 19,
+      "sumSlotCapsMs": 570000
+    },
+    {
+      "id": "SOURCE_AUDIT",
+      "capMs": 300000,
+      "absoluteCutoffOffsetMs": 1470000,
+      "jobs": 1,
+      "sumSlotCapsMs": 300000
+    },
+    {
+      "id": "SOURCE_RUNTIME",
+      "capMs": 6705000,
+      "absoluteCutoffOffsetMs": 8175000,
+      "jobs": 149,
+      "sumSlotCapsMs": 6705000
+    },
+    {
+      "id": "MOVED_RUNTIME",
+      "capMs": 13410000,
+      "absoluteCutoffOffsetMs": 21585000,
+      "jobs": 149,
+      "sumSlotCapsMs": 13410000
+    },
+    {
+      "id": "TYPES",
+      "capMs": 1560000,
+      "absoluteCutoffOffsetMs": 23145000,
+      "jobs": 3,
+      "sumSlotCapsMs": 1560000
+    },
+    {
+      "id": "LOADED_CONTROLS",
+      "capMs": 900000,
+      "absoluteCutoffOffsetMs": 24045000,
+      "jobs": 10,
+      "sumSlotCapsMs": 900000
+    },
+    {
+      "id": "FINALIZATION",
+      "capMs": 120000,
+      "absoluteCutoffOffsetMs": 24165000,
+      "jobs": 1,
+      "sumSlotCapsMs": 120000
+    }
+  ],
+  "outerReservations": 336,
+  "maximumCompilerDescendants": 18,
+  "currentPlannedCompilerCallsBeforeFurtherProof": 13,
+  "publicCompilerCallsReservedUnrun": 5,
+  "loadedSlotReservations": 10,
+  "knownLoadedBindingGaps": 4,
+  "runtimeJobsEachProfile": 149,
+  "runtimeUniqueIdsEachProfile": 132,
+  "runtimeRoleCountsPerProfile": {
+    "command-semantic-runtime": 128,
+    "admission-error-boundary": 21
+  },
+  "originalRoleCounts": {
+    "command-semantic-runtime": 111,
+    "admission-error-boundary": 34,
+    "source-static-counterproof": 23,
+    "lifecycle-cooperative": 11,
+    "materialized-package-infrastructure": 4,
+    "type-consumer": 5,
+    "negative-control": 6
+  },
+  "originalIds": 194,
+  "overlays": [
+    "NUM-14",
+    "NUM-15",
+    "UTF-12",
+    "ENC-07",
+    "QUE-12",
+    "WRK-10",
+    "WRK-22",
+    "WRK-26"
+  ],
+  "gapRecords": 80,
+  "missingBindings": 135,
+  "eligibility": {
+    "completeProjection": 94,
+    "partial": 17
+  },
+  "sourceFiles": 271,
+  "archiveFiles": 273,
+  "fullPackageFiles": 870,
+  "archiveSupportEntriesPreserved": [
+    "package-lock.json",
+    "scripts/typecheck.mjs"
+  ],
+  "readmeAndPackageJsonExactSourceIdentity": true,
+  "selectedOrigins": {
+    "5137a74ec855a32d8a8860eb66b62eb44d11e290": 265,
+    "74361026502d76b8c2b696f9c60e410ac9b78d95": 1,
+    "b8f5d60d75452e1dd181167fb87abd995221f6e3": 7
+  },
+  "candidateOnlyPaths": [
+    "src/commands/structured/query-core.ts",
+    "src/commands/yq/README.md",
+    "src/commands/yq/accounting.ts",
+    "src/commands/yq/encoder.ts",
+    "src/commands/yq/errors.ts",
+    "src/commands/yq/index.ts",
+    "src/commands/yq/parser.ts"
+  ],
+  "toolProfileDataChecks": [
+    {
+      "name": "node",
+      "path": "/private/tmp/yq-b8-composition-v2-bMqyvD/tools/compiler/node",
+      "historicalProfileSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "entries": null,
+      "staticDataReconstructionOnly": true
+    },
+    {
+      "name": "typescript",
+      "path": "/private/tmp/yq-b8-composition-v2-bMqyvD/tools/compiler/typescript",
+      "historicalProfileSha256": "11b47d397f587bd61bda8ebad9e87ed9f11cc95a2503309c88aaceadc3c39410",
+      "entries": 147,
+      "staticDataReconstructionOnly": true
+    },
+    {
+      "name": "nodeTypes",
+      "path": "/private/tmp/yq-b8-composition-v2-bMqyvD/tools/compiler/node_modules/@types/node",
+      "historicalProfileSha256": "6eeb16f926819ced24c5dc85a8f6c6c7b03254d56848d2a11113b923469706a9",
+      "entries": 83,
+      "staticDataReconstructionOnly": true
+    },
+    {
+      "name": "undiciTypes",
+      "path": "/private/tmp/yq-b8-composition-v2-bMqyvD/tools/compiler/node_modules/undici-types",
+      "historicalProfileSha256": "b54bcdc8b6540ae264924c04ed48eaa7a2ff3c3d6805f978a91232ff3d9331eb",
+      "entries": 41,
+      "staticDataReconstructionOnly": true
+    }
+  ],
+  "legacyHistoricalRole": [
+    {
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/FINAL-SEAL.json",
+      "classification": "ORIGINAL_MODE_UNATTESTED",
+      "activeAuthority": false,
+      "executed": false,
+      "sha256": "e569179037058f038e0fc28345af56ae95e06765e153fe0724cc5fbd273019a2",
+      "originalMode": "ORIGINAL_MODE_UNATTESTED"
+    }
+  ],
+  "historyPermissionPredicateInActiveClosure": false,
+  "fixedLogicalDiskReservationBytes": 24964497408,
+  "logicalDiskCeilingBytes": 25769803776,
+  "qualification": "Data bindings/counts are not passes; budget enforcement defects FC-F02/03 remain. Source/package bytes reuse accepted dffc DATA; no archive extraction or product inspection redo.",
+  "executionCounts": {
+    "candidate": 0,
+    "compiler": 0,
+    "copiedTools": 0,
+    "controls": 0,
+    "authoredHelpers": 0,
+    "runtimePasses": 0
+  }
+}

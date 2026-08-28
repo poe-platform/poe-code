@@ -1,0 +1,1326 @@
+{
+  "schema": 1,
+  "role": "STATIC_COMMITTED_COMPOSITION_AUTHENTICATION",
+  "criteriaCommit": "33ce3f5850a6d8871e016cb49137d9dbfbd93ce7",
+  "compositionCommit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+  "seals": [
+    {
+      "path": "FINAL-SEAL.json",
+      "sha256": "e2d4dd59a490d71f498e7ca5a26eb37a17325500c6e7b535f78e82373cf88ebd",
+      "bytes": 19620,
+      "matches": true
+    },
+    {
+      "path": "ASSEMBLY-SEAL.json",
+      "sha256": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+      "bytes": 14288,
+      "matches": true
+    },
+    {
+      "path": "RECIPE.json",
+      "sha256": "40c9e4c0a407fd1ebebbb17a421a52d2949c3ef6316b4a46499504127b64174d",
+      "bytes": 316517,
+      "matches": true
+    },
+    {
+      "path": "TOOL-DATA-COPY.json",
+      "sha256": "0d0793d63f31b1d1f5cc91d2d77fe5b14c854c0c3980dd2d25e90c06a424e5b8",
+      "bytes": 203203,
+      "matches": true
+    },
+    {
+      "path": "LOAD-AND-TOOL-SEAL.json",
+      "sha256": "edfd944ea63674c3123ebb3036f1f43daf94bb938bd7660dccf611582b451e8a",
+      "bytes": 16148,
+      "matches": true
+    }
+  ],
+  "exactFileMembership": true,
+  "fileCount": 89,
+  "activeFiles": 70,
+  "activeMjs": 31,
+  "files": [
+    {
+      "path": "ASSEMBLY-ORIGINS.json",
+      "sha256": "b2600d95caa41f40d5caa615fc336a2bcf00440af619f1a91d2ec8350f2dc6ad",
+      "bytes": 45486,
+      "gitMode": "100644",
+      "blob": "bac8e19544d5878c30e94643988c8ca729f2b068",
+      "currentMode": 420
+    },
+    {
+      "path": "ASSEMBLY-SEAL.json",
+      "sha256": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+      "bytes": 14288,
+      "gitMode": "100644",
+      "blob": "37fd983caf4de2913529f40c6a56725e3cf10889",
+      "currentMode": 420
+    },
+    {
+      "path": "COHORT-AND-ROLES.json",
+      "sha256": "a9fb15c5a51a148d4452b7ed0c58c85ebe52983d34e7465707d15764793288f5",
+      "bytes": 7060,
+      "gitMode": "100644",
+      "blob": "81b4e62ac3f5eeb4a783d3c1aa488420aae2874e",
+      "currentMode": 420
+    },
+    {
+      "path": "FINAL-SEAL.json",
+      "sha256": "e2d4dd59a490d71f498e7ca5a26eb37a17325500c6e7b535f78e82373cf88ebd",
+      "bytes": 19620,
+      "gitMode": "100644",
+      "blob": "315ee97e462e8e6c7e85599a3e49a23072e66de5",
+      "currentMode": 420
+    },
+    {
+      "path": "LOAD-AND-TOOL-SEAL.json",
+      "sha256": "edfd944ea63674c3123ebb3036f1f43daf94bb938bd7660dccf611582b451e8a",
+      "bytes": 16148,
+      "gitMode": "100644",
+      "blob": "352ce2e27e26c1139dfe81a3c51021c80de0b948",
+      "currentMode": 420
+    },
+    {
+      "path": "PEER-AUTHENTICATION.json",
+      "sha256": "67d265571d447be7d7c923995a6f8256704158c4efd96a616bea01791b074bc0",
+      "bytes": 2121,
+      "gitMode": "100644",
+      "blob": "657db6fede02f7bc94eb79b2ed31fd2151bc1b7a",
+      "currentMode": 420
+    },
+    {
+      "path": "PREPARATION-LOG.json",
+      "sha256": "37caec848a49251dfdd4c40fbd8a3fdb756d47f3705749d1440caf41ddeaedab",
+      "bytes": 2802,
+      "gitMode": "100644",
+      "blob": "0a9891f7ccbcadb1d2f23404eb0b1c480236c88f",
+      "currentMode": 420
+    },
+    {
+      "path": "README.md",
+      "sha256": "5dfa9398665eb47acda26f20d133c0829355380a77905a1a5dc0aa4ec8a1177a",
+      "bytes": 2630,
+      "gitMode": "100644",
+      "blob": "7a12f2760c1caa03dbcfc8e518c7857065022daa",
+      "currentMode": 420
+    },
+    {
+      "path": "RECIPE.json",
+      "sha256": "40c9e4c0a407fd1ebebbb17a421a52d2949c3ef6316b4a46499504127b64174d",
+      "bytes": 316517,
+      "gitMode": "100644",
+      "blob": "ee81a80c89539564d8fa41aabe80076d9d8484a6",
+      "currentMode": 420
+    },
+    {
+      "path": "REVIEW-REFERENCES.json",
+      "sha256": "2d8484ab6678a54327b7eb2e59f8e551a6c8e06f79f18978c3a696e73852627a",
+      "bytes": 1339,
+      "gitMode": "100644",
+      "blob": "c7ec3c3fc8f2ec1a312b648696735fc931679177",
+      "currentMode": 420
+    },
+    {
+      "path": "ROLE-DATAFLOW.json",
+      "sha256": "ee7306baa8433c93e777898a2590c629d4c0797c7e10b3338cee7cb093d786bc",
+      "bytes": 9158,
+      "gitMode": "100644",
+      "blob": "994807a316c2679106e4ef997a5ef232e847033a",
+      "currentMode": 420
+    },
+    {
+      "path": "ROOT-RECEIPT-SCHEMA.json",
+      "sha256": "93527f74e632c53a94adf139683712aedcaec836e4c1645dde29fc6d8b601c47",
+      "bytes": 64580,
+      "gitMode": "100644",
+      "blob": "ab5dd98cde863307d3d892dea432ffde0613a41c",
+      "currentMode": 420
+    },
+    {
+      "path": "SPECIFICATION.md",
+      "sha256": "bf5f99d167c1100ffaf6770bbe0f237c41125e669cadf2b3d75a153521bc09a1",
+      "bytes": 11489,
+      "gitMode": "100644",
+      "blob": "7a510521cfdb37afab54ecee5788deedc4cf1f67",
+      "currentMode": 420
+    },
+    {
+      "path": "STATIC-CHECKS.json",
+      "sha256": "3e602c6a6314cc03eb72d63369c668be31bc110f3730250b869f767a47522e70",
+      "bytes": 11395,
+      "gitMode": "100644",
+      "blob": "e31ff4c2e0ca55fc9c8980d8eb0d4b936106608f",
+      "currentMode": 420
+    },
+    {
+      "path": "TOOL-DATA-COPY.json",
+      "sha256": "0d0793d63f31b1d1f5cc91d2d77fe5b14c854c0c3980dd2d25e90c06a424e5b8",
+      "bytes": 203203,
+      "gitMode": "100644",
+      "blob": "a51f84f9cdadacf939fbd451fa0f59dc58019120",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/TOOL-SOURCES.json",
+      "sha256": "8a7474ecbbbc1359920c6ea8477f1ac0d7e099306fe003cfa67d64130569e6c1",
+      "bytes": 145376,
+      "gitMode": "100644",
+      "blob": "fd2cf07efa1efab39730bebaa3ec378c66a3f4ae",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/admission.mjs",
+      "sha256": "e21f6d31eaca277cb1f2ae81bc4a5e10ba844dad268303e2c34d69e71eccbd94",
+      "bytes": 9159,
+      "gitMode": "100644",
+      "blob": "80fa76fc73983af8ac37fa47b7a9252cb700d443",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/build-adapter.mjs",
+      "sha256": "c6482449fc028b7890955203513991707e42d56e3ad37178e4466c8d69e46a45",
+      "bytes": 12497,
+      "gitMode": "100644",
+      "blob": "3e5b2762eca65ad025d0a7e357a4907719ef2200",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/classification.mjs",
+      "sha256": "299cf023970cdf03657dea80130a0f54e036dd1707dc5fd69999b6da0e78df8c",
+      "bytes": 1107,
+      "gitMode": "100644",
+      "blob": "adc4bfadfc5c4f2817ce3ee77b29383bf49078ae",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/cli.mjs",
+      "sha256": "e1e9b64a89fda6b5e2d2f2874785927a0dd5b7975ce3785de22191ba053dcfd1",
+      "bytes": 1095,
+      "gitMode": "100644",
+      "blob": "00a18df68350bc31f5f43a99876d6125b00aa424",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/coordinator.mjs",
+      "sha256": "b6ca292314e703933661d571ff52038a5f9c92e4ef96960e71eedfb56ab32bc1",
+      "bytes": 3469,
+      "gitMode": "100644",
+      "blob": "1461440430990ad49286581412e874dc05da2570",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/coverage.mjs",
+      "sha256": "c4816093400d404c9b804e881b1b928d4c03265d843f43a8e1aacd6c5e757f2a",
+      "bytes": 1856,
+      "gitMode": "100644",
+      "blob": "ca2f4e8d2c5f8c765767f228bda0d038bb850718",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/data/archiveManifest.json",
+      "sha256": "8f20ea72dd51fd003197df1c75ee0bd6b1cc8e22fc940a5463873edccaa4a211",
+      "bytes": 47843,
+      "gitMode": "100644",
+      "blob": "6fe12de6fc8ade4d318d04e774193f4892de0d94",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/data/boundaryProofs.json",
+      "sha256": "5fade6551c744254bcc686c2b33ffe23df6bdfa25aa2912258f71b85e34d01c8",
+      "bytes": 20271,
+      "gitMode": "100644",
+      "blob": "3dd7c285b562e2d521d8b11cb462266a85155bfe",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/data/controls.json",
+      "sha256": "e13b7f31f9809bb61bd966576815d387958d326759973dfcc202413d4705a74f",
+      "bytes": 9247,
+      "gitMode": "100644",
+      "blob": "e2ec858d126bf47ecd80a88f5c655d4e0732a3c6",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/data/coverage.json",
+      "sha256": "bc87553b6197761d1325d65c382a76d91ab04dcf2d0ff309e70105d77c4d45c1",
+      "bytes": 825,
+      "gitMode": "100644",
+      "blob": "4727ddc1ddcf172fde593bc1e39e03d5226f3b09",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/data/diagnosticCatalogue.json",
+      "sha256": "23e2ad8497108797a64e21f5431c0c39dc669b164bf079885f58a2da13049424",
+      "bytes": 9262,
+      "gitMode": "100644",
+      "blob": "75dbae714d00f59142a5b1e93a4ec534f468ab6a",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/data/jobs.json",
+      "sha256": "96e72f94f0dbe57e96ec9ad6b394bd8257dda4ced130f8418bfa3a097c29bd80",
+      "bytes": 275927,
+      "gitMode": "100644",
+      "blob": "dddfb94563ac2b6a0b9e3681c203dd94454d9852",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/data/ledger.json",
+      "sha256": "e7cafaa36105dd65501b2c8d35c802729c1da27abc03259eaad5257e1e6590e8",
+      "bytes": 268342,
+      "gitMode": "100644",
+      "blob": "c4226a73115a1fe1d96fbaa23d4e88dc015e65a1",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/data/obligations.json",
+      "sha256": "03bddefe2f75af7e03345608aab69f47cdfeaeadb7213082d2f8722c15526df3",
+      "bytes": 290553,
+      "gitMode": "100644",
+      "blob": "ad3e9a5e3f743e8e1492515432866a0f8f867615",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/data/origins.json",
+      "sha256": "e7dd0e579b2469ee5d86869d3f1a839e5be38734fd679d78e196be80906323ff",
+      "bytes": 78592,
+      "gitMode": "100644",
+      "blob": "b186c37d8f5b06ad4b03bda2f657d1d6a5434245",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/data/phases.json",
+      "sha256": "56bbc2b685fdb305ddbd74eef7ea1aa3c792d0965cbae9a38fd508da1525e2f8",
+      "bytes": 2047,
+      "gitMode": "100644",
+      "blob": "f203cee3c3222963a2305f178ec5a337b9926f7c",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/data/physicalBindings.json",
+      "sha256": "2486769dd3347a0c5a771af5a4c6940989b918962653efd0d2cfcb35eee365ea",
+      "bytes": 103473,
+      "gitMode": "100644",
+      "blob": "a06bd4fdfec427a652bf08a87449bd84d3facdc0",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/data/runtimeJobs.json",
+      "sha256": "c0fbd4490a171734352795a33729c5b2b6f28ec980f11752ca097f19e9b8c368",
+      "bytes": 1047583,
+      "gitMode": "100644",
+      "blob": "b64161cd979613f371284ae5c28253e3a1c184bb",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/data/sourceAuthority.json",
+      "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+      "bytes": 3766,
+      "gitMode": "100644",
+      "blob": "41cbaf75360991df1c467fd233317223e40df5c4",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/data/sourceProofPlan.json",
+      "sha256": "02d27ea317f1f4877279385097e3639892ee6be5d96c48c3b6a03ac5a3a6ca83",
+      "bytes": 13072,
+      "gitMode": "100644",
+      "blob": "a004e611f39e2038f298ba78645e232cea1dbf66",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/frozen/CONTROL-BASES.json",
+      "sha256": "59ddf57809847adf8f5e43ff0e9b004ff5259c03412770e74fe908fac9ecbe3e",
+      "bytes": 8697,
+      "gitMode": "100644",
+      "blob": "72f319a82f1b1021f367f9dc55c4a5c81c687431",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/frozen/DEFERRED-CONTROLS.json",
+      "sha256": "7945be17c3a132cf94382d5bc4b33768fb7a6c2fc93546a0fb7d875054057bb8",
+      "bytes": 6480,
+      "gitMode": "100644",
+      "blob": "9892f02e8564ab46301616583daf7c93fb88b92e",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/frozen/assert-capture.mjs",
+      "sha256": "d2fcd8245b3d95fc73fabd1d3681f614502fdb0bac487be57d9605d53f55f3d0",
+      "bytes": 7045,
+      "gitMode": "100644",
+      "blob": "f3f13458a9856b2bb198680ee447d521ac0bacab",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/frozen/cmd22-binding.json",
+      "sha256": "ce3fafdda9008b13d90f23cc48254e0c7592c806b09711f3fcbdca39831efe71",
+      "bytes": 2321,
+      "gitMode": "100644",
+      "blob": "57e7dd4c2c00da4a361cd0a6a123b95871c1aa8c",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/frozen/cmd22-read-paths.mjs",
+      "sha256": "d36de36810f3b347a954ced9384851cf22c84358d09976404ed5c59b5476a647",
+      "bytes": 2499,
+      "gitMode": "100644",
+      "blob": "dfb2344e27527f7000eb8e88d86a9d34ceb7003f",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/frozen/context.mjs",
+      "sha256": "b4827ee8656e9d2a88a23176c9b61b757bf9d4c79f8c46463c5cb579e42e7821",
+      "bytes": 5245,
+      "gitMode": "100644",
+      "blob": "a85c2954e00c3355f28845af1150358f31b4e2eb",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/frozen/deferred-fixtures.mjs",
+      "sha256": "06c1532000b16ca5adf830fa2670b6e5f784288b4968a39786bb9b6a4d463939",
+      "bytes": 4442,
+      "gitMode": "100644",
+      "blob": "25f0f889ea9eb05d09954249f6137caf09db6a17",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/frozen/integrity.mjs",
+      "sha256": "fc8387f9c1c64a979ffce9a4058ed3a4f199e56ac7a5d7b289f490da23ebe60a",
+      "bytes": 3889,
+      "gitMode": "100644",
+      "blob": "bb6c05e8784e07adadfc64115c829ce91387a9d7",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/frozen/original-assert-capture.mjs",
+      "sha256": "d4b58ff54cc6caf93b1628d6c51628f5a3ebbc53d71611c1a5748530cef264bd",
+      "bytes": 6815,
+      "gitMode": "100644",
+      "blob": "b4e2ffe3be912c6fd10e4680cfcddb877428be7c",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/infrastructure-worker.mjs",
+      "sha256": "51c769446a0d758ab080dcde5c3a0ea31285249c943d10ebdcd7da6c9467077a",
+      "bytes": 9628,
+      "gitMode": "100644",
+      "blob": "56e44b588d0ad2cbf376811bd75de4dffe996e60",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/loader.mjs",
+      "sha256": "9c64aa1d79e065bc54af9f9f63ce985075215c8aae8d423b45c22181557b4065",
+      "bytes": 3691,
+      "gitMode": "100644",
+      "blob": "4c713887d2194fc15d21826659df1b0a7913acd6",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/materialization.mjs",
+      "sha256": "8c164b69ed05f38c3d1d393ea0d12bfe2017aa5ad214776bdc55e2d4a33dc853",
+      "bytes": 5458,
+      "gitMode": "100644",
+      "blob": "f276e8d4e95c71d430355444b61c48b098db6f18",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/owned-process.mjs",
+      "sha256": "bcb309eed5984baeaf064d89cae892d54e4afe2d8c9dd710ad26ccf516c9d302",
+      "bytes": 5989,
+      "gitMode": "100644",
+      "blob": "2e6fdcedc7ced9509aa18262671de2b805d4a020",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/phase-capture.mjs",
+      "sha256": "85702be619115df518ae16a946e1f3810277ca0705f8a2c421268611dfdb7b64",
+      "bytes": 2230,
+      "gitMode": "100644",
+      "blob": "55fd36e6f4f2e097df673b0c617e3fd1f1f2010f",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/primitives.mjs",
+      "sha256": "a8b62e46f4256765810c5ec30010fb618239b7193f83e9151e06ce25a76db506",
+      "bytes": 8044,
+      "gitMode": "100644",
+      "blob": "214ccc308f7b425c7fabc7bf1d629240206a94a4",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/semantic-worker.mjs",
+      "sha256": "883196604d607ed53bdc8f7a13a21cc3d41bdc0eb2e8b3132d55c85a184e2bba",
+      "bytes": 786,
+      "gitMode": "100644",
+      "blob": "906d2cd033a3fa9773ab4eb9821d3934456c3ff6",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/source-audit-worker.mjs",
+      "sha256": "564caff0a2c9728ee1443b3969ebc86121bce2e8aae1a6a58d49dd0d6e929c62",
+      "bytes": 1681,
+      "gitMode": "100644",
+      "blob": "457896a5573e9098fca9b6bf63c6605a2c9780b8",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/supervisor.mjs",
+      "sha256": "c353bf16984a670f07a7414a60ca999c192215bfcccfd98b58b7377e608436ed",
+      "bytes": 25075,
+      "gitMode": "100644",
+      "blob": "197ffe621704ff373cdac3305018450e67c4cc67",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/tool-bridge.mjs",
+      "sha256": "5837e2f3f36fafdd9c5f935610a9b23601b4353a5302b11cde4983a67308477d",
+      "bytes": 8640,
+      "gitMode": "100644",
+      "blob": "6645b0abe35093b996e5773e862d3a356b945efb",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/tool-profile.mjs",
+      "sha256": "ee9c0db3b961af6d9b2e5cab6172c6200b8ed650f2d8554cc5a361a693900ce2",
+      "bytes": 1583,
+      "gitMode": "100644",
+      "blob": "942cbc302ebd641d0374a81757e01eb689652c3e",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/worker-api.mjs",
+      "sha256": "e6548d6d4d7d8c6433f11953a0f62638e8f699a91dc31617cfc2dea2740fc876",
+      "bytes": 13187,
+      "gitMode": "100644",
+      "blob": "4b939b34d081c6939df7bfcc47c5de4463b32952",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/core/worker-host.mjs",
+      "sha256": "62fdb743912b058200fcaf745aac894a3878a067082b6aa2e0a0a953544b45e3",
+      "bytes": 3038,
+      "gitMode": "100644",
+      "blob": "c6a17d176448c07e6a9972dfa6dfd6f57c7a8edb",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/INPUT-PRESEAL.json",
+      "sha256": "fed08cedcab87f08b3eb97bde27624e44fc0ebce205d354cdf01aca961443017",
+      "bytes": 3441,
+      "gitMode": "100644",
+      "blob": "fc90169cbd3c24af82214f76e97a3490fd6393ca",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/MUTANT-PLAN.json",
+      "sha256": "4b6ebde4b0e348ef6d4a0df3c5468002717c32dbbfb470fd112331cd7274181b",
+      "bytes": 20641,
+      "gitMode": "100644",
+      "blob": "0392a89b4186f139961c384387c10c6dd15927da",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/TYPE-PLAN.json",
+      "sha256": "8eed676ec82857081c5103f0ccdd5514676e71eccbdfe26463352c34386fb9a2",
+      "bytes": 15023,
+      "gitMode": "100644",
+      "blob": "d93bbf818627737ef263a1dbca4d50d6ed9b900d",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/build-fs.mjs",
+      "sha256": "a2fda10264dec281c808336c7bf1ee3e1ce5547d03eb6b69d9406947d914ad21",
+      "bytes": 7894,
+      "gitMode": "100644",
+      "blob": "8abd40ecfa4291d7159aefb87533daa0fecd5cff",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/build-outputs.mjs",
+      "sha256": "0e258aedc60788440caf0a2216d360b9c05fe592418c1d932b11984d7741fe1a",
+      "bytes": 7266,
+      "gitMode": "100644",
+      "blob": "096a8dea78bb1290ad245ce6fe83c8b52818e99a",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/build-package-manifest.json",
+      "sha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7",
+      "bytes": 152021,
+      "gitMode": "100644",
+      "blob": "24d96a77739821963afa56e8ec11af9653f6524a",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/build-plan.json",
+      "sha256": "364115ed79bb648ab174d602a7e153e5de59c2753ba97ab3a4206a04a2241ec1",
+      "bytes": 170411,
+      "gitMode": "100644",
+      "blob": "9b00e1a6ab8a25a92a4cebc54c835ef2776eb8bf",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/build-source-manifest.json",
+      "sha256": "413432105677fcef5454d5f273d2b1dcb72ce014a52bf3e13e172af3a0a31286",
+      "bytes": 47504,
+      "gitMode": "100644",
+      "blob": "280ed2a61cb11a49b1ca9cb77b82366fa0a8cede",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/build-worker.mjs",
+      "sha256": "3ad2268b34242f2ae5f58e0be611e77dd43c3387fe19139fc52ab31e85fbfbf4",
+      "bytes": 21275,
+      "gitMode": "100644",
+      "blob": "2a97fb2b559e85653f211ae03dba509b350900b5",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/fixtures/factory-array-extra.mts.data",
+      "sha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+      "bytes": 80,
+      "gitMode": "100644",
+      "blob": "047de0a79ed118f87b19b4eaf57dd9e101079c9d",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/fixtures/factory-command-extra.mts.data",
+      "sha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+      "bytes": 63,
+      "gitMode": "100644",
+      "blob": "166ccebdd38b036dceec6267e72c8427fa3a5b79",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/fixtures/hidden-defaults.mts.data",
+      "sha256": "53478f30079b739c9e34ffeb9404a67b5fd7947a4c00e08e117a85c009b48400",
+      "bytes": 86,
+      "gitMode": "100644",
+      "blob": "2d15987981ed2d7d5529739dcb81e7621f80ba98",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/fixtures/hidden-factory.mts.data",
+      "sha256": "f73fef9fd1fae5e66379989d8cdf59101f09d82443122f7e91506bd03d8a5f20",
+      "bytes": 96,
+      "gitMode": "100644",
+      "blob": "79adefaf3798fde24d20874b40fb5d4e5772234c",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/fixtures/hidden-limits.mts.data",
+      "sha256": "8fbaf4075b51382e279f1052350559ebbe3f4ce9c03944b7ac95e9d1890fc761",
+      "bytes": 76,
+      "gitMode": "100644",
+      "blob": "681eee2ea7eee1f1b5d9076404d4d4ff732d57f4",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/fixtures/hidden-parser.mts.data",
+      "sha256": "5a05bae0fc1d308ce6e9a53c50b50d5fa17dd6d6e0795f0733e6f832e8347139",
+      "bytes": 68,
+      "gitMode": "100644",
+      "blob": "efc39e2f9bbab3abc8ced07776b24065c58abc47",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/fixtures/hidden-session.mts.data",
+      "sha256": "6b2868895df93e11b3de80caee59e2494ca5d49ff0b5e16b60d227a85e658a15",
+      "bytes": 88,
+      "gitMode": "100644",
+      "blob": "0c27bf75b03782ad2ce9a8ff339bbc469f752428",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/fixtures/positive.mts.data",
+      "sha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+      "bytes": 1036,
+      "gitMode": "100644",
+      "blob": "6dbe8d4be085a1944541005dec116c8c3b061116",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/fixtures/replace-string.mts.data",
+      "sha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+      "bytes": 69,
+      "gitMode": "100644",
+      "blob": "31941e3748b27b7699226616e4bf0e7fad6a53d3",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/fixtures/replace-undefined.mts.data",
+      "sha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+      "bytes": 73,
+      "gitMode": "100644",
+      "blob": "4ae9150b4e5c0c55dbb2ab159eac2d17eaddd581",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/fixtures/unknown-limits.mts.data",
+      "sha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+      "bytes": 78,
+      "gitMode": "100644",
+      "blob": "d2874e640c578d205310a633690494d9550bcca4",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/loaded-worker.mjs",
+      "sha256": "be03ad51d6ef185093236776bf0b0f7dde17e520be6a4ed8505656dbeef4e26c",
+      "bytes": 11554,
+      "gitMode": "100644",
+      "blob": "6d204bd5ee3e87ad74b0e7f5b6f5fb2415aad73b",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/maps/pending-shadow.json",
+      "sha256": "f28d8d9538599055d5845eb92b347f51c6756024a5f661b8634bf6bb3b139e80",
+      "bytes": 152021,
+      "gitMode": "100644",
+      "blob": "c11d3719eacbe90d1042c7cbcfdc17d6d7983781",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/maps/pristine.json",
+      "sha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7",
+      "bytes": 152021,
+      "gitMode": "100644",
+      "blob": "24d96a77739821963afa56e8ec11af9653f6524a",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/maps/quoted-del.json",
+      "sha256": "cbdd27df0009a439a2b6612de57ca9cd6d19c03a259e2c711b56c7c3c880bfe7",
+      "bytes": 152021,
+      "gitMode": "100644",
+      "blob": "90aff44ac5d1e0a0fb35e540647188f301066770",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/maps/retained-view.json",
+      "sha256": "9192ff9472d89e5311b5010a862ea8d31841c48ea128624c6a7fcab1018211c6",
+      "bytes": 152021,
+      "gitMode": "100644",
+      "blob": "1be444935158b6a18ad42c26560e3c83e0933abd",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/type-worker.mjs",
+      "sha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd",
+      "bytes": 11186,
+      "gitMode": "100644",
+      "blob": "02c75cbffd8bc813cc485156345b78317f73b277",
+      "currentMode": 420
+    },
+    {
+      "path": "assembly/workers/worker-support.mjs",
+      "sha256": "76a29d05aa4482add4dd03c7d35808924f74f879f38ed154b9eebd431bc00905",
+      "bytes": 6138,
+      "gitMode": "100644",
+      "blob": "3ed9f72a9a88573b71ded4c9bbc397336c73f402",
+      "currentMode": 420
+    },
+    {
+      "path": "references/build-ASSEMBLY-MAP.json",
+      "sha256": "3d3040400ee14017a2eed7277603b7421c4348a6ae67db1c2b49799278d802bd",
+      "bytes": 3254,
+      "gitMode": "100644",
+      "blob": "47c4d9502026ad5debca3201d5e7d9a2eac31453",
+      "currentMode": 420
+    },
+    {
+      "path": "references/build-BUILD-RESULT-SCHEMA.json",
+      "sha256": "da85783b1c82dfa63c6bc7644b9ef9882214445c5f7b2cd5fb750b57ff2ee603",
+      "bytes": 22550,
+      "gitMode": "100644",
+      "blob": "04392c6d65be524030ca87ba2224444412426877",
+      "currentMode": 420
+    },
+    {
+      "path": "references/build-INTEGRATION.md",
+      "sha256": "2db77e2e883513e7fdf0c2f0beed0c2ea5af67c791390be70c141544a2efc111",
+      "bytes": 5306,
+      "gitMode": "100644",
+      "blob": "a18e65491498a6d443d0979eb8fadd99c2441313",
+      "currentMode": 420
+    },
+    {
+      "path": "references/cwF02-CORE-STATUS-INTEGRATION.json",
+      "sha256": "5834ebbe925781533a3f367a49a893f5045fb60cc1c5666eac1590cf3dc3458c",
+      "bytes": 7818,
+      "gitMode": "100644",
+      "blob": "c5f0ac20f3d47ca2510f40993004e6d150605645",
+      "currentMode": 420
+    }
+  ],
+  "originChecks": [
+    {
+      "target": "core/TOOL-SOURCES.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/TOOL-SOURCES.json",
+      "originSha256": "0927fbf7ea954b16eaf7090d80124ec710590d41b259bb8c67fc9b1eb957a102",
+      "postSha256": "8a7474ecbbbc1359920c6ea8477f1ac0d7e099306fe003cfa67d64130569e6c1",
+      "changed": true
+    },
+    {
+      "target": "core/admission.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/admission.mjs",
+      "originSha256": "397e4fb3cc5ba84bf43717e84918512ceee28e65ef5ddd542fe329e29d74920d",
+      "postSha256": "e21f6d31eaca277cb1f2ae81bc4a5e10ba844dad268303e2c34d69e71eccbd94",
+      "changed": true
+    },
+    {
+      "target": "core/classification.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/classification.mjs",
+      "originSha256": "299cf023970cdf03657dea80130a0f54e036dd1707dc5fd69999b6da0e78df8c",
+      "postSha256": "299cf023970cdf03657dea80130a0f54e036dd1707dc5fd69999b6da0e78df8c",
+      "changed": false
+    },
+    {
+      "target": "core/cli.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/cli.mjs",
+      "originSha256": "e7d3448e25589cbb951865d1aa85a5c1826e828d544a66f3e279247d1167c134",
+      "postSha256": "e1e9b64a89fda6b5e2d2f2874785927a0dd5b7975ce3785de22191ba053dcfd1",
+      "changed": true
+    },
+    {
+      "target": "core/coordinator.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/coordinator.mjs",
+      "originSha256": "b6ca292314e703933661d571ff52038a5f9c92e4ef96960e71eedfb56ab32bc1",
+      "postSha256": "b6ca292314e703933661d571ff52038a5f9c92e4ef96960e71eedfb56ab32bc1",
+      "changed": false
+    },
+    {
+      "target": "core/coverage.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/coverage.mjs",
+      "originSha256": "c4816093400d404c9b804e881b1b928d4c03265d843f43a8e1aacd6c5e757f2a",
+      "postSha256": "c4816093400d404c9b804e881b1b928d4c03265d843f43a8e1aacd6c5e757f2a",
+      "changed": false
+    },
+    {
+      "target": "core/data/archiveManifest.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/data/archiveManifest.json",
+      "originSha256": "8f20ea72dd51fd003197df1c75ee0bd6b1cc8e22fc940a5463873edccaa4a211",
+      "postSha256": "8f20ea72dd51fd003197df1c75ee0bd6b1cc8e22fc940a5463873edccaa4a211",
+      "changed": false
+    },
+    {
+      "target": "core/data/boundaryProofs.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/data/boundaryProofs.json",
+      "originSha256": "5fade6551c744254bcc686c2b33ffe23df6bdfa25aa2912258f71b85e34d01c8",
+      "postSha256": "5fade6551c744254bcc686c2b33ffe23df6bdfa25aa2912258f71b85e34d01c8",
+      "changed": false
+    },
+    {
+      "target": "core/data/controls.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/data/controls.json",
+      "originSha256": "e13b7f31f9809bb61bd966576815d387958d326759973dfcc202413d4705a74f",
+      "postSha256": "e13b7f31f9809bb61bd966576815d387958d326759973dfcc202413d4705a74f",
+      "changed": false
+    },
+    {
+      "target": "core/data/coverage.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/data/coverage.json",
+      "originSha256": "bc87553b6197761d1325d65c382a76d91ab04dcf2d0ff309e70105d77c4d45c1",
+      "postSha256": "bc87553b6197761d1325d65c382a76d91ab04dcf2d0ff309e70105d77c4d45c1",
+      "changed": false
+    },
+    {
+      "target": "core/data/diagnosticCatalogue.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/data/diagnosticCatalogue.json",
+      "originSha256": "23e2ad8497108797a64e21f5431c0c39dc669b164bf079885f58a2da13049424",
+      "postSha256": "23e2ad8497108797a64e21f5431c0c39dc669b164bf079885f58a2da13049424",
+      "changed": false
+    },
+    {
+      "target": "core/data/jobs.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/data/jobs.json",
+      "originSha256": "96e72f94f0dbe57e96ec9ad6b394bd8257dda4ced130f8418bfa3a097c29bd80",
+      "postSha256": "96e72f94f0dbe57e96ec9ad6b394bd8257dda4ced130f8418bfa3a097c29bd80",
+      "changed": false
+    },
+    {
+      "target": "core/data/ledger.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/data/ledger.json",
+      "originSha256": "e7cafaa36105dd65501b2c8d35c802729c1da27abc03259eaad5257e1e6590e8",
+      "postSha256": "e7cafaa36105dd65501b2c8d35c802729c1da27abc03259eaad5257e1e6590e8",
+      "changed": false
+    },
+    {
+      "target": "core/data/obligations.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/data/obligations.json",
+      "originSha256": "03bddefe2f75af7e03345608aab69f47cdfeaeadb7213082d2f8722c15526df3",
+      "postSha256": "03bddefe2f75af7e03345608aab69f47cdfeaeadb7213082d2f8722c15526df3",
+      "changed": false
+    },
+    {
+      "target": "core/data/origins.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/data/origins.json",
+      "originSha256": "e7dd0e579b2469ee5d86869d3f1a839e5be38734fd679d78e196be80906323ff",
+      "postSha256": "e7dd0e579b2469ee5d86869d3f1a839e5be38734fd679d78e196be80906323ff",
+      "changed": false
+    },
+    {
+      "target": "core/data/phases.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/data/phases.json",
+      "originSha256": "56bbc2b685fdb305ddbd74eef7ea1aa3c792d0965cbae9a38fd508da1525e2f8",
+      "postSha256": "56bbc2b685fdb305ddbd74eef7ea1aa3c792d0965cbae9a38fd508da1525e2f8",
+      "changed": false
+    },
+    {
+      "target": "core/data/runtimeJobs.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/data/runtimeJobs.json",
+      "originSha256": "c0fbd4490a171734352795a33729c5b2b6f28ec980f11752ca097f19e9b8c368",
+      "postSha256": "c0fbd4490a171734352795a33729c5b2b6f28ec980f11752ca097f19e9b8c368",
+      "changed": false
+    },
+    {
+      "target": "core/data/sourceAuthority.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/data/sourceAuthority.json",
+      "originSha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+      "postSha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+      "changed": false
+    },
+    {
+      "target": "core/data/sourceProofPlan.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/data/sourceProofPlan.json",
+      "originSha256": "02d27ea317f1f4877279385097e3639892ee6be5d96c48c3b6a03ac5a3a6ca83",
+      "postSha256": "02d27ea317f1f4877279385097e3639892ee6be5d96c48c3b6a03ac5a3a6ca83",
+      "changed": false
+    },
+    {
+      "target": "core/frozen/CONTROL-BASES.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/frozen/CONTROL-BASES.json",
+      "originSha256": "59ddf57809847adf8f5e43ff0e9b004ff5259c03412770e74fe908fac9ecbe3e",
+      "postSha256": "59ddf57809847adf8f5e43ff0e9b004ff5259c03412770e74fe908fac9ecbe3e",
+      "changed": false
+    },
+    {
+      "target": "core/frozen/DEFERRED-CONTROLS.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/frozen/DEFERRED-CONTROLS.json",
+      "originSha256": "7945be17c3a132cf94382d5bc4b33768fb7a6c2fc93546a0fb7d875054057bb8",
+      "postSha256": "7945be17c3a132cf94382d5bc4b33768fb7a6c2fc93546a0fb7d875054057bb8",
+      "changed": false
+    },
+    {
+      "target": "core/frozen/assert-capture.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/frozen/assert-capture.mjs",
+      "originSha256": "d2fcd8245b3d95fc73fabd1d3681f614502fdb0bac487be57d9605d53f55f3d0",
+      "postSha256": "d2fcd8245b3d95fc73fabd1d3681f614502fdb0bac487be57d9605d53f55f3d0",
+      "changed": false
+    },
+    {
+      "target": "core/frozen/cmd22-binding.json",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/frozen/cmd22-binding.json",
+      "originSha256": "ce3fafdda9008b13d90f23cc48254e0c7592c806b09711f3fcbdca39831efe71",
+      "postSha256": "ce3fafdda9008b13d90f23cc48254e0c7592c806b09711f3fcbdca39831efe71",
+      "changed": false
+    },
+    {
+      "target": "core/frozen/cmd22-read-paths.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/frozen/cmd22-read-paths.mjs",
+      "originSha256": "d36de36810f3b347a954ced9384851cf22c84358d09976404ed5c59b5476a647",
+      "postSha256": "d36de36810f3b347a954ced9384851cf22c84358d09976404ed5c59b5476a647",
+      "changed": false
+    },
+    {
+      "target": "core/frozen/context.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/frozen/context.mjs",
+      "originSha256": "b4827ee8656e9d2a88a23176c9b61b757bf9d4c79f8c46463c5cb579e42e7821",
+      "postSha256": "b4827ee8656e9d2a88a23176c9b61b757bf9d4c79f8c46463c5cb579e42e7821",
+      "changed": false
+    },
+    {
+      "target": "core/frozen/deferred-fixtures.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/frozen/deferred-fixtures.mjs",
+      "originSha256": "06c1532000b16ca5adf830fa2670b6e5f784288b4968a39786bb9b6a4d463939",
+      "postSha256": "06c1532000b16ca5adf830fa2670b6e5f784288b4968a39786bb9b6a4d463939",
+      "changed": false
+    },
+    {
+      "target": "core/frozen/integrity.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/frozen/integrity.mjs",
+      "originSha256": "fc8387f9c1c64a979ffce9a4058ed3a4f199e56ac7a5d7b289f490da23ebe60a",
+      "postSha256": "fc8387f9c1c64a979ffce9a4058ed3a4f199e56ac7a5d7b289f490da23ebe60a",
+      "changed": false
+    },
+    {
+      "target": "core/frozen/original-assert-capture.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/frozen/original-assert-capture.mjs",
+      "originSha256": "d4b58ff54cc6caf93b1628d6c51628f5a3ebbc53d71611c1a5748530cef264bd",
+      "postSha256": "d4b58ff54cc6caf93b1628d6c51628f5a3ebbc53d71611c1a5748530cef264bd",
+      "changed": false
+    },
+    {
+      "target": "core/infrastructure-worker.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/infrastructure-worker.mjs",
+      "originSha256": "51c769446a0d758ab080dcde5c3a0ea31285249c943d10ebdcd7da6c9467077a",
+      "postSha256": "51c769446a0d758ab080dcde5c3a0ea31285249c943d10ebdcd7da6c9467077a",
+      "changed": false
+    },
+    {
+      "target": "core/loader.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/loader.mjs",
+      "originSha256": "9c64aa1d79e065bc54af9f9f63ce985075215c8aae8d423b45c22181557b4065",
+      "postSha256": "9c64aa1d79e065bc54af9f9f63ce985075215c8aae8d423b45c22181557b4065",
+      "changed": false
+    },
+    {
+      "target": "core/materialization.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/materialization.mjs",
+      "originSha256": "8c164b69ed05f38c3d1d393ea0d12bfe2017aa5ad214776bdc55e2d4a33dc853",
+      "postSha256": "8c164b69ed05f38c3d1d393ea0d12bfe2017aa5ad214776bdc55e2d4a33dc853",
+      "changed": false
+    },
+    {
+      "target": "core/owned-process.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/owned-process.mjs",
+      "originSha256": "bcb309eed5984baeaf064d89cae892d54e4afe2d8c9dd710ad26ccf516c9d302",
+      "postSha256": "bcb309eed5984baeaf064d89cae892d54e4afe2d8c9dd710ad26ccf516c9d302",
+      "changed": false
+    },
+    {
+      "target": "core/phase-capture.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/phase-capture.mjs",
+      "originSha256": "85702be619115df518ae16a946e1f3810277ca0705f8a2c421268611dfdb7b64",
+      "postSha256": "85702be619115df518ae16a946e1f3810277ca0705f8a2c421268611dfdb7b64",
+      "changed": false
+    },
+    {
+      "target": "core/primitives.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/primitives.mjs",
+      "originSha256": "a8b62e46f4256765810c5ec30010fb618239b7193f83e9151e06ce25a76db506",
+      "postSha256": "a8b62e46f4256765810c5ec30010fb618239b7193f83e9151e06ce25a76db506",
+      "changed": false
+    },
+    {
+      "target": "core/semantic-worker.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/semantic-worker.mjs",
+      "originSha256": "883196604d607ed53bdc8f7a13a21cc3d41bdc0eb2e8b3132d55c85a184e2bba",
+      "postSha256": "883196604d607ed53bdc8f7a13a21cc3d41bdc0eb2e8b3132d55c85a184e2bba",
+      "changed": false
+    },
+    {
+      "target": "core/source-audit-worker.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/source-audit-worker.mjs",
+      "originSha256": "564caff0a2c9728ee1443b3969ebc86121bce2e8aae1a6a58d49dd0d6e929c62",
+      "postSha256": "564caff0a2c9728ee1443b3969ebc86121bce2e8aae1a6a58d49dd0d6e929c62",
+      "changed": false
+    },
+    {
+      "target": "core/supervisor.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/supervisor.mjs",
+      "originSha256": "77314d227ba1ce099db4f217fd5aa316a5f57fc3b23550f6f0d37452c095c19f",
+      "postSha256": "c353bf16984a670f07a7414a60ca999c192215bfcccfd98b58b7377e608436ed",
+      "changed": true
+    },
+    {
+      "target": "core/tool-bridge.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/tool-bridge.mjs",
+      "originSha256": "9ceccafd78dc68f48cabde760a7e6fb5e8e6f724b3725fedf2a2b9ee2cfa0a9c",
+      "postSha256": "5837e2f3f36fafdd9c5f935610a9b23601b4353a5302b11cde4983a67308477d",
+      "changed": true
+    },
+    {
+      "target": "core/tool-profile.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/tool-profile.mjs",
+      "originSha256": "ee9c0db3b961af6d9b2e5cab6172c6200b8ed650f2d8554cc5a361a693900ce2",
+      "postSha256": "ee9c0db3b961af6d9b2e5cab6172c6200b8ed650f2d8554cc5a361a693900ce2",
+      "changed": false
+    },
+    {
+      "target": "core/worker-api.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/worker-api.mjs",
+      "originSha256": "4daffadb845d2a4abf8e89c4f91c1e72f4fefb6c858f1b87db8e673badfb271c",
+      "postSha256": "e6548d6d4d7d8c6433f11953a0f62638e8f699a91dc31617cfc2dea2740fc876",
+      "changed": true
+    },
+    {
+      "target": "core/worker-host.mjs",
+      "originCommit": "83eed5879de47d89f231154079c8faeb2aadfa99",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/core/worker-host.mjs",
+      "originSha256": "8bf56edd4b911d174d2096e0ba479c97501e9bbb26bef8f2198d42c4e1e9305b",
+      "postSha256": "62fdb743912b058200fcaf745aac894a3878a067082b6aa2e0a0a953544b45e3",
+      "changed": true
+    },
+    {
+      "target": "workers/MUTANT-PLAN.json",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/MUTANT-PLAN.json",
+      "originSha256": "4b6ebde4b0e348ef6d4a0df3c5468002717c32dbbfb470fd112331cd7274181b",
+      "postSha256": "4b6ebde4b0e348ef6d4a0df3c5468002717c32dbbfb470fd112331cd7274181b",
+      "changed": false
+    },
+    {
+      "target": "workers/TYPE-PLAN.json",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/TYPE-PLAN.json",
+      "originSha256": "8eed676ec82857081c5103f0ccdd5514676e71eccbdfe26463352c34386fb9a2",
+      "postSha256": "8eed676ec82857081c5103f0ccdd5514676e71eccbdfe26463352c34386fb9a2",
+      "changed": false
+    },
+    {
+      "target": "workers/fixtures/factory-array-extra.mts.data",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/factory-array-extra.mts.data",
+      "originSha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+      "postSha256": "a637c4c761bb1e1741387326dec844d406f554b941a269d7bec65e1d33564e89",
+      "changed": false
+    },
+    {
+      "target": "workers/fixtures/factory-command-extra.mts.data",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/factory-command-extra.mts.data",
+      "originSha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+      "postSha256": "bf2c319d9399bafa476e73d6f0d8e6993983b5066dfd3abd6d649fe0a3ec78eb",
+      "changed": false
+    },
+    {
+      "target": "workers/fixtures/hidden-defaults.mts.data",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-defaults.mts.data",
+      "originSha256": "53478f30079b739c9e34ffeb9404a67b5fd7947a4c00e08e117a85c009b48400",
+      "postSha256": "53478f30079b739c9e34ffeb9404a67b5fd7947a4c00e08e117a85c009b48400",
+      "changed": false
+    },
+    {
+      "target": "workers/fixtures/hidden-factory.mts.data",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-factory.mts.data",
+      "originSha256": "f73fef9fd1fae5e66379989d8cdf59101f09d82443122f7e91506bd03d8a5f20",
+      "postSha256": "f73fef9fd1fae5e66379989d8cdf59101f09d82443122f7e91506bd03d8a5f20",
+      "changed": false
+    },
+    {
+      "target": "workers/fixtures/hidden-limits.mts.data",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-limits.mts.data",
+      "originSha256": "8fbaf4075b51382e279f1052350559ebbe3f4ce9c03944b7ac95e9d1890fc761",
+      "postSha256": "8fbaf4075b51382e279f1052350559ebbe3f4ce9c03944b7ac95e9d1890fc761",
+      "changed": false
+    },
+    {
+      "target": "workers/fixtures/hidden-parser.mts.data",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-parser.mts.data",
+      "originSha256": "5a05bae0fc1d308ce6e9a53c50b50d5fa17dd6d6e0795f0733e6f832e8347139",
+      "postSha256": "5a05bae0fc1d308ce6e9a53c50b50d5fa17dd6d6e0795f0733e6f832e8347139",
+      "changed": false
+    },
+    {
+      "target": "workers/fixtures/hidden-session.mts.data",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/hidden-session.mts.data",
+      "originSha256": "6b2868895df93e11b3de80caee59e2494ca5d49ff0b5e16b60d227a85e658a15",
+      "postSha256": "6b2868895df93e11b3de80caee59e2494ca5d49ff0b5e16b60d227a85e658a15",
+      "changed": false
+    },
+    {
+      "target": "workers/fixtures/positive.mts.data",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/positive.mts.data",
+      "originSha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+      "postSha256": "f673aa48081df5da7422afccae8035f772d9b7d4f0807e5358c25e860e4ca7f0",
+      "changed": false
+    },
+    {
+      "target": "workers/fixtures/replace-string.mts.data",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/replace-string.mts.data",
+      "originSha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+      "postSha256": "e8ee0308b05e85331c1137a8993f97f36788856e70416d214b44afa2cced1bcc",
+      "changed": false
+    },
+    {
+      "target": "workers/fixtures/replace-undefined.mts.data",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/replace-undefined.mts.data",
+      "originSha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+      "postSha256": "d282022d8e329add3275f9c11f53a6f3cbeb3831598864ed631646edc3de9169",
+      "changed": false
+    },
+    {
+      "target": "workers/fixtures/unknown-limits.mts.data",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/fixtures/unknown-limits.mts.data",
+      "originSha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+      "postSha256": "e2b019fca89c754c4254077c2a20ae615b3dbdaf3e82c70382d415d494d35a42",
+      "changed": false
+    },
+    {
+      "target": "workers/loaded-worker.mjs",
+      "originCommit": "9fe3c8574b32df9839284307942be5003d87d0a0",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f02-v2/loaded-worker.mjs",
+      "originSha256": "be03ad51d6ef185093236776bf0b0f7dde17e520be6a4ed8505656dbeef4e26c",
+      "postSha256": "be03ad51d6ef185093236776bf0b0f7dde17e520be6a4ed8505656dbeef4e26c",
+      "changed": false
+    },
+    {
+      "target": "workers/type-worker.mjs",
+      "originCommit": "89bc7bd545f8b6f7215b7c2a49cccf644a08e07f",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f01-v2/type-worker.mjs",
+      "originSha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd",
+      "postSha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd",
+      "changed": false
+    },
+    {
+      "target": "workers/worker-support.mjs",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/worker-support.mjs",
+      "originSha256": "76a29d05aa4482add4dd03c7d35808924f74f879f38ed154b9eebd431bc00905",
+      "postSha256": "76a29d05aa4482add4dd03c7d35808924f74f879f38ed154b9eebd431bc00905",
+      "changed": false
+    },
+    {
+      "target": "workers/build-worker.mjs",
+      "originCommit": "937c1f6a35c620146e62924b16d90e808319024f",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-worker.mjs",
+      "originSha256": "3ad2268b34242f2ae5f58e0be611e77dd43c3387fe19139fc52ab31e85fbfbf4",
+      "postSha256": "3ad2268b34242f2ae5f58e0be611e77dd43c3387fe19139fc52ab31e85fbfbf4",
+      "changed": false
+    },
+    {
+      "target": "workers/build-fs.mjs",
+      "originCommit": "937c1f6a35c620146e62924b16d90e808319024f",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-fs.mjs",
+      "originSha256": "a2fda10264dec281c808336c7bf1ee3e1ce5547d03eb6b69d9406947d914ad21",
+      "postSha256": "a2fda10264dec281c808336c7bf1ee3e1ce5547d03eb6b69d9406947d914ad21",
+      "changed": false
+    },
+    {
+      "target": "workers/build-outputs.mjs",
+      "originCommit": "937c1f6a35c620146e62924b16d90e808319024f",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-outputs.mjs",
+      "originSha256": "0e258aedc60788440caf0a2216d360b9c05fe592418c1d932b11984d7741fe1a",
+      "postSha256": "0e258aedc60788440caf0a2216d360b9c05fe592418c1d932b11984d7741fe1a",
+      "changed": false
+    },
+    {
+      "target": "workers/build-plan.json",
+      "originCommit": "937c1f6a35c620146e62924b16d90e808319024f",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-plan.json",
+      "originSha256": "364115ed79bb648ab174d602a7e153e5de59c2753ba97ab3a4206a04a2241ec1",
+      "postSha256": "364115ed79bb648ab174d602a7e153e5de59c2753ba97ab3a4206a04a2241ec1",
+      "changed": false
+    },
+    {
+      "target": "workers/build-source-manifest.json",
+      "originCommit": "937c1f6a35c620146e62924b16d90e808319024f",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-source-manifest.json",
+      "originSha256": "413432105677fcef5454d5f273d2b1dcb72ce014a52bf3e13e172af3a0a31286",
+      "postSha256": "413432105677fcef5454d5f273d2b1dcb72ce014a52bf3e13e172af3a0a31286",
+      "changed": false
+    },
+    {
+      "target": "workers/build-package-manifest.json",
+      "originCommit": "937c1f6a35c620146e62924b16d90e808319024f",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-package-manifest.json",
+      "originSha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7",
+      "postSha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7",
+      "changed": false
+    },
+    {
+      "target": "workers/maps/pending-shadow.json",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/maps/pending-shadow.json",
+      "originSha256": "f28d8d9538599055d5845eb92b347f51c6756024a5f661b8634bf6bb3b139e80",
+      "postSha256": "f28d8d9538599055d5845eb92b347f51c6756024a5f661b8634bf6bb3b139e80",
+      "changed": false
+    },
+    {
+      "target": "workers/maps/pristine.json",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/maps/pristine.json",
+      "originSha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7",
+      "postSha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7",
+      "changed": false
+    },
+    {
+      "target": "workers/maps/quoted-del.json",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/maps/quoted-del.json",
+      "originSha256": "cbdd27df0009a439a2b6612de57ca9cd6d19c03a259e2c711b56c7c3c880bfe7",
+      "postSha256": "cbdd27df0009a439a2b6612de57ca9cd6d19c03a259e2c711b56c7c3c880bfe7",
+      "changed": false
+    },
+    {
+      "target": "workers/maps/retained-view.json",
+      "originCommit": "c0353685540288d504b93f206735fe4c448268ef",
+      "originPath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/maps/retained-view.json",
+      "originSha256": "9192ff9472d89e5311b5010a862ea8d31841c48ea128624c6a7fcab1018211c6",
+      "postSha256": "9192ff9472d89e5311b5010a862ea8d31841c48ea128624c6a7fcab1018211c6",
+      "changed": false
+    }
+  ],
+  "changedOrigins": [
+    "core/TOOL-SOURCES.json",
+    "core/admission.mjs",
+    "core/cli.mjs",
+    "core/supervisor.mjs",
+    "core/tool-bridge.mjs",
+    "core/worker-api.mjs",
+    "core/worker-host.mjs"
+  ],
+  "newPaths": [
+    "assembly/core/build-adapter.mjs",
+    "assembly/core/data/physicalBindings.json",
+    "assembly/workers/INPUT-PRESEAL.json"
+  ],
+  "excludedParentCoreExecutables": [
+    "build-stage.mjs",
+    "compose.mjs",
+    "copy-tools.mjs",
+    "frozen/loaded-primitive-assert.mjs"
+  ],
+  "excludedPrimitiveBinding": "core/data/loadedPrimitiveBindings.json",
+  "preparationFilenameCorrection": {
+    "originalInputLabel": "LOAD-TOOL-CLOSURE.json",
+    "actualSealedPath": "LOAD-AND-TOOL-SEAL.json",
+    "sameUserSuppliedRawHash": true,
+    "originalGitReadExitCode": 128,
+    "reviewerScriptExitCode": 1,
+    "originalError": "fatal: path 'tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/LOAD-TOOL-CLOSURE.json' does not exist in 'b1b8566686769e5e53433048f2058ab09d8c00c3'",
+    "meaning": "Reviewer guessed filename before reading authenticated membership. Frozen INPUTS retained; real path resolved from final seal, not weakened hash."
+  },
+  "modeQualification": "Full0644 modes observed on current sealed data files; Git100644 alone is not historical full POSIX authority. No active assembly run.",
+  "targetExecutions": 0
+}

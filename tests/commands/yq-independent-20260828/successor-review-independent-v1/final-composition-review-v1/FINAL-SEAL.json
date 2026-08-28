@@ -1,0 +1,139 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "role": "DIFFERENT_FINAL_STATIC_COMPOSITION_REVIEW",
+  "status": "CHANGES_REQUIRED",
+  "scope": "tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1",
+  "compositionCommit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+  "criteriaCommit": "33ce3f5850a6d8871e016cb49137d9dbfbd93ce7",
+  "findingCommits": [
+    {
+      "id": "FC-F01",
+      "commit": "2df1dab10c3176a35f4160fa12c460a7abc592fe",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/FC-F01-STATIC-WITNESS.json",
+      "sha256": "0eb85eb7515432bae8f8118e1016243216a1295d1d60120746bcd957cd2fbf31",
+      "bytes": 6096
+    },
+    {
+      "id": "FC-F02",
+      "commit": "cbf906a3ce6d92b2a587cb651014b068deb08532",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/FC-F02-STATIC-WITNESS.json",
+      "sha256": "85a4c10b669b7309f2ee0c44e344d3af18e74c936fb5fd64770b459e4b91f603",
+      "bytes": 11327
+    },
+    {
+      "id": "FC-F03",
+      "commit": "a3c3e6582a58ee0b0227856c0f1d95a1c083fad1",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/FC-F03-STATIC-WITNESS.json",
+      "sha256": "5eff1a429c4182a6f69ae736079b4438882e83787f97d04b0f28e9409e04249f",
+      "bytes": 6736
+    }
+  ],
+  "files": [
+    {
+      "path": "COMPOSITION-AUTHENTICATION.json",
+      "sha256": "b2816c4a38756f52211daac073b1b0d2d9df6a65d8695e71cb304709ebb0ebdd",
+      "bytes": 56957,
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "CRITERIA.md",
+      "sha256": "dedcd783bf5491057d7d1d3e55774f82bb07d7a588fad5c0a8d2b884ab97c160",
+      "bytes": 5929,
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "DATA-AND-SCHEDULE-AUDIT.json",
+      "sha256": "00bec54a896d4b01108c7aa273f513b3567b13563a63c4c076a8ab6ad1bbb15a",
+      "bytes": 12910,
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "FC-F01-STATIC-WITNESS.json",
+      "sha256": "0eb85eb7515432bae8f8118e1016243216a1295d1d60120746bcd957cd2fbf31",
+      "bytes": 6096,
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "FC-F02-STATIC-WITNESS.json",
+      "sha256": "85a4c10b669b7309f2ee0c44e344d3af18e74c936fb5fd64770b459e4b91f603",
+      "bytes": 11327,
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "FC-F03-STATIC-WITNESS.json",
+      "sha256": "5eff1a429c4182a6f69ae736079b4438882e83787f97d04b0f28e9409e04249f",
+      "bytes": 6736,
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "FINAL-CHECKS.json",
+      "sha256": "16293427912b359e95c36c63bf958862dd2aa507ef9bbc18aafd7bbc4c2829f6",
+      "bytes": 2178,
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "INPUTS.json",
+      "sha256": "9a09734fafb40e9202a9bc6865131b3b949005695a5d43e1e3c08b4d584daa9d",
+      "bytes": 2004,
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "PHYSICAL-DATA-AUTHENTICATION.json",
+      "sha256": "f7589775648d5a9e1c6955183d4dff3baa76fa86e6c9ca0750e2276469e2f800",
+      "bytes": 106197,
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "PREPARATION-NOTES.md",
+      "sha256": "081d724642581acf0e35d03a314b236b1c6acb9a56cd8ec740d4f0376c8d4d45",
+      "bytes": 2076,
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "REPORT.md",
+      "sha256": "2cc0b3edc9c05dd040295dc2735da78060c40babfc4db138ada1906e80a0aaf2",
+      "bytes": 12438,
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "SYNTAX-CHECKS.json",
+      "sha256": "361d9625d41eadfe258fcde94a4d2b9a7ef76f4f6d481eb3cdad6f87d2bab1ed",
+      "bytes": 15698,
+      "mode": 420,
+      "kind": "file"
+    },
+    {
+      "path": "VERDICT.json",
+      "sha256": "8bd473fa8932c53c76d24094bd42dd90daf061db32a5ab9f80a8d742016bb769",
+      "bytes": 8549,
+      "mode": 420,
+      "kind": "file"
+    }
+  ],
+  "selfExcluded": true,
+  "report": "REPORT.md",
+  "verdict": "VERDICT.json",
+  "sourceIntegrityMismatches": 0,
+  "codeFindings": 3,
+  "currentModeQualification": "Modes observed only for this new review evidence; no original history permission claim.",
+  "candidateExecutions": 0,
+  "copiedToolInvocations": 0,
+  "authoredModuleImports": 0,
+  "controlPasses": 0,
+  "runtimePasses": 0,
+  "rootGO": false,
+  "readyToRun": false,
+  "preparationFailuresPreserved": 3
+}

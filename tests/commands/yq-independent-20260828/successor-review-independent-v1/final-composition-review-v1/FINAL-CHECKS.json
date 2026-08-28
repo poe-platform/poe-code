@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "role": "FINAL_STATIC_INTEGRITY_AND_DOCUMENT_CHECKS",
+  "compositionCommit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+  "closingCompleteSourceFileMembership": 89,
+  "closingDirectoriesMatchSeal": true,
+  "allClosingSourceBytesSizesModesMatchExactGit": true,
+  "closingSourceJsonFilesStrictParsed": 44,
+  "criteriaCommit": "33ce3f5850a6d8871e016cb49137d9dbfbd93ce7",
+  "criteriaOriginalBytesUnchanged": true,
+  "previousPeerReviewCommit": "74fc2063a365c02553c4f7fe6a48608ed5f5f700",
+  "previousPeerReviewFilesUnchanged": 11,
+  "liveAgentsHashUnchanged": true,
+  "normativeCriteriaSpecCheck": {
+    "stdout": "OK: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/CRITERIA.md (0 warning(s))\n",
+    "stderr": "",
+    "exitCode": 0
+  },
+  "nonNormativeAuditReportNotRunThroughSpecShapeChecker": true,
+  "findings": [
+    {
+      "id": "FC-F01",
+      "commit": "2df1dab10c3176a35f4160fa12c460a7abc592fe",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/FC-F01-STATIC-WITNESS.json",
+      "sha256": "0eb85eb7515432bae8f8118e1016243216a1295d1d60120746bcd957cd2fbf31",
+      "bytes": 6096
+    },
+    {
+      "id": "FC-F02",
+      "commit": "cbf906a3ce6d92b2a587cb651014b068deb08532",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/FC-F02-STATIC-WITNESS.json",
+      "sha256": "85a4c10b669b7309f2ee0c44e344d3af18e74c936fb5fd64770b459e4b91f603",
+      "bytes": 11327
+    },
+    {
+      "id": "FC-F03",
+      "commit": "a3c3e6582a58ee0b0227856c0f1d95a1c083fad1",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/FC-F03-STATIC-WITNESS.json",
+      "sha256": "5eff1a429c4182a6f69ae736079b4438882e83787f97d04b0f28e9409e04249f",
+      "bytes": 6736
+    }
+  ],
+  "noTargetOrCopiedToolExecution": true,
+  "preparationErrorsRetained": 3,
+  "qualification": "Current source data checks and before/after copied-data observations are not execution acceptance or no-change-and-restore proof."
+}

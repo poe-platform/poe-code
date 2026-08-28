@@ -1,0 +1,57 @@
+{
+  "date": "2026-08-28",
+  "classification": "EXISTING_STATIC_FINDINGS_HANDOFF_NOT_NEW_POLICY",
+  "findings": [
+    {
+      "id": "WRK-06",
+      "counterPointer": "/counterAdmission/4",
+      "extraContractPointers": [],
+      "witness": [["src/commands/yq/index.ts",231,235],["src/commands/yq/index.ts",345,351],["src/commands/yq/parser.ts",855,863],["src/commands/yq/parser.ts",935,938]],
+      "order": "received source chunk -> owned copy -> whole-source UTF-8 decode -> rawLines normalization/splitting -> beginDocument(rawBytes)",
+      "detail": "rawLines normalizes CRLF/CR to LF before Buffer.byteLength(line) plus one newline byte. A CRLF pair is therefore represented as one byte in this document ledger. This is static dataflow evidence, not an executed near-cap case.",
+      "affectedGates": ["maxDocumentBytes", "maxInputBytes", "maxDocuments", "legal-document-boundary", "raw-marker-assignment", "UTF-8-decoding", "owned-work-CARRY"],
+      "dependentFamilies": ["PAR", "NUM", "UTF", "ALS", "ENC", "QUE", "WRK", "FS", "LIF"],
+      "repairInvariant": "Restate the frozen gate: assign and check current raw-document bytes before the owned retained copy or decoded append, assign markers once, reset only at a legal boundary, and keep the ledger over raw bytes rather than normalized line bytes. No new limit or parser policy."
+    },
+    {
+      "id": "WRK-07",
+      "counterPointer": "/counterAdmission/5",
+      "extraContractPointers": [],
+      "witness": [["src/commands/yq/parser.ts",274,278],["src/commands/yq/parser.ts",470,474],["src/commands/yq/parser.ts",528,531]],
+      "order": "quoted raw slice -> decodeDouble/decodeSingle constructs value -> composer.scalar(value) -> admitScalar(decoded byte length)",
+      "detail": "The four-byte escape result/next-byte boundary is an unrun private counter scenario. The existing finding is that allocation/retention precedes the scalar admission call.",
+      "affectedGates": ["maxScalarBytes", "decoded-key-bytes", "maxValueBytes", "maxDocumentNodes", "escape-Unicode-validity", "owned-work-CARRY"],
+      "dependentFamilies": ["PAR", "NUM", "UTF", "ALS", "ENC", "QUE", "WRK"],
+      "repairInvariant": "Restate the frozen gate: admit decoded scalar/key UTF-8 bytes incrementally before retaining the next decoded fragment or escape result, retaining accepted Unicode/N and work-accounting rules. No new limit or private injection hook."
+    },
+    {
+      "id": "WRK-13",
+      "counterPointer": "/counterAdmission/12",
+      "extraContractPointers": ["/counterAdmission/6"],
+      "witness": [["src/commands/yq/parser.ts",394,397],["src/commands/yq/parser.ts",408,409],["src/commands/yq/parser.ts",553,555]],
+      "order": "prospective flow-sequence child parsed/constructed -> parent composer.member(size) checks collection cap -> push child",
+      "detail": "The 100000/100001 ledger scenario was not executed. A checked final insertion does not establish pre-input-member-allocation admission.",
+      "affectedGates": ["maxCollectionSize", "maxDocumentNodes", "maxValueBytes", "maxDepth", "alias-copy-admission", "owned-work-CARRY"],
+      "dependentFamilies": ["PAR", "ALS", "ENC", "QUE", "WRK"],
+      "repairInvariant": "Restate the frozen gate: refuse the next input member before that member is allocated, while preserving existing engine checks, yielded-graph validation and other composition admissions. No new collection policy."
+    },
+    {
+      "id": "WRK-17",
+      "counterPointer": "/counterAdmission/17",
+      "extraContractPointers": ["/outputAccounting/encoderPreallocation", "/outputAccounting/resultOrder", "/outputAccounting/failureQualification"],
+      "witness": [["src/commands/yq/encoder.ts",15,21],["src/commands/yq/encoder.ts",59,67],["src/commands/yq/index.ts",400,411]],
+      "order": "quoted fragment += escaped code point -> append(fragment) checks remaining capacity -> global operation admission -> final output allocation/submit",
+      "detail": "Final-operation reservation is present but does not preflight earlier retained fragments. The private stdout-cap/reserved-diagnostic boundary was not executed.",
+      "affectedGates": ["maxOutputBytes", "stdoutCapBytes", "diagnosticReserveBytes", "encoder-preallocation", "result-order", "no-output-refund", "owned-work-CARRY"],
+      "dependentFamilies": ["ENC", "NUM", "UTF", "QUE", "WRK", "FS", "LIF"],
+      "repairInvariant": "Restate the frozen gate: check each escape/indentation/fragment/separator/LF and repeat/join/suffix/final-byte allocation against remaining capacity before retention/allocation; admit the exact whole submit operation globally once, without refund. Preserve diagnostic reserve and accepted encoder/CARRY semantics."
+    }
+  ],
+  "successor": {
+    "authorization": "NONE_GRANTED_BY_THIS_HANDOFF",
+    "scope": "Root-routed successor full review of all194 original IDs/eight overlapping overlays, full original/moved prepared jobs, dedicated loaded/type/control obligations and all source/private gaps; no unsupported obligation becomes a pass.",
+    "noPassInheritanceAcrossRepairedAllocationSemantics": true,
+    "noPrivateHookOrNewBoundaryInputInvented": true,
+    "parallelOwnership": "CMD-22 and future schedule handled separately; no repair here."
+  }
+}

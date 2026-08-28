@@ -1,0 +1,245 @@
+{
+  "schema": "public-worker-first-actual-v7",
+  "date": "2026-08-28",
+  "decision": "HOLD: first literal sync JSON workflow qualified; typed-error workflow failed; remaining slots unrun",
+  "repairCommit": "8a2668f80e487b258532ec6c20469d9f7e230157",
+  "activationCommit": "acb96330fe41d8f5daf679c4d4275231827374ff",
+  "reviewCommit": "f4e92bb14ff75cc68da136a9a7253d9f2917165e",
+  "grantSha256": "5f24cf8c0b8c71309b5bc8c67ebb799aa8962455d6485cb0cd6a47760dc5ee4d",
+  "presealSha256": "ee01a355965f98deb44f3e40e29145c94307a883d50a715c62a4d6cfd4b60912",
+  "engineCommit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+  "compilerPublication": "463a945125b900cbb98436b9e9292d78ca6c98aa",
+  "counts": {
+    "plannedWorkers": 11,
+    "actualWorkersAcquired": 2,
+    "actualWorkerExits": 2,
+    "unrunWorkerSlots": 9,
+    "plannedGuestEvaluations": 10,
+    "actualGuestEvaluationsStarted": 2,
+    "selectedGuestEntriesEvidenced": 2,
+    "entryReturnedTerminals": 1,
+    "terminatedWithoutGuestTerminal": 1,
+    "unrunGuestSlots": 8,
+    "qualifiedActualCases": 1,
+    "failedActualCases": 1,
+    "observedBridgeOperationAdmissions": 6,
+    "observedPostcopyDeliveryMarkers": 5,
+    "evidencedBridgeCallbackEntries": 11,
+    "virtualFSReadAttempts": 2,
+    "virtualFSReadSuccesses": 1,
+    "virtualFSReadMissingFailure": 1,
+    "virtualFSWrites": 1,
+    "virtualFSWrittenBytes": 11,
+    "virtualStdoutWrites": 1,
+    "virtualStdoutBytes": 29,
+    "moduleAuthorizationOperations": 2,
+    "operationCleanupCompletions": 6,
+    "parentCleanupSettlements": 2,
+    "parentCleanupSuccesses": 2,
+    "workerTerminationRequests": 2,
+    "workerNativeStdoutStderrStreamsClosed": 4,
+    "workerNativeCapturedBytes": 0,
+    "workerLoadRecords": 196,
+    "uniqueWorkerLoadedPaths": 98,
+    "engineModulesPerWorker": 93,
+    "captureRepairControlsPassed": 9,
+    "captureRepairControlsTotal": 9,
+    "actualOuterRawDescriptorsClosed": 2,
+    "actualOuterRawBytes": 756,
+    "actualOuterRawBytesWritten": 756,
+    "actualOuterWriteCalls": 2,
+    "OSParentChildren": 1,
+    "OSParentNaturalExits": 1,
+    "OSSignals": 0,
+    "slotRetries": 0,
+    "compilerRetries": 0,
+    "privateReads": 0,
+    "networkRequests": 0
+  },
+  "cases": [
+    {
+      "case": "WRQ01-L01-v3",
+      "receiptPath": "capsule/runtime/RUN-WRQ-SYNC-V3-01/WRQ01-L01-v3.json",
+      "status": 0,
+      "expectedStatus": 0,
+      "qualified": true,
+      "stdout": "string:undefined:{\"count\":2}\n",
+      "stdoutBytes": 29,
+      "raw": [],
+      "privateFailures": 0,
+      "workerAcquired": true,
+      "workerExited": true,
+      "workerExitCode": 1,
+      "parentCleanupSettled": true,
+      "parentCleanupSuccessful": true,
+      "guestEntry": "demonstrated by guest-originated VFS requests from the fixed selectedGuest body",
+      "guestTerminal": "entryReturned",
+      "bridgeOperationAdmissions": 4,
+      "deliveryMarkers": 4,
+      "operationCleanupEvents": 4,
+      "loadRecords": 98,
+      "coreModuleRecords": 93,
+      "commandLedgerPeak": 15172098,
+      "effects": [
+        {
+          "path": "/data/input.json",
+          "utf8": "{\"count\":1}"
+        },
+        {
+          "path": "/data/object.json",
+          "utf8": "{\"count\":1}"
+        },
+        {
+          "path": "/data/result.json",
+          "utf8": "{\"count\":2}"
+        }
+      ]
+    },
+    {
+      "case": "WRQ02-L02-v3",
+      "receiptPath": "capsule/runtime/RUN-WRQ-SYNC-V3-01/WRQ02-L02-v3.json",
+      "status": null,
+      "expectedStatus": 0,
+      "qualified": false,
+      "stdout": "",
+      "stdoutBytes": 0,
+      "raw": [
+        {
+          "provenance": "escaping-parent",
+          "present": true,
+          "callerIdentity": false,
+          "sinkIdentity": false,
+          "cleanupIdentity": false
+        }
+      ],
+      "privateFailures": 0,
+      "workerAcquired": true,
+      "workerExited": true,
+      "workerExitCode": 1,
+      "parentCleanupSettled": true,
+      "parentCleanupSuccessful": true,
+      "guestEntry": "demonstrated by guest-originated VFS requests from the fixed selectedGuest body",
+      "guestTerminal": null,
+      "bridgeOperationAdmissions": 2,
+      "deliveryMarkers": 1,
+      "operationCleanupEvents": 2,
+      "loadRecords": 98,
+      "coreModuleRecords": 93,
+      "commandLedgerPeak": 15147456,
+      "effects": [
+        {
+          "path": "/data/input.json",
+          "utf8": "{\"count\":1}"
+        },
+        {
+          "path": "/data/object.json",
+          "utf8": "{\"count\":1}"
+        }
+      ]
+    }
+  ],
+  "unrunCases": [
+    "WRQ03-L03-v3",
+    "WRQ04-L04-v3",
+    "WRQ05-L05-undefined-v3",
+    "WRQ05-L05-false-v3",
+    "WRQ05-L05-object-v3",
+    "WRQ06-L06a-v3",
+    "WRQ06-L06b-v3",
+    "WRQ07-L07-v3",
+    "WRQ08-L08-v3"
+  ],
+  "sourceOrUnqualified": {
+    "K1": "Only fixed literal fixture/public run with ordinary synchronous text bridge and JSON editing qualified; no CLI/.cjs loader generalization, optional provider not fully qualified.",
+    "K2": "L01 string/undefined return values and five completed postcopy markers observed. L02 typed error not delivered. Cache identity, falsy caller reasons, sink/cleanup priority, async order and actual Shell mapping not qualified.",
+    "K3": "Two actual Workers retired, six admitted operations cleaned, measured command-ledger peaks15172098 and15147456 below16777216. No RSS/whole-guest8MiB/all-jobs-settled guarantee. Cancellation and L08 heap enforcement unrun.",
+    "K4": "124 immutable capsule bodies and exact generated grant authenticated pre/post; 98 actual loader records per Worker include93 core modules. Bootstrap permission assertions passed before engine import. Parent LOADS.json was not published because runner stopped; no complete parent runtime load census. OS deadline/escalation unexercised."
+  },
+  "findings": [
+    {
+      "id": "ACTUAL-L02",
+      "observed": "Expected status0 and FsError:ENOENT:/missing newline; actual statusnull, empty stdout, escaping-parent reason and no guest terminal. Both Worker and parent cleanup completed.",
+      "scope": "Experimental typed FS error path, not a production node command finding or engine impossibility.",
+      "localization": "Fixture attempts FsError on missing read; parent finishEffect can route constructor/recognizer/DTO failures to escaping-parent. Exact original error value/descriptor was not durably serialized, so a specific descriptor cause is unproven.",
+      "next": "ROOT may authorize a separately sealed diagnostic/repair; no probe or retry performed."
+    },
+    {
+      "id": "RUNNER-STOP",
+      "observed": "Frozen parent-entry throws on first failed judgement. L02 ordinary outcome failure stopped the parent before nine remaining slots despite confirmed cleanup.",
+      "scope": "Existing runner limitation; no silent expectation change, no continued slots or rescore."
+    }
+  ],
+  "capture": {
+    "owner": {
+      "primary": {
+        "present": false,
+        "origin": null
+      },
+      "secondary": [],
+      "slots": [
+        {
+          "acquired": true,
+          "closeAttempted": true,
+          "closed": true
+        },
+        {
+          "acquired": true,
+          "closeAttempted": true,
+          "closed": true
+        }
+      ],
+      "bytesSeen": 756,
+      "bytesWritten": 756,
+      "writeCalls": 2,
+      "cleanupComplete": true
+    },
+    "outerExit": {
+      "code": 1,
+      "signal": null,
+      "closed": true,
+      "elapsedMs": 1141
+    },
+    "rawReasonIdentity": "Actual outer primary absent and secondary empty. Capture fault controls preserve actual undefined/false/object reasons in memory; JSON snapshots do not imply cross-process identity."
+  },
+  "integrity": {
+    "immutableCount": 124,
+    "generatedCount": 6,
+    "capsuleCensusCount": 130,
+    "fullArchivedFiles": 133,
+    "artifactBytes": 1370634,
+    "archiveSha256": "499a4a47cb0fb3e0e2002b98661e1ab7ce96378da1c048efacb1d232ecb9dfff",
+    "archiveEncodedBytes": 475621,
+    "sourcePostCount": 124,
+    "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "unexpectedEntries": 0,
+    "symlinks": 0,
+    "archiveAuthenticated": true,
+    "sourceUnchanged": true
+  },
+  "retirement": {
+    "unclosedWorkers": 0,
+    "unclosedParentCleanupScopes": 0,
+    "unclosedOSChildren": 0,
+    "unclosedRawCaptureDescriptors": 0,
+    "allGuestJobsSettled": "not claimed",
+    "retainedOwnedRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01",
+    "scratchRemoval": "none; failure artifacts retained and archived before any possible cleanup"
+  },
+  "budget": {
+    "repairWindowStarts": 8,
+    "repairWindowElapsedAtPresealMs": 397286,
+    "actualExecutionOSStarts": 1,
+    "actualMetadataPublicationStartsPlanned": 2,
+    "actualTotalOSStartsPlanned": 3,
+    "actualPeakOSProcesses": 2,
+    "actualWallAtEvidenceMs": 317847,
+    "ownerObservedMs": 1141,
+    "rootMaxMs": 600000,
+    "stricterOwnerMaxMs": 180000,
+    "captureRootMaxBytes": 67108864,
+    "stricterRawMaxBytes": 1048576,
+    "scratchRootMaxBytes": 402653184,
+    "stricterArtifactMaxBytes": 33554432
+  },
+  "history": "Old synthetic54 controls and nine repair controls remain separate; originalNP1 HOLD, F05/privateABI8 DEFERRED; no full Node/provider/product acceptance."
+}

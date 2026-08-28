@@ -1,0 +1,64 @@
+{
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "reachableAnchors": [
+    "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "fd3f71e5c84988dd960d00119597eec51db79c6c",
+    "ee1f69e721e350fcc77d634b92e5c9f13f61dedb",
+    "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+    "57855a0293edb83bff98113123806497b4427416",
+    "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+    "7119f0c084e8d4f50074ca4c47c7311bc48792c8",
+    "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+    "382abba5a73ddad13ba424bafbe1992b4f7ca7e9"
+  ],
+  "packBytes": 1191480,
+  "packSha256": "f37cc552edbf19f17a4912055c006fec86caa5d9f54407a87b4cc7a6a10442e6",
+  "results": [
+    {
+      "directory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-reconstruct-FoL3J5/first",
+      "allSyntheticCommitsAbsentInitially": true,
+      "commits": [
+        {
+          "commit": "2ffcb23d6029250c48950030120ed0adad2e5769",
+          "tree": "d1e5f90a4ebcf184b9558b96ff6b7c5f0c410d35"
+        },
+        {
+          "commit": "284857d7aa9b0ee0df2b6fdd1a71f41115d7b909",
+          "tree": "f4eaa4c268ff7f43e1c9eac7b469faf6a3846edb"
+        },
+        {
+          "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+          "tree": "48e5ae39ce98e1c8e416bae77da40d88b75e1db5"
+        },
+        {
+          "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+          "tree": "2b8110a17559ba1ddbc94b9b8ac619e9dda00d40"
+        }
+      ]
+    },
+    {
+      "directory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-reconstruct-Fb7Av7/with spaces",
+      "allSyntheticCommitsAbsentInitially": true,
+      "commits": [
+        {
+          "commit": "2ffcb23d6029250c48950030120ed0adad2e5769",
+          "tree": "d1e5f90a4ebcf184b9558b96ff6b7c5f0c410d35"
+        },
+        {
+          "commit": "284857d7aa9b0ee0df2b6fdd1a71f41115d7b909",
+          "tree": "f4eaa4c268ff7f43e1c9eac7b469faf6a3846edb"
+        },
+        {
+          "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+          "tree": "48e5ae39ce98e1c8e416bae77da40d88b75e1db5"
+        },
+        {
+          "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+          "tree": "2b8110a17559ba1ddbc94b9b8ac619e9dda00d40"
+        }
+      ]
+    }
+  ],
+  "qualification": "Four exact synthetic commits reconstructed from reachable tree skeletons/selected blobs and recorded raw commit bodies; full unchanged product content comes from reachable44, not the small reconstruction pack",
+  "refsCreated": false
+}

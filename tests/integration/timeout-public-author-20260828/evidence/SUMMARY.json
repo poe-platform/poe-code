@@ -1,0 +1,110 @@
+{
+  "createdAt": "2026-08-28T05:06:57.644Z",
+  "verdict": "SCOPED_AUTHOR_COMPLETION_PENDING_DIFFERENT_REVIEW",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "tree": "2b8110a17559ba1ddbc94b9b8ac619e9dda00d40",
+  "source": "382abba5a73ddad13ba424bafbe1992b4f7ca7e9",
+  "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "module": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+  "productPathCount": 7,
+  "pack": {
+    "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+    "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+    "bytes": 749907,
+    "mode": 420,
+    "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06"
+  },
+  "packageFileCount": 858,
+  "emittedFileCount": 856,
+  "selectedInputs": 271,
+  "packageInventorySha256": "35e737e4261a685a2fac3e1e7e9eb1fb460c079a3d2933b2b8bffe26839bcb04",
+  "manifestSha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12",
+  "reconstruction": {
+    "runs": 2,
+    "allFourSyntheticCommitsInitiallyAbsent": true,
+    "exactCommitTreeReconstructed": true,
+    "historyRewritten": false,
+    "refsCreated": false
+  },
+  "publicExports": {
+    "rootAndSubpath": [
+      "createTimeoutCommand",
+      "createTimeoutCommands",
+      "timeoutCommands",
+      "TimeoutCommandOptions",
+      "TimeoutCommandsOptions",
+      "TimeoutScheduler"
+    ],
+    "subpath": "virtual-bash/commands/timeout",
+    "aggregate": "timeout?: Omit<TimeoutCommandsOptions, \"replace\">",
+    "forwardedFields": [
+      "invoke",
+      "scheduler",
+      "maxTimerMilliseconds"
+    ],
+    "topLevelReplaceAuthoritative": true,
+    "runtimeUnknownNestedReplaceIgnored": true
+  },
+  "cohorts": {
+    "v1": {
+      "status": "FAIL",
+      "build": 0,
+      "pack": 0,
+      "fixtures": "82 pass /1 fail, suffix missing timeout",
+      "later": "UNRUN"
+    },
+    "v2": {
+      "status": "FAIL",
+      "fixtures": "83/83",
+      "installedNode22": "12/13, input-object vs registered-object assertion error",
+      "later": "UNRUN"
+    },
+    "v3": {
+      "status": "FAIL",
+      "fixtures": "83/83",
+      "runtime": "13/13 installed Node22 and13/13 installed Node24",
+      "positiveTypes": "4/4 installed",
+      "negativeTypes": "T04-T07 matched; T08 rejected2561 instead of frozen2353; remainder unrun"
+    },
+    "v4": {
+      "status": "HARNESS_FAIL",
+      "productCommands": 0,
+      "reason": "inventory.kind misread as type"
+    },
+    "v5": {
+      "status": "AUTHOR_TIMEOUT78_PACKAGE_FOLLOWUP_PASS",
+      "newBuilds": 0,
+      "public": "13/13 each installed+moved on both Node22.22.2 and24.11.1 =52 exact executions",
+      "types": "4 positive and6 rejected per layout =20 payload executions; author T08 diagnostic qualification2561, frozen source unchanged",
+      "streamFive": "21/21",
+      "sourceDenials": 2,
+      "missingEntrypoints": 3,
+      "sourceAndPackageAndDependenciesAndToolsImmutable": true
+    },
+    "controls": {
+      "assertions": "4/4 including2 detected assertion mutants",
+      "exportDenials": 2,
+      "clean": true
+    }
+  },
+  "historicalAndCurrentFixtureRoles": {
+    "maintainedFiles": 5,
+    "originalHunks": 18,
+    "additionalExactSuffixHunk": 1,
+    "originalsPreserved": true,
+    "presealChronology": "Original18 presealed; extra suffix announced before patch but machine seal failed before commit, so amendment metadata honestly post-fixture/pre-v2"
+  },
+  "readme": {
+    "candidate": "Baseline5137 README exact; unchanged by seven-path product recipe",
+    "current": "87c58987 root documentation separate, not in pack; leaf README pre-public phrase historical"
+  },
+  "native": 0,
+  "safeJS": 0,
+  "wholeGate": false,
+  "independentAcceptance": false,
+  "reviewerNeeds": [
+    "Raman exact candidate/pack admission and30runtime/10type/8admission freeze",
+    "Raman classify T08 exact diagnostic2561 vs frozen2353 without source/API relaxation",
+    "Raman bind and execute own eight frozen product-mutant classes"
+  ]
+}

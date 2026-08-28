@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node tests/integration/full-gate-20260827/unified76-driver-independent/os-fence-v8/seal.mjs",
+  "exit": 1,
+  "stage": "metadata-only before captures/results/cleanup writes",
+  "error": "AssertionError6 !==275344 at seal.mjs:21:69",
+  "diagnosis": "prepare records lstat size of logical /usr/bin/tar symlink (6); declared external fileIdentity records physical /usr/bin/bsdtar file size275344. Byte hash already matches. Not a changed binary or control failure.",
+  "followup": "seal-followup.mjs compares declared physical path/mode/size against the realpath physical regular file, retaining original logical symlink metadata and requiring same SHA256. Corrects cleanup wording to acknowledge synthetic native shell controls. No control/import/build replay."
+}

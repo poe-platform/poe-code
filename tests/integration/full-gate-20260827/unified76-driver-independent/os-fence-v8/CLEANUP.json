@@ -1,0 +1,149 @@
+{
+  "at": "2026-08-28T06:57:59.173Z",
+  "removedRoots": [
+    "/private/tmp/unified76-independent-os-v8-vCyh0P",
+    "/private/tmp/unified76-os-write-2CQSnN",
+    "/private/tmp/unified76-build-types-review-independent-os-v8-11573",
+    "/private/tmp/unified76-os-write-79hwpT",
+    "/private/tmp/unified76-build-types-review-independent-os-v8-followup-13463",
+    "/private/tmp/unified76-os-write-0bo2q0",
+    "/private/tmp/unified76-build-types-review-independent-os-v8-safe-remainder-18390"
+  ],
+  "allAbsent": true,
+  "priorArtifactsUnchanged": 303,
+  "observedIdentities": [
+    {
+      "pid": 11585,
+      "parent": 11573,
+      "group": 11585,
+      "born": "Fri Aug 28 01:51:36 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/os-fence-v8/worker.mjs /private/tmp/unified76-independent-os-v8-vCyh0P/input.json"
+    },
+    {
+      "pid": 11589,
+      "parent": 11585,
+      "group": 11585,
+      "born": "Fri Aug 28 01:51:36 2026",
+      "command": "/usr/bin/otool -L /usr/bin/sandbox-exec"
+    },
+    {
+      "pid": 11590,
+      "parent": 11589,
+      "group": 11585,
+      "born": "Fri Aug 28 01:51:36 2026",
+      "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -license check"
+    },
+    {
+      "pid": 11601,
+      "parent": 11573,
+      "group": 11601,
+      "born": "Fri Aug 28 01:51:37 2026",
+      "command": "(sandbox-exec)"
+    },
+    {
+      "pid": 13477,
+      "parent": 13463,
+      "group": 13477,
+      "born": "Fri Aug 28 01:52:42 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/os-fence-v8/worker-followup.mjs /private/tmp/unified76-independent-os-v8-vCyh0P/input-followup.json"
+    },
+    {
+      "pid": 13481,
+      "parent": 13477,
+      "group": 13477,
+      "born": "Fri Aug 28 01:52:42 2026",
+      "command": "/usr/bin/otool -L /usr/bin/sandbox-exec"
+    },
+    {
+      "pid": 13482,
+      "parent": 13481,
+      "group": 13477,
+      "born": "Fri Aug 28 01:52:42 2026",
+      "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -license check"
+    },
+    {
+      "pid": 13497,
+      "parent": 13463,
+      "group": 13497,
+      "born": "Fri Aug 28 01:52:42 2026",
+      "command": "(sandbox-exec)"
+    },
+    {
+      "pid": 13520,
+      "parent": 13463,
+      "group": 13520,
+      "born": "Fri Aug 28 01:52:43 2026",
+      "command": "(sandbox-exec)"
+    },
+    {
+      "pid": 13532,
+      "parent": 13463,
+      "group": 13532,
+      "born": "Fri Aug 28 01:52:44 2026",
+      "command": "(sandbox-exec)"
+    },
+    {
+      "pid": 18417,
+      "parent": 18390,
+      "group": 18417,
+      "born": "Fri Aug 28 01:54:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/os-fence-v8/worker-followup.mjs /private/tmp/unified76-independent-os-v8-vCyh0P/input-safe-remainder.json"
+    },
+    {
+      "pid": 18421,
+      "parent": 18417,
+      "group": 18417,
+      "born": "Fri Aug 28 01:54:07 2026",
+      "command": "/usr/bin/otool -L /usr/bin/sandbox-exec"
+    },
+    {
+      "pid": 18422,
+      "parent": 18421,
+      "group": 18417,
+      "born": "Fri Aug 28 01:54:07 2026",
+      "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -license check"
+    },
+    {
+      "pid": 18432,
+      "parent": 18390,
+      "group": 18432,
+      "born": "Fri Aug 28 01:54:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-0bo2q0/probe.mjs /private/tmp/unified76-os-write-0bo2q0/input.json descendants"
+    },
+    {
+      "pid": 18457,
+      "parent": 18390,
+      "group": 18457,
+      "born": "Fri Aug 28 01:54:08 2026",
+      "command": "(sandbox-exec)"
+    }
+  ],
+  "survivors": [],
+  "sentinels": [
+    {
+      "pid": 11575,
+      "survived": true,
+      "close": {
+        "code": null,
+        "signal": "SIGTERM"
+      }
+    },
+    {
+      "pid": 13466,
+      "survived": true,
+      "close": {
+        "code": null,
+        "signal": "SIGTERM"
+      }
+    },
+    {
+      "pid": 18406,
+      "survived": true,
+      "close": {
+        "code": null,
+        "signal": "SIGTERM"
+      }
+    }
+  ],
+  "qualification": "Only exact review-created roots removed; no foreign cleanup, no real-user processes signalled. Sentinels deliberately terminated by their own controllers, not natural completion. All watched workers/phases closed naturally, including failing phases. No product/fullgate or native-semantic cohort launched; synthetic native shell controls executed."
+}

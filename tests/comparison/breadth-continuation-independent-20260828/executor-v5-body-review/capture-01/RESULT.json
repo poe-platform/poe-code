@@ -1,0 +1,258 @@
+{
+  "kind": "INDEPENDENT_ACTUAL_V5_BODY_PREEXECUTION_ONLY",
+  "sourceCommit": "aca546d437b80c5f126f02e4b914860dc65912e8",
+  "presealSha256": "f0fc858b6143ef33f6daf3440cfebe57145240dfa413bf8e00404e11e2b45207",
+  "sourceStable": true,
+  "candidateInputs": 218,
+  "node": {
+    "role": "node",
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "supervisorPid": 41373,
+  "rows": [
+    {
+      "id": "bareexports-target",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41677,
+      "reaped": true,
+      "expectedCode": null,
+      "actualCode": null
+    },
+    {
+      "id": "bareexports-baseline",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41678,
+      "reaped": true,
+      "expectedCode": null,
+      "actualCode": null
+    },
+    {
+      "id": "cwd-independent-target",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41680,
+      "reaped": true,
+      "expectedCode": null,
+      "actualCode": null
+    },
+    {
+      "id": "selfref-trap",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41684,
+      "reaped": true,
+      "expectedCode": "UNBOUND_MODULE",
+      "actualCode": "UNBOUND_MODULE"
+    },
+    {
+      "id": "missingboundary-resolver",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41685,
+      "reaped": true,
+      "expectedCode": "UNBOUND_MODULE",
+      "actualCode": "UNBOUND_MODULE"
+    },
+    {
+      "id": "missingboundary-preflight",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41688,
+      "reaped": true,
+      "expectedCode": "CONSUMER_BOUNDARY_MISSING",
+      "actualCode": "CONSUMER_BOUNDARY_MISSING"
+    },
+    {
+      "id": "wrongname-target",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41689,
+      "reaped": true,
+      "expectedCode": "FILE_HASH",
+      "actualCode": "FILE_HASH"
+    },
+    {
+      "id": "wrongname-baseline",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41695,
+      "reaped": true,
+      "expectedCode": "FILE_HASH",
+      "actualCode": "FILE_HASH"
+    },
+    {
+      "id": "unboundtarget",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41698,
+      "reaped": true,
+      "expectedCode": "UNBOUND_MODULE",
+      "actualCode": "UNBOUND_MODULE"
+    },
+    {
+      "id": "movedoriginabsence",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41699,
+      "reaped": true,
+      "expectedCode": null,
+      "actualCode": null
+    },
+    {
+      "id": "hash-beforeload",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41702,
+      "reaped": true,
+      "expectedCode": "LOAD_HASH",
+      "actualCode": "LOAD_HASH"
+    },
+    {
+      "id": "mode-beforeload",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41703,
+      "reaped": true,
+      "expectedCode": "LOAD_METADATA",
+      "actualCode": "LOAD_METADATA"
+    },
+    {
+      "id": "wrapper-hash-beforeload",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41705,
+      "reaped": true,
+      "expectedCode": "FILE_HASH",
+      "actualCode": "FILE_HASH"
+    },
+    {
+      "id": "wrapper-mode-beforeload",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41707,
+      "reaped": true,
+      "expectedCode": "FILE_METADATA",
+      "actualCode": "FILE_METADATA"
+    },
+    {
+      "id": "entry-parent-denied",
+      "cohort": "original15",
+      "status": "FINDING",
+      "pass": false,
+      "pid": 41709,
+      "reaped": true,
+      "expectedCode": "ENTRY_PARENT",
+      "actualCode": null
+    },
+    {
+      "id": "bare-parent-denied",
+      "cohort": "supplementalImports",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41716,
+      "reaped": true,
+      "actualCode": "CONSUMER_PARENT"
+    },
+    {
+      "id": "consumer-path-denied",
+      "cohort": "supplementalImports",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41717,
+      "reaped": true,
+      "actualCode": "CONSUMER_PATH"
+    },
+    {
+      "id": "scope-binding-denied",
+      "cohort": "supplementalImports",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41718,
+      "reaped": true,
+      "actualCode": "CONSUMER_SCOPE_BINDING"
+    },
+    {
+      "id": "c12-noop",
+      "cohort": "supplementalImports",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41719,
+      "reaped": true,
+      "actualCode": null
+    },
+    {
+      "id": "c12-status",
+      "cohort": "supplementalImports",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41720,
+      "reaped": true,
+      "actualCode": null
+    },
+    {
+      "id": "c12-effects",
+      "cohort": "supplementalImports",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41721,
+      "reaped": true,
+      "actualCode": null
+    },
+    {
+      "id": "data",
+      "cohort": "data",
+      "status": "PASS",
+      "pass": true,
+      "pid": 41722,
+      "reaped": true,
+      "actualCode": null
+    }
+  ],
+  "counts": {
+    "original15": {
+      "passed": 14,
+      "findings": 1,
+      "unsafe": 0,
+      "unrun": 0
+    },
+    "supplementalImports": {
+      "passed": 6,
+      "findings": 0,
+      "unsafe": 0,
+      "unrun": 0
+    },
+    "dataChild": {
+      "passed": 1,
+      "findings": 0,
+      "unsafe": 0,
+      "unrun": 0
+    }
+  },
+  "childrenPlanned": 22,
+  "childrenReaped": 22,
+  "unsafe": false,
+  "productImports": 0,
+  "comparatorImports": 0,
+  "C11": 0,
+  "archiveStaging": 0,
+  "grantsGenerated": 0
+}

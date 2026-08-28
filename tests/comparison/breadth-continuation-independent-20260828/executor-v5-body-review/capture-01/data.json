@@ -1,0 +1,300 @@
+{
+  "pid": 41722,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "reaped": true,
+  "failures": [],
+  "signals": [],
+  "records": [
+    {
+      "sequence": 0,
+      "kind": "final",
+      "report": {
+        "id": "data",
+        "rows": [
+          {
+            "id": "candidate-packet-authentication",
+            "pass": true,
+            "observation": {
+              "actual": "afb0a451dba689d0337211892c73fcee2d84ffa83567ca8eb1ae1e8e73568986",
+              "appendDetection": "candidate and inherited recipe namespaces; designated runs excluded by candidate policy"
+            }
+          },
+          {
+            "id": "metadata-projection-closure",
+            "pass": true,
+            "observation": {
+              "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+              "targetPack": {
+                "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+                "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+                "bytes": 749907,
+                "mode": 420,
+                "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06"
+              },
+              "baselineArchive": {
+                "root": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts",
+                "path": "just-bash-3.4.2.tgz",
+                "bytes": 9879070,
+                "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d",
+                "physical": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/just-bash-3.4.2.tgz"
+              },
+              "baselineOriginalCount": 3844,
+              "comparatorRetained": 3843,
+              "excludedMetadata": [
+                {
+                  "path": "benchmarks/node_modules/just-bash/dist/AGENTS.md",
+                  "bytes": 9231,
+                  "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979",
+                  "mode": 292
+                }
+              ],
+              "views": [
+                {
+                  "name": "target-installed",
+                  "engine": "virtual-bash",
+                  "consumerPath": "consumer-v5/consumer.mjs",
+                  "count": 860,
+                  "sha256": "85fbf845470134ed43036df92b810bbe2d9186a9f195b03505f257722c5e64fe"
+                },
+                {
+                  "name": "target-moved",
+                  "engine": "virtual-bash",
+                  "consumerPath": "consumer-v5/consumer.mjs",
+                  "count": 860,
+                  "sha256": "85fbf845470134ed43036df92b810bbe2d9186a9f195b03505f257722c5e64fe"
+                },
+                {
+                  "name": "baseline-installed",
+                  "engine": "just-bash",
+                  "consumerPath": "benchmarks/consumer-v5/consumer.mjs",
+                  "count": 3845,
+                  "sha256": "c15fbd5c26cc131f3c4ede940ebc352c78f3ea328891079bb68b9e3e2d7e5c2d"
+                }
+              ],
+              "actualArchiveRead": false
+            }
+          },
+          {
+            "id": "unchanged-inherited-identities",
+            "pass": true,
+            "observation": [
+              {
+                "name": "safety.mjs",
+                "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+              },
+              {
+                "name": "operations.mjs",
+                "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+              },
+              {
+                "name": "launch-ledger.mjs",
+                "sha256": "32d8cc5976165527349498de56d41c2dcec9cbcc1f855954cbf9e083c390ec09"
+              },
+              {
+                "name": "loaded-outcome.mjs",
+                "sha256": "50afab5299e9ae8726b1fc3f4b8063dcff5993bc3368e0675226ab1c161e8de7"
+              },
+              {
+                "name": "supervisor.mjs",
+                "sha256": "42d220fd43f165c0d100a61ef55d29bddd87577f7cafe929c832f33cd80dc069"
+              },
+              {
+                "name": "controls.mjs",
+                "sha256": "94ff2119c17f4076c2811005a0c9fe7cd98863ca8cbdedc7c827c2b8ff0c7583"
+              },
+              {
+                "name": "adapter.mjs",
+                "sha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3"
+              },
+              {
+                "name": "predicates.mjs",
+                "sha256": "ad53b12de5c7084470dffd066a90b681423643a9875a8866c6d4636ce4e080ce"
+              }
+            ]
+          },
+          {
+            "id": "phase-plan-positive",
+            "pass": true,
+            "observation": {
+              "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+              "limits": {
+                "admissionChildren": 27,
+                "admissionPlanned": 14,
+                "cohortChildren": 99,
+                "admissionSetup": 2,
+                "admissionSemantics": 0,
+                "deadlineMs": 30000,
+                "graceMs": 2000,
+                "killMs": 1000,
+                "outerMs": 4500000,
+                "metadataBytes": 262144,
+                "newPerStreamBytes": 65536,
+                "legacyCombinedBytes": 8388608,
+                "evidenceBytes": 268435456
+              }
+            }
+          },
+          {
+            "id": "old-output-root-denied",
+            "pass": true,
+            "observation": {
+              "code": "GRANT_RUN_BINDING"
+            }
+          },
+          {
+            "id": "wrong-run-denied",
+            "pass": true,
+            "observation": {
+              "code": "GRANT_RUN_BINDING"
+            }
+          },
+          {
+            "id": "wrong-plan-denied",
+            "pass": true,
+            "observation": {
+              "code": "GRANT_PLAN_BINDING"
+            }
+          },
+          {
+            "id": "wrong-command-denied",
+            "pass": true,
+            "observation": {
+              "code": "GRANT_COMMAND_BINDING"
+            }
+          },
+          {
+            "id": "case-in-admission-denied",
+            "pass": true,
+            "observation": {
+              "engineWork": 0
+            }
+          },
+          {
+            "id": "probe-in-cohort-denied",
+            "pass": true,
+            "observation": {
+              "engineWork": 0
+            }
+          },
+          {
+            "id": "null-primary-retained",
+            "pass": true,
+            "observation": {
+              "hasPrimary": true,
+              "primaryType": "null",
+              "disposals": 1,
+              "phases": [
+                "body",
+                "emit:dispose-start",
+                "dispose",
+                "emit:dispose-settled"
+              ],
+              "safe": false
+            }
+          },
+          {
+            "id": "undefined-primary-retained",
+            "pass": true,
+            "observation": {
+              "hasPrimary": true,
+              "primaryType": "undefined",
+              "disposals": 1,
+              "phases": [
+                "body",
+                "emit:dispose-start",
+                "dispose",
+                "emit:dispose-settled"
+              ],
+              "safe": false
+            }
+          },
+          {
+            "id": "enrollment-before-EEXIST",
+            "pass": true,
+            "observation": {
+              "summary": {
+                "enrolled": 1,
+                "attempted": 0,
+                "launched": 0,
+                "closed": 0,
+                "unknownAcquisitions": 0,
+                "allChildrenReaped": null,
+                "unsafe": true
+              },
+              "entries": [
+                {
+                  "ordinal": 1,
+                  "kind": "DATA",
+                  "state": "UNSAFE_STOP",
+                  "launchAttempted": false,
+                  "pid": null,
+                  "group": null,
+                  "exit": null,
+                  "close": null,
+                  "reaped": false,
+                  "persisted": false,
+                  "errors": [
+                    {
+                      "phase": "prepare",
+                      "error": {
+                        "name": "Error",
+                        "code": "EEXIST",
+                        "message": "EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v5-body-review/capture-01/collision.json'",
+                        "stack": "Error: EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v5-body-review/capture-01/collision.json'\n    at Object.openSync (node:fs:560:18)\n    at Object.writeFileSync (node:fs:2444:35)\n    at prepare (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v5-body-review/data.mjs:80:128)\n    at launchTracked (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/launch-ledger.mjs:66:28)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v5-body-review/data.mjs:80:24\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v5-body-review/data.mjs:19:56)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v5-body-review/data.mjs:75:7",
+                        "original": null
+                      }
+                    }
+                  ]
+                }
+              ],
+              "actualChildren": 0,
+              "boundary": "prepare-time persistence collision; post-child persist collision remains historical independently authenticated coverage"
+            }
+          },
+          {
+            "id": "unsafe-tail-preserved",
+            "pass": true,
+            "observation": {
+              "rows": [
+                {
+                  "id": "first",
+                  "status": "UNSAFE_STOP",
+                  "error": {
+                    "name": "Error",
+                    "code": null,
+                    "message": "owned failure",
+                    "stack": "Error: owned failure\n    at result (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v5-body-review/data.mjs:87:95)\n    at serial (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:48:22)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v5-body-review/data.mjs:87:18\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v5-body-review/data.mjs:19:50)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v5-body-review/data.mjs:85:1",
+                    "original": null
+                  },
+                  "result": null
+                },
+                {
+                  "id": "tail",
+                  "status": "UNRUN_UNSAFE_TAIL"
+                }
+              ],
+              "unsafe": true
+            }
+          }
+        ],
+        "pass": true
+      }
+    }
+  ],
+  "captureBytes": {
+    "stdout": 0,
+    "stderr": 0,
+    "records": 7025
+  },
+  "stdout": "",
+  "stderr": "",
+  "rawRecords": "eyJzZXF1ZW5jZSI6MCwia2luZCI6ImZpbmFsIiwicmVwb3J0Ijp7ImlkIjoiZGF0YSIsInJvd3MiOlt7ImlkIjoiY2FuZGlkYXRlLXBhY2tldC1hdXRoZW50aWNhdGlvbiIsInBhc3MiOnRydWUsIm9ic2VydmF0aW9uIjp7ImFjdHVhbCI6ImFmYjBhNDUxZGJhNjg5ZDAzMzcyMTE4OTJjNzNmY2VlMmQ4NGZmYTgzNTY3Y2E4ZWIxYWUxZThlNzM1Njg5ODYiLCJhcHBlbmREZXRlY3Rpb24iOiJjYW5kaWRhdGUgYW5kIGluaGVyaXRlZCByZWNpcGUgbmFtZXNwYWNlczsgZGVzaWduYXRlZCBydW5zIGV4Y2x1ZGVkIGJ5IGNhbmRpZGF0ZSBwb2xpY3kifX0seyJpZCI6Im1ldGFkYXRhLXByb2plY3Rpb24tY2xvc3VyZSIsInBhc3MiOnRydWUsIm9ic2VydmF0aW9uIjp7ImNhbmRpZGF0ZSI6IjY3ZWFiMTJlMzE1MDU0OTA3ZWY0ZWY0MzVjNmJiY2EyZjU5ZTBjMzYiLCJ0YXJnZXRQYWNrIjp7Im9yaWdpbiI6Ii9wcml2YXRlL3Zhci9mb2xkZXJzL3J3L3M0Y3k3NmhuNnY1NXFycDBkaGNidHBsYzAwMDBnbi9UL3RpbWVvdXQ3OC1wdWJsaWMtYXV0aG9yLXYzLVd6eXNFcS9wYWNrL3ZpcnR1YWwtYmFzaC0wLjAuMC50Z3oiLCJwaHlzaWNhbCI6Ii9wcml2YXRlL3Zhci9mb2xkZXJzL3J3L3M0Y3k3NmhuNnY1NXFycDBkaGNidHBsYzAwMDBnbi9UL3RpbWVvdXQ3OC1wdWJsaWMtYXV0aG9yLXYzLVd6eXNFcS9wYWNrL3ZpcnR1YWwtYmFzaC0wLjAuMC50Z3oiLCJieXRlcyI6NzQ5OTA3LCJtb2RlIjo0MjAsInNoYTI1NiI6IjY2MDhkMjU1ODI4ZDFhNGYzYjI4MTBlZjZjMzJhMmIwYjU3YTlhYWYwZGQ2ODU1OTdjZTY3MjVkMzgxZDZlMDYifSwiYmFzZWxpbmVBcmNoaXZlIjp7InJvb3QiOiIvcHJpdmF0ZS90bXAvc2FmZS1iYXNoLW1lYXN1cmVtZW50LWZyZWV6ZS1YQUZPck4vYXJ0aWZhY3RzIiwicGF0aCI6Imp1c3QtYmFzaC0zLjQuMi50Z3oiLCJieXRlcyI6OTg3OTA3MCwic2hhMjU2IjoiZjNhOTBlY2ZmYjExNTBlNzg2MjAxZDliZDQwOGFlMzBiY2MxZjY0ZjNiMTBiN2RlMjIzNTNmN2UxMzczODQxZCIsInBoeXNpY2FsIjoiL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1tZWFzdXJlbWVudC1mcmVlemUtWEFGT3JOL2FydGlmYWN0cy9qdXN0LWJhc2gtMy40LjIudGd6In0sImJhc2VsaW5lT3JpZ2luYWxDb3VudCI6Mzg0NCwiY29tcGFyYXRvclJldGFpbmVkIjozODQzLCJleGNsdWRlZE1ldGFkYXRhIjpbeyJwYXRoIjoiYmVuY2htYXJrcy9ub2RlX21vZHVsZXMvanVzdC1iYXNoL2Rpc3QvQUdFTlRTLm1kIiwiYnl0ZXMiOjkyMzEsInNoYTI1NiI6IjEyNjkzNDA0NTdkM2NlNzdkZmY5ODA4MmE0MjcwMTI1ZmYzNjJjOWVlN2E0ZWVlNjY1NzRjMjgwZDgzMTk5NzkiLCJtb2RlIjoyOTJ9XSwidmlld3MiOlt7Im5hbWUiOiJ0YXJnZXQtaW5zdGFsbGVkIiwiZW5naW5lIjoidmlydHVhbC1iYXNoIiwiY29uc3VtZXJQYXRoIjoiY29uc3VtZXItdjUvY29uc3VtZXIubWpzIiwiY291bnQiOjg2MCwic2hhMjU2IjoiODVmYmY4NDU0NzAxMzRlZDQzMDM2ZGY5MmI4MTBiYmUyZDkxODZhOWYxOTViMDM1MDVmMjU3NzIyYzVlNjRmZSJ9LHsibmFtZSI6InRhcmdldC1tb3ZlZCIsImVuZ2luZSI6InZpcnR1YWwtYmFzaCIsImNvbnN1bWVyUGF0aCI6ImNvbnN1bWVyLXY1L2NvbnN1bWVyLm1qcyIsImNvdW50Ijo4NjAsInNoYTI1NiI6Ijg1ZmJmODQ1NDcwMTM0ZWQ0MzAzNmRmOTJiODEwYmJlMmQ5MTg2YTlmMTk1YjAzNTA1ZjI1NzcyMmM1ZTY0ZmUifSx7Im5hbWUiOiJiYXNlbGluZS1pbnN0YWxsZWQiLCJlbmdpbmUiOiJqdXN0LWJhc2giLCJjb25zdW1lclBhdGgiOiJiZW5jaG1hcmtzL2NvbnN1bWVyLXY1L2NvbnN1bWVyLm1qcyIsImNvdW50IjozODQ1LCJzaGEyNTYiOiJjMTVmYmQ1YzI2Y2MxMzFmM2M0ZWRlOTQwZWJjMzUyYzc4ZjNlYTMyODg5MTA3OWJiNjhiOWUzZTJkN2U1YzJkIn1dLCJhY3R1YWxBcmNoaXZlUmVhZCI6ZmFsc2V9fSx7ImlkIjoidW5jaGFuZ2VkLWluaGVyaXRlZC1pZGVudGl0aWVzIiwicGFzcyI6dHJ1ZSwib2JzZXJ2YXRpb24iOlt7Im5hbWUiOiJzYWZldHkubWpzIiwic2hhMjU2IjoiNzQ4NDlhYmI0ZTI4YjAxMmVjOGNkZGI3MjlkMWJhZTAyY2JkZTI1MzI5MWIzZTJmMmJiMDcwNDU3YjdlNjZhMiJ9LHsibmFtZSI6Im9wZXJhdGlvbnMubWpzIiwic2hhMjU2IjoiYzRlYzcyZTc5NGNlZDlhZmZiMmJkN2ZlZTU3YjZhNmQ1M2IyOGJiN2VhNjk5MTc4ZWNkMTYwZjRjZDc1NTc0MSJ9LHsibmFtZSI6ImxhdW5jaC1sZWRnZXIubWpzIiwic2hhMjU2IjoiMzJkOGNjNTk3NjE2NTUyNzM0OTQ5OGRlNTZkNDFjMmRjZWM5Y2JjYzFmODU1OTU0Y2JmOWUwODNjMzkwZWMwOSJ9LHsibmFtZSI6ImxvYWRlZC1vdXRjb21lLm1qcyIsInNoYTI1NiI6IjUwYWZhYjUyOTllOWFlODcyNmIxZmMzZjRiODA2M2RjZmY1OTkzYmMzMzY4ZTA2NzUyMjZhYjFjMTYxZThkZTcifSx7Im5hbWUiOiJzdXBlcnZpc29yLm1qcyIsInNoYTI1NiI6IjQyZDIyMGZkNDNmMTY1YzBkMTAwYTYxZWY1NWQyOWJkZGQ4NzU3N2Y3Y2FmZTkyOWM4MzJmMzNjZDgwZGMwNjkifSx7Im5hbWUiOiJjb250cm9scy5tanMiLCJzaGEyNTYiOiI5NGZmMjExOWMxN2Y0MDc2YzI4MTEwMDVhMGM5ZmU3Y2Q5ODg2M2NhOGNiZGVkYzdjODI3YzJiOGZmMGM3NTgzIn0seyJuYW1lIjoiYWRhcHRlci5tanMiLCJzaGEyNTYiOiIwMWVmNDY3OGIxM2MzNTU2ODVkZGM2YmFiZjI5ZDFlMTM5NWY5MTZjNzkyNGMwZjAxMDQ0NTVhYTJmYWYxN2EzIn0seyJuYW1lIjoicHJlZGljYXRlcy5tanMiLCJzaGEyNTYiOiJhZDUzYjEyZGU1YzcwODQ0NzBkZmZkMDY2YTkwYjY4MTQyMzY0M2E5ODc1YTg4NjZjNmQ0NjM2Y2U0ZTA4MGNlIn1dfSx7ImlkIjoicGhhc2UtcGxhbi1wb3NpdGl2ZSIsInBhc3MiOnRydWUsIm9ic2VydmF0aW9uIjp7InBsYW5TaGEyNTYiOiIwMzQ2MzM0OTcyOWJkZDI5OGIwZmYzY2E4YzEwNjZjNTY4ZGFhZDRkNTA0OTUzMmU5NTdjZTgyNTM3NGNlNDc1IiwibGltaXRzIjp7ImFkbWlzc2lvbkNoaWxkcmVuIjoyNywiYWRtaXNzaW9uUGxhbm5lZCI6MTQsImNvaG9ydENoaWxkcmVuIjo5OSwiYWRtaXNzaW9uU2V0dXAiOjIsImFkbWlzc2lvblNlbWFudGljcyI6MCwiZGVhZGxpbmVNcyI6MzAwMDAsImdyYWNlTXMiOjIwMDAsImtpbGxNcyI6MTAwMCwib3V0ZXJNcyI6NDUwMDAwMCwibWV0YWRhdGFCeXRlcyI6MjYyMTQ0LCJuZXdQZXJTdHJlYW1CeXRlcyI6NjU1MzYsImxlZ2FjeUNvbWJpbmVkQnl0ZXMiOjgzODg2MDgsImV2aWRlbmNlQnl0ZXMiOjI2ODQzNTQ1Nn19fSx7ImlkIjoib2xkLW91dHB1dC1yb290LWRlbmllZCIsInBhc3MiOnRydWUsIm9ic2VydmF0aW9uIjp7ImNvZGUiOiJHUkFOVF9SVU5fQklORElORyJ9fSx7ImlkIjoid3JvbmctcnVuLWRlbmllZCIsInBhc3MiOnRydWUsIm9ic2VydmF0aW9uIjp7ImNvZGUiOiJHUkFOVF9SVU5fQklORElORyJ9fSx7ImlkIjoid3JvbmctcGxhbi1kZW5pZWQiLCJwYXNzIjp0cnVlLCJvYnNlcnZhdGlvbiI6eyJjb2RlIjoiR1JBTlRfUExBTl9CSU5ESU5HIn19LHsiaWQiOiJ3cm9uZy1jb21tYW5kLWRlbmllZCIsInBhc3MiOnRydWUsIm9ic2VydmF0aW9uIjp7ImNvZGUiOiJHUkFOVF9DT01NQU5EX0JJTkRJTkcifX0seyJpZCI6ImNhc2UtaW4tYWRtaXNzaW9uLWRlbmllZCIsInBhc3MiOnRydWUsIm9ic2VydmF0aW9uIjp7ImVuZ2luZVdvcmsiOjB9fSx7ImlkIjoicHJvYmUtaW4tY29ob3J0LWRlbmllZCIsInBhc3MiOnRydWUsIm9ic2VydmF0aW9uIjp7ImVuZ2luZVdvcmsiOjB9fSx7ImlkIjoibnVsbC1wcmltYXJ5LXJldGFpbmVkIiwicGFzcyI6dHJ1ZSwib2JzZXJ2YXRpb24iOnsiaGFzUHJpbWFyeSI6dHJ1ZSwicHJpbWFyeVR5cGUiOiJudWxsIiwiZGlzcG9zYWxzIjoxLCJwaGFzZXMiOlsiYm9keSIsImVtaXQ6ZGlzcG9zZS1zdGFydCIsImRpc3Bvc2UiLCJlbWl0OmRpc3Bvc2Utc2V0dGxlZCJdLCJzYWZlIjpmYWxzZX19LHsiaWQiOiJ1bmRlZmluZWQtcHJpbWFyeS1yZXRhaW5lZCIsInBhc3MiOnRydWUsIm9ic2VydmF0aW9uIjp7Imhhc1ByaW1hcnkiOnRydWUsInByaW1hcnlUeXBlIjoidW5kZWZpbmVkIiwiZGlzcG9zYWxzIjoxLCJwaGFzZXMiOlsiYm9keSIsImVtaXQ6ZGlzcG9zZS1zdGFydCIsImRpc3Bvc2UiLCJlbWl0OmRpc3Bvc2Utc2V0dGxlZCJdLCJzYWZlIjpmYWxzZX19LHsiaWQiOiJlbnJvbGxtZW50LWJlZm9yZS1FRVhJU1QiLCJwYXNzIjp0cnVlLCJvYnNlcnZhdGlvbiI6eyJzdW1tYXJ5Ijp7ImVucm9sbGVkIjoxLCJhdHRlbXB0ZWQiOjAsImxhdW5jaGVkIjowLCJjbG9zZWQiOjAsInVua25vd25BY3F1aXNpdGlvbnMiOjAsImFsbENoaWxkcmVuUmVhcGVkIjpudWxsLCJ1bnNhZmUiOnRydWV9LCJlbnRyaWVzIjpbeyJvcmRpbmFsIjoxLCJraW5kIjoiREFUQSIsInN0YXRlIjoiVU5TQUZFX1NUT1AiLCJsYXVuY2hBdHRlbXB0ZWQiOmZhbHNlLCJwaWQiOm51bGwsImdyb3VwIjpudWxsLCJleGl0IjpudWxsLCJjbG9zZSI6bnVsbCwicmVhcGVkIjpmYWxzZSwicGVyc2lzdGVkIjpmYWxzZSwiZXJyb3JzIjpbeyJwaGFzZSI6InByZXBhcmUiLCJlcnJvciI6eyJuYW1lIjoiRXJyb3IiLCJjb2RlIjoiRUVYSVNUIiwibWVzc2FnZSI6IkVFWElTVDogZmlsZSBhbHJlYWR5IGV4aXN0cywgb3BlbiAnL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2NvbXBhcmlzb24vYnJlYWR0aC1jb250aW51YXRpb24taW5kZXBlbmRlbnQtMjAyNjA4MjgvZXhlY3V0b3ItdjUtYm9keS1yZXZpZXcvY2FwdHVyZS0wMS9jb2xsaXNpb24uanNvbiciLCJzdGFjayI6IkVycm9yOiBFRVhJU1Q6IGZpbGUgYWxyZWFkeSBleGlzdHMsIG9wZW4gJy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9jb21wYXJpc29uL2JyZWFkdGgtY29udGludWF0aW9uLWluZGVwZW5kZW50LTIwMjYwODI4L2V4ZWN1dG9yLXY1LWJvZHktcmV2aWV3L2NhcHR1cmUtMDEvY29sbGlzaW9uLmpzb24nXG4gICAgYXQgT2JqZWN0Lm9wZW5TeW5jIChub2RlOmZzOjU2MDoxOClcbiAgICBhdCBPYmplY3Qud3JpdGVGaWxlU3luYyAobm9kZTpmczoyNDQ0OjM1KVxuICAgIGF0IHByZXBhcmUgKGZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvY29tcGFyaXNvbi9icmVhZHRoLWNvbnRpbnVhdGlvbi1pbmRlcGVuZGVudC0yMDI2MDgyOC9leGVjdXRvci12NS1ib2R5LXJldmlldy9kYXRhLm1qczo4MDoxMjgpXG4gICAgYXQgbGF1bmNoVHJhY2tlZCAoZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9jb21wYXJpc29uL2JyZWFkdGgtY29udGludWF0aW9uLTIwMjYwODI4L2V4ZWN1dG9yLXY0L2xhdW5jaC1sZWRnZXIubWpzOjY2OjI4KVxuICAgIGF0IGZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvY29tcGFyaXNvbi9icmVhZHRoLWNvbnRpbnVhdGlvbi1pbmRlcGVuZGVudC0yMDI2MDgyOC9leGVjdXRvci12NS1ib2R5LXJldmlldy9kYXRhLm1qczo4MDoyNFxuICAgIGF0IGNoZWNrIChmaWxlOi8vL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2NvbXBhcmlzb24vYnJlYWR0aC1jb250aW51YXRpb24taW5kZXBlbmRlbnQtMjAyNjA4MjgvZXhlY3V0b3ItdjUtYm9keS1yZXZpZXcvZGF0YS5tanM6MTk6NTYpXG4gICAgYXQgZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9jb21wYXJpc29uL2JyZWFkdGgtY29udGludWF0aW9uLWluZGVwZW5kZW50LTIwMjYwODI4L2V4ZWN1dG9yLXY1LWJvZHktcmV2aWV3L2RhdGEubWpzOjc1OjciLCJvcmlnaW5hbCI6bnVsbH19XX1dLCJhY3R1YWxDaGlsZHJlbiI6MCwiYm91bmRhcnkiOiJwcmVwYXJlLXRpbWUgcGVyc2lzdGVuY2UgY29sbGlzaW9uOyBwb3N0LWNoaWxkIHBlcnNpc3QgY29sbGlzaW9uIHJlbWFpbnMgaGlzdG9yaWNhbCBpbmRlcGVuZGVudGx5IGF1dGhlbnRpY2F0ZWQgY292ZXJhZ2UifX0seyJpZCI6InVuc2FmZS10YWlsLXByZXNlcnZlZCIsInBhc3MiOnRydWUsIm9ic2VydmF0aW9uIjp7InJvd3MiOlt7ImlkIjoiZmlyc3QiLCJzdGF0dXMiOiJVTlNBRkVfU1RPUCIsImVycm9yIjp7Im5hbWUiOiJFcnJvciIsImNvZGUiOm51bGwsIm1lc3NhZ2UiOiJvd25lZCBmYWlsdXJlIiwic3RhY2siOiJFcnJvcjogb3duZWQgZmFpbHVyZVxuICAgIGF0IHJlc3VsdCAoZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9jb21wYXJpc29uL2JyZWFkdGgtY29udGludWF0aW9uLWluZGVwZW5kZW50LTIwMjYwODI4L2V4ZWN1dG9yLXY1LWJvZHktcmV2aWV3L2RhdGEubWpzOjg3Ojk1KVxuICAgIGF0IHNlcmlhbCAoZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9jb21wYXJpc29uL2JyZWFkdGgtY29udGludWF0aW9uLTIwMjYwODI4L2V4ZWN1dG9yLXY0L3NhZmV0eS5tanM6NDg6MjIpXG4gICAgYXQgYXN5bmMgZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9jb21wYXJpc29uL2JyZWFkdGgtY29udGludWF0aW9uLWluZGVwZW5kZW50LTIwMjYwODI4L2V4ZWN1dG9yLXY1LWJvZHktcmV2aWV3L2RhdGEubWpzOjg3OjE4XG4gICAgYXQgYXN5bmMgY2hlY2sgKGZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvY29tcGFyaXNvbi9icmVhZHRoLWNvbnRpbnVhdGlvbi1pbmRlcGVuZGVudC0yMDI2MDgyOC9leGVjdXRvci12NS1ib2R5LXJldmlldy9kYXRhLm1qczoxOTo1MClcbiAgICBhdCBhc3luYyBmaWxlOi8vL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2NvbXBhcmlzb24vYnJlYWR0aC1jb250aW51YXRpb24taW5kZXBlbmRlbnQtMjAyNjA4MjgvZXhlY3V0b3ItdjUtYm9keS1yZXZpZXcvZGF0YS5tanM6ODU6MSIsIm9yaWdpbmFsIjpudWxsfSwicmVzdWx0IjpudWxsfSx7ImlkIjoidGFpbCIsInN0YXR1cyI6IlVOUlVOX1VOU0FGRV9UQUlMIn1dLCJ1bnNhZmUiOnRydWV9fV0sInBhc3MiOnRydWV9fQo=",
+  "natural": true
+}

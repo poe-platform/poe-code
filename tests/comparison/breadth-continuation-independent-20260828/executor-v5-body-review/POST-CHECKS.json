@@ -1,0 +1,401 @@
+{
+  "date": "2026-08-28T12:09:13.655Z",
+  "sourceIdentitiesEqual": true,
+  "candidateNamespaceEqual": true,
+  "indexBefore": "",
+  "indexAfter": "",
+  "trackedStatusBefore": "",
+  "trackedStatusAfter": "",
+  "supervisor": {
+    "pid": 41373,
+    "absent": true,
+    "detachedGroupClaim": false
+  },
+  "processes": [
+    {
+      "id": "bareexports-target",
+      "pid": 41677,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "bareexports-baseline",
+      "pid": 41678,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "cwd-independent-target",
+      "pid": 41680,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "selfref-trap",
+      "pid": 41684,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "missingboundary-resolver",
+      "pid": 41685,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "missingboundary-preflight",
+      "pid": 41688,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "wrongname-target",
+      "pid": 41689,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "wrongname-baseline",
+      "pid": 41695,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "unboundtarget",
+      "pid": 41698,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "movedoriginabsence",
+      "pid": 41699,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "hash-beforeload",
+      "pid": 41702,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "mode-beforeload",
+      "pid": 41703,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "wrapper-hash-beforeload",
+      "pid": 41705,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "wrapper-mode-beforeload",
+      "pid": 41707,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "entry-parent-denied",
+      "pid": 41709,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "bare-parent-denied",
+      "pid": 41716,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "consumer-path-denied",
+      "pid": 41717,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "scope-binding-denied",
+      "pid": 41718,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "c12-noop",
+      "pid": 41719,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "c12-status",
+      "pid": 41720,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "c12-effects",
+      "pid": 41721,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    },
+    {
+      "id": "data",
+      "pid": 41722,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "failures": []
+    }
+  ],
+  "ownSourcePresealUnchanged": true,
+  "foreignWrites": 0,
+  "finalConcurrentForeignStatus": " M src/shell/parser.ts; observed after AFTER.json, not edited or staged by this review",
+  "stagedWhitespaceCheck": {
+    "exitCode": 2,
+    "onlyWarnings": [
+      "capture-01/wrongname-baseline/view/consumer-v5/package.json:1",
+      "capture-01/wrongname-target/view/consumer-v5/package.json:1"
+    ],
+    "meaning": "Intentional presealed same-size space padding retained; no source whitespace defects"
+  }
+}

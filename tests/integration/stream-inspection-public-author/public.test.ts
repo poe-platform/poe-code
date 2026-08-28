@@ -28,7 +28,7 @@ test("root family exports preserve four inspection definitions in the 73-command
   const aggregate: AgentCommandsOptions = { streamInspection: options };
   assert.deepEqual(createStreamInspectionCommands(options).map(command => command.name), names);
   const definitions = createAgentCommands(aggregate).map(command => command.name);
-  assert.equal(definitions.length, 73);
+  assert.equal(definitions.length, 76);
   assert.equal(new Set(definitions).size, 73);
   assert.deepEqual(definitions.slice(56, 60), names);
   assert.deepEqual(definitions.slice(60), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column"]);

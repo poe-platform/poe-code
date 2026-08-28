@@ -1,0 +1,12 @@
+{
+  "id": "F09",
+  "expected": "Receipt persistence failure retains emergency receipt, closes child and refuses.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.435Z",
+  "finished": "2026-08-28T15:01:02.488Z",
+  "detail": {
+    "emergencyReceiptRetained": true,
+    "persisted": false,
+    "primaryCode": "ADMISSION_PROBE_STOP"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "id": "F25",
+  "expected": "Actual body/bootstrap observer preserves0/null/undefined/object/Error identity; import+cleanup retains exact reasons.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.859Z",
+  "finished": "2026-08-28T15:01:02.863Z",
+  "detail": {
+    "checks": [
+      {
+        "label": "zero",
+        "exactIdentity": true,
+        "revoked": true
+      },
+      {
+        "label": "null",
+        "exactIdentity": true,
+        "revoked": true
+      },
+      {
+        "label": "undefined",
+        "exactIdentity": true,
+        "revoked": true
+      },
+      {
+        "label": "object",
+        "exactIdentity": true,
+        "revoked": true
+      },
+      {
+        "label": "error",
+        "exactIdentity": true,
+        "revoked": true
+      }
+    ],
+    "importAndCleanupIdentity": true
+  }
+}

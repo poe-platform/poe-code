@@ -1,0 +1,83 @@
+{
+  "classification": "DATA_SYNTHETIC_STUB_ONLY",
+  "candidate": "230ed3c6e15617b312760367adf9ede4e5c7ff6a",
+  "presealSha256": "3100e110a01858cfad031daec356abc7a3449060aebf94f9a858135d250dd2a6",
+  "families": 30,
+  "passed": 30,
+  "failed": [],
+  "childrenLaunched": 16,
+  "childReceipts": 16,
+  "allChildrenClosed": true,
+  "children": [
+    {
+      "entry": "body-child.mjs",
+      "mode": "positive"
+    },
+    {
+      "entry": "body-child.mjs",
+      "mode": "exit7"
+    },
+    {
+      "entry": "body-child.mjs",
+      "mode": "overflow"
+    },
+    {
+      "entry": "candidate:coordinator.mjs",
+      "mode": "invalid"
+    },
+    {
+      "entry": "stub-child.mjs",
+      "mode": "pass"
+    },
+    {
+      "entry": "stub-child.mjs",
+      "mode": "exit7"
+    },
+    {
+      "entry": "stub-child.mjs",
+      "mode": "wait-term"
+    },
+    {
+      "entry": "stub-child.mjs",
+      "mode": "pass"
+    },
+    {
+      "entry": "stub-child.mjs",
+      "mode": "pass"
+    },
+    {
+      "entry": "stub-child.mjs",
+      "mode": "pass"
+    },
+    {
+      "entry": "policy-child.mjs",
+      "mode": "ordered"
+    },
+    {
+      "entry": "policy-child.mjs",
+      "mode": "failed"
+    },
+    {
+      "entry": "policy-child.mjs",
+      "mode": "caught"
+    },
+    {
+      "entry": "policy-child.mjs",
+      "mode": "bad-mode"
+    },
+    {
+      "entry": "body-child.mjs",
+      "mode": "postflight"
+    },
+    {
+      "entry": "stub-child.mjs",
+      "mode": "wait-term"
+    }
+  ],
+  "authenticatedBeforeAfter": true,
+  "realEngines": 0,
+  "actualAdmission": 0,
+  "productionWorker": "UNQUALIFIED",
+  "authorCountsUnchanged": true,
+  "fullCap": "STATIC_ONLY"
+}

@@ -1,0 +1,37 @@
+{
+  "id": "F08",
+  "expected": "Throw after actual child enrollment leaves known handle closed and body refused.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.402Z",
+  "finished": "2026-08-28T15:01:02.435Z",
+  "detail": {
+    "registeredBeforeFailure": true,
+    "reaped": true,
+    "failures": [
+      {
+        "name": "Error",
+        "code": null,
+        "message": "OWNED_ATTACH_FAILURE",
+        "stack": "Error: OWNED_ATTACH_FAILURE\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/driver.mjs:196:18\n    at family (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/driver.mjs:84:26)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/driver.mjs:195:7\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+        "original": null
+      },
+      {
+        "code": "SUPERVISION_EXCEPTION"
+      },
+      {
+        "name": "Error",
+        "code": "EPERM",
+        "message": "kill EPERM",
+        "stack": "Error: kill EPERM\n    at process.kill (node:internal/process/per_thread:281:13)\n    at signal (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/supervisor.mjs:20:19)\n    at supervise (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/supervisor.mjs:55:79)\n    at Object.supervise (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/composition.mjs:33:14)\n    at supervise (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/body.mjs:65:50)\n    at launchTracked (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/launch-ledger.mjs:74:27)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async launch (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/body.mjs:55:23)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/body.mjs:87:25\n    at async serial (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:48:16)",
+        "original": null
+      },
+      {
+        "name": "Error",
+        "code": "RECORD_ENVELOPE",
+        "message": "RECORD_ENVELOPE: 0",
+        "stack": "Error: RECORD_ENVELOPE: 0\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:11:39)\n    at parseTransport (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/transport.mjs:25:3)\n    at supervise (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/supervisor.mjs:61:27)\n    at async launchTracked (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/launch-ledger.mjs:74:21)\n    at async launch (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/body.mjs:55:23)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/body.mjs:87:25\n    at async serial (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:48:16)\n    at async runCoordinator (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/body.mjs:86:23)\n    at async compose (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/composition.mjs:45:18)\n    at async body (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/composed/driver.mjs:57:18)",
+        "original": null
+      }
+    ]
+  }
+}

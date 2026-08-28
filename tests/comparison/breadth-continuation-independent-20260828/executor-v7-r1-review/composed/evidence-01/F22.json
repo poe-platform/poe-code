@@ -1,0 +1,58 @@
+{
+  "id": "F22",
+  "expected": "Actual loader import failure preserves exact thrown object and revokes alias before factory.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.697Z",
+  "finished": "2026-08-28T15:01:02.752Z",
+  "detail": {
+    "mode": "failed",
+    "nativeCalls": 0,
+    "factoryCalls": 0,
+    "revokedBeforeReturn": true,
+    "snapshot": {
+      "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+      "opened": true,
+      "revoked": true,
+      "consumed": 2,
+      "nativeDelegations": 0,
+      "violations": [
+        {
+          "code": "BOOTSTRAP_REVOKED",
+          "consumed": 2
+        }
+      ],
+      "callerAuthenticated": false,
+      "stockNodeCapabilities": false
+    },
+    "events": [
+      {
+        "kind": "nextLoad",
+        "path": "failed.mjs",
+        "format": "module",
+        "bytes": 185,
+        "sha256": "a3a790d61a63425a79c87dca29c6a3d512aa8870771206ae71672d71215a0099",
+        "evaluationProven": false,
+        "origin": "actual-nextLoad-source"
+      },
+      {
+        "kind": "bootstrap-unavailable",
+        "query": "module",
+        "slot": 1,
+        "nativeDelegation": false
+      },
+      {
+        "kind": "bootstrap-unavailable",
+        "query": "worker_threads",
+        "slot": 2,
+        "nativeDelegation": false
+      },
+      {
+        "kind": "bootstrap-denied",
+        "code": "BOOTSTRAP_REVOKED",
+        "consumed": 2
+      }
+    ],
+    "identityPreserved": true,
+    "loaderClosed": true
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "F03",
+  "expected": "Actual closed exit0/close0 CAPTURE_LIMIT with observed65537 retained65536 refuses.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.158Z",
+  "finished": "2026-08-28T15:01:02.229Z",
+  "detail": {
+    "observed": 65537,
+    "retained": 65536,
+    "exit": 0,
+    "close": 0,
+    "refused": true
+  }
+}

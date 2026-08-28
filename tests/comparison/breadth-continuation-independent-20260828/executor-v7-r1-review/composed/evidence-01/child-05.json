@@ -1,0 +1,35 @@
+{
+  "label": "dynamic-b16",
+  "pid": 44992,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "reaped": true,
+  "failures": [],
+  "signals": [],
+  "records": [
+    {
+      "sequence": 0,
+      "kind": "final",
+      "report": {
+        "exportEvaluation": true,
+        "fixtureOnly": true,
+        "mode": "pass"
+      }
+    }
+  ],
+  "captureBytes": {
+    "stdout": 15,
+    "stderr": 0,
+    "records": 98
+  },
+  "stdout": "U1lOVEhFVElDX1NUVUIK",
+  "stderr": "",
+  "rawRecords": "eyJzZXF1ZW5jZSI6MCwia2luZCI6ImZpbmFsIiwicmVwb3J0Ijp7ImV4cG9ydEV2YWx1YXRpb24iOnRydWUsImZpeHR1cmVPbmx5Ijp0cnVlLCJtb2RlIjoicGFzcyJ9fQo=",
+  "natural": true
+}

@@ -1,0 +1,55 @@
+{
+  "id": "F23",
+  "expected": "Caught wrong-order query during actual literal import is sticky and forbids factory.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.752Z",
+  "finished": "2026-08-28T15:01:02.806Z",
+  "detail": {
+    "mode": "caught",
+    "nativeCalls": 0,
+    "factoryCalls": 0,
+    "revokedBeforeReturn": true,
+    "snapshot": {
+      "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+      "opened": true,
+      "revoked": true,
+      "consumed": 0,
+      "nativeDelegations": 0,
+      "violations": [
+        {
+          "code": "BOOTSTRAP_QUERY",
+          "consumed": 0
+        },
+        {
+          "code": "BOOTSTRAP_REVOKED",
+          "consumed": 0
+        }
+      ],
+      "callerAuthenticated": false,
+      "stockNodeCapabilities": false
+    },
+    "events": [
+      {
+        "kind": "nextLoad",
+        "path": "caught.mjs",
+        "format": "module",
+        "bytes": 223,
+        "sha256": "248d53df4a2aa70586ab58401838fa5b807e09134e0ee97014b07ffb7793b450",
+        "evaluationProven": false,
+        "origin": "actual-nextLoad-source"
+      },
+      {
+        "kind": "bootstrap-denied",
+        "code": "BOOTSTRAP_QUERY",
+        "consumed": 0
+      },
+      {
+        "kind": "bootstrap-denied",
+        "code": "BOOTSTRAP_REVOKED",
+        "consumed": 0
+      }
+    ],
+    "identityPreserved": true,
+    "loaderClosed": true
+  }
+}

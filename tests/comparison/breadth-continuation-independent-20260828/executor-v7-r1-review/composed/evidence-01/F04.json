@@ -1,0 +1,12 @@
+{
+  "id": "F04",
+  "expected": "Cross-realm own-data receipt accepts; nine missing/type/key/order/accessor/nonfinite controls refuse without coercion.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.230Z",
+  "finished": "2026-08-28T15:01:02.231Z",
+  "detail": {
+    "crossRealmAccepted": true,
+    "negativeControls": 9,
+    "getterCalls": 0
+  }
+}

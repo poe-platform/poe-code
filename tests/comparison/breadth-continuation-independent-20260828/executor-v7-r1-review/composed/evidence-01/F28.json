@@ -1,0 +1,12 @@
+{
+  "id": "F28",
+  "expected": "Outer postflight undefined after actual body child and preflight0 before child both refuse with exact presence.",
+  "pass": true,
+  "started": "2026-08-28T15:01:02.868Z",
+  "finished": "2026-08-28T15:01:02.933Z",
+  "detail": {
+    "postflightUndefinedPreserved": true,
+    "preflightZeroPreserved": true,
+    "noPreflightChild": true
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "label": "policy-failed",
+  "pid": 45029,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "reaped": true,
+  "failures": [],
+  "signals": [],
+  "records": [
+    {
+      "sequence": 0,
+      "kind": "final",
+      "report": {
+        "mode": "failed",
+        "nativeCalls": 0,
+        "factoryCalls": 0,
+        "revokedBeforeReturn": true,
+        "snapshot": {
+          "profile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+          "opened": true,
+          "revoked": true,
+          "consumed": 2,
+          "nativeDelegations": 0,
+          "violations": [
+            {
+              "code": "BOOTSTRAP_REVOKED",
+              "consumed": 2
+            }
+          ],
+          "callerAuthenticated": false,
+          "stockNodeCapabilities": false
+        },
+        "events": [
+          {
+            "kind": "nextLoad",
+            "path": "failed.mjs",
+            "format": "module",
+            "bytes": 185,
+            "sha256": "a3a790d61a63425a79c87dca29c6a3d512aa8870771206ae71672d71215a0099",
+            "evaluationProven": false,
+            "origin": "actual-nextLoad-source"
+          },
+          {
+            "kind": "bootstrap-unavailable",
+            "query": "module",
+            "slot": 1,
+            "nativeDelegation": false
+          },
+          {
+            "kind": "bootstrap-unavailable",
+            "query": "worker_threads",
+            "slot": 2,
+            "nativeDelegation": false
+          },
+          {
+            "kind": "bootstrap-denied",
+            "code": "BOOTSTRAP_REVOKED",
+            "consumed": 2
+          }
+        ],
+        "identityPreserved": true,
+        "loaderClosed": true
+      }
+    }
+  ],
+  "captureBytes": {
+    "stdout": 0,
+    "stderr": 0,
+    "records": 867
+  },
+  "stdout": "",
+  "stderr": "",
+  "rawRecords": "eyJzZXF1ZW5jZSI6MCwia2luZCI6ImZpbmFsIiwicmVwb3J0Ijp7Im1vZGUiOiJmYWlsZWQiLCJuYXRpdmVDYWxscyI6MCwiZmFjdG9yeUNhbGxzIjowLCJyZXZva2VkQmVmb3JlUmV0dXJuIjp0cnVlLCJzbmFwc2hvdCI6eyJwcm9maWxlIjoiSlVTVF9CQVNIXzNfNF8yX1VOQVZBSUxBQkxFX0JPT1RTVFJBUF9WMSIsIm9wZW5lZCI6dHJ1ZSwicmV2b2tlZCI6dHJ1ZSwiY29uc3VtZWQiOjIsIm5hdGl2ZURlbGVnYXRpb25zIjowLCJ2aW9sYXRpb25zIjpbeyJjb2RlIjoiQk9PVFNUUkFQX1JFVk9LRUQiLCJjb25zdW1lZCI6Mn1dLCJjYWxsZXJBdXRoZW50aWNhdGVkIjpmYWxzZSwic3RvY2tOb2RlQ2FwYWJpbGl0aWVzIjpmYWxzZX0sImV2ZW50cyI6W3sia2luZCI6Im5leHRMb2FkIiwicGF0aCI6ImZhaWxlZC5tanMiLCJmb3JtYXQiOiJtb2R1bGUiLCJieXRlcyI6MTg1LCJzaGEyNTYiOiJhM2E3OTBkNjFhNjM0MjVhNzljODdkY2EyOWM2YTNkNTEyYWE4ODcwNzcxMjA2YWU3MTY3MmQ3MTIxNWEwMDk5IiwiZXZhbHVhdGlvblByb3ZlbiI6ZmFsc2UsIm9yaWdpbiI6ImFjdHVhbC1uZXh0TG9hZC1zb3VyY2UifSx7ImtpbmQiOiJib290c3RyYXAtdW5hdmFpbGFibGUiLCJxdWVyeSI6Im1vZHVsZSIsInNsb3QiOjEsIm5hdGl2ZURlbGVnYXRpb24iOmZhbHNlfSx7ImtpbmQiOiJib290c3RyYXAtdW5hdmFpbGFibGUiLCJxdWVyeSI6Indvcmtlcl90aHJlYWRzIiwic2xvdCI6MiwibmF0aXZlRGVsZWdhdGlvbiI6ZmFsc2V9LHsia2luZCI6ImJvb3RzdHJhcC1kZW5pZWQiLCJjb2RlIjoiQk9PVFNUUkFQX1JFVk9LRUQiLCJjb25zdW1lZCI6Mn1dLCJpZGVudGl0eVByZXNlcnZlZCI6dHJ1ZSwibG9hZGVyQ2xvc2VkIjp0cnVlfX0K",
+  "natural": true
+}

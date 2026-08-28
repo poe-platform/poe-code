@@ -1,0 +1,30 @@
+{
+  "authorized": true,
+  "phase": "worker",
+  "oneShot": true,
+  "runId": "RUN-WRQ-SYNC-V3-01",
+  "retries": 0,
+  "profileSha256": "31e8346581f657ae17b2f8a5f6794e00baab1701b8df5796aafd4033a0b4c87b",
+  "caseSha256": "b0fbc97d3fd653a3a669528358c6b6603be1581e241d8313730865663ae6859c",
+  "moduleSha256": "b30716d17f48a731bd60d1cd1b9c7fdae0ba4822b6a91ffca3b0e06e6b7993ad",
+  "toolSha256": "3eebd15cb228cf92930d51152642deacc3b468deafa9f30d330ae90a1fd195ce",
+  "sourceSha256": "3376b6d4fd3aaee969d9716e80fbe2025ed51e58b5b19b676f82ada7ac981a78",
+  "reviewCommit": "f4e92bb14ff75cc68da136a9a7253d9f2917165e",
+  "reviewDecision": "accept-exact-finite-recipe",
+  "compiler": false,
+  "selectedInstances": [
+    "WRQ01-L01-v3",
+    "WRQ02-L02-v3",
+    "WRQ03-L03-v3",
+    "WRQ04-L04-v3",
+    "WRQ05-L05-undefined-v3",
+    "WRQ05-L05-false-v3",
+    "WRQ05-L05-object-v3",
+    "WRQ06-L06a-v3",
+    "WRQ06-L06b-v3",
+    "WRQ07-L07-v3",
+    "WRQ08-L08-v3"
+  ],
+  "sourceCommit": "8a2668f80e487b258532ec6c20469d9f7e230157",
+  "compositionSha256": "8ce0ffeba892ebf8e33f0bb0bc3b4a6aa00823959829902e3cafa164cecfab65"
+}

@@ -308,7 +308,32 @@ async function cloneState(state: State, signal: AbortSignal): Promise<State> {
     getopts: cloneGetoptsBinding(state),
     directoryStack: { entries: [...state.directoryStack?.entries ?? []], bytes: state.directoryStack?.bytes ?? 0 },
     locals: state.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }]))),
-  }), signal);
+  }), signal, async (destination, owner) => {
+    const store = requireArrays(destination);
+    for (let index = 0; index < state.locals.length; index++) {
+      const sourceFrame = state.locals[index]!;
+      const copiedFrame = destination.locals[index]!;
+      for (const [name, saved] of sourceFrame) {
+        const typed = typedSavedVariables.get(saved);
+        if (typed) {
+          const copied = copiedFrame.get(name);
+          if (!copied) throw new ArrayFailure("stale state snapshot");
+          const savedOwner = ArrayOwner.create(owner.ledger, owner);
+          let binding: IndexedBinding | undefined;
+          try {
+            const watch = await store.watch(name, savedOwner, signal);
+            const tickets = savedOwner.reserve({ generation: true, version: true, epoch: true, slots: 1, metadata: 64, work: 14 });
+            const token = await textToken(savedOwner, name, signal);
+            const admission = savedOwner.reserve({ slots: 1, metadata: 32, work: 5 });
+            binding = typed.binding?.retain();
+            typedSavedVariables.set(copied, { owner: savedOwner, binding, tickets, prepared: { name: token, admission }, watch, scalarLegacy: typed.scalarLegacy });
+            tickets.cleanup = () => { typedSavedVariables.delete(copied); };
+          } catch (error) { await binding?.release(); await savedOwner.close(); throw error; }
+        }
+        await owner.ledger.checkpoint(signal);
+      }
+    }
+  });
 }
 
 function cloneGetoptsBinding(state: State): GetoptsBinding {
@@ -1028,13 +1053,14 @@ export class Runtime {
     let binding: IndexedBinding | undefined;
     try {
       const watch = await store.watch(name, owner, this.signal);
-      const tickets = owner.reserve({ generation: true, version: true, epoch: true, metadata: 64, work: 14 });
+      const tickets = owner.reserve({ generation: true, version: true, epoch: true, slots: 1, metadata: 64, work: 14 });
       const token = await textToken(owner, name, this.signal);
       const admission = owner.reserve({ slots: 1, metadata: 32, work: 5 });
       if (saved.value !== undefined) await textToken(owner, saved.value, this.signal);
       if (!watch.valid()) throw new ArrayFailure("stale binding");
       binding = scalarLegacy ? undefined : store.get(name)?.retain();
       typedSavedVariables.set(saved, { owner, binding, tickets, prepared: { name: token, admission }, watch, scalarLegacy });
+      tickets.cleanup = () => { typedSavedVariables.delete(saved); };
     } catch (error) { await binding?.release(); await owner.close(); throw error; }
     finally { holding.release(); }
   }

@@ -83,6 +83,7 @@ test("foundation: readonly, export phases and typed local restoration", { timeou
 
 test("foundation: clones, functions, eval and fresh public exec", { timeout: 5000 }, async () => {
   await output('a=(outer tail); (a[0]=child; printf "%s/" "$a"); printf "%s/" "$a"; eval "a[1]=changed"; printf "%s" "${a[1]}"', "child/outer/changed");
+  await output('a=(outer tail); f() { local a=local; (local a=child; printf "%s/" "$a"); printf "%s/" "$a"; }; f; printf "<%s>" "${a[@]}"', "child/local/<outer><tail>");
   const instance = shell();
   try {
     assert.equal((await instance.exec('a=(first); printf "%s" "$a"')).stdout, "first");

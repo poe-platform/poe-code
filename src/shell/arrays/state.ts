@@ -253,7 +253,7 @@ export class Restoration {
   }
 }
 
-export async function snapshotState(state: State, clone: () => State, signal: AbortSignal): Promise<State> {
+export async function snapshotState(state: State, clone: () => State, signal: AbortSignal, prepare?: (destination: State, owner: ArrayOwner) => Promise<void>): Promise<State> {
   const monitor = stateMonitor(state);
   if (!monitor) return clone();
   if (!monitor.session.ledger.active) return new StateMonitor(clone(), monitor.session).proxy;
@@ -303,6 +303,7 @@ export async function snapshotState(state: State, clone: () => State, signal: Ab
       await owner.ledger.checkpoint(signal, 5);
     }
     check();
+    if (prepare) { await prepare(result.proxy, owner); check(); }
     return result.proxy;
   } catch (error) {
     if (result?.store) for (const [name] of result.store.bindings) await result.store.remove(name, { generation: 0, version: 0, epoch: 0 });

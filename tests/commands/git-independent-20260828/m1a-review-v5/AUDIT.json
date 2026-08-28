@@ -1,0 +1,1201 @@
+{
+  "schema": "different-m1a-v5-poststop-data-audit",
+  "status": "STOPPED_NO_RETRY",
+  "source": {
+    "plannedRows": 71,
+    "capturedRows": 69,
+    "assertionPassRows": 69,
+    "assertionFailRows": 0,
+    "endOfRowCloseEventGuardClear": 68,
+    "safetyStopRows": [
+      "H09"
+    ],
+    "unexecutedRows": [
+      "H10",
+      "H11"
+    ],
+    "plannedInvocations": 180,
+    "actualRecordedInvocations": 178,
+    "uniqueAuthenticatedProductModules": 220,
+    "actualLoadedEntry": {
+      "file": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5/working-v1/source/src/commands/git/index.ts",
+      "sha256": "618f005b204c8f6e72059e83dcfe0a34cbddc1b8577907bef20ae2f05b107a1e",
+      "source": true
+    },
+    "traceSha256": "26b2dba7ca4dd1c86ba0e2c9cb439d30a3ff124fd92899b838596bfc7509ab06",
+    "rows": [
+      {
+        "id": "A01",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 23162,
+        "sha256": "80df4738fa2727bc53d9ba03bceacf401f3d765b710116130fce38fca2d59bc0",
+        "nativeZlib": {
+          "created": 6,
+          "closed": 6,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A02",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 19548,
+        "sha256": "a785d7f11507a0879631719e32b9f290bb314503c83445d3e7c1d5d820c94d53",
+        "nativeZlib": {
+          "created": 8,
+          "closed": 8,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A03",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 21213,
+        "sha256": "53b953ae00997f3ff83a4c022038b14c997a608c77aafb7d0b6fcc7292b3d79b",
+        "nativeZlib": {
+          "created": 15,
+          "closed": 15,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A04",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 19713,
+        "sha256": "d2e13195e0f1ae14dc6ff3995623b37221cca4d444f0ae0b0823e86dd74f52a6",
+        "nativeZlib": {
+          "created": 21,
+          "closed": 21,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A05",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 18599,
+        "sha256": "3895dfc54761486c997db9009296f4a26a57017bde2bb9648ac2c614e51b4dd4",
+        "nativeZlib": {
+          "created": 25,
+          "closed": 25,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A06",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 16573,
+        "sha256": "8ec27823589d6aef4e6d6e4ad5658e9d8f7e69ccbc21a93ded02b9cf1d9f1125",
+        "nativeZlib": {
+          "created": 25,
+          "closed": 25,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A07",
+        "status": "PASS",
+        "safety": false,
+        "observations": 4,
+        "plannedInvocations": 4,
+        "bytes": 48084,
+        "sha256": "6c38d61ef92bc130d9384be263f9de0dfb63f0f74efc90e223d32b783203d738",
+        "nativeZlib": {
+          "created": 25,
+          "closed": 25,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A08",
+        "status": "PASS",
+        "safety": false,
+        "observations": 2,
+        "plannedInvocations": 2,
+        "bytes": 3646,
+        "sha256": "1c31059c9e38138d8ce801c42b150845974e959f6b9752bf3f744a503b183981",
+        "nativeZlib": {
+          "created": 25,
+          "closed": 25,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A09",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 9298,
+        "sha256": "17cae9a99cc97af1388f3e51984747b67cf03ba61661beb9b30fbd93b7e938ef",
+        "nativeZlib": {
+          "created": 25,
+          "closed": 25,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A10",
+        "status": "PASS",
+        "safety": false,
+        "observations": 3,
+        "plannedInvocations": 3,
+        "bytes": 42028,
+        "sha256": "6f40715cc009e67f765822d13d9f9567ee3af209c98468746905346440c0b31e",
+        "nativeZlib": {
+          "created": 31,
+          "closed": 31,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A11",
+        "status": "PASS",
+        "safety": false,
+        "observations": 3,
+        "plannedInvocations": 3,
+        "bytes": 36165,
+        "sha256": "17584be92b661da1d211239ddc6abe7ba87d8004d26ea1610e3873ec03f309c3",
+        "nativeZlib": {
+          "created": 35,
+          "closed": 35,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A12",
+        "status": "PASS",
+        "safety": false,
+        "observations": 3,
+        "plannedInvocations": 3,
+        "bytes": 28922,
+        "sha256": "7145beca3d4189e4fc3296699c8ccf87b29793441ba436b0b7a1c98c1a3238a7",
+        "nativeZlib": {
+          "created": 35,
+          "closed": 35,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A13",
+        "status": "PASS",
+        "safety": false,
+        "observations": 4,
+        "plannedInvocations": 4,
+        "bytes": 48410,
+        "sha256": "848bc82125629ede4d257dc005cde078d0664edea7da96e3da0b7632b36db385",
+        "nativeZlib": {
+          "created": 41,
+          "closed": 41,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A14",
+        "status": "PASS",
+        "safety": false,
+        "observations": 8,
+        "plannedInvocations": 8,
+        "bytes": 67679,
+        "sha256": "ccfddead9a410e65c2c7267d2f4ba16a66b61673cb3be884565f07b7f793fb17",
+        "nativeZlib": {
+          "created": 41,
+          "closed": 41,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A15",
+        "status": "PASS",
+        "safety": false,
+        "observations": 5,
+        "plannedInvocations": 5,
+        "bytes": 60578,
+        "sha256": "151dcd4da07e6d767e44ef24387fd77056e6478155c41d039a42afd30d294d7d",
+        "nativeZlib": {
+          "created": 41,
+          "closed": 41,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A16",
+        "status": "PASS",
+        "safety": false,
+        "observations": 3,
+        "plannedInvocations": 3,
+        "bytes": 28570,
+        "sha256": "8d18de8c25f2ab4ba99cb5e01d0545af8aea6f81cde1f0e057494f7f352c12cc",
+        "nativeZlib": {
+          "created": 41,
+          "closed": 41,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A17",
+        "status": "PASS",
+        "safety": false,
+        "observations": 4,
+        "plannedInvocations": 4,
+        "bytes": 58273,
+        "sha256": "d0930102ef1d1f9231e0483cbf7948165dcd25cf6e2967db62dac5e90e6a778a",
+        "nativeZlib": {
+          "created": 42,
+          "closed": 42,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A18",
+        "status": "PASS",
+        "safety": false,
+        "observations": 4,
+        "plannedInvocations": 4,
+        "bytes": 61916,
+        "sha256": "fe5867974860b76a7094960b3b3ac48d122d8aaf1b86d8d1937449b261f55423",
+        "nativeZlib": {
+          "created": 42,
+          "closed": 42,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A19",
+        "status": "PASS",
+        "safety": false,
+        "observations": 3,
+        "plannedInvocations": 3,
+        "bytes": 62615,
+        "sha256": "840a98eeef70f987adb22e886553ee627824447c664da1346ca8fae7f5d5d23f",
+        "nativeZlib": {
+          "created": 49,
+          "closed": 49,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A20",
+        "status": "PASS",
+        "safety": false,
+        "observations": 5,
+        "plannedInvocations": 5,
+        "bytes": 85031,
+        "sha256": "79cb375dfe59ffc5478b666105a38c17daaec0909851376f15a9a2b0095845ac",
+        "nativeZlib": {
+          "created": 52,
+          "closed": 52,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A21",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 17583,
+        "sha256": "7e166b0cd20e732b0b100b335838fe4678ab163f9c6392cfb8068cc08364a428",
+        "nativeZlib": {
+          "created": 54,
+          "closed": 54,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A22",
+        "status": "PASS",
+        "safety": false,
+        "observations": 3,
+        "plannedInvocations": 3,
+        "bytes": 47500,
+        "sha256": "2673f33ca7eb46860eb6381ec723593bfe990b19d2bb2da4860ace63bca8f4f2",
+        "nativeZlib": {
+          "created": 54,
+          "closed": 54,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A23",
+        "status": "PASS",
+        "safety": false,
+        "observations": 3,
+        "plannedInvocations": 3,
+        "bytes": 46444,
+        "sha256": "56db61feacf05090721d8ca865da0e58ea0556c41f2c0ffa46aeb4ab20533919",
+        "nativeZlib": {
+          "created": 54,
+          "closed": 54,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A24",
+        "status": "PASS",
+        "safety": false,
+        "observations": 4,
+        "plannedInvocations": 4,
+        "bytes": 59938,
+        "sha256": "20dc2ec3ad6c5f7f4b4d5d63f5a2a82d1fba675748ec30f233dac3b59b410922",
+        "nativeZlib": {
+          "created": 54,
+          "closed": 54,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A25",
+        "status": "PASS",
+        "safety": false,
+        "observations": 3,
+        "plannedInvocations": 3,
+        "bytes": 46466,
+        "sha256": "2a26076e4b6fdb898abcead1884a8fffb312ca4942f8064a441fd732df27376b",
+        "nativeZlib": {
+          "created": 54,
+          "closed": 54,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A26",
+        "status": "PASS",
+        "safety": false,
+        "observations": 14,
+        "plannedInvocations": 14,
+        "bytes": 141350,
+        "sha256": "1821c75a5ea2df5dee7bc6b1e088afcfce0ff7152bb46d962470fbd5827fb887",
+        "nativeZlib": {
+          "created": 75,
+          "closed": 75,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A27",
+        "status": "PASS",
+        "safety": false,
+        "observations": 4,
+        "plannedInvocations": 4,
+        "bytes": 32173,
+        "sha256": "11ba34e3c48cc7589c308dd745412969323f71a3286f780f0e6d3f8aa702aa03",
+        "nativeZlib": {
+          "created": 75,
+          "closed": 75,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A28",
+        "status": "PASS",
+        "safety": false,
+        "observations": 3,
+        "plannedInvocations": 3,
+        "bytes": 31695,
+        "sha256": "15c822a3be1e061e2499e279b7d92035e84a4d860862e096323c860817e6be16",
+        "nativeZlib": {
+          "created": 84,
+          "closed": 84,
+          "outstanding": 0,
+          "maxConcurrent": 1
+        }
+      },
+      {
+        "id": "A29",
+        "status": "PASS",
+        "safety": false,
+        "observations": 6,
+        "plannedInvocations": 6,
+        "bytes": 57691,
+        "sha256": "6d462a921491c377d5b9a53774951024eda52cb8e2315dd92669dfe70274ecc6",
+        "nativeZlib": {
+          "created": 102,
+          "closed": 102,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A30",
+        "status": "PASS",
+        "safety": false,
+        "observations": 5,
+        "plannedInvocations": 5,
+        "bytes": 48061,
+        "sha256": "c6881e43c1bc8f5e1fa643d2a8881f345aab43afcc2f250089d41a84f99dbe40",
+        "nativeZlib": {
+          "created": 117,
+          "closed": 117,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A31",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 13867,
+        "sha256": "40699fe59597421e1baba6b31b5c967fe368270b41535bb5028d28b89919ce26",
+        "nativeZlib": {
+          "created": 121,
+          "closed": 121,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A32",
+        "status": "PASS",
+        "safety": false,
+        "observations": 2,
+        "plannedInvocations": 2,
+        "bytes": 21257,
+        "sha256": "3ff3234e9d5fd07351251f53dd7433998e033e2282c9bb0a34d885212fa3026f",
+        "nativeZlib": {
+          "created": 125,
+          "closed": 125,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A33",
+        "status": "PASS",
+        "safety": false,
+        "observations": 2,
+        "plannedInvocations": 2,
+        "bytes": 27484,
+        "sha256": "708caaae9e572d97500b760aa50de32c8ee3f32a899805ac01cd5eb018d7c9a3",
+        "nativeZlib": {
+          "created": 133,
+          "closed": 133,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A34",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 12869,
+        "sha256": "404b9097363e024d7594da6e30815ac682b489008f2ebd5e2b5f48bd0610db58",
+        "nativeZlib": {
+          "created": 136,
+          "closed": 136,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A35",
+        "status": "PASS",
+        "safety": false,
+        "observations": 2,
+        "plannedInvocations": 2,
+        "bytes": 25349,
+        "sha256": "cf815940c701fd653c2229b2afa3fb8e9596a752054668d417cd69ce2a4896ca",
+        "nativeZlib": {
+          "created": 142,
+          "closed": 142,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A36",
+        "status": "PASS",
+        "safety": false,
+        "observations": 3,
+        "plannedInvocations": 3,
+        "bytes": 36040,
+        "sha256": "d24a7aa8917ca5f0f10be04911acbb523d75fff1e9217580fa4df9cf48762970",
+        "nativeZlib": {
+          "created": 151,
+          "closed": 151,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A37",
+        "status": "PASS",
+        "safety": false,
+        "observations": 2,
+        "plannedInvocations": 2,
+        "bytes": 24706,
+        "sha256": "3c498071e6612a95f4ffbbc536ad83c22094a14887d67e6afa618e3fd5ffb905",
+        "nativeZlib": {
+          "created": 157,
+          "closed": 157,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A38",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 15080,
+        "sha256": "35361cfda2dd4aa067c58b951785567f23f1a2a279ad8a0d817db244c195146f",
+        "nativeZlib": {
+          "created": 160,
+          "closed": 160,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A39",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 15780,
+        "sha256": "0c3d7228a062f1781cde461483d54c305836205c6154f2c8d78c3d48e7b50bde",
+        "nativeZlib": {
+          "created": 163,
+          "closed": 163,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A40",
+        "status": "PASS",
+        "safety": false,
+        "observations": 2,
+        "plannedInvocations": 2,
+        "bytes": 42392,
+        "sha256": "80e8451535246255627893279c7fd33fa42a79bc319e3834ff1313c433438880",
+        "nativeZlib": {
+          "created": 175,
+          "closed": 175,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A41",
+        "status": "PASS",
+        "safety": false,
+        "observations": 3,
+        "plannedInvocations": 3,
+        "bytes": 41778,
+        "sha256": "1d271ac1a65d1e22445d5b84211c6d8aae0e6eb7e7ce01caf382f6f7a625e063",
+        "nativeZlib": {
+          "created": 184,
+          "closed": 184,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A42",
+        "status": "PASS",
+        "safety": false,
+        "observations": 2,
+        "plannedInvocations": 2,
+        "bytes": 26770,
+        "sha256": "ada3b137b0e2a6ac95c7f1c30e30e2258952365e91845f19274322df1fd47a33",
+        "nativeZlib": {
+          "created": 190,
+          "closed": 190,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A43",
+        "status": "PASS",
+        "safety": false,
+        "observations": 2,
+        "plannedInvocations": 2,
+        "bytes": 39556,
+        "sha256": "99962b7bb87e28c384aee9d065a84d91a836b080190965ff0baf1be0f508c805",
+        "nativeZlib": {
+          "created": 202,
+          "closed": 202,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A44",
+        "status": "PASS",
+        "safety": false,
+        "observations": 4,
+        "plannedInvocations": 4,
+        "bytes": 45523,
+        "sha256": "64a775d3039bf5c2afa28a631a0bad5e9c10e5c5f8e4f42870698f58eca6b886",
+        "nativeZlib": {
+          "created": 212,
+          "closed": 212,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A45",
+        "status": "PASS",
+        "safety": false,
+        "observations": 2,
+        "plannedInvocations": 2,
+        "bytes": 15148,
+        "sha256": "e7ec2177fd21316a2952fe43d894399ac08fdf2be4c5e9211beab5c7f89e4a26",
+        "nativeZlib": {
+          "created": 213,
+          "closed": 213,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A46",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 28666,
+        "sha256": "360ac229420b0e4ed817f8d97c7ab7c4d6cedb1b922ef81246ee2945292f6ccc",
+        "nativeZlib": {
+          "created": 214,
+          "closed": 214,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A47",
+        "status": "PASS",
+        "safety": false,
+        "observations": 6,
+        "plannedInvocations": 6,
+        "bytes": 65407,
+        "sha256": "050d6ab0bceacaa3512886801bbaf3af22dd50ef39a123a007d5a82e4391fe36",
+        "nativeZlib": {
+          "created": 220,
+          "closed": 220,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A48",
+        "status": "PASS",
+        "safety": false,
+        "observations": 5,
+        "plannedInvocations": 5,
+        "bytes": 26108,
+        "sha256": "cbce686ef5a259d48a3aae7e3efe96801d0e8ecbacc5a89a1653f99c54b20645",
+        "nativeZlib": {
+          "created": 221,
+          "closed": 221,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A49",
+        "status": "PASS",
+        "safety": false,
+        "observations": 3,
+        "plannedInvocations": 3,
+        "bytes": 25133,
+        "sha256": "040d91c0590c7330b585e69d024698f75423a5ae98e5b00f70472f2fa2eb2977",
+        "nativeZlib": {
+          "created": 224,
+          "closed": 224,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A50",
+        "status": "PASS",
+        "safety": false,
+        "observations": 2,
+        "plannedInvocations": 2,
+        "bytes": 21935,
+        "sha256": "8a9e95c2b9fe8fd0493f4c0ab4ffc2f676d6ff3551841d175b656c7799997c48",
+        "nativeZlib": {
+          "created": 228,
+          "closed": 228,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A51",
+        "status": "PASS",
+        "safety": false,
+        "observations": 2,
+        "plannedInvocations": 2,
+        "bytes": 82986,
+        "sha256": "3f369777ee40ef7363f0b2668580a24dd21e8d0db3f678baa55f04af6679b8f0",
+        "nativeZlib": {
+          "created": 228,
+          "closed": 228,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A52",
+        "status": "PASS",
+        "safety": false,
+        "observations": 0,
+        "plannedInvocations": 0,
+        "bytes": 246,
+        "sha256": "cae62b771ccc2b20111e724a0c07a1ca05aa47ea8ea71253ba7928c050930ed2",
+        "nativeZlib": {
+          "created": 228,
+          "closed": 228,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A53",
+        "status": "PASS",
+        "safety": false,
+        "observations": 2,
+        "plannedInvocations": 2,
+        "bytes": 19257,
+        "sha256": "b5dd15ae0e13c740ccd34efbe9bc8cd8aa1faa7cc136e705edce8b8f0a6cc0b3",
+        "nativeZlib": {
+          "created": 228,
+          "closed": 228,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A54",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 19728,
+        "sha256": "eb2ef2019595d15e954e7f7ba18fb4b80ce0547838f7f25f87ee961182ddeecb",
+        "nativeZlib": {
+          "created": 234,
+          "closed": 234,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A55",
+        "status": "PASS",
+        "safety": false,
+        "observations": 4,
+        "plannedInvocations": 4,
+        "bytes": 34750,
+        "sha256": "5192b3b84e972e3fef81341cf9522ae4c46043962a6edfea0340c979f08de1e9",
+        "nativeZlib": {
+          "created": 234,
+          "closed": 234,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A56",
+        "status": "PASS",
+        "safety": false,
+        "observations": 3,
+        "plannedInvocations": 3,
+        "bytes": 47559,
+        "sha256": "526db632ba20d4d480989bde07be87d00e6a778064958c9a6125fd47905e4eff",
+        "nativeZlib": {
+          "created": 246,
+          "closed": 246,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A57",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 19715,
+        "sha256": "2f8d05a4127308b333c675a8600af5d7bf32b95c6deafd507654f6149a76c18d",
+        "nativeZlib": {
+          "created": 252,
+          "closed": 252,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A58",
+        "status": "PASS",
+        "safety": false,
+        "observations": 2,
+        "plannedInvocations": 2,
+        "bytes": 28423,
+        "sha256": "a44202e7858e2708f30e2d3e11eb984369e166a0fc71c768d81c65e130f1850a",
+        "nativeZlib": {
+          "created": 258,
+          "closed": 258,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A59",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 9600,
+        "sha256": "05247ae43b65925f555d6377436d23743aa0d70a29e4fd52e7eeb4641161d0b3",
+        "nativeZlib": {
+          "created": 258,
+          "closed": 258,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "A60",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 303,
+        "sha256": "a2412a23d179f82779979d7f739e5ffc46a494d69476258a587cde3b3d6279ff",
+        "nativeZlib": {
+          "created": 264,
+          "closed": 264,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "H01",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 20580,
+        "sha256": "5b5f16a9650c1a8eb702faac2dd5f896c8c7d45dc1a736c15ed7761fed0a4501",
+        "nativeZlib": {
+          "created": 270,
+          "closed": 270,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "H02",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 15322,
+        "sha256": "53892d8b077dd377260b83b51be1f1725c003adbff32f2fd0e90973e89c5a5e3",
+        "nativeZlib": {
+          "created": 271,
+          "closed": 271,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "H03",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 12469,
+        "sha256": "0aa69527df1f69bf0bb3b14de9f34edba87bf50672f0bf37be19964c05ab3ae8",
+        "nativeZlib": {
+          "created": 274,
+          "closed": 274,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "H04",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 14896,
+        "sha256": "0d36d292c9668f32d7fd44f0817d3afa239b3caf0a6c46760c4bbd1746867b14",
+        "nativeZlib": {
+          "created": 277,
+          "closed": 277,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "H05",
+        "status": "PASS",
+        "safety": false,
+        "observations": 2,
+        "plannedInvocations": 2,
+        "bytes": 21754,
+        "sha256": "c389edc70af917bf02e0e9a0644bbef1946456bca233e1fcf410f6cee4f5bfa5",
+        "nativeZlib": {
+          "created": 281,
+          "closed": 281,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "H06",
+        "status": "PASS",
+        "safety": false,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 10766,
+        "sha256": "36bc69a749f311968d14c4311c01298aa5b692f39044205efe6aaad10218a459",
+        "nativeZlib": {
+          "created": 284,
+          "closed": 284,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "H07",
+        "status": "PASS",
+        "safety": false,
+        "observations": 2,
+        "plannedInvocations": 2,
+        "bytes": 34509,
+        "sha256": "ac32b0f95a31e1d1459d30bc785580c7ce64ff0a45d3b3dd6e24ef2c31a9d93b",
+        "nativeZlib": {
+          "created": 286,
+          "closed": 286,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "H08",
+        "status": "PASS",
+        "safety": false,
+        "observations": 0,
+        "plannedInvocations": 0,
+        "bytes": 244,
+        "sha256": "456739322aaa3f3498e20b67c38da33c6980c8b31a783924e7aa0faac7b22107",
+        "nativeZlib": {
+          "created": 286,
+          "closed": 286,
+          "outstanding": 0,
+          "maxConcurrent": 2
+        }
+      },
+      {
+        "id": "H09",
+        "status": "PASS",
+        "safety": true,
+        "observations": 1,
+        "plannedInvocations": 1,
+        "bytes": 9799,
+        "sha256": "e585b88b378d300a97d50f9341b527b19c03f08d8dc6a6ebbfc5210bccb31af6",
+        "nativeZlib": {
+          "created": 289,
+          "closed": 288,
+          "outstanding": 1,
+          "maxConcurrent": 2
+        }
+      }
+    ]
+  },
+  "evidence": "887c9cbfe536c11c176cb083a2aac6adb971f1fb",
+  "base": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "presealCommit": "f38984ec68477a620792b5e899f7f29aa586bc9f",
+  "rawResultSha256": "c23f5eaea80a7c5d453c7a2837259e0888b4ace6b446fef599a673f4797536c6",
+  "checks": {
+    "storedPresealAuthenticated": true,
+    "sealedInputHashesUnchanged": true,
+    "sourceSnapshotExact": true,
+    "actualEmittedExact": true,
+    "newFilesAndDirectoriesChecked": true,
+    "toolsAndLockUnchanged": true,
+    "decodedArchivesRoundtrip": true
+  },
+  "build": {
+    "code": 0,
+    "selectedInputs": 279,
+    "sourceManifest": "59faad2605ae5718f6242e33722304528af337a49a368fe4485842bdf94e8c25",
+    "emitted": 896,
+    "packageMatchingEmitted": true
+  },
+  "package": {
+    "sha256": "68541722217fb3f88f7317750c8f1a66042ea090f2c769564b9afc14372dfe68",
+    "authoredPackageFiles": 898,
+    "authenticatedBaselineUnchanged": 858,
+    "actualManualStaging": false,
+    "actualMove": false,
+    "ownPackExecuted": false
+  },
+  "unexecuted": {
+    "compiledRows": 71,
+    "manualStagedRows": 71,
+    "physicallyMovedRows": 71,
+    "strictTypeChildren": 5,
+    "loadedMutantChildren": 3,
+    "bindingRefusalChildren": 3,
+    "M1B": 12,
+    "nativeGitOracle": 6
+  },
+  "lifecycle": {
+    "actualChildren": [
+      {
+        "label": "control",
+        "pid": 96476,
+        "born": "184139593522875",
+        "pgid": 96476,
+        "code": 0,
+        "signal": null,
+        "closed": true,
+        "signals": []
+      },
+      {
+        "label": "build",
+        "pid": 96487,
+        "born": "184139740829958",
+        "pgid": 96487,
+        "code": 0,
+        "signal": null,
+        "closed": true,
+        "signals": []
+      },
+      {
+        "label": "source",
+        "pid": 96527,
+        "born": "184142210478583",
+        "pgid": 96527,
+        "code": null,
+        "signal": "SIGTERM",
+        "closed": true,
+        "signals": [
+          {
+            "signal": "SIGTERM",
+            "identity": "owned live ChildProcess handle",
+            "pid": 96527,
+            "born": "184142210478583"
+          }
+        ]
+      }
+    ],
+    "plannedChildren": 17,
+    "actualChildrenCount": 3,
+    "unexecutedChildren": 14,
+    "nativeZlibAtStop": {
+      "created": 289,
+      "closed": 288,
+      "outstanding": 1,
+      "maxConcurrent": 2
+    },
+    "firstMaxUnobservedCloseEventsAboveOne": "A29",
+    "qualification": "289 createInflate events and288 close events observed at H09 settlement; stream.closed/native handle state was not recorded. Event-notification lateness is not proof of native work leakage. Peak2 unobserved-close streams first A29; preseal assumed1 but did not gate this maximum. Direct source process was SIGTERM-closed; no OS descendant census claim."
+  },
+  "archives": {
+    "capture": {
+      "file": "RAW.json.gz.base64",
+      "encodedSha256": "9d1debc1fec5229c4c1afaaf56049342013dea6950a12baf47fcbaf5e2cbb64f",
+      "gzipSha256": "423143959ca966540e4e925f54994e4b5d7edf2a6fb5b6af9e8f2302792ba167",
+      "decodedSha256": "1854ca66fc56fd3cd9f892cca292accbb53422468aab89dca250a26c7225885b",
+      "encodedBytes": 1245993,
+      "decodedBytes": 4984061,
+      "files": 83,
+      "contentBytes": 3729049,
+      "inventorySha256": "2d43cc868441d4a0e693013c698f29e94bd8c084c49e4a06b7ad686747002e0f",
+      "directories": 3
+    },
+    "working": {
+      "file": "WORKING.json.gz.base64",
+      "encodedSha256": "933c05e3a489ef0171987908f5d260b6a8bea97727665af058049f60064a97d9",
+      "gzipSha256": "e369fab99972e824190c81e62d1912df9ca97fa8082e9a0a4b49de7ec2ad0664",
+      "decodedSha256": "1d9c57cd6d4f0a1fdb1a15a9da4f7bee160cb4c25bf7523859a1c129bfd20a7f",
+      "encodedBytes": 3208909,
+      "decodedBytes": 9358579,
+      "files": 1175,
+      "contentBytes": 6870050,
+      "inventorySha256": "1347ae37846f65a9d48b5eb29e0583198ccc294753c30d0846c6bf8b13b054c9",
+      "directories": 91
+    }
+  },
+  "failureFixture": {
+    "file": "H09-FIXTURE.json",
+    "sha256": "abba06e3f44fc2bf5844debc3f1521c9a423303077cce5e448dd6298162df49a",
+    "replayed": false
+  },
+  "storage": {
+    "bytesBeforeCleanupIncludingArchives": 18906485,
+    "reusedReadOnlyDependencyBytes": 26147198,
+    "captureContentBytes": 3729049
+  },
+  "measuredPreparationRunAuditMs": 1353543,
+  "priorUnmeasuredInspectionReservedMs": 1800000,
+  "auditElapsedMs": 1021,
+  "cleanup": {
+    "removesOnly": [
+      "working-v1",
+      "capture-v1"
+    ],
+    "preRemovalArchivedAndRoundtripped": true,
+    "preventsCapturedProductionTsFromEnteringCanonicalDiscovery": true
+  }
+}

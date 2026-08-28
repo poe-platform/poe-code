@@ -1,0 +1,361 @@
+{
+  "schema": "breadth-continuation-preparation-bindings-v1",
+  "preparedAt": "2026-08-28T09:02:16.523Z",
+  "chronology": "Post-accepted-source inspection, pre-execution proposal; different reviewer and executor seal pending.",
+  "target": {
+    "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+    "defaultNames": [
+      "[",
+      "awk",
+      "base32",
+      "base64",
+      "basename",
+      "cat",
+      "chmod",
+      "cksum",
+      "column",
+      "comm",
+      "cp",
+      "cut",
+      "date",
+      "diff",
+      "dirname",
+      "du",
+      "echo",
+      "egrep",
+      "env",
+      "expand",
+      "expr",
+      "false",
+      "fgrep",
+      "file",
+      "find",
+      "fold",
+      "grep",
+      "gunzip",
+      "gzip",
+      "head",
+      "html-to-markdown",
+      "join",
+      "jq",
+      "ln",
+      "ls",
+      "md5sum",
+      "mkdir",
+      "mktemp",
+      "mv",
+      "nl",
+      "od",
+      "paste",
+      "patch",
+      "printenv",
+      "printf",
+      "pwd",
+      "readlink",
+      "realpath",
+      "rev",
+      "rg",
+      "rm",
+      "rmdir",
+      "sed",
+      "seq",
+      "sha1sum",
+      "sha256sum",
+      "sleep",
+      "sort",
+      "split",
+      "stat",
+      "strings",
+      "tac",
+      "tail",
+      "tar",
+      "tee",
+      "test",
+      "timeout",
+      "touch",
+      "tr",
+      "tree",
+      "true",
+      "unexpand",
+      "uniq",
+      "wc",
+      "which",
+      "xargs",
+      "xxd",
+      "zcat"
+    ],
+    "rootAcceptance": "dd5b40c4 (user acceptance; not replayed)"
+  },
+  "comparator": {
+    "name": "just-bash",
+    "version": "3.4.2",
+    "latestClaim": false,
+    "priorArchive": {
+      "root": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts",
+      "path": "just-bash-3.4.2.tgz",
+      "bytes": 9879070,
+      "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d"
+    },
+    "admission": "Historical archive/closure proof bound only; actual availability and offline staging must be reauthenticated before any run."
+  },
+  "history": {
+    "candidate": "e33974b8c643077453227a9679d8ceca8367998c",
+    "targetOperational": [
+      13,
+      54
+    ],
+    "baselineOperational": [
+      47,
+      54
+    ],
+    "baselineRawPredicateMatches": 50,
+    "unionScore": null,
+    "rawArchiveSha256": "9e2d3c24c709e7b5cd9ca6a7a8022e13f1e97c58ca235587562b5354cdf5932a",
+    "rawArchiveReopened": false,
+    "priorInventoryCommit": "17735a5eabf65a6398a64aef81e67fee2405733e",
+    "oldFailuresUnchanged": true
+  },
+  "legacyProfile": {
+    "id": "faraday-attempt002-predetermined-intent-not-native",
+    "environment": {
+      "PATH": "/usr/bin:/bin",
+      "HOME": "/home/user",
+      "TMPDIR": "/tmp",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "USER": "user"
+    },
+    "target": {
+      "limits": {
+        "maxOutputBytes": 4194304,
+        "maxCommands": 100,
+        "maxLoopIterations": 100,
+        "pipeHighWaterMark": 4096
+      },
+      "plugins": [
+        "agentCommands"
+      ],
+      "optionalRuntimeInjected": false
+    },
+    "comparator": {
+      "executionLimitProfile": "normal",
+      "executionLimits": {
+        "maxExecutionTimeMs": 30000,
+        "maxOutputSize": 4194304,
+        "maxInputBytes": 33554432,
+        "maxCommandCount": 100,
+        "maxLoopIterations": 100
+      }
+    },
+    "oracleKind": "predetermined-intent-not-native"
+  },
+  "inputBindings": [
+    {
+      "commit": "17735a5eabf65a6398a64aef81e67fee2405733e",
+      "path": "tests/comparison/next-gap-inventory-20260828/MANIFEST.json",
+      "mode": "100644",
+      "bytes": 1721,
+      "sha256": "d57b9ac7f09013d4d97c4855eb36d4a25bda77d176ebc68d304fe2034e575dd8"
+    },
+    {
+      "commit": "17735a5eabf65a6398a64aef81e67fee2405733e",
+      "path": "tests/comparison/next-gap-inventory-20260828/BREADTH.json",
+      "mode": "100644",
+      "bytes": 188263,
+      "sha256": "1fa3d5c30a1c4aa3106d5b794b9dcca7b17eba95510aedfad26093406a99d7bd"
+    },
+    {
+      "commit": "17735a5eabf65a6398a64aef81e67fee2405733e",
+      "path": "tests/comparison/next-gap-inventory-20260828/SOURCE-INVENTORY.json",
+      "mode": "100644",
+      "bytes": 55912,
+      "sha256": "5176390a7c3d95c5672fb976c32b2ba48aa5067e9b94188d6287f1c51d210da1"
+    },
+    {
+      "commit": "17735a5eabf65a6398a64aef81e67fee2405733e",
+      "path": "tests/comparison/next-gap-inventory-20260828/INPUTS.json",
+      "mode": "100644",
+      "bytes": 5594,
+      "sha256": "d31f05159460e383c3a39102306ca1edc5ec06897aca0ce7ad9788b481e798d2"
+    },
+    {
+      "commit": "17735a5eabf65a6398a64aef81e67fee2405733e",
+      "path": "tests/comparison/next-gap-inventory-20260828/ENGINE-METRIC.json",
+      "mode": "100644",
+      "bytes": 38271,
+      "sha256": "db54efef8dc1571eceef8a467ec6e553ebf1bc33fb35d03f47b7865ca7eb1ca9"
+    },
+    {
+      "commit": "17735a5eabf65a6398a64aef81e67fee2405733e",
+      "path": "tests/comparison/next-gap-inventory-20260828/ARCHIVE-AUDIT.json",
+      "mode": "100644",
+      "bytes": 347528,
+      "sha256": "1c286a351f72ddf91ea06e31094d028230e539292346de487c83d67bd7334505"
+    },
+    {
+      "commit": "17735a5eabf65a6398a64aef81e67fee2405733e",
+      "path": "benchmarks/reports/current-comparison-20260827/measurement-review/FINAL_REVIEW_RECEIPT.json",
+      "mode": "100644",
+      "bytes": 15703,
+      "sha256": "43978ce901a1e498620bed4b1a2309158ba11488a43c22814d50b7f2b7e51fc2"
+    },
+    {
+      "commit": "17735a5eabf65a6398a64aef81e67fee2405733e",
+      "path": "benchmarks/reports/current-comparison-20260827/cohorts/profiles.json",
+      "mode": "100644",
+      "bytes": 182510,
+      "sha256": "6f7f6bbc1599f6adea468a40b9b2df4354e817f99dfc9248fb291e542df95a80"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "package.json",
+      "mode": "100644",
+      "bytes": 4979,
+      "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/index.ts",
+      "mode": "100644",
+      "bytes": 1638,
+      "sha256": "8ffbd42cb44f477a9720eb49c59ca77e38a9875dd0a57254231a297ed6d5d472"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/plugins/index.ts",
+      "mode": "100644",
+      "bytes": 6665,
+      "sha256": "35e65e44501ee190f6027e44bb4be28108954a316d46ab3aa2d76ce5e2924751"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/shell/runtime.ts",
+      "mode": "100644",
+      "bytes": 132362,
+      "sha256": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/shell/shell.ts",
+      "mode": "100644",
+      "bytes": 15002,
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/shell/types.ts",
+      "mode": "100644",
+      "bytes": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/shell/getopts.ts",
+      "mode": "100644",
+      "bytes": 9964,
+      "sha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/contracts/plugin.ts",
+      "mode": "100644",
+      "bytes": 2359,
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/fs/memory/index.ts",
+      "mode": "100644",
+      "bytes": 23533,
+      "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/commands/du/README.md",
+      "mode": "100644",
+      "bytes": 11682,
+      "sha256": "23c2caf03e6a5e59469cc7d676f44c5b017ba0faab8804e1c4ee2a3fd3225f55"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/commands/which/README.md",
+      "mode": "100644",
+      "bytes": 2177,
+      "sha256": "68efa7634eb72ad75cfbec3b58b25661f75fe1baba9ec50fd517da9fc603afc7"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/commands/html-to-markdown/README.md",
+      "mode": "100644",
+      "bytes": 12661,
+      "sha256": "71a64d1829bb916e3b9260eb11b4b7d0ed893a742fbcc52b7a155895264445d7"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "tests/commands/html-to-markdown/render.test.ts",
+      "mode": "100644",
+      "bytes": 6859,
+      "sha256": "971bc7b6f48e0a1c22fd41d88f87640212e2811b8318c840e124ea16b3b7c457"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/commands/split/README.md",
+      "mode": "100644",
+      "bytes": 11612,
+      "sha256": "624e12593ddf027d13d5bb45f2f7fffeb133d4003de021c3bb9eede93245c249"
+    },
+    {
+      "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/commands/bytes/checksums/README.md",
+      "mode": "100644",
+      "bytes": 13523,
+      "sha256": "b0e2d4a525b7f25a3a36d28440ca85a4c9ebfbce27cc3e12cc8bb9decb9eab0e"
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "executionCounts": {
+    "product": 0,
+    "comparator": 0,
+    "native": 0,
+    "build": 0,
+    "install": 0,
+    "privateEngine": 0,
+    "network": 0,
+    "performance": 0
+  },
+  "engineMetric": {
+    "engineRuns": 24,
+    "meaning": "Runtime wrapper invocation counter increments before its Promise calls the authenticated run function; not a module-import count, unique-program count, or successful-completion count.",
+    "guestEvaluationStartsEvidenced": 24,
+    "evidence": "16 guest bridge entries +6 direct guest-output invocations +2 intentional guest throws; actual per-invocation guest activity beyond entry counter.",
+    "successfulEngineReturns": 12,
+    "expectedRejections": {
+      "cancellation": 6,
+      "shellBudget": 4,
+      "intentionalGuestError": 2
+    },
+    "allEngineInvocationsSettled": 24,
+    "distinctGuestPrograms": 7,
+    "guestWorkflowFamilies": 10,
+    "layouts": 2,
+    "internalInterpreterStepCounterCaptured": false,
+    "qualification": "24 body entries/evaluation attempts evidenced, not24 successful guest completions. No replay/restore/retry claim. Same programs repeated across installed+moved."
+  },
+  "engineContinuationGuestEvaluations": 0,
+  "preparationReadNotes": [
+    "A few guessed source file paths returned Git path-not-found during static inspection. No product process was started; final bindings include only actual existing immutable files.",
+    "Concurrent working-tree changes belong to other owners and are excluded.",
+    "No XAN source was read or imported; its old row is opaque ID/hash metadata only."
+  ]
+}

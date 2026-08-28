@@ -1,0 +1,274 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { gzipSync, gunzipSync } from 'node:zlib';
+
+const started = Date.now();
+const [root, executionCommit, expectedSeal] = process.argv.slice(2);
+assert.equal(root, '/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v4-f05-admission/inputs');
+assert.match(executionCommit, /^[0-9a-f]{40}$/);
+assert.match(expectedSeal, /^[0-9a-f]{64}$/);
+const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const encode = value => Buffer.from(JSON.stringify(value) + '\n');
+const read = relative => fs.readFileSync(path.join(root, relative));
+const sealBytes = read('PRESEAL.json');
+assert.equal(sha(sealBytes), expectedSeal);
+const seal = JSON.parse(sealBytes);
+const plan = JSON.parse(read('controls/PLAN.json'));
+const outputRelative = 'runs/f05-admission-01';
+const output = path.join(root, outputRelative);
+let guardCalls = 0;
+let captureBytes = 0;
+const outputPaths = new Set();
+const guards = [];
+function inventory() {
+  const entries = [];
+  let bytes = 0;
+  function visit(relative) {
+    for (const name of fs.readdirSync(path.join(root, relative)).sort()) {
+      const child = relative ? relative + '/' + name : name;
+      const stat = fs.lstatSync(path.join(root, child));
+      assert.ok(!stat.isSymbolicLink());
+      if (stat.isDirectory()) {
+        entries.push({ path: child + '/', directory: true });
+        visit(child);
+      } else {
+        assert.ok(stat.isFile());
+        bytes += stat.size;
+        assert.ok(bytes <= plan.workBytes);
+        entries.push({ path: child, bytes: stat.size, sha256: sha(read(child)) });
+      }
+    }
+  }
+  visit('');
+  return { entries, bytes };
+}
+function guard(label) {
+  assert.ok(Date.now() - started < plan.maximumDurationMs, 'COHORT_DEADLINE');
+  const current = inventory();
+  const expectedFiles = [...seal.files.map(row => row.path), 'PRESEAL.json'].sort();
+  assert.deepEqual(current.entries.filter(row => !row.directory && !row.path.startsWith('runs/')).map(row => row.path).sort(), expectedFiles, 'INPUT_MEMBERSHIP');
+  const expectedDirectories = new Set();
+  for (const filename of expectedFiles) {
+    const parts = filename.split('/');
+    parts.pop();
+    while (parts.length) { expectedDirectories.add(parts.join('/') + '/'); parts.pop(); }
+  }
+  assert.deepEqual(current.entries.filter(row => row.directory && !row.path.startsWith('runs/')).map(row => row.path).sort(), [...expectedDirectories].sort(), 'DIRECTORY_MEMBERSHIP');
+  for (const row of seal.files) {
+    const actual = current.entries.find(entry => entry.path === row.path);
+    assert.equal(actual.bytes, row.bytes);
+    assert.equal(actual.sha256, row.sha256, row.path);
+  }
+  assert.equal(sha(read('PRESEAL.json')), expectedSeal);
+  const runFiles = current.entries.filter(row => !row.directory && row.path.startsWith('runs/')).map(row => row.path.slice(outputRelative.length + 1)).sort();
+  assert.deepEqual(runFiles, [...outputPaths].sort(), 'OUTPUT_MEMBERSHIP');
+  const runDirectories = current.entries.filter(row => row.directory && row.path.startsWith('runs/')).map(row => row.path);
+  assert.ok(runDirectories.every(name => ['runs/', outputRelative + '/'].includes(name)), 'OUTPUT_DIRECTORY_MEMBERSHIP');
+  guardCalls++;
+  guards.push({ label, entries: current.entries.length, bytes: current.bytes });
+  return current;
+}
+function write(relative, bytes) {
+  assert.ok(!outputPaths.has(relative));
+  assert.ok(!relative.includes('/'));
+  const body = Buffer.isBuffer(bytes) ? bytes : encode(bytes);
+  captureBytes += body.length;
+  assert.ok(captureBytes <= plan.captureBytes, 'CAPTURE_BOUND');
+  fs.writeFileSync(path.join(output, relative), body, { flag: 'wx', mode: 0o600 });
+  outputPaths.add(relative);
+  assert.equal(sha(fs.readFileSync(path.join(output, relative))), sha(body));
+}
+guard('pre-admission');
+assert.ok(!fs.existsSync(path.join(root, 'runs')), 'ONE_COHORT_NO_RETRY');
+assert.equal(fs.realpathSync(process.execPath), seal.controllerTool.origin);
+const toolHash = createHash('sha256');
+for await (const chunk of fs.createReadStream(process.execPath, { highWaterMark: 65536 })) toolHash.update(chunk);
+assert.equal(toolHash.digest('hex'), seal.controllerTool.sha256);
+fs.mkdirSync(path.join(root, 'runs'), { mode: 0o700 });
+fs.mkdirSync(output, { mode: 0o700 });
+write('LAUNCH.json', { executionCommit, presealSha256: expectedSeal, startedAt: new Date(started).toISOString(), pid: process.pid, node: process.version, tool: seal.controllerTool, environment: process.env, argv: process.argv, qualification: 'One synthetic controller; zero spawned children. No actual engine/child/reference/loader/compiler execution.' });
+let failure = null;
+const checks = [];
+const rawControls = [];
+const sourceChecks = [];
+let sourceComparisonComplete = false;
+let importCount = 0;
+try {
+  const comparison = JSON.parse(read('SOURCE-COMPARISON.json'));
+  const baseline = read('bound/OLD-SUPERVISOR.mjs.data').toString();
+  const candidate = read('recipe/supervisor.mjs.data').toString();
+  assert.equal(sha(baseline), comparison.baselineSupervisorSha256);
+  assert.equal(sha(candidate), comparison.candidateSupervisorSha256);
+  for (const change of [comparison.logicalChange, comparison.locatorChange]) assert.equal(baseline.split(change.before).length, 2);
+  assert.equal(candidate, baseline.replace(comparison.logicalChange.before, comparison.logicalChange.after).replace(comparison.locatorChange.before, comparison.locatorChange.after));
+  sourceChecks.push('exact-two-replacements-no-other-supervisor-bytes');
+  const oldManifest = JSON.parse(read('bound/OLD-MANIFEST.json'));
+  const manifestBytes = read('recipe/MANIFEST.json');
+  const manifest = JSON.parse(manifestBytes);
+  assert.equal(sha(manifestBytes), seal.mainManifestSha256);
+  for (const row of manifest.files) { const bytes = read('recipe/' + row.path); assert.equal(bytes.length, row.bytes); assert.equal(sha(bytes), row.sha256); }
+  for (const name of comparison.unchangedRecipeFiles) {
+    const row = oldManifest.files.find(entry => entry.path === name);
+    assert.equal(sha(read('recipe/' + name)), row.sha256, name);
+    sourceChecks.push('unchanged:' + name);
+  }
+  const extraction = JSON.parse(read('controls/EXTRACTION.json'));
+  const subject = read('controls/subject.mjs.data');
+  assert.equal(sha(subject), extraction.subjectSha256);
+  assert.equal(sha(Buffer.from(candidate)), extraction.candidateSupervisorSha256);
+  for (const row of extraction.functions) {
+    const body = Buffer.from(candidate).subarray(row.startByte, row.endByte);
+    assert.equal(body.length, row.bytes); assert.equal(sha(body), row.sha256);
+    assert.ok(subject.subarray(row.subjectStartByte, row.subjectStartByte + row.bytes).equals(body));
+    const start = baseline.indexOf('function ' + row.name + '(');
+    const oldBody = baseline.slice(start, baseline.indexOf('\n}\n', start) + 2);
+    assert.equal(body.toString(), row.name === 'reconcileReceipt' ? oldBody.replace(comparison.logicalChange.before, comparison.logicalChange.after) : oldBody);
+    sourceChecks.push('whole-function:' + row.name);
+  }
+  const sources = JSON.parse(read('recipe/SOURCES.json'));
+  const sourceEncoded = read('recipe/PUBLIC-SOURCE.json.gz.base64');
+  assert.equal(sha(sourceEncoded), sources.archive.sha256);
+  const sourceGzip = Buffer.from(sourceEncoded.toString().trim(), 'base64');
+  assert.equal(sha(sourceGzip), sources.archive.gzipSha256);
+  const sourceRaw = gunzipSync(sourceGzip, { maxOutputLength: 2097152 });
+  assert.equal(sha(sourceRaw), sources.archive.decodedSha256);
+  assert.equal(sourceRaw.length, sources.archive.decodedBytes);
+  const archiveFiles = JSON.parse(sourceRaw).files;
+  assert.equal(archiveFiles.length, 66); assert.equal(sources.files.length, 66); assert.equal(sources.followup18Verified, 18);
+  assert.deepEqual(archiveFiles.map(row => row.path).sort(), sources.files.map(row => row.path).sort());
+  for (const row of sources.files) {
+    const bytes = Buffer.from(archiveFiles.find(entry => entry.path === row.path).base64, 'base64');
+    assert.equal(bytes.length, row.bytes); assert.equal(sha(bytes), row.sha256);
+  }
+  sourceChecks.push('all66-source-data-hashes-and-18-binding-metadata-preserved-no-import');
+  const reviewEncoded = read('bound/REVIEW-CAPTURE.json.gz.base64');
+  const reviewFinal = JSON.parse(read('bound/REVIEW-FINAL.json'));
+  const reviewCaptureBinding = reviewFinal.files.find(row => row.path.endsWith('/inert-01/CAPTURE.json.gz.base64'));
+  assert.equal(sha(reviewEncoded), reviewCaptureBinding.sha256);
+  const reviewRaw = gunzipSync(Buffer.from(reviewEncoded.toString().trim(), 'base64'), { maxOutputLength: plan.captureBytes });
+  const reviewArchive = JSON.parse(reviewRaw);
+  assert.deepEqual(Object.keys(reviewArchive.files).sort(), Object.keys(reviewArchive.snapshot.entries).sort());
+  for (const [name, base64] of Object.entries(reviewArchive.files)) {
+    const bytes = Buffer.from(base64, 'base64');
+    const row = reviewArchive.snapshot.entries[name];
+    assert.equal(bytes.length, row.bytes); assert.equal(sha(bytes), row.sha256);
+  }
+  const control = JSON.parse(read('recipe/CONTROL.json'));
+  const mock = JSON.parse(read('controls/MOCK-PORTS.json'));
+  const p06 = JSON.parse(read('bound/REVIEW-P06.json'));
+  const captured = name => Buffer.from(reviewArchive.files['P06/logs/' + name], 'base64');
+  const f05Raw = captured('F05/receipt.json.raw');
+  assert.deepEqual(JSON.parse(f05Raw), JSON.parse(read('bound/REVIEW-F05-FIXTURE.json')));
+  assert.equal(sha(captured('F05.stdout')), p06.subjectRow.stdoutSha256);
+  assert.equal(p06.status, 'FAIL'); assert.equal(p06.caught, true);
+  sourceChecks.push('exact-reviewer-P06-raw-normalized-terminal-and-historical-close');
+  sourceComparisonComplete = true;
+  write('SOURCE-CHECKS.json', { classification: 'SOURCE/DATA ONLY', checks: sourceChecks, mainManifestSha256: seal.mainManifestSha256, sourceManifestSha256: sha(read('recipe/SOURCES.json')), toolManifestSha256: sha(read('recipe/TOOLS.json')) });
+  guard('before-subject-import');
+  assert.ok(fs.readFileSync('/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v5-f05-local-esm/subject.mjs').equals(subject), 'LOCAL_SUBJECT_EXACT_BYTES');
+  const { bindSubject } = await import('/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v5-f05-local-esm/subject.mjs');
+  importCount++;
+  for (const specification of plan.controls) {
+    const portCalls = [];
+    const artifactReads = [];
+    const record = { id: specification.id, label: specification.label, route: specification.route, expectedAcceptance: specification.accept, qualification: specification.label === 'F05' ? 'Historical inert P06 DATA replay/counterfactual; zero newly observed child events' : 'Frozen synthetic F03 DATA; no actual engine/load/close events' };
+    try {
+      guard('before-' + specification.id);
+      const raw = specification.label === 'F05' ? JSON.parse(f05Raw) : JSON.parse(read('controls/F03-SYNTHETIC.json'));
+      const original = structuredClone(raw);
+      const mutation = specification.mutation;
+      if (mutation && !mutation.undefined) {
+        const target = raw.events.find(entry => entry.ordinal === mutation.ordinal);
+        assert.equal(target.event, 'intrinsic-settle');
+        if (mutation.missing) delete target.nativePromise;
+        else target.nativePromise = mutation.value;
+        const changed = structuredClone(raw);
+        delete changed.events[mutation.ordinal - 1].nativePromise;
+        delete original.events[mutation.ordinal - 1].nativePromise;
+        assert.deepEqual(changed, original, 'ONLY_NATIVE_PROMISE_MUTATED');
+      }
+      let rawBytes = encode(raw);
+      const normalized = structuredClone(raw);
+      delete normalized.engineOutcome.stats;
+      normalized.rawSha256 = sha(rawBytes);
+      if (mutation?.undefined) normalized.events[mutation.ordinal - 1].nativePromise = undefined;
+      let receiptBytes = encode(normalized);
+      let stdout = encode({ label: specification.label, classification: normalized.classification, receiptSha256: sha(receiptBytes) });
+      if (specification.id === 'F05-false') {
+        assert.ok(rawBytes.equals(f05Raw));
+        assert.ok(receiptBytes.equals(captured('F05/receipt.json')));
+        assert.ok(stdout.equals(captured('F05.stdout')));
+        rawBytes = f05Raw; receiptBytes = captured('F05/receipt.json'); stdout = captured('F05.stdout');
+      }
+      const logPrefix = mock.scratch + '/logs/' + specification.label;
+      const artifacts = new Map([[logPrefix + '/receipt.json', receiptBytes], [logPrefix + '/receipt.json.raw', rawBytes], [logPrefix + '/loads.jsonl', Buffer.from(mock.loadRows.map(row => JSON.stringify(row)).join('\n') + '\n')]]);
+      const artifactSnapshot = [...artifacts].map(([name, bytes]) => ({ name, bytes: bytes.length, sha256: sha(bytes) }));
+      const result = { row: specification.label === 'F05' ? structuredClone(p06.subjectRow) : structuredClone(mock.terminalRow), stdout, stderr: Buffer.alloc(0) };
+      const ports = {
+        scratch: mock.scratch, control, limits: control.limits,
+        guard(label) { portCalls.push('guard:' + label); guard(specification.id + ':' + label); },
+        immutable(label) { portCalls.push('immutable:' + label); assert.deepEqual([...artifacts].map(([name, bytes]) => ({ name, bytes: bytes.length, sha256: sha(bytes) })), artifactSnapshot); },
+        readLimited(filename, maximum) { artifactReads.push(filename); assert.ok(artifacts.has(filename), 'UNDECLARED_MOCK_READ'); const bytes = artifacts.get(filename); assert.ok(bytes.length <= maximum); return Buffer.from(bytes); }
+      };
+      const subjectInstance = bindSubject(ports);
+      let accepted = false;
+      let caught;
+      let value;
+      try {
+        if (specification.route === 'composed') value = subjectInstance.acceptEvaluation(specification.label, structuredClone(mock.admitted), result);
+        else {
+          const loadsBytes = artifacts.get(logPrefix + '/loads.jsonl');
+          const loads = { sha256: sha(loadsBytes), actualEnginePaths: mock.loadRows.filter(row => row.role === 'engine').map(row => row.path).sort(), sourceAndEmissionHashesVerified: true, unknownLoads: 0 };
+          value = subjectInstance.reconcileReceipt(specification.label, normalized, JSON.parse(stdout), result, loads, receiptBytes);
+        }
+        accepted = true;
+      } catch (reason) { caught = reason; }
+      record.accepted = accepted;
+      record.reason = caught ? { name: caught.name, code: caught.code, message: caught.message, operator: caught.operator, actualType: typeof caught.actual, actual: caught.actual, expected: caught.expected, stack: String(caught.stack).split('\n').map(line => line.replace(/data:text\/javascript;base64,[^ )]+/g, 'BOUND_WHOLE_SUBJECT')).join('\n') } : null;
+      record.portCalls = portCalls;
+      record.artifactReads = artifactReads;
+      record.reconciliation = accepted ? value.reconciliation ?? value : null;
+      rawControls.push({ id: specification.id, mutation, artifacts: Object.fromEntries([...artifacts].map(([name, bytes]) => [name, bytes.toString('base64')])), stdoutBase64: stdout.toString('base64'), stderrBase64: '', resultRow: result.row, undefinedOwnData: mutation?.undefined ? { ordinal: mutation.ordinal, key: 'nativePromise', valueType: 'undefined', present: Object.hasOwn(normalized.events[mutation.ordinal - 1], 'nativePromise') } : null, record });
+      assert.equal(accepted, specification.accept, 'EXPECTED_ACCEPTANCE');
+      if (!accepted) {
+        assert.equal(caught?.code, 'ERR_ASSERTION');
+        assert.equal(caught?.operator, 'strictEqual');
+        assert.equal(caught?.expected, specification.label !== 'F05');
+        assert.ok(caught.stack.includes('reconcileReceipt'));
+        const target = normalized.events[mutation.ordinal - 1];
+        assert.deepEqual(caught.actual, target.nativePromise, 'TARGET_FIELD_REJECTION');
+      }
+      if (specification.route === 'composed') {
+        assert.deepEqual(portCalls, ['guard:after-' + specification.label, 'immutable:after-' + specification.label]);
+        assert.deepEqual(artifactReads, [logPrefix + '/loads.jsonl', logPrefix + '/receipt.json', logPrefix + '/receipt.json.raw']);
+        assert.equal(subjectInstance.evidence.observations.length, accepted ? 1 : 0);
+      }
+      record.status = 'PASS';
+    } catch (reason) {
+      record.status = 'FAIL'; record.failure = { name: reason.name, message: reason.message, stack: reason.stack };
+      failure = record.failure;
+    }
+    checks.push(record);
+    write(specification.id + '.json', record);
+    if (failure) break;
+  }
+} catch (reason) { failure = { name: reason.name, message: reason.message, stack: reason.stack }; }
+finally {
+  let integrity = true;
+  try { guard('before-archive'); } catch (reason) { integrity = false; failure ??= { name: reason.name, message: reason.message, stack: reason.stack }; }
+  const raw = encode({ classification: 'SYNTHETIC_ONLY_NO_ACTUAL_ENGINE_OR_CHILD', executionCommit, presealSha256: expectedSeal, sourceChecks, controls: rawControls });
+  assert.ok(raw.length <= plan.captureBytes);
+  const compressed = gzipSync(raw);
+  const encoded = Buffer.from(compressed.toString('base64') + '\n');
+  assert.ok(gunzipSync(compressed, { maxOutputLength: plan.captureBytes }).equals(raw));
+  write('CAPTURE.json.gz.base64', encoded);
+  write('REPORT.json', { executionCommit, sourceComparisonComplete, sourceChecks: sourceChecks.length, expected: plan.expected, observed: checks.length, passed: checks.filter(row => row.status === 'PASS').length, failed: checks.filter(row => row.status === 'FAIL').length, unrun: plan.controls.length - checks.length, accepted: checks.filter(row => row.accepted).length, rejected: checks.filter(row => row.accepted === false).length, composedInvocations: checks.filter(row => row.route === 'composed').length, directReconcilerInvocations: checks.filter(row => row.route === 'reconciler').length, subjectImports: importCount, wholeFunctions: 7, standaloneSyntaxChecks: 0, harmlessChildren: 0, naturalChildren: 0, containedChildren: 0, rescue: 0, actualEngineEvaluations: 0, mainEvaluationsUnrun: 8, failure, integrity, guards, elapsedMs: Date.now() - started, capture: { encodedBytes: encoded.length, encodedSha256: sha(encoded), compressedBytes: compressed.length, compressedSha256: sha(compressed), rawBytes: raw.length, rawSha256: sha(raw) } });
+  try { guard('after-archive'); } catch (reason) { integrity = false; failure ??= { name: reason.name, message: reason.message }; }
+  const closure = { schema: 'synthetic-f05-closure-v3', executionCommit, presealSha256: expectedSeal, mainManifestSha256: seal.mainManifestSha256, allPass: !failure && integrity && checks.length === plan.controls.length, integrity, guardCalls, elapsedMs: Date.now() - started, captureBytesBeforeClosure: captureBytes, activeChildren: 0, spawnedChildren: 0, childReaping: 'NOT_APPLICABLE_ZERO_CHILDREN', rescue: 0, scratch: 'in-memory only; no engine tree or child workdir created; raw artifacts retained', engineEnteredQualification: 'Fixture engineEntered=1 is inert DATA, NOT actual entry; actual engine evaluations remain0', inputMembershipAppendChecked: true, outputMembershipAppendChecked: true, failure };
+  write('CLOSURE.json', closure);
+  guard('final-membership');
+  process.stdout.write(JSON.stringify({ allPass: closure.allPass, observed: checks.length, elapsedMs: Date.now() - started, captureBytes, closureSha256: sha(fs.readFileSync(path.join(output, 'CLOSURE.json'))), harmlessChildren: 0, actualEngineEvaluations: 0 }) + '\n');
+  process.exitCode = closure.allPass ? 0 : 1;
+}

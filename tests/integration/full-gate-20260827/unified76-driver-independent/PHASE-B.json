@@ -1,0 +1,122 @@
+{
+  "schema": "unified76-independent-preparation/phase-b/v1",
+  "status": "PRE-CANDIDATE/HOLD",
+  "controlsStatus": "NOT_EXECUTED",
+  "phaseA": {
+    "commit": "7f98f745ffbf14da484ca3867ebf09cfa18841a2",
+    "path": "tests/integration/full-gate-20260827/unified76-driver-independent/PHASE-A.json",
+    "sha256": "c8df466748a048e91a7a28a0b83c58dca2f8fdba2773e359d7b647d51d41a37c",
+    "committedLocal": "2026-08-27T19:17:05-05:00"
+  },
+  "chronology": {
+    "sequence": ["Observed existing live author filenames/metadata without bodies", "Committed Phase A", "Read pinned proposal and historical policies/manifests/reports", "Performed bounded static Git/JSON/hash/membership reads only"],
+    "liveAuthorBodiesRead": [],
+    "pinnedSuccessorDriverBodiesRead": [],
+    "qualification": "POST author-file existence / PRE implementation inspection. Phase A remains byte-immutable. No blind pre-authoring or literal pre-code attestation. Proposal statements NOT_SELECTED/driverImplemented:false describe its own earlier audit, not the later root assignment or this leaf's metadata observation.",
+    "extraExposure": "Four base fixture blobs were hashed, not displayed or executed. Validation may hash pinned source/classified blobs; no product imports, author implementation inspection, historical runner imports, or live fallback."
+  },
+  "revisions": {
+    "proposal": "71bf8b4d30f015459bb4e888114e5eb6d323eae8",
+    "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "historicalFreeze": "0895926bbf0f3cf1439c75f59e5505330afa1a39",
+    "historicalInfrastructure": "522e8e273573517ab8b854636bdd4589ee696c28",
+    "historicalCalibration": "c355751f36ca3fdbab8f888eaab30203c1bcd343",
+    "historicalHandoff": "aa84dbbfae5c2f394dc1ec2516a809d659f72b4a"
+  },
+  "evidence": [
+    {"id": "proposal", "revision": "proposal", "path": "tests/integration/full-gate-20260827/unified76-proposal/PROPOSAL.md", "sha256": "96310af9568b39bd2f2b1314836aab37ad37e1661a7847a4ba4e205fb6c6023f"},
+    {"id": "proposalManifest", "revision": "proposal", "path": "tests/integration/full-gate-20260827/unified76-proposal/MANIFEST.json", "sha256": "deac3556b9e91981e1997e728c5c581cd23dc58cb4eeb30b38cdfc9ffe82e7d1"},
+    {"id": "proposalReceipt", "revision": "proposal", "path": "tests/integration/full-gate-20260827/unified76-proposal/RECEIPT.json", "sha256": "6445c29d27e85c320272e1b149b9873dcc0e664f64bac04786b4458a657a9a7b"},
+    {"id": "native", "revision": "proposal", "path": "tests/integration/full-gate-20260827/unified76-proposal/NATIVE.json", "sha256": "e5df9f3a5d3766a1d05e56a2e80af91abb31d4c66474bba8abcdf6ffb6b2d609"},
+    {"id": "mts", "revision": "base", "path": "tests/plugins/qualified-current-release/inventory.json", "sha256": "725b0c12e7965bc3e400f25cae1a31a1d2f3e456b232f1bcc3a8bb561cc0a6f7"},
+    {"id": "stagedTypes", "revision": "base", "path": "tests/plugins/qualified-current-release/staged-types.json", "sha256": "74c0e75d5ae06a28db0647545387a2827ca3d51394aae19c4656dcb6bf9a1e43"},
+    {"id": "historicalCases", "revision": "historicalFreeze", "path": "tests/integration/release-readiness-independent-20260827/cases.json", "sha256": "d6a29c9db71081b1a35efa9ebe188e37344051e2a5a175125778771daba44e52"},
+    {"id": "historicalBoundary", "revision": "historicalFreeze", "path": "tests/integration/release-readiness-independent-20260827/boundary.json", "sha256": "45924201d57add04ff156e0a577f9e865a866e9dc804a82fd5e4821e75cfb3bd"},
+    {"id": "historicalTemplate", "revision": "historicalFreeze", "path": "tests/integration/release-readiness-independent-20260827/candidate-template.json", "sha256": "cc0584ddd4f9699ad57e9705b2354ecf78ce40018b63a9ac1d947301f8e4da51"},
+    {"id": "historicalPolicy", "revision": "historicalFreeze", "path": "tests/integration/release-readiness-independent-20260827/README.md", "sha256": "4646617b3c9c8506afb44002f31c87bb9a647832ead3604ccd80df81dd4c55c6"},
+    {"id": "historicalReport", "revision": "proposal", "path": "tests/integration/release-readiness-independent-20260827/candidate-aa84dbbf-review/REPORT.md", "sha256": "32076535504d11468191535df20121898445d242a3664da9b493b030326aed0f"},
+    {"id": "historicalRuntimeReceipt", "revision": "base", "path": "tests/integration/full-gate-20260827/runtime-profile-20260827/RECEIPT.json", "sha256": "448aed3f3c2f4cac51e51de17ca4a5d9d4670fc34367d820e0e84b5119df6613"}
+  ],
+  "knownBindings": {
+    "productTree": "5905cf8d43233c68ea2bd499275ada2641223d9a",
+    "sourceTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+    "productPackSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "packageJsonSha256": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a",
+    "packQualification": "Exact digest reported by pinned proposal/receipt for prior full44f author pack; this leaf did not read/repack/import that tarball or independently certify its bytes. Pinned proposal reports 834 package files and 832 matching emitted files; not targeted-consumer package acceptance.",
+    "node": {
+      "version": "24.11.1",
+      "profile": "guarded-gate-node24.11.1-darwin-arm64",
+      "historicalRealpath": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+      "historicalGuardSha256": "af4608b333f6b2dc4384fb28d3866a134ba3efc0a120d63a9adeee79f0f21114",
+      "qualification": "Pinned historical report supplies path/guard identity; proposal confirms version/profile/binary hash. No present executable hashing, native probe or successor-loader authentication occurred. Exact successor argv/grants/loader manifest remain unbound."
+    },
+    "canonical": {"count": 632, "source": "proposalReceipt.canonical.paths (objects containing path and blob)", "membershipSha256": "83a7575b3562280b526aad4559804a2867e8140827248c746837559ad89ad464"},
+    "classifiedMts": {"count": 192, "source": "mts.entries", "membershipSha256": "90ad49646c9cd6f64672b6b7b40c5454eacbca4ebccb7bf5bf5502c55c90c2af", "counts": {"frozen-evidence": 147, "current": 34, "declaration": 7, "frozen-oracle": 1, "negative-types": 3}},
+    "membershipEncoding": "SHA-256 of lexicographically sorted exact path strings joined by LF plus one final LF; membership hash alone is not file-byte, runtime-closure or executed-coverage evidence.",
+    "cleanup": {
+      "count": 256,
+      "source": "proposalReceipt.cleanup.files (exact path -> SHA-256 map)",
+      "membershipSha256": "847aa17a1a01f278f72aed134ef083ead884d11abbe975fcca72f9c8524ea547",
+      "draftEnvelopeSha256Reported": "6fee74b588854ec223d4ebcc5a460f405b329d38aef849278ac72212fbcf73db",
+      "oldCount": 244,
+      "delta": {"added": 12, "removed": 0, "changed": 23},
+      "qualification": "Membership is present in pinned receipt, not missing. Draft envelope digest is reported, not rehashed from compressed RAW. Final selected candidate/cleanup COMMIT and EXPECTED envelope remain unbound; no cleanup behavior executed."
+    },
+    "native": {
+      "source": "native.assets in pinned NATIVE.json; original entry order preserves 49 base requirements followed by expr and du",
+      "base": 49, "extensions": ["expr", "du"], "total": 51, "executableEntries": 44, "nonExecutableEntries": 7,
+      "qualification": "51 declared asset requirements, not 51 unique native binaries or behavioral passes. Seven entries are a source archive/source/docs; duplicate logical names and shared binaries require origin/target/hash identity, not name-only deduplication. Pinned expected/actual SHA agreement is historical assessment, not current host availability. Versions/library provenance require final profile binding where available."
+    },
+    "fullGitTree": {"entries": 37397, "bytesReported": 2382440287, "fixtureSymlinks": 12},
+    "runtimeClosure": null,
+    "runtimeClosureQualification": "Proposal expressly says 4579-file/about35.5MB corrected type-only selection is NOT a whole-gate runtime closure. No successor closure is authenticated by this preparation. Pinned census and compact selection may inform questions, never substitute for actual runtime dependency enumeration."
+  },
+  "fixtures": [
+    {"path": "tests/commands/split/integration.test.ts", "baseBlob": "b7444047a32c83eadf4fd4a5d5c2e91d98be6d7c", "baseSha256": "925551e6befe9ccb1d907948a74e002f490a49f51640943069d7599ef794c705", "from": 73, "to": 76, "proposalLines": [38,39,45], "candidateSha256": null},
+    {"path": "tests/commands/stream-format-author-stress/contracts.test.ts", "baseBlob": "873ab37faf8b155e562eda8bb196d02f74ca2040", "baseSha256": "f75b17b6530611215aedb8459bc8bb00b82ac1d31eb96126e0e2a8962ed9a0b1", "from": 73, "to": 76, "proposalLines": [17,19,26], "candidateSha256": null},
+    {"path": "tests/integration/stream-inspection-public-author/public.test.ts", "baseBlob": "d56a27dc4f2b6e84ca2c01471fe474ffe989b34c", "baseSha256": "4919909cde0944c851bb9aea39bf2aae5971683d39d48d3924bb5cd668e1c2c0", "from": 74, "to": 77, "proposalLines": [79,86], "candidateSha256": null},
+    {"path": "tests/plugins/stream-five-public/consumer.mjs", "baseBlob": "96375d606df3f9f480d13d20d00f3a779ee330fe", "baseSha256": "79c962dd5d8686af1e9e03b60e5d3f3b1bdb5f4fa7acedbaff6c5009891276b6", "from": 70, "to": 76, "proposalLines": [33,34,126], "candidateSha256": null}
+  ],
+  "historicalVersioning": {
+    "outcomes": "Historical report's 71 PASS / 0 FAIL / 7 NOTEXECUTED stays historical and unmodified. No cases rerun or rescored here.",
+    "sevenUnexecutedIds": ["binding-complete-synthetic", "binding-pending-template", "binding-mutable-head", "binding-missing-asset", "binding-missing-classification", "binding-missing-cleanup-manifest", "binding-skipped-case"],
+    "successorNamespace": "u76.<historical-id> is proposed for separately bound successor questions, not renamed old outcomes or additional executed cases.",
+    "requiredVersionChanges": [
+      {"historical": "defaults-exact73 / defaults-old70 / defaults-curl / defaults-safejs / defaults-expr / defaults-du", "controls": ["A02","A11","A22"], "successor": "Bind a literal76 default set, exclude optional curl/SafeJS, and version old expr/du exclusion mutations because those families are now defaults. Public custom fixture expects77. Obtain literal expected names independently of runtime; no historical fixture rewrite."},
+      {"historical": "counts-exact-two-migrations / counts-one-migration / counts-historical-rewrite / counts-wrong-value", "controls": ["A01","A02"], "successor": "Exactly three canonical fixture paths plus one maintained consumer, not old two-file70->73 migration. Supply actual reversible patch bytes; leave old driver additions/history out of the fixture-only delta."},
+      {"historical": "cleanup-exact-observation-control / cleanup-missing-source / cleanup-stale-source / cleanup-swapped-path / cleanup-wrong-revision / cleanup-wrong-tree", "controls": ["A16","A18"], "successor": "256 exact current source entries, final candidate COMMIT/EXPECTED envelope and retained awaiting semantics; never reinterpret historical244 as256."},
+      {"historical": "classification-* and binding-missing-classification", "controls": ["A03","A04","A05","A21"], "successor": "192 exact MTS entries plus14 staged roles and five captured sources where consumed; separate complete runtime closure. Old191 census is not this candidate. Type-only provider routes stay type-only."},
+      {"historical": "Seven binding-* cases", "controls": ["A01","A07","A11","A15","A16","A19","A22"], "successor": "Freeze a version76 contract before implementation inspection: selected base plus authorized overlay and separate driver artifact, matching pack/cleanup/classification/native/runtime identities. Old template's complete synthetic structure is not root approval or cryptographic authentication."},
+      {"historical": "runtime-* / permission-tap-flag-after-input / permission-*", "controls": ["A08","A09","A17","A19","A20"], "successor": "Retain actual Node24 guard and explicit reporter-before-input controls. Required maintained groups demand exact positive counts and zero failed/cancelled/skipped/todo; diagnostic whole-gate accounting historically preserves optional skips/known failures. Root must freeze stricter acceptance policy separately."}
+    ]
+  },
+  "questions": [
+    {"id": "Q1", "controls": ["A01","A02","A22"], "to": "root + Curie", "question": "Route the exact candidate commit/tree or explicit immutable assembly identity, the four overlay patches and their after-hashes, plus the separately committed driver tree/path/blob/SHA inventory. Is the candidate a descendant or explicitly authorized assembled base+overlay? State identity layers separately; exclude helper373/which/later source, and authorize version76 successor questions without rescoring the old seven."},
+    {"id": "Q2", "controls": ["A03","A04","A05","A06","A14","A21"], "to": "Curie + root", "question": "Supply the complete runtime input closure and per-phase consumers/origins, including actual shell/npm/compiler/loader/children, helper .mjs/.json, golden/native/provider data, generated bindings, 192 classifications,14 staged roles and five captures as used. Choose reviewed compact closure or streamed full-tree mode; define exact source/fixture-link/setup/build/output scopes and before/after addition detection. Resolve F01 explicitly: current WebDAV provider inventory SHA288d17... differs from the base blob's SHAaf9ffd...; say whether that field is historical/advisory for current entries and bind actual selected bytes in the runtime guard. The 4579 typing selection and 632/192 totals cannot admit runtime reads; no broad source change, fifth fixture, manifest edit or AGENTS copy is requested."},
+    {"id": "Q3", "controls": ["A07","A08","A09","A12","A13","A17","A20"], "to": "Curie", "question": "Bind successor Node realpath/hash for direct/PATH children, exact loader/guard bytes and ordered permission/TAP/concurrency2 argv; publish import-safe helper/admission surfaces and explicit --run gate boundary. What finite chunk/archive-entry/metadata/total-size, output, process and timeout bounds apply, with no full-tar buffering, hidden retries or SIGSTOP of productive workers?"},
+    {"id": "Q4", "controls": ["A15","A21"], "to": "Curie + root", "question": "Carry forward the exact NATIVE.json49+2 membership/hash identities, distinguishing44 executable requirement entries from seven source/archive/docs entries and repeated logical names/shared wrappers. Bind final origins, versions/profile/libraries where available and the exact recovered rg asset, not same-version substitution. Missing/mismatched native prerequisites must reject78 before suites; current availability has not been checked here."},
+    {"id": "Q5", "controls": ["A16","A17","A18"], "to": "Curie + root", "question": "Route the final256-entry cleanup envelope bytes/digest and matching VIRTUAL_BASH_PUBLIC_CLEANUP_COMMIT/EXPECTED, explicitly rebinding any descendant/assembly identity. Retain exact12-added/0-removed/23-changed delta from244 and the registered-resource awaiting control. State cooperative versus opaque work, closed-tree evidence and timeout/forced-cleanup failure disposition."},
+    {"id": "Q6", "controls": ["A10","A11","A22"], "to": "root + Curie", "question": "Bind build-once emitted runtime/declarations and full product package to the same selected product+test-overlay lineage. Is c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd retained, or does root explicitly declare another digest and reason? Supply literal76 names, HTML/DU/expr root/subpath/options/workflow smoke and exact23 strict/20 runtime/3 negative routes without treating pending public reviews or DU local-package evidence as public acceptance."},
+    {"id": "Q7", "controls": ["A09","A19","A20","A22"], "to": "root", "question": "Freeze diagnostic accounting versus strict successor acceptance: exact required counts, allowed/reportable optional skips and known failures, raw TAP/stdout/stderr/status completeness and capture rules. In particular, is unavailable legitimate SafeJS reported accurately with HOLD/nonacceptance, or is separately authenticated availability required before launch? No private writes, implicit engine load or install is authorized by this leaf. Do not silently impose a universal zero-skip parser rule or treat an optional skip as required coverage."}
+  ],
+  "staticFindings": [
+    {
+      "id": "F01",
+      "path": "tests/fs/webdav/consumer/provider.mts",
+      "classification": "current",
+      "group": "webdav-loopback",
+      "inventorySha256": "288d17dca5b6950fababb945cf21c15594dfbf37897d1cdcaab2aba1088a6b9b",
+      "baseSha256": "af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6",
+      "status": "OPEN_BINDING_QUESTION_NOT_WAIVED",
+      "scope": "One of192 classified base blobs differs from its inventory sha256; all192 exact paths still match Git membership. This is an observed field/byte mismatch, not a proven successor source-guard or product defect: no successor body was inspected and current-field authority needs Q2 clarification. Bind actual selected bytes; do not silently trust the stale digest, demand broad source changes or alter the authorized four-fixture scope."
+    }
+  ],
+  "staticValidationBoundary": {
+    "allowed": "Owned JSON/schema/Phase-A hash checks; bounded pinned Git blob hashes and streamed tree metadata membership; no product or driver execution.",
+    "limits": {"individualBlobBytes": 524288, "gitMetadataBytes": 16777216, "metadataRecordCharacters": 8192, "gitCommandTimeoutMs": 15000},
+    "notValidated": ["Actual proposed four-file patch or reverse proof", "Future candidate/driver immutable binding", "Successor implementation or helper APIs", "Runtime closure completeness", "Fresh Node/native availability or permissions", "Pack tarball bytes or emitted build", "Compressed RAW or draft cleanup envelope bytes", "Actual types/runtime/native/cleanup/gate outcomes", "All TypeScript fixtures and their runtime or public semantics"],
+    "reviewerCorrection": "An exploratory summary initially treated proposalReceipt.canonical.paths objects as strings. Its provisional digest90e58f12d7c06d71aa83560e576fe42c887233852aa13850cb91e2bd48e984c6 and apparent missing/extra lists are invalid reviewer output, not candidate failures. Corrected .path extraction and exact {path,blob} comparison match all632 pinned Git entries; both attempts remain in the tool transcript. No expectation or historical result was changed.",
+    "validationAttempts": "First integrityvalidation --verify exited1 at F01 rather than completing remaining checks. A separate bounded hash audit found exactly that one MTS mismatch, no256 cleanup mismatches and no14 staged-input mismatches. Final validator collects all mismatches, completes remaining static checks and still exits1 when findings exist; it does not turn F01 into a green waiver. The locally corrected repository-parent calculation was fixed before any validator execution; no out-of-repository work occurred."
+  }
+}

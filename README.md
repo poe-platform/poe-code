@@ -77,8 +77,8 @@ metadata (`chmod`, `stat`, `mktemp`), archives (`tar`), table-text
 stream formatting (`seq`, `nl`, `rev`, `unexpand`), splitting (`split`), and
 time/environment (`date`, `sleep`, `printenv`), tree (`tree`), file (`file`),
 grep aliases (`egrep`, `fgrep`), table layout (`column`), bounded HTML conversion
-(`html-to-markdown`), usage accounting (`du`), expressions (`expr`) and virtual
-executable lookup (`which`), totaling 77 unique registered
+(`html-to-markdown`), usage accounting (`du`), expressions (`expr`), virtual
+executable lookup (`which`) and cooperative deadlines (`timeout`), totaling 78 unique registered
 plugin names. These families have separate scoped evidence;
 name registration is not proof of complete utility semantics.
 Do not also install those families unless you deliberately request replacement.
@@ -89,7 +89,9 @@ The bundle checks every name for collisions before changing the registry;
 instead of installing a plugin. Its registry-only fallback resolves commands
 across the bundle; `agentCommands` also resolves external host commands. Both
 prefer `context.invoke` for nested execution, preserving the shell's middleware
-and budgets. `execute` supplies a fallback only when that hook is unavailable.
+and budgets. `execute` supplies the existing utility fallback when that hook is
+unavailable; `timeout` instead has its own explicit `timeout.invoke` fallback,
+used only when the context has no `invoke` property.
 
 Family options keep their existing types and semantics, with one top-level
 replacement policy:
@@ -216,6 +218,48 @@ cooperative: propagate signals and register owned cleanup before acquisition;
 public settlement awaits registered cooperative cleanup. It cannot preempt
 opaque CPU work or undo completed side effects. Optional owned-output scopes
 close their destination without aborting unrelated file/header/stderr work.
+
+## Cooperative timeout
+
+The root and `virtual-bash/commands/timeout` export `createTimeoutCommand`,
+`createTimeoutCommands`, `timeoutCommands`, `TimeoutCommandOptions`,
+`TimeoutCommandsOptions`, and `TimeoutScheduler`. The default aggregate includes
+`timeout`; standalone registration does not install the command being invoked.
+Aggregate `timeout` options omit `replace`: the top-level replacement policy is
+authoritative, including when a JavaScript caller supplies an extra nested field.
+
+```ts
+import { Shell, agentCommands, createMemoryFileSystem } from "virtual-bash";
+
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+try {
+  const completed = await shell.exec("timeout 1s printf ready");
+  console.log(completed.stdout); // ready
+  const limited = await shell.exec("timeout .01s sleep 1");
+  console.log(limited.exitCode); // 124 after cooperative cancellation and cleanup
+} finally {
+  await shell.dispose();
+}
+```
+
+This is a virtual, cooperative deadline, not native GNU timeout, an OS signal,
+or hard preemption. The child must honor its supplied signal and settle its
+owned cleanup. Blocked host JavaScript, ignored signals, stalled clocks or
+nonsettling cleanup can prevent settlement. An ordinary returned child status
+is preserved; caller abort and unrelated escaping errors are not rewritten as
+deadline success. Existing shell invocation budgets and stream ownership remain.
+
+Durations accept the module's ASCII decimal profile with optional `s`, `m`, `h`
+or `d`; mathematical zero creates no deadline resources. Supported duration
+range is through `Number.MAX_SAFE_INTEGER` milliseconds. Optional `scheduler`
+methods retain their receiver. `maxTimerMilliseconds` is an integer from1 through
+2147483647 (default2147483647), bounding each timer chunk, not the total duration.
+`invoke` is an optional explicit host fallback, not a subprocess capability.
+Native modes `--signal`, `--kill-after`, `--foreground`, `--preserve-status` and
+`--verbose` are refused rather than simulated. No native or SafeJS parity is
+claimed by the module/public integration. Its leaf README records the earlier
+pre-wiring status; this section describes the new root surface, whose different
+public review is pending.
 
 ## Stream Formatting and Splitting
 
@@ -472,7 +516,7 @@ pre-first-byte `head -n 0` custom lifecycle issue is not fixed by this checkpoin
 it does not prevent delivery of the verified curl scope. Current root assignments
 govern source/test ownership; historical assignments are recorded in the ledger.
 
-The current default aggregate has 77 unique plugin names; optional `curl` and `safejs`
+The current default aggregate has 78 unique plugin names; optional `curl` and `safejs`
 add one each only when explicitly installed. At curl finalization, the committed
 aggregate still had 49 names while uncommitted metadata wiring exposed 52 in
 the working tree and its built package. That historical build/smoke remains a

@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "freeze": "17b9249a06c5d768409fea932ea7f44e36b63720",
+  "scope": "one post-author pure-data/static/synthetic cohort only; no gate or real setup",
+  "ownedFiles": {
+    "bind.py": "2600dac241828765bdfb6cf0207ab47433bc701ab1659a60f31d1691e9f47dac",
+    "BINDINGS.json": "1b99a7b260b219cb9f5ceb5db3d6691f8143c98f77315e903016350ee6206a0f",
+    "STATIC.json": "568915fa1beb23f2297c73dd120a2e7e2eda401adf049396b432c6494e57cd34",
+    "review.mjs": "487de2086101d8b8558656f39d02661a8c4bd80df3bbc6f7024ce833fae9ee74",
+    "controller.py": "3ce4b55541face87a9c25a1031763e154ca0b50d95adc8c9607b9d3a4362fa17",
+    "RECIPE.md": "5bb1affe252f5899b55e4ad89f3f2703f2b479f81f32381f7110d974ce3cb541"
+  },
+  "reviewHostPython": {
+    "physical": "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+    "sha256": "87d4df53fd91304be5bac391fb204643c36b7df2023c04a0953bcbc7d4fdf634",
+    "qualification": "review metadata/capture controller only, not a shipping tool route"
+  },
+  "candidateNodeSha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0",
+  "source": "e35d83ca97f6aa4f32b2cb8542f5e711458f6aeb",
+  "imports": "BINDINGS.json runtimeModules, exactly13 modules, no executable helper/product entrypoints",
+  "bounds": {
+    "internalCoordinatorSeconds": 120,
+    "outerSeconds": 180,
+    "perCaseSeconds": 60,
+    "stdoutBytes": 1048576,
+    "stderrBytes": 1048576,
+    "scratchAndStageBytes": 67108864,
+    "candidateCoordinators": 1,
+    "candidateChildren": 0,
+    "retries": 0
+  },
+  "plannedAccounting": {
+    "static": 7,
+    "data": 22,
+    "syntheticExercised": 9,
+    "syntheticUnexecuted": 2,
+    "total": 40
+  },
+  "unexecutedCases": [
+    "H06.3",
+    "H11.2"
+  ],
+  "presealValidation": "Owned Python AST/JSON structure and node --check review.mjs succeeded; no candidate imports or controls executed.",
+  "immutableExtraData": [
+    {
+      "name": "FREEZE.json",
+      "revision": "17b9249a06c5d768409fea932ea7f44e36b63720",
+      "path": "tests/integration/full-gate-20260827/unified76-driver-independent/historical-eligibility-v16/FREEZE.json",
+      "bytes": 15843,
+      "sha256": "0bdd4d0083d41dd3b507485622dbf1313a27e93120060909a4239705ea0a2ac5"
+    },
+    {
+      "name": "seal-data.json",
+      "revision": "e35d83ca97f6aa4f32b2cb8542f5e711458f6aeb",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+      "bytes": 4603,
+      "sha256": "602a866e3c251ff23d6922e5ed776651cd5cb0dbacd554b9c9c65583af6dafc9"
+    },
+    {
+      "name": "consumed-release.json",
+      "revision": "c222e17c4cbcc6bcb9da8a77414b90af3c465d88",
+      "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v2/ROOT-AUTHORIZATION.json",
+      "bytes": 31061,
+      "sha256": "6c04ed4badd458d74f8d1c8c4dd945e55cdd087b90b7d49f097aa2338fae524d"
+    }
+  ]
+}

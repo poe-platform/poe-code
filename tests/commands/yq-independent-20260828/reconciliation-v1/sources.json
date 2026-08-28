@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "state": "SELECTED_IMMUTABLE_BINDINGS_NOT_PACK_REPLAY",
+  "sources": [
+    {
+      "id": "freeze-readme",
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/README.md",
+      "gitBlob": "75ec73bc1cd0fbdf91c1f21ce0328f2a603a3796",
+      "sha256": "0cb91b8b471fd5f7453fc0dfae9da3acf224680d758d50a750995108875d3955",
+      "bytes": 13125,
+      "compareWorkingBytes": true
+    },
+    {
+      "id": "freeze-integrity",
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/integrity.json",
+      "gitBlob": "b05483562a8c8961ef594f7bf909b33fc9852285",
+      "sha256": "658c00cf9b38c7b4c0f8cf2c0c9092baa04468433747e0427e25868f94ba5462",
+      "bytes": 3428,
+      "compareWorkingBytes": true
+    },
+    {
+      "id": "normative-review",
+      "commit": "c75fad948ab185fc68e5fdbd49dce4727a279514",
+      "path": "tests/commands/yq-independent-20260828/normative/REVIEW.md",
+      "gitBlob": "633f0d91892c5d89a4befdb6682724b98dfdbb67",
+      "sha256": "f28c20f0b7c4be27ffb9ba432bb8a1f948f1dd2e27753845c6055d6f11a9bd34",
+      "bytes": 14285,
+      "compareWorkingBytes": true
+    },
+    {
+      "id": "normative-cases",
+      "commit": "c75fad948ab185fc68e5fdbd49dce4727a279514",
+      "path": "tests/commands/yq-independent-20260828/normative/cases.json",
+      "gitBlob": "61c8bf10b3de59500b14462875a8650190b5aa8f",
+      "sha256": "36538ec3e40205a61d9d1b3a3ce0e9232bcff47502512dafc9cd90c615282d9e",
+      "bytes": 20354,
+      "compareWorkingBytes": true
+    },
+    {
+      "id": "normative-selected",
+      "commit": "c75fad948ab185fc68e5fdbd49dce4727a279514",
+      "path": "tests/commands/yq-independent-20260828/normative/selected-inputs.json",
+      "gitBlob": "290e325478937c7ef02cf6df2419b4c121471e8c",
+      "sha256": "b3ac2840e6414cc943be7d75e1553f5aff0af88e83fb87feb82fae41ed522d86",
+      "bytes": 4071,
+      "compareWorkingBytes": true
+    },
+    {
+      "id": "normative-checker",
+      "commit": "c75fad948ab185fc68e5fdbd49dce4727a279514",
+      "path": "tests/commands/yq-independent-20260828/normative/check-static.mjs",
+      "gitBlob": "0df0123d9569d8db65be40afa7acd2a89165921a",
+      "sha256": "cd866d7b8aa228f672a55c72152d15899f05283029e8c3b96d23ba296610b6b2",
+      "bytes": 10581,
+      "compareWorkingBytes": true
+    },
+    {
+      "id": "query-review",
+      "commit": "3bc2ee8aa38e82773a1fbec1f0b67673b0928105",
+      "path": "tests/commands/yq-independent-20260828/query-budget/REVIEW.md",
+      "gitBlob": "5e590f62051ae0018eadeaa3dfea687d7000a024",
+      "sha256": "db38472bd5252dea54e41da049742740af2f4bc4f8354dc096db407a29def538",
+      "bytes": 17110,
+      "compareWorkingBytes": true
+    },
+    {
+      "id": "query-cases",
+      "commit": "3bc2ee8aa38e82773a1fbec1f0b67673b0928105",
+      "path": "tests/commands/yq-independent-20260828/query-budget/CASES.json",
+      "gitBlob": "a447806a83a413aba3562a806a57902a2b9a5777",
+      "sha256": "cc1e73ab2adc50840499f0f57f4d30a1baa72bee2e095652e9b2d456f3753de3",
+      "bytes": 16845,
+      "compareWorkingBytes": true
+    },
+    {
+      "id": "query-selected",
+      "commit": "3bc2ee8aa38e82773a1fbec1f0b67673b0928105",
+      "path": "tests/commands/yq-independent-20260828/query-budget/SOURCE_IDENTITY.json",
+      "gitBlob": "5e4c5ca817c76c7b4924c6ac46fdd837620ce4b1",
+      "sha256": "044b46fadfe9b6732933c2b10bf4c7c4f01a8f7ee11df51120167ed2182162e9",
+      "bytes": 16884,
+      "compareWorkingBytes": true
+    },
+    {
+      "id": "query-checker",
+      "commit": "3bc2ee8aa38e82773a1fbec1f0b67673b0928105",
+      "path": "tests/commands/yq-independent-20260828/query-budget/check.mjs",
+      "gitBlob": "5e00a56ce5a813faf03318d2856245d94c9b3cbd",
+      "sha256": "889b2229b4622a0f8bff3b0b4b51947db4b629c51609cd5cad868ebf25050550",
+      "bytes": 8094,
+      "compareWorkingBytes": true
+    },
+    {
+      "id": "length-relay",
+      "commit": "3387a103798bb441764218d38696639d501d19d2",
+      "path": "tests/commands/yq-independent-20260828/query-budget/LENGTH-ACCEPTANCE-ADDENDUM.md",
+      "gitBlob": "ae15f35b39adf79830bbfafcf2f4c91356ded6e8",
+      "sha256": "77246ca464b245e4258e622f10014cff70aa0b7293209fd3e6fbbca18914e713",
+      "bytes": 2599,
+      "compareWorkingBytes": true
+    },
+    {
+      "id": "initial-readme",
+      "commit": "b311c2364ceca13daab4086dfb21157b9b8ae856",
+      "path": "tests/commands/yq-design-20260828/initial-profile-v1/README.md",
+      "gitBlob": "4d74b959588b2708cca6d4d8e8f2aa8ee465da68",
+      "sha256": "75af84bd5e888a3080e9096b86ed0a25be95105524011851193b9bf39192ba50",
+      "bytes": 29498,
+      "compareWorkingBytes": true
+    },
+    {
+      "id": "final",
+      "commit": "5783b8e03912f7774d2a86ba1dae9de778121273",
+      "path": "tests/commands/yq-design-20260828/final-contract-v1/contract.json",
+      "gitBlob": "a902a481993cbfd3b1a85ce8c54112ade65fbc81",
+      "sha256": "1b2cf2740586d6847286d5a28788beb748d09e8b2181f02e6476d3b7634cefb8",
+      "bytes": 37274,
+      "compareWorkingBytes": true
+    },
+    {
+      "id": "adoption",
+      "commit": "cfa6fbcb72c5a3e228c4ffbea7cb1719827b2707",
+      "path": "tests/commands/yq-design-20260828/final-adoption-v1/adoption.json",
+      "gitBlob": "403173f53d1674cbe35c8166e6fcb3c56c25ab5b",
+      "sha256": "22e83a0e6f602103ac9378654dd62fc7098c461ac90b7385e5d6b06cec156be6",
+      "bytes": 8461,
+      "compareWorkingBytes": true
+    },
+    {
+      "id": "parser-baseline",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/commands/structured/parser.ts",
+      "gitBlob": "f1bb01cd4c0203109727b70eb3598bd7822298c4",
+      "sha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51",
+      "bytes": 12587,
+      "compareWorkingBytes": false
+    }
+  ],
+  "qualification": "Selected source hashes only; no archives, copied cases, new research or native/product execution. Source-review/pack acceptance is relayed through the authenticated length addendum, not independently re-proven."
+}

@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-28",
+  "state": "ADDITIVE_PRECODE_DECISION_CHECKPOINT_NOT_PRODUCT_ACCEPTANCE",
+  "implementationAuthorized": false,
+  "execution": {"product":0,"nativeOrReference":0,"independentLengthPackReplay":0},
+  "cohorts": {
+    "freeze": {"commit":"f074c142411ba839cbd9da45a499cc798965149d","records":194,"originalPartialBlockers":6},
+    "normative": {"commit":"c75fad948ab185fc68e5fdbd49dce4727a279514","records":80,"blockedRecords":4},
+    "query-budget": {"commit":"3bc2ee8aa38e82773a1fbec1f0b67673b0928105","records":62,"blockedResourceRecords":2},
+    "newCaseRecords":0,
+    "uniqueProductCaseUnion":null,
+    "countRule":"These are separately sealed, overlapping record inventories, not additive unique-product-case denominators. No original record, expectation, checker or integrity membership changes."
+  },
+  "originalCoverage": {
+    "default":"Every one of the existing 194 IDs retains its frozen future assertions, subject to the explicit field overlays and global unresolved resource feasibility gates below. None is executed or accepted as a product pass.",
+    "retainedWithoutRecordOverlay":187,
+    "resolvedOriginalRecords":["NUM-14","QUE-12","WRK-10"],
+    "stillGoldenHeldOriginalRecords":["NUM-15","ENC-07","UTF-12"],
+    "additionalScopeHeldOriginalRecords":["WRK-22"],
+    "uniqueHeldOriginalRecords":4
+  },
+  "resolved": [
+    {
+      "id":"B-LENGTH-ACCEPTANCE",
+      "record":"QUE-12",
+      "originalFields":["/blocked","/note"],
+      "status":"CLOSED_BY_ROOT_ACCEPTANCE",
+      "reviewCases":["query-budget:P01"],
+      "current":"The exact existing input and expected status/stdout remain frozen, now against EXACT5137 plus accepted length source; no length prerequisite remains. Historical pending labels are superseded, not rewritten.",
+      "authority":["length-relay","root-current-assignment"],
+      "acceptedSource":"74361026502d76b8c2b696f9c60e410ac9b78d95",
+      "acceptedReview":"16c4502da78ac209e8979d7bd576f2be5492f104",
+      "rootReportedEvidence":{"holdouts":60,"selectedRegressions":93},
+      "acceptedPackageAddendum":"6d5cf6c640d87a5e427049d329eabf5c39136259",
+      "packageRecipe":"4e4fbb56ae92720735bb30c63b27708a22d248e1",
+      "full846PackageSha256":"ff230f2e9079cc843198533e412f836abb62e4ade63f4fa210b7269f7deb4eff",
+      "qualification":"Root-relayed acceptance only: no pack download, unpack, independent review or replay here; README-only full846 addition does not change common source/behavior."
+    },
+    {
+      "id":"B-AST-DEPTH-LEXEME",
+      "record":"WRK-10",
+      "originalFields":["/blocked","/input/scenario","/expect/assertions/0"],
+      "status":"CLOSED_BY_STATIC_SOURCE_BINDING",
+      "reviewCases":["query-budget:D04","query-budget:D05"],
+      "authority":["query-review#Ordered objects, keys and depth","parser-baseline:174-176,193-218","final#/defaultBudgetMapping/maxAstDepth"],
+      "currentBoundary":{"recipe":"identity followed by count postfix ? operators","admittedCount":63,"admittedAstDepth":64,"refusedCount":64,"refusedAstDepth":65,"inputUtf8":"1\n","admittedStatus":0,"admittedStdoutUtf8":"1\n","refusedStatus":5,"refusedCode":"LIMIT_MAX_AST_DEPTH","refusedStdoutUtf8":"","refusedInputAcquisitions":0},
+      "reason":"The postfix loop creates one optional node per ?, and the final AST walk starts at depth one and visits operand at depth+1. This closes the existing boundary recipe, not by counting parentheses or executing parse."
+    },
+    {
+      "id":"B-NUMERIC-ZERO",
+      "record":"NUM-14",
+      "originalFields":["/blocked","/expect/assertions/0"],
+      "status":"CLOSED_BY_ADOPTED_PRECONVERSION_RULE",
+      "reviewCases":["query-budget:N10"],
+      "authority":["initial-readme#3.3 steps 2-4","final#/numericAmendments","query-review#Decimal admission, generated values and encoding"],
+      "inputUtf8":"0e1000000000\n",
+      "currentExpectation":{"status":5,"diagnosticCode":"SCHEMA_DECIMAL_RANGE","stdoutUtf8":""},
+      "reason":"The adopted input rule checks the exponent and fails out-of-range values before decimalNumber conversion, with no zero exception. This witness has no fractional-position/trailing-nonzero-coefficient ambiguity. The engine's later zero clamp is not input admission. This does not close N2 or impose input lexical checks on query literals/intermediates."
+    }
+  ],
+  "openChoices": [
+    {
+      "id":"N1",
+      "classification":"GRAMMAR_SCOPE_AMBIGUITY_NOT_UNCONDITIONAL_CONTRADICTION",
+      "reviewCases":["normative:G03"],
+      "relatedOriginalRecords":["PAR-02","WRK-25"],
+      "heldOriginalFields":[],
+      "witnessBinding":"normative:G03/input",
+      "minimalWitness":"{\"red\n  blue\": 1}\n",
+      "choice":"Confirm the production-specific implicit-key bound, or expressly adopt an extra FLOW-IN restriction and its diagnostic. A blanket interpretation conflicts with primary grammar, but blanket intent is not established.",
+      "preserved":"WRK-25 /input/stdinRecipe is specifically a block plain key without trailing separation: its 1024/1025 witness is not contradicted. Do not extend it to every braced entry or treat decoded length as general source-presentation length.",
+      "primaryLocators":["YAML 1.2.2 §7.4.2 productions 140-149,154-155","§8.2.2 productions 192-193","§7.3.1 production 110"],
+      "evidence":"normative-review#N1"
+    },
+    {
+      "id":"N2",
+      "priorBlocker":"B-NUMERIC-NORMALIZATION",
+      "classification":"NORMALIZATION_POLICY_UNSPECIFIED",
+      "reviewCases":["normative:N07"],
+      "relatedOriginalRecords":["NUM-15"],
+      "heldOriginalFields":[{"record":"NUM-15","pointer":"/expect","extent":"Exact status and numeric/output golden remain unset."}],
+      "witnessBinding":"normative:N07/input",
+      "minimalWitness":"10e-1147483647\n",
+      "choice":"Specify coefficient/exponent normalization before range admission: remove the trailing zero to reach exponent -1147483646, or preserve it and refuse the out-of-range exponent. Baseline conversion does not decide the rejecting profile.",
+      "evidence":"normative-review#N2"
+    },
+    {
+      "id":"N3",
+      "priorBlocker":"B-SURROGATE-PAIR-ESCAPES",
+      "classification":"VALIDATION_STAGE_UNSPECIFIED",
+      "reviewCases":["normative:Q11"],
+      "relatedOriginalRecords":["UTF-12"],
+      "heldOriginalFields":[{"record":"UTF-12","pointer":"/expect","extent":"Exact acceptance/status/value for paired 16-bit escapes remains unset."}],
+      "witnessBinding":"freeze:UTF-12/input/stdinUtf8",
+      "minimalWitness":"\"\\uD83D\\uDE42\"\n",
+      "choice":"Select per-escape scalar validation or adjacent UTF-16 pair assembly before validation. Unpaired-surrogate refusal, fatal UTF-8 and the broader raw quoted domain remain settled.",
+      "primaryLocators":["YAML 1.2.2 §5.2","§5.7 productions 60-61"],
+      "evidence":"normative-review#N3"
+    },
+    {
+      "id":"N4",
+      "classification":"EXPLICIT_TAG_FAMILY_SCOPE_AMBIGUITY",
+      "reviewCases":["normative:T13"],
+      "relatedOriginalRecords":["PAR-32","PAR-33"],
+      "heldOriginalFields":[],
+      "witnessBinding":"normative:T13/input",
+      "minimalWitness":"!!float 7\n",
+      "choice":"Confirm direct explicit-tag lexical-family validation, or expressly choose the narrower first implicit-family interpretation of the no-other-family clause. Do not call a valid YAML lexeme malformed grammar.",
+      "preserved":"The original seq/map kind mismatch and !!bool yes lexical mismatch remain valid refusal controls; no original !!float 7 case or new unique product case is invented.",
+      "primaryLocators":["YAML 1.2.2 §10.2.1.4","§10.3.2"],
+      "evidence":"normative-review#N4"
+    },
+    {
+      "id":"QB-F1",
+      "classification":"RESOURCE_CONTRACT_CONFLICT_FOR_SPECIFIED_OWNED_BOUNDARY_HELPERS",
+      "reviewCases":["query-budget:B01"],
+      "relatedOriginalRecords":["WRK-08","WRK-17","WRK-21","WRK-22","TYP-08"],
+      "heldOriginalFields":[{"record":"WRK-22","pointer":"/expect/assertions/0","extent":"Hold an unqualified application of the owned tick rule to reused synchronous measure/stringify traversals. The scanner/other genuinely cooperative owned-unit assertion is retained."}],
+      "witnessBinding":"query-budget:B01/recipe",
+      "minimalWitness":{"kind":"null-array","members":1023,"visitedNodes":1024,"compactBytes":5116},
+      "choice":"Classify reused boundary traversals as fixed-engine synchronous work with explicit disclosure, or reconcile the existing private-boundary/ownership contract with its adopted checkpoints. No option is selected; no API or lifecycle redesign is proposed.",
+      "preserved":"The exact payload arithmetic, byte caps and post-engine-allocation qualification remain. Prior asynchronous preflight or an async wrapper cannot insert an await into the subsequent synchronous traversal.",
+      "evidence":"query-review#QB-F1"
+    },
+    {
+      "id":"QB-F2",
+      "classification":"WHOLE_COPY_WORK_PREFLIGHT_MECHANISM_UNSETTLED",
+      "reviewCases":["query-budget:B02"],
+      "relatedOriginalRecords":["ALS-13","WRK-11","WRK-16","WRK-22","WRK-26"],
+      "heldOriginalFields":[],
+      "witnessBinding":"query-budget:B02/recipe",
+      "minimalWitness":{"kind":"alias-work-reservation","remainingSteps":1024,"reservedCopiedUnits":1024,"laterCheckpointSteps":1},
+      "choice":"Confirm whole-copy admission including future tick charges and an authorized mechanism over the shared private counter, or expressly amend to per-unit admission. This checkpoint chooses neither and adds no public/private API.",
+      "preserved":"WRK-16 is a node-only projection with other caps slack, not proof of whole-copy work reservation. Node/value/depth/alias-reference projections remain; the review's counter-state witness is not a concrete reachable YAML input or proof all implementations are impossible.",
+      "evidence":"query-review#QB-F2"
+    },
+    {
+      "id":"B-ENCODER-ESCAPE-SPELLING",
+      "classification":"EXACT_PRESENTATION_BYTES_NOT_FIXED_NOT_A_CONTRACT_CONTRADICTION",
+      "reviewCases":[],
+      "relatedOriginalRecords":["ENC-07"],
+      "heldOriginalFields":[{"record":"ENC-07","pointer":"/expect","extent":"Only an exact YAML escape-byte golden is held; status 0, NUL semantic value and legal double-quoted escaped output remain settled."}],
+      "witnessBinding":"freeze:ENC-07/input/stdinUtf8",
+      "minimalWitness":"\"\\0\"\n",
+      "choice":"Keep semantic/legal-escape assertions unless an authoritative exact encoder spelling is supplied. Do not turn unspecified spelling into an acceptance conflict or pick an invented golden.",
+      "evidence":"freeze-readme#Open Questions; normative-review#Settled Amendments and Deliberate Restrictions"
+    }
+  ],
+  "observations": [
+    {"id":"N5","classification":"CATALOGUE_REACHABILITY_NOT_DEMONSTRATED","reviewCases":[],"relatedOriginalRecords":["ALS-04","ALS-08"],"current":"No normal-input ALIAS_CYCLE witness is demonstrated. Pending current-node refusals remain ALIAS_CURRENT_NODE. Keep all 54 entries; only ALIAS_DUPLICATE_ANCHOR is explicitly reserved/unreachable. Do not remove, repurpose or newly reserve ALIAS_CYCLE, or claim 54 reachable/executed classes.","evidence":"normative-review#N5"}
+  ],
+  "currentCandidate": {
+    "baseline":"5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "acceptedLength":"74361026502d76b8c2b696f9c60e410ac9b78d95",
+    "lengthPrerequisiteRemains":false,
+    "scope":"EXACT5137 plus accepted length delta plus newly authorized yq/private-query-adapter paths only; no silent live rebaseline or jq refactor; integration-owner export authority unchanged.",
+    "yqCodeGo":false
+  },
+  "validation": {
+    "requiredUnchangedCheckers":["freeze/verify-preparation.mjs","normative/check-static.mjs","query-budget/check.mjs"],
+    "additionalChecker":"reconciliation-v1/check.mjs",
+    "historicalLabelQualification":"The original query checker still prints lengthAcceptance=pending Plato and the original freeze still reports six partial blockers. Both are historical seal outputs, superseded only in this additive current crosswalk and the authenticated length relay; neither is a current prerequisite failure.",
+    "primarySourceQualification":"Primary statements use only locators already verified in the sealed normative review; no further research breadth or oracle execution."
+  }
+}

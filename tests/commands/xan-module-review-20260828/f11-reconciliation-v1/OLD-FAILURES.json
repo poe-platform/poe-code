@@ -1,0 +1,456 @@
+[
+  {
+    "layout": "SOURCE",
+    "id": "F11-ledger-maxWork--1",
+    "originalStatus": "FAIL",
+    "category": "POLICY_TENSION",
+    "cause": "F11_DIAGNOSTIC_VERSUS_WORK_CAPACITY",
+    "refs": [
+      "ledger",
+      "diagnostic",
+      "budget",
+      "managed",
+      "scanner",
+      "writer",
+      "count",
+      "inputScope"
+    ],
+    "unqualified": [
+      "Exact frozen runtime-limit diagnostic when output allowance fits versus prohibition of any out-of-budget emergency work/capacity",
+      "Full independent normative work/capacity ledger is not certified by implementation-counter arithmetic"
+    ],
+    "continuation": "ROOT_POLICY_DECISION_NO_QUOTA_EXEMPTION_OR_MINIMUM_RAISE",
+    "rawBinding": {
+      "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+      "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "SOURCE-074/stdout.raw",
+      "bytes": 64943,
+      "sha256": "84814f2917818ea76cf18b9d628790699b427f7fbacbe9132341c69103e58b54",
+      "mode": "644",
+      "observationLine": 1,
+      "observationLineSha256": "06d24fe24812725325a970e5c81d1048d58e0a123e5f3e053c0c07d4b8f06664",
+      "outcomeLine": 2,
+      "outcomeLineSha256": "a47ea609082c40bffb31156364cddb3085346ef2ddf7954665d31d7652bc887b"
+    },
+    "frozenCase": null,
+    "actualArgv": [
+      "count"
+    ],
+    "obligationMapProvenance": "ORIGINAL_ACTUAL_IDS",
+    "obligations": [
+      {
+        "id": "F11",
+        "kind": "family",
+        "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+        "pointer": "/families/10",
+        "subtreeSha256": "dee78677822584221f23d025b05cdbd0baaa008f6a5bb51451a4a849537a16a3",
+        "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS"
+      },
+      {
+        "id": "maxWork",
+        "kind": "cap",
+        "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+        "pointer": "/rows/15",
+        "subtreeSha256": "5fc75ad889e58de2641b949ea0c91ac817d39d042e58fdf97757f88d6b303fde",
+        "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS"
+      }
+    ],
+    "originalFailure": {
+      "name": "AssertionError",
+      "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'xan count: maxWork limit exceeded\\n'\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'xan count: maxWork limit exceeded\\n'\n\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:178:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+    },
+    "observation": {
+      "result": {
+        "exitCode": 1
+      },
+      "failed": false,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "events": [
+        "register",
+        "register",
+        "register",
+        "command-settle",
+        "root-drain"
+      ],
+      "inputEvents": [
+        "acquire",
+        "next",
+        {
+          "delivered": 2
+        },
+        "next"
+      ],
+      "fsEvents": [],
+      "closed": true,
+      "files": {},
+      "exact": 15,
+      "limit": 14,
+      "ledger": [
+        {
+          "phase": "argv UTF8 inspection",
+          "amount": 5
+        },
+        {
+          "phase": "scanner delivered bytes inspected",
+          "amount": 2
+        },
+        {
+          "phase": "text size",
+          "amount": 2
+        },
+        {
+          "phase": "encode text size",
+          "amount": 2
+        },
+        {
+          "phase": "encoded writes",
+          "amount": 2
+        },
+        {
+          "phase": "managed output delivery",
+          "amount": 2
+        }
+      ],
+      "scope": "SOURCE_AUDITED_SIMPLE_PATH_NOT_ALL_PATH_LEDGER_OR_DEFAULT_SCALE"
+    },
+    "retention": "Exact RAW_OBSERVATION retained; fields absent from it were not captured, not inferred empty",
+    "executed": true
+  },
+  {
+    "layout": "SOURCE",
+    "id": "F11-ledger-maxRetainedBytes--1",
+    "originalStatus": "FAIL",
+    "category": "POLICY_TENSION",
+    "cause": "F11_DIAGNOSTIC_VERSUS_WORK_CAPACITY",
+    "refs": [
+      "ledger",
+      "diagnostic",
+      "budget",
+      "managed",
+      "scanner",
+      "writer",
+      "count",
+      "inputScope"
+    ],
+    "unqualified": [
+      "Exact frozen runtime-limit diagnostic when output allowance fits versus prohibition of any out-of-budget emergency work/capacity",
+      "Full independent normative work/capacity ledger is not certified by implementation-counter arithmetic"
+    ],
+    "continuation": "ROOT_POLICY_DECISION_NO_QUOTA_EXEMPTION_OR_MINIMUM_RAISE",
+    "rawBinding": {
+      "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+      "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "SOURCE-078/stdout.raw",
+      "bytes": 62882,
+      "sha256": "ae93586bb60c78810058814e25bdc1b485bfa32329322384dc337af46c4ca3a8",
+      "mode": "644",
+      "observationLine": 1,
+      "observationLineSha256": "ae13101a7f479202e55a9b879ddf0d1ef0f1f572f78d2ed99d878d5eb61896bb",
+      "outcomeLine": 2,
+      "outcomeLineSha256": "a5b4f9b57f0af1c6dc83003fbba14736615f2b4c5d19c9a8084d6f026e2f1819"
+    },
+    "frozenCase": null,
+    "actualArgv": [
+      "count"
+    ],
+    "obligationMapProvenance": "ORIGINAL_ACTUAL_IDS",
+    "obligations": [
+      {
+        "id": "F11",
+        "kind": "family",
+        "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+        "pointer": "/families/10",
+        "subtreeSha256": "dee78677822584221f23d025b05cdbd0baaa008f6a5bb51451a4a849537a16a3",
+        "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS"
+      },
+      {
+        "id": "maxRetainedBytes",
+        "kind": "cap",
+        "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+        "pointer": "/rows/17",
+        "subtreeSha256": "77bedbf2c1f306fa5e598f4bd802378ecf133c3fbba199db2828497c0e870b63",
+        "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS"
+      }
+    ],
+    "originalFailure": {
+      "name": "AssertionError",
+      "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'xan count: maxRetainedBytes limit exceeded\\n'\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'xan count: maxRetainedBytes limit exceeded\\n'\n\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:178:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+    },
+    "observation": {
+      "result": {
+        "exitCode": 1
+      },
+      "failed": false,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "events": [
+        "register",
+        "register",
+        "register",
+        "command-settle",
+        "root-drain"
+      ],
+      "inputEvents": [
+        "acquire",
+        "next",
+        {
+          "delivered": 2
+        }
+      ],
+      "fsEvents": [],
+      "closed": true,
+      "files": {},
+      "exact": 64,
+      "limit": 63,
+      "ledger": [
+        {
+          "phase": "scanner slot",
+          "capacity": 32
+        },
+        {
+          "phase": "count row slot overlapping scanner",
+          "capacity": 32
+        },
+        {
+          "phase": "row released; output allocation",
+          "capacity": 2
+        }
+      ],
+      "scope": "SOURCE_AUDITED_SIMPLE_PATH_NOT_ALL_PATH_LEDGER_OR_DEFAULT_SCALE"
+    },
+    "retention": "Exact RAW_OBSERVATION retained; fields absent from it were not captured, not inferred empty",
+    "executed": true
+  },
+  {
+    "layout": "INSTALLED_MOVED",
+    "id": "F11-ledger-maxWork--1",
+    "originalStatus": "FAIL",
+    "category": "POLICY_TENSION",
+    "cause": "F11_DIAGNOSTIC_VERSUS_WORK_CAPACITY",
+    "refs": [
+      "ledger",
+      "diagnostic",
+      "budget",
+      "managed",
+      "scanner",
+      "writer",
+      "count",
+      "inputScope"
+    ],
+    "unqualified": [
+      "Exact frozen runtime-limit diagnostic when output allowance fits versus prohibition of any out-of-budget emergency work/capacity",
+      "Full independent normative work/capacity ledger is not certified by implementation-counter arithmetic"
+    ],
+    "continuation": "ROOT_POLICY_DECISION_NO_QUOTA_EXEMPTION_OR_MINIMUM_RAISE",
+    "rawBinding": {
+      "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+      "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "INSTALLED_MOVED-074/stdout.raw",
+      "bytes": 65395,
+      "sha256": "7e2784e69808e9774514d479e76c3d2d4bb0032ea904231f924044e4ee300ec9",
+      "mode": "644",
+      "observationLine": 1,
+      "observationLineSha256": "06d24fe24812725325a970e5c81d1048d58e0a123e5f3e053c0c07d4b8f06664",
+      "outcomeLine": 2,
+      "outcomeLineSha256": "a47ea609082c40bffb31156364cddb3085346ef2ddf7954665d31d7652bc887b"
+    },
+    "frozenCase": null,
+    "actualArgv": [
+      "count"
+    ],
+    "obligationMapProvenance": "ORIGINAL_ACTUAL_IDS",
+    "obligations": [
+      {
+        "id": "F11",
+        "kind": "family",
+        "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+        "pointer": "/families/10",
+        "subtreeSha256": "dee78677822584221f23d025b05cdbd0baaa008f6a5bb51451a4a849537a16a3",
+        "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS"
+      },
+      {
+        "id": "maxWork",
+        "kind": "cap",
+        "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+        "pointer": "/rows/15",
+        "subtreeSha256": "5fc75ad889e58de2641b949ea0c91ac817d39d042e58fdf97757f88d6b303fde",
+        "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS"
+      }
+    ],
+    "originalFailure": {
+      "name": "AssertionError",
+      "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'xan count: maxWork limit exceeded\\n'\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'xan count: maxWork limit exceeded\\n'\n\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:178:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+    },
+    "observation": {
+      "result": {
+        "exitCode": 1
+      },
+      "failed": false,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "events": [
+        "register",
+        "register",
+        "register",
+        "command-settle",
+        "root-drain"
+      ],
+      "inputEvents": [
+        "acquire",
+        "next",
+        {
+          "delivered": 2
+        },
+        "next"
+      ],
+      "fsEvents": [],
+      "closed": true,
+      "files": {},
+      "exact": 15,
+      "limit": 14,
+      "ledger": [
+        {
+          "phase": "argv UTF8 inspection",
+          "amount": 5
+        },
+        {
+          "phase": "scanner delivered bytes inspected",
+          "amount": 2
+        },
+        {
+          "phase": "text size",
+          "amount": 2
+        },
+        {
+          "phase": "encode text size",
+          "amount": 2
+        },
+        {
+          "phase": "encoded writes",
+          "amount": 2
+        },
+        {
+          "phase": "managed output delivery",
+          "amount": 2
+        }
+      ],
+      "scope": "SOURCE_AUDITED_SIMPLE_PATH_NOT_ALL_PATH_LEDGER_OR_DEFAULT_SCALE"
+    },
+    "retention": "Exact RAW_OBSERVATION retained; fields absent from it were not captured, not inferred empty",
+    "executed": true
+  },
+  {
+    "layout": "INSTALLED_MOVED",
+    "id": "F11-ledger-maxRetainedBytes--1",
+    "originalStatus": "FAIL",
+    "category": "POLICY_TENSION",
+    "cause": "F11_DIAGNOSTIC_VERSUS_WORK_CAPACITY",
+    "refs": [
+      "ledger",
+      "diagnostic",
+      "budget",
+      "managed",
+      "scanner",
+      "writer",
+      "count",
+      "inputScope"
+    ],
+    "unqualified": [
+      "Exact frozen runtime-limit diagnostic when output allowance fits versus prohibition of any out-of-budget emergency work/capacity",
+      "Full independent normative work/capacity ledger is not certified by implementation-counter arithmetic"
+    ],
+    "continuation": "ROOT_POLICY_DECISION_NO_QUOTA_EXEMPTION_OR_MINIMUM_RAISE",
+    "rawBinding": {
+      "archive": "tests/commands/xan-module-review-20260828/actual-review-v2/CONTINUATION-EVIDENCE.jsonl.gz",
+      "archiveSha256": "05619a20fc1ce8012b5dd3539b3e37a47070fb9c799b39d13248fdc8d44e88d8",
+      "revision": "dad2b08ce6bba02d3c404e7a55da5f4163b39d77",
+      "path": "INSTALLED_MOVED-078/stdout.raw",
+      "bytes": 63334,
+      "sha256": "a5749af4b7f8d7fbb4a96b2f3e8abbdbf5f30a4b0edab657089164795ef028e5",
+      "mode": "644",
+      "observationLine": 1,
+      "observationLineSha256": "ae13101a7f479202e55a9b879ddf0d1ef0f1f572f78d2ed99d878d5eb61896bb",
+      "outcomeLine": 2,
+      "outcomeLineSha256": "a5b4f9b57f0af1c6dc83003fbba14736615f2b4c5d19c9a8084d6f026e2f1819"
+    },
+    "frozenCase": null,
+    "actualArgv": [
+      "count"
+    ],
+    "obligationMapProvenance": "ORIGINAL_ACTUAL_IDS",
+    "obligations": [
+      {
+        "id": "F11",
+        "kind": "family",
+        "input": "tests/commands/xan-independent-20260828/final-freeze-v3/CONTROLS.json",
+        "pointer": "/families/10",
+        "subtreeSha256": "dee78677822584221f23d025b05cdbd0baaa008f6a5bb51451a4a849537a16a3",
+        "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS"
+      },
+      {
+        "id": "maxRetainedBytes",
+        "kind": "cap",
+        "input": "tests/commands/xan-independent-20260828/final-freeze-v3/LIMITS.json",
+        "pointer": "/rows/17",
+        "subtreeSha256": "77bedbf2c1f306fa5e598f4bd802378ecf133c3fbba199db2828497c0e870b63",
+        "qualification": "UNQUALIFIED_SUBASSERTIONS_LISTED_NOT_OBLIGATION_PASS"
+      }
+    ],
+    "originalFailure": {
+      "name": "AssertionError",
+      "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'xan count: maxRetainedBytes limit exceeded\\n'\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'xan count: maxRetainedBytes limit exceeded\\n'\n\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:178:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+    },
+    "observation": {
+      "result": {
+        "exitCode": 1
+      },
+      "failed": false,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "events": [
+        "register",
+        "register",
+        "register",
+        "command-settle",
+        "root-drain"
+      ],
+      "inputEvents": [
+        "acquire",
+        "next",
+        {
+          "delivered": 2
+        }
+      ],
+      "fsEvents": [],
+      "closed": true,
+      "files": {},
+      "exact": 64,
+      "limit": 63,
+      "ledger": [
+        {
+          "phase": "scanner slot",
+          "capacity": 32
+        },
+        {
+          "phase": "count row slot overlapping scanner",
+          "capacity": 32
+        },
+        {
+          "phase": "row released; output allocation",
+          "capacity": 2
+        }
+      ],
+      "scope": "SOURCE_AUDITED_SIMPLE_PATH_NOT_ALL_PATH_LEDGER_OR_DEFAULT_SCALE"
+    },
+    "retention": "Exact RAW_OBSERVATION retained; fields absent from it were not captured, not inferred empty",
+    "executed": true
+  }
+]

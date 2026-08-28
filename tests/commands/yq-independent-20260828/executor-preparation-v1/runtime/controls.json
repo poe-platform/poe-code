@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "classification": "SYNTHETIC_FRAMEWORK_ONLY_NOT_YQ_CASES",
+  "bounds": {"deadlineMs": 1500, "termGraceMs": 150, "reapMs": 1500, "captureBytes": 65536, "maximumJobs": 4},
+  "controls": [
+    {"id":"pass","children":["pass"],"aggregate":"PASS","admitted":1},
+    {"id":"pass-exit-nonzero","children":["pass-exit-7"],"aggregate":"FAIL","admitted":1},
+    {"id":"failure-continue","children":["fail","pass"],"aggregate":"FAIL","admitted":2},
+    {"id":"capture-before-assert","children":["assert-fail","pass"],"aggregate":"FAIL","admitted":2,"rawWitness":"captured-before-assert"},
+    {"id":"integrity-add","children":["mutate-add","pass"],"aggregate":"FAIL","admitted":1,"stop":"integrity"},
+    {"id":"integrity-content","children":["mutate-content","pass"],"aggregate":"FAIL","admitted":1,"stop":"integrity"},
+    {"id":"integrity-mode","children":["mutate-mode","pass"],"aggregate":"FAIL","admitted":1,"stop":"integrity"},
+    {"id":"deadline-reaped","children":["deadline","pass"],"aggregate":"FAIL","admitted":2,"timedOut":true},
+    {"id":"reap-proof-gate","children":["pass","pass"],"aggregate":"FAIL","admitted":1,"withholdReapProof":true,"stop":"reap"},
+    {"id":"malformed","children":["malformed","pass"],"aggregate":"FAIL","admitted":2},
+    {"id":"duplicate","children":["duplicate"],"aggregate":"FAIL","admitted":1},
+    {"id":"missing","children":["missing"],"aggregate":"FAIL","admitted":1},
+    {"id":"wrong-job","children":["wrong-job"],"aggregate":"FAIL","admitted":1},
+    {"id":"signal","children":["signal","pass"],"aggregate":"FAIL","admitted":2},
+    {"id":"overflow","children":["overflow","pass"],"aggregate":"FAIL","admitted":2}
+  ]
+}

@@ -155,7 +155,7 @@ for (const [filename, text] of sourceFiles) {
   graph.set(filename, targets);
 }
 const active = new Set();
-const pending = ['launch.mjs', 'worker.mjs', 'synthetic-worker.mjs'].map(name => path.join(root, name));
+const pending = ['launch.mjs', 'coordinator.mjs', 'worker.mjs', 'synthetic-worker.mjs'].map(name => path.join(root, name));
 while (pending.length) {
   const filename = pending.pop();
   if (active.has(filename)) continue;
@@ -212,7 +212,17 @@ const sourceExpectations = [
   ['../executor-v3/offline.mjs', "['compile', 'instantiate', 'compileStreaming', 'instantiateStreaming', 'Module']", 'unchanged-wasm-module-guard'],
 ];
 for (const [file, token, label] of sourceExpectations) check(read(path.resolve(root, file)).toString().includes(token), `source-token:${label}`);
-const output = { schema: 'INDEPENDENT_R2_SOURCE_DATA_ONLY', candidate, evidence, launcher, parserVersion: ts.version, candidateExecutions: 0, childHarnesses: 0, grantsMintedOrConsumed: 0, assertions, failures, anchors, evidenceBindings, admissionPlanSha256, rawPlanSha256: hash(planBytes), counts, bindings, namespaces, parsedModules: sourceFiles.size, activeClosure: [...active].map(filename => path.relative(root, filename)).sort(), activeMissing, unboundEdges, unresolvedDynamic, inheritance, priorBindingsPreserved: priorSeal.files.length, sourceTokenAssertions: sourceExpectations.length, qualifications: ['Source/hash/schema only, not dynamic validation', 'Node checker and explicit Git metadata only; no candidate tool route, product/comparator execution/import/staging', 'Archived instruction plaintext never read', 'Full32MiB logical and248+8MiB quota boundaries STATIC_ONLY, not RSS', 'No positive review document or usable grant'] };
+const owned = path.resolve(root, '../../breadth-continuation-independent-20260828/executor-v7-r2-review/source-interface');
+const priorObservations = [];
+for (const name of ['BEFORE.json', 'AFTER.json']) {
+  const bytes = read(path.join(owned, name));
+  const previous = JSON.parse(bytes);
+  check(JSON.stringify(previous.bindings) === JSON.stringify(bindings), `all359-observations-stable:${name}`);
+  check(JSON.stringify(previous.namespaces) === JSON.stringify(namespaces), `namespace-censuses-stable:${name}`);
+  priorObservations.push({ path: name, bytes: bytes.length, sha256: hash(bytes), assertions: previous.assertions, failures: previous.failures });
+}
+check(plan.limits.admissionChildren === 27 && plan.limits.admissionPlanned === 14 && plan.limits.admissionSetup === 2 && plan.limits.admissionSemantics === 0 && plan.admission.filter(entry => entry.kind === 'C11').length === 2 && plan.admission.every(entry => entry.kind !== 'case'), 'actual-plan-admission-limits');
+const output = { schema: 'INDEPENDENT_R2_SOURCE_DATA_ONLY', candidate, evidence, launcher, parserVersion: ts.version, candidateExecutions: 0, childHarnesses: 0, grantsMintedOrConsumed: 0, assertions, failures, anchors, evidenceBindings, admissionPlanSha256, rawPlanSha256: hash(planBytes), counts, bindings, namespaces, parsedModules: sourceFiles.size, activeClosure: [...active].map(filename => path.relative(root, filename)).sort(), activeMissing, unboundEdges, unresolvedDynamic, inheritance, priorBindingsPreserved: priorSeal.files.length, sourceTokenAssertions: sourceExpectations.length, priorObservations, qualifications: ['Source/hash/schema only, not dynamic validation', 'Node checker and explicit Git metadata only; no candidate tool route, product/comparator execution/import/staging', 'Archived instruction plaintext never read', 'Full32MiB logical and248+8MiB quota boundaries STATIC_ONLY, not RSS', 'No positive review document or usable grant'] };
 const result = Buffer.from(`${JSON.stringify(output, null, 2)}\n`);
 if (result.length > 262144) throw new Error('OUTPUT_RECORD_CAP');
 process.stdout.write(result);

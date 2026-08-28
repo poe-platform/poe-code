@@ -23,6 +23,16 @@
    the actual REVIEW.md was read instead. No evidence was manufactured for that
    nonexistent report. Earlier terminal output truncation was followed by
    bounded reads of the applicable instructions and relevant source bodies.
+5. Corrected checker at `0d3c46d6` produced immutable `AFTER.json`:
+   **1707/1707 static assertions**, exit0. The independent source read then
+   identified a limitation in this reviewer's graph seed: launch constructs the
+   coordinator subprocess path, rather than importing coordinator.mjs. Thus
+   the initial41-member seeded import closure omitted that process entry even
+   though coordinator/body/production had been manually read. This is NOT an
+   absent candidate dependency. The final presealed scan explicitly seeds
+   coordinator.mjs too; retains both earlier outputs; and compares all359
+   bound observations and all three namespace censuses with BEFORE/AFTER.
+   This correction prevents calling the smaller graph the full active route.
 
 Git read-only metadata subprocesses and the independent parser/checker are not
 candidate child harnesses. Node runs this checker and Git reads explicit bound

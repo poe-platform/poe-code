@@ -1,0 +1,582 @@
+{
+  "classification": "STATIC_COMMITTED_DATA_AUTHENTICATION_NOT_EXECUTION",
+  "criteriaCommit": "b24d87a736dd1c74c13d09a3a3bd598ad0014677",
+  "adapterFiles": 15,
+  "adapterHistoricalBindings": 33,
+  "artifactFiles": 22,
+  "oldExtractionRepeated": false,
+  "authoredAdaptersInvoked": 0,
+  "controlsExecuted": 0,
+  "runtimePasses": 0,
+  "productPasses": 0,
+  "records": [
+    {
+      "commit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/SOURCE-PRESEAL.json",
+      "gitMode": "100644",
+      "blob": "b3f2eb99102e55a17a7bf341a81a0ada513114f6",
+      "bytes": 4082,
+      "sha256": "f6d4c3fb6d307d9b51d605d4fdae38eb7691b958e2c3a2ad2b604de82115de88"
+    },
+    {
+      "commit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/ADAPTATION.json",
+      "gitMode": "100644",
+      "blob": "77a1cae7c3dec31cb81c2c81249edfccd9743545",
+      "bytes": 3702,
+      "sha256": "5390e1a8efe69786af65b9825331cc22e6698f77d0ca4fde0681dd8c94ba943d"
+    },
+    {
+      "commit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/CMD22-BINDING.json",
+      "gitMode": "100644",
+      "blob": "57e7dd4c2c00da4a361cd0a6a123b95871c1aa8c",
+      "bytes": 2321,
+      "sha256": "ce3fafdda9008b13d90f23cc48254e0c7592c806b09711f3fcbdca39831efe71"
+    },
+    {
+      "commit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/CMD22-DELTA.diff",
+      "gitMode": "100644",
+      "blob": "358e72022204b316c3aefd5323a0166906fd2581",
+      "bytes": 14856,
+      "sha256": "0994215bbb73e93d6102dd04b61efc1c6a222a742140c313d3073f8044924e6c"
+    },
+    {
+      "commit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/CONTROL-BASES.json",
+      "gitMode": "100644",
+      "blob": "72f319a82f1b1021f367f9dc55c4a5c81c687431",
+      "bytes": 8697,
+      "sha256": "59ddf57809847adf8f5e43ff0e9b004ff5259c03412770e74fe908fac9ecbe3e"
+    },
+    {
+      "commit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/DEFERRED-CONTROLS.json",
+      "gitMode": "100644",
+      "blob": "9892f02e8564ab46301616583daf7c93fb88b92e",
+      "bytes": 6480,
+      "sha256": "7945be17c3a132cf94382d5bc4b33768fb7a6c2fc93546a0fb7d875054057bb8"
+    },
+    {
+      "commit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/HANDOFF.md",
+      "gitMode": "100644",
+      "blob": "e97080b62f57970c56116e02485d48ca4115fe5e",
+      "bytes": 5735,
+      "sha256": "cd328b68a904e5becd186c91b1a99dae7a3d85161d74da656db69f2bbab5e433"
+    },
+    {
+      "commit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/HISTORICAL-BINDINGS.json",
+      "gitMode": "100644",
+      "blob": "91e79862ac5a6d5b95d50f6e0c654f9eedcf40b6",
+      "bytes": 14315,
+      "sha256": "b3c863e244f67b84962f643a1f7672ff357460e69cc684b86c9e5f56cf66652f"
+    },
+    {
+      "commit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/PATH-ASSERTION-AUDIT.json",
+      "gitMode": "100644",
+      "blob": "52a8e7f00a4b494e28a8c9761a0e6d67239498a6",
+      "bytes": 3912,
+      "sha256": "5df808c0dd897d658fb4570729f67fc26a8bdb48989ee3cf65095cccaa39270d"
+    },
+    {
+      "commit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/PROTOCOL.md",
+      "gitMode": "100644",
+      "blob": "3cdfa412aeaa476197be8d10241eed850ad6dbf1",
+      "bytes": 9307,
+      "sha256": "072f6896ae2f4bb7612de298fa0e535d0499dfa862a2844c502d909e8e0bed6e"
+    },
+    {
+      "commit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/STATIC-CHECKS.json",
+      "gitMode": "100644",
+      "blob": "66007d4ad340fe34020561e845f1ade3e62010e6",
+      "bytes": 3000,
+      "sha256": "ab9742abb12553c26e1b36ec64bdaa5a339f9efa01991ea584f0d075b66657ef"
+    },
+    {
+      "commit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/STATIC-PREPARATION.md",
+      "gitMode": "100644",
+      "blob": "e5dadafc34f886ce0f4147dc540b11b592f7fbce",
+      "bytes": 1422,
+      "sha256": "9c02a44c8e21fca37e86cf15ccc852c11a045ae8b00356ef56c3b54cf72d7762"
+    },
+    {
+      "commit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/adapter.mjs",
+      "gitMode": "100644",
+      "blob": "de7c0c9a6898345a7667cfe4dea15748844b19fc",
+      "bytes": 1846,
+      "sha256": "4c32d0f793079986d2fd2882b4db4bb8d9883349f8858b238fedc44dcfb42cea"
+    },
+    {
+      "commit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/deferred-fixtures.mjs",
+      "gitMode": "100644",
+      "blob": "25f0f889ea9eb05d09954249f6137caf09db6a17",
+      "bytes": 4442,
+      "sha256": "06c1532000b16ca5adf830fa2670b6e5f784288b4968a39786bb9b6a4d463939"
+    },
+    {
+      "commit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/read-path-binding.mjs",
+      "gitMode": "100644",
+      "blob": "dfb2344e27527f7000eb8e88d86a9d34ceb7003f",
+      "bytes": 2499,
+      "sha256": "d36de36810f3b347a954ced9384851cf22c84358d09976404ed5c59b5476a647"
+    },
+    {
+      "commit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/HISTORICAL-BINDINGS.json",
+      "gitMode": "100644",
+      "blob": "91e79862ac5a6d5b95d50f6e0c654f9eedcf40b6",
+      "bytes": 14315,
+      "sha256": "b3c863e244f67b84962f643a1f7672ff357460e69cc684b86c9e5f56cf66652f"
+    },
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/RECIPE-SEAL.json",
+      "gitMode": "100644",
+      "blob": "22892c312499bf09592788cf1a2732f469a93438",
+      "bytes": 3994,
+      "sha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15"
+    },
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/SOURCE-PRESEAL.json",
+      "gitMode": "100644",
+      "blob": "509570c20f13fcd82dec500aae345e9fd007affc",
+      "bytes": 2233,
+      "sha256": "c971d27207b661ae3ee23d61d6e1ee7cfefc2b6a8a890f4e0fde228c81945c64"
+    },
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/delta.mjs",
+      "gitMode": "100644",
+      "blob": "b3226d0aa8a01b88c944c3e2785535f56d5070f8",
+      "bytes": 5957,
+      "sha256": "c4241ec7033dc47171548988c638367a96e923c7a4462f2cddb9f9783bc57ed0"
+    },
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/V1-V2.diff",
+      "gitMode": "100644",
+      "blob": "7f289d3b5110d97903e04bb94ab3cfd82c12326c",
+      "bytes": 6923,
+      "sha256": "ae8de91fef938c24df0293a78548492bac44435509a610bf7f7decaede5c59fc"
+    },
+    {
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/PROTOCOL.md",
+      "gitMode": "100644",
+      "blob": "2068e857d34521c0cb2f6568a5aefe6d92f26fe4",
+      "bytes": 8571,
+      "sha256": "807acc4a575a6c4b2fbf3a0ad9967048bf64e7a46d4cf579d4ffe0a0b7d5521a"
+    },
+    {
+      "commit": "70fa3df66f9c8dc3f972cfa8c0c5862d77d7514e",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/EVIDENCE-SEAL.json",
+      "gitMode": "100644",
+      "blob": "116aafc5f98beb96a0af27d04f57bc0700f5ce07",
+      "bytes": 174716,
+      "sha256": "7047fea5ae92f73a3d0b3e2c574afcd30532e63a3a7d25e7cfb4cb2827004c4d"
+    },
+    {
+      "commit": "70fa3df66f9c8dc3f972cfa8c0c5862d77d7514e",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/HANDOFF.md",
+      "gitMode": "100644",
+      "blob": "a88e67072bc3f535308244942c57936001b22bfe",
+      "bytes": 7318,
+      "sha256": "aaa79412d401fff422926336c74109b4f5b9228fe2a778e8677129c68b9f8684"
+    },
+    {
+      "commit": "c49d494dd5a36b19198680239a72e0c95cb90d8d",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/assert-capture.mjs",
+      "gitMode": "100644",
+      "blob": "eaa065137ae8bbf89d0ba93720a422d4980e09bf",
+      "bytes": 3726,
+      "sha256": "8fd16f41cb89b2243f08d46858e33a61ec73140f0bf5ea1ffbbc6258b6623d88"
+    },
+    {
+      "commit": "c49d494dd5a36b19198680239a72e0c95cb90d8d",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/context.mjs",
+      "gitMode": "100644",
+      "blob": "d3b77a5ff2d548702d7a749fd106a0b3f225db96",
+      "bytes": 4497,
+      "sha256": "1e3c7edee830a662f678e70d54398a0bccaf7a19a4fe29f53eadd27ad0985a23"
+    },
+    {
+      "commit": "c49d494dd5a36b19198680239a72e0c95cb90d8d",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/integrity.mjs",
+      "gitMode": "100644",
+      "blob": "bb6c05e8784e07adadfc64115c829ce91387a9d7",
+      "bytes": 3889,
+      "sha256": "fc8387f9c1c64a979ffce9a4058ed3a4f199e56ac7a5d7b289f490da23ebe60a"
+    },
+    {
+      "commit": "c49d494dd5a36b19198680239a72e0c95cb90d8d",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/source-bindings.json",
+      "gitMode": "100644",
+      "blob": "5f7851ed5ada500c53ff0330724ccb782e61367d",
+      "bytes": 8421,
+      "sha256": "4acd5904bcf78688a2c7a8329d37ffcbd84a03319099bbb32d8242957d5994bc"
+    },
+    {
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/REVIEW.md",
+      "gitMode": "100644",
+      "blob": "c9a0e91294503286c6d1cb3f298ede4fcb695e88",
+      "bytes": 10311,
+      "sha256": "0dd5f571003333214326e8dc58f72b569ffd9ff0ea0622fd2a513cd5ab1b83d7"
+    },
+    {
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/DECLARED-JOBS-149.json",
+      "gitMode": "100644",
+      "blob": "8432caf66dbba607cd62117fdc31bb31d82c94cb",
+      "bytes": 1058682,
+      "sha256": "153caa0762421b0f3af3717cae17df95fcf251939a4af8b87de5a75bc0f64ea6"
+    },
+    {
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/boundary.json",
+      "gitMode": "100644",
+      "blob": "bc6e961b553a22389444055a7ddca13110d87f01",
+      "bytes": 110,
+      "sha256": "6a942879619650434b181c3e44fb77cb5027a6b4c9206a8733c37d3aef5bd46a"
+    },
+    {
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/child.json",
+      "gitMode": "100644",
+      "blob": "b814cf5677e7cdb7dbe966345ac9b44b1e5ec008",
+      "bytes": 207,
+      "sha256": "bd9ffce27698066d2d971f675dad30a6476955015feb3ebb68a1c447b6fec269"
+    },
+    {
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/command-stderr.bin",
+      "gitMode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/command-stdout.bin",
+      "gitMode": "100644",
+      "blob": "c508d5366f70bba37fcc09d128b6537c4adb2c79",
+      "bytes": 6,
+      "sha256": "2ed27c1421e6928dbe13dbfdb5c59e1045b30341fe7ebe05700006bc5ac572c0"
+    },
+    {
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/obligations.json",
+      "gitMode": "100644",
+      "blob": "12d110b8402ed0468423a1b01e56f5046d8117b5",
+      "bytes": 101,
+      "sha256": "f86fd34816b1cb7944155a43de29f379fa76c0fa7a3fb62fbc2e57f124b38273"
+    },
+    {
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/receipt.json",
+      "gitMode": "100644",
+      "blob": "3ea94ededb02a5df1e9c43ab6fe3f5af7583792e",
+      "bytes": 1948,
+      "sha256": "4cab62f3c2ab116e5c8e587c3bafcbf9abaf42bde2186fea3b444aabb543df77"
+    },
+    {
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/stderr.bin",
+      "gitMode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/stdout.bin",
+      "gitMode": "100644",
+      "blob": "6b6b0e7a490ac040db3efcc58f4ce4dd35214aae",
+      "bytes": 1327,
+      "sha256": "7bc71178cfa8f3e3c5c7e5dee3a261c46331b1296b4b6098f22e21ef6bd7c125"
+    },
+    {
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/verdict.json",
+      "gitMode": "100644",
+      "blob": "38e767aa3fd9e8ec0b5fa44d0d6e426b3770cd17",
+      "bytes": 537,
+      "sha256": "ab5cefa8a711951ce8b9309c9770be9006669f60841c18f098fb44df7ff6176a"
+    },
+    {
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-22-03.879Z-e11933d3-f115-43a8-803c-2449a3820e8f/FS-05--whole/receipt.json",
+      "gitMode": "100644",
+      "blob": "c6b4903aadce75232e4a12b37d2bf2c3e79fdc40",
+      "bytes": 2864,
+      "sha256": "c5e6c5899c42a40b1b3a1bf9aeaea08186469c1a551278e60564326c87510b7a"
+    },
+    {
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-22-03.879Z-e11933d3-f115-43a8-803c-2449a3820e8f/FS-05--whole/verdict.json",
+      "gitMode": "100644",
+      "blob": "7b35f5a5076d58ac436154c66fbfe342d310dcf8",
+      "bytes": 521,
+      "sha256": "4232d6de1b5ee012b6d458fb453cfb16161adf69de899b304c9a015d457df7ff"
+    },
+    {
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/path.ts",
+      "gitMode": "100644",
+      "blob": "4cbf95a4baa405a6fc5438c23511a9059b977201",
+      "bytes": 1675,
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+    },
+    {
+      "commit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "path": "src/commands/yq/index.ts",
+      "gitMode": "100644",
+      "blob": "217c38e5920475f781ebb5f8ab4399afd2456eac",
+      "bytes": 20110,
+      "sha256": "ffa76c2b111d915973634ff1238a709a9a90b1a5db000c690649519378afb283"
+    },
+    {
+      "commit": "bd471ef682d768692a682d40009a874f51e3ad68",
+      "path": "tests/commands/yq-independent-20260828/final-carry-v1/CONTRACT.md",
+      "gitMode": "100644",
+      "blob": "885a54dd028e86ad164c5d58d27d41228f06cf78",
+      "bytes": 18630,
+      "sha256": "1e31a9883fdaf3e8fbb890c736a4082246b58d6dafd7479ebbec194dd8531401"
+    },
+    {
+      "commit": "c49d494dd5a36b19198680239a72e0c95cb90d8d",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/inventory.json",
+      "gitMode": "100644",
+      "blob": "6f53ef71631736bdcbd42d734118f6c9b6265e01",
+      "bytes": 192322,
+      "sha256": "21e650910cf1025e20684e9ba434c66d736a376644d988199c588427d5ac355a"
+    },
+    {
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/command-parser.json",
+      "gitMode": "100644",
+      "blob": "2818796d706eb48e452d769d36c0644754ceefbd",
+      "bytes": 10728,
+      "sha256": "173a594a4b61c17e14ecd09ee850027e1c9cfafac95530e04cfcb65d7c1de18f"
+    },
+    {
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+      "gitMode": "100644",
+      "blob": "15386e9f5336d8244ead725f0c5402b4e5a1183d",
+      "bytes": 12730,
+      "sha256": "b83f0f56eeddbc9637947356078d972999533af791d40f200d493008e17ee443"
+    },
+    {
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/utf8.json",
+      "gitMode": "100644",
+      "blob": "d191c59bd40fd9413d4b73d7e8ac57acd4c197c2",
+      "bytes": 4211,
+      "sha256": "bd42933b99802391de2d41d8af9c00a32963f96ac5fb243b4913da3f358f150c"
+    },
+    {
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+      "gitMode": "100644",
+      "blob": "122721e4bef71663f098456e94990b8055b84b87",
+      "bytes": 10897,
+      "sha256": "f81e089520ccaffcd3cd73589f46737dd658cb9be295f43089156f64382381cf"
+    },
+    {
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+      "gitMode": "100644",
+      "blob": "889e6db198ca7521e175501e39864a42ffc71e24",
+      "bytes": 12184,
+      "sha256": "5486bac2261fec24e85b2ebe2a48eaccbd59be0f8013cdbd852f081c3cc1af30"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/FINAL-SEAL.json",
+      "gitMode": "100644",
+      "blob": "4c959dd21ae52ca94ffc28e5cb95de7c53d3802c",
+      "bytes": 4824,
+      "sha256": "06869ce7eb6f673795004443b098fdcbeba20d03c67f4f9f210bd639bf3fa23f"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/FINDINGS-PLAN.json",
+      "gitMode": "100644",
+      "blob": "8aea641d7298eaa01793348ccbeaba5313f642fa",
+      "bytes": 5260,
+      "sha256": "f48c5111cec657c75148f77ec0c74dcd89ad8029887629b325472afabe4dac93"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/PREPARATION-HISTORY.md",
+      "gitMode": "100644",
+      "blob": "b53487933718c6870825261a93368f84d9ff1a4a",
+      "bytes": 852,
+      "sha256": "7d2a618643bcf206ed33dcfe2f14b6cd81f09bfc820183b7a671e3685f410f35"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/PRESEAL.md",
+      "gitMode": "100644",
+      "blob": "e73ec56a0d467c2e898b57305c99f085da1c2ac8",
+      "bytes": 3936,
+      "sha256": "472b2577c7902c8b5123d7c84e790ee4bfa7e6ecd171022886badd98d4302520"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/README.md",
+      "gitMode": "100644",
+      "blob": "ab8ec02ccfdffe3377e2a7b4cc74fa28c0f1ce55",
+      "bytes": 7164,
+      "sha256": "26260425ce2471de947d84f120945555bd89729ec504fa55d0198f0583c46a16"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/ACTUAL-JOBS.json",
+      "gitMode": "100644",
+      "blob": "5da7f743f343be0288401c84ffc05d8d3f74a84d",
+      "bytes": 557171,
+      "sha256": "ef66626b3cf33ee84b982898c4ea42100f6fac36cf13851318ba731dec1833ad"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/EXTRACTION-RESULT.json",
+      "gitMode": "100644",
+      "blob": "eecd5ee858ec0ca1608789b74148da6238383600",
+      "bytes": 2056,
+      "sha256": "3b859e33eea77aa568ccc3649d1bc35685ad04ea2e1ca8aa0f29b350767e4c99"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/ID-MAP-194.json",
+      "gitMode": "100644",
+      "blob": "c167ad6c2df55171afdc640c3d147980860270db",
+      "bytes": 118381,
+      "sha256": "6d016853a326d83ae1ed545fba4201a4b1e4c6f70c8047493973f11eca7c10f0"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/INDEX.json",
+      "gitMode": "100644",
+      "blob": "2279eba3c2fc4567003f4433ba5cf0df6e9e05fc",
+      "bytes": 286707,
+      "sha256": "8ff8fd648037871238ec1a46df9bdd36559a578d840562fa82eef409a4c59af1"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/PLANNED-STATUS.json",
+      "gitMode": "100644",
+      "blob": "a6ebbbf94e6adcc2c60e8fad3490da84abdc6c68",
+      "bytes": 60028,
+      "sha256": "0bb474829d3c5ae16fc94385b901adab774cafdc2172103fe7a973472d308297"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/PROVENANCE.json",
+      "gitMode": "100644",
+      "blob": "c1862d59048d9bf6af9202177dad5f9ad2c87809",
+      "bytes": 10448,
+      "sha256": "af918144678d41f092d1abeee46556f47b35666a713b7e183456c33edd4c0ed6"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/REPAIR-FINDINGS.json",
+      "gitMode": "100644",
+      "blob": "82dc3f7add265ce10b9a7b771d6299c1358ec2d4",
+      "bytes": 32211,
+      "sha256": "4e666227a417204ad88caf1e802f001c9a564c56df1f9855d53b2afc0c158ecf"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/RUN-SUMMARY.json",
+      "gitMode": "100644",
+      "blob": "552c716402fed097724683ccfb0cf84cc0c793ac",
+      "bytes": 6292,
+      "sha256": "e2f9d32bc8604a3625f6ff42e5d3f48860ccfe48a94e632ce190e0fb68f0a979"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/SOURCE-COVERAGE.json",
+      "gitMode": "100644",
+      "blob": "4ce93350f89d6bd6ee6f24c556f518454f96d57d",
+      "bytes": 15950,
+      "sha256": "17f6b1365c2ea7bfbd6906452316aed03b4c0210c091683dd4baab1f5a89c2d0"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/VALIDATION.json",
+      "gitMode": "100644",
+      "blob": "f819dc20a1b193e63d221cfe7ce2d7beb3a499f2",
+      "bytes": 1985,
+      "sha256": "e279e27bc9afda1ca26d8d696a7a7c7ef73550a12aaec54f81a03507b0843d98"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/extract.mjs",
+      "gitMode": "100644",
+      "blob": "f9fe85370460bd0786aad15cdce27d66ffeffe4a",
+      "bytes": 31158,
+      "sha256": "561a63533dfab0f3deaf982d3012be993e2e74b3f450a9f09847d4fb167cd21a"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/extract.stderr.bin",
+      "gitMode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/extract.stdout.bin",
+      "gitMode": "100644",
+      "blob": "2c18048ccae406890d3c0540e073f506848d0b3f",
+      "bytes": 164,
+      "sha256": "dba7866075d7ddb4c671aa31ed899382989447ab8a1f49a50946aae3406442c9"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/seal.mjs",
+      "gitMode": "100644",
+      "blob": "08330e21f5508d8a1f4a7a7f20d2667e7f5351fb",
+      "bytes": 2582,
+      "sha256": "4d0681b57e15107b0fe0b41c5e8aa387689ff19be375eed94258e9957ed45fac"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/validate.mjs",
+      "gitMode": "100644",
+      "blob": "89262ac502a43ddb0a970d5a5a7d86c39eac720e",
+      "bytes": 9923,
+      "sha256": "0e18287536a49cd0994aef75286d3d2babd858439f58ac4c3859ab121daac172"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/validate.stderr.bin",
+      "gitMode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "commit": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/validate.stdout.bin",
+      "gitMode": "100644",
+      "blob": "5d13d76485b0b16166c5b4551177932d1d8cbfa2",
+      "bytes": 157,
+      "sha256": "bfe6ae68420bb6dc196d360d3cd186e477fc0b490536fb535df785c778bbaa06"
+    }
+  ]
+}

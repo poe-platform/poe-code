@@ -1,0 +1,1285 @@
+{
+  "schema": "du-public29-declaration-continuation/1",
+  "startedAt": "2026-08-28T02:34:55.162Z",
+  "candidate": "0895de2dc63014989f23912c3d48f7c4d0d35a47",
+  "freeze": "1bd1048b0075adf9ee1ebf041e299122f72c3459",
+  "packSha256": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+  "mode": "scoped-committed-archive",
+  "recipeCommit": "84e7f5fa7a77b9b4692578c1cfe4687a3b5f991d",
+  "attempts": 1,
+  "retries": 0,
+  "source": [],
+  "moved": [],
+  "cases": [
+    {
+      "id": "T03",
+      "status": "PASS"
+    },
+    {
+      "id": "T04",
+      "status": "PASS"
+    },
+    {
+      "id": "T05",
+      "outcomes": 3,
+      "status": "PASS"
+    },
+    {
+      "id": "P03",
+      "runtime": "ERR_PACKAGE_PATH_NOT_EXPORTED",
+      "strictType": {
+        "label": "P03-types",
+        "expected": {
+          "exitCode": 2,
+          "diagnostics": [
+            {
+              "line": 9,
+              "code": 2307,
+              "mentions": "virtual-bash/commands/du"
+            }
+          ]
+        },
+        "diagnostics": [
+          {
+            "line": 9,
+            "column": 8,
+            "code": 2307,
+            "text": "Cannot find module 'virtual-bash/commands/du' or its corresponding type declarations."
+          }
+        ],
+        "proof": {
+          "reads": 257,
+          "compiles": 3
+        },
+        "payloadSha256": "d1d5860c82394788b51b138bf21d180a3f03471d5a9ceb3feef09c914ef0f415",
+        "status": "EXPECTED"
+      },
+      "status": "PASS"
+    },
+    {
+      "id": "P04",
+      "externalSourceRead": "permission-denied-before-content",
+      "status": "PASS"
+    },
+    {
+      "id": "P05",
+      "intentionalNegatives": 6,
+      "status": "PASS"
+    },
+    {
+      "id": "P06",
+      "selectedProfile": "complete-pinned-Git-not-live-tree",
+      "status": "PASS"
+    }
+  ],
+  "controls": [
+    {
+      "id": "P04-source-target",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P05-missing-virtual-bash",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P05-missing-virtual-bash/commands/du",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P05-disk-only",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P05-no-loads",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P05-wrong-url",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P05-wrong-sha256",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P06-binding-candidateCommit",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P06-binding-freezeCommit",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P06-binding-freezeManifestSha256",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P06-binding-supervisorIdentity",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P06-binding-toolIdentities",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P06-binding-replayAuthorization",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P06-binding-sourceInventory",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P06-wrong-source-hash",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P06-unlisted-source",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P06-fixture-hash",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P06-content-change",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P06-mode-change",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P06-missing",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P06-new-entry",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P06-AGENTS-name",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P06-symlink",
+      "status": "EXPECTED_REJECTION"
+    },
+    {
+      "id": "P03-addendum",
+      "status": "PASS-composed-public-completion",
+      "uniqueFrozenCases": 29,
+      "priorQualified": 22,
+      "newlyQualified": 7,
+      "physicallyMoved": true,
+      "actualRuntimeLoads": "bound83645ad0",
+      "newActualDeclarationReads": true
+    }
+  ],
+  "focused": [
+    {
+      "id": "C01",
+      "expected": "accepted",
+      "observed": "accepted",
+      "target": "authentic prior DU leaf and transitive reads, predicate only",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": {
+        "label": "T03",
+        "publicImports": [
+          "virtual-bash/commands/du"
+        ],
+        "requiredRoots": [
+          "du"
+        ],
+        "requiredTransitiveDeclarations": 11,
+        "authenticatedProductReads": 12,
+        "payloadSha256": "7e5f00d6d0e51932cec4d4c5923b7513767ae8378574a88f905eb77c4da5be5a",
+        "packageMetadataSha256": "60e3e3934d46b410a428784b5c1ce687a72cb59791a46a6b821dfa78c31dde8d"
+      },
+      "error": null
+    },
+    {
+      "id": "C02",
+      "expected": "accepted",
+      "observed": "accepted",
+      "target": "authentic prior root and transitive reads, predicate only",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": {
+        "label": "T01",
+        "publicImports": [
+          "virtual-bash",
+          "virtual-bash/commands/du"
+        ],
+        "requiredRoots": [
+          "root",
+          "du"
+        ],
+        "requiredTransitiveDeclarations": 79,
+        "authenticatedProductReads": 80,
+        "payloadSha256": "d1d5860c82394788b51b138bf21d180a3f03471d5a9ceb3feef09c914ef0f415",
+        "packageMetadataSha256": "60e3e3934d46b410a428784b5c1ce687a72cb59791a46a6b821dfa78c31dde8d"
+      },
+      "error": null
+    },
+    {
+      "id": "C03",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "missing DU leaf",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "WRONG_DECLARATION_ENTRY:du"
+      }
+    },
+    {
+      "id": "C04",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "unrelated root cannot replace required DU leaf",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "WRONG_DECLARATION_ENTRY:du"
+      }
+    },
+    {
+      "id": "C05",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "missing required transitive contract declaration",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "MISSING_REQUIRED_DECLARATION:dist/contracts/io.d.ts"
+      }
+    },
+    {
+      "id": "C06",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "changed declaration hash",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "DECLARATION_READ_HASH:dist/contracts/io.d.ts\n+ actual - expected\n\n+ '0000000000000000000000000000000000000000000000000000000000000000'\n- '9e8c6720bf4beb2206bbe0bfd2ab34a6337907c78d48b41d42de43cda1d78548'\n"
+      }
+    },
+    {
+      "id": "C07",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "outside consumer source fallback with otherwise bound bytes",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "READ_OUTSIDE_DECLARED_CONSUMER_OR_TOOLS:/Users/kjopek/Workspace/safe-bash/src/commands/du/index.ts"
+      }
+    },
+    {
+      "id": "C08",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "source path inside package is not declaration dist",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "SOURCE_OR_UNDECLARED_PRODUCT_READ:src/commands/du/index.ts"
+      }
+    },
+    {
+      "id": "C09",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "wrong package exports metadata hash",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "DECLARATION_READ_HASH:package.json\n+ actual - expected\n\n+ '0000000000000000000000000000000000000000000000000000000000000000'\n- '60e3e3934d46b410a428784b5c1ce687a72cb59791a46a6b821dfa78c31dde8d'\n"
+      }
+    },
+    {
+      "id": "C10",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "changed frozen consumer payload",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "UNCHANGED_CONSUMER_NOT_READ"
+      }
+    },
+    {
+      "id": "C11",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "T04 remains root-importing, synthetic payload hash with leaf-only reads",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "WRONG_DECLARATION_ENTRY:root"
+      }
+    },
+    {
+      "id": "C12",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "T05-positive remains root-importing, synthetic payload hash with leaf-only reads",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "WRONG_DECLARATION_ENTRY:root"
+      }
+    },
+    {
+      "id": "C13",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "root required transitive closure cannot be dropped",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "MISSING_REQUIRED_DECLARATION:dist/contracts/io.d.ts"
+      }
+    },
+    {
+      "id": "C14",
+      "expected": "accepted",
+      "observed": "accepted",
+      "target": "exact original TS2322 receipt, predicate control only",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": {
+        "exactReceipt": true,
+        "historicalCaseRescored": false
+      },
+      "error": null
+    },
+    {
+      "id": "C15",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "wrong compiler status",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n\n0 !== 2\n"
+      }
+    },
+    {
+      "id": "C16",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "wrong diagnostic code",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "EXACT_T03_CODE_LOCATION_MESSAGE\n+ actual - expected\n\n+ \"consumer.ts(2,29): error TS2307: Type 'string' is not assignable to type 'number'.\\n\"\n- \"consumer.ts(2,29): error TS2322: Type 'string' is not assignable to type 'number'.\\n\"\n"
+      }
+    },
+    {
+      "id": "C17",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "wrong diagnostic location",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "EXACT_T03_CODE_LOCATION_MESSAGE\n+ actual - expected\n\n+ \"consumer.ts(2,30): error TS2322: Type 'string' is not assignable to type 'number'.\\n\"\n- \"consumer.ts(2,29): error TS2322: Type 'string' is not assignable to type 'number'.\\n\"\n"
+      }
+    },
+    {
+      "id": "C18",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "wrong diagnostic message",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "EXACT_T03_CODE_LOCATION_MESSAGE\n+ actual - expected\n\n+ \"consumer.ts(2,29): error TS2322: Type 'boolean' is not assignable to type 'number'.\\n\"\n- \"consumer.ts(2,29): error TS2322: Type 'string' is not assignable to type 'number'.\\n\"\n"
+      }
+    },
+    {
+      "id": "C19",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "additional unrelated missing-module diagnostic",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "EXACT_T03_CODE_LOCATION_MESSAGE\n+ actual - expected\n\n+ \"consumer.ts(2,29): error TS2322: Type 'string' is not assignable to type 'number'.\\n\" +\n+   \"consumer.ts(1,1): error TS2307: Cannot find module 'unrelated'.\\n\"\n- \"consumer.ts(2,29): error TS2322: Type 'string' is not assignable to type 'number'.\\n\"\n"
+      }
+    },
+    {
+      "id": "C20",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "unexpected compiler stderr",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'unrelated diagnostic\\n'\n- ''\n"
+      }
+    },
+    {
+      "id": "C21",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "unchanged complete diagnostic-set matcher rejects unrelated TS2307",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n\n2307 !== 2322\n"
+      }
+    },
+    {
+      "id": "C22",
+      "expected": "rejected",
+      "observed": "rejected",
+      "target": "unchanged complete diagnostic-set matcher rejects extra diagnostic",
+      "classification": "focused-predicate-control-not-product-case-rescore",
+      "value": null,
+      "error": {
+        "code": "ERR_ASSERTION",
+        "message": "consumer.ts(2,29): error TS2322: Type 'string' is not assignable to type 'number'.\nconsumer.ts(1,1): error TS2307: Cannot find module 'unrelated'.\n\n\n2 !== 1\n"
+      }
+    }
+  ],
+  "declarationProofs": [
+    {
+      "label": "T03",
+      "publicImports": [
+        "virtual-bash/commands/du"
+      ],
+      "requiredRoots": [
+        "du"
+      ],
+      "requiredTransitiveDeclarations": 11,
+      "authenticatedProductReads": 12,
+      "payloadSha256": "7e5f00d6d0e51932cec4d4c5923b7513767ae8378574a88f905eb77c4da5be5a",
+      "packageMetadataSha256": "60e3e3934d46b410a428784b5c1ce687a72cb59791a46a6b821dfa78c31dde8d"
+    },
+    {
+      "label": "T04",
+      "publicImports": [
+        "virtual-bash"
+      ],
+      "requiredRoots": [
+        "root"
+      ],
+      "requiredTransitiveDeclarations": 79,
+      "authenticatedProductReads": 80,
+      "payloadSha256": "fd6b0ce1b0438f342187e7a223871d2a96c66893223798e189e66d5cd080cb37",
+      "packageMetadataSha256": "60e3e3934d46b410a428784b5c1ce687a72cb59791a46a6b821dfa78c31dde8d"
+    },
+    {
+      "label": "T05-positive",
+      "publicImports": [
+        "virtual-bash"
+      ],
+      "requiredRoots": [
+        "root"
+      ],
+      "requiredTransitiveDeclarations": 79,
+      "authenticatedProductReads": 80,
+      "payloadSha256": "c37cca8c60eb17f75f9fd7e9ddb25d2f50b6aa54632de535d773e05100f314e7",
+      "packageMetadataSha256": "60e3e3934d46b410a428784b5c1ce687a72cb59791a46a6b821dfa78c31dde8d"
+    },
+    {
+      "label": "T05-replace",
+      "publicImports": [
+        "virtual-bash"
+      ],
+      "requiredRoots": [
+        "root"
+      ],
+      "requiredTransitiveDeclarations": 79,
+      "authenticatedProductReads": 80,
+      "payloadSha256": "c972f0a2ce8a81e6877cab04a0840bad3792969c5d64fafac78de2f26bac1691",
+      "packageMetadataSha256": "60e3e3934d46b410a428784b5c1ce687a72cb59791a46a6b821dfa78c31dde8d"
+    },
+    {
+      "label": "T05-unknown",
+      "publicImports": [
+        "virtual-bash"
+      ],
+      "requiredRoots": [
+        "root"
+      ],
+      "requiredTransitiveDeclarations": 79,
+      "authenticatedProductReads": 80,
+      "payloadSha256": "fa5c0a933600e7cdfe1ca78fbd0592563ee3dff1a3a38ec36f451295c069738c",
+      "packageMetadataSha256": "60e3e3934d46b410a428784b5c1ce687a72cb59791a46a6b821dfa78c31dde8d"
+    },
+    {
+      "label": "P03-types",
+      "publicImports": [
+        "virtual-bash",
+        "virtual-bash/commands/du"
+      ],
+      "requiredRoots": [
+        "root"
+      ],
+      "requiredTransitiveDeclarations": 79,
+      "authenticatedProductReads": 80,
+      "payloadSha256": "d1d5860c82394788b51b138bf21d180a3f03471d5a9ceb3feef09c914ef0f415",
+      "packageMetadataSha256": "b8002f79bd500e4360eb34f78f740c38f31de2f4faa124552747ce7dd8755349"
+    }
+  ],
+  "children": [
+    {
+      "label": "npm-install",
+      "args": [
+        "--require",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/tool-observer.cjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tools/npm/bin/npm-cli.js",
+        "install",
+        "--offline",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--package-lock=false",
+        "--save-exact",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/candidate.tgz"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/installed-consumer",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_ADMISSION_WORK": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work",
+        "DU_ADMISSION_RUN": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1",
+        "DU_ADMISSION_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/raw/npm-tool.jsonl",
+        "DU_TOOL_MAP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tool-map.json"
+      },
+      "directory": "raw/001-npm-install",
+      "startedAt": "2026-08-28T02:35:11.136Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:12.944Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:12.944Z"
+      },
+      "forced": false,
+      "outputBytes": 23,
+      "pid": 53932,
+      "finishedAt": "2026-08-28T02:35:12.957Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "T03",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tools",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tool-map.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/tool-observer.cjs",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1",
+        "--require",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/tool-observer.cjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tools/typescript/bin/tsc",
+        "--project",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces/tsconfig.json",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_ADMISSION_WORK": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work",
+        "DU_ADMISSION_RUN": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1",
+        "DU_ADMISSION_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/raw/T03-tool.jsonl",
+        "DU_TOOL_MAP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tool-map.json"
+      },
+      "directory": "raw/002-T03",
+      "startedAt": "2026-08-28T02:35:14.728Z",
+      "exit": {
+        "code": 2,
+        "signal": null,
+        "at": "2026-08-28T02:35:16.606Z"
+      },
+      "close": {
+        "code": 2,
+        "signal": null,
+        "at": "2026-08-28T02:35:16.606Z"
+      },
+      "forced": false,
+      "outputBytes": 83,
+      "pid": 53983,
+      "finishedAt": "2026-08-28T02:35:16.615Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "T04",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tools",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tool-map.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/tool-observer.cjs",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1",
+        "--require",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/tool-observer.cjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tools/typescript/bin/tsc",
+        "--project",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces/tsconfig.json",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_ADMISSION_WORK": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work",
+        "DU_ADMISSION_RUN": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1",
+        "DU_ADMISSION_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/raw/T04-tool.jsonl",
+        "DU_TOOL_MAP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tool-map.json"
+      },
+      "directory": "raw/003-T04",
+      "startedAt": "2026-08-28T02:35:18.021Z",
+      "exit": {
+        "code": 2,
+        "signal": null,
+        "at": "2026-08-28T02:35:19.964Z"
+      },
+      "close": {
+        "code": 2,
+        "signal": null,
+        "at": "2026-08-28T02:35:19.965Z"
+      },
+      "forced": false,
+      "outputBytes": 104,
+      "pid": 54015,
+      "finishedAt": "2026-08-28T02:35:19.971Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "T05-positive",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tools",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tool-map.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/tool-observer.cjs",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1",
+        "--require",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/tool-observer.cjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tools/typescript/bin/tsc",
+        "--project",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces/tsconfig.json",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_ADMISSION_WORK": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work",
+        "DU_ADMISSION_RUN": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1",
+        "DU_ADMISSION_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/raw/T05-positive-tool.jsonl",
+        "DU_TOOL_MAP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tool-map.json"
+      },
+      "directory": "raw/004-T05-positive",
+      "startedAt": "2026-08-28T02:35:21.536Z",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:23.478Z"
+      },
+      "close": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-08-28T02:35:23.478Z"
+      },
+      "forced": false,
+      "outputBytes": 0,
+      "pid": 54077,
+      "finishedAt": "2026-08-28T02:35:23.487Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "T05-replace",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tools",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tool-map.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/tool-observer.cjs",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1",
+        "--require",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/tool-observer.cjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tools/typescript/bin/tsc",
+        "--project",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces/tsconfig.json",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_ADMISSION_WORK": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work",
+        "DU_ADMISSION_RUN": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1",
+        "DU_ADMISSION_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/raw/T05-replace-tool.jsonl",
+        "DU_TOOL_MAP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tool-map.json"
+      },
+      "directory": "raw/005-T05-replace",
+      "startedAt": "2026-08-28T02:35:25.048Z",
+      "exit": {
+        "code": 2,
+        "signal": null,
+        "at": "2026-08-28T02:35:27.196Z"
+      },
+      "close": {
+        "code": 2,
+        "signal": null,
+        "at": "2026-08-28T02:35:27.196Z"
+      },
+      "forced": false,
+      "outputBytes": 158,
+      "pid": 54120,
+      "finishedAt": "2026-08-28T02:35:27.208Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "T05-unknown",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tools",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tool-map.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/tool-observer.cjs",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1",
+        "--require",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/tool-observer.cjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tools/typescript/bin/tsc",
+        "--project",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces/tsconfig.json",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_ADMISSION_WORK": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work",
+        "DU_ADMISSION_RUN": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1",
+        "DU_ADMISSION_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/raw/T05-unknown-tool.jsonl",
+        "DU_TOOL_MAP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tool-map.json"
+      },
+      "directory": "raw/006-T05-unknown",
+      "startedAt": "2026-08-28T02:35:28.589Z",
+      "exit": {
+        "code": 2,
+        "signal": null,
+        "at": "2026-08-28T02:35:30.323Z"
+      },
+      "close": {
+        "code": 2,
+        "signal": null,
+        "at": "2026-08-28T02:35:30.323Z"
+      },
+      "forced": false,
+      "outputBytes": 163,
+      "pid": 54388,
+      "finishedAt": "2026-08-28T02:35:30.331Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "P03-runtime",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/negative-missing-export",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/negative-missing-export/fixtures/missing-export.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/negative-missing-export",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false"
+      },
+      "directory": "raw/007-P03-runtime",
+      "startedAt": "2026-08-28T02:35:31.936Z",
+      "exit": {
+        "code": 1,
+        "signal": null,
+        "at": "2026-08-28T02:35:31.983Z"
+      },
+      "close": {
+        "code": 1,
+        "signal": null,
+        "at": "2026-08-28T02:35:31.983Z"
+      },
+      "forced": false,
+      "outputBytes": 1407,
+      "pid": 54412,
+      "finishedAt": "2026-08-28T02:35:31.991Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "P03-types",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/negative-missing-export",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tools",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tool-map.json",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/tool-observer.cjs",
+        "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1",
+        "--require",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/tool-observer.cjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tools/typescript/bin/tsc",
+        "--project",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/negative-missing-export/tsconfig.json",
+        "--pretty",
+        "false"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/negative-missing-export",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_ADMISSION_WORK": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work",
+        "DU_ADMISSION_RUN": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1",
+        "DU_ADMISSION_LOG": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/raw/P03-types-tool.jsonl",
+        "DU_TOOL_MAP": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tool-map.json"
+      },
+      "directory": "raw/008-P03-types",
+      "startedAt": "2026-08-28T02:35:32.733Z",
+      "exit": {
+        "code": 2,
+        "signal": null,
+        "at": "2026-08-28T02:35:34.788Z"
+      },
+      "close": {
+        "code": 2,
+        "signal": null,
+        "at": "2026-08-28T02:35:34.788Z"
+      },
+      "forced": false,
+      "outputBytes": 118,
+      "pid": 54420,
+      "finishedAt": "2026-08-28T02:35:34.796Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    },
+    {
+      "label": "P04-permission",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces/fixtures/denied-source.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/moved consumer with spaces",
+      "environment": {
+        "PATH": "/usr/bin:/bin",
+        "HOME": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/home",
+        "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/tmp",
+        "LC_ALL": "C",
+        "LANG": "C",
+        "NODE_NO_WARNINGS": "1",
+        "npm_config_cache": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/npm-cache",
+        "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-npmrc",
+        "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/node_modules/du-public-work/empty-global-npmrc",
+        "npm_config_update_notifier": "false",
+        "DU_FORBIDDEN_SOURCE": "/Users/kjopek/Workspace/safe-bash/src/index.ts"
+      },
+      "directory": "raw/009-P04-permission",
+      "startedAt": "2026-08-28T02:35:35.559Z",
+      "exit": {
+        "code": 1,
+        "signal": null,
+        "at": "2026-08-28T02:35:35.592Z"
+      },
+      "close": {
+        "code": 1,
+        "signal": null,
+        "at": "2026-08-28T02:35:35.593Z"
+      },
+      "forced": false,
+      "outputBytes": 839,
+      "pid": 54464,
+      "finishedAt": "2026-08-28T02:35:35.600Z",
+      "pidAbsent": true,
+      "processGroupEmpty": true
+    }
+  ],
+  "guards": [
+    {
+      "label": "npm-install-PRE",
+      "at": "2026-08-28T02:35:11.136Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "physically-moved-PRE-FIRST-PUBLIC-EXECUTION",
+      "at": "2026-08-28T02:35:13.987Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "T03-PRE",
+      "at": "2026-08-28T02:35:14.728Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "T03-POST",
+      "at": "2026-08-28T02:35:17.298Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "T04-PRE",
+      "at": "2026-08-28T02:35:18.021Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "T04-POST",
+      "at": "2026-08-28T02:35:20.740Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "T05-positive-PRE",
+      "at": "2026-08-28T02:35:21.536Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "T05-positive-POST",
+      "at": "2026-08-28T02:35:24.278Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "T05-replace-PRE",
+      "at": "2026-08-28T02:35:25.048Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "T05-replace-POST",
+      "at": "2026-08-28T02:35:27.904Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "T05-unknown-PRE",
+      "at": "2026-08-28T02:35:28.589Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "T05-unknown-POST",
+      "at": "2026-08-28T02:35:30.989Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "package-negatives-PRE",
+      "at": "2026-08-28T02:35:31.512Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "P03-types-PRE",
+      "at": "2026-08-28T02:35:32.733Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "P03-types-POST",
+      "at": "2026-08-28T02:35:35.552Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "ALL-CASES-POST",
+      "at": "2026-08-28T02:35:36.339Z",
+      "status": "unchanged"
+    },
+    {
+      "label": "FINAL-INTEGRITY",
+      "at": "2026-08-28T02:35:37.008Z",
+      "status": "unchanged"
+    }
+  ],
+  "phase": "P03-types",
+  "failure": null,
+  "privateHelperApproved": false,
+  "privateHelperLoads": 0,
+  "fullGate": false,
+  "whole76": false,
+  "priorQualifiedCases": 22,
+  "priorRuntimeObservations": {
+    "source": 19,
+    "moved": 19,
+    "rerun": 0
+  },
+  "buildAndPackReproduction": "bound accepted5508a2a2, not repeated",
+  "originalStopPreserved": "83645ad0",
+  "oldHold": "3e02038d unchanged",
+  "toolsPre": {
+    "regular": 2274,
+    "metadataOnlyAliases": 12
+  },
+  "seal": {
+    "commit": "84e7f5fa7a77b9b4692578c1cfe4687a3b5f991d",
+    "manifestSha256": "45d08a0d94af60537c95afa7d5b7ec231be985f7ab6657ce7a34c817aaf79bea"
+  },
+  "priorA06": "bound83645ad0-not-rerun",
+  "priorCapture": {
+    "archiveSha256": "c7ad293f150018f995fd1822bdb42115c2644a7e93ddeffe7ac6fdd7ae84980b",
+    "records": 248,
+    "authenticatedBytes": 7039457,
+    "retainedRecords": 11,
+    "maximumInflatedBytes": 33554432
+  },
+  "P05TraceProvenance": "83645ad0 actual moved P01 bytes, not a new load or rerun",
+  "selected": {
+    "files": 771,
+    "candidate": "0895de2dc63014989f23912c3d48f7c4d0d35a47",
+    "tree": "0d6fe4cc764e047c0f4c9eb93cfaa3824be36965"
+  },
+  "sourceRematerialized": 0,
+  "npmProof": {
+    "reads": 569,
+    "compiles": 550
+  },
+  "package": {
+    "authenticatedMembers": 834,
+    "tarballBytes": 726693,
+    "tarballSha256": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+    "installed": true,
+    "physicallyMoved": true,
+    "oldLocationAbsent": true,
+    "publicExecutionBeforeMove": 0,
+    "typesBeforeMove": 0,
+    "boundFullPackReproduction": {
+      "commit": "5508a2a236763754be97baf7347a36ce27e5ef92",
+      "recipe": "436173fcec6787f17f167e03a3b789bf6485e9e5",
+      "manifestSha256": "d369aa59e1e92c4dde6140bd22f230239e93a24b1d81f69f8ba6627511463489",
+      "fullPackReproduced": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+      "selectedInputs": 771,
+      "members": 834,
+      "profile": "scoped-committed-archive-not-full-history"
+    },
+    "classification": "continuation setup only; no P02 rescore"
+  },
+  "types": [
+    {
+      "label": "T03",
+      "expected": {
+        "case": "T03",
+        "file": "consumers/negative-limits.ts.data",
+        "exitCode": 2,
+        "diagnostics": [
+          {
+            "line": 2,
+            "code": 2322,
+            "mentions": "number"
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 29,
+          "code": 2322,
+          "text": "Type 'string' is not assignable to type 'number'."
+        }
+      ],
+      "proof": {
+        "reads": 189,
+        "compiles": 3
+      },
+      "payloadSha256": "7e5f00d6d0e51932cec4d4c5923b7513767ae8378574a88f905eb77c4da5be5a",
+      "status": "EXPECTED"
+    },
+    {
+      "label": "T04",
+      "expected": {
+        "case": "T04",
+        "file": "consumers/negative-readonly.ts.data",
+        "exitCode": 2,
+        "diagnostics": [
+          {
+            "line": 2,
+            "code": 2339,
+            "mentions": "push"
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 20,
+          "code": 2339,
+          "text": "Property 'push' does not exist on type 'readonly CommandDefinition[]'."
+        }
+      ],
+      "proof": {
+        "reads": 257,
+        "compiles": 3
+      },
+      "payloadSha256": "fd6b0ce1b0438f342187e7a223871d2a96c66893223798e189e66d5cd080cb37",
+      "status": "EXPECTED"
+    },
+    {
+      "label": "T05-positive",
+      "expected": {
+        "exitCode": 0,
+        "diagnostics": []
+      },
+      "diagnostics": [],
+      "proof": {
+        "reads": 257,
+        "compiles": 3
+      },
+      "payloadSha256": "c37cca8c60eb17f75f9fd7e9ddb25d2f50b6aa54632de535d773e05100f314e7",
+      "status": "EXPECTED"
+    },
+    {
+      "label": "T05-replace",
+      "expected": {
+        "exitCode": 2,
+        "diagnostics": [
+          {
+            "line": 2,
+            "code": 2353,
+            "mentions": "replace"
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 23,
+          "code": 2353,
+          "text": "Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<DuCommandsOptions, \"replace\">'."
+        }
+      ],
+      "proof": {
+        "reads": 257,
+        "compiles": 3
+      },
+      "payloadSha256": "c972f0a2ce8a81e6877cab04a0840bad3792969c5d64fafac78de2f26bac1691",
+      "status": "EXPECTED"
+    },
+    {
+      "label": "T05-unknown",
+      "expected": {
+        "exitCode": 2,
+        "diagnostics": [
+          {
+            "line": 2,
+            "code": 2353,
+            "mentions": "notADuOption"
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 29,
+          "code": 2353,
+          "text": "Object literal may only specify known properties, and 'notADuOption' does not exist in type 'Omit<DuCommandsOptions, \"replace\">'."
+        }
+      ],
+      "proof": {
+        "reads": 257,
+        "compiles": 3
+      },
+      "payloadSha256": "fa5c0a933600e7cdfe1ca78fbd0592563ee3dff1a3a38ec36f451295c069738c",
+      "status": "EXPECTED"
+    }
+  ],
+  "status": "COMPOSED_SCOPED_DU29_QUALIFIED",
+  "finalIntegrity": "PASS",
+  "allChildrenReaped": true,
+  "finishedAt": "2026-08-28T02:35:37.009Z",
+  "gitSynchronousNaturalReturns": 138,
+  "actualToolReads": 2043,
+  "actualToolCompiles": 568,
+  "actualFrozenPasses": 7,
+  "unexecuted": [],
+  "composedQualified": 29,
+  "sourceUnexecuted": [],
+  "movedUnexecuted": []
+}

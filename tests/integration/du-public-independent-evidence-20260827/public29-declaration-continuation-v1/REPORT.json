@@ -1,0 +1,410 @@
+{
+  "schema": "du-public29-composed-independent-qualification/1",
+  "at": "2026-08-28T02:37:41.986Z",
+  "verdict": "COMPOSED_SCOPED_DU29_QUALIFIED",
+  "recipeCommit": "84e7f5fa7a77b9b4692578c1cfe4687a3b5f991d",
+  "recipeManifestSha256": "45d08a0d94af60537c95afa7d5b7ec231be985f7ab6657ce7a34c817aaf79bea",
+  "candidate": "0895de2dc63014989f23912c3d48f7c4d0d35a47",
+  "freeze": "1bd1048b0075adf9ee1ebf041e299122f72c3459",
+  "package": {
+    "authenticatedMembers": 834,
+    "tarballBytes": 726693,
+    "tarballSha256": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+    "installed": true,
+    "physicallyMoved": true,
+    "oldLocationAbsent": true,
+    "publicExecutionBeforeMove": 0,
+    "typesBeforeMove": 0,
+    "boundFullPackReproduction": {
+      "commit": "5508a2a236763754be97baf7347a36ce27e5ef92",
+      "recipe": "436173fcec6787f17f167e03a3b789bf6485e9e5",
+      "manifestSha256": "d369aa59e1e92c4dde6140bd22f230239e93a24b1d81f69f8ba6627511463489",
+      "fullPackReproduced": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+      "selectedInputs": 771,
+      "members": 834,
+      "profile": "scoped-committed-archive-not-full-history"
+    },
+    "classification": "continuation setup only; no P02 rescore"
+  },
+  "originalEvidence": "83645ad032238edb6d0887ae445c3b8c9d7c7f2a",
+  "originalEvidenceManifestSha256": "c1c45fd86a7d9e24f8d31271a09c511a234723f69bb3169025ac8e0b9ae29f51",
+  "counts": {
+    "priorQualified": 22,
+    "newlyQualified": 7,
+    "composedUniqueCases": 29,
+    "newCaseIds": [
+      "T03",
+      "T04",
+      "T05",
+      "P03",
+      "P04",
+      "P05",
+      "P06"
+    ],
+    "newUnexecuted": [],
+    "priorSourceRuntime": 19,
+    "priorMovedRuntime": 19,
+    "sourceReruns": 0,
+    "movedReruns": 0,
+    "newCompilerInvocations": 6,
+    "newRuntimeNegativeInvocations": 2,
+    "focusedControls": 22,
+    "focusedAcceptedInputs": 3,
+    "focusedExpectedRejects": 19,
+    "originalPackageGuardExpectedRejects": 23,
+    "naturalChildren": 9,
+    "activeChildren": 0,
+    "watchdogs": 0,
+    "synchronousGitReturns": 138,
+    "integrityCheckpoints": 17
+  },
+  "declarationProofs": [
+    {
+      "label": "T03",
+      "publicImports": [
+        "virtual-bash/commands/du"
+      ],
+      "requiredRoots": [
+        "du"
+      ],
+      "requiredTransitiveDeclarations": 11,
+      "authenticatedProductReads": 12,
+      "payloadSha256": "7e5f00d6d0e51932cec4d4c5923b7513767ae8378574a88f905eb77c4da5be5a",
+      "packageMetadataSha256": "60e3e3934d46b410a428784b5c1ce687a72cb59791a46a6b821dfa78c31dde8d"
+    },
+    {
+      "label": "T04",
+      "publicImports": [
+        "virtual-bash"
+      ],
+      "requiredRoots": [
+        "root"
+      ],
+      "requiredTransitiveDeclarations": 79,
+      "authenticatedProductReads": 80,
+      "payloadSha256": "fd6b0ce1b0438f342187e7a223871d2a96c66893223798e189e66d5cd080cb37",
+      "packageMetadataSha256": "60e3e3934d46b410a428784b5c1ce687a72cb59791a46a6b821dfa78c31dde8d"
+    },
+    {
+      "label": "T05-positive",
+      "publicImports": [
+        "virtual-bash"
+      ],
+      "requiredRoots": [
+        "root"
+      ],
+      "requiredTransitiveDeclarations": 79,
+      "authenticatedProductReads": 80,
+      "payloadSha256": "c37cca8c60eb17f75f9fd7e9ddb25d2f50b6aa54632de535d773e05100f314e7",
+      "packageMetadataSha256": "60e3e3934d46b410a428784b5c1ce687a72cb59791a46a6b821dfa78c31dde8d"
+    },
+    {
+      "label": "T05-replace",
+      "publicImports": [
+        "virtual-bash"
+      ],
+      "requiredRoots": [
+        "root"
+      ],
+      "requiredTransitiveDeclarations": 79,
+      "authenticatedProductReads": 80,
+      "payloadSha256": "c972f0a2ce8a81e6877cab04a0840bad3792969c5d64fafac78de2f26bac1691",
+      "packageMetadataSha256": "60e3e3934d46b410a428784b5c1ce687a72cb59791a46a6b821dfa78c31dde8d"
+    },
+    {
+      "label": "T05-unknown",
+      "publicImports": [
+        "virtual-bash"
+      ],
+      "requiredRoots": [
+        "root"
+      ],
+      "requiredTransitiveDeclarations": 79,
+      "authenticatedProductReads": 80,
+      "payloadSha256": "fa5c0a933600e7cdfe1ca78fbd0592563ee3dff1a3a38ec36f451295c069738c",
+      "packageMetadataSha256": "60e3e3934d46b410a428784b5c1ce687a72cb59791a46a6b821dfa78c31dde8d"
+    },
+    {
+      "label": "P03-types",
+      "publicImports": [
+        "virtual-bash",
+        "virtual-bash/commands/du"
+      ],
+      "requiredRoots": [
+        "root"
+      ],
+      "requiredTransitiveDeclarations": 79,
+      "authenticatedProductReads": 80,
+      "payloadSha256": "d1d5860c82394788b51b138bf21d180a3f03471d5a9ceb3feef09c914ef0f415",
+      "packageMetadataSha256": "b8002f79bd500e4360eb34f78f740c38f31de2f4faa124552747ce7dd8755349"
+    }
+  ],
+  "typeOutcomes": [
+    {
+      "label": "T03",
+      "expected": {
+        "case": "T03",
+        "file": "consumers/negative-limits.ts.data",
+        "exitCode": 2,
+        "diagnostics": [
+          {
+            "line": 2,
+            "code": 2322,
+            "mentions": "number"
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 29,
+          "code": 2322,
+          "text": "Type 'string' is not assignable to type 'number'."
+        }
+      ],
+      "proof": {
+        "reads": 189,
+        "compiles": 3
+      },
+      "payloadSha256": "7e5f00d6d0e51932cec4d4c5923b7513767ae8378574a88f905eb77c4da5be5a",
+      "status": "EXPECTED"
+    },
+    {
+      "label": "T04",
+      "expected": {
+        "case": "T04",
+        "file": "consumers/negative-readonly.ts.data",
+        "exitCode": 2,
+        "diagnostics": [
+          {
+            "line": 2,
+            "code": 2339,
+            "mentions": "push"
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 20,
+          "code": 2339,
+          "text": "Property 'push' does not exist on type 'readonly CommandDefinition[]'."
+        }
+      ],
+      "proof": {
+        "reads": 257,
+        "compiles": 3
+      },
+      "payloadSha256": "fd6b0ce1b0438f342187e7a223871d2a96c66893223798e189e66d5cd080cb37",
+      "status": "EXPECTED"
+    },
+    {
+      "label": "T05-positive",
+      "expected": {
+        "exitCode": 0,
+        "diagnostics": []
+      },
+      "diagnostics": [],
+      "proof": {
+        "reads": 257,
+        "compiles": 3
+      },
+      "payloadSha256": "c37cca8c60eb17f75f9fd7e9ddb25d2f50b6aa54632de535d773e05100f314e7",
+      "status": "EXPECTED"
+    },
+    {
+      "label": "T05-replace",
+      "expected": {
+        "exitCode": 2,
+        "diagnostics": [
+          {
+            "line": 2,
+            "code": 2353,
+            "mentions": "replace"
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 23,
+          "code": 2353,
+          "text": "Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<DuCommandsOptions, \"replace\">'."
+        }
+      ],
+      "proof": {
+        "reads": 257,
+        "compiles": 3
+      },
+      "payloadSha256": "c972f0a2ce8a81e6877cab04a0840bad3792969c5d64fafac78de2f26bac1691",
+      "status": "EXPECTED"
+    },
+    {
+      "label": "T05-unknown",
+      "expected": {
+        "exitCode": 2,
+        "diagnostics": [
+          {
+            "line": 2,
+            "code": 2353,
+            "mentions": "notADuOption"
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "line": 2,
+          "column": 29,
+          "code": 2353,
+          "text": "Object literal may only specify known properties, and 'notADuOption' does not exist in type 'Omit<DuCommandsOptions, \"replace\">'."
+        }
+      ],
+      "proof": {
+        "reads": 257,
+        "compiles": 3
+      },
+      "payloadSha256": "fa5c0a933600e7cdfe1ca78fbd0592563ee3dff1a3a38ec36f451295c069738c",
+      "status": "EXPECTED"
+    },
+    {
+      "label": "P03-types",
+      "expected": {
+        "exitCode": 2,
+        "diagnostics": [
+          {
+            "line": 9,
+            "code": 2307,
+            "mentions": "virtual-bash/commands/du"
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "line": 9,
+          "column": 8,
+          "code": 2307,
+          "text": "Cannot find module 'virtual-bash/commands/du' or its corresponding type declarations."
+        }
+      ],
+      "proof": {
+        "reads": 257,
+        "compiles": 3
+      },
+      "payloadSha256": "d1d5860c82394788b51b138bf21d180a3f03471d5a9ceb3feef09c914ef0f415",
+      "status": "EXPECTED"
+    }
+  ],
+  "toolProof": {
+    "regularFilesPrebound": 2274,
+    "aliasesMetadataOnly": 12,
+    "actualCommonJsCompiles": 568,
+    "actualFileReads": 2043
+  },
+  "release": {
+    "A06": "genuine accepted HTML74 prerequisite passed in immutable83645ad0, bound not rerun",
+    "addendumP03": "PASS composed22+7 completion with actual moved declaration reads",
+    "oldP03P06T04T05": "previously unrun; now independently executed once",
+    "T03": "new strict leaf closure proof; original correct TS2322 and old verifier rejection remain unchanged",
+    "T04T05": "actual unchanged imports require ROOT and all79 transitive declarations"
+  },
+  "loadQualification": {
+    "newSuccessfulRuntimeLoads": 0,
+    "originalRuntimeLoadProof": "83645ad0 source19 and moved19 bound; actual load hashes preserved",
+    "P05": "six countercontrols on authenticated historical moved-P01 trace, not a new successful load",
+    "privateHelperApproved": false,
+    "privateHelperProductLoads": 0
+  },
+  "historicalQualification": {
+    "original22": "not rescored",
+    "originalT03Failure": "unchanged",
+    "originalSixUnrunDisposition": "unchanged original invocation; continuation separately versioned",
+    "old3e02038dAndAdmissionStops": "unchanged",
+    "moduleAndNative": "separate accepted proofs, no rerun or composite historical footer",
+    "v2v3Delta": "permanently unproved",
+    "O060": "deferred duplicate-operand deterministic-order profile gap"
+  },
+  "boundaries": {
+    "scopedPublicDuPrerequisite": true,
+    "whole76": false,
+    "fullGate": false,
+    "newNativeOrMetadataAudit": false,
+    "fullHistoryArchiveProof": false,
+    "wholeLiveCheckoutProof": false,
+    "newFullPackReproduction": false,
+    "sourceFallback": false,
+    "productChanges": false
+  },
+  "reaping": [
+    {
+      "label": "npm-install",
+      "pid": 53932,
+      "status": 0,
+      "pidAbsent": true,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "T03",
+      "pid": 53983,
+      "status": 2,
+      "pidAbsent": true,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "T04",
+      "pid": 54015,
+      "status": 2,
+      "pidAbsent": true,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "T05-positive",
+      "pid": 54077,
+      "status": 0,
+      "pidAbsent": true,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "T05-replace",
+      "pid": 54120,
+      "status": 2,
+      "pidAbsent": true,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "T05-unknown",
+      "pid": 54388,
+      "status": 2,
+      "pidAbsent": true,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "P03-runtime",
+      "pid": 54412,
+      "status": 1,
+      "pidAbsent": true,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "P03-types",
+      "pid": 54420,
+      "status": 2,
+      "pidAbsent": true,
+      "processGroupAbsent": true
+    },
+    {
+      "label": "P04-permission",
+      "pid": 54464,
+      "status": 1,
+      "pidAbsent": true,
+      "processGroupAbsent": true
+    }
+  ],
+  "postOnlyCompaction": true,
+  "intentionalAlias": {
+    "path": "guard-controls/alias",
+    "type": "symlink",
+    "mode": 493,
+    "link": "input.data",
+    "disposition": "intentional P06 negative; metadata recorded without following; removed before strict remaining-work inventory"
+  }
+}

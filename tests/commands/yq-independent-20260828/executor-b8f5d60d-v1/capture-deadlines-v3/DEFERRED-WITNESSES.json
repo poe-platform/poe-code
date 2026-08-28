@@ -1,0 +1,381 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "ALL_UNRUN_STATIC_DATA_ONLY",
+  "witnessCount": 20,
+  "baselineWitnessesPreserved": [
+    "FC-F02@cbf906a3ce6d92b2a587cb651014b068deb08532",
+    "FC-F03@a3c3e6582a58ee0b0227856c0f1d95a1c083fad1"
+  ],
+  "witnesses": [
+    {
+      "id": "F02-D01",
+      "finding": "FC-F02",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "cap": 33554432,
+        "phaseReserve": 4194304,
+        "terminalReserve": 933888,
+        "requestBytes": 1048576
+      },
+      "expected": {
+        "ordinaryBeforeRequest": 28426240,
+        "ordinaryAfterRequest": 27377664,
+        "requestChargedBeforeWrite": true,
+        "totalAllocated": 33554432
+      }
+    },
+    {
+      "id": "F02-D02",
+      "finding": "FC-F02",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "ordinaryRemaining": 2048,
+        "rawChunkBytes": 2048,
+        "processReservationAlreadyHeld": 131072
+      },
+      "expected": {
+        "rawAccepted": 2048,
+        "rawRejected": 0,
+        "ordinaryRemaining": 0,
+        "rawOverflow": false,
+        "terminalMetadataStillReserved": true
+      }
+    },
+    {
+      "id": "F02-D03",
+      "finding": "FC-F02",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "ordinaryRemaining": 2048,
+        "rawChunkBytes": 2049,
+        "processReservationAlreadyHeld": 131072
+      },
+      "expected": {
+        "rawAccepted": 2048,
+        "rawRejected": 1,
+        "rawPrefixByteExact": true,
+        "overflow": true,
+        "status": "FAIL",
+        "terminalRecordWithinSameCap": true
+      }
+    },
+    {
+      "id": "F02-D04",
+      "finding": "FC-F02",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "processReservation": 131072,
+        "processMetadataSerializedBytes": 2500
+      },
+      "expected": {
+        "fullMetadataByteExact": true,
+        "permanentCharge": 2500,
+        "unusedReservationReturned": 128572,
+        "chargeBeforeWrite": true,
+        "noDeadlineReset": true
+      }
+    },
+    {
+      "id": "F02-D05",
+      "finding": "FC-F02",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "processReservation": 131072,
+        "processMetadataSerializedBytes": 200000,
+        "ordinaryRemaining": 68928
+      },
+      "expected": {
+        "ordinarySupplement": 68928,
+        "fullMetadataByteExact": true,
+        "overflow": false,
+        "totalPermanentCharge": 200000
+      }
+    },
+    {
+      "id": "F02-D06",
+      "finding": "FC-F02",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "processReservation": 131072,
+        "processMetadataSerializedBytes": 200000,
+        "ordinaryRemaining": 0
+      },
+      "expected": {
+        "completeMetadata": false,
+        "status": "FAIL",
+        "boundedOriginalPrefixBytes": 1024,
+        "originalByteLengthAndSha256Recorded": true,
+        "rawStreamsRetained": true,
+        "noOutsideCapWrite": true
+      }
+    },
+    {
+      "id": "F02-D07",
+      "finding": "FC-F02",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "ordinaryCharged": 28426240,
+        "phaseActual": 4194304,
+        "terminalActualMaximum": 933888
+      },
+      "expected": {
+        "actualTotalMaximum": 33554432,
+        "terminalSlotsDoNotIncreaseCap": true,
+        "finalActualCheckRequired": true
+      }
+    },
+    {
+      "id": "F02-D08",
+      "finding": "FC-F02",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "twoDistinctFilesWithIdenticalContents": true,
+        "bytesPerFile": 1024
+      },
+      "expected": {
+        "actualCharge": 2048,
+        "deduplication": false,
+        "allProjectionAndPristineCopiesCount": true
+      }
+    },
+    {
+      "id": "F02-D09",
+      "finding": "FC-F02",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "actualEvidenceBytes": 33554433,
+        "chargedBytes": 33554432
+      },
+      "expected": {
+        "status": "FAIL",
+        "acceptedClosure": false,
+        "capRaised": false,
+        "fileRemovedOrReclassified": false
+      }
+    },
+    {
+      "id": "F02-D10",
+      "finding": "FC-F02",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "actualEvidenceBytes": 1048577,
+        "accountedBytes": 1048576
+      },
+      "expected": {
+        "status": "FAIL",
+        "reason": "JOB_UNCHARGED_EVIDENCE",
+        "allFilesCounted": true
+      }
+    },
+    {
+      "id": "F02-D11",
+      "finding": "FC-F02",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "ordinaryRemaining": 0,
+        "workerReserveRequest": 1,
+        "outerProcessSlotUntouched": true,
+        "integritySlotUntouched": true,
+        "outcomeSlotUntouched": true
+      },
+      "expected": {
+        "reservationRefusedBeforeWrite": true,
+        "overflowFailureRecord": true,
+        "originalWorkerPayloadNotWaived": true,
+        "knownReapRequired": true,
+        "parentTerminalFilesUseProtectedSameCapSlots": true
+      }
+    },
+    {
+      "id": "F03-D01",
+      "finding": "FC-F03",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "phase": "SOURCE_RUNTIME",
+        "reservationNs": "0",
+        "outgoingSetupDeadlineNs": "5000000000",
+        "recordObservationNs": "4999999998",
+        "preIndexObservationNs": "4999999999",
+        "incoming": "operation"
+      },
+      "expected": {
+        "transitionAllowed": true,
+        "operationStartNs": "4999999998",
+        "workerTimeUsed": false
+      }
+    },
+    {
+      "id": "F03-D02",
+      "finding": "FC-F03",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "phase": "SOURCE_RUNTIME",
+        "outgoingIndex": 1,
+        "outgoingDeadlineNs": "5000000000",
+        "recordObservationNs": "5000000000",
+        "incoming": "operation"
+      },
+      "expected": {
+        "status": "FAIL",
+        "outgoingIndexAfter": 1,
+        "phaseDeadlineRetained": true,
+        "boundaryEqualityIsLate": true
+      }
+    },
+    {
+      "id": "F03-D03",
+      "finding": "FC-F03",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "phase": "MOVED_RUNTIME",
+        "outgoingIndex": 1,
+        "outgoingDeadlineNs": "40000000000",
+        "recordObservationNs": "40000000001",
+        "incoming": "operation"
+      },
+      "expected": {
+        "status": "FAIL",
+        "outgoingIndexAfter": 1,
+        "setupCapNotErased": true
+      }
+    },
+    {
+      "id": "F03-D04",
+      "finding": "FC-F03",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "origin": "Original frozen FC-F03 operation-state arithmetic; not a newly admitted setup",
+        "jobNs": "45000000000",
+        "workNs": "40000000000",
+        "operationStartNs": "5000000000",
+        "operationCapNs": "30000000000",
+        "lastPollNs": "34999000000",
+        "parentCaptureNs": "35001000000",
+        "nextPollNs": "35009000000",
+        "outgoingIndex": 2
+      },
+      "expected": {
+        "status": "FAIL",
+        "outgoingDeadlineNs": "35000000000",
+        "outgoingIndexAfter": 2,
+        "firstLateObservationNs": "35001000000",
+        "nextPollCannotRestorePass": true
+      }
+    },
+    {
+      "id": "F03-D05",
+      "finding": "FC-F03",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "outgoingIndex": 2,
+        "outgoingDeadlineNs": "35000000000",
+        "recordObservationNs": "34999999999",
+        "afterAppendPreIndexNs": "35000000001"
+      },
+      "expected": {
+        "status": "FAIL",
+        "ordinaryEntryEventRetained": true,
+        "deadlineRecordCheckpoint": "before-index-change",
+        "firstLateObservationNs": "35000000001",
+        "outgoingIndexAfter": 2
+      }
+    },
+    {
+      "id": "F03-D06",
+      "finding": "FC-F03",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "globalNs": "50000000000",
+        "phaseNs": "30000000000",
+        "jobNs": "45000000000",
+        "workNs": "40000000000",
+        "operationDeadlineWithoutAbsoluteMinNs": "35000000000",
+        "observationNs": "30000000000"
+      },
+      "expected": {
+        "status": "FAIL",
+        "effectiveOutgoingDeadlineNs": "30000000000",
+        "noBorrowingFromLaterWorkOrSlot": true
+      }
+    },
+    {
+      "id": "F03-D07",
+      "finding": "FC-F03",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "firstLateEvent": true,
+        "laterCaptureAndCompleteRequests": true,
+        "normalChildCloseAfterLate": true,
+        "workerResultStatus": "PASS"
+      },
+      "expected": {
+        "status": "FAIL",
+        "sameCachedDeadlineError": true,
+        "firstLateEvidenceUnchanged": true,
+        "phaseIndexNotAdvanced": true,
+        "normalCloseDoesNotOverrideLate": true
+      }
+    },
+    {
+      "id": "F03-D08",
+      "finding": "FC-F03",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "phaseBytesBefore": 4194304,
+        "lateOutgoingTransition": true
+      },
+      "expected": {
+        "status": "FAIL",
+        "ordinaryPhaseFileNotExtended": true,
+        "protectedPhaseDeadlineRecord": true,
+        "firstLateTimingRetained": true,
+        "noExtraPhaseQuota": true
+      }
+    },
+    {
+      "id": "F03-D09",
+      "finding": "FC-F03",
+      "status": "UNRUN",
+      "kind": "DEFERRED_DATA_WITNESS_NOT_EXECUTED_CONTROL",
+      "input": {
+        "terminationAlreadyStartedFor": "unsafe-ipc",
+        "laterParentMonitorObservesTimeout": true
+      },
+      "expected": {
+        "timedOut": true,
+        "knownReapStillRequired": true,
+        "nonzeroAndUnknownReapStillOverride": true,
+        "pollIntervalMs": 10,
+        "hardPreemptionClaim": false
+      }
+    }
+  ],
+  "actualTargetModuleImports": 0,
+  "actualClockOrTimerExercises": 0,
+  "actualBudgetClassOrGetterExercises": 0,
+  "actualWorkersOrTools": 0,
+  "newCohortSlots": 0,
+  "newYqOrCarryCases": 0,
+  "rootGo": false,
+  "expectedResultsAreNotPasses": true
+}

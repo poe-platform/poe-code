@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "baseComposition": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+  "changes": [
+    {
+      "target": "core/owned-process.mjs",
+      "preimageSha256": "bcb309eed5984baeaf064d89cae892d54e4afe2d8c9dd710ad26ccf516c9d302",
+      "postimageSha256": "b8fcbc43e1500f058c3dbc1942a438cd6da383135bebe05fcc2f6b175978d7fc",
+      "firstChangedLine": 5,
+      "oldAffectedLines": 75,
+      "newAffectedLines": 102,
+      "unchangedPrefixLines": 4,
+      "unchangedSuffixLines": 26,
+      "method": "Static line prefix/suffix comparison; full exact bodies are the Git preimage and owned postimage, not an executed patch."
+    },
+    {
+      "target": "core/phase-capture.mjs",
+      "preimageSha256": "85702be619115df518ae16a946e1f3810277ca0705f8a2c421268611dfdb7b64",
+      "postimageSha256": "a5449c12112a341f818154899c10290509e7999d5c48b7b7a3d7d6942fd69335",
+      "firstChangedLine": 2,
+      "oldAffectedLines": 40,
+      "newAffectedLines": 67,
+      "unchangedPrefixLines": 1,
+      "unchangedSuffixLines": 4,
+      "method": "Static line prefix/suffix comparison; full exact bodies are the Git preimage and owned postimage, not an executed patch."
+    },
+    {
+      "target": "core/supervisor.mjs",
+      "preimageSha256": "c353bf16984a670f07a7414a60ca999c192215bfcccfd98b58b7377e608436ed",
+      "postimageSha256": "7d33d4e0feba862a3bf3b5da3f6e41bd2217871c01d429207b4a47061682a126",
+      "firstChangedLine": 14,
+      "oldAffectedLines": 194,
+      "newAffectedLines": 217,
+      "unchangedPrefixLines": 13,
+      "unchangedSuffixLines": 51,
+      "method": "Static line prefix/suffix comparison; full exact bodies are the Git preimage and owned postimage, not an executed patch."
+    }
+  ],
+  "newFiles": [
+    "core/capture-budget-v3.mjs"
+  ],
+  "oldFilesOverwritten": false
+}

@@ -1,0 +1,210 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "SOURCE_FIX_SEALED_STATIC_REVIEW_PENDING_DYNAMIC_UNRUN",
+  "scope": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3",
+  "findings": [
+    "FC-F02",
+    "FC-F03"
+  ],
+  "baseComposition": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+  "sourceOverlay": {
+    "path": "ASSEMBLY-OVERLAY.json",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 11377,
+    "sha256": "397b98ac8c2355541c0a11a5162ea2cb219a64c9a5a31f91d09c67b47b29628e"
+  },
+  "changedSources": [
+    {
+      "target": "core/capture-budget-v3.mjs",
+      "operation": "add-only-if-absent",
+      "preimage": {
+        "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/capture-budget-v3.mjs",
+        "kind": "absent",
+        "mustBeAbsent": true
+      },
+      "postimage": {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/capture-budget-v3.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 6289,
+        "sha256": "fac865817f05c8cbe970e1356c565a68468306caada0f251a9f86710df1c0605",
+        "modeAuthority": "Fresh owned regular-file lstat, independently rechecked before and after commit; not inferred from Git100644"
+      }
+    },
+    {
+      "target": "core/owned-process.mjs",
+      "operation": "replace-exact-preimage",
+      "preimage": {
+        "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/owned-process.mjs",
+        "kind": "file",
+        "sha256": "bcb309eed5984baeaf064d89cae892d54e4afe2d8c9dd710ad26ccf516c9d302",
+        "bytes": 5989,
+        "mode": 420,
+        "blob": "2e6fdcedc7ced9509aa18262671de2b805d4a020",
+        "gitMode": "100644",
+        "posixModeAuthority": {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/ASSEMBLY-SEAL.json",
+          "sha256": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+          "pointer": "/manifest/files/core~1owned-process.mjs"
+        }
+      },
+      "postimage": {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/owned-process.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 7803,
+        "sha256": "b8fcbc43e1500f058c3dbc1942a438cd6da383135bebe05fcc2f6b175978d7fc",
+        "modeAuthority": "Fresh owned regular-file lstat, independently rechecked before and after commit; not inferred from Git100644"
+      }
+    },
+    {
+      "target": "core/phase-capture.mjs",
+      "operation": "replace-exact-preimage",
+      "preimage": {
+        "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/phase-capture.mjs",
+        "kind": "file",
+        "sha256": "85702be619115df518ae16a946e1f3810277ca0705f8a2c421268611dfdb7b64",
+        "bytes": 2230,
+        "mode": 420,
+        "blob": "55fd36e6f4f2e097df673b0c617e3fd1f1f2010f",
+        "gitMode": "100644",
+        "posixModeAuthority": {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/ASSEMBLY-SEAL.json",
+          "sha256": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+          "pointer": "/manifest/files/core~1phase-capture.mjs"
+        }
+      },
+      "postimage": {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/phase-capture.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 4240,
+        "sha256": "a5449c12112a341f818154899c10290509e7999d5c48b7b7a3d7d6942fd69335",
+        "modeAuthority": "Fresh owned regular-file lstat, independently rechecked before and after commit; not inferred from Git100644"
+      }
+    },
+    {
+      "target": "core/supervisor.mjs",
+      "operation": "replace-exact-preimage",
+      "preimage": {
+        "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/supervisor.mjs",
+        "kind": "file",
+        "sha256": "c353bf16984a670f07a7414a60ca999c192215bfcccfd98b58b7377e608436ed",
+        "bytes": 25075,
+        "mode": 420,
+        "blob": "197ffe621704ff373cdac3305018450e67c4cc67",
+        "gitMode": "100644",
+        "posixModeAuthority": {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/ASSEMBLY-SEAL.json",
+          "sha256": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+          "pointer": "/manifest/files/core~1supervisor.mjs"
+        }
+      },
+      "postimage": {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/supervisor.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 27596,
+        "sha256": "7d33d4e0feba862a3bf3b5da3f6e41bd2217871c01d429207b4a47061682a126",
+        "modeAuthority": "Fresh owned regular-file lstat, independently rechecked before and after commit; not inferred from Git100644"
+      }
+    }
+  ],
+  "inputs": {
+    "path": "INPUTS.json",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 11155,
+    "sha256": "ebf5cd7428b542e2380852dc2f6035e04e977afb5c3ef44ebfd96b15cd823d86"
+  },
+  "specification": {
+    "path": "SPECIFICATION.md",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 10610,
+    "sha256": "c4c40c191a17da1f29696dfc13a4638bce16dc3a29847e31cd751d1e45cc7ded"
+  },
+  "integration": {
+    "path": "INTEGRATION.md",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 2823,
+    "sha256": "73ff78e28d76e48de418cb6f4c8b2cd62cf71708582626a304c71e145c806662"
+  },
+  "evidenceRoles": {
+    "path": "EVIDENCE-ROLES.json",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 7661,
+    "sha256": "24633158fee14c83d2298978b27e5b0e578eb9a4d55d64dc634188236ef83c0d"
+  },
+  "deferredWitnesses": {
+    "path": "DEFERRED-WITNESSES.json",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 10730,
+    "sha256": "4857cab5fc9fe5a99d68b0e9fe4aa9e922c5372b8b6eea9a757df5759313dacd"
+  },
+  "staticChecks": {
+    "path": "STATIC-CHECKS.json",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 4369,
+    "sha256": "9deba97d4d022f70f1a5fef876bbd02ce012d7d39994df2ddb424ebd95ef87a4"
+  },
+  "originalPreparationFailures": [
+    "Initial zsh PATH loop exit127",
+    "First document lint exit1 preserved in SYNTAX-CAPTURE.json",
+    "Second document lint exit1 preserved in DOC-CHECK-V2.json"
+  ],
+  "correctedDocumentCheck": {
+    "path": "DOC-CHECK-V3.json",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 850,
+    "sha256": "c3a6c03f1f2e49868ecef3285c57f6b46fc5547822d13cf0f557f14e66513c33"
+  },
+  "oldBuildPreservation": {
+    "revision": "937c1f6a35c620146e62924b16d90e808319024f",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/FINAL-SEAL.json",
+    "sha256": "e796e30489e031c4ab6d58882542e7f3b6c644ead90ae29474c2744003f73c9d",
+    "files": 17,
+    "bytesModesAndMembershipUnchanged": true,
+    "oldBuildPassNotReused": true
+  },
+  "requiredFuture": [
+    "Different reviewer inspects this exact source and mode/byte overlay.",
+    "Core owner combines disjoint FC-F01 and FC-F02/FC-F03 overlays into a fresh complete assembly/recipe seal.",
+    "Separate RootGO authorizes any dynamic class/clock/control/coordinator/compiler/loader/candidate work; none exists here."
+  ],
+  "proofLimits": {
+    "actualModuleImports": 0,
+    "actualBudgetOrClockControls": 0,
+    "actualWorkers": 0,
+    "actualCompilers": 0,
+    "actualCandidateExecutions": 0,
+    "actualToolCopies": 0,
+    "semanticCasesAdded": 0,
+    "extraCohortSlots": 0,
+    "rootGo": false,
+    "wholeGateActivated": false
+  },
+  "boundsUnchanged": {
+    "outer": 336,
+    "compilerMaximum": 18,
+    "globalMs": 24165000,
+    "jobCaptureBytes": 33554432,
+    "phaseBytes": 4194304,
+    "workerStreamsBytes": 16777216,
+    "compilerStreamsBytes": 8388608,
+    "ipcBytes": 262144,
+    "globalLogicalBytes": 25769803776
+  },
+  "authorization": "Static source/data/hash/syntax and owned commit only; this file does not grant execution."
+}

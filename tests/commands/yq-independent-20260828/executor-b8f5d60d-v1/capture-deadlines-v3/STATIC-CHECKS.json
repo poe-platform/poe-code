@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "status": "STATIC_SOURCE_CHECKS_COMPLETE_NOT_INDEPENDENT_REVIEW_ACCEPTANCE",
+  "scope": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3",
+  "syntax": {
+    "record": "SYNTAX-CAPTURE.json",
+    "sourceCommands": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "allSourceExitCodes": 0,
+    "recordAggregateRemains": "STATIC_CHECK_FAILURE due to original document lint"
+  },
+  "document": {
+    "record": "DOC-CHECK-V3.json",
+    "exitCode": 0,
+    "warnings": 0,
+    "earlierFailuresRetained": [
+      "SYNTAX-CAPTURE.json",
+      "DOC-CHECK-V2.json"
+    ]
+  },
+  "authenticatedInputs": 20,
+  "preimageChecks": "Three exact b1 Git blobs, raw SHA256, byte sizes and independent assembly-seal POSIX modes; original live files unchanged at check.",
+  "overlayFiles": [
+    {
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/capture-budget-v3.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6289,
+      "sha256": "fac865817f05c8cbe970e1356c565a68468306caada0f251a9f86710df1c0605",
+      "modeAuthority": "Fresh owned regular-file lstat, independently rechecked before and after commit; not inferred from Git100644"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/owned-process.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7803,
+      "sha256": "b8fcbc43e1500f058c3dbc1942a438cd6da383135bebe05fcc2f6b175978d7fc",
+      "modeAuthority": "Fresh owned regular-file lstat, independently rechecked before and after commit; not inferred from Git100644"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/phase-capture.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4240,
+      "sha256": "a5449c12112a341f818154899c10290509e7999d5c48b7b7a3d7d6942fd69335",
+      "modeAuthority": "Fresh owned regular-file lstat, independently rechecked before and after commit; not inferred from Git100644"
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/supervisor.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 27596,
+      "sha256": "7d33d4e0feba862a3bf3b5da3f6e41bd2217871c01d429207b4a47061682a126",
+      "modeAuthority": "Fresh owned regular-file lstat, independently rechecked before and after commit; not inferred from Git100644"
+    }
+  ],
+  "importClosure": {
+    "ownedTargets": 4,
+    "edges": 26,
+    "allDirectRelativeTargetsOwnedOrPinnedBaseline": true,
+    "importedForValidation": false
+  },
+  "lexicalSourceChecks": [
+    "No direct per-job atomicJson remains in supervisor.",
+    "No direct atomicJson remains in process owner.",
+    "Process receipt reservation precedes stream open/spawn; raw charge precedes writeSync.",
+    "Outgoing entry and post-append deadline checks precede index assignment.",
+    "Sticky late deadline retains minimum of global/phase/job/work and outgoing cap.",
+    "Actual complete-tree accounting occurs before and after final metadata publications."
+  ],
+  "reservationArithmetic": {
+    "terminalSlots": {
+      "outerProcess": 131072,
+      "jobReceipt": 262144,
+      "integrityFailure": 131072,
+      "outerOutcome": 262144,
+      "accounting": 65536,
+      "captureFailure": 65536,
+      "phaseFailure": 16384
+    },
+    "terminalTotal": 933888,
+    "phase": 4194304,
+    "ordinaryBeforeRequest": 28426240,
+    "total": 33554432
+  },
+  "deferredData": {
+    "witnesses": 20,
+    "status": "ALL_UNRUN",
+    "newCohortSlots": 0,
+    "publicYqOrCarryCases": 0
+  },
+  "dynamicExecutions": {
+    "targetModuleImports": 0,
+    "budgetClass": 0,
+    "clockOrTimerControls": 0,
+    "proxyOrGetterControls": 0,
+    "predicates": 0,
+    "workers": 0,
+    "coordinator": 0,
+    "compiler": 0,
+    "loader": 0,
+    "candidate": 0,
+    "copyTools": 0
+  },
+  "qualifications": [
+    "Lexical ordering, hashes and arithmetic do not exercise control flow or scheduling.",
+    "No self-acceptance of FC-F02/FC-F03; different reviewer must inspect exact overlay.",
+    "No hard quota/RSS/preemption claim; RootGO remains absent."
+  ],
+  "preparationFailuresPreserved": "PREPARATION-HISTORY.md",
+  "futureProof": "All dynamic boundary/saturation/reap behavior UNRUN."
+}

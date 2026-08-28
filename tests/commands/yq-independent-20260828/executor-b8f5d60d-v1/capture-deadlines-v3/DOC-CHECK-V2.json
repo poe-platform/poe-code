@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "status": "STATIC_DOCUMENT_CHECK_FAILURE",
+  "supersedesOnlyDocumentCheckOf": "SYNTAX-CAPTURE.json (original remains FAIL)",
+  "executable": "python3",
+  "argv": [
+    "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+    "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/SPECIFICATION.md"
+  ],
+  "environmentOverride": {
+    "PYTHONDONTWRITEBYTECODE": "1"
+  },
+  "checkerSha256": "e866d8f5806a40483cbe25f3250fc583f9a1e45d29a4255af41f6839693430bd",
+  "sourceSha256": "d57811e0fa790947d36f20baffc89a4f198f3059832d2ba5d59837fbb0d4a983",
+  "exitCode": 1,
+  "signal": null,
+  "stdout": "ERROR: missing required section: Goals and Non-Goals\nFAILED: 1 error(s), 0 warning(s)\n",
+  "stderr": "",
+  "actualTargetModuleImports": 0,
+  "dynamicControls": 0
+}

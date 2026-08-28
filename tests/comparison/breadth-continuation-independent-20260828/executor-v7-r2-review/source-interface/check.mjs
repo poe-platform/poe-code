@@ -58,6 +58,17 @@ const anchors = [
 const seal = JSON.parse(read(path.join(root, 'SEAL.json')));
 const iface = JSON.parse(read(path.join(root, 'INTERFACE.json')));
 const handoff = JSON.parse(read(path.join(root, 'runs/handoff-01/HANDOFF.json')));
+const evidenceBindings = [];
+for (const [role, entry] of Object.entries(handoff.evidence)) {
+  const filename = path.join(root, entry.path);
+  const metadata = fs.lstatSync(filename);
+  const sha256 = digestFile(filename);
+  check(metadata.isFile() && !metadata.isSymbolicLink() && metadata.size === entry.bytes && sha256 === entry.sha256, `handoff-evidence:${role}`);
+  const relative = path.relative(repository, filename);
+  const tree = git(['ls-tree', evidence, '--', relative]).toString().trim();
+  if (tree) check(hash(git(['show', `${evidence}:${relative}`])) === sha256, `evidence-git-blob:${role}`);
+  evidenceBindings.push({ role, path: entry.path, bytes: metadata.size, mode: metadata.mode & 0o7777, sha256, classification: tree ? 'evidence-git-blob' : 'handoff-bound-materialized-evidence' });
+}
 check(seal.files.length === 359, 'sealed-count359');
 check(handoff.candidateCommit === candidate && handoff.launcherCommit === launcher, 'handoff-commits');
 check(seal.interfaceSha256 === anchors[1].sha256 && handoff.bindings.recipe.sha256 === anchors[0].sha256 && handoff.bindings.interface.sha256 === anchors[1].sha256, 'handoff-hashes');
@@ -110,7 +121,9 @@ const namespaces = seal.namespaces.map(namespace => {
 });
 const planBytes = read(path.join(root, 'OPERATION-PLAN.json'));
 const plan = JSON.parse(planBytes);
-check(hash(planBytes) === iface.planSha256, 'plan-hash');
+const admissionProjection = { limits: plan.limits, command: plan.command, phase: 'admission', operations: plan.admission };
+const admissionPlanSha256 = hash(JSON.stringify(admissionProjection));
+check(admissionPlanSha256 === iface.planSha256, 'admission-phase-projection-hash');
 check(plan.admission.length === 14 && iface.lifecycle.workersPlanned === 14 && iface.lifecycle.workerCap === 27 && iface.lifecycle.C11EmptySetups === 2 && iface.lifecycle.semanticCalls === 0, 'admission-interface-counts');
 check(iface.outputs.configBytesIncludingLF === 2097151 && iface.outputs.stagedBytesIncludingLF === 2097152 && iface.outputs.logicalDocumentBytes === 33554432 && iface.outputs.bodyBudget === 260046848 && iface.outputs.collectorBudget === 8388608 && iface.outputs.combinedBudget === 268435456, 'interface-byte-limits');
 for (const entry of [iface.outerCommand.entry, iface.innerCommand.entry, ...iface.executableBindings]) {
@@ -157,7 +170,49 @@ for (const [name, origin] of Object.entries({ outer: 'executor-v7', launch: 'exe
 }
 check(inheritance.find(entry => entry.file === 'outer.mjs').byteIdentical, 'outer-body-byte-identical-different-import-target');
 check(planBytes.equals(read(path.resolve(root, '../executor-v7-r1/OPERATION-PLAN.json'))), 'plan-unchanged');
-const output = { schema: 'INDEPENDENT_R2_SOURCE_DATA_ONLY', candidate, evidence, launcher, parserVersion: ts.version, candidateExecutions: 0, childHarnesses: 0, grantsMintedOrConsumed: 0, assertions, failures, anchors, counts, bindings, namespaces, parsedModules: sourceFiles.size, activeClosure: [...active].map(filename => path.relative(root, filename)).sort(), activeMissing, unboundEdges, unresolvedDynamic, inheritance, qualifications: ['Source/hash/schema only, not dynamic validation', 'External tools and product/comparator only metadata-hashed, never invoked/imported/staged', 'Instruction plaintext never read', 'Full32MiB logical and248+8MiB quota boundaries STATIC_ONLY, not RSS', 'No positive review document or usable grant'] };
+const priorBytes = read(path.resolve(root, '../executor-v7-r1/SEAL.json'));
+const priorSeal = JSON.parse(priorBytes);
+check(hash(priorBytes) === seal.originalSealSha256 && seal.originalSealSha256 === '05aa8dce295c507fd605c93aa113ba2ecd5605064dc0f6dfe3a20aa6dc6bf04d', 'immutable-prior-seal');
+for (const prior of priorSeal.files) {
+  const filename = path.resolve(root, '../executor-v7-r1', prior.path);
+  const current = seal.files.find(entry => path.resolve(root, entry.path) === filename);
+  check(current && ['bytes', 'mode', 'sha256'].every(key => current[key] === prior[key]), `preserved-r1-binding:${prior.path}`);
+}
+const sourceExpectations = [
+  ['contracts.mjs', 'typeof value === \'string\' && /^[0-9a-f]{40}$/.test(value)', 'primitive-commit'],
+  ['authorization.mjs', "requireThat(referenceData(value[key]), 'AUTH_REFERENCE_SCHEMA'", 'file-reference-boundary'],
+  ['authorization.mjs', 'header && referenceData(header.review) && referenceData(header.grant)', 'authority-reference-boundary'],
+  ['authorization.mjs', 'const reference = referenceData(binding);', 'load-reference-boundary'],
+  ['authorization.mjs', 'reviewData(loadAuthorityReference(review', 'review-load-route'],
+  ['authorization.mjs', 'grantData(loadAuthorityReference(grant', 'grant-load-route'],
+  ['production.mjs', 'authority({ ...authorization, root, metadataChildren: context.metadataChildren, observe })', 'production-authority-route'],
+  ['contracts.mjs', "const row = dataObject(value, ['code', 'signal']);", 'disposition-exact-fields'],
+  ['contracts.mjs', 'const numeric = nonnegative(row.code) && row.code <= 255;', 'finite-status-domain'],
+  ['contracts.mjs', "row.operationId === 'C09-deadline'", 'deadline-role'],
+  ['contracts.mjs', "row.operationId === 'C09-status' ? 7 : 0", 'status7-role'],
+  ['report.mjs', 'metadata.length !== 2 || records.length !== 3', 'two-observers-and-final'],
+  ['report.mjs', 'finalReport.children !== accounting.enrolled', 'final-count-reconciliation'],
+  ['report.mjs', 'childLedgerData(actualChildren[index], index + 1)', 'ledger-validation-route'],
+  ['report.mjs', "JSON.parse(fs.readFileSync(new URL('./OPERATION-PLAN.json', import.meta.url))).admission", 'production-plan-reconciliation'],
+  ['report.mjs', "['mode', 'runId', 'status', 'unsafe', 'result', 'children', 'allChildrenReaped']", 'seven-final-fields'],
+  ['contracts.mjs', 'config: 2097151, staged: 2097152', 'inclusive-wire-limits'],
+  ['records.mjs', "append('\\n');", 'encoder-counts-lf'],
+  ['records.mjs', "name === 'STAGED.json' ? wireLimits.staged : wireLimits.config", 'writer-limit-route'],
+  ['records.mjs', 'readDocument(root, name, sha256, wireLimits.config)', 'reader-limit-route'],
+  ['body.mjs', 'saveInput(store, name, value)', 'body-input-writer-route'],
+  ['worker.mjs', 'config = readConfig(path.dirname(configPath), path.basename(configPath), process.argv[3]);', 'worker-reader-route'],
+  ['synthetic-worker.mjs', 'config = readConfig(path.dirname(configPath), path.basename(configPath), process.argv[3]);', 'control-reader-route'],
+  ['body.mjs', "if (!Object.hasOwn(output, 'fatal'))", 'falsy-primary-presence'],
+  ['outer.mjs', 'if (!primaryPresent)', 'outer-falsy-primary-presence'],
+  ['records.mjs', 'if (primaryPresent) throw primary;', 'write-falsy-rethrow'],
+  ['../executor-v7-r1/bootstrap.mjs', "args[0] !== ['module', 'worker_threads'][consumed]", 'bootstrap-ordered-profile'],
+  ['../executor-v7-r1/bootstrap.mjs', 'if (consumed === 2) revoked = true;', 'bootstrap-second-query-revocation'],
+  ['../executor-v7-r1/bootstrap.mjs', 'nativeDelegations: 0', 'bootstrap-no-native-delegation'],
+  ['../executor-v7-r1/bootstrap.mjs', 'throw primary;', 'bootstrap-falsy-rethrow'],
+  ['../executor-v3/offline.mjs', "['compile', 'instantiate', 'compileStreaming', 'instantiateStreaming', 'Module']", 'unchanged-wasm-module-guard'],
+];
+for (const [file, token, label] of sourceExpectations) check(read(path.resolve(root, file)).toString().includes(token), `source-token:${label}`);
+const output = { schema: 'INDEPENDENT_R2_SOURCE_DATA_ONLY', candidate, evidence, launcher, parserVersion: ts.version, candidateExecutions: 0, childHarnesses: 0, grantsMintedOrConsumed: 0, assertions, failures, anchors, evidenceBindings, admissionPlanSha256, rawPlanSha256: hash(planBytes), counts, bindings, namespaces, parsedModules: sourceFiles.size, activeClosure: [...active].map(filename => path.relative(root, filename)).sort(), activeMissing, unboundEdges, unresolvedDynamic, inheritance, priorBindingsPreserved: priorSeal.files.length, sourceTokenAssertions: sourceExpectations.length, qualifications: ['Source/hash/schema only, not dynamic validation', 'Node checker and explicit Git metadata only; no candidate tool route, product/comparator execution/import/staging', 'Archived instruction plaintext never read', 'Full32MiB logical and248+8MiB quota boundaries STATIC_ONLY, not RSS', 'No positive review document or usable grant'] };
 const result = Buffer.from(`${JSON.stringify(output, null, 2)}\n`);
 if (result.length > 262144) throw new Error('OUTPUT_RECORD_CAP');
 process.stdout.write(result);

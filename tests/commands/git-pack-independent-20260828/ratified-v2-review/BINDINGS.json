@@ -1,0 +1,1411 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "role": "SOURCE_DATA_METADATA_REVIEW_NOT_EXECUTION_EVIDENCE",
+  "commits": {
+    "author": "63d811bf1a809b467f47f309f41b1445486e71db",
+    "revision": "ea71268b91e4cd6994885062aad6626ccce66b08",
+    "context": "7675f24ca569dea649880118ee55d8b3702822a7",
+    "root": "5f02757081bb1c1477365a922442d17804f872e8",
+    "format": "c1982fce204f65b228863c873ba6ee279525fb88",
+    "resources": "9c0558b7ddf901294ea47451f292cf8eebc50837",
+    "m1a": "9885390fb11454fa194a3e60fdbef198dbfdf633"
+  },
+  "rootRecord": {
+    "commit": "5f02757081bb1c1477365a922442d17804f872e8",
+    "path": "tests/commands/git-pack-independent-20260828/ROOT-DECISIONS.md",
+    "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f524f4f542d4445434953494f4e532e6d64",
+    "gitMode": "100644",
+    "kind": "blob",
+    "gitBlob": "a83f7f95f9650f5579fc6b678bfb4bd5f7ab4a87",
+    "bytes": 11936,
+    "sha256": "b7e6a2410a651403b9ba00ac27911d432de106c20b94067ce14f902b29a0de43"
+  },
+  "revisionInventories": [
+    {
+      "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+      "prefix": "tests/commands/git-pack-design-20260828/ratified-v2/",
+      "rawInventorySha256": "5a70ec1b9bc18f4c92a11a539c1d92bcb185a7589a49b43fcd87b4ce13de8dc9",
+      "files": [
+        {
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/BINDING.sha256",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f42494e44494e472e736861323536",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "6c5a43aeaba9b1fdd20e4bf37b71e34f7e074964",
+          "bytes": 2005,
+          "sha256": "2f02d13c9158800e73facdd31efa4b8b80efacbf40b0a610bf8dd23f5b10a599"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/HANDOFF.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f48414e444f46462e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "cac8deafed137f25222f790bfdb88e0605beffef",
+          "bytes": 4816,
+          "sha256": "d3f6b743e9d079506cfac97f92b0dc1f3ae2b26266c8bbf8db59db87e763be20"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f4d41545249582e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "c18c74643f94be4b7874d737e442d0f1858ae8d0",
+          "bytes": 3868,
+          "sha256": "d0c694f5cd1548606644edaa107ab74adc185abf4f37d86871027fa71a0c2501"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f535045432e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "89dd7e12662dfcb3966b4a8cd5e05bc0917d4e2c",
+          "bytes": 12129,
+          "sha256": "cc38cbe0714ba2d18998b2b8a26c1e5555e987bec80154e11a260b1680f6807d"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/checker-v2.patch",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f636865636b65722d76322e7061746368",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "d126a30eb21401c325df9bb4bc1a48f6d1a7f8ba",
+          "bytes": 789,
+          "sha256": "30752a098b2b1e8bd8bfaad14de9d8aeb37f3f473a04a22b0e5c1961ab2fa3a1"
+        }
+      ]
+    },
+    {
+      "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+      "prefix": "tests/commands/git-pack-design-20260828/ratified-v2/",
+      "rawInventorySha256": "f441e86dd19355a642d7a26c99de01e460b88375b5a96908eade5b9749487c43",
+      "files": [
+        {
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/BINDING.sha256",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f42494e44494e472e736861323536",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "c69ecc09812310c7b70f0a8647dd0cc0aa4372ae",
+          "bytes": 2201,
+          "sha256": "53dc6c5272b25e99c8f36df5fb9699ec54c98df4db87b2a9c03bb488c3281d51"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/HANDOFF.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f48414e444f46462e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "cac8deafed137f25222f790bfdb88e0605beffef",
+          "bytes": 4816,
+          "sha256": "d3f6b743e9d079506cfac97f92b0dc1f3ae2b26266c8bbf8db59db87e763be20"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f4d41545249582e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "c18c74643f94be4b7874d737e442d0f1858ae8d0",
+          "bytes": 3868,
+          "sha256": "d0c694f5cd1548606644edaa107ab74adc185abf4f37d86871027fa71a0c2501"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f535045432e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "89dd7e12662dfcb3966b4a8cd5e05bc0917d4e2c",
+          "bytes": 12129,
+          "sha256": "cc38cbe0714ba2d18998b2b8a26c1e5555e987bec80154e11a260b1680f6807d"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/checker-v2.patch",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f636865636b65722d76322e7061746368",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "35f3f3ddc1364afdafaad151714d4e85b731c239",
+          "bytes": 783,
+          "sha256": "4d300a1604ba06f2d1711d914d5f123cf449bce6e379eccc2ebb26f715e80aaa"
+        }
+      ]
+    }
+  ],
+  "bindingChecks": [
+    {
+      "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+      "binding": {
+        "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+        "path": "tests/commands/git-pack-design-20260828/ratified-v2/BINDING.sha256",
+        "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f42494e44494e472e736861323536",
+        "gitMode": "100644",
+        "kind": "blob",
+        "gitBlob": "6c5a43aeaba9b1fdd20e4bf37b71e34f7e074964",
+        "bytes": 2005,
+        "sha256": "2f02d13c9158800e73facdd31efa4b8b80efacbf40b0a610bf8dd23f5b10a599"
+      },
+      "members": [
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f535045432e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "89dd7e12662dfcb3966b4a8cd5e05bc0917d4e2c",
+          "bytes": 12129,
+          "sha256": "cc38cbe0714ba2d18998b2b8a26c1e5555e987bec80154e11a260b1680f6807d"
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f4d41545249582e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "c18c74643f94be4b7874d737e442d0f1858ae8d0",
+          "bytes": 3868,
+          "sha256": "d0c694f5cd1548606644edaa107ab74adc185abf4f37d86871027fa71a0c2501"
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/checker-v2.patch",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f636865636b65722d76322e7061746368",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "d126a30eb21401c325df9bb4bc1a48f6d1a7f8ba",
+          "bytes": 789,
+          "sha256": "30752a098b2b1e8bd8bfaad14de9d8aeb37f3f473a04a22b0e5c1961ab2fa3a1"
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/HANDOFF.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f48414e444f46462e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "cac8deafed137f25222f790bfdb88e0605beffef",
+          "bytes": 4816,
+          "sha256": "d3f6b743e9d079506cfac97f92b0dc1f3ae2b26266c8bbf8db59db87e763be20"
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-independent-20260828/ROOT-DECISIONS.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f524f4f542d4445434953494f4e532e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "a83f7f95f9650f5579fc6b678bfb4bd5f7ab4a87",
+          "bytes": 11936,
+          "sha256": "b7e6a2410a651403b9ba00ac27911d432de106c20b94067ce14f902b29a0de43"
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/NEUTRAL-PACKS.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f4e45555452414c2d5041434b532e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "e5cd953534cfbbf8e098c0bafe89b043c87ce2db",
+          "bytes": 370847,
+          "sha256": "eda294f89c61d09319701c50c76e1004d2b4de27fc5d025473a4058fc75a7080"
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/BINDING-v2.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f42494e44494e472d76322e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "990361faf70ebbfda2b1b52bcbe01f346b91a370",
+          "bytes": 6857,
+          "sha256": "6053a0d4f8d5ed3af819861abd4e660db662adc63b32023b4d39dee57108f9e3"
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/check-data.mjs",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f636865636b2d646174612e6d6a73",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "ad3d9b82d7afd43ea5e2162003d1025264df1ba8",
+          "bytes": 15891,
+          "sha256": "fb6bd2a8a0819d2dcf705d75662510ae61ac34a9f356e4db408033128f9e07ce"
+        },
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "path": "tests/commands/git-pack-design-20260828/LIMITS.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f4c494d4954532e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "e4aed380c0d1642ba822581c8c1a1259fab6d0f3",
+          "bytes": 1939,
+          "sha256": "e9ca0e94394738e8a2a6623b4d86111babfa75c83171f351986e65f57e0fb873"
+        }
+      ]
+    },
+    {
+      "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+      "binding": {
+        "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+        "path": "tests/commands/git-pack-design-20260828/ratified-v2/BINDING.sha256",
+        "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f42494e44494e472e736861323536",
+        "gitMode": "100644",
+        "kind": "blob",
+        "gitBlob": "c69ecc09812310c7b70f0a8647dd0cc0aa4372ae",
+        "bytes": 2201,
+        "sha256": "53dc6c5272b25e99c8f36df5fb9699ec54c98df4db87b2a9c03bb488c3281d51"
+      },
+      "members": [
+        {
+          "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f535045432e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "89dd7e12662dfcb3966b4a8cd5e05bc0917d4e2c",
+          "bytes": 12129,
+          "sha256": "cc38cbe0714ba2d18998b2b8a26c1e5555e987bec80154e11a260b1680f6807d"
+        },
+        {
+          "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f4d41545249582e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "c18c74643f94be4b7874d737e442d0f1858ae8d0",
+          "bytes": 3868,
+          "sha256": "d0c694f5cd1548606644edaa107ab74adc185abf4f37d86871027fa71a0c2501"
+        },
+        {
+          "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/checker-v2.patch",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f636865636b65722d76322e7061746368",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "35f3f3ddc1364afdafaad151714d4e85b731c239",
+          "bytes": 783,
+          "sha256": "4d300a1604ba06f2d1711d914d5f123cf449bce6e379eccc2ebb26f715e80aaa"
+        },
+        {
+          "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+          "path": "tests/commands/git-pack-design-20260828/ratified-v2/HANDOFF.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f48414e444f46462e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "cac8deafed137f25222f790bfdb88e0605beffef",
+          "bytes": 4816,
+          "sha256": "d3f6b743e9d079506cfac97f92b0dc1f3ae2b26266c8bbf8db59db87e763be20"
+        },
+        {
+          "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+          "path": "tests/commands/git-pack-independent-20260828/ROOT-DECISIONS.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f524f4f542d4445434953494f4e532e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "a83f7f95f9650f5579fc6b678bfb4bd5f7ab4a87",
+          "bytes": 11936,
+          "sha256": "b7e6a2410a651403b9ba00ac27911d432de106c20b94067ce14f902b29a0de43"
+        },
+        {
+          "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+          "path": "tests/commands/git-pack-design-20260828/NEUTRAL-PACKS.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f4e45555452414c2d5041434b532e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "e5cd953534cfbbf8e098c0bafe89b043c87ce2db",
+          "bytes": 370847,
+          "sha256": "eda294f89c61d09319701c50c76e1004d2b4de27fc5d025473a4058fc75a7080"
+        },
+        {
+          "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+          "path": "tests/commands/git-pack-design-20260828/BINDING-v2.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f42494e44494e472d76322e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "990361faf70ebbfda2b1b52bcbe01f346b91a370",
+          "bytes": 6857,
+          "sha256": "6053a0d4f8d5ed3af819861abd4e660db662adc63b32023b4d39dee57108f9e3"
+        },
+        {
+          "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+          "path": "tests/commands/git-pack-design-20260828/check-data.mjs",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f636865636b2d646174612e6d6a73",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "ad3d9b82d7afd43ea5e2162003d1025264df1ba8",
+          "bytes": 15891,
+          "sha256": "fb6bd2a8a0819d2dcf705d75662510ae61ac34a9f356e4db408033128f9e07ce"
+        },
+        {
+          "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+          "path": "tests/commands/git-pack-design-20260828/LIMITS.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f4c494d4954532e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "e4aed380c0d1642ba822581c8c1a1259fab6d0f3",
+          "bytes": 1939,
+          "sha256": "e9ca0e94394738e8a2a6623b4d86111babfa75c83171f351986e65f57e0fb873"
+        }
+      ]
+    }
+  ],
+  "requestedHashQualification": "Requested53dc6c... identifies7675f24c context reseal, not ea71268b original2f02d13c...; both revisions remain independently bound.",
+  "preservation": [
+    {
+      "role": "author",
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "prefix": "tests/commands/git-pack-design-20260828/",
+      "rawInventorySha256": "91b213ecb482157174fc3e1c704c6641af75cb4513da9323dfb2e75cb9fe1967",
+      "files": [
+        {
+          "path": "tests/commands/git-pack-design-20260828/BINDING-v2.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f42494e44494e472d76322e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "990361faf70ebbfda2b1b52bcbe01f346b91a370",
+          "bytes": 6857,
+          "sha256": "6053a0d4f8d5ed3af819861abd4e660db662adc63b32023b4d39dee57108f9e3"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/BINDING.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f42494e44494e472e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/CHECK-v1.exit.txt",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f434845434b2d76312e657869742e747874",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "573541ac9702dd3969c9bc859d2b91ec1f7e6e56",
+          "bytes": 2,
+          "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/CHECK-v1.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f434845434b2d76312e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "299b82720e5279bd67e82e7b61d4a43589f21c19",
+          "bytes": 3327,
+          "sha256": "d87505a3c992f24da9a69e07e7220a4d4266cb913117b5ccbd2432e2ae764b44"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/CHECK-v1.stderr.txt",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f434845434b2d76312e7374646572722e747874",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/DATA-RECIPE.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f444154412d5245434950452e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "fdfd67e797bd7faf784e681d318a7a6da1f6294c",
+          "bytes": 3127,
+          "sha256": "360d2371dafdd1f9ed460b8efda648416ba1d39984ead7feceb38a5aad5c290f"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/DECISIONS.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f4445434953494f4e532e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "df8784de117679e8a8ed8a6307430d5ca6b55807",
+          "bytes": 9715,
+          "sha256": "53083bf397cd35034148f59dc491386126704b0691cde0eec93e82fa7846ecc6"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/GENERATION-v1.exit.txt",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f47454e45524154494f4e2d76312e657869742e747874",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "573541ac9702dd3969c9bc859d2b91ec1f7e6e56",
+          "bytes": 2,
+          "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/GENERATION-v1.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f47454e45524154494f4e2d76312e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "389263c1184531221fed2adee8476be5ad5d400b",
+          "bytes": 642,
+          "sha256": "f32d1f15da506353280d760941a648ed88e99e2f4f2c4c35b7367153f409458a"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/GENERATION-v1.stderr.txt",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f47454e45524154494f4e2d76312e7374646572722e747874",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/HANDOFF.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f48414e444f46462e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "abf6552deb760419e1a369a453e2783e4367496f",
+          "bytes": 5747,
+          "sha256": "14aec73c6ae7f6fcb0611afc16b9218ec7ecd64fce0d81c5b7ce6ea74065d8d1"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/LIMITS.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f4c494d4954532e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "e4aed380c0d1642ba822581c8c1a1259fab6d0f3",
+          "bytes": 1939,
+          "sha256": "e9ca0e94394738e8a2a6623b4d86111babfa75c83171f351986e65f57e0fb873"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/MATRIX.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f4d41545249582e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "ce549b177253eb3b611fe15646abdd3e53974e03",
+          "bytes": 4293,
+          "sha256": "62b14bae223b3cdbaf4de05b7de8591101d3584ebf790287c0eef25a4c668139"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/NATIVE-RECIPES.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f4e41544956452d524543495045532e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "27c21985319d2925c17494b8a915899abd4af390",
+          "bytes": 2968,
+          "sha256": "993abc10be7df660bc74d68f9f4fc3bb268b22f699107443f9dce25237164b34"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/NEUTRAL-PACKS.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f4e45555452414c2d5041434b532e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "e5cd953534cfbbf8e098c0bafe89b043c87ce2db",
+          "bytes": 370847,
+          "sha256": "eda294f89c61d09319701c50c76e1004d2b4de27fc5d025473a4058fc75a7080"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/SEAL-v1-FAILURE.txt",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f5345414c2d76312d4641494c5552452e747874",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "1efd2ff36305fb345b655cb35d6639af7b30ea3d",
+          "bytes": 644,
+          "sha256": "859277811f38f506971e3d9a88196a2ebc02e658d1795ff1ddacb4475f40bf62"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/SEAL-v2.exit.txt",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f5345414c2d76322e657869742e747874",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "573541ac9702dd3969c9bc859d2b91ec1f7e6e56",
+          "bytes": 2,
+          "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/SEAL-v2.stderr.txt",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f5345414c2d76322e7374646572722e747874",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/SOURCES.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f534f55524345532e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "72513d3bc1cf77b979584242a6386025297e8d83",
+          "bytes": 2934,
+          "sha256": "16cf0ececf19b7c6f4b10f7c4deca7d8cbd23a7c5a132b1e0df75ab526be7bfe"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/SPEC.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f535045432e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "a3f703a9316a324247755e8a87c91af907865ea2",
+          "bytes": 13338,
+          "sha256": "201eb25e5af87d3b6ef14f78c747ca4691a7d015a88283b1687ca9346fa2f7a1"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/check-data.mjs",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f636865636b2d646174612e6d6a73",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "ad3d9b82d7afd43ea5e2162003d1025264df1ba8",
+          "bytes": 15891,
+          "sha256": "fb6bd2a8a0819d2dcf705d75662510ae61ac34a9f356e4db408033128f9e07ce"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/generate-data.mjs",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f67656e65726174652d646174612e6d6a73",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "8739c430e6924616bf5eb0b3addb9d0e4c8a40be",
+          "bytes": 13748,
+          "sha256": "5657e8d2472bcd73a13075d3bd69afeaaaf6cbc45b9521100fa506e6cd512f1f"
+        },
+        {
+          "path": "tests/commands/git-pack-design-20260828/seal-data.mjs",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f7365616c2d646174612e6d6a73",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "5cad76a99152aba1b905d9a6c12b6797637719a6",
+          "bytes": 3712,
+          "sha256": "3b6ac4fd5499a69eaebb76d623eccfa7583184bcb30129e1251ffee4e60d7b64"
+        }
+      ],
+      "observations": [
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "rawInventorySha256": "5ec93d5e15b2fa388eb92d12b15b09fb1257f6650be531c1a0f5372b6c060725",
+          "preserved": 23,
+          "changed": 0,
+          "additions": [
+            "tests/commands/git-pack-design-20260828/ratified-v2/BINDING.sha256",
+            "tests/commands/git-pack-design-20260828/ratified-v2/HANDOFF.md",
+            "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+            "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+            "tests/commands/git-pack-design-20260828/ratified-v2/checker-v2.patch"
+          ]
+        },
+        {
+          "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+          "rawInventorySha256": "7cbf763759a61f75a76e131a30a33bc8e6b62343eaea6f933a4d95741ccf8397",
+          "preserved": 23,
+          "changed": 0,
+          "additions": [
+            "tests/commands/git-pack-design-20260828/ratified-v2/BINDING.sha256",
+            "tests/commands/git-pack-design-20260828/ratified-v2/HANDOFF.md",
+            "tests/commands/git-pack-design-20260828/ratified-v2/MATRIX.md",
+            "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+            "tests/commands/git-pack-design-20260828/ratified-v2/checker-v2.patch"
+          ]
+        }
+      ]
+    },
+    {
+      "role": "format",
+      "commit": "c1982fce204f65b228863c873ba6ee279525fb88",
+      "prefix": "tests/commands/git-pack-independent-20260828/format/",
+      "rawInventorySha256": "386c64445f1c20dcb899d15349f71c44b2fe9c42df09a2667f957a11c99b60d7",
+      "files": [
+        {
+          "path": "tests/commands/git-pack-independent-20260828/format/AUTHOR-INPUTS.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f666f726d61742f415554484f522d494e505554532e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "7d9df57f8917456cf9f3abebc2da26a55c053c79",
+          "bytes": 11675,
+          "sha256": "0a28a24c40b168bc2751a16e9c322219b62705f13bddd888dd303fb39730bdb5"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/format/CASE-COVERAGE.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f666f726d61742f434153452d434f5645524147452e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "8cce66b2cfe52058f5a0e981ca0a3528d0c1f33e",
+          "bytes": 20237,
+          "sha256": "44bd39bdd5e008bf0b1ef304aef3621d7b069452396eb9ca50f2596b5c15630c"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/format/FINDINGS.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f666f726d61742f46494e44494e47532e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "61da6dd937be9273a1d6feef7cd54dfa468f74c0",
+          "bytes": 6040,
+          "sha256": "079488ffcd1e12613335af69a09a4098cdd8b9144839a3a961260202b6398c4a"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/format/FORMAT-FACTS.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f666f726d61742f464f524d41542d46414354532e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "e4e762a1b4d9db7369bc6584c7b8781831370bbb",
+          "bytes": 7806,
+          "sha256": "138dec1f2fcf2fa2858c453c52eecf06f9236b3ee85a657f941202b20039f06c"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/format/FROZEN-MAPPINGS.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f666f726d61742f46524f5a454e2d4d415050494e47532e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "1fb5d646501818b1c6c31e53c9ddb1b53c7c2c4d",
+          "bytes": 12851,
+          "sha256": "7b847994fdc0608191146104a1a8b3a4a3e1c866ff96cd07fec891ccc3913a4b"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/format/LIMITS.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f666f726d61742f4c494d4954532e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "15a98912195f13949533770540d36c2f998c2305",
+          "bytes": 1030,
+          "sha256": "39a0033c5e9700483a8f46d425887efed83805ae00d4f086f3e6a9c3aa8ec9fd"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/format/OFFICIAL-SOURCES.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f666f726d61742f4f4646494349414c2d534f55524345532e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "ccf187b2518f1facd5e194ffe3771ebe8a811e5d",
+          "bytes": 5111,
+          "sha256": "45a7aa6d73e34c0dddb2ccc4f13aeab0a20c3e93eae2b6456da19ccde7141858"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/format/README.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f666f726d61742f524541444d452e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "f38a8fcc33aca13a503fb64703041acaf2f694da",
+          "bytes": 1524,
+          "sha256": "c1cb04f46e858c3a9dd987039c31cb1ded346d56d734014f05a009ee5ebe7641"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/format/REVIEW-RESULTS.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f666f726d61742f5245564945572d524553554c54532e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "e42478638282e0ea8740efcd45839912be610725",
+          "bytes": 3466,
+          "sha256": "2bb8ac0c3adab71888e204798ccab9869324490168bbd71d2ed440907f155353"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/format/REVIEW-SPECIFICATION.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f666f726d61742f5245564945572d53504543494649434154494f4e2e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "8f3185158a1c2935804cad232cfb86061cd66005",
+          "bytes": 8099,
+          "sha256": "b0efdee29a06b435468a347018a8ccc7e7f7e521bc6eadc40f3313054cad9a25"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/format/SEAL.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f666f726d61742f5345414c2e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "92035898dd7c8b7a71264033f3729fab4c075e88",
+          "bytes": 2923,
+          "sha256": "f232c59aa1f3b50dfedc3135e4d26ad880256e09ec99e656b3d5d911e0da16b4"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/format/TOOL-BINDING.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f666f726d61742f544f4f4c2d42494e44494e472e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "34a61ddbb5aa80e80b136ed14372f2467c7cb618",
+          "bytes": 951,
+          "sha256": "c0a454984de9f219e727ca4d10d781cc7b7b6d05be6486ccc19d6c5c75afd84c"
+        }
+      ],
+      "observations": [
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "rawInventorySha256": "386c64445f1c20dcb899d15349f71c44b2fe9c42df09a2667f957a11c99b60d7",
+          "preserved": 12,
+          "changed": 0,
+          "additions": []
+        },
+        {
+          "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+          "rawInventorySha256": "386c64445f1c20dcb899d15349f71c44b2fe9c42df09a2667f957a11c99b60d7",
+          "preserved": 12,
+          "changed": 0,
+          "additions": []
+        }
+      ]
+    },
+    {
+      "role": "resources",
+      "commit": "9c0558b7ddf901294ea47451f292cf8eebc50837",
+      "prefix": "tests/commands/git-pack-independent-20260828/resources/",
+      "rawInventorySha256": "e3346b584c15ad325f8ca304334d700ffa53c54573167675e0d7c553391ed77f",
+      "files": [
+        {
+          "path": "tests/commands/git-pack-independent-20260828/resources/CASE-MATRIX.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f434153452d4d41545249582e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "c05243927d24e390b6690c27bf665a85f7b1da74",
+          "bytes": 26495,
+          "sha256": "c3b242c93037c359be5303e7cd2687a59c13c077cccf2d9aaa2aad22915daf7b"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/resources/CHECK.process.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f434845434b2e70726f636573732e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "19c62f2a55d718a92fe2c09a21c86ca5d8bb3be6",
+          "bytes": 1739,
+          "sha256": "9a2bd767375913eff8bf4805d333539e81850b21c9462c2ea585a25936262b48"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/resources/CHECK.result.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f434845434b2e726573756c742e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "af1402aba84153525e67d2baec23a7a62efdf219",
+          "bytes": 843,
+          "sha256": "6a8df9ba06e73f15da4d69924670ca2e92422bc05f0180f2b8674011f0347e2c"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/resources/CHECK.stderr.txt",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f434845434b2e7374646572722e747874",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/resources/CHECK.stdout.txt",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f434845434b2e7374646f75742e747874",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "5cd85877307a89d80c9403c6e90265961958b614",
+          "bytes": 118,
+          "sha256": "7ea071f2ea23b55daf29945bab141d2efa84195c87ce7c6a06f127bb7f220f39"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/resources/DOCUMENT-CHECK-PRESEAL.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f444f43554d454e542d434845434b2d5052455345414c2e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "6f45e2e63d32be681c320376762773a5774e6598",
+          "bytes": 9195,
+          "sha256": "77d89d136f45ee29c073597688652c1153fb6db87ed4ab4fd659616b2fc8ff75"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/resources/FINAL-SEAL.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f46494e414c2d5345414c2e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "c9514101af4b16c2b9fd288f49d7c7cf48c6c2aa",
+          "bytes": 4790,
+          "sha256": "cb57795bef54d5c8e3fab20ae0457c928257ff0ab3e039323588ad2d206fd137"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/resources/FINDINGS.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f46494e44494e47532e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "3e86c88b0f60940b50196694d505067489864607",
+          "bytes": 7304,
+          "sha256": "561f814a6b6961032ec44177f83b79cd69d94ff4e4adb6b30e9052ccf22263ab"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/resources/INPUTS.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f494e505554532e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "f875b5cddfbcbb7b9fb48eb60ddfaad5fd5b358d",
+          "bytes": 9736,
+          "sha256": "c62ba9f02e1c6fd7eacb57913f34602ef5b27f0a604cf174f68bf15433c6a1aa"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/resources/LIMIT-REVIEW.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f4c494d49542d5245564945572e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "76c8b0ff1806361dc2f90dcb7016c2c5613b5009",
+          "bytes": 12169,
+          "sha256": "0c15b3052a09202aae3d7d7d629146e68623711d98232fc7feaf142cc19347f4"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/resources/PEER-NOTE.json",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f504545522d4e4f54452e6a736f6e",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "33ec5a7a9e98befd140e084ce0cee7d8e8221a93",
+          "bytes": 974,
+          "sha256": "59d9db2a3c01bf9019c9e8fd9cca90d6459f503b68b9a17257027a7eecff097f"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/resources/PROVISIONAL.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f50524f564953494f4e414c2e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "b5401ab55739a77ad93443c6a428a84c499a6ad9",
+          "bytes": 3965,
+          "sha256": "f1b6b5719ba1cc6707d8643a51aaeeaf33f90e213d0c207f3b33b280944013ed"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/resources/RESULT.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f524553554c542e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "b5760b502dec994bf6889f26b1c0219bb9f56c58",
+          "bytes": 3926,
+          "sha256": "74eb6c21fdc2ea794e9681500a2051ff6a17cc2e94140872521ecdc29313b415"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/resources/REVIEW.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f5245564945572e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "d9a618a9692043ab09a0c5e025c074c5ec7702da",
+          "bytes": 16594,
+          "sha256": "e6169130ac9be68c21192cea987a70d58ef91c0e38af6bdafe5d13a1cd5d721a"
+        },
+        {
+          "path": "tests/commands/git-pack-independent-20260828/resources/SOURCES.md",
+          "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f534f55524345532e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "9c6324faadd2aef1088b52cee4b2c8a0847c4c0b",
+          "bytes": 3097,
+          "sha256": "d84dedec94e82cb4d473dc149cd101ea696e7190f8914132a52798176581804b"
+        }
+      ],
+      "observations": [
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "rawInventorySha256": "e3346b584c15ad325f8ca304334d700ffa53c54573167675e0d7c553391ed77f",
+          "preserved": 15,
+          "changed": 0,
+          "additions": []
+        },
+        {
+          "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+          "rawInventorySha256": "e3346b584c15ad325f8ca304334d700ffa53c54573167675e0d7c553391ed77f",
+          "preserved": 15,
+          "changed": 0,
+          "additions": []
+        }
+      ]
+    },
+    {
+      "role": "M1A_identity_only",
+      "commit": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+      "prefix": "src/commands/git/",
+      "rawInventorySha256": "bf6975d4b83a1842b2a15ca4afd8fa1fa06162f9869a33a24f0f967f2088f3cd",
+      "files": [
+        {
+          "path": "src/commands/git/README.md",
+          "pathHex": "7372632f636f6d6d616e64732f6769742f524541444d452e6d64",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "a9c51cf863cc2929875229866a69c2dbd04fd8bd",
+          "bytes": 4752,
+          "sha256": "9ce7ceb150ac1b4d9e0201cdf811e9cfd39603c26dcc32b60a3bc9357c1d1055"
+        },
+        {
+          "path": "src/commands/git/arguments.ts",
+          "pathHex": "7372632f636f6d6d616e64732f6769742f617267756d656e74732e7473",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "455b6cc673fde406bf8a8c57d00a17a88ce2b3b0",
+          "bytes": 7169,
+          "sha256": "4cb4fdde9fb488e8b12e75b32d1040580819665c7179bff074baf6717a14765b"
+        },
+        {
+          "path": "src/commands/git/codec.ts",
+          "pathHex": "7372632f636f6d6d616e64732f6769742f636f6465632e7473",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "02ad268a05e6e88edae8410c73328a65ac82d3e3",
+          "bytes": 4631,
+          "sha256": "442bd6956340565599afcc1e0762eb7a8d8e001fe8880e9ec8185b1e200bd868"
+        },
+        {
+          "path": "src/commands/git/config.ts",
+          "pathHex": "7372632f636f6d6d616e64732f6769742f636f6e6669672e7473",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "ff2aca9befa8401f6e99d8184a4bc23ab79370ef",
+          "bytes": 4293,
+          "sha256": "fff5abf533238a842aa5f8ef4e5423335247e979782be376b122d99326bf5b2b"
+        },
+        {
+          "path": "src/commands/git/diff.ts",
+          "pathHex": "7372632f636f6d6d616e64732f6769742f646966662e7473",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "c73910833c1a14ce0419c267e5a25d967f29b01e",
+          "bytes": 6122,
+          "sha256": "aac30cb828d7c3f415bcb33bac2ab2a93b09767ec33d32e3e41fbad52510a525"
+        },
+        {
+          "path": "src/commands/git/ignore.ts",
+          "pathHex": "7372632f636f6d6d616e64732f6769742f69676e6f72652e7473",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "a97895669ff7be420d2b1f76a9282eaa89f5d548",
+          "bytes": 5634,
+          "sha256": "03c16d4b46010623906e215ab9e68a2b217760344a336ad93abced09cd19ca44"
+        },
+        {
+          "path": "src/commands/git/index.ts",
+          "pathHex": "7372632f636f6d6d616e64732f6769742f696e6465782e7473",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "8fbd242b09ff209c6652049856385966c3d1d1b4",
+          "bytes": 2521,
+          "sha256": "618f005b204c8f6e72059e83dcfe0a34cbddc1b8577907bef20ae2f05b107a1e"
+        },
+        {
+          "path": "src/commands/git/io.ts",
+          "pathHex": "7372632f636f6d6d616e64732f6769742f696f2e7473",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "99125d708586329dbdc337e718ac13e2160384e5",
+          "bytes": 11765,
+          "sha256": "624beea98087860e1a6d98727830228bba0754231562ac64c620530b251b01cd"
+        },
+        {
+          "path": "src/commands/git/limits.ts",
+          "pathHex": "7372632f636f6d6d616e64732f6769742f6c696d6974732e7473",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "7b9cea64680f0a8d57eb8655f200c451ee6a44f9",
+          "bytes": 1975,
+          "sha256": "23175737832fdca114176825e1224daaa7f498fada7697f00cdf5064e08202df"
+        },
+        {
+          "path": "src/commands/git/queries.ts",
+          "pathHex": "7372632f636f6d6d616e64732f6769742f717565726965732e7473",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "81d78f8a340447922d32ee709a5e6cc3acd831a3",
+          "bytes": 13155,
+          "sha256": "28b7b89203ddc3d7442647863cfeaf008664d2bf2b4f213522743faaa7230c0e"
+        },
+        {
+          "path": "src/commands/git/repository.ts",
+          "pathHex": "7372632f636f6d6d616e64732f6769742f7265706f7369746f72792e7473",
+          "gitMode": "100644",
+          "kind": "blob",
+          "gitBlob": "e325ee7e8ec1fd816bed49e8b551df89c8e6776d",
+          "bytes": 21491,
+          "sha256": "b3753919e00f59ff941d43cba8e1265eebf5b523dfec287f1fa6ac1d5856d223"
+        }
+      ],
+      "observations": [
+        {
+          "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+          "rawInventorySha256": "bf6975d4b83a1842b2a15ca4afd8fa1fa06162f9869a33a24f0f967f2088f3cd",
+          "preserved": 11,
+          "changed": 0,
+          "additions": []
+        },
+        {
+          "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+          "rawInventorySha256": "bf6975d4b83a1842b2a15ca4afd8fa1fa06162f9869a33a24f0f967f2088f3cd",
+          "preserved": 11,
+          "changed": 0,
+          "additions": []
+        }
+      ]
+    }
+  ],
+  "pathInventoryPolicy": "NUL-delimited Git tree records and byte-exact pathHex; no C-quoted display filenames used.",
+  "modeQualification": "Stored Git regular100644 modes authenticated. No retrospective filesystem-POSIX attestation or liveHEAD authority inferred.",
+  "limits": {
+    "count": 24,
+    "source": {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/LIMITS.json",
+      "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f4c494d4954532e6a736f6e",
+      "gitMode": "100644",
+      "kind": "blob",
+      "gitBlob": "e4aed380c0d1642ba822581c8c1a1259fab6d0f3",
+      "bytes": 1939,
+      "sha256": "e9ca0e94394738e8a2a6623b4d86111babfa75c83171f351986e65f57e0fb873"
+    },
+    "resourceReference": {
+      "commit": "9c0558b7ddf901294ea47451f292cf8eebc50837",
+      "path": "tests/commands/git-pack-independent-20260828/resources/LIMIT-REVIEW.json",
+      "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f4c494d49542d5245564945572e6a736f6e",
+      "gitMode": "100644",
+      "kind": "blob",
+      "gitBlob": "76c8b0ff1806361dc2f90dcb7016c2c5613b5009",
+      "bytes": 12169,
+      "sha256": "0c15b3052a09202aae3d7d7d629146e68623711d98232fc7feaf142cc19347f4"
+    },
+    "rows": [
+      {
+        "name": "maxArgumentBytes",
+        "value": 65536,
+        "dimensionAndChargeSite": "Aggregate argv bytes at invocation admission"
+      },
+      {
+        "name": "maxPathBytes",
+        "value": 4096,
+        "dimensionAndChargeSite": "UTF-8 bytes per component and resolved path"
+      },
+      {
+        "name": "maxReadBytes",
+        "value": 67108864,
+        "dimensionAndChargeSite": "Cumulative VFS bytes, including rereads and query reads"
+      },
+      {
+        "name": "maxInflatedBytes",
+        "value": 134217728,
+        "dimensionAndChargeSite": "Cumulative codec output plus reconstructed delta bytes, including discarded duplicates"
+      },
+      {
+        "name": "maxObjectBytes",
+        "value": 8388608,
+        "dimensionAndChargeSite": "Each direct body, delta program and reconstructed body independently"
+      },
+      {
+        "name": "maxWorkingFileBytes",
+        "value": 8388608,
+        "dimensionAndChargeSite": "Each working-file body"
+      },
+      {
+        "name": "maxIndexBytes",
+        "value": 16777216,
+        "dimensionAndChargeSite": "Each working index/pack idx; D2 uses the same number for sidecar stat only"
+      },
+      {
+        "name": "maxMetadataBytes",
+        "value": 1048576,
+        "dimensionAndChargeSite": "Each admitted metadata region/file/header at existing callers"
+      },
+      {
+        "name": "maxResidentBytes",
+        "value": 67108864,
+        "dimensionAndChargeSite": "Live reserved logical ownership, not cumulative allocation or RSS"
+      },
+      {
+        "name": "maxEntries",
+        "value": 20000,
+        "dimensionAndChargeSite": "Shared cumulative directory/table/traversal admission units, specified below"
+      },
+      {
+        "name": "maxObjects",
+        "value": 32768,
+        "dimensionAndChargeSite": "Invocation union of distinct loose and packed OIDs, not physical locations"
+      },
+      {
+        "name": "maxCommits",
+        "value": 2000,
+        "dimensionAndChargeSite": "Shared parsed-commit count and existing query/traversal limits; cache hits are not reparses"
+      },
+      {
+        "name": "maxDepth",
+        "value": 128,
+        "dimensionAndChargeSite": "Directory/tree/discovery traversal depth, not a sum across trees"
+      },
+      {
+        "name": "maxRefDepth",
+        "value": 16,
+        "dimensionAndChargeSite": "Each symbolic-ref or tag-resolution chain"
+      },
+      {
+        "name": "maxDeltaDepth",
+        "value": 32,
+        "dimensionAndChargeSite": "Intrinsic representation/location delta edges, including cached bases"
+      },
+      {
+        "name": "maxSteps",
+        "value": 32000000,
+        "dimensionAndChargeSite": "Cumulative scan/header/hash/CRC/copy/comparison/replay work, charged before work"
+      },
+      {
+        "name": "maxDiffCells",
+        "value": 1000000,
+        "dimensionAndChargeSite": "Cumulative diff cells across files"
+      },
+      {
+        "name": "maxLines",
+        "value": 200000,
+        "dimensionAndChargeSite": "Cumulative parsed text lines"
+      },
+      {
+        "name": "maxOutputBytes",
+        "value": 16777216,
+        "dimensionAndChargeSite": "Cumulative stdout publication"
+      },
+      {
+        "name": "maxDiagnosticBytes",
+        "value": 65536,
+        "dimensionAndChargeSite": "Per diagnostic publication under the existing single-diagnostic path"
+      },
+      {
+        "name": "maxChunkBytes",
+        "value": 65536,
+        "dimensionAndChargeSite": "Each yielded VFS/codec chunk and output partition"
+      },
+      {
+        "name": "maxChunks",
+        "value": 32768,
+        "dimensionAndChargeSite": "Cumulative yielded VFS source rows in Session; no new codec-row extension"
+      },
+      {
+        "name": "maxPacks",
+        "value": 8,
+        "dimensionAndChargeSite": "Complete-pair invocation census, not recharged by observation of the same pair"
+      },
+      {
+        "name": "maxPackBytes",
+        "value": 33554432,
+        "dimensionAndChargeSite": "Each pack stat and exact-read extent"
+      }
+    ]
+  },
+  "contextComparison": {
+    "originalPatch": {
+      "commit": "ea71268b91e4cd6994885062aad6626ccce66b08",
+      "path": "tests/commands/git-pack-design-20260828/ratified-v2/checker-v2.patch",
+      "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f636865636b65722d76322e7061746368",
+      "gitMode": "100644",
+      "kind": "blob",
+      "gitBlob": "d126a30eb21401c325df9bb4bc1a48f6d1a7f8ba",
+      "bytes": 789,
+      "sha256": "30752a098b2b1e8bd8bfaad14de9d8aeb37f3f473a04a22b0e5c1961ab2fa3a1"
+    },
+    "resealedPatch": {
+      "commit": "7675f24ca569dea649880118ee55d8b3702822a7",
+      "path": "tests/commands/git-pack-design-20260828/ratified-v2/checker-v2.patch",
+      "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f72617469666965642d76322f636865636b65722d76322e7061746368",
+      "gitMode": "100644",
+      "kind": "blob",
+      "gitBlob": "35f3f3ddc1364afdafaad151714d4e85b731c239",
+      "bytes": 783,
+      "sha256": "4d300a1604ba06f2d1711d914d5f123cf449bce6e379eccc2ebb26f715e80aaa"
+    },
+    "orderedAddedRemovedLines": [
+      "-  requireData(extra >= 0 && extra % 8 === 0 && extra / 8 <= count, 'INDEX_SIZE');",
+      "+  requireData(extra >= 0 && extra % 8 === 0",
+      "+    && (count === 0 ? extra === 0 : extra / 8 <= count - 1), 'INDEX_SIZE');",
+      "+  requireData(program.length >= 4, 'DELTA_MINIMUM');"
+    ],
+    "semanticEditScriptSha256": "eeb4425d802a1bba5c93b35bd7c4a418798790aa87d0ae7c61036eaa2a5168d9",
+    "originalHunks": [
+      {
+        "advertisedOldStart": 37,
+        "oldLines": 7,
+        "newLines": 8,
+        "uniquePredecessorStart": 38,
+        "advisoryOffset": 1
+      },
+      {
+        "advertisedOldStart": 69,
+        "oldLines": 6,
+        "newLines": 7,
+        "uniquePredecessorStart": 69,
+        "advisoryOffset": 0
+      }
+    ],
+    "resealedHunks": [
+      {
+        "advertisedOldStart": 37,
+        "oldLines": 7,
+        "newLines": 8,
+        "uniquePredecessorStart": 38,
+        "advisoryOffset": 1
+      },
+      {
+        "advertisedOldStart": 71,
+        "oldLines": 4,
+        "newLines": 5,
+        "uniquePredecessorStart": 71,
+        "advisoryOffset": 0
+      }
+    ],
+    "sameSemanticEdits": true,
+    "postimageAssembled": false,
+    "patchApplied": false,
+    "syntaxOrExecutionChecks": 0,
+    "qualification": "Text-only context/count review. First hunk has the same advisory+1 line offset in both versions; unique predecessor contexts match. No git-apply success or future checker result is claimed.",
+    "commitChangedPaths": [
+      "tests/commands/git-pack-design-20260828/ratified-v2/BINDING.sha256",
+      "tests/commands/git-pack-design-20260828/ratified-v2/checker-v2.patch"
+    ],
+    "commitChangedPathRecordsNulSha256": "dbe6d77f43dfea98d75afd50df957e3fcaae0bad38100164f6c3e68f7bdaea70"
+  },
+  "fixture": {
+    "identity": {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/NEUTRAL-PACKS.json",
+      "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d64657369676e2d32303236303832382f4e45555452414c2d5041434b532e6a736f6e",
+      "gitMode": "100644",
+      "kind": "blob",
+      "gitBlob": "e5cd953534cfbbf8e098c0bafe89b043c87ce2db",
+      "bytes": 370847,
+      "sha256": "eda294f89c61d09319701c50c76e1004d2b4de27fc5d025473a4058fc75a7080"
+    },
+    "originalNeutral": {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json",
+      "pathHex": "74657374732f636f6d6d616e64732f6769742d64657369676e2d32303236303832382f4e45555452414c2d464958545552452e6a736f6e",
+      "gitMode": "100644",
+      "kind": "blob",
+      "gitBlob": "2c38c00a61576f6abd00dbd23ade7885267f94d5",
+      "bytes": 4160,
+      "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074"
+    },
+    "families": [
+      "B01",
+      "B02",
+      "B03",
+      "B04",
+      "B05",
+      "B06",
+      "B07",
+      "B08",
+      "B09",
+      "B10",
+      "B11",
+      "B12"
+    ],
+    "workflowMappings": [
+      {
+        "id": "A01",
+        "sha256": "6b8eb0960ccb099c7b866321547f406e3eb38194dc8881e49f6e2d5b61d4b276",
+        "state": "UNRUN"
+      },
+      {
+        "id": "A02",
+        "sha256": "bff3bc86c6635a1fb46cdf9a09cdcacbc1c0e21992b6e7597f956e972aa82c85",
+        "state": "UNRUN"
+      },
+      {
+        "id": "A03",
+        "sha256": "16d148699312ad00a261d3e9a52ea407070f5f02513858498721eb71d121181f",
+        "state": "UNRUN"
+      },
+      {
+        "id": "A04",
+        "sha256": "055b460570c979e1c6007352ea30d8cd2c6b5ea43f8b4e1c2896fbed09c563d9",
+        "state": "UNRUN"
+      },
+      {
+        "id": "A05",
+        "sha256": "81d0f6da272e49718a6ec23c572e851844d01e3ad0cc252859faf089260e8dea",
+        "state": "UNRUN"
+      },
+      {
+        "id": "A06",
+        "sha256": "bd733c5535813d9454567cbcd43d229b960e0fd1b6bd437241040025e310c874",
+        "state": "UNRUN"
+      }
+    ],
+    "authorDataCounts": {
+      "packs": 13,
+      "reconstructedEntries": 106,
+      "rejections": 18,
+      "role": "PRESERVED_AUTHOR_DATA_NO_REPLAY"
+    }
+  },
+  "primarySources": {
+    "inheritedManifest": {
+      "commit": "c1982fce204f65b228863c873ba6ee279525fb88",
+      "path": "tests/commands/git-pack-independent-20260828/format/OFFICIAL-SOURCES.json",
+      "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f666f726d61742f4f4646494349414c2d534f55524345532e6a736f6e",
+      "gitMode": "100644",
+      "kind": "blob",
+      "gitBlob": "ccf187b2518f1facd5e194ffe3771ebe8a811e5d",
+      "bytes": 5111,
+      "sha256": "45a7aa6d73e34c0dddb2ccc4f13aeab0a20c3e93eae2b6456da19ccde7141858"
+    },
+    "selected": [
+      {
+        "id": "patch-delta-v2.54.0",
+        "url": "https://raw.githubusercontent.com/git/git/v2.54.0/patch-delta.c",
+        "sections": "patch_delta lines13-89; minimum program, copy/literal bounds",
+        "sha256": "000c620534d9c937a88589d4973d377460ba36790d072e639484e10891024066",
+        "bytes": 2408,
+        "retrievedDate": "2026-08-28",
+        "role": "PRIMARY_OFFICIAL_READ_ONLY_NOT_EXECUTED",
+        "preservation": "Content hash and source location only; no source code vendored",
+        "reference": "Pinned tag and fetched byte hash; tag not a claim of an installed binary"
+      },
+      {
+        "id": "delta-h-v2.54.0",
+        "url": "https://raw.githubusercontent.com/git/git/v2.54.0/delta.h",
+        "sections": "DELTA_SIZE_MIN lines75-76",
+        "sha256": "7655d4d6d9f22c90dc1c67a94e95b5541b508ea7a4b1668eaa235f94edb375ea",
+        "bytes": 3455,
+        "retrievedDate": "2026-08-28",
+        "role": "PRIMARY_OFFICIAL_READ_ONLY_NOT_EXECUTED",
+        "preservation": "Content hash and source location only; no source code vendored",
+        "reference": "Pinned tag and fetched byte hash; tag not a claim of an installed binary"
+      },
+      {
+        "id": "packfile-v2.54.0",
+        "url": "https://raw.githubusercontent.com/git/git/v2.54.0/packfile.c",
+        "sections": "load_idx lines178-249; local REF/OFS base lookup",
+        "sha256": "bbd4fecf6bd44135c4472ea3a66ae83cd9a67117963feb63f19ce49dfa26f48d",
+        "bytes": 76679,
+        "retrievedDate": "2026-08-28",
+        "role": "PRIMARY_OFFICIAL_READ_ONLY_NOT_EXECUTED",
+        "preservation": "Content hash and source location only; no source code vendored",
+        "reference": "Pinned tag and fetched byte hash; tag not a claim of an installed binary"
+      },
+      {
+        "id": "pack-write-v2.54.0",
+        "url": "https://raw.githubusercontent.com/git/git/v2.54.0/pack-write.c",
+        "sections": "need_large_offset and write_idx_file lines37-168",
+        "sha256": "d05740383304052ca451c14ef9829953a487561691e7f1d64e8f25cbca2bfbf2",
+        "bytes": 17227,
+        "retrievedDate": "2026-08-28",
+        "role": "PRIMARY_OFFICIAL_READ_ONLY_NOT_EXECUTED",
+        "preservation": "Content hash and source location only; no source code vendored",
+        "reference": "Pinned tag and fetched byte hash; tag not a claim of an installed binary"
+      }
+    ],
+    "freshFetches": 0,
+    "sourceExecutions": 0
+  },
+  "historicalFailure": {
+    "identity": {
+      "commit": "9c0558b7ddf901294ea47451f292cf8eebc50837",
+      "path": "tests/commands/git-pack-independent-20260828/resources/CHECK.result.json",
+      "pathHex": "74657374732f636f6d6d616e64732f6769742d7061636b2d696e646570656e64656e742d32303236303832382f7265736f75726365732f434845434b2e726573756c742e6a736f6e",
+      "gitMode": "100644",
+      "kind": "blob",
+      "gitBlob": "af1402aba84153525e67d2baec23a7a62efdf219",
+      "bytes": 843,
+      "sha256": "6a8df9ba06e73f15da4d69924670ca2e92422bc05f0180f2b8674011f0347e2c"
+    },
+    "status": "FAIL_PREPARATION_CHECK",
+    "maximumMs": 15000,
+    "rawElapsedMs": 23772.693624999956,
+    "reportedRoundedElapsedMs": 23772.693625,
+    "checkerStatus": "CHECKER_EXIT_ZERO_ZERO_WARNINGS",
+    "replayed": false,
+    "rescored": false
+  },
+  "reviewerMetadataFailure": {
+    "role": "STATIC_METADATA_LOOKUP_FAILURE_NOT_PRODUCT_OR_DATA_CONTROL",
+    "argv": [
+      "git",
+      "cat-file",
+      "-t",
+      "9c0558b7ddf9012947451f292cf8eebc50837"
+    ],
+    "childExit": 128,
+    "parentExit": 1,
+    "stdout": "",
+    "stderr": "fatal: Not a valid object name 9c0558b7ddf9012947451f292cf8eebc50837\n",
+    "cause": "Reviewer-generated mistyped resource revision in final bookkeeping lookup; earlier inspections used the correct bound revision.",
+    "disposition": "Original failure retained as failure; corrected metadata-only binding inspection completed. No checker/control or timed DATA attempt was run/retried/rescored."
+  },
+  "staticTool": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "versionMetadata": "v22.22.2",
+    "versionCommandExecuted": false
+  },
+  "execution": {
+    "authorChecker": 0,
+    "patchApplication": 0,
+    "formatProbes": 0,
+    "syntheticControls": 0,
+    "writeSpecChecker": 0,
+    "product": 0,
+    "nativeGit": 0,
+    "nativeVersion": 0,
+    "compiler": 0,
+    "build": 0,
+    "privateEngine": 0,
+    "yq": 0
+  },
+  "activeOwnedBackgroundProcesses": 0
+}

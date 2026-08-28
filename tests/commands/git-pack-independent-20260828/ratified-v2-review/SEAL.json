@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "role": "FOCUSED_INDEPENDENT_DESIGN_REVIEW_SEAL_NOT_EXECUTION_AUTHORITY",
+  "verdict": "IMPLEMENTABLE_ACCEPTED_DESIGN",
+  "authority": "5f02757081bb1c1477365a922442d17804f872e8",
+  "authorRevision": "ea71268b91e4cd6994885062aad6626ccce66b08",
+  "contextOnlyReseal": "7675f24ca569dea649880118ee55d8b3702822a7",
+  "requestedBindingSha256": "53dc6c5272b25e99c8f36df5fb9699ec54c98df4db87b2a9c03bb488c3281d51",
+  "files": [
+    {
+      "path": "tests/commands/git-pack-independent-20260828/ratified-v2-review/BINDINGS.json",
+      "bytes": 66472,
+      "mode": 420,
+      "sha256": "77d8493fe2088a4c0b4dfda1a08b5c5dd07e88804753a995edd5507c50a59a2e"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/ratified-v2-review/CHECKLIST.json",
+      "bytes": 13192,
+      "mode": 420,
+      "sha256": "22afc6f38da5a40964c0ba0fa76e050a0010e33b04ec0504f5474a2b615b313c"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/ratified-v2-review/REVIEW.md",
+      "bytes": 6552,
+      "mode": 420,
+      "sha256": "9983e9eb9d012062de8bb72a256a09104a49dbf07d92a339612f21a3ba8bfc9a"
+    }
+  ],
+  "selfBinding": "This seal is excluded to avoid recursion; its explicit-path commit and SHA256 are published in the readiness handoff.",
+  "designClausesSatisfied": 8,
+  "residualDesignBlockers": 0,
+  "numericLimitsUnchanged": 24,
+  "sourceAndDataInspectionNotSemanticPass": true,
+  "preservedFailures": [
+    "Original metadata-v1 failure and empty binding",
+    "Independent15000ms preparation deadline exceeded at23772.693625ms",
+    "Reviewer static metadata typo: child128/parent1, retained as failure"
+  ],
+  "futureExecution": "UNRUN_NO_IMPLEMENTATION_OR_ACTUAL_PRODUCT_GO",
+  "execution": {
+    "authorChecker": 0,
+    "patchApplication": 0,
+    "formatProbes": 0,
+    "syntheticControls": 0,
+    "writeSpecChecker": 0,
+    "product": 0,
+    "nativeGit": 0,
+    "nativeVersion": 0,
+    "compiler": 0,
+    "build": 0,
+    "privateEngine": 0,
+    "yq": 0
+  },
+  "activeOwnedBackgroundProcesses": 0
+}

@@ -1,6 +1,6 @@
 {
-  "schema": "mapfile-observer-module-seal-v4-baseline",
-  "phase": "before three baseline chronology controls; lifecycle source stillde9dae6d",
+  "schema": "mapfile-observer-module-seal-v3.1",
+  "phase": "before post-publication mode-control correction replay; native remains unauthorized",
   "precodeCommit": "cc471485",
   "moduleFiles": [
     "admission.mjs",
@@ -37,10 +37,7 @@
     "CURSOR-DECISION-v3.md": "6da269b7ec8e373c36a088c867e29d42c00f2c06a1a310cbb304df4bcc43ae9e",
     "observer-v1/MODULE-SEAL-v2.json": "d08585b8995ffd1399be27c17dc378357707106b93f12c240e92ffe57dadadc4",
     "observer-v1/REPAIR-v3.1.md": "08de2cb7097ede0976f2d1f3e92ba371c88e4cecb3077f8e26c942db31e2494d",
-    "observer-v1/MODULE-SEAL-v3.json": "2829de1f75bd7522a12d1399d387838f132d397bce4700180d1640cb2ade6198",
-    "observer-v1/CHRONOLOGY-v4.json": "793dfe7be332e6f7970bf2d48a74e3f69c482572f30ef7a9c1c7bd3d5acb6ea0",
-    "observer-v1/chronology-controls.mjs": "2294a6d37abde050fe5297d91b1581a4427b0855373a6f92e1bdd505809d895c",
-    "observer-v1/MODULE-SEAL-v3.1.json": "e0e9257426d969633c75749066ac94fe75bb13083179b0e3352ece17b0001381"
+    "observer-v1/MODULE-SEAL-v3.json": "2829de1f75bd7522a12d1399d387838f132d397bce4700180d1640cb2ade6198"
   },
   "nativeAuthorized": false,
   "actualChildControlsAuthorized": false,
@@ -70,11 +67,7 @@
     "CURSOR-DECISION-v3.md": 420,
     "observer-v1/MODULE-SEAL-v2.json": 420,
     "observer-v1/REPAIR-v3.1.md": 420,
-    "observer-v1/MODULE-SEAL-v3.json": 420,
-    "observer-v1/CHRONOLOGY-v4.json": 420,
-    "observer-v1/chronology-controls.mjs": 420,
-    "observer-v1/MODULE-SEAL-v3.1.json": 420
+    "observer-v1/MODULE-SEAL-v3.json": 420
   },
-  "phaseCorrectionPrecodeCommit": "bc82b56c",
-  "chronologyPrecodeCommit": "17f3760c"
+  "phaseCorrectionPrecodeCommit": "bc82b56c"
 }

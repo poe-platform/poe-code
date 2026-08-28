@@ -1,0 +1,140 @@
+{
+  "schema": 3,
+  "createdAt": "2026-08-28T01:49:30.863Z",
+  "sourceCommit": "2713defc1f53a00dd975931946de4782a980836d",
+  "fixtureFreezeCommit": "7e8b9377b0aee261ab25eb019d4e218fa16230dd",
+  "fixtureSourceCommit": "284a4c5a193e2001c373fd35806e920bf3ffb90f",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+  "sourceTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+  "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "rawCandidateCommitSha256": "c97a53f90fa4abac622e5a854138b12cbb5bee09027a8597a1a56a38abd6e30e",
+  "driverCanonicalJsonSha256": "3a3019e02830baf599f7df46c938c44552067d160819e548688ccf6027a1441c",
+  "driverFileSha256": "169e8d6ba2f5c4dac5a93ad359969810dc50854adfd49cbe687eb2c31821217a",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "profileEncodedSha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+  "cleanupFileSha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+  "cleanupInputs": 256,
+  "canonicalPaths": 632,
+  "classifications": 192,
+  "runtimeInputClosure": {
+    "kind": "complete committed-tree conservative runtime-input superset, not compact typing selection",
+    "entries": 37397,
+    "bytes": 2382440321,
+    "storedArchive": false,
+    "streamedAtExecution": true,
+    "qualification": "Historical canonical audits read captured data and Git history. No claim that a smaller static-import selection is complete; all committed tree blobs and ancestor Git objects are retained in isolated temporary storage."
+  },
+  "packageArtifact": {
+    "kind": "full npm-packed .tgz",
+    "sha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "actualRebuilds": 2
+  },
+  "packageManifestSha256": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a",
+  "fixtureCohorts": {
+    "initial": {
+      "pass": 49,
+      "fail": 1,
+      "qualification": "Format module failed before its19 bodies: missing unchanged helper from author selection; other three full files passed."
+    },
+    "remaining": {
+      "pass": 19,
+      "fail": 0,
+      "qualification": "Fresh same-candidate completion of unexecuted format bodies with unchanged helper included; not a rescore of initial49/1."
+    },
+    "historical": [
+      "07047 67/1",
+      "2ffcb23d inspection20/1, suffix unreached"
+    ]
+  },
+  "authorControls": {
+    "pass": 56,
+    "fail": 0,
+    "sourceSha256": "9601d88847e937cca44cd9144964d581aa919aff7ea10b8ecde1312eaab44a5e",
+    "qualification": "Final integrated launcher controls, not independent A01–A22 or whole gate. Scratch47/50/52 observations preserve intermediate uncommitted iteration history, not immutable-source acceptances."
+  },
+  "native": {
+    "base": 49,
+    "extensions": 2,
+    "assessment": "hash/mode admission only"
+  },
+  "externalIdentityReceipt": {
+    "schema": 3,
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "observationCandidate": "2ffcb23d6029250c48950030120ed0adad2e5769",
+    "sha256": "23458bf9f68194b0620d73cdbd00a144a3cdb06000144cdb30588c54eb62ba48",
+    "encodedSha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+    "qualification": "Exact readable identities reused only after fresh verification; original observation retains its pre-approval incomplete-binding status. Root separately approved precisely eleven macOS26.4.1/build25E253 references; no full OS or unknown-image attestation."
+  },
+  "reconstruction": {
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "reachableBase": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "reachableFixtures": "284a4c5a193e2001c373fd35806e920bf3ffb90f",
+    "packBytes": 1098557,
+    "qualification": "fresh minimal tree skeleton and four blobs reconstruct exact tree/commit; other product/evidence blobs remain supplied by the separately reachable full base, not by this skeleton",
+    "results": [
+      {
+        "directory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-reconstruct-b2KoWm/first",
+        "absentBefore": true,
+        "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75"
+      },
+      {
+        "directory": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-reconstruct-ISZf6A/with spaces",
+        "absentBefore": true,
+        "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+        "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75"
+      }
+    ]
+  },
+  "sourceBindings": {
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v3/FREEZE.json": "ae02625a495954ac26994316f64dc623da7bdb5dafc17098ff4260b5bd5d02b2",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v3/driver/CANDIDATE.json": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v3/driver/CLEANUP.json": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v3/driver/PROFILE-RECEIPT.json": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v3/driver/PROFILE.json.gz.base64": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v3/driver/common.mjs": "69891096b119b013a863c58da0ce98f4a179032f9ae9c13ad79ef17264b1d62d",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v3/driver/profile.mjs": "993790dbb6468d8f8769dc572599a1a2219e9628caebd36102a1406d2492f9f7",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v3/driver/reconstruct.mjs": "0e8e68dead9ac65450c9686f5d491a8ed974208a582842e477947f1980c75f16",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v3/driver/restore.mjs": "2e3535d14b2cc9ceb2217ef6ffe6de5191d191b51b3baed2178de0f81c9430d2",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v3/prepare.mjs": "af28de9c6ed9e76cfd2c3233d0d2497e9d98984d86e5a659ab7c9356f2e15a1d",
+    "tests/integration/full-gate-20260827/unified76-driver/amendment-v3/proof.mjs": "4dad16af6251c758e5edb00b9cf0c570affaca2b1a7046435c91128404e30eba",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CANDIDATE.json": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/CLEANUP.json": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json": "169e8d6ba2f5c4dac5a93ad359969810dc50854adfd49cbe687eb2c31821217a",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL-RECEIPT.json": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/EXTERNAL.json.gz.base64": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE-RECEIPT.json": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/PROFILE.json.gz.base64": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/README.md": "ad9dcc391f1fd223b02ae6573bf64f7a86d59258b2430063985c07e57758b819",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/admission.mjs": "565fc81134f3874718d68d2e4dc9f1dadb0075e7ab67eb607d964fe68e2a4c46",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/built-consumers.mjs": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/common.mjs": "b51eceeb99a99f3387d0ab49afe8e9b86bc83118d81cb63f8e9c50902b0084cb",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/consumer-admission.mjs": "2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/consumer.mts.fixture": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/controls.mjs": "9601d88847e937cca44cd9144964d581aa919aff7ea10b8ecde1312eaab44a5e",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs": "316320b4c019e116030a9d5cea58b814a981dff5c668041d817a4f51a4d887c9",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external-admission.mjs": "7ac803044ae4fcc44c77244de136c1e010feecd5e0b73043f7fe863fad2615e1",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external.mjs": "c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/inventory.mjs": "075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/negative.mts.fixture": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/policy.mjs": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/profile.mjs": "382c003d5a97652454dc4a5567bc16cf9fba3964b8fb164e33b335033264a28f",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/public.mjs": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/run.mjs": "6b5a31adeaaf76a342ab7965a5c603c37bdb2f78132d03c666db6cbf8755945e",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/supervise.mjs": "0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tap.mjs": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/transport.mjs": "3b319780a805f55ad943b2da5231b4c7c221ee7cf261687453edb6d6015c6053",
+    "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/worker.mjs": "2a55672c40ba4fea7824c73aeb4006e22aa2545d972a3edcc9a515d0ce778401"
+  },
+  "raw": {
+    "decodedSha256": "616e2e21a01ea47d0e78b9b6d6d86853e47b6082629e28b521e5fea3dab08edd",
+    "encodedSha256": "be769e035e1791b1f5238c0f379f12720f940c7e0b601d27bb436314bb61e032",
+    "entries": 31
+  },
+  "independentDriverGroupsExecutedByAuthor": 0,
+  "wholeGateLaunched": false,
+  "release": "HOLD_ROOT_PUBLIC75_PUBLIC76_AND_INDEPENDENT_DRIVER_RELEASE",
+  "which77": "284857d7aa9b0ee0df2b6fdd1a71f41115d7b909 unchanged; later scoped acceptance does not rebase selected76",
+  "stage2": "fd1daa12 excluded; selected76 source tree remains base44"
+}

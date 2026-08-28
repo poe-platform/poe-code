@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "classification": "SYNTHETIC_PREPARATION_ONLY_POST_AUTHOR_RELEASE",
+  "checkedAt": "2026-08-28T05:52:48.497Z",
+  "node": "v22.22.2",
+  "syntheticChecks": 17,
+  "results": [
+    {
+      "id": "SYN01-immutable22-and86-membership",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    },
+    {
+      "id": "SYN02-exact-group-counts-and-field-mapping",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    },
+    {
+      "id": "SYN03-frozen-type-fixture-membership-no-compiler",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    },
+    {
+      "id": "SYN04-exact-cap-arithmetic",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    },
+    {
+      "id": "SYN05-diagnostic-scalar-boundaries",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    },
+    {
+      "id": "SYN06-derived-call-scripts-not-product-probes",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    },
+    {
+      "id": "SYN07-missing-pending-invalid-binding-gates-before-executor",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    },
+    {
+      "id": "SYN08-fake-series-clean-assertion-failure-continues",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    },
+    {
+      "id": "SYN09-fake-series-cleanup-failure-stops",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    },
+    {
+      "id": "SYN10-fake-series-awaits-cleanup-before-next",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    },
+    {
+      "id": "SYN11-fake-modes-dispatch-and-stop",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    },
+    {
+      "id": "SYN12-synthetic-child-natural-and-ordinary-failure",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    },
+    {
+      "id": "SYN13-synthetic-child-bounded-capture",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    },
+    {
+      "id": "SYN14-missing-binding-cli-denial-no-product",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    },
+    {
+      "id": "SYN15-pending-template-cli-denial-no-product",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    },
+    {
+      "id": "SYN16-exact-membership-addition-and-change-negatives",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    },
+    {
+      "id": "SYN17-owned-syntax-only",
+      "classification": "SYNTHETIC_ONLY",
+      "status": "pass"
+    }
+  ],
+  "frozenCounts": {
+    "command": 82,
+    "diagnostic": 4,
+    "total": 86,
+    "positiveTypes": 10,
+    "negativeTypes": 10,
+    "invariants": 12,
+    "futureControls": 7
+  },
+  "futureModes": {
+    "source": "86 NOT RUN; types10+10 NOT RUN",
+    "installed": "86 NOT RUN; types10+10 NOT RUN",
+    "moved": "86 NOT RUN; types10+10 NOT RUN"
+  },
+  "candidateInspected": false,
+  "productImports": 0,
+  "productExecution": 0,
+  "nativeRuns": 0,
+  "providerRuns": 0,
+  "typeCompilerRuns": 0,
+  "buildPackInstall": 0
+}

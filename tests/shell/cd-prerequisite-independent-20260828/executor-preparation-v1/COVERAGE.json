@@ -1,0 +1,2424 @@
+{
+  "schema": 1,
+  "classification": "unchanged frozen expectations mapped to future executor; no measured product result",
+  "counts": {
+    "command": 82,
+    "diagnostic": 4,
+    "total": 86,
+    "positiveTypes": 10,
+    "negativeTypes": 10,
+    "invariants": 12,
+    "futureControls": 7
+  },
+  "rows": [
+    {
+      "id": "B01",
+      "group": "behavior",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:B01"
+    },
+    {
+      "id": "B02",
+      "group": "behavior",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:B02"
+    },
+    {
+      "id": "B03",
+      "group": "behavior",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:B03"
+    },
+    {
+      "id": "B04",
+      "group": "behavior",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 3,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:B04"
+    },
+    {
+      "id": "B05",
+      "group": "behavior",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 3,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:B05"
+    },
+    {
+      "id": "B06",
+      "group": "behavior",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "searchSlots"
+      ],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:B06"
+    },
+    {
+      "id": "B07",
+      "group": "behavior",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "searchSlots"
+      ],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:B07"
+    },
+    {
+      "id": "B08",
+      "group": "behavior",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "raw",
+        "rawBytes",
+        "normalizedBytes"
+      ],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:B08"
+    },
+    {
+      "id": "B09",
+      "group": "behavior",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:B09"
+    },
+    {
+      "id": "B10",
+      "group": "behavior",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls",
+        "forbidden"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:B10"
+    },
+    {
+      "id": "B11",
+      "group": "behavior",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls",
+        "printCount"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:B11"
+    },
+    {
+      "id": "B12",
+      "group": "behavior",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls",
+        "printCount"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:B12"
+    },
+    {
+      "id": "B13",
+      "group": "behavior",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "effectiveTarget",
+        "searchSlots"
+      ],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:B13"
+    },
+    {
+      "id": "B14",
+      "group": "behavior",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "effectiveTarget",
+        "searchSlots"
+      ],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:B14"
+    },
+    {
+      "id": "B15",
+      "group": "behavior",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "effectiveTarget",
+        "searchSlots"
+      ],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:B15"
+    },
+    {
+      "id": "B16",
+      "group": "behavior",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:B16"
+    },
+    {
+      "id": "P01",
+      "group": "permissions",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 3,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:P01"
+    },
+    {
+      "id": "P02",
+      "group": "permissions",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 3,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:P02"
+    },
+    {
+      "id": "P03",
+      "group": "permissions",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 3,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:P03"
+    },
+    {
+      "id": "P04",
+      "group": "permissions",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls",
+        "forbidden"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 3,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:P04"
+    },
+    {
+      "id": "P05",
+      "group": "permissions",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 4,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:P05"
+    },
+    {
+      "id": "P06",
+      "group": "permissions",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "finalErrorCode"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 3,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:P06"
+    },
+    {
+      "id": "P07",
+      "group": "permissions",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "searchSlots",
+        "freshFallback"
+      ],
+      "exactCalls": 4,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:P07"
+    },
+    {
+      "id": "P08",
+      "group": "permissions",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "freshFallback"
+      ],
+      "exactCalls": 3,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:P08"
+    },
+    {
+      "id": "P09",
+      "group": "permissions",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls",
+        "laterSuccessFixtureMustRemainUncalled"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 1,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:P09"
+    },
+    {
+      "id": "P10",
+      "group": "permissions",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls",
+        "laterSuccessFixtureMustRemainUncalled"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 1,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:P10"
+    },
+    {
+      "id": "P11",
+      "group": "permissions",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls",
+        "callerSignalAborted"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:P11"
+    },
+    {
+      "id": "P12",
+      "group": "permissions",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls",
+        "callerSignalAborted"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:P12"
+    },
+    {
+      "id": "P13",
+      "group": "permissions",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls",
+        "callerSignalAborted"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:P13"
+    },
+    {
+      "id": "P14",
+      "group": "permissions",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls",
+        "laterSuccessFixtureMustRemainUncalled"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 1,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:P14"
+    },
+    {
+      "id": "A01",
+      "group": "adapters",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "noModeInferenceInCd"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:A01"
+    },
+    {
+      "id": "A02",
+      "group": "adapters",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls",
+        "backingCalls",
+        "writes"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:A02"
+    },
+    {
+      "id": "A03",
+      "group": "adapters",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls",
+        "backingAccess",
+        "transportRequests",
+        "writes"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:A03"
+    },
+    {
+      "id": "A04",
+      "group": "adapters",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls",
+        "transportRequests",
+        "writes"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "serviceExecuted"
+      ],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:A04"
+    },
+    {
+      "id": "A05",
+      "group": "adapters",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls",
+        "transportRequests",
+        "writes"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "serviceExecuted"
+      ],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:A05"
+    },
+    {
+      "id": "A06",
+      "group": "adapters",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls",
+        "transportRequests"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "serviceExecuted"
+      ],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:A06"
+    },
+    {
+      "id": "S01",
+      "group": "state",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "readonly",
+        "noReadonlyAttributeRemoval"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:S01"
+    },
+    {
+      "id": "S02",
+      "group": "state",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:S02"
+    },
+    {
+      "id": "S03",
+      "group": "state",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:S03"
+    },
+    {
+      "id": "S04",
+      "group": "state",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls",
+        "restored"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "readonly"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:S04"
+    },
+    {
+      "id": "S05",
+      "group": "state",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "childState"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:S05"
+    },
+    {
+      "id": "S06",
+      "group": "state",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "childState"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:S06"
+    },
+    {
+      "id": "S07",
+      "group": "state",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls",
+        "fileAfter"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "namespaceOtherChanges"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:S07"
+    },
+    {
+      "id": "S08",
+      "group": "state",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "restored",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:S08"
+    },
+    {
+      "id": "S09",
+      "group": "state",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "restored",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:S09"
+    },
+    {
+      "id": "O01",
+      "group": "output",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls",
+        "capturedBytes"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "events"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:O01"
+    },
+    {
+      "id": "O02",
+      "group": "output",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "externalWriteAttempts"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:O02"
+    },
+    {
+      "id": "O03",
+      "group": "output",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "externalWriteAttempts"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:O03"
+    },
+    {
+      "id": "O04",
+      "group": "output",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "externalStderrWriteAttempts",
+        "execRejects"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:O04"
+    },
+    {
+      "id": "O05",
+      "group": "output",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "calls",
+        "stdout",
+        "diagnosticPayloadBytes",
+        "physicalStderrBytes",
+        "suffixAdded",
+        "state"
+      ],
+      "sourceReviewFields": [],
+      "sourceReviewStatus": "not-required-for-row-specific-fields",
+      "accountingRecipes": [],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:O05"
+    },
+    {
+      "id": "C01",
+      "group": "cancellation",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "rejects",
+        "calls",
+        "stdout",
+        "stderr"
+      ],
+      "sourceReviewFields": [
+        "publications"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:C01"
+    },
+    {
+      "id": "C02",
+      "group": "cancellation",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "rejects",
+        "calls",
+        "stdout",
+        "laterCalls",
+        "lateUnhandledRejections",
+        "cleanup"
+      ],
+      "sourceReviewFields": [
+        "publication"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 1,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:C02"
+    },
+    {
+      "id": "C03",
+      "group": "cancellation",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "rejects",
+        "calls",
+        "stdout",
+        "laterCalls",
+        "cleanup"
+      ],
+      "sourceReviewFields": [
+        "publication"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:C03"
+    },
+    {
+      "id": "C04",
+      "group": "cancellation",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "rejects",
+        "calls",
+        "externalWriteAttempt",
+        "cleanup"
+      ],
+      "sourceReviewFields": [
+        "stateInvariant"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:C04"
+    },
+    {
+      "id": "C05",
+      "group": "cancellation",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "rejects",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "firstYieldAfterChargedUnits",
+        "publications"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:C05"
+    },
+    {
+      "id": "L01",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "chargedPrivateUnits"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L01"
+    },
+    {
+      "id": "L02",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "chargedPrivateUnits"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L02"
+    },
+    {
+      "id": "L03",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "chargedPrivateUnits"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L03"
+    },
+    {
+      "id": "L04",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "cdpathScannedBytes"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L04"
+    },
+    {
+      "id": "L05",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "cdpathScannedBytes"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L05"
+    },
+    {
+      "id": "L06",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "cdpathScannedBytes"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L06"
+    },
+    {
+      "id": "L07",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "unusedCwdScannedBytes"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L07"
+    },
+    {
+      "id": "L08",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "calls",
+        "state"
+      ],
+      "sourceReviewFields": [
+        "work"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "candidateBytes"
+      ],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L08"
+    },
+    {
+      "id": "L09",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "pathBytes"
+      ],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L09"
+    },
+    {
+      "id": "L10",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "rawReserved"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "inputCwdBytes",
+        "rawCandidateBytes"
+      ],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L10"
+    },
+    {
+      "id": "L11",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "cdpathScannedBytes"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "inputCwdBytes"
+      ],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L11"
+    },
+    {
+      "id": "L12",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "rawReserved"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "effectiveBytes",
+        "rawCandidateBytes",
+        "hypotheticalNormalized"
+      ],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L12"
+    },
+    {
+      "id": "L13",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "rawReserved"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "cdpathBytes",
+        "rawCandidateBytes"
+      ],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L13"
+    },
+    {
+      "id": "L14",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L14"
+    },
+    {
+      "id": "L15",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "firstViolationAtByte"
+      ],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L15"
+    },
+    {
+      "id": "L16",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "firstByteAndSlotOverflowTogether"
+      ],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L16"
+    },
+    {
+      "id": "L17",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "firstViolationAtByte"
+      ],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L17"
+    },
+    {
+      "id": "L18",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "state",
+        "statCalls",
+        "accessCalls",
+        "publicVfsCalls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "work",
+        "yields",
+        "finalYieldRemainder"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "searchSlots"
+      ],
+      "exactCalls": 8194,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L18"
+    },
+    {
+      "id": "L19",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "statCalls",
+        "accessCalls",
+        "state"
+      ],
+      "sourceReviewFields": [
+        "work",
+        "yields",
+        "finalYieldRemainder"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "selected"
+      ],
+      "exactCalls": 114,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L19"
+    },
+    {
+      "id": "L20",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls",
+        "statCalls",
+        "accessCalls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "work",
+        "yields",
+        "failedReservation",
+        "failedOperation",
+        "unconstrainedWork"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 109,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L20"
+    },
+    {
+      "id": "L21",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls",
+        "statCalls",
+        "accessCalls"
+      ],
+      "sourceReviewFields": [
+        "order",
+        "work",
+        "remaining",
+        "failedReservation",
+        "failedOperation"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 138,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L21"
+    },
+    {
+      "id": "L22",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "calls",
+        "state"
+      ],
+      "sourceReviewFields": [],
+      "sourceReviewStatus": "not-required-for-row-specific-fields",
+      "accountingRecipes": [
+        "targetBytes",
+        "targetUtf16Units"
+      ],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L22"
+    },
+    {
+      "id": "L23",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "diagnosticPayload",
+        "state",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "order"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [
+        "targetBytes"
+      ],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L23"
+    },
+    {
+      "id": "L24",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "calls",
+        "state"
+      ],
+      "sourceReviewFields": [],
+      "sourceReviewStatus": "not-required-for-row-specific-fields",
+      "accountingRecipes": [
+        "targetBytes",
+        "nativeClaim"
+      ],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L24"
+    },
+    {
+      "id": "L25",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "rejects",
+        "privateFailureBeforeRejection",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "commandsAdmitted",
+        "controllerReset"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 0,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L25"
+    },
+    {
+      "id": "L26",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "stderr",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "noPerByteCommandCharges",
+        "state"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 4,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L26"
+    },
+    {
+      "id": "L27",
+      "group": "limits",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "rejects",
+        "stdoutWriteAttempts",
+        "calls"
+      ],
+      "sourceReviewFields": [
+        "stateInvariant"
+      ],
+      "sourceReviewStatus": "candidate-source-review-pending; no private helper names or instrumentation assumed",
+      "accountingRecipes": [],
+      "exactCalls": 2,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:L27"
+    },
+    {
+      "id": "D01",
+      "group": "diagnostics",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "state"
+      ],
+      "sourceReviewFields": [],
+      "sourceReviewStatus": "not-required-for-row-specific-fields",
+      "accountingRecipes": [],
+      "exactCalls": 1,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:D01"
+    },
+    {
+      "id": "D02",
+      "group": "diagnostics",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "state"
+      ],
+      "sourceReviewFields": [],
+      "sourceReviewStatus": "not-required-for-row-specific-fields",
+      "accountingRecipes": [],
+      "exactCalls": 1,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:D02"
+    },
+    {
+      "id": "D03",
+      "group": "diagnostics",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "state"
+      ],
+      "sourceReviewFields": [],
+      "sourceReviewStatus": "not-required-for-row-specific-fields",
+      "accountingRecipes": [],
+      "exactCalls": 1,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:D03"
+    },
+    {
+      "id": "D04",
+      "group": "diagnostics",
+      "modes": [
+        "source",
+        "installed",
+        "moved"
+      ],
+      "publicExecutor": "fixtures.mjs:executeCase",
+      "publicAssertions": [
+        "cdStatus",
+        "stdout",
+        "state"
+      ],
+      "sourceReviewFields": [],
+      "sourceReviewStatus": "not-required-for-row-specific-fields",
+      "accountingRecipes": [],
+      "exactCalls": 1,
+      "status": "NOT RUN",
+      "frozenDefinition": "cases-v1.mjs:D04"
+    }
+  ],
+  "invariants": [
+    {
+      "id": "I01",
+      "frozen": "I01: Only stat then delegated X_OK; no chmod, native chdir, realpath, ACL synthesis or directory-stack mutation.",
+      "futurePublicMeasurements": "exact VFS ordinal guard; delegated X_OK; final cwd",
+      "pending": "native chdir, ACL synthesis and directory-stack nonmutation need source review",
+      "status": "NOT RUN; source review pending where stated"
+    },
+    {
+      "id": "I02",
+      "frozen": "I02: P1 checked publication before awaited print; readonly OLD blocks cwd; readonly PWD retains OLD/cwd; no rollback.",
+      "futurePublicMeasurements": "readonly partial/final state and final output bytes",
+      "pending": "checked OLD/cwd/PWD/export/await ordering and pre-output publication need source review",
+      "status": "NOT RUN; source review pending where stated"
+    },
+    {
+      "id": "I03",
+      "frozen": "I03: Same runtime signal for stat/access; live caller/shared abort before failure classification; no reason-shape inference.",
+      "futurePublicMeasurements": "same runtime signal; exact caller reason; owned cleanup settlement",
+      "pending": "shared-budget signal provenance remains source review",
+      "status": "NOT RUN; source review pending where stated"
+    },
+    {
+      "id": "I04",
+      "frozen": "I04: Only actual FsError ENOENT/ENOTDIR/EACCES search misses; fresh duplicate fallback; first success stops.",
+      "futurePublicMeasurements": "typed/untyped scripted misses, ordered calls, duplicate fallback and first success",
+      "pending": "supported profile only; no new native EPERM/ELOOP proof",
+      "status": "NOT RUN; source review pending where stated"
+    },
+    {
+      "id": "I05",
+      "frozen": "I05: All inputs/preflight bounded before first probe; raw length before allocation; normalized bound defensive.",
+      "futurePublicMeasurements": "public zero-I/O admission and exact boundary inputs",
+      "pending": "raw allocation and defensive normalized limit require source review",
+      "status": "NOT RUN; source review pending where stated"
+    },
+    {
+      "id": "I06",
+      "frozen": "I06: Shared Budget identity/accounting unchanged; no private ShellLimits key, tick/loop charge, reset or private-controller abort.",
+      "futurePublicMeasurements": "unchanged maxCommands/maxOutputBytes outcomes and frozen public limit type",
+      "pending": "shared object identity, monotonic counters/no reset require source review",
+      "status": "NOT RUN; source review pending where stated"
+    },
+    {
+      "id": "I07",
+      "frozen": "I07: Probe4098 is unreachable under4096-slot preflight; normalized bytes cannot exceed admitted absolute raw join. Verify defensively by source review, not fake public runtime passes.",
+      "futurePublicMeasurements": "none: defensive unreachable cases are not fake public passes",
+      "pending": "probe4098 and normalization proof require source review",
+      "status": "NOT RUN; source review pending where stated"
+    },
+    {
+      "id": "I08",
+      "frozen": "I08: Work reservations subtraction-first and all-or-nothing; reached128-unit boundaries yield including exact last boundary; no failed-probe refunds.",
+      "futurePublicMeasurements": "L18-L21 exact admitted public call counts and cap diagnostics",
+      "pending": "reservation arithmetic implementation, yield positions and no refunds require source review",
+      "status": "NOT RUN; source review pending where stated"
+    },
+    {
+      "id": "I09",
+      "frozen": "I09: Diagnostic incremental bounded construction; scalar-safe payload prefix including cd: ; exact suffix; origin/newline outside private cap but parent-budgeted.",
+      "futurePublicMeasurements": "D01-D04 exact scalar/byte outputs; O05 non-cd diagnostic control",
+      "pending": "incremental bounded construction requires source review; not RSS",
+      "status": "NOT RUN; source review pending where stated"
+    },
+    {
+      "id": "I10",
+      "frozen": "I10: Prefix/clone/middleware/cleanup semantics stay baseline; post-rejection state is a source invariant, not a fabricated persistent Shell getter.",
+      "futurePublicMeasurements": "prefix/function/clone/middleware final public observations and cleanup",
+      "pending": "child/post-rejection state and preserved baseline ordering require source review",
+      "status": "NOT RUN; source review pending where stated"
+    },
+    {
+      "id": "I11",
+      "frozen": "I11: Provider acceptance is exact fixed composition and virtual traversal only; internal HTTP requests are not VFS-call budget units.",
+      "futurePublicMeasurements": "full fixed-composition authentication and owned WebDAV mock transport",
+      "pending": "no actual service, ACL or provider atomicity claim",
+      "status": "NOT RUN; source review pending where stated"
+    },
+    {
+      "id": "I12",
+      "frozen": "I12: Scoped PRECODE controls are future evidence obligations; no native, adapter, product, source/moved or all-feature pass is claimed.",
+      "futurePublicMeasurements": "provenance/membership metadata only",
+      "pending": "future obligations remain NOT RUN now; no full-gate claim",
+      "status": "NOT RUN; source review pending where stated"
+    }
+  ],
+  "futureControls": [
+    {
+      "id": "F01",
+      "obligation": "Authenticated future runtime-only delta over exact composed baseline; unchanged source/docs/providers/root exports and public API inventories; record full commit/blob inputs.",
+      "executor": "common:authorize/authenticateCandidate + workspace:compose",
+      "status": "NOT RUN"
+    },
+    {
+      "id": "F02",
+      "obligation": "Source public-root execution of frozen cases with actual provider/root FsError identity, no live-source fallback; separate denominator.",
+      "executor": "entry source loader + fixtures86",
+      "status": "NOT RUN"
+    },
+    {
+      "id": "F03",
+      "obligation": "Build/package/install only after ROOT go; actual bare virtual-bash public-root runtime and declaration identity; authenticate complete package and consumer membership.",
+      "executor": "run build/pack/install + package/type identities",
+      "status": "NOT RUN"
+    },
+    {
+      "id": "F04",
+      "obligation": "Physically move installed package+consumer, original absent; rerun same cases/types; separately report source/installed/moved counts without summing unique coverage.",
+      "executor": "run physical rename/absence/exact inventory + same86/types",
+      "status": "NOT RUN"
+    },
+    {
+      "id": "F05",
+      "obligation": "Negative controls reject missing public entry, modified packed runtime/provider bytes, and outside-source/dist fallback before case success; no loader error is a semantic mutant kill.",
+      "executor": "entry admission negatives: outside/missing/runtime/provider",
+      "status": "NOT RUN"
+    },
+    {
+      "id": "F06",
+      "obligation": "10 positive and10 intended-location negative public type checks per future layout; each negative independently inverted; no missing-import/fixture pass.",
+      "executor": "types exact10+10 with independent in-memory neutralizations",
+      "status": "NOT RUN"
+    },
+    {
+      "id": "F07",
+      "obligation": "After ROOT go only: scoped existing shell/contracts/adapter regression selection authenticated against candidate; preserve original native28/provider cohorts, no current full-gate claim.",
+      "executor": "PENDING: separately authenticated ROOT scoped-regression route; no automatic regression execution",
+      "status": "NOT RUN"
+    }
+  ],
+  "types": {
+    "positive": 10,
+    "negative": 10,
+    "fixtures": [
+      {
+        "commit": "2fbd1e051993cadf384cf4fc559f20e3f0b7cc1c",
+        "path": "tests/shell/cd-prerequisite-independent-20260828/types-negative-v1.mts.fixture",
+        "blob": "0b3a0f655df9aad33c8b96b4aca298e0ec66e7a3",
+        "sha256": "a7dcdc1a60467b91b7295f9640bc8d0e279c56f465538ed4f234c49abba17fb7",
+        "bytes": 923,
+        "exposure": "inherited immutable data/code; no old executor or old auditor execution"
+      },
+      {
+        "commit": "2fbd1e051993cadf384cf4fc559f20e3f0b7cc1c",
+        "path": "tests/shell/cd-prerequisite-independent-20260828/types-positive-v1.mts.fixture",
+        "blob": "7642f19b20bbb7b3c638bb3b18c4532c4a930b10",
+        "sha256": "aa36091715072992ae4bb7ab70bce06f3cc96188a9bd2dbee5fd39c293bcc8c4",
+        "bytes": 1698,
+        "exposure": "inherited immutable data/code; no old executor or old auditor execution"
+      }
+    ],
+    "modes": [
+      "source",
+      "installed",
+      "moved"
+    ],
+    "status": "NOT RUN; current checks are fixture membership only"
+  }
+}

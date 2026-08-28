@@ -1,0 +1,2404 @@
+{
+  "files": [
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/DECLARED-CONTRACT-v1.md",
+      "blob": "f4329b64fde5ebd10676ea104b3a55ccef71f9a5",
+      "sha256": "cdac52ba488a5dfdada963072fad6db01087f5d09efe9b5d380cc9f08f26d1a3",
+      "bytes": 11197
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/EXPOSURES-v1.json",
+      "blob": "0ff9feaf138f80726333ec3a1bfef6fcf941ff29",
+      "sha256": "a505094e08de897a349dace2e1d6d2741e033e2ea81403e1f7c9c84adf425721",
+      "bytes": 23333
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/INPUTS-v1.json",
+      "blob": "ac386225e2f9f100006392d2638a2a4991a4b170",
+      "sha256": "28d3d799e7e2b59a43f8e51bf5a94757df795f10fa8080513ca28a78289027a3",
+      "bytes": 10334
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/MANIFEST-v1.json",
+      "blob": "543476cd34a78b9971907a2e4219a2baac0419ee",
+      "sha256": "1993e999c01b9729feb22af17cc9fbf973ae2df22a6189bb0b6874fa16a3f68a",
+      "bytes": 4332
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/PROTECTED-AFTER-v1.json",
+      "blob": "b06fc452f30c2510c34ec153f41366dd26a78ad1",
+      "sha256": "7bb9b9e5911be7ddd4d85767c2da98715b9d4d9134fe09f0d686a70bf2fab79b",
+      "bytes": 53342
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/PROTECTED-BEFORE-v1.json",
+      "blob": "194b2a7f5f70d13f13613eba7586fdf39daf9e22",
+      "sha256": "301ddcc818f490ddb200f68dfd118dc0ee070e6d19aedac60a0d53bb138afb50",
+      "bytes": 54179
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/PROTOCOL-v1.md",
+      "blob": "ac467087235dab17aef4cae1b405437ed4281efa",
+      "sha256": "7938c8471bfe40972989126f3a31fa4281505b094068e711ac8515014aed600d",
+      "bytes": 14356
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/README.md",
+      "blob": "e1f9c3dc1d8f1352f8443214981b44ecbf5e4df9",
+      "sha256": "b6d1d9b27dce731cdc1ec096478161cba40a915c09adfd6ceb5a6f4d477e2f17",
+      "bytes": 2131
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/STATIC-ATTEMPTS-v1.md",
+      "blob": "ba846364a1c59e96aa7b3a24a3aa10e79ba04d8d",
+      "sha256": "71e57e0751f16024bb083e4c1c9157a15c819ea406ec9d1d19cbf6b9bbaf8d23",
+      "bytes": 2901
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/TYPE-BINDING-v1.json",
+      "blob": "789ef9d809ad9e25330edb1e2089f7f82edc44da",
+      "sha256": "2dfe1a79575f96e2d157fcfe89cce19f185863f272b6085ecf5569c2330fd69f",
+      "bytes": 71210
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/VALIDATION-v1.json",
+      "blob": "c68f2031eda4cb2c35e511c287396e4f514c6f81",
+      "sha256": "c241c2acaabd2a1f50fb4555deb5c7fa164638fad7554187461576c8be39e160",
+      "bytes": 1946
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/VALIDATION-v2.json",
+      "blob": "54a1a9923e219daa3bbf540a5ae04ee2ee3c868c",
+      "sha256": "7a597989ab71a7ef164541eca8c84717cc11451ca08bc58490fda0a8da905cd6",
+      "bytes": 3379
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/audit.mjs",
+      "blob": "096e83e65e61d8455e28fded0c19ba0ed48defe0",
+      "sha256": "bbea5b42e581adc80a523d32c684817ad5eb7a4a88cf40a4b0b402b477f77417",
+      "bytes": 9944
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/cases-v1.mjs",
+      "blob": "24aaeaf0390355c70c9ce48fcaf54289aac04951",
+      "sha256": "a04ee5ea49742b08d05370c5eca28fbd1ea4d1ed3f02a7cb534f56540bfdae7a",
+      "bytes": 23390
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/BINDING.pending.json",
+      "blob": "4249c0b71fa532a5ef4aa028ab1cd19616b42d7b",
+      "sha256": "6e51922a9765fdb199561b4bab70e183b9c1214bcbd44bf37a1bba67f2040a8a",
+      "bytes": 600
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/COVERAGE.json",
+      "blob": "e41ddc123f6c8455e799acde6db90a79019faa1e",
+      "sha256": "b4fa6e5958d71c53f7bfdbcaabce08d3be0a54de5d5640931b850613a53c9142",
+      "bytes": 64480
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/HANDOFF.md",
+      "blob": "754ff411c5b32bf4403d8156a89f6f9780430fca",
+      "sha256": "9868421c285168fda9c9141a7a1293b983e5b574418538a6d18f3f998c8d9e8a",
+      "bytes": 1818
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/INPUTS.json",
+      "blob": "a737630b00466fe6f6aa81766d838482e22839f4",
+      "sha256": "3a9e141f35f6e755840feaa417b6ff6d83b0faf0dc355af3b80c280956ee15e4",
+      "bytes": 114307
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/MANIFEST.json",
+      "blob": "697de57ac7fa48ec7e526a8c7470b1acee7cc971",
+      "sha256": "10e1f18247ac1c40fa687df10cec8252df91c965c2e9815291f0f664c48042f1",
+      "bytes": 3975
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/PREPARATION.md",
+      "blob": "b4b58d4dd3bfeae320f2888f52a3bf6a919760bb",
+      "sha256": "0011fb8684a8987f7e25a0ffb23df1b06f23bab4c3a66661de761be4217fbefe",
+      "bytes": 13260
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/ROUTE.pending.json",
+      "blob": "896064902df2fd633b07ada74da742627accbbbd",
+      "sha256": "07321bc1d246c7463df28aa45bb68cf3c90301dc971e3f47e739d2c3b7d52289",
+      "bytes": 450
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/SYNTHETIC-RESULTS.json",
+      "blob": "22b52d0390981cf2b1d6fded2feeeea8067e8572",
+      "sha256": "8d7f675c2b8057aefec2aa88e9a93272663e5a2cd95fba06d06cd9b49dd7f7c0",
+      "bytes": 3016
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/common.mjs",
+      "blob": "c5532383f5c9dce1f2787e6bb12b4bb3eeedb3a3",
+      "sha256": "d66aaf3eeb51e6dc12315edf434641b2d36463ef1408f99efb0510edfae3f5fa",
+      "bytes": 6906
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/entry.mjs",
+      "blob": "8f55dae3898e89e66db1185c47c329bae7b2417f",
+      "sha256": "0647c7bef888901ec8addaa03d4675366ac1ef884a4121e1cb3887a5a051700c",
+      "bytes": 5216
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/fixtures.mjs",
+      "blob": "16277590bddd61a091727f316aacf818ba3cc162",
+      "sha256": "abb1b6c30715b2e516e36b56e77286a69b1dc5e585741cf4e8d828e1108076fb",
+      "bytes": 20055
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/mapping.mjs",
+      "blob": "761d75d9f121e1197697ebda6118fecb276b5a6f",
+      "sha256": "609ee45f74551b39fbb527f37f826be8d6a2340daecc23db40f5b29e31ed38f4",
+      "bytes": 6550
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/run.mjs",
+      "blob": "d8f588d4c7a05caa5bdb343e6691cac48fcc3e83",
+      "sha256": "7483ab5245c6b854a3193baf4c48db01f809e39039b4dc8d6fdeafebb329c2f2",
+      "bytes": 11435
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/seal.mjs",
+      "blob": "81f7df9b7d1bafd4b906349bfd5bae2e45af3c8b",
+      "sha256": "bb164317bcd20a49fbbf9111df6571068a16247d231a0e33bbbb429750ca3580",
+      "bytes": 7987
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/selfcheck.mjs",
+      "blob": "621dff0611be5c9e55012c20982802a8507454a6",
+      "sha256": "79afa8efc213b2be3454dc5f5d45fb9d59524114e07fdc74de0be66387b21f42",
+      "bytes": 9242
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/series.mjs",
+      "blob": "6cf16bd1c39936ba32ca6fd50c0faa21878c1a0d",
+      "sha256": "bcc5185b281ac496251301661f66b03cc293a3a0d0945b088e823b01cb9265dc",
+      "bytes": 3446
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/types.mjs",
+      "blob": "fc794a3cc8f3a3cac2da5b841ddd72c12a500706",
+      "sha256": "958f89633346ec90056df3ed8cadc62ceb10af76cec177874b944c5d6e38a01a",
+      "bytes": 4295
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/verify.mjs",
+      "blob": "0afb162f5293548e361a922415ab4c5a92d6cac8",
+      "sha256": "b8586f88e27476477a27d7fb0ed635ea3187030a7fc5ea282fed565efdb6314b",
+      "bytes": 4154
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/executor-preparation-v1/workspace.mjs",
+      "blob": "656a203b34979972839b98d0ae1750bb11a827f2",
+      "sha256": "8e1a9954e708e0c42a91a3acce86f5b3aefb6fccaceaa3afeb992e30b12e9c8a",
+      "bytes": 5973
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/ratification-v3/BINDING.json",
+      "blob": "5704004cd28dab10102f31f437288c7063cd7bab",
+      "sha256": "3217df4e16fcdca554c90fb0572a709cf24904424628c1e973cb6857dac3fc29",
+      "bytes": 8297
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/ratification-v3/HANDOFF.md",
+      "blob": "17549905ca3b962fa8e7b44e2529347b6850dacc",
+      "sha256": "a811026d782f7b117a8fc9716e3e9f76e7b61efd28956f54ca8766afd938b41e",
+      "bytes": 3895
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/ratification-v3/MANIFEST.json",
+      "blob": "ec65a4dcbebdbd5751608d436eff71ff01349741",
+      "sha256": "4daa9ae9292351dcd8ccb69c294abb996b070bf5cfa521a39e098e4fc92a31b5",
+      "bytes": 787
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/ratification-v3/verify.mjs",
+      "blob": "9afdf55be35dfae02a94e066874bb326904c5d84",
+      "sha256": "ebd80dfdbc37bf88499f0aa3f0f8c931541de3eee9cde81811200facb8739c75",
+      "bytes": 6973
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/typecheck-v1.mjs",
+      "blob": "939fee261d34725fe5b4e0bf2f1e8ff762a56a3a",
+      "sha256": "1a820fb0fac8f04c6f6431cff4b39a329c834e4d766b1e22374cbd16d283fd67",
+      "bytes": 7631
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/types-negative-v1.mts.fixture",
+      "blob": "0b3a0f655df9aad33c8b96b4aca298e0ec66e7a3",
+      "sha256": "a7dcdc1a60467b91b7295f9640bc8d0e279c56f465538ed4f234c49abba17fb7",
+      "bytes": 923
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/types-positive-v1.mts.fixture",
+      "blob": "7642f19b20bbb7b3c638bb3b18c4532c4a930b10",
+      "sha256": "aa36091715072992ae4bb7ab70bce06f3cc96188a9bd2dbee5fd39c293bcc8c4",
+      "bytes": 1698
+    },
+    {
+      "commit": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/validate-v1.mjs",
+      "blob": "6d483bd8853a61974832dac639f96d94a91a1696",
+      "sha256": "e20fc187d117e1d21775bcc47b77fc884ace1aaaf6309a2f9a32805a51fb2045",
+      "bytes": 10314
+    }
+  ],
+  "priorHistorical": [
+    {
+      "commit": "d0b2557e1cb443b94d595c8a4cdd468f94c2601c",
+      "path": "tests/shell/cd-prerequisite-20260828/FREEZE.json",
+      "blob": "03d8ca2221285c68ece2cb7a7fc500ee6492b18f",
+      "sha256": "149aac0ef0cf21aeabf468560320ce873dcd61772584b2ad8c36ede7cbfe57f1",
+      "bytes": 2997,
+      "exposure": "historical native record hash only; not extracted or executed"
+    },
+    {
+      "commit": "d0b2557e1cb443b94d595c8a4cdd468f94c2601c",
+      "path": "tests/shell/cd-prerequisite-20260828/HANDOFF.md",
+      "blob": "713dbeee29bf6dfc0df5d1f956b17479f44803ff",
+      "sha256": "01fc0cb31422a6069235ed86acd096c64684363c092aebcc3627a4753c7d03f8",
+      "bytes": 9606,
+      "exposure": "historical native record hash only; not extracted or executed"
+    },
+    {
+      "commit": "d0b2557e1cb443b94d595c8a4cdd468f94c2601c",
+      "path": "tests/shell/cd-prerequisite-20260828/README.md",
+      "blob": "ea470878e3a69ce5e058163904d7fcaa3c6720f1",
+      "sha256": "b282eb524e01b03378f64b434f4597b8a9ad897cfa79a752811a748d1e773641",
+      "bytes": 3286,
+      "exposure": "historical native record hash only; not extracted or executed"
+    },
+    {
+      "commit": "d0b2557e1cb443b94d595c8a4cdd468f94c2601c",
+      "path": "tests/shell/cd-prerequisite-20260828/cases.json",
+      "blob": "0f28ccc24aca3fe8c971a6ee66a16b40e422b2b0",
+      "sha256": "cc1b9d4486eea52c7f92ceff3d5710bc4483b8c329b246eccb5d12af247be634",
+      "bytes": 3317,
+      "exposure": "historical native record hash only; not extracted or executed"
+    },
+    {
+      "commit": "d0b2557e1cb443b94d595c8a4cdd468f94c2601c",
+      "path": "tests/shell/cd-prerequisite-20260828/observations-01.json.gz.base64",
+      "blob": "05e4f2deff096a65be2de3e6c4657315b6cb3fb6",
+      "sha256": "fd8495c4fa3fea7ef168b097c026ce5382e4d3b7e21e0e4999b70aa74620bc90",
+      "bytes": 116221,
+      "exposure": "historical native record hash only; not extracted or executed"
+    },
+    {
+      "commit": "d0b2557e1cb443b94d595c8a4cdd468f94c2601c",
+      "path": "tests/shell/cd-prerequisite-20260828/run.mjs",
+      "blob": "887e53345c64811181c5850c1711fa763470439d",
+      "sha256": "2fd9f8e1b99ed4845614830a456855490a7507a6ec1e25ad98d664bc60b71790",
+      "bytes": 12231,
+      "exposure": "historical native record hash only; not extracted or executed"
+    },
+    {
+      "commit": "d0b2557e1cb443b94d595c8a4cdd468f94c2601c",
+      "path": "tests/shell/cd-prerequisite-20260828/verify.mjs",
+      "blob": "d95de38ad58d40363a4913538783ba15e1751a3e",
+      "sha256": "ca8036b668162d1c26c1fcfea233780336f271ea39d9189c66a01aeec4cc4246",
+      "bytes": 4157,
+      "exposure": "historical native record hash only; not extracted or executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/DECLARED-CONTRACT.md",
+      "blob": "b80b16565a67db6b2558827f3cb30443d87b56f6",
+      "sha256": "2eea1c7c4338ad1d25d2c737e364c834efd77e79d79d827230ece9834aa47ee0",
+      "bytes": 11999,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/MANIFEST.json",
+      "blob": "e9b357208aec94b1aae36a0aae09e8e3d960e069",
+      "sha256": "13aef9a1d4e5222015562108b14b4cad9bb26b04841468d6091408598e4db904",
+      "bytes": 13954,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/PROTOCOL.md",
+      "blob": "920e3ea8212b62925c0d8c4ba60d63a5c732eb29",
+      "sha256": "8626b19d58ee822e989f3784bd2272cd15e625df2342c814ca3c09a656796e55",
+      "bytes": 9410,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/VALIDATION.json",
+      "blob": "54e4bff7f56e6ba287a186512cd5ae282a880a52",
+      "sha256": "75a6f852feb6ef986561200b2ceb7f6783a433eb4121abc7ea6e6f60b30078bc",
+      "bytes": 2970,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/cases.mjs",
+      "blob": "2b32b98a895ccba105d0f9304d25233dc8369beb",
+      "sha256": "7c2da9534975aa90ddc3bdcd23e727926e53630dd0f57e0c39f7026bf329fb34",
+      "bytes": 14455,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/.gitignore",
+      "blob": "768e0de2a8a605cd9ff2da5985a54d63fe44d3e5",
+      "sha256": "263777208781d93e37da9e703e6f23af85591ca52f3c53029886336dc7ee9f28",
+      "bytes": 10,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/ADAPTATIONS-v2.md",
+      "blob": "65035a423c121918d1462a88176825ee1e00da35",
+      "sha256": "96507b312eae254a86a6483e37b41345b0c825381d9a140559d5f3d48aa855a0",
+      "bytes": 1503,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/AUDIT.json.gz",
+      "blob": "64ad68223f32794c65df09bf34351a482461765c",
+      "sha256": "5564d617712b8ca1895bea46317f12dacecb9482167ec55d818a1ca1d8388a2d",
+      "bytes": 1029,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/BINDING.json",
+      "blob": "ff388421325fd2260cb03eadfd78564c8cbd49ad",
+      "sha256": "d42b77343af58bc8e7e071fe2081e93b2358bf0e6ca9bee9f2d49e46534a0c22",
+      "bytes": 10142,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/CANDIDATE-PROOF.json.gz",
+      "blob": "202d639dc873192053166f471f89e0d72fcf06fd",
+      "sha256": "7054592988667cdd60cd3d4e80cdc9030e5cea4c6e83b816e40d2bcc4c01d836",
+      "bytes": 44594,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/CLEANUP.json",
+      "blob": "9aa77f509f2bfb1fe7a2eff096fb382b35c025fb",
+      "sha256": "cef99fd03e14eebdc7ad378da03e2d9df439730b232f62db163042283256ba3f",
+      "bytes": 1343,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/COMMIT-AUDIT.json",
+      "blob": "4a8d7a9656aa4186d739454d94e17699ac20fa68",
+      "sha256": "7f685b19702f02fca1b0aad1cdfafc9c84f8bf2c6948a4da91253e1d882d3af7",
+      "bytes": 14827,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/CONTROLS.json",
+      "blob": "cfa10d66c62c7b6bd40a2cfbb9f396a10a7829e7",
+      "sha256": "257895076bb2766b46cd3f0bdbd7e3cfcb3af5b2c97ff184b7a0ad94bd4a6786",
+      "bytes": 1470,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/DRIVER-SEAL-v2.json",
+      "blob": "2513303077e78bad42e1a541d4a891e61d64d2e4",
+      "sha256": "7b1cfd6adc97f4bb0b981b4de3ae9949a97026e5429058bf52faefc9426b6e19",
+      "bytes": 6916,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/DRIVER-SEAL-v3.json",
+      "blob": "398bdba211ad10f9b9f565429266d329814eb871",
+      "sha256": "0f62c4ce68e5289f91d2743171c5d4644d82e74595f3f1c7bbe7a5e6b77fd738",
+      "bytes": 7375,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/DRIVER-SEAL.json",
+      "blob": "d472f4cdfde29b89febdc743cd79b7ebd7571f23",
+      "sha256": "20ff2c96827a5e5f5ed722054b305a268cb4fc276cce594a114bb957394c6dd9",
+      "bytes": 3641,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/FINAL-MANIFEST.json",
+      "blob": "f23deb6089d82d7bb7d72cd69dacba15ed657f43",
+      "sha256": "1ba26f2a5c842dfecff73bd972b64295d87dc106da9498b062b05edaa9441e18",
+      "bytes": 22475,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/FROZEN-INPUTS.json.gz",
+      "blob": "8337298bac050faa508639baa2728674d1bc3e7b",
+      "sha256": "67a5801703bf6b0fd66d19f8907e44819490690953fa5c0c580c2d8a13bd3b18",
+      "bytes": 39325,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/PREPARATION-01.json.gz",
+      "blob": "293bbe34c83d2bc17a1c9eb51f93f88bdef9e293",
+      "sha256": "6fd28af890573055e9d8c90938db8443428abc4667d96352bbd561231eb161e1",
+      "bytes": 25243,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/PREPARATION-01.stderr.txt",
+      "blob": "b128077c7238f3e85415af6d2d04d0398b0d3455",
+      "sha256": "2bababf0bce5dc49f43bc51299be47a2f7ea1e108b5861ad798f9bcb53a343f9",
+      "bytes": 1446,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/PREPARATION-02.json.gz",
+      "blob": "f4e0c0ec41540de7feafa50af1054dc2d5f5dfda",
+      "sha256": "2d178ea6c5c74cf6666161b0037003877d8c834948b7f4b8c270c21d33891c6a",
+      "bytes": 109048,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/PREPARATION-02.stderr.txt",
+      "blob": "e536464302ecbd2ec935806ba11d6b53d513668d",
+      "sha256": "fa9691298bf0fd2d5af6650e532eb4bef78323ee44f9783e8c2044210ea538c9",
+      "bytes": 1903,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/PREPARED-INVENTORY.json.gz",
+      "blob": "5ccfdfda8fdc607c09f7f6df73f5081776623cb0",
+      "sha256": "c6af39c8daaede8a5f97282a6094be283741bfab82a5267ff02c6d671c3c6c02",
+      "bytes": 124223,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/PROTOCOL.md",
+      "blob": "0f7d867547a17d061173d0e7d792e68c2ed79721",
+      "sha256": "a3a2f3ed75e26ba337684ee66ec4ad40bf9e76b05ebd92c6e054e147cb5899ee",
+      "bytes": 5331,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/REPORT.md",
+      "blob": "8f27bec36bdd20de4c43b02bd76d7234736f8463",
+      "sha256": "c8405b63eea24148f53abeb421a3e2671ef21558e0ab2b2c6317eef521aa4037",
+      "bytes": 8574,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/REPRO.md",
+      "blob": "c5db09d2a9da70c2b797e35778237be5466748ab",
+      "sha256": "6933c342b0c9eeffb763297670e7b3b00c1138cb7bf33a000bbb92cf058a40b7",
+      "bytes": 2319,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/RESULT-v3.json",
+      "blob": "44c59b69f6c8573051de85ac9429fed1d845c360",
+      "sha256": "3908b529a31db295c55efa7d641d089a4b28219d1d3bf30f85bad2593bd51182",
+      "bytes": 153069,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/RESULT.json",
+      "blob": "7a6ffd8e3cbcca8620188af6225c955d9a47835f",
+      "sha256": "21093b50fb1ae926b729db899808942aa245f90e89fa8ebf91f1461661284f44",
+      "bytes": 110549,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/RESUME-INVENTORY.json.gz",
+      "blob": "6cedbcaeda09d6ce271e06af897f8fa8c23f8f6d",
+      "sha256": "9985ed2f0a503b4eb3dfd6d956e24cc6d59de31ac26ef72bcc6873f0ec5b8aea",
+      "bytes": 199237,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/SCRATCH-INVENTORY.json.gz",
+      "blob": "00cca8e0627caab517c017cd19585773fcd29e59",
+      "sha256": "336a5360636f95a9245e592afa92cd1e987b58c8f2eb753c9d87c81397740540",
+      "bytes": 497759,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/SEAL-CONTROL.json",
+      "blob": "17b626d4aa1a21e42b6c0f712e4b03a842232574",
+      "sha256": "f0d1a355658d2c395bd94acecb3dbe4a3b05f436a53233847bd625cd36b12a00",
+      "bytes": 11463,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/SOURCE-REVIEW.md",
+      "blob": "eb1ee8a9e6f432b02b3a1c9cfec2c7ebd70e9486",
+      "sha256": "bb6803f722c351bef5b2db4992fcb315f97fef60cd4b9fa14d3ef11d24a34fd7",
+      "bytes": 4811,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/TOOL-LOGS.json.gz",
+      "blob": "d5083b47aa3d9262448a14ea2a3e6ff664745014",
+      "sha256": "091ab4a6c76befc7844d9a749cfb66b19f65ecd4279167eb68a034b749dc6663",
+      "bytes": 1913,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/TOOLS.json",
+      "blob": "509dba492c64f5439f72e5e83e5cb2c3327c7d15",
+      "sha256": "9ece2210a15f54a7f66ab9e8d7bbba14d69c91f565e941735d5e935a120eca4a",
+      "bytes": 433063,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/audit.mjs",
+      "blob": "f868d7198aa84f70a03e3a635a686be332814851",
+      "sha256": "6e93d36b326a426e594643cb9c95636ec8d5ecc34f8f9d58703f43d81224759e",
+      "bytes": 13788,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/bind-proof.mjs",
+      "blob": "07eb5ecada2145d63007e7b9274b6ea829428d54",
+      "sha256": "d5d0a12d2d29839a3bd28ab90fea525b0068d3591856fa3f4fbf107ab58507b1",
+      "bytes": 1557,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/boot.mjs",
+      "blob": "a3b7baa29a8e46a4061894673e17820b4f782d80",
+      "sha256": "47f3dfc3bd64018c242537817199bafb2a0d52339facc4996bfe40354fcf1271",
+      "bytes": 4116,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/candidate.tgz",
+      "blob": "3c46a0e2fc77ceb1380a92abaacf3600c8935aa6",
+      "sha256": "2f6d9f142165802f4e8a033c317f5c4f034f535508d3a434688e547b654c85b0",
+      "bytes": 742929,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/cleanup.mjs",
+      "blob": "5119922a7693a629fb73a593cb92c4c2b4958b00",
+      "sha256": "cb6ab1ee1e287f4fd7fc8ab139b15341d24caf556b7e104de176de687de1e163",
+      "bytes": 2704,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/common.mjs",
+      "blob": "32352db118e283b060a4940f9645156e4bcca0b6",
+      "sha256": "686a322d8c40fa925290dd443bcac1bff474d73e4fc9459b53ff3fab23fa07fd",
+      "bytes": 5629,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/composition.json.gz",
+      "blob": "cb08f620e03d9679576ba8bc0b4185405dec4ccb",
+      "sha256": "2968a36621be269f49d53f1d13222440987d0472ae3b6882086722254127e42e",
+      "bytes": 1041520,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/prepare.mjs",
+      "blob": "82334a16f88015cd5fb478b7239cca54df3dfd63",
+      "sha256": "e88c90fc6659a89999b8b4f6b16aad038ef633cc3907b28fdd6fe0bf93bb4d18",
+      "bytes": 6005,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/audit-01.json.gz",
+      "blob": "4f03283667432ee00a20211303e3ef8d6204d02e",
+      "sha256": "1d4e0802369b241c9239a838fc9eb03f030c84506bf657dde24ec8f22a61c454",
+      "bytes": 7223,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-01/build.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-01/build.stdout.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-01/children.json",
+      "blob": "c72ae77748a3cb4d6acd9ae2e1d46bbab89bb2b3",
+      "sha256": "790487f6779b8bb5ef44012a0862d0ff8674980c8b208cc72db2d6269d4929bf",
+      "bytes": 3361,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-01/emitted.json.gz",
+      "blob": "de5084bdc6abbd2ebc2827710a86e35bea156da6",
+      "sha256": "9edfafb2e4d106819abd972aa4acb6b6f05d734e47bcba177711c9b0f0714cc9",
+      "bytes": 38561,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-01/pack.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-01/pack.stdout.txt",
+      "blob": "b5c7c1be6fba05f69ff72e2e1dc8ff440c7d51ea",
+      "sha256": "3d56a57ec6ef791a91eb55748ae10ae298a9970b6b3092dfb012cb76e0f24a4c",
+      "bytes": 95273,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-01/source-types.stderr.txt",
+      "blob": "249cbe40beea27ba9b68d4e7cfb292354a3644db",
+      "sha256": "64cbcdd536fa4f3af316690989ecb6264f33c1e71f49865b789cde5edf65252b",
+      "bytes": 1131,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-01/source-types.stdout.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-01/source.config.json",
+      "blob": "8899f9f9a954ef52ed1d8b7a6c9c76d2966f24b6",
+      "sha256": "c208c264e50a73befe6ada2cc8ddd32ec5978ca04e7d38b4a10134d3bef51643",
+      "bytes": 280064,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-01/source.load.json.gz",
+      "blob": "dd8607663ce07056a825f66ae042fcfc28e16ae4",
+      "sha256": "f20aa8d57d1fac5953a57cef74d0f7fc2d6d51d1baf4bdd275b7eb6876658853",
+      "bytes": 17430,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-01/source.result.json.gz",
+      "blob": "d3aa2e83564921387a92fa44bba83849c52b2e8d",
+      "sha256": "56467de8dee81f7c3e49ba68cefc10d20727a70d5ada2feab2a5c645f09d6a08",
+      "bytes": 23654,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-01/source.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-01/source.stdout.txt",
+      "blob": "fb9c41af6782b43445d9bdaf18df0152c4399b57",
+      "sha256": "475ba4a572da971afc6134a5435fffebb76161399b51e9f740c1eb2f9f73dc96",
+      "bytes": 6790,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-02/ADMISSION.json",
+      "blob": "d4eb4d8d0adf8cd098e0e73ec4f15b811798b469",
+      "sha256": "0220c238dcdc2e26a80779f56e297a8f73113e8665cf6a754d755757ac6da5f6",
+      "bytes": 807,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/children.json",
+      "blob": "43aa54828f8de90f4bf5c90eb0a2c13dabeb355a",
+      "sha256": "601430155345ab129ce92a986e71887a59f35c56903e95f94d4a16488716a878",
+      "bytes": 13262,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/install.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/install.stdout.txt",
+      "blob": "f6ff519d31ffb686985d9b106312d50e983069b9",
+      "sha256": "67bc00458870e5165e5f2ac8e32030531658c1425f03d764f5dc9098a3e55b40",
+      "bytes": 26,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/installed-types.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/installed-types.stdout.txt",
+      "blob": "9527cf4a72b4ff56140e5d281ae31846ae63e231",
+      "sha256": "84bf9e9cf404bd807490ecc62f66cd1c98cfdb2574237c0669a68dd300121cd2",
+      "bytes": 96,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/installed.config.json",
+      "blob": "833b9a2e420322444671484acdb253668b80c6b2",
+      "sha256": "d5282b5770f27990f105627d736e6f08aea268c23af602ec2165668c0f637bd3",
+      "bytes": 222240,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/installed.load.json.gz",
+      "blob": "615bb0dd71803e860e2be835c5320ae0b67a39bb",
+      "sha256": "7109198fc7717f908393b8309ba2c26f2af446eba3eb958fdee95689a0334b61",
+      "bytes": 10655,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/installed.result.json.gz",
+      "blob": "a8f51b8e1f3d45ced363e8de530cbb3b4c6a8e82",
+      "sha256": "7b09389d4009d9e20181466ef2eb00f8aadb5f6e7106e04e9c4eaf83cb0f8796",
+      "bytes": 24005,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/installed.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/installed.stdout.txt",
+      "blob": "fb9c41af6782b43445d9bdaf18df0152c4399b57",
+      "sha256": "475ba4a572da971afc6134a5435fffebb76161399b51e9f740c1eb2f9f73dc96",
+      "bytes": 6790,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/installed.types.json.gz",
+      "blob": "0da272857d695d2146b5c7e07182b367f59a18a8",
+      "sha256": "fecdaa65fdcd0b930117a5b260251706e91762f12b8a4a517cd1cbd8ff05a2f0",
+      "bytes": 12301,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/load-missing-package-entry.config.json",
+      "blob": "fb86ee7f8e50a3e06228752efb056d1310a66e63",
+      "sha256": "1ea096b54be782c91af7c91452e63f793d58a9a9034535059cc347862bd141f9",
+      "bytes": 229179,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/load-missing-package-entry.json.gz",
+      "blob": "bd048167fd23b6aae60a7c556f1106f369ef1d37",
+      "sha256": "c47015eea1e49a2bba0848a812e5f1b54db40196305f59f16115cfda61f1e048",
+      "bytes": 301,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/load-missing-package-entry.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/load-missing-package-entry.stdout.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/load-outside-source.config.json",
+      "blob": "2d2ae18bf6fb142222365dec2e10a606c1078345",
+      "sha256": "cdd14b605ed23cf6ce7644b896a68ccfa39497320afbf7a56a009640c10f1153",
+      "bytes": 223325,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/load-outside-source.json.gz",
+      "blob": "b5a175d0ac3459ab8166c20d2bfb1a45c1287c45",
+      "sha256": "fbd5d5331ede755fa9398b2035244ab66d30f17757f6700903f5b5f5748b81fd",
+      "bytes": 276,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/load-outside-source.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/load-outside-source.stdout.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/load-tampered-packed-provider.config.json",
+      "blob": "0e61c4dace8ade14ed557e55578e4b0ee882b539",
+      "sha256": "223346c6064b455d1e9a3478742e6d2535da8f3cdc0ef390f2e19d43977cae9a",
+      "bytes": 231750,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/load-tampered-packed-provider.json.gz",
+      "blob": "fd14e42d173d7cab6b10ccf29379681c54729320",
+      "sha256": "f62fc99fb09e8935f3105b8ce468ab6731ca54689a722a4e2f4d0ab6675d26ca",
+      "bytes": 10663,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/load-tampered-packed-provider.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/load-tampered-packed-provider.stdout.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/moved-types.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/moved-types.stdout.txt",
+      "blob": "a7a7c73b0fa6d63db5694b45624ce9c8da22ea0d",
+      "sha256": "456fa93b1e2f3c1f7d37df1a1b7fe09ee462153cf05b32046990a0ac6e19fabe",
+      "bytes": 92,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/moved.config.json",
+      "blob": "e6dff46eb94d6949258cdca1b6a8bd3bc85c2c23",
+      "sha256": "43496310dfb79671937174c28047d4d052b48454286122f8a8a5043e3d7a8b8d",
+      "bytes": 228188,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/moved.load.json.gz",
+      "blob": "b1053d39e7e5d0163191876b9cc9b6dd5b0204d2",
+      "sha256": "82b34857ab84b0a5ef86efdc45d21ee43a6d71b00b81e114c823aca6ac252034",
+      "bytes": 10661,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/moved.result.json.gz",
+      "blob": "d05a8e48e106dc327aec52ae2a34719f99b439db",
+      "sha256": "92fdb211e63549c34af4f8b992079aa59c5b721c04ae40513bb95d663a84ba9a",
+      "bytes": 24129,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/moved.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/moved.stdout.txt",
+      "blob": "fb9c41af6782b43445d9bdaf18df0152c4399b57",
+      "sha256": "475ba4a572da971afc6134a5435fffebb76161399b51e9f740c1eb2f9f73dc96",
+      "bytes": 6790,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/moved.types.json.gz",
+      "blob": "e4312fdc59f6d74de090893830a5d8dd088837c9",
+      "sha256": "be2cdcb0cdbc364253439cc21fa9da591f72aefae3e0d5b0a31c151055362e55",
+      "bytes": 12319,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-admission.config.json",
+      "blob": "eece3373fffaf7239962103a4454cbe195f74277",
+      "sha256": "78787831ea7a797fda8c72ae3e3bb2c0bfe816047ccfff41997deb3465250d40",
+      "bytes": 61739,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-admission.load.json.gz",
+      "blob": "182c07662a433d48eae2ecd4f48f9f036f003fe5",
+      "sha256": "772ee812f8b787043235d40c0ad7936db5a2945d3b764c91fad384360a85aa89",
+      "bytes": 17432,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-admission.result.json.gz",
+      "blob": "108e1316a3cb59637be1d60617c44c0f636a94d8",
+      "sha256": "13d8d6f6402084f87af33bfd46696460feb11aa7335efb1863dffa93a88106f6",
+      "bytes": 1052,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-admission.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-admission.stdout.txt",
+      "blob": "db798785b6943964df8229af0c7f645b3f04303e",
+      "sha256": "6af25e732f92207f15443df9df5ec1baaec6dbc13b6871378ad1763887558f9d",
+      "bytes": 69,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-final-cancel.config.json",
+      "blob": "ce7d22ce09221553336bce2177e73e4cf4c717c2",
+      "sha256": "de86db31deb0f81f381e9f3c51d01bf274c0e0d4ef961cde4be9d8bd543f2516",
+      "bytes": 62537,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-final-cancel.load.json.gz",
+      "blob": "41c9617abdd44b492efd2ce9cfcfb285504a8f94",
+      "sha256": "428967b7a9f53519fe7ef7f087e760eca0502e65bbc12aeb21bac2ea8ec3fe49",
+      "bytes": 17437,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-final-cancel.result.json.gz",
+      "blob": "4a2a17c7d4a139ab1bdd1051820465592bd3d782",
+      "sha256": "113b770927aea9749546a30ab9567dcb695f35d0dddab2d27af7b435b56e52e2",
+      "bytes": 1233,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-final-cancel.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-final-cancel.stdout.txt",
+      "blob": "42091b19eed474e381072182443d879a002d1986",
+      "sha256": "2125c2dcaf219c02af33385a467eb411fcd6bfcca0c5951f1fa6a7ed222e6b16",
+      "bytes": 69,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-output-bound.config.json",
+      "blob": "ef0396b1e5f745d061238762e5cd3c76475dc19b",
+      "sha256": "4c6771865d76d6931cfebace167528a5c91c841e40d6baa5c80e340ff08ff695",
+      "bytes": 62530,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-output-bound.load.json.gz",
+      "blob": "63624eb9e6813755a726f4a0b3b437cabf1de36c",
+      "sha256": "4070cd02dfb59c39c8efe6c2c45dc08219c3f351dbe8a25030ca9bd01d8f28ff",
+      "bytes": 17436,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-output-bound.result.json.gz",
+      "blob": "74ef32beac7f1b51f61872bce68c7a7506abf450",
+      "sha256": "8a2508fcb0014800ddc2954926ba27156f9dac02c38cb4200d460daf8c046446",
+      "bytes": 1293,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-output-bound.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-output-bound.stdout.txt",
+      "blob": "6a0633f2c9ba1a2e4c5a4c3ee634fcb0262a3778",
+      "sha256": "3966c2c05a6baeb428ad165b249d36ac9119196d739abb3ab4a74f7baa431d12",
+      "bytes": 62,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-path-bound.config.json",
+      "blob": "c548f0948450d0d8a4a1e35b551243aab578ed13",
+      "sha256": "52419d8274c1be82c4ddb4f8fd44e0c6ec4638233d3b62f2bf27bccf6d228cc4",
+      "bytes": 62000,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-path-bound.load.json.gz",
+      "blob": "9a92c983d85887d2072dbbedf169cbcac418255e",
+      "sha256": "cd38746016422ec58b5e717260c28725d4569f0b0156ea69c009e7ff86729862",
+      "bytes": 17432,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-path-bound.result.json.gz",
+      "blob": "0093fabdfcd3340d58faf9ecaf27dd1aba7e4a0d",
+      "sha256": "e79ba7956fe48afbe959fcbce6a2b7d7721a98e9cbd401288db13b0fefedb28d",
+      "bytes": 1987,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-path-bound.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-path-bound.stdout.txt",
+      "blob": "603a833b43ef99d23f339dc675e7b6c8431e0518",
+      "sha256": "ef7cf7ebe0e82815de367eddcbb7ef58ffd7661f86e5ca874d361cfa867e6885",
+      "bytes": 64,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-response-identity.config.json",
+      "blob": "4cbc70e14cb1954a762ce24cb2bfac544bdf4c20",
+      "sha256": "5829d7a279e25af20117c3859371a2324f258bab6afff2e7ac95442840aca203",
+      "bytes": 63867,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-response-identity.load.json.gz",
+      "blob": "ff5bfcedd5494811994a9f12d295da042914a288",
+      "sha256": "dbd6bc0baed44ad2e19e89c429de5e6c9ebc5d97012d4c38c857dd52e79803f0",
+      "bytes": 17468,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-response-identity.result.json.gz",
+      "blob": "291c9da4d8dc4e95e3ad00620dc09f6bd07180d0",
+      "sha256": "73d799920e1c25ac87997e34d4cf26eda735eca77d5c671cfc6685f2450fd6f2",
+      "bytes": 1297,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-response-identity.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/mutant-response-identity.stdout.txt",
+      "blob": "a705fe5dad6a6840bdf87ff74580712177305c33",
+      "sha256": "f30c6a4838984481b5a732118820ac6bdb3036b0d7eb79822819755f3a6842ff",
+      "bytes": 69,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/package-inventory.json.gz",
+      "blob": "42b953b378e4821a7bac4b532bb39e1a449b607c",
+      "sha256": "147190beba5c87a3bedaafe8641d05d8b4287653b30b2cbd0b385e5bc3aced96",
+      "bytes": 38732,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/source-types.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/source-types.stdout.txt",
+      "blob": "d747321d142d8754afedc0e925c94f3831d7afe6",
+      "sha256": "44c8df4da264cac8ba67f61d84e1a026e4286bb8c471f6b30ba663c554a86ed9",
+      "bytes": 93,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/source.config.json",
+      "blob": "8899f9f9a954ef52ed1d8b7a6c9c76d2966f24b6",
+      "sha256": "c208c264e50a73befe6ada2cc8ddd32ec5978ca04e7d38b4a10134d3bef51643",
+      "bytes": 280064,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/source.load.json.gz",
+      "blob": "dd8607663ce07056a825f66ae042fcfc28e16ae4",
+      "sha256": "f20aa8d57d1fac5953a57cef74d0f7fc2d6d51d1baf4bdd275b7eb6876658853",
+      "bytes": 17430,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/source.result.json.gz",
+      "blob": "1f6d6e1e7fada86fc7f56198309ae047723bbd0a",
+      "sha256": "abc35b108ab0ef21716e7997b6f2bd7782732aa8d5b98fc2964b4ea8fa142d7f",
+      "bytes": 23654,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/source.stderr.txt",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/source.stdout.txt",
+      "blob": "fb9c41af6782b43445d9bdaf18df0152c4399b57",
+      "sha256": "475ba4a572da971afc6134a5435fffebb76161399b51e9f740c1eb2f9f73dc96",
+      "bytes": 6790,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/raw/run-03/source.types.json.gz",
+      "blob": "130890c6db5d0f0d3ddcd54cfb7a16ca2c9279aa",
+      "sha256": "e380a3ed04358bba1acf8d6e6117899df4c16dfd1b16ef7fc9d47f150b319e9d",
+      "bytes": 17791,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/recreate.mjs",
+      "blob": "3647fe625c0019e84b2215315017e0911822b485",
+      "sha256": "f7531920dd0b62b42a81565ecf1ddac0a2030b4bb6f67dd2ca28e03e058646f4",
+      "bytes": 2135,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/replay.mjs",
+      "blob": "45d1dfe9f809c214fffbbb408843cfa3e2e40a07",
+      "sha256": "9efcd44cfdad4d162822517fbed6e68a7fb4704fad86304c752034ef848dcb2c",
+      "bytes": 12272,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/run-v2.mjs",
+      "blob": "38c63a6d98779b76991fbb25ab9fce16ff2ad369",
+      "sha256": "d0faf4fc7c274d8f34808d1471c8adfeb0a097305bcd34e43349fa1334cd5d26",
+      "bytes": 12152,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/run-v3.mjs",
+      "blob": "1d6e92a43f17ab5813f3d92ea31dc616ba5eb0f0",
+      "sha256": "18679346a2870a09f2938c2b053bd4151d685a3cd6060fd76b75096d42556f49",
+      "bytes": 12184,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/run.mjs",
+      "blob": "3ec45959940d2b5ee13b0aad5cf0f185c2230159",
+      "sha256": "893451f432472c4ee8a771ee0889964b0c3218103a16851386dc9e383674a5fa",
+      "bytes": 11798,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/runner.mjs",
+      "blob": "9f09dc9a075073cbf9d4c2bd13435d7761c12d5f",
+      "sha256": "9e525d1da817779820b4998d73b47a9686a7dec6ef206a4c3785f3e31ee9e56b",
+      "bytes": 10205,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/seal-v2.mjs",
+      "blob": "7ce760963e189f838738d01bf3709738e46be356",
+      "sha256": "2e1b4685b5a030f636ddf06e3964667bed09c9f35266cd1d0de4effe34e300a5",
+      "bytes": 2450,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/seal.mjs",
+      "blob": "90ecce88fe8d922998f3e62687c9cd432e54b7a9",
+      "sha256": "d8ada3fac82f3700add4354d927c5a24015f3bea07392ccf5dd09158bf689f7e",
+      "bytes": 2415,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/types-v2.mjs",
+      "blob": "3ff7434b73ff008b18d301eaffee2c5a317ff270",
+      "sha256": "1f2899ab743dbc4de853f2dd83d645b8484b562931b52330880bc26a47499634",
+      "bytes": 3823,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/types.mjs",
+      "blob": "4a6b6bc03913c081e28f150b2d68eb59f75ba01f",
+      "sha256": "d9c6c146a36b75c7ddbe81e1c12dab6002ec7514f8cb57f4c67ac1471a83986d",
+      "bytes": 3797,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/verify-final.mjs",
+      "blob": "7cc32196e22a4c933b1029c5333cc0fd787b2a3a",
+      "sha256": "a13c1e6282a23822089fab2135fa972cfa3b86cc4d9c161699403dcdb5c1afc9",
+      "bytes": 1077,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/verify.mjs",
+      "blob": "25bd36e7114181f28956474347b5334e68945584",
+      "sha256": "a53e70d07fe62e82afd6aa6e0c034757c50f63c3f632c47220d1ce1a29cc7b8e",
+      "bytes": 2689,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/typed-inputs.ts",
+      "blob": "dc193709307200dbc4156cd76959d5e7901fed3e",
+      "sha256": "ed7561849eb048fafabba46fb80201fd006be5fb62a442f307e69c1812700614",
+      "bytes": 2352,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "2ec9bcdafce7964769e87ed6fe681ea0936f266a",
+      "path": "tests/fs/webdav/directory-access-independent-20260828/validate.mjs",
+      "blob": "2cca733a8f09de4b32f9677594dfda267fdf9572",
+      "sha256": "ebb731419f5c39287f7318c0f11745f8965ada894bf2ffdad2ba13056c38201e",
+      "bytes": 18875,
+      "exposure": "historical provider record hash only; not executed"
+    },
+    {
+      "commit": "ef833fd2cbf006993b1f94d7f3a0d3254e0ad3de",
+      "path": "tests/shell/cd-prerequisite-20260828/ROOT-RATIFICATION-v3.md",
+      "blob": "37ecdd0c187896ab7583c3631c4d6fea262f4c29",
+      "sha256": "1a88dd6c82a82803bd0c5b1aa2939f394ecb1486626bd074c7a1f6455a8fe60e",
+      "bytes": 4812,
+      "exposure": "inherited normative policy binding; committed hash authentication"
+    },
+    {
+      "commit": "882085678862a23cfeef6505fa41a03891743439",
+      "path": "tests/shell/cd-prerequisite-20260828/AUTHOR-POLICY-v2.md",
+      "blob": "c00b94bf0e3e9341942a4708753a5b39ed109f33",
+      "sha256": "bbc2024017c6476b2f8c43af4a1088367303c86a4d894cd3ce6e57fda6bbc9ff",
+      "bytes": 12128,
+      "exposure": "inherited normative policy binding; committed hash authentication"
+    },
+    {
+      "commit": "7728401ccb7bfa8f1961ffe100ca5617f3a6b553",
+      "path": "tests/shell/cd-prerequisite-20260828/AUTHOR-POLICY-v3-DETAILS.md",
+      "blob": "357ce4e084224154d32ed72f7adde9f1bddc44cc",
+      "sha256": "5268aeafff4878926931c8ccf80cf2234134ae0d1fc594b00e44b6d157211489",
+      "bytes": 7730,
+      "exposure": "inherited normative policy binding; committed hash authentication"
+    }
+  ],
+  "author": [
+    {
+      "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+      "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/HANDOFF.md",
+      "blob": "0b19cd346aad640402e439fefe5dc1b10147536c",
+      "sha256": "cdf2ee8a56fd28acb355d2dd03d6ff05a63d524bb67aad351534abe4933111c2",
+      "bytes": 7132
+    },
+    {
+      "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+      "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/README.md",
+      "blob": "30e38aca9bfebf3f1bb23a035fd34565078a5e15",
+      "sha256": "221c25b2eab93607ca1beff0b34d786a714b70a441b3c1ebba4d25b5060335f4",
+      "bytes": 6294
+    },
+    {
+      "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+      "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/baseline-01.json.gz.base64",
+      "blob": "954dfb3ff8246398da6ae66bf93b13e10cf4a902",
+      "sha256": "29ed699959bd5373db12fce4ae1c736c3f329902c1e4382e74882169e2d4c494",
+      "bytes": 77613
+    },
+    {
+      "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+      "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/baseline-02.json.gz.base64",
+      "blob": "30b39dc268c295c51372cc3e0dca28858d8887de",
+      "sha256": "d8eb2319b30cd32c0fdd26cbe6b3a47c4a2c1bbc12c08d96fd1b8dfdf597be70",
+      "bytes": 78865
+    },
+    {
+      "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+      "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/baseline-03.json.gz.base64",
+      "blob": "77a5a234de32022cc0a857f85d4679db70b29bad",
+      "sha256": "56ad4107a77aa97c600a5039ba9251eb71c3e536145d5b467d88e8f51cd47945",
+      "bytes": 81313
+    },
+    {
+      "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+      "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/candidate-01.json.gz.base64",
+      "blob": "3cb836e0338704ad26dedc2ca1ea562cc5435801",
+      "sha256": "85133805a5623e8869bb34e091399890516ec80016cc117a84a057712bf150dd",
+      "bytes": 1186897
+    },
+    {
+      "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+      "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/candidate-02.json.gz.base64",
+      "blob": "b96876c3650a03d33158c79d619498f87c6e619b",
+      "sha256": "e1080e64c72430ba757e7906b75c16cc1b66bcc652b030a9327dd407c0a13d90",
+      "bytes": 1180609
+    },
+    {
+      "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+      "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/candidate-03.json.gz.base64",
+      "blob": "37e0832b7f55d859f6332e7dc5ea407090cd456d",
+      "sha256": "16213603b8aa4a71f80f2140ebefafada5b5fe80b19201223b27f8bb05dfd384",
+      "bytes": 1184453
+    },
+    {
+      "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+      "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/candidate-04.json.gz.base64",
+      "blob": "2cfaf87ea35811e93f8433991c4fdfb3583b1055",
+      "sha256": "70a653971120cf440d879da57aeccb63eaf1fb36f76a6c2748baf7c87127db39",
+      "bytes": 1184501
+    },
+    {
+      "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+      "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/cd.test.ts",
+      "blob": "680fc93495acd676eef727e3e60be1cfa6516cb0",
+      "sha256": "ee6d6d5bf354c72547222e865e6441a2298552c73963c53a87857992915c6ebd",
+      "bytes": 14258
+    },
+    {
+      "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+      "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/loader.mjs",
+      "blob": "b9a8ea642af068c08889a5e80a4d6d30c07244b2",
+      "sha256": "47db42180680ed90de9d988a9e37cfd4f9d6bf893ebb5b4ab45154efb3877cb3",
+      "bytes": 1242
+    },
+    {
+      "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+      "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/native-mapping.test.ts",
+      "blob": "965ac26c93554d1752a0dabb2f9c3efba384b9a1",
+      "sha256": "060f3a56e9876149de5762a025d8d3da5889e6b327e9d93dcb882ffb157847a9",
+      "bytes": 2315
+    },
+    {
+      "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+      "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/validate.mjs",
+      "blob": "8620774fc6aa53b65a05cf85787424208422ba2d",
+      "sha256": "0b780d5e38b09aaa97376d0b70b4caf257ba1a365991e482fe0003e3f973d7d1",
+      "bytes": 15230
+    },
+    {
+      "commit": "8c0c17f0f5e7670d06cd7e9a0a8da3995e970375",
+      "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/verify-evidence.mjs",
+      "blob": "9c2e9888a692930e75955d048ba71e14216e2547",
+      "sha256": "63c225c06d1ed2f7dda20befb89f5540e27d5175b361688499b2ba0d6b6eee47",
+      "bytes": 4387
+    }
+  ],
+  "providerInventory": {
+    "": {
+      "kind": "directory",
+      "mode": 493
+    },
+    "DECLARED-CONTRACT.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11999,
+      "sha256": "2eea1c7c4338ad1d25d2c737e364c834efd77e79d79d827230ece9834aa47ee0"
+    },
+    "MANIFEST.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 13954,
+      "sha256": "13aef9a1d4e5222015562108b14b4cad9bb26b04841468d6091408598e4db904"
+    },
+    "PROTOCOL.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9410,
+      "sha256": "8626b19d58ee822e989f3784bd2272cd15e625df2342c814ca3c09a656796e55"
+    },
+    "VALIDATION.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2970,
+      "sha256": "75a6f852feb6ef986561200b2ceb7f6783a433eb4121abc7ea6e6f60b30078bc"
+    },
+    "cases.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 14455,
+      "sha256": "7c2da9534975aa90ddc3bdcd23e727926e53630dd0f57e0c39f7026bf329fb34"
+    },
+    "review-ca1d3342": {
+      "kind": "directory",
+      "mode": 493
+    },
+    "review-ca1d3342/.gitignore": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10,
+      "sha256": "263777208781d93e37da9e703e6f23af85591ca52f3c53029886336dc7ee9f28"
+    },
+    "review-ca1d3342/ADAPTATIONS-v2.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1503,
+      "sha256": "96507b312eae254a86a6483e37b41345b0c825381d9a140559d5f3d48aa855a0"
+    },
+    "review-ca1d3342/AUDIT.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1029,
+      "sha256": "5564d617712b8ca1895bea46317f12dacecb9482167ec55d818a1ca1d8388a2d"
+    },
+    "review-ca1d3342/BINDING.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10142,
+      "sha256": "d42b77343af58bc8e7e071fe2081e93b2358bf0e6ca9bee9f2d49e46534a0c22"
+    },
+    "review-ca1d3342/CANDIDATE-PROOF.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 44594,
+      "sha256": "7054592988667cdd60cd3d4e80cdc9030e5cea4c6e83b816e40d2bcc4c01d836"
+    },
+    "review-ca1d3342/CLEANUP.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1343,
+      "sha256": "cef99fd03e14eebdc7ad378da03e2d9df439730b232f62db163042283256ba3f"
+    },
+    "review-ca1d3342/COMMIT-AUDIT.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 14827,
+      "sha256": "7f685b19702f02fca1b0aad1cdfafc9c84f8bf2c6948a4da91253e1d882d3af7"
+    },
+    "review-ca1d3342/CONTROLS.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1470,
+      "sha256": "257895076bb2766b46cd3f0bdbd7e3cfcb3af5b2c97ff184b7a0ad94bd4a6786"
+    },
+    "review-ca1d3342/DRIVER-SEAL-v2.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6916,
+      "sha256": "7b1cfd6adc97f4bb0b981b4de3ae9949a97026e5429058bf52faefc9426b6e19"
+    },
+    "review-ca1d3342/DRIVER-SEAL-v3.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7375,
+      "sha256": "0f62c4ce68e5289f91d2743171c5d4644d82e74595f3f1c7bbe7a5e6b77fd738"
+    },
+    "review-ca1d3342/DRIVER-SEAL.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3641,
+      "sha256": "20ff2c96827a5e5f5ed722054b305a268cb4fc276cce594a114bb957394c6dd9"
+    },
+    "review-ca1d3342/FINAL-MANIFEST.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 22475,
+      "sha256": "1ba26f2a5c842dfecff73bd972b64295d87dc106da9498b062b05edaa9441e18"
+    },
+    "review-ca1d3342/FROZEN-INPUTS.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 39325,
+      "sha256": "67a5801703bf6b0fd66d19f8907e44819490690953fa5c0c580c2d8a13bd3b18"
+    },
+    "review-ca1d3342/PREPARATION-01.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 25243,
+      "sha256": "6fd28af890573055e9d8c90938db8443428abc4667d96352bbd561231eb161e1"
+    },
+    "review-ca1d3342/PREPARATION-01.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1446,
+      "sha256": "2bababf0bce5dc49f43bc51299be47a2f7ea1e108b5861ad798f9bcb53a343f9"
+    },
+    "review-ca1d3342/PREPARATION-02.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 109048,
+      "sha256": "2d178ea6c5c74cf6666161b0037003877d8c834948b7f4b8c270c21d33891c6a"
+    },
+    "review-ca1d3342/PREPARATION-02.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1903,
+      "sha256": "fa9691298bf0fd2d5af6650e532eb4bef78323ee44f9783e8c2044210ea538c9"
+    },
+    "review-ca1d3342/PREPARED-INVENTORY.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 124223,
+      "sha256": "c6af39c8daaede8a5f97282a6094be283741bfab82a5267ff02c6d671c3c6c02"
+    },
+    "review-ca1d3342/PROTOCOL.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5331,
+      "sha256": "a3a2f3ed75e26ba337684ee66ec4ad40bf9e76b05ebd92c6e054e147cb5899ee"
+    },
+    "review-ca1d3342/REPORT.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8574,
+      "sha256": "c8405b63eea24148f53abeb421a3e2671ef21558e0ab2b2c6317eef521aa4037"
+    },
+    "review-ca1d3342/REPRO.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2319,
+      "sha256": "6933c342b0c9eeffb763297670e7b3b00c1138cb7bf33a000bbb92cf058a40b7"
+    },
+    "review-ca1d3342/RESULT-v3.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 153069,
+      "sha256": "3908b529a31db295c55efa7d641d089a4b28219d1d3bf30f85bad2593bd51182"
+    },
+    "review-ca1d3342/RESULT.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 110549,
+      "sha256": "21093b50fb1ae926b729db899808942aa245f90e89fa8ebf91f1461661284f44"
+    },
+    "review-ca1d3342/RESUME-INVENTORY.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 199237,
+      "sha256": "9985ed2f0a503b4eb3dfd6d956e24cc6d59de31ac26ef72bcc6873f0ec5b8aea"
+    },
+    "review-ca1d3342/SCRATCH-INVENTORY.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 497759,
+      "sha256": "336a5360636f95a9245e592afa92cd1e987b58c8f2eb753c9d87c81397740540"
+    },
+    "review-ca1d3342/SEAL-CONTROL.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11463,
+      "sha256": "f0d1a355658d2c395bd94acecb3dbe4a3b05f436a53233847bd625cd36b12a00"
+    },
+    "review-ca1d3342/SOURCE-REVIEW.md": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4811,
+      "sha256": "bb6803f722c351bef5b2db4992fcb315f97fef60cd4b9fa14d3ef11d24a34fd7"
+    },
+    "review-ca1d3342/TOOL-LOGS.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1913,
+      "sha256": "091ab4a6c76befc7844d9a749cfb66b19f65ecd4279167eb68a034b749dc6663"
+    },
+    "review-ca1d3342/TOOLS.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 433063,
+      "sha256": "9ece2210a15f54a7f66ab9e8d7bbba14d69c91f565e941735d5e935a120eca4a"
+    },
+    "review-ca1d3342/audit.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 13788,
+      "sha256": "6e93d36b326a426e594643cb9c95636ec8d5ecc34f8f9d58703f43d81224759e"
+    },
+    "review-ca1d3342/bind-proof.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1557,
+      "sha256": "d5d0a12d2d29839a3bd28ab90fea525b0068d3591856fa3f4fbf107ab58507b1"
+    },
+    "review-ca1d3342/boot.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4116,
+      "sha256": "47f3dfc3bd64018c242537817199bafb2a0d52339facc4996bfe40354fcf1271"
+    },
+    "review-ca1d3342/candidate.tgz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 742929,
+      "sha256": "2f6d9f142165802f4e8a033c317f5c4f034f535508d3a434688e547b654c85b0"
+    },
+    "review-ca1d3342/cleanup.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2704,
+      "sha256": "cb6ab1ee1e287f4fd7fc8ab139b15341d24caf556b7e104de176de687de1e163"
+    },
+    "review-ca1d3342/common.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5629,
+      "sha256": "686a322d8c40fa925290dd443bcac1bff474d73e4fc9459b53ff3fab23fa07fd"
+    },
+    "review-ca1d3342/composition.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1041520,
+      "sha256": "2968a36621be269f49d53f1d13222440987d0472ae3b6882086722254127e42e"
+    },
+    "review-ca1d3342/prepare.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6005,
+      "sha256": "e88c90fc6659a89999b8b4f6b16aad038ef633cc3907b28fdd6fe0bf93bb4d18"
+    },
+    "review-ca1d3342/raw": {
+      "kind": "directory",
+      "mode": 493
+    },
+    "review-ca1d3342/raw/audit-01.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7223,
+      "sha256": "1d4e0802369b241c9239a838fc9eb03f030c84506bf657dde24ec8f22a61c454"
+    },
+    "review-ca1d3342/raw/run-01": {
+      "kind": "directory",
+      "mode": 493
+    },
+    "review-ca1d3342/raw/run-01/build.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-01/build.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-01/children.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3361,
+      "sha256": "790487f6779b8bb5ef44012a0862d0ff8674980c8b208cc72db2d6269d4929bf"
+    },
+    "review-ca1d3342/raw/run-01/emitted.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 38561,
+      "sha256": "9edfafb2e4d106819abd972aa4acb6b6f05d734e47bcba177711c9b0f0714cc9"
+    },
+    "review-ca1d3342/raw/run-01/pack.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-01/pack.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 95273,
+      "sha256": "3d56a57ec6ef791a91eb55748ae10ae298a9970b6b3092dfb012cb76e0f24a4c"
+    },
+    "review-ca1d3342/raw/run-01/source-types.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1131,
+      "sha256": "64cbcdd536fa4f3af316690989ecb6264f33c1e71f49865b789cde5edf65252b"
+    },
+    "review-ca1d3342/raw/run-01/source-types.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-01/source.config.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 280064,
+      "sha256": "c208c264e50a73befe6ada2cc8ddd32ec5978ca04e7d38b4a10134d3bef51643"
+    },
+    "review-ca1d3342/raw/run-01/source.load.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 17430,
+      "sha256": "f20aa8d57d1fac5953a57cef74d0f7fc2d6d51d1baf4bdd275b7eb6876658853"
+    },
+    "review-ca1d3342/raw/run-01/source.result.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 23654,
+      "sha256": "56467de8dee81f7c3e49ba68cefc10d20727a70d5ada2feab2a5c645f09d6a08"
+    },
+    "review-ca1d3342/raw/run-01/source.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-01/source.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6790,
+      "sha256": "475ba4a572da971afc6134a5435fffebb76161399b51e9f740c1eb2f9f73dc96"
+    },
+    "review-ca1d3342/raw/run-02": {
+      "kind": "directory",
+      "mode": 493
+    },
+    "review-ca1d3342/raw/run-02/ADMISSION.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 807,
+      "sha256": "0220c238dcdc2e26a80779f56e297a8f73113e8665cf6a754d755757ac6da5f6"
+    },
+    "review-ca1d3342/raw/run-03": {
+      "kind": "directory",
+      "mode": 493
+    },
+    "review-ca1d3342/raw/run-03/children.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 13262,
+      "sha256": "601430155345ab129ce92a986e71887a59f35c56903e95f94d4a16488716a878"
+    },
+    "review-ca1d3342/raw/run-03/install.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/install.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 26,
+      "sha256": "67bc00458870e5165e5f2ac8e32030531658c1425f03d764f5dc9098a3e55b40"
+    },
+    "review-ca1d3342/raw/run-03/installed-types.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/installed-types.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 96,
+      "sha256": "84bf9e9cf404bd807490ecc62f66cd1c98cfdb2574237c0669a68dd300121cd2"
+    },
+    "review-ca1d3342/raw/run-03/installed.config.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 222240,
+      "sha256": "d5282b5770f27990f105627d736e6f08aea268c23af602ec2165668c0f637bd3"
+    },
+    "review-ca1d3342/raw/run-03/installed.load.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10655,
+      "sha256": "7109198fc7717f908393b8309ba2c26f2af446eba3eb958fdee95689a0334b61"
+    },
+    "review-ca1d3342/raw/run-03/installed.result.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24005,
+      "sha256": "7b09389d4009d9e20181466ef2eb00f8aadb5f6e7106e04e9c4eaf83cb0f8796"
+    },
+    "review-ca1d3342/raw/run-03/installed.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/installed.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6790,
+      "sha256": "475ba4a572da971afc6134a5435fffebb76161399b51e9f740c1eb2f9f73dc96"
+    },
+    "review-ca1d3342/raw/run-03/installed.types.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12301,
+      "sha256": "fecdaa65fdcd0b930117a5b260251706e91762f12b8a4a517cd1cbd8ff05a2f0"
+    },
+    "review-ca1d3342/raw/run-03/load-missing-package-entry.config.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 229179,
+      "sha256": "1ea096b54be782c91af7c91452e63f793d58a9a9034535059cc347862bd141f9"
+    },
+    "review-ca1d3342/raw/run-03/load-missing-package-entry.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 301,
+      "sha256": "c47015eea1e49a2bba0848a812e5f1b54db40196305f59f16115cfda61f1e048"
+    },
+    "review-ca1d3342/raw/run-03/load-missing-package-entry.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/load-missing-package-entry.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/load-outside-source.config.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 223325,
+      "sha256": "cdd14b605ed23cf6ce7644b896a68ccfa39497320afbf7a56a009640c10f1153"
+    },
+    "review-ca1d3342/raw/run-03/load-outside-source.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 276,
+      "sha256": "fbd5d5331ede755fa9398b2035244ab66d30f17757f6700903f5b5f5748b81fd"
+    },
+    "review-ca1d3342/raw/run-03/load-outside-source.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/load-outside-source.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/load-tampered-packed-provider.config.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 231750,
+      "sha256": "223346c6064b455d1e9a3478742e6d2535da8f3cdc0ef390f2e19d43977cae9a"
+    },
+    "review-ca1d3342/raw/run-03/load-tampered-packed-provider.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10663,
+      "sha256": "f62fc99fb09e8935f3105b8ce468ab6731ca54689a722a4e2f4d0ab6675d26ca"
+    },
+    "review-ca1d3342/raw/run-03/load-tampered-packed-provider.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/load-tampered-packed-provider.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/moved-types.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/moved-types.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 92,
+      "sha256": "456fa93b1e2f3c1f7d37df1a1b7fe09ee462153cf05b32046990a0ac6e19fabe"
+    },
+    "review-ca1d3342/raw/run-03/moved.config.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 228188,
+      "sha256": "43496310dfb79671937174c28047d4d052b48454286122f8a8a5043e3d7a8b8d"
+    },
+    "review-ca1d3342/raw/run-03/moved.load.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10661,
+      "sha256": "82b34857ab84b0a5ef86efdc45d21ee43a6d71b00b81e114c823aca6ac252034"
+    },
+    "review-ca1d3342/raw/run-03/moved.result.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24129,
+      "sha256": "92fdb211e63549c34af4f8b992079aa59c5b721c04ae40513bb95d663a84ba9a"
+    },
+    "review-ca1d3342/raw/run-03/moved.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/moved.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6790,
+      "sha256": "475ba4a572da971afc6134a5435fffebb76161399b51e9f740c1eb2f9f73dc96"
+    },
+    "review-ca1d3342/raw/run-03/moved.types.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12319,
+      "sha256": "be2cdcb0cdbc364253439cc21fa9da591f72aefae3e0d5b0a31c151055362e55"
+    },
+    "review-ca1d3342/raw/run-03/mutant-admission.config.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 61739,
+      "sha256": "78787831ea7a797fda8c72ae3e3bb2c0bfe816047ccfff41997deb3465250d40"
+    },
+    "review-ca1d3342/raw/run-03/mutant-admission.load.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 17432,
+      "sha256": "772ee812f8b787043235d40c0ad7936db5a2945d3b764c91fad384360a85aa89"
+    },
+    "review-ca1d3342/raw/run-03/mutant-admission.result.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1052,
+      "sha256": "13d8d6f6402084f87af33bfd46696460feb11aa7335efb1863dffa93a88106f6"
+    },
+    "review-ca1d3342/raw/run-03/mutant-admission.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/mutant-admission.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 69,
+      "sha256": "6af25e732f92207f15443df9df5ec1baaec6dbc13b6871378ad1763887558f9d"
+    },
+    "review-ca1d3342/raw/run-03/mutant-final-cancel.config.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 62537,
+      "sha256": "de86db31deb0f81f381e9f3c51d01bf274c0e0d4ef961cde4be9d8bd543f2516"
+    },
+    "review-ca1d3342/raw/run-03/mutant-final-cancel.load.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 17437,
+      "sha256": "428967b7a9f53519fe7ef7f087e760eca0502e65bbc12aeb21bac2ea8ec3fe49"
+    },
+    "review-ca1d3342/raw/run-03/mutant-final-cancel.result.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1233,
+      "sha256": "113b770927aea9749546a30ab9567dcb695f35d0dddab2d27af7b435b56e52e2"
+    },
+    "review-ca1d3342/raw/run-03/mutant-final-cancel.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/mutant-final-cancel.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 69,
+      "sha256": "2125c2dcaf219c02af33385a467eb411fcd6bfcca0c5951f1fa6a7ed222e6b16"
+    },
+    "review-ca1d3342/raw/run-03/mutant-output-bound.config.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 62530,
+      "sha256": "4c6771865d76d6931cfebace167528a5c91c841e40d6baa5c80e340ff08ff695"
+    },
+    "review-ca1d3342/raw/run-03/mutant-output-bound.load.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 17436,
+      "sha256": "4070cd02dfb59c39c8efe6c2c45dc08219c3f351dbe8a25030ca9bd01d8f28ff"
+    },
+    "review-ca1d3342/raw/run-03/mutant-output-bound.result.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1293,
+      "sha256": "8a2508fcb0014800ddc2954926ba27156f9dac02c38cb4200d460daf8c046446"
+    },
+    "review-ca1d3342/raw/run-03/mutant-output-bound.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/mutant-output-bound.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 62,
+      "sha256": "3966c2c05a6baeb428ad165b249d36ac9119196d739abb3ab4a74f7baa431d12"
+    },
+    "review-ca1d3342/raw/run-03/mutant-path-bound.config.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 62000,
+      "sha256": "52419d8274c1be82c4ddb4f8fd44e0c6ec4638233d3b62f2bf27bccf6d228cc4"
+    },
+    "review-ca1d3342/raw/run-03/mutant-path-bound.load.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 17432,
+      "sha256": "cd38746016422ec58b5e717260c28725d4569f0b0156ea69c009e7ff86729862"
+    },
+    "review-ca1d3342/raw/run-03/mutant-path-bound.result.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1987,
+      "sha256": "e79ba7956fe48afbe959fcbce6a2b7d7721a98e9cbd401288db13b0fefedb28d"
+    },
+    "review-ca1d3342/raw/run-03/mutant-path-bound.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/mutant-path-bound.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 64,
+      "sha256": "ef7cf7ebe0e82815de367eddcbb7ef58ffd7661f86e5ca874d361cfa867e6885"
+    },
+    "review-ca1d3342/raw/run-03/mutant-response-identity.config.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 63867,
+      "sha256": "5829d7a279e25af20117c3859371a2324f258bab6afff2e7ac95442840aca203"
+    },
+    "review-ca1d3342/raw/run-03/mutant-response-identity.load.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 17468,
+      "sha256": "dbd6bc0baed44ad2e19e89c429de5e6c9ebc5d97012d4c38c857dd52e79803f0"
+    },
+    "review-ca1d3342/raw/run-03/mutant-response-identity.result.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1297,
+      "sha256": "73d799920e1c25ac87997e34d4cf26eda735eca77d5c671cfc6685f2450fd6f2"
+    },
+    "review-ca1d3342/raw/run-03/mutant-response-identity.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/mutant-response-identity.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 69,
+      "sha256": "f30c6a4838984481b5a732118820ac6bdb3036b0d7eb79822819755f3a6842ff"
+    },
+    "review-ca1d3342/raw/run-03/package-inventory.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 38732,
+      "sha256": "147190beba5c87a3bedaafe8641d05d8b4287653b30b2cbd0b385e5bc3aced96"
+    },
+    "review-ca1d3342/raw/run-03/source-types.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/source-types.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 93,
+      "sha256": "44c8df4da264cac8ba67f61d84e1a026e4286bb8c471f6b30ba663c554a86ed9"
+    },
+    "review-ca1d3342/raw/run-03/source.config.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 280064,
+      "sha256": "c208c264e50a73befe6ada2cc8ddd32ec5978ca04e7d38b4a10134d3bef51643"
+    },
+    "review-ca1d3342/raw/run-03/source.load.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 17430,
+      "sha256": "f20aa8d57d1fac5953a57cef74d0f7fc2d6d51d1baf4bdd275b7eb6876658853"
+    },
+    "review-ca1d3342/raw/run-03/source.result.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 23654,
+      "sha256": "abc35b108ab0ef21716e7997b6f2bd7782732aa8d5b98fc2964b4ea8fa142d7f"
+    },
+    "review-ca1d3342/raw/run-03/source.stderr.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "review-ca1d3342/raw/run-03/source.stdout.txt": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6790,
+      "sha256": "475ba4a572da971afc6134a5435fffebb76161399b51e9f740c1eb2f9f73dc96"
+    },
+    "review-ca1d3342/raw/run-03/source.types.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 17791,
+      "sha256": "e380a3ed04358bba1acf8d6e6117899df4c16dfd1b16ef7fc9d47f150b319e9d"
+    },
+    "review-ca1d3342/recreate.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2135,
+      "sha256": "f7531920dd0b62b42a81565ecf1ddac0a2030b4bb6f67dd2ca28e03e058646f4"
+    },
+    "review-ca1d3342/replay.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12272,
+      "sha256": "9efcd44cfdad4d162822517fbed6e68a7fb4704fad86304c752034ef848dcb2c"
+    },
+    "review-ca1d3342/run-v2.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12152,
+      "sha256": "d0faf4fc7c274d8f34808d1471c8adfeb0a097305bcd34e43349fa1334cd5d26"
+    },
+    "review-ca1d3342/run-v3.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12184,
+      "sha256": "18679346a2870a09f2938c2b053bd4151d685a3cd6060fd76b75096d42556f49"
+    },
+    "review-ca1d3342/run.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11798,
+      "sha256": "893451f432472c4ee8a771ee0889964b0c3218103a16851386dc9e383674a5fa"
+    },
+    "review-ca1d3342/runner.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10205,
+      "sha256": "9e525d1da817779820b4998d73b47a9686a7dec6ef206a4c3785f3e31ee9e56b"
+    },
+    "review-ca1d3342/seal-v2.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2450,
+      "sha256": "2e1b4685b5a030f636ddf06e3964667bed09c9f35266cd1d0de4effe34e300a5"
+    },
+    "review-ca1d3342/seal.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2415,
+      "sha256": "d8ada3fac82f3700add4354d927c5a24015f3bea07392ccf5dd09158bf689f7e"
+    },
+    "review-ca1d3342/types-v2.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3823,
+      "sha256": "1f2899ab743dbc4de853f2dd83d645b8484b562931b52330880bc26a47499634"
+    },
+    "review-ca1d3342/types.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3797,
+      "sha256": "d9c6c146a36b75c7ddbe81e1c12dab6002ec7514f8cb57f4c67ac1471a83986d"
+    },
+    "review-ca1d3342/verify-final.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1077,
+      "sha256": "a13c1e6282a23822089fab2135fa972cfa3b86cc4d9c161699403dcdb5c1afc9"
+    },
+    "review-ca1d3342/verify.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2689,
+      "sha256": "a53e70d07fe62e82afd6aa6e0c034757c50f63c3f632c47220d1ce1a29cc7b8e"
+    },
+    "typed-inputs.ts": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2352,
+      "sha256": "ed7561849eb048fafabba46fb80201fd006be5fb62a442f307e69c1812700614"
+    },
+    "validate.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 18875,
+      "sha256": "ebb731419f5c39287f7318c0f11745f8965ada894bf2ffdad2ba13056c38201e"
+    }
+  },
+  "foreignStaging": []
+}

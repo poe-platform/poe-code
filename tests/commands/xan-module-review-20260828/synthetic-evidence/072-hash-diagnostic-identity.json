@@ -1,0 +1,13 @@
+{
+  "id": "hash-diagnostic-identity",
+  "families": [
+    "F01"
+  ],
+  "observation": {
+    "returned": {
+      "code": "INPUT_IDENTITY",
+      "exact": true
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

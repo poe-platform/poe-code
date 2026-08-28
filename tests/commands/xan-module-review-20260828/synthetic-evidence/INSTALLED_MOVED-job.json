@@ -1,0 +1,41 @@
+{
+  "authorization": "SEALED_SYNTHETIC_QUALIFICATION",
+  "layout": "INSTALLED_MOVED",
+  "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/synthetic-evidence/physically-moved",
+  "entries": [
+    {
+      "path": "synthetic-module.mjs",
+      "bytes": 1386,
+      "sha256": "6cb1854c2f5a7cbeba746e39cafd2956d58f9b8e7b38e123521a31b3bcd17bc9",
+      "mode": "644"
+    }
+  ],
+  "entry": "synthetic-module.mjs",
+  "factoryExport": "command",
+  "apiAuthority": "SEALED_SYNTHETIC_ONLY",
+  "builtins": [],
+  "directOnly": true,
+  "outputBytes": 65536,
+  "rows": [
+    {
+      "id": "synthetic-echo-only",
+      "argv": [
+        "literal",
+        "$(no-shell)"
+      ],
+      "stdin": {
+        "utf8": "synthetic\n"
+      },
+      "expected": {
+        "status": 0,
+        "stdout": {
+          "utf8": "synthetic\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "files": {}
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "traversal-rejection",
+  "families": [
+    "F01"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "PATH",
+      "name": "Error",
+      "message": "PATH: ../foreign"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

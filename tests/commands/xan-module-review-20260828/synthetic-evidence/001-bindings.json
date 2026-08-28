@@ -1,0 +1,19 @@
+{
+  "id": "bindings",
+  "families": [
+    "F01",
+    "F05",
+    "F12"
+  ],
+  "observation": {
+    "returned": {
+      "cases": 88,
+      "selectors": 36,
+      "ratifiedCases": 14,
+      "families": 12,
+      "caps": 18,
+      "obligations": 161
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "mode-integrity",
+  "families": [
+    "F01"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "INPUT_IDENTITY",
+      "name": "Error",
+      "message": "INPUT_IDENTITY: known: expected sha256=7117fff2d0fd294462b3c802b7cb8753579f23f3946b99cf55f38e873f013f10 bytes=5 mode=644; actual sha256=7117fff2d0fd294462b3c802b7cb8753579f23f3946b99cf55f38e873f013f10 bytes=5 mode=755"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

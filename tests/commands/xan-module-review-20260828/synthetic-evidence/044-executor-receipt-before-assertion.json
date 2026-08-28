@@ -1,0 +1,14 @@
+{
+  "id": "executor-receipt-before-assertion",
+  "families": [
+    "F01",
+    "F07"
+  ],
+  "observation": {
+    "returned": {
+      "receipted": true,
+      "returned": false
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

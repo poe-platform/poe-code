@@ -1,0 +1,15 @@
+{
+  "id": "poison-metadata",
+  "families": [
+    "F06",
+    "F10"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "POISON_FS",
+      "name": "Error",
+      "message": "POISON_FS"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

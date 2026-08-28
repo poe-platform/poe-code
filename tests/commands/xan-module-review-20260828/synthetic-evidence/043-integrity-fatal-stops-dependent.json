@@ -1,0 +1,14 @@
+{
+  "id": "integrity-fatal-stops-dependent",
+  "families": [
+    "F01"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "INTEGRITY_FATAL",
+      "name": "Error",
+      "message": "INTEGRITY_FATAL"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

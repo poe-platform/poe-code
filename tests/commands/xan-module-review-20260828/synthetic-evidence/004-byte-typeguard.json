@@ -1,0 +1,14 @@
+{
+  "id": "byte-typeguard",
+  "families": [
+    "F12"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "BYTE_DATUM",
+      "name": "Error",
+      "message": "BYTE_DATUM"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

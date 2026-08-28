@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "classification": "SEPARATE_POST_QUALIFICATION_EVIDENCE_SEAL_NO_PRODUCT_ACCEPTANCE",
+  "createdUTC": "2026-08-28T04:57:32.604Z",
+  "recipeCommit": "9c8855b806bd963ccc1f1209e454ffc582b16e1b",
+  "recipeManifest": {
+    "bytes": 6523,
+    "sha256": "ff49c0a535115d5f3bddbcf4e6737020596a22dfc9e2883a6e3a81bca6bbb53a",
+    "mode": "644"
+  },
+  "files": [
+    {
+      "path": "HANDOFF.md",
+      "bytes": 3789,
+      "sha256": "5fe2cb15e1a994ed49f1b1154ac88a9542d383cb12d4593bb45f29021e476b3c",
+      "mode": "644"
+    },
+    {
+      "path": "bundle-evidence.mjs",
+      "bytes": 5001,
+      "sha256": "59214bd94d9321cbeacdf05fe95aa49f4ed04b9314dab777bdbff3ed5297916f",
+      "mode": "644"
+    },
+    {
+      "path": "BUNDLE-PRE-RUN.json",
+      "bytes": 646,
+      "sha256": "da8313f25cdd2f066a13a2d7f9e7f82d5447770607399d038fcffaa8955bf17f",
+      "mode": "644"
+    },
+    {
+      "path": "BUNDLE-RECEIPT.json",
+      "bytes": 384,
+      "sha256": "4703e02251abac6c5d5413052c2f0bcfce6909049b3a3ebad7342ef131cd3648",
+      "mode": "644"
+    },
+    {
+      "path": "SYNTHETIC-EVIDENCE.jsonl.gz",
+      "bytes": 56666,
+      "sha256": "2ab52da3efa910dd0fbf53dd8b32671b43b622c85c9ee3edbdf9a7ac62724334",
+      "mode": "644"
+    },
+    {
+      "path": "synthetic-evidence/EVIDENCE-MANIFEST.json",
+      "bytes": 33785,
+      "sha256": "42b1c369bed32e39c3d1d49678618ae21e7c027686d0ad2d9e7add82488d60bd",
+      "mode": "644"
+    },
+    {
+      "path": "synthetic-evidence/PRE-RUN.json",
+      "bytes": 9367,
+      "sha256": "61b7747fa9526049e9040daff0249edf4664f32f71cd782ff2db622a7d1fbc2a",
+      "mode": "644"
+    },
+    {
+      "path": "synthetic-evidence/RESULT.json",
+      "bytes": 11286,
+      "sha256": "3ef5f7ed2e54099506b3616526c80c22816e01c1cd3f4489aaa80c915548cedd",
+      "mode": "644"
+    }
+  ],
+  "rawManifest": {
+    "bytes": 33785,
+    "sha256": "42b1c369bed32e39c3d1d49678618ae21e7c027686d0ad2d9e7add82488d60bd",
+    "mode": "644"
+  },
+  "bundle": {
+    "bytes": 56666,
+    "sha256": "2ab52da3efa910dd0fbf53dd8b32671b43b622c85c9ee3edbdf9a7ac62724334",
+    "mode": "644"
+  },
+  "synthetic": {
+    "invocations": 1,
+    "planned": 74,
+    "qualified": 74,
+    "failed": 0,
+    "unrun": 0,
+    "children": 21,
+    "reaped": 21,
+    "expectedTimeouts": 2,
+    "expectedOverflows": 2,
+    "expectedOrdinaryExit7": 2,
+    "helperFamiliesPartiallyCovered": 12,
+    "genericCapCounters": 18
+  },
+  "execution": {
+    "xanImplementationInspection": 0,
+    "product": 0,
+    "nativeOracle": 0,
+    "compiler": 0
+  },
+  "checks": {
+    "recipe": "PASS read-only",
+    "rawEvidence": "PASS append-aware including directories on captured tree",
+    "compressedEvidence": "PASS streamed, hashed, no extraction",
+    "qualifiedAgain": false
+  },
+  "archiveCaveat": "Git does not store the intentional empty directory; the compressed evidence transport does. Fresh checkout read-only bundle verification is available without reconstruction.",
+  "selfBinding": "Enclosing evidence Git commit seals this manifest. Full commit ID returned in final response."
+}

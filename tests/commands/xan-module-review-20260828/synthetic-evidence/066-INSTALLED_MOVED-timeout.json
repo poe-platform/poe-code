@@ -1,0 +1,19 @@
+{
+  "id": "INSTALLED_MOVED-timeout",
+  "families": [
+    "F01",
+    "F08",
+    "F12"
+  ],
+  "observation": {
+    "returned": {
+      "reaped": true,
+      "timedOut": true,
+      "outputExceeded": false,
+      "code": null,
+      "signal": "SIGTERM",
+      "stdout": "VALID_CONTROL_FIRST\n"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

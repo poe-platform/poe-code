@@ -1,0 +1,17 @@
+{
+  "id": "cap-maxSelectorBytes",
+  "families": [
+    "F11"
+  ],
+  "observation": {
+    "returned": {
+      "code": "QUOTA",
+      "unchanged": true,
+      "defaultValue": 16384,
+      "hardCeiling": 262144,
+      "kind": "GENERIC_COUNTER_ONLY_NOT_PRODUCT_TARGET",
+      "depthThreeGenerated": false
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

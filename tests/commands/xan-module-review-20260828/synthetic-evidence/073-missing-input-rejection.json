@@ -1,0 +1,14 @@
+{
+  "id": "missing-input-rejection",
+  "families": [
+    "F01"
+  ],
+  "observation": {
+    "thrown": {
+      "code": "ENOENT",
+      "name": "Error",
+      "message": "ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/synthetic-evidence/source-layout/missing.mjs'"
+    }
+  },
+  "classification": "SYNTHETIC_CONTROL_OBSERVATION_BEFORE_ASSERTION"
+}

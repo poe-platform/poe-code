@@ -21,9 +21,11 @@ import { createHtmlToMarkdownCommands, type HtmlToMarkdownCommandsOptions } from
 import { createDuCommands, type DuCommandsOptions } from "../commands/du/index.js";
 import { createExprCommands, type ExprCommandsOptions } from "../commands/expr/index.js";
 import { createWhichCommands, type WhichCommandsOptions } from "../commands/which/index.js";
+import { createTimeoutCommands, type TimeoutCommandsOptions } from "../commands/timeout/index.js";
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 
 export interface AgentCommandsOptions {
+  readonly timeout?: Omit<TimeoutCommandsOptions, "replace">;
   readonly which?: Omit<WhichCommandsOptions, "replace">;
   readonly expr?: Omit<ExprCommandsOptions, "replace" | "regex">;
   readonly du?: Omit<DuCommandsOptions, "replace">;
@@ -82,6 +84,7 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
     ...createDuCommands({ ...options.du }),
     ...createExprCommands({ ...(exprLimits === undefined ? {} : { limits: exprLimits }), ...(options.regex === undefined ? {} : { regex: options.regex }) }),
     ...createWhichCommands(whichLimits === undefined ? {} : { limits: whichLimits }),
+    ...createTimeoutCommands({ ...options.timeout, replace: options.replace ?? false }),
   );
   return new CommandRegistry(commands).list();
 }

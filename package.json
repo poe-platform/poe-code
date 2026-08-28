@@ -82,6 +82,10 @@
       "types": "./dist/commands/expr/index.d.ts",
       "import": "./dist/commands/expr/index.js"
     },
+    "./commands/timeout": {
+      "types": "./dist/commands/timeout/index.d.ts",
+      "import": "./dist/commands/timeout/index.js"
+    },
     "./commands/which": {
       "types": "./dist/commands/which/index.d.ts",
       "import": "./dist/commands/which/index.js"

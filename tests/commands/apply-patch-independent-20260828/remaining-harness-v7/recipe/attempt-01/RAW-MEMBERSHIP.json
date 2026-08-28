@@ -1,0 +1,72 @@
+{
+  "classification": "actual pipe files and in-process receipts; no transcription",
+  "files": {
+    "01-D00.receipt.json": {
+      "bytes": 1128,
+      "mode": 384,
+      "sha256": "f24394ab305f5dc3d86ada7c68d8af936968671956f6a843078bc6c60a284cf5"
+    },
+    "01-D00.stderr.raw": {
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "01-D00.stdout.raw": {
+      "bytes": 118,
+      "mode": 384,
+      "sha256": "8f645a698bbd5490b21b3031014a0057e69137b8cb68c5002e1c607b27addb42"
+    },
+    "02-START-POSITIVE.receipt.json": {
+      "bytes": 2793,
+      "mode": 384,
+      "sha256": "697121c4c7c31572cb069ced97714f509028b4f66b4791fc7b3b9e0d4087d9aa"
+    },
+    "02-START-POSITIVE.stderr.raw": {
+      "bytes": 648,
+      "mode": 384,
+      "sha256": "561a32ea914a67f7ab4d4429d3c30ef8b9f9ae7991d4986b6f209c1c00bdaf10"
+    },
+    "02-START-POSITIVE.stdout.raw": {
+      "bytes": 405,
+      "mode": 384,
+      "sha256": "ce1fb89fd3fab96cbc991e65665fffd46a7cc0547afab8fb99bcdd13bdcc0bfb"
+    },
+    "MAIN-PRESEAL.json": {
+      "bytes": 9529,
+      "mode": 384,
+      "sha256": "be69257513302cc8df4c63bdb30f278f01acf2c80db5b9f86da1ea3601d8aa27"
+    },
+    "OWNER-ENV-DISCOVERY.json": {
+      "bytes": 147,
+      "mode": 384,
+      "sha256": "3e55d7b94a9c71a0fc05ac5f31f45f2a427f413a7a3944f7b8669983e0c5b813"
+    },
+    "OWNER-EVENTS.jsonl": {
+      "bytes": 3327,
+      "mode": 384,
+      "sha256": "79f0de06781f6e045a8fbdb732ac72d261b1ebc97439077de2382449c151fd22"
+    },
+    "WORK-INVENTORY.json": {
+      "bytes": 3375,
+      "mode": 384,
+      "sha256": "78806be2d623f0266c65c520a805ced76fe94671a8888186296c94a9a1002983"
+    }
+  },
+  "exactOutputNamesBeforeThisFile": [
+    "01-D00.receipt.json",
+    "01-D00.stderr.raw",
+    "01-D00.stdout.raw",
+    "02-START-POSITIVE.receipt.json",
+    "02-START-POSITIVE.stderr.raw",
+    "02-START-POSITIVE.stdout.raw",
+    "MAIN-PRESEAL.json",
+    "OWNER-ENV-DISCOVERY.json",
+    "OWNER-EVENTS.jsonl",
+    "WORK-INVENTORY.json"
+  ],
+  "excludes": [
+    "RAW-MEMBERSHIP.json",
+    "OUTCOME.json"
+  ],
+  "scratchPreserved": false
+}

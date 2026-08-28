@@ -1,0 +1,44 @@
+{
+  "schema": "v7-exact-qualification-preflight",
+  "at": "2026-08-28T21:42:41.218Z",
+  "preparationStartedAt": "2026-08-28T21:40:06.054Z",
+  "pid": 46933,
+  "ppid": 79787,
+  "preparationNodeStarts": 4,
+  "directAdministrativeGitStarts": 1,
+  "sourceCommit": "90311c10a0a95f8de7c889b2bd8395d4e95a1d37",
+  "fullsealCommit": "24d58578cdbdd0cb9a4d8f03ff145bcc55801c4b",
+  "fullsealSha256": "5522e85e1cb99c8da5e36c2113df2953ad89ba4b3e843dcd5d8c7989aa602ad6",
+  "discoveryPresealSha256": "f83d5102f3ac3c8d3d2a3645cb81b4c9291ccab5cf8a0da7c7ba4363d0fa5530",
+  "launchSha256": "f54f4c8c98a97761434a3f89ee277f8967482e84d4b812ed670fc4820699f41c",
+  "verifiedFullFiles": 21,
+  "verifiedRecipeFiles": 7,
+  "verifiedSourceBindings": 50,
+  "toolBindings": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "binding": {
+        "bytes": 112989184,
+        "mode": 493,
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+      }
+    },
+    {
+      "path": "/Library/Developer/CommandLineTools/usr/bin/git",
+      "binding": {
+        "bytes": 7604272,
+        "mode": 493,
+        "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae"
+      }
+    }
+  ],
+  "requestedRunRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/attempt-01",
+  "canonicalExistingParent": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe",
+  "ownedStatusBytes": 0,
+  "operatorEvidence": {
+    "classification": "tool-rendered operator127 transcription; NOT raw qualification capture",
+    "bytes": 10190,
+    "sha256": "d768bea239c498cd2756052d2b46e48a0d4bb5092c95fcf2a42db8342d9b45ec"
+  },
+  "qualificationLaunches": 0
+}

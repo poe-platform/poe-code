@@ -1,0 +1,166 @@
+TAP version 13
+# Subtest: factories are frozen and replace-only
+ok 1 - factories are frozen and replace-only
+  ---
+  duration_ms: 0.834417
+  type: 'test'
+  ...
+# Subtest: exact information forms avoid input
+ok 2 - exact information forms avoid input
+  ---
+  duration_ms: 1.669875
+  type: 'test'
+  ...
+# Subtest: CLI admission and refusals use finite diagnostics
+ok 3 - CLI admission and refusals use finite diagnostics
+  ---
+  duration_ms: 1.109542
+  type: 'test'
+  ...
+# Subtest: block and flow collections compose and encode
+ok 4 - block and flow collections compose and encode
+  ---
+  duration_ms: 9.53025
+  type: 'test'
+  ...
+# Subtest: quoted and block scalar families
+ok 5 - quoted and block scalar families
+  ---
+  duration_ms: 4.792292
+  type: 'test'
+  ...
+# Subtest: directives and documents remain independent
+ok 6 - directives and documents remain independent
+  ---
+  duration_ms: 1.521916
+  type: 'test'
+  ...
+# Subtest: numeric normalization and tag family decisions
+ok 7 - numeric normalization and tag family decisions
+  ---
+  duration_ms: 4.608708
+  type: 'test'
+  ...
+# Subtest: decoded keys and merge-like presentation rules
+ok 8 - decoded keys and merge-like presentation rules
+  ---
+  duration_ms: 1.731791
+  type: 'test'
+  ...
+# Subtest: anchor reuse uses active records and deep copies
+ok 9 - anchor reuse uses active records and deep copies
+  ---
+  duration_ms: 4.75325
+  type: 'test'
+  ...
+# Subtest: query compiles once and each document yields independently
+ok 10 - query compiles once and each document yields independently
+  ---
+  duration_ms: 1.718042
+  type: 'test'
+  ...
+# Subtest: production-specific implicit key grammar accepts only the flow witness
+ok 11 - production-specific implicit key grammar accepts only the flow witness
+  ---
+  duration_ms: 1.088125
+  type: 'test'
+  ...
+# Subtest: quoted nb-json breadth and escape scalar validity stay distinct
+ok 12 - quoted nb-json breadth and escape scalar validity stay distinct
+  ---
+  duration_ms: 2.616292
+  type: 'test'
+  ...
+# Subtest: document-prefix BOM, markers, and exact NUL encoding
+ok 13 - document-prefix BOM, markers, and exact NUL encoding
+  ---
+  duration_ms: 0.872958
+  type: 'test'
+  ...
+# Subtest: Core numeric spellings retain the restricted signed-base rule
+ok 14 - Core numeric spellings retain the restricted signed-base rule
+  ---
+  duration_ms: 2.734458
+  type: 'test'
+  ...
+# Subtest: explicit tag allow-list and kind checks
+ok 15 - explicit tag allow-list and kind checks
+  ---
+  duration_ms: 2.146125
+  type: 'test'
+  ...
+# Subtest: anchor copies retain earlier values and namespaces reset per document
+ok 16 - anchor copies retain earlier values and namespaces reset per document
+  ---
+  duration_ms: 1.198875
+  type: 'test'
+  ...
+# Subtest: private query session rejects retry, overlap, and post-close use
+ok 17 - private query session rejects retry, overlap, and post-close use
+  ---
+  duration_ms: 0.249541
+  type: 'test'
+  ...
+# Subtest: checkpoint await preserves falsy caller reason
+ok 18 - checkpoint await preserves falsy caller reason
+  ---
+  duration_ms: 0.306667
+  type: 'test'
+  ...
+# Subtest: prepaid reservation consumes threshold credit once and close expires idle credit
+ok 19 - prepaid reservation consumes threshold credit once and close expires idle credit
+  ---
+  duration_ms: 5.021666
+  type: 'test'
+  ...
+# Subtest: carried owned work reaches the exact one-Budget ceiling
+ok 20 - carried owned work reaches the exact one-Budget ceiling
+  ---
+  duration_ms: 33.517958
+  type: 'test'
+  ...
+# Subtest: sink failures escape by identity even when shaped like a query limit
+ok 21 - sink failures escape by identity even when shaped like a query limit
+  ---
+  duration_ms: 0.778
+  type: 'test'
+  ...
+# Subtest: literal VFS order and repetitions use the configured filesystem
+ok 22 - literal VFS order and repetitions use the configured filesystem
+  ---
+  duration_ms: 1.343
+  type: 'test'
+  ...
+# Subtest: block chomping, indentation indicators, and folded indentation
+ok 23 - block chomping, indentation indicators, and folded indentation
+  ---
+  duration_ms: 2.517375
+  type: 'test'
+  ...
+# Subtest: indentless sequences and flow pairs follow their YAML productions
+ok 24 - indentless sequences and flow pairs follow their YAML productions
+  ---
+  duration_ms: 3.330458
+  type: 'test'
+  ...
+# Subtest: empty tagged keys, duplicate properties, and anchor-name breadth
+ok 25 - empty tagged keys, duplicate properties, and anchor-name breadth
+  ---
+  duration_ms: 1.628917
+  type: 'test'
+  ...
+# Subtest: stream end markers permit empty and subsequent bare documents
+ok 26 - stream end markers permit empty and subsequent bare documents
+  ---
+  duration_ms: 0.526583
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 343.525917

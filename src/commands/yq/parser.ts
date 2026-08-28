@@ -17,6 +17,7 @@ interface SourceLine {
   readonly text: string;
   readonly number: number;
   readonly rawBytes: number;
+  readonly hadBreak: boolean;
 }
 
 interface RawDocument {
@@ -334,18 +335,20 @@ class FlowParser {
     return node;
   }
 
-  async #node(): Promise<ParsedNode> {
+  async #node(keyMode = false): Promise<ParsedNode> {
     this.#space();
     let tag: string | undefined;
     let anchor: string | undefined;
     while (true) {
       if (this.source.startsWith("!!", this.#position)) {
+        if (tag !== undefined) throw syntax(this.line, this.#position + 1);
         const match = /^!![^\s,\[\]{}]+/u.exec(this.source.slice(this.#position));
         if (!match) throw syntax(this.line, this.#position + 1);
         tag = normalizeTag(match[0]);
         this.#position += match[0].length;
         this.#space();
       } else if (this.source.startsWith("!<", this.#position)) {
+        if (tag !== undefined) throw syntax(this.line, this.#position + 1);
         const end = this.source.indexOf(">", this.#position + 2);
         if (end < 0) throw syntax(this.line, this.#position + 1);
         tag = normalizeTag(this.source.slice(this.#position, end + 1));
@@ -354,6 +357,7 @@ class FlowParser {
       } else if (this.source[this.#position] === "!") {
         throw schema("SCHEMA_UNSUPPORTED_TAG", this.line, this.#position + 1);
       } else if (this.source[this.#position] === "&") {
+        if (anchor !== undefined) throw syntax(this.line, this.#position + 1);
         const match = /^&([^\s,\[\]{}]+)/u.exec(this.source.slice(this.#position));
         if (!match) throw syntax(this.line, this.#position + 1);
         anchor = match[1]!;
@@ -368,7 +372,10 @@ class FlowParser {
     else if (character === "{") parsed = await this.#mapping();
     else if (character === '"' || character === "'") parsed = await this.#quoted();
     else if (character === "*") parsed = await this.#alias();
-    else parsed = await this.#plain();
+    else if (character === undefined && tag !== undefined) {
+      await this.composer.scalar("", null);
+      parsed = { value: null, style: "plain", raw: "" };
+    } else parsed = await this.#plain(keyMode);
     parsed = await this.composer.applyTag(parsed, tag);
     if (record) this.composer.completeAnchor(record, parsed.value);
     return { ...parsed, ...(tag === undefined ? {} : { explicitTag: tag }) };
@@ -385,9 +392,19 @@ class FlowParser {
       return { value: result };
     }
     while (true) {
-      const value = await this.#node();
+      const start = this.#position;
+      let value = await this.#node();
       this.#space();
-      if (this.source[this.#position] === ":") throw syntax(this.line, this.#position + 1);
+      if (this.source[this.#position] === ":") {
+        if (this.source.slice(start, this.#position).includes("\n")) throw syntax(this.line, this.#position + 1);
+        this.#position++;
+        const mapped = await this.#node();
+        await this.composer.node();
+        this.composer.collection();
+        const pair = object();
+        this.composer.mappingEntry(pair, value, mapped.value, true);
+        value = { value: pair };
+      }
       this.composer.member(result.length + 1);
       result.push(value.value);
       this.#space();
@@ -416,7 +433,7 @@ class FlowParser {
       return { value: result };
     }
     while (true) {
-      const key = await this.#node();
+      const key = await this.#node(true);
       this.#space();
       if (this.source[this.#position] !== ":") throw syntax(this.line, this.#position + 1);
       this.#position++;
@@ -464,7 +481,7 @@ class FlowParser {
     return { value: await this.composer.alias(match[1]!) };
   }
 
-  async #plain(): Promise<ParsedNode> {
+  async #plain(keyMode: boolean): Promise<ParsedNode> {
     const start = this.#position;
     let depth = 0;
     while (this.#position < this.source.length) {
@@ -475,7 +492,7 @@ class FlowParser {
         depth--;
       }
       if (depth === 0 && (character === "," || character === "]" || character === "}")) break;
-      if (depth === 0 && character === ":") break;
+      if (depth === 0 && character === ":" && (keyMode || /[\s,\]}]/u.test(this.source[this.#position + 1] ?? ""))) break;
       this.#position++;
     }
     const raw = this.source.slice(start, this.#position).trim().replace(/\r?\n[ \t]*/gu, " ");
@@ -707,6 +724,9 @@ class BlockParser {
     this.#skip();
     const next = this.lines[this.#index];
     if (next && indentation(next.text) > parentIndent) return this.#node(indentation(next.text));
+    if (next && indentation(next.text) === parentIndent && /^-(?:[ \t]|$)/u.test(stripComment(next.text.slice(parentIndent)))) {
+      return this.#node(parentIndent);
+    }
     await this.composer.scalar("", null);
     return { value: null, style: "plain" };
   }
@@ -714,6 +734,7 @@ class BlockParser {
   async #inlineOrBlock(content: string, parentIndent: number, lineNumber: number): Promise<ParsedNode> {
     const property = /^(?:(!![^\s]+|!<[^>]+>|!)\s+)?(?:&([^\s]+)\s+)?([|>])([1-9]?[+-]?|[+-]?[1-9]?)$/u.exec(content);
     if (property) return this.#blockScalar(property, parentIndent, lineNumber);
+    if (/^[|>]/u.test(content)) throw syntax(lineNumber, 1);
     let source = content;
     if (!this.#inlineBalanced(source)) {
       while (this.#index < this.lines.length && !this.#inlineBalanced(source)) {
@@ -741,25 +762,32 @@ class BlockParser {
       }
       if (contentIndent < 0) contentIndent = parentIndent + 1;
     }
-    const values: string[] = [];
+    const values: { readonly text: string; readonly empty: boolean; readonly moreIndented: boolean; readonly hadBreak: boolean }[] = [];
     while (this.#index < this.lines.length) {
       const line = this.lines[this.#index]!;
       const actual = indentation(line.text);
       if (line.text.trim().length > 0 && actual < contentIndent) break;
       this.#index++;
-      values.push(line.text.trim().length === 0 ? "" : line.text.slice(contentIndent));
+      values.push({ text: line.text.trim().length === 0 ? "" : line.text.slice(contentIndent), empty: line.text.trim().length === 0, moreIndented: line.text.trim().length > 0 && actual > contentIndent, hadBreak: line.hadBreak });
     }
     let value = "";
-    if (style === "literal") value = values.join("\n");
+    if (style === "literal") {
+      value = values.map(item => item.text).join("\n");
+      if (values.at(-1)?.hadBreak) value += "\n";
+    }
     else {
       for (let index = 0; index < values.length; index++) {
-        value += values[index];
-        if (index < values.length - 1) value += values[index] === "" || values[index + 1] === "" ? "\n" : " ";
+        const current = values[index]!;
+        value += current.text;
+        if (index < values.length - 1) {
+          const next = values[index + 1]!;
+          if (current.empty) value += next.empty ? "\n" : "";
+          else value += next.empty || current.moreIndented || next.moreIndented ? "\n" : " ";
+        } else if (current.hadBreak) value += "\n";
       }
     }
-    const trailingEmpty = values.length - values.findLastIndex(item => item !== "") - 1;
-    if (chomping === "clip" && values.length > 0) value = `${value.replace(/\n+$/u, "")}\n`;
-    if (chomping === "+" && values.length > 0) value += "\n".repeat(Math.max(1, trailingEmpty));
+    const hasContent = values.some(item => !item.empty);
+    if (chomping === "clip") value = hasContent && values.at(-1)?.hadBreak ? `${value.replace(/\n+$/u, "")}\n` : value.replace(/\n+$/u, "");
     if (chomping === "-") value = value.replace(/\n+$/u, "");
     const record = anchorName === undefined ? undefined : this.composer.beginAnchor(anchorName);
     await this.composer.scalar(value);
@@ -826,9 +854,13 @@ class BlockParser {
 
 function rawLines(text: string): SourceLine[] {
   const normalized = text.replace(/\r\n|\r/gu, "\n");
+  const finalBreak = normalized.endsWith("\n");
   const pieces = normalized.split("\n");
   if (pieces[pieces.length - 1] === "") pieces.pop();
-  return pieces.map((line, index) => ({ text: line, number: index + 1, rawBytes: Buffer.byteLength(line) + 1 }));
+  return pieces.map((line, index) => {
+    const hadBreak = index < pieces.length - 1 || finalBreak;
+    return { text: line, number: index + 1, rawBytes: Buffer.byteLength(line) + (hadBreak ? 1 : 0), hadBreak };
+  });
 }
 
 function* documents(text: string): Generator<RawDocument> {
@@ -869,7 +901,10 @@ function* documents(text: string): Generator<RawDocument> {
       continue;
     }
     if (/^\.\.\.(?:[ \t]+#.*)?$/u.test(line.text)) {
-      if (!sawContent && !explicit) throw structure(line.number, 1);
+      if (!sawContent && !explicit) {
+        ended = true;
+        continue;
+      }
       const document = take(true);
       if (document) yield document;
       ended = true;
@@ -877,7 +912,7 @@ function* documents(text: string): Generator<RawDocument> {
     }
     if (ended) {
       if (trimmed === "") continue;
-      throw structure(line.number, 1);
+      ended = false;
     }
     if (directives > 0 && !explicit && trimmed !== "") throw structure(line.number, 1);
     current.push(line);

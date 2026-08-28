@@ -1,0 +1,103 @@
+{
+  "schema": "virtual-bash-timeout-parser-bound-clarification-identity-v1",
+  "date": "2026-08-28",
+  "scope": "additive Markdown and JSON parser-bound clarification only; no source, tests, native execution, or accepted-packet mutation",
+  "repository": {
+    "path": "/Users/kjopek/Workspace/safe-bash",
+    "packageName": "virtual-bash",
+    "liveHeadAtTaskStart": "d3136122f2d1d47f0d0db82d71a4f50593359446",
+    "foreignWorktreeOrIndexContentIncluded": false
+  },
+  "acceptedPacket": {
+    "commit": "257bf6d7fe51b03c224fbca7e91519e692bfadd3",
+    "tree": "b09ad20a5134d488dbf3f492cd9f4b516a429bf1",
+    "modifiedByThisClarification": false,
+    "files": {
+      "README.md": {
+        "bytes": 18788,
+        "sha256": "e050a86f9e1ee14f5f842d49ef99cd11b4b9decfcd1223d429b287c82444ecef"
+      },
+      "api.json": {
+        "bytes": 9074,
+        "sha256": "da0d7dca239420df91a776d3683e44e72a4ce9b5a277be1cab9f2edf98280508"
+      },
+      "diagnostics.data": {
+        "bytes": 1330,
+        "sha256": "8ec35ea72e54b3bc0fbfea8295a10ec03834cc9e2a309037fcd613cf91a10d88"
+      },
+      "freeze-delta.json": {
+        "bytes": 8322,
+        "sha256": "ec6a430923e0abdfcad5e233945c4b3444bfda28515a704fdaf2cab5eb3be1b1"
+      },
+      "identity.json": {
+        "bytes": 7600,
+        "sha256": "6acd9f4059d7e3bd269f136ad5594a1b8d56f36e363523368fe0e7acf72e02a1"
+      },
+      "profile.json": {
+        "bytes": 10264,
+        "sha256": "d4101ec53792e2bc7842b8ab6d68d3d50593f561c7829a05d1d4e8d391bde0d5"
+      }
+    }
+  },
+  "priorPolicy": {
+    "approvedPrecodeProfileCommit": "8036a6c29873c6251d05d73c4b9eec99cf946af9",
+    "controllingPriorDesignCommit": "7b812873c884a432951e981bfa908d7ca7407494",
+    "fixedBaselineCommit": "12e196af8d8b0866339747150b02ca00b9764a09",
+    "fixedBaselineTree": "02bce81bc67557804f0790b17b1afe45c052c7fd",
+    "modifiedByThisClarification": false
+  },
+  "stage2Evidence": {
+    "commit": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+    "tree": "639d21ae58647bb3a33026549f3bb8b0e9595549",
+    "status": "unaccepted-review-pending-timeout-implementation-held",
+    "actualFindingsPriority": true,
+    "blobs": {
+      "src/shell/runtime.ts": "bf41b4a97de4c20a0206abfd7b235cefd0aee1db",
+      "src/shell/shell.ts": "0b96a82f4ec29da4dbdd447806cca6a2f514311a",
+      "src/shell/types.ts": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "src/shell/cancellation.ts": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+      "src/contracts/command.ts": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "src/contracts/command.md": "ef94adf238122441a66c2232fb3055aaee62d290",
+      "package.json": "161191ea9e8e56bbea0e74b48af54ee57b646015"
+    }
+  },
+  "clarificationFilesExcludingThisIdentity": {
+    "README.md": {
+      "bytes": 12595,
+      "sha256": "4fd27d69604115524d670d2402468e5e657f476481e45fcad2d3b4812fe7c1c1"
+    },
+    "parser-bound.json": {
+      "bytes": 4700,
+      "sha256": "c63dff8f2276511f4ade5e5b4fe2e604d61ae7a14535894ebecb366697d068ee"
+    }
+  },
+  "policy": {
+    "universalFixedTokenCap": null,
+    "parserConfiguration": null,
+    "newPublicLimit": false,
+    "newBudgetOrCounter": false,
+    "standaloneHostAdmissionRequired": true,
+    "synchronousAbortPreemptionClaim": false,
+    "opaqueHostPreemptionClaim": false,
+    "helpVersionOrApiChanged": false,
+    "rootDecisionRequiredForProposedPolicy": false
+  },
+  "validation": {
+    "jsonSyntax": "required for parser-bound.json and identity.json",
+    "acceptedPacketHashes": "required to match all six bound files",
+    "scope": "only this new parser-bound-clarification-v1 folder",
+    "testsRun": false,
+    "sourceOrNativeExecution": false,
+    "reason": "documentation-only design clarification; task authorizes JSON, hash, and scope validation only"
+  },
+  "authorization": {
+    "rootRoutesRamanAfterDU29": true,
+    "stage2AcceptanceRequired": true,
+    "independentFreezeRequired": true,
+    "explicitImplementationReleaseRequired": true,
+    "timeoutImplementationHeld": true,
+    "stage2AcceptanceClaim": false,
+    "independentAcceptanceClaim": false,
+    "implementationAuthorization": false
+  }
+}

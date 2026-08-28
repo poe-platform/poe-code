@@ -3110,3 +3110,64 @@ that any implementation, command, fixture, or test currently exists.
   `tests/integration/full-gate-20260827/unified76-driver/released-run-v1/HANDOFF.md`.
   New routing repair/review and fresh root authorization would be needed before
   any further launch; this failed attempt grants none.
+
+### 2026-08-28T10:47Z — Accepted scoped inherited routes; fresh packet pending release
+
+- ROOT accepts qualified independent5bec6231de149d00ae707bfc0ca914d6ee6e1e0a,
+  preseal13c50ab58b76423e53f0e49da859dff584343fe9, for source02a50600 and
+  reseal96daebc0. New14/14 comprises two E10 obligations, two separate adapter
+  cases and ten other controls; it is not14 new product cases. Two actual
+  shipping-fenced bare-Git reads and coordinator exit0 have pre-dispatch route
+  resolution/outcome evidence, not a kernel exec trace.
+- Original99684045 remains30PASS/2harnessFAIL/1UNEXECUTED. E03.3 all-nonempty
+  ambient Git restoration remains unsupported; separate admission-refusal and
+  present-empty restoration controls do not fill that case. Real prerequisites/
+  privateState callsites are source proof only. PriorA10/protection/package
+  evidence is carried where byte-identical, not freshly rerun. Original EPERM
+  target remains UNKNOWN; consumed8e6b/faileddf89 and its retained0/14 attempt
+  remain unchanged, with no new GO or rescore.
+- New packet52e83606dc41297a20cbeb3e0fc4ecf703bb242d binds fixed
+  f5e9fc49b6abb38e180cc9de16c95fced102ff75/c109 expected package, all38 shipping
+  files,17 review artifacts and unchanged profile/routes/tool/projection data.
+  Exactly35 shipping members are unchanged from fe15; DRIVER/execute/tool-routing
+  are newly reviewed. Normalized driver
+  2db94b8bf54405e5713b103bd677c873fcc0b153454b3deed13ee8ab4e90583e;
+  normalized packet6cc921ca044fed1b84546bb824f1ab7fc545119c7a5f8ecefd272b23dcd61195.
+  See `tests/integration/full-gate-20260827/unified76-driver/release-packet-v3-inherited-routes/LAUNCH.md`.
+- The template is deliberately invalid pending fresh metadata review/root release.
+  Metadata binding/argument/template-rejection checks only: no new archive,
+  instruction materialization, tool probe, private access, product build/package,
+  test cohort or gate. Native51/632canonical/192classification/256cleanup and all
+  old bounds/guards remain for a future authorized run, not current inferred proof.
+  Future output/receipt paths are distinct from the failed attempt and were not
+  created. Current live features do not enter fixedf5.
+
+### 2026-08-28T10:47Z — ROOT accepts qualified stack composition; other work separate
+
+- ROOT accepts stack3e4cd743f1d4d2302b6b58a337740b3fde68462a through independent
+  0fe2274a28f251370e9894cf30bb215f80b600d0 plus additive
+  1446a7063825864290734b4aae25c3ec13cd85e3:136 qualified obligations, C06 still
+  partial, original S13 unsupported. This is NOT138/138 or an old-result rescore.
+  Original111passes/27assertionfailures per layout and28 separately corrected
+  inputs remain distinct. `/bin/sh` shebang remains unsupported; the separate
+  `/bin/bash` supplement does not change it.
+- Exact composed tree099455f232870fa1ea59e1a0ae482e003fd170db uses CD+LET base
+  3e3a2fe381e11540213285e14e2a9a55a72bdbdd with runtime blob
+  9ff4aa32354f15901ed18e7e57aa30f812d34b14 and shell blob
+  0ebf7efa77df77707d594fa55c89af4db891ee87. Independent full846-member package
+  15aa8d8dd6e78a9b7d12156ea2adaf93bd5f0037f13443e8928268c9d5215a18 and actual
+  source/installed/moved layouts load207 product modules per case. This entry
+  records accepted evidence, not another build or execution.
+- Additive C06 has six actual public subcontrols. Its genuinely escaping-control
+  versus local-selection portion remains an authenticated source-only ordering
+  proof, not a completed public schedule. No dynamic private counter, native,
+  SafeJS or global-gate claim follows. Evidence:
+  `tests/shell/directory-stack-independent-20260828/review-3e4cd743/HANDOFF.md` and
+  `tests/shell/directory-stack-independent-20260828/c06-completion-3e4cd743-v1/HANDOFF.md`.
+- Current root assignment gives Faraday the dotglob author window in runtime.ts
+  and shell.ts only, under root references3771/429766/deced; no dotglob acceptance
+  or fixedf5 change is inferred. YQ remains under Sagan review, without new default
+  wiring. XAN remains execution-held/unaccepted; artifact-only88608b65 is not
+  product execution/telemetry/acceptance and permits no retry or executor bypass.
+  No currentHEAD build, export/default, production or foreign fixture edits were
+  performed for this maintenance checkpoint. Existing durable AGENTS rules stand.

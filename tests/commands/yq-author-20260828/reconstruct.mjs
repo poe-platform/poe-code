@@ -6,8 +6,8 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 
 const baseline = "5137a74ec855a32d8a8860eb66b62eb44d11e290";
 const acceptedLength = "74361026502d76b8c2b696f9c60e410ac9b78d95";
-const sourceRevision = "6b3b5c44";
-const testRevision = "2b4fc70e";
+const sourceRevision = "35da1854";
+const testRevision = "1d802e7a";
 const interpreterBlob = "d3ba11f0057b07d5ad307c5dfbb5f0612a87a047";
 const interpreterSha256 = "e32ad45efe69544ed95b43b97f191006f10d3beea9ca9e2a3327843dffd45a74";
 const freeze = "bd471ef682d768692a682d40009a874f51e3ad68";

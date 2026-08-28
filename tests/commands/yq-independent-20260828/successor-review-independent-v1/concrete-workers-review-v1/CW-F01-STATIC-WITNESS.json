@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "id": "CW-F01",
+  "classification": "STATIC_LEAF_DEFECT_NOT_EXECUTED",
+  "severity": "medium",
+  "workerCommit": "c0353685540288d504b93f206735fe4c448268ef",
+  "sourcePath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/type-worker.mjs",
+  "sourceLines": [89, 90, 91, 92, 93, 96, 97],
+  "authority": {
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/DEFERRED-CONTROLS.json",
+    "line": 10,
+    "control": "TYPE-04",
+    "input": "Warning, extra diagnostic or unexpected raw output",
+    "expected": "FAIL; raw preserved before classification"
+  },
+  "fixture": {
+    "name": "factory-command-extra",
+    "outcome": "reject",
+    "diagnostic": {"code": 2554, "line": 2}
+  },
+  "benignClassifierInputData": {
+    "fixturePath": "/tmp/yq-static-example/type-1-factory-command-extra/consumer.mts",
+    "withinDeadline": true,
+    "raw": {
+      "code": 1,
+      "signal": null,
+      "timedOut": false,
+      "provenance": {"cwd": "/tmp/yq-static-example", "overflow": false}
+    },
+    "stdoutUtf8": "type-1-factory-command-extra/consumer.mts(2,1): error TS2554: Expected 0 arguments, but got 1.\n  warning: extra output must not be accepted\n",
+    "stderrUtf8": ""
+  },
+  "scope": "Data-only input to the private classify branch, assuming earlier full worker provenance/reap/raw-file checks succeed. Not a runnable worker receipt or a claimed valid active tool manifest. No /tmp example directory/file was created and no compiler/classifier/worker was invoked.",
+  "staticControlFlow": [
+    "Line91 recognizes the first diagnostic; line92 records matching fixture path, line2, positive column1 and code2554.",
+    "The extra indented warning does not match the diagnostic regex. At line93, diagnostics.length is nonzero and the line matches /^ {2,}\\S/u, so unexpectedOutput remains false and the warning is discarded.",
+    "Line96 still sees exactly one matching diagnostic, allowed exit1 and no unexpected output, and line97 selects ACCEPTED_COMPILE_REJECTION/PASS. This is a source-derived branch conclusion, not an observed control result."
+  ],
+  "expectedUnderSealedControl": "FAIL_UNEXPECTED_COMPILER_OUTPUT",
+  "staticallyReachableClassification": "PASS_ACCEPTED_COMPILE_REJECTION",
+  "actualExecutionOutcome": "UNRUN",
+  "minimumOwnerAction": "Reject arbitrary unrecognized indented output. If legitimate multiline TS diagnostics need continuation, validate the declared continuation structure instead of accepting every indented nonempty line. Preserve exact fixture/code/line/file expectations and raw capture; add a separately authorized bounded negative control, not a semantic-policy change.",
+  "candidateExecutions": 0,
+  "compilerExecutions": 0,
+  "authoredClassifierCalls": 0,
+  "controlPasses": 0
+}

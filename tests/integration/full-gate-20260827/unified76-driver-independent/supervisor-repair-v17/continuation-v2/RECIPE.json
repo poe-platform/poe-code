@@ -1,0 +1,36 @@
+{
+  "schema": 2,
+  "source": "f03c260269dfd8ee10666f7fd2560655f8e14a38",
+  "priorSeal": "fb6f048d801935d7ebd79ff412f93c9eb387eb88",
+  "ownedFiles": {
+    "bind.py": "8765458a698721d4e27f3033f3d9fb5776b0d77b4de9972fed6ef44a02a07da1",
+    "BINDINGS.json": "caa12c58bbc089f9569308289799f919995e0646a36a423ffeec5c01d6b414c6",
+    "compare.mjs": "766f9aff10a7cf2be17e9828794315c11ce3a676997e5399b12b2d31e33596f2",
+    "review.mjs": "6795be63059fa3167cb30cff43ff5c7efb33d841ca023d955ff7d7c5c7f94e59",
+    "controller.py": "112251e659651d171d7ac3f68a517c2558545535e10c329c2c6dba16b85bbf81",
+    "CHILDREN.json": "d3d984d6af31262044497e5c1f9d4f62ee8c18edf67bc00a804154e1c30495a8",
+    "AUDIT.md": "287256488552362c6fcec78bf08065c502420365415a371baa4cdbc0b851a168",
+    "RECIPE.md": "c46a56d3d683b998202eaa53f369e81b5c6d5b477e1fe770888a771e16a1d6dc"
+  },
+  "counts": {
+    "comparatorData": 22,
+    "collectorData": 6,
+    "actualOwnedChildren": 3,
+    "retainedProofReruns": 0
+  },
+  "beforeCandidateImports": true,
+  "beforeCompanionExecution": true,
+  "cohortLimit": 1,
+  "bounds": {
+    "coordinatorSeconds": 90,
+    "streamDrainSeconds": 5,
+    "outerSeconds": 100,
+    "wholeQualifiedSeconds": 120,
+    "childSupervisorMs": 3000,
+    "shippingCleanupMs": 5000,
+    "parentRescueMs": 8000,
+    "coordinatorStreamBytes": 1048576,
+    "childBytes": 65536,
+    "tempBytes": 33554432
+  }
+}

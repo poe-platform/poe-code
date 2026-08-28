@@ -1,0 +1,81 @@
+{
+  "schema": "independent-preparation-receipt-v1",
+  "classification": "Benign DATA generation plus developmentGitmetadata, NOT verification of repair or candidate",
+  "gitCalls": [
+    {
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--full-tree",
+        "58be2d6c5706f3e90f01d48e695ecfd9daa52669"
+      ],
+      "bytes": 7695763,
+      "sha256": "2648f28efa3a98f6d5dd4e1cd890001a2d287dfb0573304e11dbe61e58c6f689",
+      "classification": "developmentGitmetadata preparation only"
+    },
+    {
+      "args": [
+        "cat-file",
+        "commit",
+        "58be2d6c5706f3e90f01d48e695ecfd9daa52669"
+      ],
+      "bytes": 257,
+      "sha256": "b8eeff66b496400922ae62b39bd8c5d0ae5902891704cfefb9c436acd62b138a",
+      "classification": "developmentGitmetadata preparation only"
+    },
+    {
+      "args": [
+        "cat-file",
+        "tree",
+        "189bef24a927241d7c47a662f1ac447b56da1835"
+      ],
+      "bytes": 449,
+      "sha256": "c5b4e6fc1e54133ecb5851d12f87c04ae5ab56aa58134247dfd50bc81978a7e0",
+      "classification": "developmentGitmetadata preparation only"
+    }
+  ],
+  "gitChildCount": 3,
+  "maxChildMs": 10000,
+  "serial": true,
+  "historicalCaptureBodies": {
+    "base": {
+      "sha256": "d158f9bf8f6d0a18053939105fa92387a0f7ab766ea94f2fb42246a3c4f29fe5",
+      "bytes": 5554546,
+      "fragments": 85,
+      "expectedTree": "2b8110a17559ba1ddbc94b9b8ac619e9dda00d40"
+    },
+    "batch": {
+      "sha256": "80e819e2e1ee4ddcafb20cfc2ddc35566c80b51b45b3d8ed1aa6303b863f4958",
+      "bytes": 2475165,
+      "fragments": 38,
+      "objectCount": 276,
+      "candidateCommitBodyBound": {
+        "oid": "58be2d6c5706f3e90f01d48e695ecfd9daa52669",
+        "kind": "commit",
+        "bytes": 257,
+        "sha256": "b8eeff66b496400922ae62b39bd8c5d0ae5902891704cfefb9c436acd62b138a"
+      }
+    }
+  },
+  "storedRootBodySha256": "c5b4e6fc1e54133ecb5851d12f87c04ae5ab56aa58134247dfd50bc81978a7e0",
+  "independentlyEncodedRootPayloadSha256": "c5b4e6fc1e54133ecb5851d12f87c04ae5ab56aa58134247dfd50bc81978a7e0",
+  "directoryCount": 4911,
+  "actual98": 98,
+  "controls": 206,
+  "preservedHistoricalCounts": {
+    "DATA": 25,
+    "NOT_RUN": 68
+  },
+  "historicalForensicSha256": "281fde7f4d12933b4fad8e19b60437567c4a6261c667a2c0c91ddb60c63f177f",
+  "historicalRoot": "189bef24a927241d7c47a662f1ac447b56da1835",
+  "authorV2SourceReads": 0,
+  "authorV2Executions": 0,
+  "productExecutions": 0,
+  "compilerExecutions": 0,
+  "installs": 0,
+  "runtimeImports": 0,
+  "nativeOracles": 0,
+  "networkRequests": 0,
+  "persistentWorkers": 0,
+  "instructionPlaintextSnapshots": 0
+}

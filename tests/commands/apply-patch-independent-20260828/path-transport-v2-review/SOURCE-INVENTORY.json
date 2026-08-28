@@ -1,0 +1,197 @@
+{
+  "schema": "historical-read-only-source-inventory-v1",
+  "authorV2Read": false,
+  "sourceCount": 12,
+  "dataCount": 19,
+  "sources": [
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/actual-v1/capture-metadata.mjs",
+      "bytes": 4787,
+      "mode": 420,
+      "sha256": "23fa6019b02fd11abb23397732395e112521bc139d88dbd931d94c599a6936c7"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/actual-v1/controller.mjs",
+      "bytes": 33463,
+      "mode": 420,
+      "sha256": "72ca30986f03c9f8a81dd5010c9912d294b3326799f9569eb689ec8858ef1d20"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/actual-v1/forensic-data.mjs",
+      "bytes": 8293,
+      "mode": 420,
+      "sha256": "87d5c13915ea791c8d49d810b4296e1b70deaff5d7881aec9f3a0cd779e91f90"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/actual-v1/supervisor.mjs",
+      "bytes": 4817,
+      "mode": 420,
+      "sha256": "f980185cb8437db368c8e4881fa9d6c7f5c446780023e23200ab36bb98ad124b"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/actual-v1/deadline.mjs",
+      "bytes": 1413,
+      "mode": 420,
+      "sha256": "b2538ecd3b45ea7ea9e4114ca29fae73d7e39aad585ce53259da7968922eb55e"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/actual-v1/bootstrap.mjs",
+      "bytes": 1734,
+      "mode": 420,
+      "sha256": "848d730fdc7d20fa5e0cc5c6e2c460255fda79e69266e129a347b14707aeab55"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/actual-v1/loader.mjs",
+      "bytes": 3266,
+      "mode": 420,
+      "sha256": "377495e5490a5803eac46617b7c3c41846cd454b296c340eb6a055fa8d7fe9d4"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/actual-v1/guard-control.mjs",
+      "bytes": 1145,
+      "mode": 420,
+      "sha256": "e507f769ec8c19445062587f11ddfe151147a62d45f9ce845540bc69df8d5ee2"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/actual-v1/worker.mjs",
+      "bytes": 25968,
+      "mode": 420,
+      "sha256": "6563b3319cb495dea5c0b5c0499d166eaf5bf63806fd9e12487ed42b6f046296"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/admission-plan/capture-inputs.mjs",
+      "bytes": 5085,
+      "mode": 420,
+      "sha256": "819805656be0dfa4fd516011f09615009920abdd111112b78b5e3c950c0eb84c"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/admission-plan/check-data.mjs",
+      "bytes": 7918,
+      "mode": 420,
+      "sha256": "f637d9bdb3d849c7b0ea1b81b38cc3c30321d5deb9b5b279c09af961393af9b3"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/matrix/check-data-v1.mjs",
+      "bytes": 13011,
+      "mode": 420,
+      "sha256": "90eb1e864d6198fb8c43bea638756e5aeaae1bfbe7934d687d7d114f7ae6b05d"
+    }
+  ],
+  "data": [
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/actual-v1/REPORT.md",
+      "bytes": 7557,
+      "mode": 420,
+      "sha256": "bd147d3190db063eb35dafbe9c195ed55af3d18374ae94d58561f0ca80680a1d"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/actual-v1/FORENSICS.json",
+      "bytes": 29649,
+      "mode": 420,
+      "sha256": "281fde7f4d12933b4fad8e19b60437567c4a6261c667a2c0c91ddb60c63f177f"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/actual-v1/EXECUTION-SEAL.json",
+      "bytes": 22439,
+      "mode": 420,
+      "sha256": "c61d2d547079f4e633aefacd90448f771c2df3aea37f2a55c561300de882a12a"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/actual-v1/METADATA.json",
+      "bytes": 7963554,
+      "mode": 420,
+      "sha256": "86c3a490f2818d3155d5cc7b7472c705a8bc514253a0b1746a4f1b6c7504a0c1"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/actual-v1/FINAL.json",
+      "bytes": 5397,
+      "mode": 420,
+      "sha256": "70caeb12ba118107ae5e1debb621ff3eee70e9c1255927a0b3c7701c3395e86b"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/actual-v1/EXECUTION-PROFILE.md",
+      "bytes": 8775,
+      "mode": 420,
+      "sha256": "b0a28b0fb5c7048b8e8228eeb2228b272facd107bb6290a07a2d354a5b88af49"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/admission-plan/ADMISSION-v1.md",
+      "bytes": 28279,
+      "mode": 420,
+      "sha256": "2ff5191646959887ecca87b756ef9d7768a88801812029a7fa8b7faec9d86ffb"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/admission-plan/BINDING-v1.json",
+      "bytes": 1700,
+      "mode": 420,
+      "sha256": "416c262df28d25bb75c701af91b2d836d968e906a39f68d0a959cc19d3b02447"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/admission-plan/INPUTS-v1.json",
+      "bytes": 32176,
+      "mode": 420,
+      "sha256": "1b2a15cd1f2977770f7718d901e772b8f7968df7126f0cf2e15d1b2e7ed94058"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/admission-plan/DATA-EXPECTATIONS-v1.json",
+      "bytes": 1857,
+      "mode": 420,
+      "sha256": "5ec203e073de67bd9824dbc48d40661be938abb730688bb53f1f22fd49e139d4"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/admission-plan/MUTATIONS-v1.json",
+      "bytes": 6571,
+      "mode": 420,
+      "sha256": "0189b23281f167118deccaad104b21a6c6895d8c231261198f35b9d3e888eee5"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/admission-plan/MATRIX-INTERFACE-v1.json",
+      "bytes": 6392,
+      "mode": 420,
+      "sha256": "3e82967ed14808a76004132977b1aafefc8023e5c569a056a0e72282c7293002"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/admission-plan/HANDOFF-v1.md",
+      "bytes": 6644,
+      "mode": 420,
+      "sha256": "c9f2ee8c05456ea7698dfb9827800b42005fd7d2b472abafb9a1279e145019c2"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/matrix/PRESEAL-v1.json",
+      "bytes": 2645,
+      "mode": 420,
+      "sha256": "718f28af56c5e2e0e9c91976f242fd51882ef1a9975d3214f1c446b3f8d83292"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/matrix/ORIGINAL32-v1.json",
+      "bytes": 43410,
+      "mode": 420,
+      "sha256": "b10cd0aeb7272ddb029baaa871b58f73ef645278e5bc3d9ef9bea1a1d1d6fe29"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/matrix/SUPPLEMENT-v1.json",
+      "bytes": 124506,
+      "mode": 420,
+      "sha256": "44074ff7627215afdc92dd4565c2154ca3eb5b34870dafc0cae0433f912ed558"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/matrix/LIMITS-v1.json",
+      "bytes": 28437,
+      "mode": 420,
+      "sha256": "e2008ae3c79effa4d1150bce7f6335f06af5305c044a893e3ceb0053e2550f45"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/matrix/PROTOCOL-v1.json",
+      "bytes": 10840,
+      "mode": 420,
+      "sha256": "c0f138a8793ffc9c8ec5b8283e85c4b7c0250f515b3595367cf4ec3eb0b6ab31"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/matrix/POLICY-v1.json",
+      "bytes": 8755,
+      "mode": 420,
+      "sha256": "99b591c17ea798c1982d276ca59654607ababbd1f365ce5540cad881b42a9d33"
+    }
+  ],
+  "scope": "Historical reachable preparation/controller/capture closure and adjacent frozen DATA gate. No concurrent v2 source, product source, compiler, or AGENTS contents copied."
+}

@@ -1,0 +1,347 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-28",
+  "status": "sealed-design-addendum-awaiting-enumerated-root-checks",
+  "implementationAuthorized": false,
+  "authority": {
+    "rule": "The frozen b311 initial profile is effective except where this addendum explicitly supersedes it.",
+    "initialProfileCommit": "b311c2364ceca13daab4086dfb21157b9b8ae856",
+    "initialProfileReadme": {
+      "path": "tests/commands/yq-design-20260828/initial-profile-v1/README.md",
+      "sha256": "75af84bd5e888a3080e9096b86ed0a25be95105524011851193b9bf39192ba50"
+    },
+    "initialProfileDecisions": {
+      "path": "tests/commands/yq-design-20260828/initial-profile-v1/decisions.json",
+      "sha256": "2d7e03e6e8e38020e62b96245ea95826208a400df19c106f0c3f857d4fa3d3fc"
+    },
+    "fixedSourceBaseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "separateLengthProtocol": "debfdd8b42930d8c5f1c0301897e4eeaa68e0979",
+    "separateLengthProtocolState": "unchanged; separately assigned freeze/authorization remains required"
+  },
+  "execution": {
+    "sourceImplementationRuns": 0,
+    "testsRun": 0,
+    "nativeOrReferenceRuns": 0,
+    "productRuns": 0,
+    "dependenciesChanged": 0
+  },
+  "authorityTable": [
+    {
+      "state": "ROOT_ADOPTED",
+      "items": [
+        "b311 C1 CLI, output, multidocument order, refusals, language, numeric, E1 status, accounting, retention, and lifecycle except explicit amendments below",
+        "fixed private inclusive caps and admissions",
+        "truthful sole-token help/version behavior, with exact bytes pending root check",
+        "quoted, block-style, or explicitly !!str-tagged literal << string keys; only plain untagged << is rejected",
+        "finite and safe-integral numeric policy and stated Decimal range, with independent range-binding verification still required",
+        "direct-handler/raw-failure boundary and qualified outer-Shell behavior"
+      ]
+    },
+    {
+      "state": "PENDING_ROOT_CHECK",
+      "items": [
+        "exact help and version bytes in exactInformation",
+        "public factory signatures and runtime option validation in publicApi",
+        "private adapter signatures and lifecycle in privateAdapter",
+        "complete finite normal diagnostic catalogue and deterministic selection",
+        "the two bounded primary-spec choices in yamlGrammarReview"
+      ]
+    }
+  ],
+  "fixedPrivateCaps": {
+    "visibility": "private module constants only",
+    "comparison": "all maxima are inclusive; checked safe-integer projection fails before the bounded operation",
+    "publicConfiguration": false,
+    "publicYqLimits": false,
+    "secondHardCeilingVector": false,
+    "values": {
+      "maxArgvEntries": 4096,
+      "maxArgvUtf8Bytes": 65536,
+      "maxVfsOperandPathBytes": 16384,
+      "maxInputBytes": 67108864,
+      "maxDocumentBytes": 8388608,
+      "maxValueBytes": 8388608,
+      "maxScalarBytes": 1048576,
+      "maxQuerySourceBytes": 8192,
+      "maxDepth": 128,
+      "maxAstDepth": 64,
+      "maxSteps": 1000000,
+      "maxResults": 100000,
+      "maxCollectionSize": 100000,
+      "maxDocuments": 1024,
+      "maxAnchorsPerDocument": 1024,
+      "maxAliasReferences": 1024,
+      "maxDocumentNodes": 100000,
+      "maxOutputBytes": 16777216,
+      "diagnosticReserveBytes": 4096,
+      "stdoutCapBytes": 16773120,
+      "maxDisplayedFilenameBytes": 256
+    },
+    "argvAdmission": [
+      "CommandContext.args excludes context.command; count exactly args.length, including optional eval/e, every option/value, --, filter, and path.",
+      "Check maxArgvEntries before traversing strings. Then validate every JS string as well-formed Unicode and accumulate Buffer.byteLength(argument, utf8) with overflow-safe subtraction/addition, never a whole-argv encoded buffer.",
+      "After roles are parsed, check each literal non-dash VFS operand's own UTF-8 bytes against maxVfsOperandPathBytes. The filter is governed by maxQuerySourceBytes; '-' is not a VFS path.",
+      "Complete all CLI grammar, duplicate, compatibility, stdin-count, and path admission before parse(), stdin iteration, any input VFS call, or stdout acquisition. No invalid CLI can cause query/input VFS work."
+    ]
+  },
+  "cliAmendments": {
+    "informationForms": [
+      ["--help"],
+      ["-h"],
+      ["--version"],
+      ["eval", "--help"],
+      ["eval", "-h"],
+      ["eval", "--version"],
+      ["e", "--help"],
+      ["e", "-h"],
+      ["e", "--version"]
+    ],
+    "informationCombinationRule": "After whole-argv count/byte/Unicode admission, any occurrence of -h, --help, or --version not matching one exact form above is status 2 CLI_INFO_COMBINATION, including a form containing -- or another argument. There is no -v.",
+    "informationEffects": "Status 0 and the exact fixed stdout bytes only. Do not create a query session/Budget, compile, inspect or acquire stdin, or make input VFS calls. Register cleanup before any accepted owned stdout operation and preserve write/backpressure/raw-failure semantics.",
+    "jsonOnly": "-c/--compact-output and -r/--unwrapScalar each require an explicit -o json, --output-format json, or --output-format=json in that invocation.",
+    "unchanged": "All other C1 grammar, output bytes, result/document order, and explicit refusals in b311 remain effective. There is no eval-all, slurp, write, schema, input-format, null-input, variable, program-file, document-selection, or new flag."
+  },
+  "exactInformation": {
+    "state": "PENDING_ROOT_CHECK",
+    "encoding": "UTF-8",
+    "help": "virtual-bash restricted YAML profile\nusage: yq [eval|e] [OPTION ...] [--] [FILTER [FILE ...]]\n       yq [eval|e] --help\n       yq [eval|e] --version\noptions:\n  -o, --output-format FORMAT  FORMAT is yaml or json\n      --output-format=FORMAT  same as above\n  -c, --compact-output       compact JSON; requires -o json\n  -r, --unwrapScalar         raw strings; requires -o json\n  -h, --help                 show this help (sole argument)\n      --version              show profile identity (sole argument)\n",
+    "helpUtf8Bytes": 501,
+    "helpSha256": "97238372eed5e2358540baadbb7e5eac1c81d14dde163a1b7fd05d9048521f65",
+    "version": "virtual-bash restricted YAML profile\n",
+    "versionUtf8Bytes": 37,
+    "versionSha256": "68ebf73287a74c37f4f2c532cb8f3e53a697b07982fbf2293bebb5e0e5b2b5bb",
+    "destination": "stdout",
+    "exitStatus": 0,
+    "finalLf": true,
+    "identityClaim": "profile identity only; no Mike Farah or package version is claimed"
+  },
+  "languageAmendments": {
+    "mergeLikeKeys": [
+      "A scalar string key whose decoded content is << is ordinary data unless its presentation is plain and untagged.",
+      "Reject only a plain untagged << key as SCHEMA_PLAIN_MERGE_KEY; perform no merge behavior.",
+      "Accept single-quoted, double-quoted, block-style, or explicitly tag:yaml.org,2002:str/!!str forms as the ordinary string key <<, subject to duplicate/string limits.",
+      "Reject tag:yaml.org,2002:merge/!!merge and every other non-allow-listed tag as SCHEMA_UNSUPPORTED_TAG."
+    ],
+    "yaml122Finding": "YAML 1.2.2 grammar and Core resolution make plain untagged << a valid string; the rejection above is an intentional presentation-sensitive anti-extension restriction. The merge URI/shorthand belongs to the separate YAML 1.1 merge working draft and is not a YAML 1.2.2 Core tag.",
+    "implicitKeyGrammar": "YAML 1.2.2 implicit keys remain single-line and at most 1024 Unicode code points. This production rule is not a configurable safety cap or second limit vector; explicit-key notation remains available subject to maxScalarBytes.",
+    "unchanged": "All other b311 Core resolution, string-only key, decoded-key duplicate, accepted-tag, kind/lexeme, anchor, alias, document, and syntax rules remain effective, subject only to yamlGrammarReview."
+  },
+  "numericAmendments": {
+    "state": "ROOT_ADOPTED_PROFILE_WITH_INDEPENDENT_BINDING_CHECK_REQUIRED",
+    "rules": "Retain b311 lexical bounded conversion, finite input/result, exact safe-integral admission, normalized Decimal exponent interval [-1147483646, 999999999], and recursive yielded-graph checks. Do not use BigInt or allocate powers of ten.",
+    "baselineBinding": {
+      "path": "src/commands/structured/numbers.ts",
+      "gitBlob": "fe90b5fcbef68a4a2a4aed164d7599d0dcd22630",
+      "lines": "48-74; range literals at 58-59"
+    },
+    "qualification": "This author verified the literals only, not the independent correctness/binding review required before code."
+  },
+  "publicApi": {
+    "state": "PENDING_ROOT_CHECK",
+    "typescript": "export interface YqCommandsOptions {\n  readonly replace?: boolean;\n}\nexport function createYqCommand(): CommandDefinition;\nexport function createYqCommands(): readonly CommandDefinition[];\nexport function yqCommands(options: YqCommandsOptions = {}): VirtualShellPlugin;",
+    "rules": [
+      "createYqCommand and createYqCommands accept no options because fixed caps have no DI/configuration point; only plugin registration consumes replace.",
+      "yqCommands validates a non-null object, permits no own enumerable option other than replace, reads replace exactly once before creating definitions or touching a host, and accepts only undefined or boolean; undefined means false.",
+      "setup preflights the complete one-command collision set when replace is false, then registers yq with { replace }; no partial registration.",
+      "No YqLimits, defaultYqLimits, parser, query session, or adapter type is public. No export code is authorized by this document."
+    ]
+  },
+  "privateAdapter": {
+    "state": "PENDING_ROOT_CHECK",
+    "futurePath": "src/commands/structured/query-core.ts",
+    "consumerPath": "src/commands/yq/",
+    "typescript": "interface YqOwnedWork {\n  step(count?: number): void;\n  tick(): Promise<void>;\n  admitInputBytes(bytes: number): void;\n  admitOutputBytes(bytes: number): void;\n  admitResult(): void;\n  measure(value: Json): number;\n  stringifyJson(value: Json, options: { readonly pretty: boolean; readonly maxBytes: number; readonly limitName: \"maxValueBytes\" | \"maxOutputBytes\" }): string;\n}\ninterface YqQuerySession {\n  readonly ownedWork: YqOwnedWork;\n  compileOnce(source: string): void;\n  run(input: Json): AsyncGenerator<Json, void, undefined>;\n  close(): Promise<void>;\n}\nfunction createYqQuerySession(options: { readonly signal: AbortSignal }): YqQuerySession;",
+    "typeBinding": "Json is the existing src/commands/structured/limits.ts Json and includes existing Decimal; Ast remains private inside the session. parse, Interpreter, Budget, Budget.value, and stringify are reused, not copied or publicly exported.",
+    "lifecycle": [
+      "createYqQuerySession reads/validates the borrowed signal once, builds one frozen internal JqLimits mapping from fixed caps, one empty ReadonlyMap<string, Json>, one Budget, and one Interpreter. It exposes no Budget reference or mutable/reset counters.",
+      "compileOnce synchronously marks the session compile-attempted before calling parse. Success stores one Ast. Failure is terminal; it is not retried. A second compile attempt or run before success is an internal misuse error, not a mapped language failure.",
+      "run serializes one active input at a time, uses the stored Ast/Interpreter, preserves engine yield order, and closes the current engine generator in finally. Completion/failure releases the run slot; close prevents new runs and returns the active generator once.",
+      "close closes admission first, is idempotent, shares one completion across overlapping calls, and observes generator return failure. No query worker, lease, child, or scheduler is invented.",
+      "The yq boundary recursively validates/measures each engine yield once, calls admitResult once after validation and before encoding/publication, and never increments results elsewhere. Existing engine measurements/steps for its own intermediates remain untouched.",
+      "ownedWork is the only yq scanner/encoder access to shared Budget step/tick/input/output/result/value/stringify operations. Additional document/anchor/alias/node/scalar/stdout counters remain in one non-resettable private yq ledger.",
+      "Every ownedWork count is checked as a nonnegative safe integer; step count must be positive when supplied. Admit methods use overflow-safe projection and expose no decrement, assignment, reset, limits replacement, or raw Budget.",
+      "Information and CLI-failure paths create no query session. A normal compile failure creates no input/output acquisition; only its bounded stderr diagnostic may be attempted afterward."
+    ],
+    "scope": "New private adapter and new yq module only; no parser/interpreter copy, broad refactor, async compiler wrapper, public query bridge, eval-all, slurp, or implementation before a different freeze."
+  },
+  "diagnostics": {
+    "state": "PENDING_ROOT_CHECK",
+    "frame": "yq: CATEGORY: CODE [at SOURCE[:LINE:COLUMN]]\\n",
+    "source": "SOURCE is literal <stdin> or a valid JSON string whose complete field, including opening/closing quotes, is at most 256 UTF-8 bytes. Filename controls, quote, and backslash are JSON-escaped; other well-formed non-ASCII Unicode scalars remain literal UTF-8. Incremental truncation keeps a scalar only when its complete escaped bytes plus an in-string ASCII ... and closing quote fit that inclusive cap. Thus framing tokens are ASCII but a filename field may be non-ASCII.",
+    "location": "One-based line/column appear only from truthful structured parser data; never infer them from opaque query/VFS errors.",
+    "fallback": "yq: limit: DIAGNOSTIC_TRUNCATED\n",
+    "admission": "Prefer one complete diagnostic write admitted against the 4096-byte reserve and combined output limit. If it cannot fit, try the exact fallback; if that cannot fit, submit nothing. Admission is atomic accounting, not transactional sink delivery.",
+    "catalogue": [
+      { "category": "cli", "code": "CLI_ARGV_ENTRIES_LIMIT", "status": 2, "conditions": "context.args.length exceeds 4096" },
+      { "category": "cli", "code": "CLI_ARGV_BYTES_LIMIT", "status": 2, "conditions": "aggregate argv UTF-8 bytes exceed 65536 or checked arithmetic overflows" },
+      { "category": "cli", "code": "CLI_INVALID_UNICODE", "status": 2, "conditions": "an argv string contains an unpaired surrogate" },
+      { "category": "cli", "code": "CLI_INFO_COMBINATION", "status": 2, "conditions": "-h/--help/--version occurs outside an exact sole-information form" },
+      { "category": "cli", "code": "CLI_UNSUPPORTED_COMMAND", "status": 2, "conditions": "eval-all or ea is used as a command word" },
+      { "category": "cli", "code": "CLI_MISSING_OPTION_VALUE", "status": 2, "conditions": "-o/--output-format lacks its required value, including empty long equals form" },
+      { "category": "cli", "code": "CLI_INVALID_OPTION_VALUE", "status": 2, "conditions": "an output format value is not yaml or json" },
+      { "category": "cli", "code": "CLI_UNSUPPORTED_OPTION", "status": 2, "conditions": "a specifically refused b311 option/mode spelling is present" },
+      { "category": "cli", "code": "CLI_UNKNOWN_OPTION", "status": 2, "conditions": "any other unlisted option, short cluster, or attached short value; offending text is not echoed" },
+      { "category": "cli", "code": "CLI_DUPLICATE_OPTION", "status": 2, "conditions": "a second spelling of one option family occurs" },
+      { "category": "cli", "code": "CLI_INCOMPATIBLE_OPTIONS", "status": 2, "conditions": "compact or unwrap is selected without explicit JSON output" },
+      { "category": "cli", "code": "CLI_DUPLICATE_STDIN", "status": 2, "conditions": "a second '-' file operand occurs" },
+      { "category": "cli", "code": "CLI_VFS_OPERAND_LIMIT", "status": 2, "conditions": "one literal VFS operand path exceeds 16384 UTF-8 bytes" },
+      { "category": "query", "code": "QUERY_COMPILE_FAILED", "status": 3, "conditions": "a recognized non-limit JqError escapes synchronous parse" },
+      { "category": "query", "code": "QUERY_RUNTIME_FAILED", "status": 5, "conditions": "a recognized non-limit JqError escapes Interpreter.run" },
+      { "category": "input", "code": "INPUT_INVALID_UTF8", "status": 5, "conditions": "fatal UTF-8 decoding fails" },
+      { "category": "input", "code": "INPUT_YAML_SYNTAX", "status": 5, "conditions": "YAML token/indentation/escape/character grammar is malformed" },
+      { "category": "input", "code": "INPUT_DOCUMENT_STRUCTURE", "status": 5, "conditions": "a BOM, otherwise-supported directive, marker, document boundary, or trailing stream structure is misplaced" },
+      { "category": "schema", "code": "SCHEMA_UNSUPPORTED_DIRECTIVE", "status": 5, "conditions": "at a legal directives position, a directive other than one %YAML 1.2, or a duplicate/reserved directive, is present" },
+      { "category": "schema", "code": "SCHEMA_UNSUPPORTED_TAG", "status": 5, "conditions": "a local/application/unknown/non-specific/disallowed built-in tag, including !!merge/tag:yaml.org,2002:merge, is present" },
+      { "category": "schema", "code": "SCHEMA_TAG_KIND_MISMATCH", "status": 5, "conditions": "accepted map/seq/scalar tag is attached to the wrong node kind" },
+      { "category": "schema", "code": "SCHEMA_TAG_LEXEME_MISMATCH", "status": 5, "conditions": "accepted explicit null/bool/int/float tag content misses its Core lexical family" },
+      { "category": "schema", "code": "SCHEMA_NONSTRING_KEY", "status": 5, "conditions": "a composed mapping key is not a scalar string" },
+      { "category": "schema", "code": "SCHEMA_DUPLICATE_KEY", "status": 5, "conditions": "two decoded/resolved string keys are equal by Unicode code points" },
+      { "category": "schema", "code": "SCHEMA_PLAIN_MERGE_KEY", "status": 5, "conditions": "a mapping key is plain, untagged, and decodes exactly to <<" },
+      { "category": "schema", "code": "SCHEMA_NONFINITE_NUMBER", "status": 5, "conditions": "input or yielded graph contains NaN or either infinity after resolution/conversion" },
+      { "category": "schema", "code": "SCHEMA_UNSAFE_INTEGER", "status": 5, "conditions": "exact mathematical integral value or converted integral double is outside Number safe-integer range" },
+      { "category": "schema", "code": "SCHEMA_DECIMAL_RANGE", "status": 5, "conditions": "normalized decimal exponent is outside [-1147483646, 999999999]" },
+      { "category": "alias", "code": "ALIAS_UNDEFINED", "status": 5, "conditions": "alias name has no anchor in the current document, including a prior-document-only name" },
+      { "category": "alias", "code": "ALIAS_FORWARD", "status": 5, "conditions": "alias names an anchor declared later in the current document" },
+      { "category": "alias", "code": "ALIAS_CURRENT_NODE", "status": 5, "conditions": "alias directly names an anchor whose node has not completed composition/validation" },
+      { "category": "alias", "code": "ALIAS_CYCLE", "status": 5, "conditions": "an indirect alias chain would recursively re-enter a composing/copying node" },
+      { "category": "alias", "code": "ALIAS_DUPLICATE_ANCHOR", "status": 5, "conditions": "under Y2_DUPLICATE_ANCHOR choice B, an anchor name is declared twice in one document; under choice A this code is reserved and never emitted" },
+      { "category": "limit", "code": "LIMIT_MAX_INPUT_BYTES", "status": 5, "conditions": "cumulative received source bytes exceed 67108864" },
+      { "category": "limit", "code": "LIMIT_MAX_DOCUMENT_BYTES", "status": 5, "conditions": "current assigned raw document bytes exceed 8388608" },
+      { "category": "limit", "code": "LIMIT_MAX_VALUE_BYTES", "status": 5, "conditions": "one compact-measured composed/yielded graph exceeds 8388608" },
+      { "category": "limit", "code": "LIMIT_MAX_SCALAR_BYTES", "status": 5, "conditions": "one decoded scalar/key exceeds 1048576 UTF-8 bytes" },
+      { "category": "limit", "code": "LIMIT_MAX_QUERY_SOURCE_BYTES", "status": 5, "conditions": "filter exceeds 8192 UTF-8 bytes" },
+      { "category": "limit", "code": "LIMIT_MAX_DEPTH", "status": 5, "conditions": "one input/result graph exceeds depth 128" },
+      { "category": "limit", "code": "LIMIT_MAX_AST_DEPTH", "status": 5, "conditions": "compiled query AST exceeds depth 64" },
+      { "category": "limit", "code": "LIMIT_MAX_STEPS", "status": 5, "conditions": "single invocation Budget steps exceed 1000000" },
+      { "category": "limit", "code": "LIMIT_MAX_RESULTS", "status": 5, "conditions": "cumulative engine yields exceed 100000" },
+      { "category": "limit", "code": "LIMIT_MAX_COLLECTION_SIZE", "status": 5, "conditions": "one current collection exceeds 100000 members" },
+      { "category": "limit", "code": "LIMIT_MAX_DOCUMENTS", "status": 5, "conditions": "cumulative composed documents exceed 1024" },
+      { "category": "limit", "code": "LIMIT_MAX_ANCHORS_PER_DOCUMENT", "status": 5, "conditions": "current document anchors exceed 1024" },
+      { "category": "limit", "code": "LIMIT_MAX_ALIAS_REFERENCES", "status": 5, "conditions": "cumulative accepted aliases exceed 1024" },
+      { "category": "limit", "code": "LIMIT_MAX_DOCUMENT_NODES", "status": 5, "conditions": "current original-plus-alias-copy nodes exceed 100000" },
+      { "category": "limit", "code": "LIMIT_MAX_OUTPUT_BYTES", "status": 5, "conditions": "stdout exceeds 16773120 or combined admitted stdout/stderr exceeds 16777216" },
+      { "category": "limit", "code": "DIAGNOSTIC_TRUNCATED", "status": "inherits selected normal failure", "conditions": "fallback-only code when the preferred selected diagnostic cannot fit the reserve/cap" },
+      { "category": "vfs", "code": "VFS_INPUT_OPEN", "status": 2, "conditions": "a typed non-cancellation VFS failure occurs before a readStream iterator is returned for an operand" },
+      { "category": "vfs", "code": "VFS_INPUT_READ", "status": 2, "conditions": "a typed non-cancellation VFS failure rejects fallback readFile or readStream iteration after source creation" },
+      { "category": "encode", "code": "ENCODE_UNSUPPORTED_VALUE", "status": 5, "conditions": "yielded graph contains a non-Json value or unsupported object" },
+      { "category": "encode", "code": "ENCODE_INVALID_UNICODE", "status": 5, "conditions": "yielded string/key is not well-formed Unicode" },
+      { "category": "encode", "code": "ENCODE_CYCLIC_GRAPH", "status": 5, "conditions": "yielded graph contains a reference cycle" }
+    ],
+    "selection": [
+      "First apply argv entry count; then scan strings in index order for invalid Unicode and aggregate byte admission; then give CLI_INFO_COMBINATION precedence when an information token is present in a non-exact form.",
+      "Otherwise parse left-to-right. Immediate missing/invalid/refused/unknown errors win at their token; a duplicate wins at its second spelling; path/stdin errors win at the offending operand. After parsing, CLI_INCOMPATIBLE_OPTIONS is the sole postcheck.",
+      "A named limit always maps to its exact limit code (except the three CLI caps). Otherwise the first failure in operand, document, source-offset, composition, query-yield, validation, encode, and submit order is selected and stops further input.",
+      "No unknown exception is collapsed to a catalogue code: internal/programmer errors escape. Diagnostic rendering failure never replaces caller abort, sink/owned-output rejection, escaping control/execution failure, or cleanup failure."
+    ]
+  },
+  "outputAccounting": {
+    "stdoutCap": "16773120 inclusive; maxOutputBytes 16777216 minus 4096 reserved for stderr diagnostics",
+    "resultOrder": "Validate a yield, admit exactly one result, encode/preflight the entire document including YAML separator and LF, then admit all exact stdout bytes before the first sink write and before requesting another yield.",
+    "encoderPreallocation": "A private actual-output projection checks each escape, indentation run, fragment, separator, and LF against remaining stdout/combined capacity before retaining that fragment or allocating repeat/join/suffix/final-byte output. The global output counter advances once for the complete submit operation, not once per fragment.",
+    "failureQualification": "An admitted operation is charged in full and never reclaimed even if a sink accepts zero bytes, a prefix, or all bytes before rejecting. The counter is admitted-for-submission bytes, not physically written bytes. Earlier complete writes remain; no rollback/transaction is claimed.",
+    "prettyAndRaw": "Compact graph measure counts compact escaped JSON bytes. Actual output counts selected YAML or JSON formatting, raw string bytes, every separator, and final LF."
+  },
+  "counterAdmission": [
+    { "cap": "maxArgvEntries", "counter": "private preflight args.length", "point": "before string traversal", "lifetime": "one invocation; includes every context.args entry" },
+    { "cap": "maxArgvUtf8Bytes", "counter": "private checked byte sum", "point": "per well-formed argv string before CLI parse; no aggregate encoded buffer", "lifetime": "cumulative invocation argv only" },
+    { "cap": "maxVfsOperandPathBytes", "counter": "private per-operand UTF-8 measure", "point": "after operand role is known but before compile/I/O", "lifetime": "each literal non-dash VFS operand" },
+    { "cap": "maxInputBytes", "counter": "Budget.inputBytes through ownedWork.admitInputBytes", "point": "once per received readBytes chunk/fallback result, before retaining/copying/decoding; YAML does not pass the same bytes through structured readChunks", "lifetime": "cumulative all sources, including rejected bytes" },
+    { "cap": "maxDocumentBytes", "counter": "private current raw-document bytes", "point": "checked per assigned fragment before owned retained copy or decoded append; markers assigned exactly once", "lifetime": "reset only at legal document boundary" },
+    { "cap": "maxScalarBytes", "counter": "private decoded-scalar UTF-8 bytes", "point": "incrementally before retaining each decoded scalar/key fragment or escape result", "lifetime": "one scalar/key" },
+    { "cap": "maxValueBytes", "counter": "Budget.value/measure plus composer/alias projected compact-byte ledger", "point": "input composition preadmits each new node/member/scalar and alias bulk copy; engine yields are recursively checked only after engine allocation and before result admission/encoding", "lifetime": "one current composed/yielded graph" },
+    { "cap": "maxQuerySourceBytes", "counter": "Budget.limits.maxSourceBytes", "point": "UTF-8 byte admission before synchronous parse", "lifetime": "one compile; fixed 8192" },
+    { "cap": "maxDepth", "counter": "Budget.limits.maxDepth plus composer depth", "point": "before input collection/alias child allocation; after an engine yield during recursive validation", "lifetime": "one current graph" },
+    { "cap": "maxAstDepth", "counter": "Budget.limits.maxAstDepth", "point": "inside fixed synchronous parse recursion", "lifetime": "one stored AST" },
+    { "cap": "maxSteps", "counter": "one Budget.step/tick", "point": "existing engine points plus adopted yq-owned units", "lifetime": "cumulative invocation; never reset" },
+    { "cap": "maxResults", "counter": "Budget.results through ownedWork.admitResult", "point": "exactly once after yielded-graph validation and before encoding/publication; no reclaim", "lifetime": "cumulative invocation" },
+    { "cap": "maxCollectionSize", "counter": "Budget.collection", "point": "before input member allocation; existing engine checks plus yielded-graph validation", "lifetime": "one current collection" },
+    { "cap": "maxDocuments", "counter": "private checked documents", "point": "before composition/allocation/query of each explicit or nonempty bare document", "lifetime": "cumulative invocation; zero-document stream stays zero" },
+    { "cap": "maxAnchorsPerDocument", "counter": "private anchors", "point": "before retaining anchor name/metadata; duplicate checked first; anchor becomes usable only after node completion", "lifetime": "current document only" },
+    { "cap": "maxAliasReferences", "counter": "private checked aliases", "point": "after target validity and cached subtree projections pass, before deep-copy allocation", "lifetime": "cumulative invocation" },
+    { "cap": "maxDocumentNodes", "counter": "private original-plus-copy nodes", "point": "before each original node allocation; cached bulk projection before alias copy", "lifetime": "current document only" },
+    { "cap": "maxOutputBytes", "counter": "private encoder projection, then Budget.outputBytes after session; equivalent private output ledger on pre-session CLI/info paths", "point": "check before every encoder retained fragment/repeat/join/suffix/final buffer; admit the exact full operation globally once before first sink submit; preferred/fallback diagnostic separately preflighted", "lifetime": "combined cumulative invocation stdout/stderr; never reclaimed" },
+    { "cap": "diagnosticReserveBytes", "counter": "private stdout admitted bytes and remaining combined output", "point": "stdout preflight keeps 4096 unavailable; diagnostic preflight uses it", "lifetime": "fixed partition, not a second maximum" },
+    { "cap": "maxDisplayedFilenameBytes", "counter": "private incremental escaped-field UTF-8 bytes", "point": "before appending each escaped scalar or terminal in-string ...", "lifetime": "one diagnostic source field" }
+  ],
+  "workUnits": {
+    "owned": "Call Budget.step once per decoded Unicode code point, emitted token/event, composed node, alias-copied node, recursively validated node, and encoded node. For every distinct nonempty retained-copy, decoded-append, alias-payload-copy, encoder-fragment emit, or sink-submit operation, also charge ceil(operation UTF-8 bytes / 1024); splitting cannot create free payload work and may increase charges.",
+    "checkpoint": "After no more than 1023 yq-owned units without an await, call Budget.tick. tick itself adds the existing extra step and may yield only at Budget's private threshold; this promises neither an exact yield period nor observable callbacks.",
+    "compiler": "Argv validation, source-byte admission, fixed tokenizer/token/AST allocation, validation, regex and diagnostics are not claimed as maxSteps work. parse is synchronous and retains only its actual existing charges, notably Decimal conversion; source/AST caps are admissions, not hard preemption.",
+    "engine": "Retain every existing interpreter/Decimal/collection/value step. The adapter adds no query-instruction, allocation, promise, scheduler, or opaque-host charge."
+  },
+  "defaultBudgetMapping": {
+    "maxInputBytes": 67108864,
+    "maxValueBytes": 8388608,
+    "maxOutputBytes": 16777216,
+    "maxSourceBytes": 8192,
+    "maxDepth": 128,
+    "maxAstDepth": 64,
+    "maxSteps": 1000000,
+    "maxResults": 100000,
+    "maxCollectionSize": 100000
+  },
+  "retention": {
+    "wholeDocument": true,
+    "inventory": "R owned raw fragments, T decoded text, token/composition/anchor metadata, M expanded input, source/AST and opaque engine intermediates, Q current yield, E encoder fragments plus joined text, suffixed text, and final Uint8Array may coexist.",
+    "knownPayloadEnvelope": "M + Q + max(2E, 3E + 2s), with s separator/newline bytes",
+    "qualification": "This conservative logical-payload formula excludes metadata, JS string representation/ropes, allocator slack, GC lag, provider preallocation, and engine internals. A streaming provider may allocate before yielding, and fallback readFile may allocate before honoring/rejecting maxBytes; cancellation cannot undo that. Fixed caps are not an aggregate retained-heap, RSS, CPU, latency, live-lease, transaction, ABA, race, or hard-preemption guarantee."
+  },
+  "failureAndCleanupBoundary": {
+    "directHandler": "CommandDefinition.execute maps only catalogue normal failures to {exitCode}. Before/after any diagnostic attempt it preserves exact caller-signal reason; otherwise sink/accepted-owned-output rejection including EPIPE and escaping execution/control rejection; otherwise cleanup rejection. A primary raw failure wins while every admitted cleanup rejection is observed.",
+    "outerShell": "Shell/registry routing retains its own authenticated cancellation, downstream-close, pipeline, middleware, and cleanup selection. This addendum does not promise that every sink/owned-output event always rejects outer Shell.exec; it promises that yq does not remap it to a normal language status.",
+    "ownership": "Borrow context.signal. Register one shared idempotent close synchronously before input/output acquisition/admission and call the same close from finally. Close admissions first and drain admitted cooperative work. Use separate stdout/stderr createOutputOperation instances only when that destination advertises ownedOutput; a stdout consumer close does not cancel stderr, VFS/header work, siblings, or the whole context. Wrapping alone creates no ownership.",
+    "limits": "Cancellation cannot undo completed effects or forcibly stop synchronous parse/uncooperative host work. Optional registerCleanup omission leaves finally cleanup but creates no outer settlement barrier."
+  },
+  "yamlGrammarReview": {
+    "state": "PENDING_TWO_BOUNDED_ROOT_CHOICES",
+    "primary": "https://yaml.org/spec/1.2.2/",
+    "verified": [
+      "c-printable production 1 and nb-json production 2",
+      "node properties productions 96-97 and quoted/plain productions 107-135",
+      "implicit mapping-key productions 142-150 and 190-192",
+      "representation/key/anchor/alias rules in sections 3.2 and 7.1",
+      "document prefix/stream productions 202 and 211",
+      "Core tag resolution section 10.3",
+      "YAML 1.1 merge working draft only as exclusion context: https://yaml.org/type/merge.html"
+    ],
+    "diagnoses": [
+      "b311 invokes nb-json inside quoted scalars but also rejects raw U+FFFE/U+FFFF and forbidden raw controls there. Production 2 permits TAB and U+0020-U+10FFFF in quoted content (subject to quote/backslash grammar), including DEL/C1 and U+FFFE/U+FFFF; c-printable's narrower exclusions govern elsewhere.",
+      "YAML 1.2.2 permits anchor-name reuse and makes an alias target the most recent preceding matching anchor. b311 instead requires unique anchor names. Its already-explicit completed-anchor, no-current/cycle, deep-copy rules are also a deliberate graph-safety subset and remain adopted."
+    ],
+    "choices": [
+      {
+        "id": "Y1_QUOTED_NB_JSON",
+        "A": "Align to YAML 1.2.2 nb-json: accept those well-formed raw quoted characters, while escaping non-c-printable content on output.",
+        "B": "Retain b311's rejection and label it an intentional restricted-profile subset rather than YAML grammar conformance."
+      },
+      {
+        "id": "Y2_DUPLICATE_ANCHOR",
+        "A": "Align to YAML 1.2.2: permit anchor-name reuse and resolve an alias to the most recent preceding completed matching anchor, while retaining the no-current/cycle and deep-copy safety rules.",
+        "B": "Retain b311 unique anchor names and label that rule an intentional restricted-profile subset."
+      }
+    ],
+    "noSilentChoice": true
+  },
+  "preCodeFreeze": {
+    "required": [
+      "root checks exactInformation, publicApi, privateAdapter, diagnostics, and chooses A or B for each yamlGrammarReview decision",
+      "a different reviewer verifies Decimal range binding and numeric boundary cases",
+      "independent grammar/limit/counter cases are frozen later",
+      "the separate length protocol receives its own freeze/authorization"
+    ],
+    "forbiddenUntilThen": "No YAML parser, yq command, query bridge, exports, tests, dependency, refactor, or implementation is authorized."
+  },
+  "fixedSourceReferences": [
+    { "path": "src/commands/structured/limits.ts", "gitBlob": "f40c2edc755f14474ed50491b6f4118be33d7ae5", "lines": "4-24,45-99" },
+    { "path": "src/commands/structured/parser.ts", "gitBlob": "f1bb01cd4c0203109727b70eb3598bd7822298c4", "lines": "4-18,24-32,79-82,113-118" },
+    { "path": "src/commands/structured/interpreter.ts", "gitBlob": "f7e0dfcb1815aa90ae49d495e453b4d069139108", "lines": "10-24,54-63" },
+    { "path": "src/commands/structured/input.ts", "gitBlob": "6350b5c4f5b8cae9243cf6560c98d9e53cb3128e", "lines": "218-236,290-316" },
+    { "path": "src/commands/structured/numbers.ts", "gitBlob": "fe90b5fcbef68a4a2a4aed164d7599d0dcd22630", "lines": "3-7,48-74" },
+    { "path": "src/contracts/command.ts", "gitBlob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8", "lines": "21-55" },
+    { "path": "src/contracts/output.ts", "gitBlob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8", "lines": "4-13,27-43,51-68,75-119" },
+    { "path": "src/contracts/plugin.ts", "gitBlob": "69b685ebbf6cfb7d1068c419b7e4109e4f9179d4", "lines": "11-21" },
+    { "path": "src/contracts/errors.ts", "gitBlob": "d466866ce93c4feced56e2bd5fe4c41637e62226", "lines": "36-75" },
+    { "path": "src/shell/cleanup.ts", "gitBlob": "eae04650a553e4820da9c7b08b0255a6b20fc01c", "lines": "5-64" }
+  ],
+  "qualification": "Static immutable-Git source, JSON, and official primary-specification inspection only. No current implementation, tests, product/native/reference execution, compatibility, performance, heap/RSS, parity, superiority, or completion claim."
+}

@@ -1,0 +1,13 @@
+import {readFileSync,readdirSync} from 'node:fs';
+import {join} from 'node:path';
+import {createHash} from 'node:crypto';
+import {gzipSync} from 'node:zlib';
+import assert from 'node:assert/strict';
+const [root,label]=process.argv.slice(2);
+assert.match(root,/^\/private\/tmp\/unified76-inherited-author-[A-Za-z0-9]+$/u);
+assert.match(label,/^RUN-V[12]$/u);
+const entries=readdirSync(root).filter(name=>name.endsWith('.json')).sort().map(name=>{const bytes=readFileSync(join(root,name));return {name,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex'),content:bytes.toString()};});
+const body=Buffer.from(JSON.stringify({root,entries})),encoded=gzipSync(body).toString('base64');
+const here='tests/integration/full-gate-20260827/unified76-driver/inherited-routes-author-v1/';
+const manifest=JSON.stringify({root,bodySha256:createHash('sha256').update(body).digest('hex'),encoding:'gzip-base64',entries:entries.map(({content,...entry})=>entry)},null,2);
+console.log('*** Begin Patch\n*** Add File: '+here+label+'.json.gz.base64\n+'+encoded+'\n*** Add File: '+here+label+'-INDEX.json\n'+manifest.split('\n').map(line=>'+'+line).join('\n')+'\n*** End Patch');

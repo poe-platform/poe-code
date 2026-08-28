@@ -9,18 +9,18 @@ import {verifyToolFile} from '../launcher-v3/tool-routing.mjs';
 
 const here=dirname(fileURLToPath(import.meta.url)),launcher=resolve(here,'../launcher-v3');
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
-export async function run(){
+export async function run({focused=false}={}){
   const node='/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node';
   const receipt=JSON.parse(readFileSync(join(launcher,'EXTERNAL-RECEIPT.json'))),encoded=readFileSync(join(launcher,'EXTERNAL.json.gz.base64'));
   assert.equal(digest(encoded),receipt.encodedSha256);const decoded=gunzipSync(Buffer.from(encoded.toString().trim(),'base64'));assert.equal(digest(decoded),receipt.sha256);
   const record=JSON.parse(decoded).tools.find(row=>row.origin===node);assert.ok(record);verifyToolFile(record);
   const root=realpathSync(mkdtempSync('/tmp/unified76-inherited-author-'));
-  const binding=JSON.parse(readFileSync(join(here,'AUTHOR-BINDING.json')));
+  const binding=JSON.parse(readFileSync(join(here,focused?'AUTHOR-BINDING-V2.json':'AUTHOR-BINDING.json')));
   const verify=()=>{for(const[file,hash]of Object.entries(binding.files))assert.equal(digest(readFileSync(resolve(here,file))),hash,file);};verify();
   const report={startedAt:new Date().toISOString(),root,binding,node:record,groups:[],status:'RUNNING',policy:'Ten presealed author groups only; no gate/prerequisites/private engine/A10; no old attempt rescore.'};
   writeFileSync(join(root,'START.json'),JSON.stringify(report,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({root,startedAt:report.startedAt}));
   const started=Date.now();
-  for(let number=1;number<=10;number++){
+  for(const number of focused?[9]:[1,2,3,4,5,6,7,8,9,10]){
     assert.ok(Date.now()-started<600000,'author cohort deadline');verify();verifyToolFile(record);
     const group='G'+String(number).padStart(2,'0'),work=join(root,group);mkdirSync(work);mkdirSync(join(work,'home'));mkdirSync(join(work,'tmp'));
     const result=await new Promise(resolveResult=>{
@@ -38,9 +38,9 @@ export async function run(){
     report.groups.push({...result,observations,passed});console.log(JSON.stringify({group,passed,status:result.status,checks:observations?.checks.length}));
     if(result.violation||result.spawnError||result.signal)break;
   }
-  verify();report.finishedAt=new Date().toISOString();report.passed=report.groups.filter(row=>row.passed).length;report.failed=report.groups.filter(row=>!row.passed).length;report.notExecuted=10-report.groups.length;report.status=report.passed===10?'AUTHOR_PASS':'AUTHOR_NONPASS';
+  verify();report.finishedAt=new Date().toISOString();report.passed=report.groups.filter(row=>row.passed).length;report.failed=report.groups.filter(row=>!row.passed).length;report.notExecuted=10-report.groups.length;report.status=report.passed===(focused?1:10)?(focused?'AUTHOR_FOCUSED_PASS':'AUTHOR_PASS'):'AUTHOR_NONPASS';
   report.qualification='Natural worker close and bounded synchronous Git completion; no universal detached-child/kernel-drain claim. Retained new roots, no failed-root mutation.';
   writeFileSync(join(root,'REPORT.json'),JSON.stringify(report,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({root,status:report.status,passed:report.passed,failed:report.failed,notExecuted:report.notExecuted}));
   return report.status==='AUTHOR_PASS'?0:1;
 }
-if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){assert.deepEqual(process.argv.slice(2),['--run']);process.exitCode=await run();}
+if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){assert.equal(process.argv.length,3);assert.ok(['--run','--run-g09-v2'].includes(process.argv[2]));process.exitCode=await run({focused:process.argv[2]==='--run-g09-v2'});}

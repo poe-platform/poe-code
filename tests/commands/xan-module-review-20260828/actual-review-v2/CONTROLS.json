@@ -1,0 +1,80 @@
+{
+  "classification": "SYNTHETIC_PARENT_RECEIPT_CONTROLS_NOT_PRODUCT",
+  "records": [
+    {
+      "kind": "valid",
+      "admitted": true,
+      "aggregateExit": 0,
+      "rawSha256": "53bbf3abf84c153803bdfc047035e09fb19112093bf03215f341988405b8d6a6"
+    },
+    {
+      "kind": "missing",
+      "admitted": false,
+      "error": "A01_HOLD_DEPENDENTS: exactly one finalization\n\n0 !== 1\n",
+      "rawSha256": "244957fd5ac5a28d2bc01558de8e56d64481a4126eb01564f028bbd44643a2ef"
+    },
+    {
+      "kind": "duplicate",
+      "admitted": false,
+      "error": "A01_HOLD_DEPENDENTS: exactly one finalization\n\n2 !== 1\n",
+      "rawSha256": "af26b6300eee7f963fb21be67e15e9a63cef3d63b27f4f8b168e6e06c0d3bfd0"
+    },
+    {
+      "kind": "stale",
+      "admitted": false,
+      "error": "A01_HOLD_DEPENDENTS: receipt nonce\n+ actual - expected\n\n+ 'old'\n- 'control-only'\n",
+      "rawSha256": "e2a831bcf3e50138b541ab405fcb9ae707ed9a3f9e1afda3b9a5232517154f2a"
+    },
+    {
+      "kind": "wrong-manifest",
+      "admitted": false,
+      "error": "A01_HOLD_DEPENDENTS: receipt manifest\n+ actual - expected\n\n+ 'other'\n- 'sealed-control'\n",
+      "rawSha256": "c26b0cc4aa63f497f4f820aefd2ca93b41465b2df5b469f2e117780aebc6628b"
+    },
+    {
+      "kind": "wrong-count",
+      "admitted": false,
+      "error": "A01_HOLD_DEPENDENTS: Expected values to be strictly equal:\n\n0 !== 1\n",
+      "rawSha256": "16ec0cbcf6513f78da823353178aa61995f75d935f32564b243f10eac74419a9"
+    },
+    {
+      "kind": "unclosed",
+      "admitted": false,
+      "error": "A01_HOLD_DEPENDENTS: Expected values to be strictly equal:\n\nfalse !== true\n",
+      "rawSha256": "9c62982eaa23fcdab89c00e6f18392d7dcfeccd0c317600321719d181b9eaf89"
+    },
+    {
+      "kind": "incomplete",
+      "admitted": false,
+      "error": "A01_HOLD_DEPENDENTS: Expected values to be strictly equal:\n\nfalse !== true\n",
+      "rawSha256": "a013dc9b41472fa690e5fd340f4cc04922fbb846a0b304c82b736670b9a1530d"
+    },
+    {
+      "kind": "missing-case",
+      "admitted": false,
+      "error": "A01_HOLD_DEPENDENTS: all required IDs exactly once\n+ actual - expected\n\n+ []\n- [\n-   'required'\n- ]\n",
+      "rawSha256": "ab8c90ee782e2b3491ada346829f0fcee0a9058a3a32a006e9ebf41fe8d7e839"
+    },
+    {
+      "kind": "nonfinal",
+      "admitted": false,
+      "error": "A01_HOLD_DEPENDENTS: finalization must be final record\n+ actual - expected\n\n  {\n+   stage: 'late'\n-   closed: true,\n-   complete: true,\n-   completedCount: 1,\n-   failures: 0,\n-   intact: true,\n-   job: 'actual-parent-control',\n-   manifest: 'sealed-control',\n-   nonce: 'control-only',\n-   phase: 'MODULE',\n-   rawBound: 65536,\n-   requiredCount: 1,\n-   requiredIds: [\n-     'required'\n-   ],\n-   stage: 'FINALIZATION'\n  }\n",
+      "rawSha256": "235ae81b8dbea9d208e801e85ff650aafa74efde99cbd95e43550efa19dc2aab"
+    },
+    {
+      "kind": "ordinary-failure",
+      "admitted": true,
+      "aggregateExit": 1,
+      "rawSha256": "105259bcadb2fb12f2db553285c9e01fbd7cf188b671b254d90c6d5d03babaf4"
+    },
+    {
+      "kind": "exit0-failure",
+      "admitted": true,
+      "aggregateExit": 1,
+      "rawSha256": "105259bcadb2fb12f2db553285c9e01fbd7cf188b671b254d90c6d5d03babaf4"
+    }
+  ],
+  "passed": 12,
+  "failed": 0,
+  "children": 0
+}

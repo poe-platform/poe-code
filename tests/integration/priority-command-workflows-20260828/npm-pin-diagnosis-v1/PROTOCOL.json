@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "start": "2026-08-28T18:43:42.647Z",
+  "deadline": "2026-08-28T18:48:42.647Z",
+  "ownership": "tests/integration/priority-command-workflows-20260828/npm-pin-diagnosis-v1",
+  "authority": "SOURCE/DATA diagnosis only; no dispatch, GO or original edits",
+  "budget": {
+    "seconds": 300,
+    "directChildren": 8,
+    "peakProcesses": 2,
+    "capturedBytes": 16777216,
+    "newBytes": 67108864
+  },
+  "initialCounters": {
+    "children": 1,
+    "captured": 26754,
+    "peak": 2
+  },
+  "protocol": [
+    "Read preserved HOLD and immutable historical receipts as data only. Never scan tool filesystem.",
+    "Authenticate entire originalRows canonical JSON UTF-8 without newline. Trace required pin from bounded historical records; if exact bytes absent, report insufficient provenance and propose no expected-pin change.",
+    "Preseal finite controls before evaluating: full historical rows equality; old-domain projection if authenticated; negatives UTF16LE, appended newline, reversed row order, changed first mode, changed first row digest, wrong projection. Expected negative outcome: unequal to corresponding authenticated pin.",
+    "Preserve every raw child failure. All edits via apply_patch. Read/hash existing originals before and after. Seal owned evidence; commit explicit owned files only with hooks and signing disabled.",
+    "Original 42 author /13 independent /93 unrun unchanged; reservation exclusive unspent not reused; no actual dispatch."
+  ],
+  "allowedChildren": "Sequential metadata/control only: status, locate apply_patch, patches, Git add/commit/status. Every launch counted including patch tool."
+}

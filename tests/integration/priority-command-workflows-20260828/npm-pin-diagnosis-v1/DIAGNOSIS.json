@@ -1,0 +1,584 @@
+{
+  "version": 1,
+  "role": "SOURCE_DATA_CORRECTION_CANDIDATE_DIFFERENT_REVIEW_REQUIRED_NO_GO",
+  "createdAt": "2026-08-28T18:47:11.603Z",
+  "finding": "Confirmed wrong hash-domain binding, not observed npm drift. BINDINGS npm sha256 inherited historical tools.npm.copiedSha256 while its inventoryPointer and supervisor assertion require complete originalRows. Copy projection omits exactly 12 internal .bin symlink tuples; all 2027 regular-file tuples and their 0644/0755 modes remain identical.",
+  "provenance": {
+    "originalPacket": "5d432becbe385eb323c10feecfa5e982bfd3b099",
+    "hold": "357fc23a577667ee79531c5e34709300d50d4986",
+    "code": "2a63780fd8ddd8bd97b6f2ad31ac33e969da5bae",
+    "sealCommit": "a63169d1d84f4d81812cafa3b58c1e0624090c3e",
+    "archive": {
+      "path": "tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64",
+      "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+      "bytes": 5916905,
+      "sha256": "a49b8a7055ac2902d1368ddb638d62c5a1896dc9ed25c18b025816a710077509",
+      "gzipSha256": "af8bebfcfd125e6008e3ec2071f030a7a438e48b5b01b3720f9ff637378f1f4c",
+      "decodeBound": 67108864,
+      "packagePointer": "pack.base64",
+      "qualification": "Authenticated encoded archive, bounded JSON decode and package tar metadata/declarations in memory only. No archived source strings decoded/evaluated, no code import, no disk extraction."
+    },
+    "archiveAuthentication": {
+      "encodedSha256": "a49b8a7055ac2902d1368ddb638d62c5a1896dc9ed25c18b025816a710077509",
+      "gzipSha256": "af8bebfcfd125e6008e3ec2071f030a7a438e48b5b01b3720f9ff637378f1f4c",
+      "decodedBytes": 22245048,
+      "source": "Immutable original BINDINGS.archive SHA-256 authenticates exact archive bytes even though historical commit was not found as a loose object; no claim packed Git object absence."
+    },
+    "historicalOriginalPin": {
+      "path": "tests/integration/coherent78-shell-independent-20260828/PRESEAL.json",
+      "sha256": "472dc457e162015c0105d2afbbf1a5db79e1bc17893b7ddb5d61f24f399f0cb5",
+      "pointer": "/tools/npm/manifest",
+      "value": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+      "authenticatedBy": "archive.executor.artifacts[PRESEAL.json]"
+    },
+    "historicalCopyPin": {
+      "pointer": "archive.tools.npm.copiedSha256",
+      "value": "dddb66e1a4d791167c74de1226a4a1263be7485302658eeb7d3ce800c0636d9d"
+    },
+    "historicalSource": {
+      "path": "tests/integration/coherent78-shell-independent-20260828/run-v2.mjs.data",
+      "sha256": "2c5ff316a4fda0548869101cf9da58bbaad864c5b7dacb114e647d6ccd0350be",
+      "authenticatedBy": "archive.executor.artifacts[run-v2.mjs.data]",
+      "anchors": [
+        {
+          "line": 111,
+          "text": "function toolRows(root) {"
+        },
+        {
+          "line": 121,
+          "text": "    if (mode === 'SYMLINK') { assert.ok(relative.includes('/.bin/')); assert.ok(fs.realpathSync(path.join(origin, relative)).startsWith(origin + path.sep)); omitted.push([relative, bytes]); continue; }"
+        },
+        {
+          "line": 122,
+          "text": "    const target = path.join(destination, relative); fs.mkdirSync(path.dirname(target), { recursive: true }); fs.copyFileSync(path.join(origin, relative), target); fs.chmodSync(target, mode); assert.equal(sha(fs.readFileSync(target)), digest);"
+        },
+        {
+          "line": 124,
+          "text": "  const copied = toolRows(destination); assert.deepEqual(copied, rows.filter(row => row[1] !== 'SYMLINK'));"
+        },
+        {
+          "line": 125,
+          "text": "  evidence.tools[name] = { origin, destination, version: pin.version, originalRows: rows, omittedInternalBinLinks: omitted, copiedSha256: sha(JSON.stringify(copied)) };"
+        },
+        {
+          "line": 204,
+          "text": "  evidence.layouts.push({ layout: label, root, product, caseIdentities: rows.length, positiveExecutions: rows.filter(row => row.records.some(item => item.id && item.id !== 'R15')).length, positivePass: rows.filter(row => row.accepted && row.records.some(item => item.id && item.id !== 'R15')).length, refusalExecutions: rows.filter(row => row.records.some(item => item.id === 'R15')).length, refusalPass: rows.filter(row => row.accepted && row.records.some(item => item.id === 'R15')).length, created: rows.reduce((sum, row) => sum + row.records.find(item => item.id).created, 0), disposed: rows.reduce((sum, row) => sum + row.records.find(item => item.id).disposed, 0), loadedCount: loads.size, loads: [...loads].sort().map(([relative, sha256]) => ({ relative, sha256 })) });"
+        }
+      ]
+    },
+    "consumerSource": {
+      "path": "tests/integration/priority-command-workflows-20260828/future-supervisor.mjs",
+      "sha256": "c97b25742f0afdf18b89267e4eb82ad7682a39941838bc54e69f3ecb48071f00",
+      "anchors": [
+        {
+          "line": 98,
+          "text": "function toolRows(origin) {"
+        },
+        {
+          "line": 112,
+          "text": "  const rows = toolRows(origin); assert.deepEqual(rows, raw.tools[name].originalRows); assert.equal(sha(JSON.stringify(rows)), pin.sha256);"
+        },
+        {
+          "line": 115,
+          "text": "    const target = path.join(destination, relative); fs.mkdirSync(path.dirname(target), { recursive: true }); fs.copyFileSync(path.join(origin, relative), target); fs.chmodSync(target, mode); assert.equal(sha(fs.readFileSync(target)), digest); assert.equal(fs.statSync(target).size, bytes);"
+        },
+        {
+          "line": 117,
+          "text": "  assert.deepEqual(toolRows(destination), rows.filter(row => row[1] !== 'SYMLINK'));"
+        },
+        {
+          "line": 118,
+          "text": "  evidence.tools[name] = { origin, destination, originalRowsSha256: sha(JSON.stringify(rows)), copiedSha256: sha(JSON.stringify(toolRows(destination))) };"
+        }
+      ]
+    },
+    "bindingAnchors": [
+      {
+        "line": 578,
+        "text": "        \"sha256\": \"dddb66e1a4d791167c74de1226a4a1263be7485302658eeb7d3ce800c0636d9d\","
+      },
+      {
+        "line": 580,
+        "text": "        \"inventoryPointer\": \"tools[\\\"npm\\\"].originalRows\","
+      }
+    ],
+    "objectProofs": [
+      {
+        "commit": "357fc23a577667ee79531c5e34709300d50d4986",
+        "path": "tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/MANIFEST.json",
+        "oid": "d8eaa02dca502bfdbbeeb775e82979bda6129696",
+        "sha256": "8dd5915da752a1dbf1ef7d57881e26306a5f458b4c2fc04b4d82d52cd02294a8",
+        "bytes": 2293,
+        "verified": true
+      },
+      {
+        "commit": "5d432becbe385eb323c10feecfa5e982bfd3b099",
+        "path": "tests/integration/priority-command-workflows-20260828/BINDINGS.json",
+        "oid": "bfbaaba70626213fe074efc32dc1c4f180364d29",
+        "sha256": "95a3a22316c56af800112335a3591dbd8590418f13b7f62525b3d9090193f11a",
+        "bytes": 30714,
+        "verified": true
+      },
+      {
+        "commit": "5d432becbe385eb323c10feecfa5e982bfd3b099",
+        "path": "tests/integration/priority-command-workflows-20260828/MANIFEST.json",
+        "oid": "ddfcde9aa01182c989995f48ac3b80642946b435",
+        "sha256": "9f37ca652c21fb233923ca7ba2a387325e7a7e34e58ca1e7c620d92551b089a4",
+        "bytes": 1542,
+        "verified": true
+      },
+      {
+        "commit": "a63169d1d84f4d81812cafa3b58c1e0624090c3e",
+        "path": "tests/integration/priority-command-workflows-20260828/PREPARATION-SEAL-v3.json",
+        "oid": "1e4d17bacb7278c7e9ea97586e40063fd9189a76",
+        "sha256": "00ee97d8617eb75a4ac47bf383b19c186a12a8fcd4144096fd08a54d2f2d45ea",
+        "bytes": 20766,
+        "verified": true
+      },
+      {
+        "commit": "633f6c82f738f1c69d6c7b6c91672524ec8688b2",
+        "path": "tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64",
+        "verified": false,
+        "error": "Error: ENOENT: no such file or directory, open '/Users/kjopek/Workspace/safe-bash/.git/objects/63/3f6c82f738f1c69d6c7b6c91672524ec8688b2'"
+      },
+      {
+        "commit": "2a63780fd8ddd8bd97b6f2ad31ac33e969da5bae",
+        "path": "tests/integration/priority-command-workflows-20260828/future-supervisor.mjs",
+        "oid": "94e2e229c1a1b8314bb2fb6937f2f82733bc1909",
+        "sha256": "c97b25742f0afdf18b89267e4eb82ad7682a39941838bc54e69f3ecb48071f00",
+        "bytes": 23692,
+        "verified": true
+      }
+    ],
+    "holdAuth": [
+      {
+        "path": "ROOT-DISPATCH-CONFIRMATION.md",
+        "expected": "5266dbdfe7e98f34f29116e1612defb797760f526a31164f4e00492e538f1efc",
+        "actual": "5266dbdfe7e98f34f29116e1612defb797760f526a31164f4e00492e538f1efc",
+        "bytes": 5408,
+        "pass": true
+      },
+      {
+        "path": "PREAUTH.json",
+        "expected": "694033e88e505a182812ef564114c8a1980102e5c62ac47ea6c6ef006a43a4d3",
+        "actual": "694033e88e505a182812ef564114c8a1980102e5c62ac47ea6c6ef006a43a4d3",
+        "bytes": 147250,
+        "pass": true
+      },
+      {
+        "path": "HOLD-RECEIPT.json",
+        "expected": "fdf7d97d1a1584de741fe420ceef2a6d2d7ef1e3ffda4b87ee44c2cb0ec1d345",
+        "actual": "fdf7d97d1a1584de741fe420ceef2a6d2d7ef1e3ffda4b87ee44c2cb0ec1d345",
+        "bytes": 15321,
+        "pass": true
+      },
+      {
+        "path": "NPM-ORIGINAL-INVENTORY.json",
+        "expected": "242f6ef74dfaf422c6513707c33187af5bc90297f8479d9a1bec72206afb3f79",
+        "actual": "242f6ef74dfaf422c6513707c33187af5bc90297f8479d9a1bec72206afb3f79",
+        "bytes": 301990,
+        "pass": true
+      },
+      {
+        "path": "NPM-FAILURE.txt",
+        "expected": "e10718f17ba7572b386f19ad7547630cdc6aee52af4722ccdcbce2e295517b66",
+        "actual": "e10718f17ba7572b386f19ad7547630cdc6aee52af4722ccdcbce2e295517b66",
+        "bytes": 163,
+        "pass": true
+      },
+      {
+        "path": "ROOT-HOLD-CONFIRMATION.txt",
+        "expected": "c1a1748a6ab08492b14049b9108a6da066c57d25f2ecbaebe14e7a5ee49da079",
+        "actual": "c1a1748a6ab08492b14049b9108a6da066c57d25f2ecbaebe14e7a5ee49da079",
+        "bytes": 947,
+        "pass": true
+      }
+    ]
+  },
+  "canonicalization": {
+    "hash": "SHA-256",
+    "encoding": "UTF-8 JSON.stringify ordered tuples, no BOM and no trailing newline",
+    "ordering": "Historical depth-first recursion with each fs.readdirSync result .sort(); retain archived row order, not resorting a flat path list.",
+    "regularTuple": "[relativePath, stat.mode & 511, byteLength, sha256(fileBytes)]",
+    "symlinkTuple": "[relativePath, \"SYMLINK\", fs.readlinkSync(filename)]",
+    "directoryRows": false,
+    "copiedProjection": "originalRows.filter(row => row[1] !== 'SYMLINK')",
+    "fullBytesArtifact": "originalRows.canonical.utf8.base64",
+    "copiedBytesArtifact": "copiedRows.canonical.utf8.base64",
+    "decoding": "Decode base64 text (storage final LF ignored); decoded bytes are EXACT canonical JSON, with no final LF."
+  },
+  "controls": {
+    "presealSha256": "ddcd2291e923759f6bb0cdecf46a64e7d4f64b2e5de08a93440001c87776bd1c",
+    "full": {
+      "rows": 2039,
+      "bytes": 249034,
+      "sha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+      "expected": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+      "allRowsEqual": true,
+      "preservedCanonicalBytes": 249034,
+      "preservedCanonicalSha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    "copied": {
+      "rows": 2027,
+      "bytes": 248103,
+      "sha256": "dddb66e1a4d791167c74de1226a4a1263be7485302658eeb7d3ce800c0636d9d",
+      "expected": "dddb66e1a4d791167c74de1226a4a1263be7485302658eeb7d3ce800c0636d9d",
+      "matchesHistoricalCopiedSha256": true
+    },
+    "negatives": [
+      {
+        "id": "encoding",
+        "bytes": 498068,
+        "sha256": "6b0a86fd88332cb8bcffc605848484aaed690cbc1f9eabb9ba03cb5a41b8bec8",
+        "rejected": true
+      },
+      {
+        "id": "newline",
+        "bytes": 249035,
+        "sha256": "75bf87a11ca32efb09e80d9200aaca664ef8977af6b5b1d92e97c0e3415d3342",
+        "rejected": true
+      },
+      {
+        "id": "order",
+        "bytes": 249034,
+        "sha256": "f626aa857b2fd68398b2331413896327eddc02f4b90105ceea8f6925545365ea",
+        "rejected": true
+      },
+      {
+        "id": "mode",
+        "bytes": 249034,
+        "sha256": "46bec02de9f04a521e66d6cdbcc6855faa52cdee275543ed3a852c71b6f6d088",
+        "rejected": true
+      },
+      {
+        "id": "changedrow",
+        "bytes": 249034,
+        "sha256": "9eabb027eddd28f9e40ca4071c6a6607f8d1051d4ed7786d9d2f6e1c90b221f0",
+        "rejected": true
+      },
+      {
+        "id": "wrongprojection-full",
+        "bytes": 248103,
+        "sha256": "dddb66e1a4d791167c74de1226a4a1263be7485302658eeb7d3ce800c0636d9d",
+        "rejected": true
+      },
+      {
+        "id": "wrongprojection-copy",
+        "bytes": 249034,
+        "sha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+        "rejected": true
+      }
+    ]
+  },
+  "deltas": {
+    "observedVersusArchived": {
+      "rowCount": 0,
+      "path": 0,
+      "order": 0,
+      "mode": 0,
+      "bytes": 0,
+      "digest": 0,
+      "symlinkTarget": 0,
+      "completeCanonicalByteEquality": true
+    },
+    "originalVersusCopy": {
+      "removedRows": [
+        [
+          "node_modules/.bin/arborist",
+          "SYMLINK",
+          "../@npmcli/arborist/bin/index.js"
+        ],
+        [
+          "node_modules/.bin/cssesc",
+          "SYMLINK",
+          "../cssesc/bin/cssesc"
+        ],
+        [
+          "node_modules/.bin/glob",
+          "SYMLINK",
+          "../glob/dist/esm/bin.mjs"
+        ],
+        [
+          "node_modules/.bin/installed-package-contents",
+          "SYMLINK",
+          "../@npmcli/installed-package-contents/bin/index.js"
+        ],
+        [
+          "node_modules/.bin/node-gyp",
+          "SYMLINK",
+          "../node-gyp/bin/node-gyp.js"
+        ],
+        [
+          "node_modules/.bin/node-which",
+          "SYMLINK",
+          "../which/bin/which.js"
+        ],
+        [
+          "node_modules/.bin/nopt",
+          "SYMLINK",
+          "../nopt/bin/nopt.js"
+        ],
+        [
+          "node_modules/.bin/pacote",
+          "SYMLINK",
+          "../pacote/bin/index.js"
+        ],
+        [
+          "node_modules/.bin/qrcode-terminal",
+          "SYMLINK",
+          "../qrcode-terminal/bin/qrcode-terminal.js"
+        ],
+        [
+          "node_modules/.bin/semver",
+          "SYMLINK",
+          "../semver/bin/semver.js"
+        ],
+        [
+          "node_modules/@npmcli/metavuln-calculator/node_modules/.bin/pacote",
+          "SYMLINK",
+          "../pacote/bin/index.js"
+        ],
+        [
+          "node_modules/cross-spawn/node_modules/.bin/node-which",
+          "SYMLINK",
+          "../which/bin/node-which"
+        ]
+      ],
+      "removedBytes": 931,
+      "remainingRowsUnmodified": true,
+      "modesDecimal": [
+        420,
+        493
+      ],
+      "omittedInternalBinLinksExactlyEqual": true
+    }
+  },
+  "cascade": [
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/BINDINGS.json",
+      "candidate": "tests/integration/priority-command-workflows-20260828/npm-pin-diagnosis-v1/proposed/BINDINGS.json.data",
+      "before": "95a3a22316c56af800112335a3591dbd8590418f13b7f62525b3d9090193f11a",
+      "after": "17a976b5644a8a0c4cfb6b1ff69789939dc67b2954a1aaec86ba0da06e8fea00",
+      "bytes": 30714,
+      "change": "/toolClosure/tools/npm/sha256: copied-domain pin -> authenticated originalRows-domain pin"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/MANIFEST.json",
+      "candidate": "tests/integration/priority-command-workflows-20260828/npm-pin-diagnosis-v1/proposed/MANIFEST.json.data",
+      "before": "9f37ca652c21fb233923ca7ba2a387325e7a7e34e58ca1e7c620d92551b089a4",
+      "after": "45bc9f53e43ca53062fbb556a829b9ba58ea31ac170cabc025c7160568611968",
+      "bytes": 1542,
+      "change": "Only files entry path=BINDINGS.json sha256"
+    },
+    {
+      "original": "tests/integration/priority-command-workflows-20260828/PREPARATION-SEAL-v3.json",
+      "candidate": "tests/integration/priority-command-workflows-20260828/npm-pin-diagnosis-v1/proposed/PREPARATION-SEAL-v3.json.data",
+      "before": "00ee97d8617eb75a4ac47bf383b19c186a12a8fcd4144096fd08a54d2f2d45ea",
+      "after": "14048032381ed59af8af658bdb4ca83c752128acec4828fa21eb2414e8058ab7",
+      "bytes": 20766,
+      "change": "Only files entries path=BINDINGS.json and MANIFEST.json sha256; mechanical DATA projection, NOT an approved coherent executable seal"
+    }
+  ],
+  "laterApproval": {
+    "currentHarnessExecutable": false,
+    "reason": "admission.mjs:10 pins original packet; source-auth.mjs:72 authenticates eight original commit:path blobs against local bytes. Corrected BINDINGS/MANIFEST cannot truthfully claim those old stored objects. A separately reviewed explicit overlay-binding or new packet/code identity plus regenerated source authentication and preparation seal is required; exact future commit/source-auth hashes are unknowable before authorized materialization.",
+    "unchangedHistoricalRecords": [
+      "SOURCE-AUTH.json",
+      "all eight frozen packet files",
+      "GO.json",
+      "PARENT-BUDGET.json",
+      "HOLD records",
+      "31 cases",
+      "candidate and tool bytes",
+      "allow permissions"
+    ],
+    "projectedSealLimitation": "Projected preparation seal updates only deterministic digest cascade; preserves original historical SOURCE-AUTH and packet references, so it is not independently executable or an authorization. Fresh CORRECTION-SEAL.json seals only this additive DATA candidate.",
+    "noFreshGO": true,
+    "noRetry": true,
+    "reservation": "exclusive unspent not reused"
+  },
+  "scope": {
+    "actualDispatch": 0,
+    "productTests": 0,
+    "currentToolScans": 0,
+    "currentToolExecutions": 0,
+    "authorControls": 42,
+    "independentControls": 13,
+    "unrun": 93,
+    "composition": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+    "packageSha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e"
+  },
+  "limits": [
+    "No present filesystem drift statement: equality is preserved HOLD versus authenticated historical inventory only.",
+    "Historical regular content is represented by authenticated digest/size records, not re-read tool bytes.",
+    "Loose historical archive-commit lookup failed ENOENT and is preserved; immutable BINDINGS SHA-256 still authenticates complete archive.",
+    "Original-path before/after checks do not prove append-proof unchanged whole repository; concurrent unrelated changes preserved."
+  ],
+  "immutableChecks": [
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/BINDINGS.json",
+      "sha256": "95a3a22316c56af800112335a3591dbd8590418f13b7f62525b3d9090193f11a",
+      "bytes": 30714,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/MANIFEST.json",
+      "sha256": "9f37ca652c21fb233923ca7ba2a387325e7a7e34e58ca1e7c620d92551b089a4",
+      "bytes": 1542,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/SOURCE-AUTH.json",
+      "sha256": "84b058dbe83af1263803fadde5428a86ad04b8e506518802f628343e5967de0b",
+      "bytes": 99375,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/PREPARATION-SEAL-v3.json",
+      "sha256": "00ee97d8617eb75a4ac47bf383b19c186a12a8fcd4144096fd08a54d2f2d45ea",
+      "bytes": 20766,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/PREAUTH.json",
+      "sha256": "694033e88e505a182812ef564114c8a1980102e5c62ac47ea6c6ef006a43a4d3",
+      "bytes": 147250,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/HOLD-RECEIPT.json",
+      "sha256": "fdf7d97d1a1584de741fe420ceef2a6d2d7ef1e3ffda4b87ee44c2cb0ec1d345",
+      "bytes": 15321,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/NPM-ORIGINAL-INVENTORY.json",
+      "sha256": "242f6ef74dfaf422c6513707c33187af5bc90297f8479d9a1bec72206afb3f79",
+      "bytes": 301990,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/NPM-FAILURE.txt",
+      "sha256": "e10718f17ba7572b386f19ad7547630cdc6aee52af4722ccdcbce2e295517b66",
+      "bytes": 163,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64",
+      "sha256": "a49b8a7055ac2902d1368ddb638d62c5a1896dc9ed25c18b025816a710077509",
+      "bytes": 5916905,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/future-supervisor.mjs",
+      "sha256": "c97b25742f0afdf18b89267e4eb82ad7682a39941838bc54e69f3ecb48071f00",
+      "bytes": 23692,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/coherent78-shell-independent-20260828/run-v2.mjs.data",
+      "sha256": "2c5ff316a4fda0548869101cf9da58bbaad864c5b7dacb114e647d6ccd0350be",
+      "bytes": 33815,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/coherent78-shell-independent-20260828/PRESEAL.json",
+      "sha256": "472dc457e162015c0105d2afbbf1a5db79e1bc17893b7ddb5d61f24f399f0cb5",
+      "bytes": 9234,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/MANIFEST.json",
+      "sha256": "8dd5915da752a1dbf1ef7d57881e26306a5f458b4c2fc04b4d82d52cd02294a8",
+      "bytes": 2293,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/source-auth.mjs",
+      "sha256": "e7eecba25e0deec1e727c950105c1a3b767dfb13e0ab0dafc99438752ab6ede9",
+      "bytes": 6787,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/admission.mjs",
+      "sha256": "a684eec19da86d10ace4520db1ed3b35cb2ff8a1d72af66db04b1df68bdeb03a",
+      "bytes": 8788,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/GO.json",
+      "sha256": "5ca5a1e9847c3306cf49f0f4894d8a6bf83dc39e2741ad49067bdc43148b4aa5",
+      "bytes": 3492,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/PARENT-BUDGET.json",
+      "sha256": "86e8f86c74aad9f721b266ce49c6799285daeb8e56577da180017844a81f3dd0",
+      "bytes": 301,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/CASES.json",
+      "sha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da",
+      "bytes": 47429,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/FIXTURES.json",
+      "sha256": "2784e925e57619b9e0a1285c890f09293345ea414fee27a8d9aa507bfe0e00f1",
+      "bytes": 15139,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/SCHEMA.json",
+      "sha256": "ee85c9c3d519a20fe427962504a222ee1abba1cc558f19b65d4b491129b54298",
+      "bytes": 3969,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/READY.md",
+      "sha256": "2810bc898e6368c87e3431396845358f9b13f3bf0d991141fdc966f59387b9f7",
+      "bytes": 11419,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/EXECUTION-RECIPE.md",
+      "sha256": "3ba556ed591da4abd2d7adfcb020e0ab895e5928fc77e7e50d3a81ae9428519d",
+      "bytes": 11958,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/verify.mjs",
+      "sha256": "5cfa86b17d4384da8a75cda0d78990b79da009e41d25046f4bc64ffd6e08e6c6",
+      "bytes": 8822,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/ROOT-DISPATCH-CONFIRMATION.md",
+      "sha256": "5266dbdfe7e98f34f29116e1612defb797760f526a31164f4e00492e538f1efc",
+      "bytes": 5408,
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/actual-dispatch-20260828-hold-v1/ROOT-HOLD-CONFIRMATION.txt",
+      "sha256": "c1a1748a6ab08492b14049b9108a6da066c57d25f2ecbaebe14e7a5ee49da079",
+      "bytes": 947,
+      "unchanged": true
+    }
+  ],
+  "metricsAtEvidenceSeal": {
+    "elapsedMs": 208962,
+    "children": 4,
+    "captured": 27079,
+    "peak": 2,
+    "allLaunchedChildrenSettled": true,
+    "remainingPlannedChildren": 4,
+    "planned": [
+      "apply_patch evidence",
+      "git add explicit owned paths",
+      "git commit --only explicit owned paths (hooks/signing disabled)",
+      "git status --porcelain=v1 -- owned directory"
+    ],
+    "finalAccounting": "Final CLI owns post-commit metrics and SHA; no after-commit evidence rewrite."
+  }
+}

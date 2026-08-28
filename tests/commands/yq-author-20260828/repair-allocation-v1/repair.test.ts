@@ -134,3 +134,26 @@ test("WRK-17 actual encoders reserve exact escaped bytes before emitting fragmen
     await session.close();
   }
 });
+
+test("WRK-13 actual parser admits the prospective second member before its child scalar", async () => {
+  for (const [input, secondMemberChild] of [["[a,b]", 1], ["{a: one, b: two}", 2], ["- a\n- b\n", 1]] as const) {
+    const events: string[] = [];
+    const ledger = new class extends YqLedger {
+      override admitScalar(bytes: number): void {
+        events.push("scalar");
+        super.admitScalar(bytes);
+      }
+      override admitValueBytes(bytes: number): void {
+        events.push(`value:${bytes}`);
+        super.admitValueBytes(bytes);
+      }
+    }();
+    const work: YqOwnedWork = { ...noopWork, async charge() { events.push("charge"); } };
+    for await (const unused of parseYamlDocuments(input, work, ledger)) void unused;
+    const scalarEvents = events.flatMap((event, index) => event === "scalar" ? [index] : []);
+    assert.equal(scalarEvents.length >= 2, true, JSON.stringify(events));
+    const memberAdmission = events.indexOf("value:1");
+    assert.notEqual(memberAdmission, -1, JSON.stringify(events));
+    assert.ok(memberAdmission < scalarEvents[secondMemberChild]!, JSON.stringify(events));
+  }
+});

@@ -1,0 +1,199 @@
+{
+  "schema": 1,
+  "role": "STATIC_DATA_BINDING_NOT_BEHAVIOR",
+  "intermediateCommit": "c175839a69f4c352c5f8fcfb405ead06782e8684",
+  "metadataHashes": {
+    "ASSEMBLY-SEAL.json": "03f5bf3411349f9d57cfc812ca7ee72b4d4e0a1850b6d40b5f6abb753702d6a8",
+    "RECIPE.json": "bf66d8929646c85e5d6e63313d59e28422ca6e276718e548e6fe581b18ed5b7b",
+    "PHYSICAL-INPUT-SEAL.json": "a71d7ab9bce88733fbec79238b1e9136f597c67fb690a4c97e6273839986d95f",
+    "LOAD-AND-TOOL-SEAL.json": "f527d5248c0728982a6d88ca1b7dea85dfeb32de719cfa6ecfb64b3d412dd799",
+    "ROOT-RECEIPT-SCHEMA.json": "34ee17d496a16f4a0bd44d667ca113aec902588d6992ed4fd0e97392f5596bb3",
+    "ROLE-DATAFLOW.json": "957cbc059b274c527b052c89ab47d7b399bdae0307a3337492be359562ccc53d"
+  },
+  "sourceImportClosure": {
+    "activeFiles": 72,
+    "mjsBodies": 33,
+    "relativeEdges": 56,
+    "staticRelativeImportsIncludingJsonAttributes": 55,
+    "fixedDynamicSupervisor": {
+      "path": "core/cli.mjs",
+      "line": 11,
+      "specifier": "./supervisor.mjs",
+      "afterAdmission": true
+    },
+    "builtinEdges": 63,
+    "variableDynamicSites": [
+      {
+        "from": "core/loader.mjs",
+        "line": 57,
+        "source": "const namespace = await import(entryURL);",
+        "authority": "core/loader.mjs complete guarded current package tree, canonical relative resolution, exact file hash/mode/bytes and enrolled direct-module entry. Future actual load trace required."
+      },
+      {
+        "from": "core/worker-host.mjs",
+        "line": 35,
+        "source": "const namespace = await import(pathToFileURL(request.workerModule).href);",
+        "authority": "Root recipe dispatch selects exact module in new active union; worker-host verifies full union before importing. No workspace/node_modules fallback."
+      }
+    ],
+    "totalDynamicImportSites": 3,
+    "verification": "Edge equality subchecks completed before later phase/ledger reader errors; source lines inspected; original command failures retained, not aggregate successes"
+  },
+  "physical": {
+    "root": "/private/tmp/yq-b8-composition-v2-bMqyvD",
+    "sealSha256": "a71d7ab9bce88733fbec79238b1e9136f597c67fb690a4c97e6273839986d95f",
+    "files": 251,
+    "tools": 249,
+    "compilerSubsetFiles": 248,
+    "toolBytes": 146740654,
+    "totalBytes": 150255368,
+    "directories": 33,
+    "fullKindModeSizeHashMembershipMatchesTwice": true,
+    "regularNoSymlinkNoHardlink": true,
+    "rootEntries": [
+      "inputs",
+      "tools"
+    ],
+    "executionLayoutsAbsent": true,
+    "archives": [
+      {
+        "name": "source",
+        "path": "/private/tmp/yq-b8-composition-v2-bMqyvD/inputs/SOURCE.tar",
+        "descriptor": {
+          "sha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+          "bytes": 2727936,
+          "mode": 420
+        }
+      },
+      {
+        "name": "package",
+        "path": "/private/tmp/yq-b8-composition-v2-bMqyvD/inputs/virtual-bash-0.0.0.tgz",
+        "descriptor": {
+          "sha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+          "bytes": 786778,
+          "mode": 420
+        }
+      }
+    ],
+    "qualification": "Before/after is not change-restore detection; no OS sandbox/dynamic-library/hard-quota claim.",
+    "invocations": 0
+  },
+  "rootReceiptSchema": {
+    "sha256": "34ee17d496a16f4a0bd44d667ca113aec902588d6992ed4fd0e97392f5596bb3",
+    "exactPhysicalConstantsAndIndependentReviewRole": true,
+    "default": "DENY",
+    "receiptCreated": false,
+    "sourceReferences": [
+      "admission.mjs:13-39",
+      "admission.mjs:42-60",
+      "admission.mjs:65-78",
+      "cli.mjs:6-11"
+    ]
+  },
+  "legacyHistorical": {
+    "data": [
+      {
+        "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/FINAL-SEAL.json",
+        "classification": "ORIGINAL_MODE_UNATTESTED",
+        "activeAuthority": false,
+        "executed": false,
+        "sha256": "e569179037058f038e0fc28345af56ae95e06765e153fe0724cc5fbd273019a2",
+        "originalMode": "ORIGINAL_MODE_UNATTESTED"
+      }
+    ],
+    "trace": "physicalBindings -> root.legacyHistorical equality/role checks only, not active file/mode/executable authority",
+    "originalDenyPreserved": true
+  },
+  "projections": {
+    "source": 271,
+    "archive": 273,
+    "fullPackage": 870,
+    "READMEIncluded": true,
+    "archiveOnly": [
+      "package-lock.json",
+      "scripts/typecheck.mjs"
+    ],
+    "archiveReextraction": false,
+    "newIndependentCompile": false
+  },
+  "matrix": {
+    "phaseJobCounts": {
+      "AUTHENTICATION": 1,
+      "BUILD": 1,
+      "SETUP": 2,
+      "CONTROLS": 19,
+      "SOURCE_AUDIT": 1,
+      "SOURCE_RUNTIME": 149,
+      "MOVED_RUNTIME": 149,
+      "TYPES": 3,
+      "LOADED_CONTROLS": 10,
+      "FINALIZATION": 1
+    },
+    "phaseSeconds": [
+      120,
+      300,
+      180,
+      570,
+      300,
+      6705,
+      13410,
+      1560,
+      900,
+      120
+    ],
+    "totalSeconds": 24165,
+    "profiles": [
+      "source-built-direct",
+      "installed-moved-direct"
+    ],
+    "unmovedCohort": false,
+    "typeSlots": [
+      {
+        "id": "TYPE-SOURCE-DIRECT-SIX",
+        "environment": "source-built-direct",
+        "fixtures": 6
+      },
+      {
+        "id": "TYPE-DIRECT-SIX",
+        "environment": "installed-moved-direct",
+        "fixtures": 6
+      },
+      {
+        "id": "TYPE-PUBLIC-FIVE",
+        "environment": null,
+        "fixtures": 5
+      }
+    ],
+    "currentCompilerCalls": 13,
+    "maximumCompilerCalls": 18,
+    "public5": "UNRUN",
+    "outerReservations": 336,
+    "maximumStartsAbsentOtherRefusals": 334,
+    "loadSlots": 10,
+    "knownLoadGaps": 4,
+    "otherFutureMutants": 6,
+    "originalIds": 194,
+    "overlays": 8,
+    "roleCounts": {
+      "command-semantic-runtime": 111,
+      "admission-error-boundary": 34,
+      "source-static-counterproof": 23,
+      "lifecycle-cooperative": 11,
+      "materialized-package-infrastructure": 4,
+      "type-consumer": 5,
+      "negative-control": 6
+    },
+    "missingBindingCounts": {
+      "records": 80,
+      "noRuntimeAdapter": 62,
+      "partialRuntime": 18,
+      "resolvedByThisPreparation": 0
+    },
+    "missingBindingsInObligations": 135
+  },
+  "reviewPreparationFailures": "Three failed reader comparisons preserved in PREPARATION-ERROR.json, not rescored",
+  "authoredImportsOrExecutions": 0,
+  "candidateExecutions": 0,
+  "controlPasses": 0,
+  "rootGO": false
+}

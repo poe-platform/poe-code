@@ -1,0 +1,159 @@
+{
+  "schema": "virtual-bash-timeout-precode-identity-v1",
+  "capturedAt": "2026-08-28",
+  "scope": "docs-and-data-only timeout command policy; no execution",
+  "repository": {
+    "path": "/Users/kjopek/Workspace/safe-bash",
+    "packageName": "virtual-bash",
+    "liveHeadInitialObservation": "9d84903356a4c33402814bdc367e3bbe9894d1c2",
+    "liveHeadBeforeManifest": "97ae548cbbf518317457d9b83680d0adb2f2e834",
+    "mutableHeadWasUsedAsProductBasis": false,
+    "foreignWorktreeAndIndexContentIncluded": false
+  },
+  "priorDesign": {
+    "commit": "7b812873c884a432951e981bfa908d7ca7407494",
+    "status": "controlling-frozen-prior-proposal-and-root-decisions",
+    "files": {
+      "tests/commands/timeout-design-independent-20260827/README.md": {
+        "gitObject": "c8e6c549824e9f6451a5d0b743b9dc16959dc864",
+        "bytes": 25998,
+        "sha256": "42ed4a630af5d128f98f4099c437b04e0fa1b82b151597ebc987170a32be947d"
+      },
+      "tests/commands/timeout-design-independent-20260827/identity.json": {
+        "gitObject": "4744a60410f001a51142e78b9ad168f003c968b2",
+        "bytes": 3692,
+        "sha256": "511b5629ffbb9004705fe0ba16f942d9b38025b93e7c3896c12155d9fef894a3"
+      }
+    },
+    "worktreeBytesMatchedCommit": true,
+    "modifiedByThisWork": false
+  },
+  "stage2ApiBasis": {
+    "status": "UNACCEPTED-review-pending-Poincare-product-hold",
+    "baseCommit": "12e196af8d8b0866339747150b02ca00b9764a09",
+    "acceptedHelperCommit": "57855a0293edb83bff98113123806497b4427416",
+    "sourceCommit": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+    "sourceTree": "639d21ae58647bb3a33026549f3bb8b0e9595549",
+    "sourceParent": "44e3f1e3d98b6e4910a1830e375ab1c2c48f0a2c",
+    "authorEvidenceCommit": "43af14a520160fad4e144a6b60c30ca123bd9ab9",
+    "files": {
+      "src/contracts/command.ts": {
+        "commit": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+        "gitObject": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+        "bytes": 2968,
+        "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c"
+      },
+      "src/contracts/command.md": {
+        "commit": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+        "gitObject": "ef94adf238122441a66c2232fb3055aaee62d290",
+        "bytes": 9253,
+        "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6"
+      },
+      "src/shell/runtime.ts": {
+        "commit": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+        "gitObject": "bf41b4a97de4c20a0206abfd7b235cefd0aee1db",
+        "bytes": 132362,
+        "sha256": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169"
+      },
+      "src/shell/shell.ts": {
+        "commit": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+        "gitObject": "0b96a82f4ec29da4dbdd447806cca6a2f514311a",
+        "bytes": 15002,
+        "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24"
+      },
+      "src/shell/types.ts": {
+        "commit": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+        "gitObject": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+        "bytes": 2223,
+        "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990"
+      },
+      "src/shell/cancellation.ts": {
+        "commit": "57855a0293edb83bff98113123806497b4427416",
+        "gitObject": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+        "bytes": 31986,
+        "sha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2"
+      }
+    },
+    "apiFacts": {
+      "CommandInvokeOptionsSignal": "readonly signal?: AbortSignal | undefined",
+      "ShellInvokeOptionsSignal": "readonly signal?: AbortSignal | undefined",
+      "CommandContextInvokeOptional": true,
+      "invokeSettlesAfterChildClosureByCandidateContract": true,
+      "budgetCounters": ["commands", "iterations", "bytes", "sourceBytes"],
+      "timeoutOrDeadlineCounterExists": false
+    }
+  },
+  "gnuOracle": {
+    "availabilityCheckedReadOnlyAt": "2026-08-28",
+    "available": true,
+    "executedByThisWork": false,
+    "versionClaimBasis": "existing marker files and prior frozen record; no new --version execution",
+    "binary": {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/timeout",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/timeout",
+      "type": "regular file",
+      "mode": "-rwxr-xr-x",
+      "bytes": 95240,
+      "architecture": "Mach-O 64-bit executable arm64",
+      "sha256": "36fc11afeb227c7ea50054de958b80de954088139f1d5ef4c03df95ef811a55e"
+    },
+    "versionMarkers": {
+      ".version": { "text": "9.7\n", "bytes": 4, "sha256": "85aa901e24530ce91833f9f14738a63dd5bed983af8e7de484cf36e503d03ea5" },
+      ".prev-version": { "text": "9.6\n", "bytes": 4, "sha256": "67f0090afe8d8a16656181364cc6ddda7a09eeab235bd2c392fb4fb203a1302c" },
+      ".tarball-version": { "text": "9.7\n", "bytes": 4, "sha256": "85aa901e24530ce91833f9f14738a63dd5bed983af8e7de484cf36e503d03ea5" }
+    },
+    "source": {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/timeout.c",
+      "type": "regular file",
+      "mode": "-rw-r--r--",
+      "bytes": 19329,
+      "sha256": "e11dc2897e468a2fc4bcf44dc3643f08f9ae063b7ce03b88def9dd866250c8ad",
+      "priorUpstreamPin": "https://raw.githubusercontent.com/coreutils/coreutils/v9.7/src/timeout.c",
+      "networkRefetchedByThisWork": false
+    },
+    "manual": {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+      "type": "regular file",
+      "mode": "-rw-r--r--",
+      "bytes": 667701,
+      "sha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+      "priorUpstreamPin": "https://raw.githubusercontent.com/coreutils/coreutils/v9.7/doc/coreutils.texi",
+      "networkRefetchedByThisWork": false,
+      "timeoutSection": "18821-18964"
+    },
+    "priorFrozenNativeExecutionRecord": ["--version", "--help"],
+    "priorFrozenNativeStatusOrTimingProbes": false,
+    "newNativeResults": []
+  },
+  "deliverableFiles": {
+    "README.md": { "bytes": 20098, "sha256": "fc3dcdecfbe179999a06119200d499d8b711ec2bf7eb98b840055c6ca6b66f08" },
+    "profile.json": { "bytes": 5541, "sha256": "f70c139c5b675bd25691eacfccfac3c20f856a2ca69d14dc08335bd920df2c2d" },
+    "diagnostics.data": { "bytes": 1314, "sha256": "3453979b5a0fbe4355684c9ac0527c70c4ca0b8e1f64b0d422fbf1b25a463cec" },
+    "freeze-matrix.json": { "bytes": 11985, "sha256": "61af575274ce4c41aafe44ef72fc1763db3e2cbffb0e74b47c7865ccdd084cf0" }
+  },
+  "futureApiProposal": {
+    "sourceFiles": [
+      "src/commands/timeout/index.ts",
+      "src/commands/timeout/duration.ts",
+      "src/commands/timeout/scheduler.ts",
+      "src/commands/timeout/README.md"
+    ],
+    "exports": ["TimeoutScheduler", "TimeoutCommandOptions", "TimeoutCommandsOptions", "createTimeoutCommand", "createTimeoutCommands", "timeoutCommands"],
+    "agentAggregateOption": "timeout?: Omit<TimeoutCommandsOptions, 'replace' | 'invoke'>",
+    "capabilityRecommendation": "trust documented CommandInvoker signal contract; do not add a capability field"
+  },
+  "authorization": {
+    "requiredRootDecisions": ["future factory/plugin/aggregate API", "no capability field", "help/version and diagnostics", "timer failure status 125", "future default aggregate inclusion"],
+    "independentFreezeRequiredBeforeExecution": true,
+    "stage2AcceptanceRequired": true,
+    "timeoutSourceAuthorized": false,
+    "testsAuthorized": false,
+    "nativeExecutionAuthorized": false,
+    "rootExportsAuthorized": false,
+    "packageExportsAuthorized": false,
+    "aggregateWiringAuthorized": false,
+    "productAcceptanceClaim": false,
+    "stage2AcceptanceClaim": false,
+    "nativeParityClaim": false
+  }
+}

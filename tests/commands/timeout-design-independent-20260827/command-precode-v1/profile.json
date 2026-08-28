@@ -1,0 +1,101 @@
+{
+  "schema": "virtual-bash-timeout-precode-profile-v1",
+  "status": "proposed-root-review-pending",
+  "date": "2026-08-28",
+  "synopsis": "timeout [OPTION] DURATION COMMAND [ARG]...",
+  "optionParsing": {
+    "leadingOnly": true,
+    "endMarker": "--",
+    "afterDurationAllTokensAreLiteral": true,
+    "supported": {
+      "--help": {
+        "exitCode": 0,
+        "stdout": "Usage: timeout [OPTION] DURATION COMMAND [ARG]...\nRun a virtual command with a cooperative time limit.\n",
+        "stderr": ""
+      },
+      "--version": {
+        "exitCode": 0,
+        "stdout": "timeout (safe-bash virtual command)\n",
+        "stderr": ""
+      }
+    },
+    "unsupported": [
+      { "canonical": "--preserve-status", "longPrefixWithEquals": true, "firstShortFlag": "p", "diagnostic": "unsupported-preserve-status" },
+      { "canonical": "--signal", "longPrefixWithEquals": true, "firstShortFlag": "s", "diagnostic": "unsupported-signal" },
+      { "canonical": "--kill-after", "longPrefixWithEquals": true, "firstShortFlag": "k", "diagnostic": "unsupported-kill-after" },
+      { "canonical": "--foreground", "longPrefixWithEquals": true, "firstShortFlag": "f", "diagnostic": "unsupported-foreground" },
+      { "canonical": "--verbose", "longPrefixWithEquals": true, "firstShortFlag": "v", "diagnostic": "unsupported-verbose" }
+    ],
+    "unknownLeadingOptionDiagnostic": "invalid-option"
+  },
+  "duration": {
+    "asciiGrammar": "(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)[smhd]?",
+    "unitSeconds": { "": 1, "s": 1, "m": 60, "h": 3600, "d": 86400 },
+    "targetUnit": "milliseconds",
+    "arithmetic": "exact-decimal-integer-rational",
+    "rounding": "ceil-once-after-unit-scaling",
+    "zero": "mathematical-zero-disables-with-no-deadline-resources",
+    "minimumPositiveMilliseconds": 1,
+    "maximumMilliseconds": 9007199254740991,
+    "overflowExitCode": 125,
+    "arbitraryDurationCap": null,
+    "rejectedForms": ["signed", "exponent", "hexadecimal", "locale-decimal", "whitespace", "NaN", "Infinity"]
+  },
+  "timer": {
+    "clock": "finite-safe-range-nondecreasing-monotonic-milliseconds",
+    "defaultMaximumChunkMilliseconds": 2147483647,
+    "allowedChunkMilliseconds": { "minimum": 1, "maximum": 2147483647 },
+    "maximumLiveHandles": 1,
+    "deadlineReason": "fresh-private-object-per-command-invocation",
+    "timerFailureReason": "distinct-fresh-private-object-per-command-invocation",
+    "registerCleanupBeforeActivation": true,
+    "activeThroughNestedInvokeCleanup": true,
+    "retiredBeforeCommandSettlement": true,
+    "hardPreemption": false
+  },
+  "invoke": {
+    "selectionOrder": ["context.invoke", "factory-injected-invoke", "unavailable-125"],
+    "capabilityField": null,
+    "contract": "trusted-CommandInvoker-honors-CommandInvokeOptions.signal",
+    "singleDispatch": true,
+    "passes": ["signal-when-positive", "stdin", "stdinIsDefault-when-defined", "stdout", "stderr"],
+    "omits": ["cwd", "env", "replaceEnv"],
+    "newShell": false,
+    "streamPrebuffer": false,
+    "budgetReset": false
+  },
+  "outcomesAfterInvokeClosureAndTimerRetirement": [
+    { "condition": "Object.is(error, ownDeadlineSentinel)", "exitCode": 124, "diagnostic": null },
+    { "condition": "Object.is(error, ownTimerFailureSentinel)", "exitCode": 125, "diagnostic": "timer-setup-failed" },
+    { "condition": "other rejection", "action": "rethrow exact" },
+    { "condition": "CommandResult", "action": "preserve validated exitCode including 124/126/127" }
+  ],
+  "diagnostics": {
+    "missing-duration": { "exitCode": 125, "stream": "stderr", "text": "timeout: missing duration\n" },
+    "invalid-duration": { "exitCode": 125, "stream": "stderr", "text": "timeout: invalid duration\n" },
+    "duration-overflow": { "exitCode": 125, "stream": "stderr", "text": "timeout: duration exceeds supported range\n" },
+    "missing-command": { "exitCode": 125, "stream": "stderr", "text": "timeout: missing command\n" },
+    "invalid-option": { "exitCode": 125, "stream": "stderr", "text": "timeout: invalid option\n" },
+    "unsupported-preserve-status": { "exitCode": 125, "stream": "stderr", "text": "timeout: option --preserve-status is unsupported\n" },
+    "unsupported-signal": { "exitCode": 125, "stream": "stderr", "text": "timeout: option --signal is unsupported\n" },
+    "unsupported-kill-after": { "exitCode": 125, "stream": "stderr", "text": "timeout: option --kill-after is unsupported\n" },
+    "unsupported-foreground": { "exitCode": 125, "stream": "stderr", "text": "timeout: option --foreground is unsupported\n" },
+    "unsupported-verbose": { "exitCode": 125, "stream": "stderr", "text": "timeout: option --verbose is unsupported\n" },
+    "invoke-unavailable": { "exitCode": 125, "stream": "stderr", "text": "timeout: command invocation is unavailable\n" },
+    "timer-setup-failed": { "exitCode": 125, "stream": "stderr", "text": "timeout: timer setup failed\n" }
+  },
+  "durationExamples": [
+    { "input": "0", "milliseconds": 0 },
+    { "input": "0.", "milliseconds": 0 },
+    { "input": ".0000000000000000001s", "milliseconds": 1 },
+    { "input": ".001s", "milliseconds": 1 },
+    { "input": ".0011s", "milliseconds": 2 },
+    { "input": "1", "milliseconds": 1000 },
+    { "input": "1.0001", "milliseconds": 1001 },
+    { "input": ".5m", "milliseconds": 30000 },
+    { "input": ".5h", "milliseconds": 1800000 },
+    { "input": ".5d", "milliseconds": 43200000 },
+    { "input": "9007199254740.991s", "milliseconds": 9007199254740991 },
+    { "input": "9007199254740.9911s", "error": "duration-overflow" }
+  ]
+}

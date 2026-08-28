@@ -2821,3 +2821,49 @@ that any implementation, command, fixture, or test currently exists.
   and SafeJS execution remain0. Public78 freeze031d4ddf/manifest18e3c23c is ready;
   root authorized integration only after this projection packet. It is not part
   of f5 and is not yet a public/default integration acceptance.
+
+## 2026-08-28 UTC — timeout78 public author candidate, independent review pending
+
+- Public source382abba5a73ddad13ba424bafbe1992b4f7ca7e9 and unchanged accepted
+  modulea23867d6 compose candidate67eab12e315054907ef4ef435c6bbca2f59e0c36
+  from coherent775137a74e. Exactly seven product paths: four module files and
+  root index/plugins/package; no WebDAV/XAN, lockfile or other live changes.
+  Two initially candidate-absent object stores reconstructed its exact commit/tree
+  through reachable anchors and selected blobs; no new refs/history rewrite.
+- Root plus explicit commands/timeout export createTimeoutCommand,
+  createTimeoutCommands, timeoutCommands and TimeoutCommandOptions,
+  TimeoutCommandsOptions, TimeoutScheduler. Aggregate timeout omits replace;
+  supported invoke/scheduler/maxTimerMilliseconds forward unchanged and top-level
+  replace wins.78 literal default names; getopts remains builtin, curl/SafeJS
+  opt-in, zero runtime dependencies. Accepted cooperative-only module behavior
+  unchanged; no native/hard-preemption/OS-sandbox claim.
+- Evidence2736db84: full pack6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06,
+  858 package files/856 emitted,271 selected build inputs. Manifest itself is
+  b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12, not the tarball
+  hash. Source/pkg/dependency/tool inventories and owned-child cleanup pass in
+  the separately qualified package follow-up; no unexpected entries allowed.
+- V1 preserved82/83 maintained, missing timeout suffix; V2 preserved83/83 plus
+  12/13 new author runtime with wrong input-object identity assertion; V3
+  preserved83/83 plus installed13/13 on Node22 and13/13 on Node24, then frozen
+  T08 diagnostic mismatch; V4 had0 consumer commands due author inventory-field
+  typo. Neither historical failure nor unrun remainder is relabelled green.
+- Separate V5 reuses exact V3 pack without another production build:13/13 in
+  installed/moved on both Node22.22.2 and24.11.1 (52 executions), four positive
+  and six negative type payloads per layout, maintained stream-five21/21,
+  two source-denial and three missing-entry controls. Separate4/4 assertion
+  controls include two assertion mutants; two null-export refusals pass. No
+  product-source mutant success, native/SafeJS execution or full gate claimed.
+- T08's unchanged invoker typo is correctly rejected by TypeScript5.9.3 as
+  TS2561 with the invoke spelling suggestion, not frozen TS2353. Author-only
+  exact-code/location/message qualification remains for different Raman review;
+  his freeze files and original failure stay unchanged. Five maintained fixture
+  files have18 original count/name hunks plus one exact suffix addition. Extra
+  amendment metadata was post-fixture after failed preseal generation, disclosed
+  rather than claimed pre-code. Root README87c58987 is a separate current doc
+  delta; exact candidate pack retains baseline5137 README, not silently rebased.
+- Handoff: tests/integration/timeout-public-author-20260828/HANDOFF.md. Raman's
+  public freeze031d4ddf/prepared executor58de5502 remains pending actual different
+  candidate review. This does not release or alter historical f5/c109; projection
+  sourcefb376b3a/evidenceacd04c3d still requires different review and fresh root
+  authorization. Existing AGENTS cooperative/inventory rules already apply;
+  no transient counts were added there.

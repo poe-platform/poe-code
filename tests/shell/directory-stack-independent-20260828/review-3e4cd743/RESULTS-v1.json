@@ -1,0 +1,4405 @@
+{
+  "version": 1,
+  "at": "2026-08-28T09:40:00.560Z",
+  "candidate": "3e4cd743f1d4d2302b6b58a337740b3fde68462a",
+  "evidence": "92b60355eb21219375123bcb4664a03f7c634da9",
+  "candidateComposedTree": "099455f232870fa1ea59e1a0ae482e003fd170db",
+  "baseComposedTree": "3e3a2fe381e11540213285e14e2a9a55a72bdbdd",
+  "package": {
+    "sha256": "15aa8d8dd6e78a9b7d12156ea2adaf93bd5f0037f13443e8928268c9d5215a18",
+    "members": 846,
+    "bytes": 750946
+  },
+  "originalCounts": {
+    "rows": 138,
+    "invariants": 24,
+    "positiveTypes": 8,
+    "negativeTypes": 8,
+    "mutationFamilies": 16,
+    "importNegativeFamilies": 6
+  },
+  "layouts": {
+    "source": {
+      "originalPass": 111,
+      "originalAssertionFailure": 27,
+      "versionedCorrectionPass": 28,
+      "qualifiedOriginalObligations": 136,
+      "partialPublicSource": 1,
+      "unsupportedOriginalFixture": 1,
+      "leakTimeoutIntegrityBlocked": 0,
+      "measuredModulesPerCase": 207
+    },
+    "installed": {
+      "originalPass": 111,
+      "originalAssertionFailure": 27,
+      "versionedCorrectionPass": 28,
+      "qualifiedOriginalObligations": 136,
+      "partialPublicSource": 1,
+      "unsupportedOriginalFixture": 1,
+      "leakTimeoutIntegrityBlocked": 0,
+      "measuredModulesPerCase": 207
+    },
+    "moved": {
+      "originalPass": 111,
+      "originalAssertionFailure": 27,
+      "versionedCorrectionPass": 28,
+      "qualifiedOriginalObligations": 136,
+      "partialPublicSource": 1,
+      "unsupportedOriginalFixture": 1,
+      "leakTimeoutIntegrityBlocked": 0,
+      "measuredModulesPerCase": 207
+    }
+  },
+  "types": {
+    "checks": 30,
+    "pass": 30,
+    "originalPositiveObligations": 8,
+    "originalNegativeObligations": 8,
+    "inversionChecksPerLayout": 8
+  },
+  "mechanisms": {
+    "families": 16,
+    "semanticKills": 12,
+    "loadedSourceControlsNoKillClaim": 4
+  },
+  "imports": {
+    "families": 6,
+    "actualImports": 20,
+    "actualNegativeImports": 17,
+    "preimportRefusals": 2,
+    "positiveTypeHarnessRefusal": 1
+  },
+  "regressions": {
+    "initialHarnessBlockedFiles": 11,
+    "secondVersion": [
+      {
+        "id": "shell-getopts-invoke-owned",
+        "code": 1,
+        "natural": true,
+        "intact": true,
+        "counts": {
+          "tests": 143,
+          "pass": 142,
+          "fail": 1,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "letRows": null,
+        "loadedProductModules": 41,
+        "traceSha256": "414ed2608dc34eb818825ece572f6a7672a5aedbaf61c40cd329613383113ac9"
+      },
+      {
+        "id": "selected-cd-seams",
+        "code": 0,
+        "natural": true,
+        "intact": true,
+        "counts": {
+          "tests": 17,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "letRows": null,
+        "loadedProductModules": 207,
+        "traceSha256": "79142ead8c2097a63df2a290bdc11aab01178b0ab53852ebc26cc6794c7cc81b"
+      },
+      {
+        "id": "selected-let-three",
+        "code": 0,
+        "natural": true,
+        "intact": true,
+        "counts": {},
+        "letRows": [
+          {
+            "id": "P01",
+            "status": "pass",
+            "result": {
+              "stdout": "let is a shell builtin\n",
+              "stderr": "",
+              "stdoutBytes": {
+                "0": 108,
+                "1": 101,
+                "2": 116,
+                "3": 32,
+                "4": 105,
+                "5": 115,
+                "6": 32,
+                "7": 97,
+                "8": 32,
+                "9": 115,
+                "10": 104,
+                "11": 101,
+                "12": 108,
+                "13": 108,
+                "14": 32,
+                "15": 98,
+                "16": 117,
+                "17": 105,
+                "18": 108,
+                "19": 116,
+                "20": 105,
+                "21": 110,
+                "22": 10
+              },
+              "stderrBytes": {},
+              "exitCode": 0
+            }
+          },
+          {
+            "id": "P21",
+            "status": "pass",
+            "result": {
+              "stdout": "1:7:0\n",
+              "stderr": "shell: line 1: let: 1+: arithmetic syntax error: operand expected (error token is \"+\")\n",
+              "stdoutBytes": {
+                "0": 49,
+                "1": 58,
+                "2": 55,
+                "3": 58,
+                "4": 48,
+                "5": 10
+              },
+              "stderrBytes": {
+                "0": 115,
+                "1": 104,
+                "2": 101,
+                "3": 108,
+                "4": 108,
+                "5": 58,
+                "6": 32,
+                "7": 108,
+                "8": 105,
+                "9": 110,
+                "10": 101,
+                "11": 32,
+                "12": 49,
+                "13": 58,
+                "14": 32,
+                "15": 108,
+                "16": 101,
+                "17": 116,
+                "18": 58,
+                "19": 32,
+                "20": 49,
+                "21": 43,
+                "22": 58,
+                "23": 32,
+                "24": 97,
+                "25": 114,
+                "26": 105,
+                "27": 116,
+                "28": 104,
+                "29": 109,
+                "30": 101,
+                "31": 116,
+                "32": 105,
+                "33": 99,
+                "34": 32,
+                "35": 115,
+                "36": 121,
+                "37": 110,
+                "38": 116,
+                "39": 97,
+                "40": 120,
+                "41": 32,
+                "42": 101,
+                "43": 114,
+                "44": 114,
+                "45": 111,
+                "46": 114,
+                "47": 58,
+                "48": 32,
+                "49": 111,
+                "50": 112,
+                "51": 101,
+                "52": 114,
+                "53": 97,
+                "54": 110,
+                "55": 100,
+                "56": 32,
+                "57": 101,
+                "58": 120,
+                "59": 112,
+                "60": 101,
+                "61": 99,
+                "62": 116,
+                "63": 101,
+                "64": 100,
+                "65": 32,
+                "66": 40,
+                "67": 101,
+                "68": 114,
+                "69": 114,
+                "70": 111,
+                "71": 114,
+                "72": 32,
+                "73": 116,
+                "74": 111,
+                "75": 107,
+                "76": 101,
+                "77": 110,
+                "78": 32,
+                "79": 105,
+                "80": 115,
+                "81": 32,
+                "82": 34,
+                "83": 43,
+                "84": 34,
+                "85": 41,
+                "86": 10
+              },
+              "exitCode": 0
+            }
+          },
+          {
+            "id": "P22",
+            "status": "pass",
+            "result": {
+              "stdout": "1:0\n",
+              "stderr": "shell: line 1: let: (value=7),1+: arithmetic syntax error: operand expected (error token is \"+\")\n",
+              "stdoutBytes": {
+                "0": 49,
+                "1": 58,
+                "2": 48,
+                "3": 10
+              },
+              "stderrBytes": {
+                "0": 115,
+                "1": 104,
+                "2": 101,
+                "3": 108,
+                "4": 108,
+                "5": 58,
+                "6": 32,
+                "7": 108,
+                "8": 105,
+                "9": 110,
+                "10": 101,
+                "11": 32,
+                "12": 49,
+                "13": 58,
+                "14": 32,
+                "15": 108,
+                "16": 101,
+                "17": 116,
+                "18": 58,
+                "19": 32,
+                "20": 40,
+                "21": 118,
+                "22": 97,
+                "23": 108,
+                "24": 117,
+                "25": 101,
+                "26": 61,
+                "27": 55,
+                "28": 41,
+                "29": 44,
+                "30": 49,
+                "31": 43,
+                "32": 58,
+                "33": 32,
+                "34": 97,
+                "35": 114,
+                "36": 105,
+                "37": 116,
+                "38": 104,
+                "39": 109,
+                "40": 101,
+                "41": 116,
+                "42": 105,
+                "43": 99,
+                "44": 32,
+                "45": 115,
+                "46": 121,
+                "47": 110,
+                "48": 116,
+                "49": 97,
+                "50": 120,
+                "51": 32,
+                "52": 101,
+                "53": 114,
+                "54": 114,
+                "55": 111,
+                "56": 114,
+                "57": 58,
+                "58": 32,
+                "59": 111,
+                "60": 112,
+                "61": 101,
+                "62": 114,
+                "63": 97,
+                "64": 110,
+                "65": 100,
+                "66": 32,
+                "67": 101,
+                "68": 120,
+                "69": 112,
+                "70": 101,
+                "71": 99,
+                "72": 116,
+                "73": 101,
+                "74": 100,
+                "75": 32,
+                "76": 40,
+                "77": 101,
+                "78": 114,
+                "79": 114,
+                "80": 111,
+                "81": 114,
+                "82": 32,
+                "83": 116,
+                "84": 111,
+                "85": 107,
+                "86": 101,
+                "87": 110,
+                "88": 32,
+                "89": 105,
+                "90": 115,
+                "91": 32,
+                "92": 34,
+                "93": 43,
+                "94": 34,
+                "95": 41,
+                "96": 10
+              },
+              "exitCode": 0
+            }
+          }
+        ],
+        "loadedProductModules": 207,
+        "traceSha256": "cf88dd4dd1a8347d6e21d54cf65d2431301986ab3a35537922254aba16460801"
+      }
+    ],
+    "thirdVersion": [
+      {
+        "id": "getopts-state-reachable-data-v3",
+        "code": 1,
+        "natural": true,
+        "intact": true,
+        "counts": {
+          "tests": 34,
+          "pass": 33,
+          "fail": 1,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "letRows": null,
+        "loadedProductModules": 41,
+        "traceSha256": "e3b6ff2a2842916420e3140632cfd2565264ac257defe6ddefb15948352b5a17"
+      }
+    ],
+    "fourthVersion": [
+      {
+        "id": "getopts-N08-data-v4",
+        "code": 0,
+        "natural": true,
+        "intact": true,
+        "counts": {
+          "tests": 1,
+          "pass": 1,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "letRows": null,
+        "loadedProductModules": 41,
+        "traceSha256": "7b5df8625039f908cd0cdb7ba54f20943d315605b96d09daa385d41d39f1c466"
+      }
+    ],
+    "acceptedDistinct": {
+      "shellGetoptsInvokeOwned": 176,
+      "selectedCD": 17,
+      "selectedLET": 3,
+      "total": 196
+    },
+    "qualification": "142v2+33v3+1v4 distinct shell regression assertions;1v2 missing dynamic corpus and1v3 missing fixture retained; CD selected17, LET3, not old entirecohorts"
+  },
+  "gaps": {
+    "originalIds": [
+      "L01",
+      "L02",
+      "L13",
+      "L14",
+      "L15",
+      "L16",
+      "C02",
+      "C03",
+      "C04",
+      "C05",
+      "C06",
+      "C10",
+      "C12",
+      "A04"
+    ],
+    "qualifiedAdapters": 13,
+    "partialPublicSource": [
+      "C06"
+    ]
+  },
+  "sourceProofs": 24,
+  "dispositions": [
+    {
+      "id": "B01",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B02",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B03",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B04",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B05",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B06",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B07",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B08",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B09",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B10",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B11",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B12",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B13",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B14",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B15",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B16",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B17",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B18",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B19",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "rawTarget": "I17"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "rawTarget": "I17"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "rawTarget": "I17"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "B20",
+      "area": "transition",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G01",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G02",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G03",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G04",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G05",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G06",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G07",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G08",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G09",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G10",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G11",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G12",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G13",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G14",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G15",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G16",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G17",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G18",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G19",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G20",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G21",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G22",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G23",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G24",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G25",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G26",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G27",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G28",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G29",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G30",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G31",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G32",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G33",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G34",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G35",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G36",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G37",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G38",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G39",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G40",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G41",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "G42",
+      "area": "grammar",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "D01",
+      "area": "display",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "D02",
+      "area": "display",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "D03",
+      "area": "display",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "D04",
+      "area": "display",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "D05",
+      "area": "display",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "D06",
+      "area": "display",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "D07",
+      "area": "display",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "D08",
+      "area": "display",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "D09",
+      "area": "display",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "D10",
+      "area": "display",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "S01",
+      "area": "state",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "S02",
+      "area": "state",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "S03",
+      "area": "state",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "S04",
+      "area": "state",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "S05",
+      "area": "state",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "S06",
+      "area": "state",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "S07",
+      "area": "state",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "S08",
+      "area": "state",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "S09",
+      "area": "state",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "S10",
+      "area": "state",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "S11",
+      "area": "state",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "S12",
+      "area": "state",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "S13",
+      "area": "state",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "S13-bash-v2-not-original-pass",
+          "status": "original-fixture-unsupported-supported-bash-supplement-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "S13-bash-v2-not-original-pass",
+          "status": "original-fixture-unsupported-supported-bash-supplement-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "S13-bash-v2-not-original-pass",
+          "status": "original-fixture-unsupported-supported-bash-supplement-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "S14",
+      "area": "state",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "M01",
+      "area": "middleware",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "stackCwdPublication": "I05"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "stackCwdPublication": "I05"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "stackCwdPublication": "I05"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "M02",
+      "area": "middleware",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "stackCwdPublication": "I05"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "stackCwdPublication": "I05"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "stackCwdPublication": "I05"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "M03",
+      "area": "middleware",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "sameForwardedPathPreserved": "I06"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "sameForwardedPathPreserved": "I06"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "sameForwardedPathPreserved": "I06"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "M04",
+      "area": "middleware",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "laterOrdinaryCdCannotEraseStackStamp": "I06"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "laterOrdinaryCdCannotEraseStackStamp": "I06"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "laterOrdinaryCdCannotEraseStackStamp": "I06"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "M05",
+      "area": "middleware",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "ordinaryCdOnlyRestorationUnchanged": "I06"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "ordinaryCdOnlyRestorationUnchanged": "I06"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "ordinaryCdOnlyRestorationUnchanged": "I06"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "M06",
+      "area": "middleware",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "M07",
+      "area": "middleware",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "noStackCwdPublication": "I05"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "noStackCwdPublication": "I05"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "noStackCwdPublication": "I05"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "M08",
+      "area": "middleware",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "childStampCannotPreserveBorrowedParentCwd": "I06"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "childStampCannotPreserveBorrowedParentCwd": "I06"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "childStampCannotPreserveBorrowedParentCwd": "I06"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "F01",
+      "area": "failure",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "F02",
+      "area": "failure",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "F03",
+      "area": "failure",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "F04",
+      "area": "failure",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "F05",
+      "area": "failure",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "F06",
+      "area": "failure",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "noLaterExports": "I17"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "noLaterExports": "I17"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "noLaterExports": "I17"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "F07",
+      "area": "failure",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "F08",
+      "area": "failure",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "tailInsertion": "I17",
+            "automaticDisplay": "I17"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "tailInsertion": "I17",
+            "automaticDisplay": "I17"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "tailInsertion": "I17",
+            "automaticDisplay": "I17"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "F09",
+      "area": "failure",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "tailRemoval": "I17",
+            "automaticDisplay": "I17"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "tailRemoval": "I17",
+            "automaticDisplay": "I17"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "tailRemoval": "I17",
+            "automaticDisplay": "I17"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "F10",
+      "area": "failure",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "rollback": "I17"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "rollback": "I17"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "rollback": "I17"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "F11",
+      "area": "failure",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "F12",
+      "area": "failure",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "L01",
+      "area": "limits",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "L02",
+      "area": "limits",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "L03",
+      "area": "limits",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "tailBytes": "I07"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "tailBytes": "I07"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "tailBytes": "I07"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "L04",
+      "area": "limits",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "L05",
+      "area": "limits",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "tailBytes": "I07"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "tailBytes": "I07"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "tailBytes": "I07"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "L06",
+      "area": "limits",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "tailBytes": "I07",
+            "originalRawStringRetained": "I07"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "tailBytes": "I07",
+            "originalRawStringRetained": "I07"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "tailBytes": "I07",
+            "originalRawStringRetained": "I07"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "L07",
+      "area": "limits",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "unusedHomeNotScanned": "I10"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "unusedHomeNotScanned": "I10"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "unusedHomeNotScanned": "I10"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "L08",
+      "area": "limits",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "L09",
+      "area": "limits",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "L10",
+      "area": "limits",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "L11",
+      "area": "limits",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "ignoredArgumentNotScanned": "I10"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "ignoredArgumentNotScanned": "I10"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "ignoredArgumentNotScanned": "I10"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "L12",
+      "area": "limits",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "ignoredArgumentNotScanned": "I10"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "ignoredArgumentNotScanned": "I10"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "ignoredArgumentNotScanned": "I10"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "L13",
+      "area": "limits",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "retainedTailOnFailedDisplay": "I07/I11/I17"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "retainedTailOnFailedDisplay": "I07/I11/I17"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "retainedTailOnFailedDisplay": "I07/I11/I17"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "L14",
+      "area": "limits",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "L15",
+      "area": "limits",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "L16",
+      "area": "limits",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "C01",
+      "area": "cancellation-output",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "noStackPublication": "I17"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "noStackPublication": "I17"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "noStackPublication": "I17"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "C02",
+      "area": "cancellation-output",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "postAbortPrivateState": "I17/I18",
+            "requiredPrintImpliesCwdPublished": null
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "postAbortPrivateState": "I17/I18",
+            "requiredPrintImpliesCwdPublished": null
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "postAbortPrivateState": "I17/I18",
+            "requiredPrintImpliesCwdPublished": null
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "C03",
+      "area": "cancellation-output",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "postAbortPrivateState": "I17/I18",
+            "requiredPrintImpliesCwdPublished": null
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "postAbortPrivateState": "I17/I18",
+            "requiredPrintImpliesCwdPublished": null
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "postAbortPrivateState": "I17/I18",
+            "requiredPrintImpliesCwdPublished": null
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "C04",
+      "area": "cancellation-output",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "postAbortPrivateState": "I17/I18",
+            "requiredPrintImpliesCwdPublished": "observed print path plus pinned publication-before-print source; invoke default cwd is the original public context, NOT a live state getter"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "postAbortPrivateState": "I17/I18",
+            "requiredPrintImpliesCwdPublished": "observed print path plus pinned publication-before-print source; invoke default cwd is the original public context, NOT a live state getter"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "postAbortPrivateState": "I17/I18",
+            "requiredPrintImpliesCwdPublished": "observed print path plus pinned publication-before-print source; invoke default cwd is the original public context, NOT a live state getter"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "C05",
+      "area": "cancellation-output",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "postAbortPrivateState": "I17/I18",
+            "requiredPrintImpliesCwdPublished": null
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "postAbortPrivateState": "I17/I18",
+            "requiredPrintImpliesCwdPublished": null
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "postAbortPrivateState": "I17/I18",
+            "requiredPrintImpliesCwdPublished": null
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "C06",
+      "area": "cancellation-output",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "partial-public-plus-source-equal-reason-stack-schedule-unmeasured",
+          "sourceOnlyUnmeasured": {
+            "equalValuedRootEscapingLocalPrecedence": "I18 pinned existing cancellation boundary; separate regression controls required"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "partial-public-plus-source-equal-reason-stack-schedule-unmeasured",
+          "sourceOnlyUnmeasured": {
+            "equalValuedRootEscapingLocalPrecedence": "I18 pinned existing cancellation boundary; separate regression controls required"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "partial-public-plus-source-equal-reason-stack-schedule-unmeasured",
+          "sourceOnlyUnmeasured": {
+            "equalValuedRootEscapingLocalPrecedence": "I18 pinned existing cancellation boundary; separate regression controls required"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "C07",
+      "area": "cancellation-output",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "C08",
+      "area": "cancellation-output",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "C09",
+      "area": "cancellation-output",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "publishedFull": "I17",
+            "noNewPrivateLimitKey": "I22",
+            "noReset": "I19"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "publishedFull": "I17",
+            "noNewPrivateLimitKey": "I22",
+            "noReset": "I19"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "publishedFull": "I17",
+            "noNewPrivateLimitKey": "I22",
+            "noReset": "I19"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "C10",
+      "area": "cancellation-output",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "originalStdoutEnrollmentPropagation": "I15 source plus C04 and actual Shell capture capability"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "originalStdoutEnrollmentPropagation": "I15 source plus C04 and actual Shell capture capability"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "originalStdoutEnrollmentPropagation": "I15 source plus C04 and actual Shell capture capability"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "C11",
+      "area": "cancellation-output",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "noHiddenCdDispatchTick": "I19",
+            "sharedBudgetMonotonic": "I19"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "noHiddenCdDispatchTick": "I19",
+            "sharedBudgetMonotonic": "I19"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "noHiddenCdDispatchTick": "I19",
+            "sharedBudgetMonotonic": "I19"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "C12",
+      "area": "cancellation-output",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "privateFinalFlushAndPublicationBoundary": "I08/I24"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "privateFinalFlushAndPublicationBoundary": "I08/I24"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "privateFinalFlushAndPublicationBoundary": "I08/I24"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "A01",
+      "area": "discovery",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "registryInventoryUnchanged": "I22"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "registryInventoryUnchanged": "I22"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "registryInventoryUnchanged": "I22"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "A02",
+      "area": "discovery",
+      "layouts": {
+        "source": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "assertion-failure",
+          "correction": "adapter-v2-unchanged-frozen-values",
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "A03",
+      "area": "discovery",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "literalArgv": "I21"
+          },
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "literalArgv": "I21"
+          },
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {
+            "literalArgv": "I21"
+          },
+          "modules": 207
+        }
+      }
+    },
+    {
+      "id": "A04",
+      "area": "discovery",
+      "layouts": {
+        "source": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "installed": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        },
+        "moved": {
+          "original": "pass",
+          "correction": null,
+          "status": "qualified-public-and-source-pass",
+          "sourceOnlyUnmeasured": {},
+          "modules": 207
+        }
+      }
+    }
+  ],
+  "noExecution": [
+    "native-oracle",
+    "real-service",
+    "SafeJS",
+    "guest",
+    "new-feature",
+    "global-gate"
+  ],
+  "limitations": [
+    "C06 equal-valued simultaneous root/escaping/local stack schedule not dynamically completed; existing unchanged-source provenance and scoped unit/public regressions support it but are not that observation",
+    "S13 original /bin/sh shebang unsupported in accepted LET and candidate; /bin/bash supplement is distinct",
+    "I24 private work, final flush, diagnostic ownership and masked8Mi display remain source-only; no fabricated runtime counters",
+    "Directory membership and file modes guarded before/after; directory modes added only to final archival/cleanup census, not retroclaimed per execution",
+    "Natural direct child close observed; no independent descendant process census or opaque host preemption guarantee",
+    "Post-source versioned adapters and controls never claimed original precode; no production fixes"
+  ]
+}

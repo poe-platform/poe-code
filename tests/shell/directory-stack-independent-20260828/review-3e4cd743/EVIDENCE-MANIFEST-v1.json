@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "at": "2026-08-28T09:40:00.560Z",
+  "archiveFiles": [
+    {
+      "path": "EVIDENCE-v1.json.gz.base64",
+      "bytes": 50000951,
+      "sha256": "fbbfceff5cae6c7d2f946fb80aff2335506614e8781a95d4036499f9509de062"
+    },
+    {
+      "path": "RECONSTRUCTION-v1.json.gz.base64",
+      "bytes": 980806,
+      "sha256": "9c0503a5f6a775ac8fac397b52a1244b1051c4af79c00175692ca38b729bba7e"
+    },
+    {
+      "path": "SCRATCH-CENSUS-v1.json.gz.base64",
+      "bytes": 2610212,
+      "sha256": "a3bb84f46c447bd6a2c4b5df2f986e4253d326cdbdeac302f79000ff6be0c5e9"
+    },
+    {
+      "path": "PACKAGE-v1.tgz.base64",
+      "bytes": 1009608,
+      "sha256": "1edd3b5077d49a2aaa2b0d5b601e939830615fef7c8d95031fb01752a52953e6"
+    },
+    {
+      "path": "RESULTS-v1.json",
+      "bytes": 122813,
+      "sha256": "636cfdd3e0f4e0bb2f73e76b30bb16184e07e1f2d36c3fe9b4def9d4a9763c54"
+    }
+  ],
+  "capturedNewRawAndConfigs": 1124,
+  "originalRawFiles": 1247,
+  "selectedSourceInputs": 265,
+  "scratchNames": [
+    "raw-v1",
+    "raw-v2",
+    "work-v1",
+    "work-v2",
+    "type-results-v2",
+    "mechanism-results-v1",
+    "mechanism-work-v1",
+    "import-results-v1",
+    "import-work-v1",
+    "import-results-v2",
+    "import-work-v2",
+    "regression-results-v1",
+    "regression-work-v1",
+    "regression-results-v2",
+    "regression-work-v2",
+    "regression-results-v3",
+    "regression-work-v3",
+    "regression-results-v4",
+    "regression-work-v4"
+  ],
+  "rawRole": "complete original andnew captures; exact tools/products reconstructible from selectedsource, package and hash inventories, not vendored dependency archives"
+}

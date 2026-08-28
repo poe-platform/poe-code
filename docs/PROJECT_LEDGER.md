@@ -2933,3 +2933,46 @@ that any implementation, command, fixture, or test currently exists.
   negatives; metadata/exports/zero runtime dependencies unchanged. No behavior
   or build replay/full Git-archive claim. This is5137 plus the one source branch,
   not automatically78/CD/XAN composition, and leaves f5 unchanged.
+
+### 2026-08-28T07:48Z — Resolved-write acceptance and developer-tool route hold
+
+- Root accepts independent38a4e7b scoped five write-safety phases plus actual A10
+  and real duplicate-build denial, not complete release binding. Inert outside
+  symlink creation is allowed; resolved writes through outside/instruction
+  aliases/chains/renamed links are denied, as are outside hardlinks and physical
+  directory imports. The historical tar refusal leaves216 ordinary neighbors;
+  no rollback or preopened-FD protection claim. Prior creation-proxy2pass/1fail
+  and all historical failed gates remain unchanged.
+- Preseal0444f359 and bounded read-only evidence in
+  `tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tool-routes-v1/REPORT.md`
+  establish the recorded otool-shim parent of xcodebuild's license check and a
+  bare-Git typing-helper route. The proposed direct otool-classic binary has two
+  additional, unapproved tool/system-reference pairs; exact path/hash/request
+  are in PROPOSAL.md. No replacement tool or12 planned route controls executed,
+  no shipping patch/new A10/full gate. Current f5/c109/profile/driver bindings
+  remain unchanged; route implementation/review/fresh release are still required.
+
+### 2026-08-28T07:48Z — Separate accepted components and explicit pending scopes
+
+- Root accepts CD464 through2585f78d/192ab78b,846-file pack06ea635b. Its85 bound
+  checks plus L24 use an actual Runtime scripted provider in each layout, not
+  a model. Original L24 was BLOCKED after61 L07 Memory setup passes, not a
+  failing executed L24 assertion. Private-work/yield invariants are pinned
+  source proof, not dynamic counters. LET is Raman's exclusive runtime window;
+  Poincare's stack work is deferred docs/freeze; Yq is pre-code only.
+- Clarify the earlier timeout/curl/SafeJS workflow record: original24 SafeJS
+  wrapper invocations cover7 programs across layouts,12 successes and12 expected
+  rejects (6 cancellation,4 budget,2 guest errors). W05 continuation has0 guest
+  evaluations. No new execution or historical score change follows this note.
+- XAN stays unaccepted/unregistered;88 reference checks per layout do not close
+  its overall resource-proof HOLD. Artifact-only88608b65 qualifies30 existing
+  diagnostic-data checks and976 counterexample-data controls, with0 product
+  executions/new acceptances. All195 failed/nonpass rows (98source/97moved) and
+  161 obligation mappings remain unqualified in its STILL-UNQUALIFIED.json.
+  F11 ledger/exact annotations are adapter-authored static arithmetic, not
+  counter telemetry; receipts show only status1/empty output/coarse closure.
+  Work/retention/yield findings remain static, unexecuted, with no author repair
+  authorized. The28 finding observations and11 direct/22 invocation attempts
+  remain held by the platform safety check: no retry, rephrasing or executor/
+  agent bypass, and no inferred OS-denial/cyber-vulnerability/semantic-pass claim.
+  Static gap inventory17735a5e does not change any historical score or f5 input.

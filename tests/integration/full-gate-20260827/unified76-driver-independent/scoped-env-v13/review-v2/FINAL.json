@@ -1,0 +1,579 @@
+{
+  "schema": "scoped-env-v13-v2-composed-receipt/2",
+  "at": "2026-08-28T10:36:18.698Z",
+  "verdict": "QUALIFIED_SCOPED_ADAPTER_ACCEPTANCE_NOT_ROOT_RELEASE",
+  "recipeCommit": "13c50ab58b76423e53f0e49da859dff584343fe9",
+  "recipeSha256": "32594007fba6a60aa4ea2623f84475be09d801d61bc16918a9627e4e9fe88657",
+  "source": "02a5060019bccdd2a64f9811812104ba09d2aaee",
+  "reseal": "96daebc077381fb63ab6447a26ab707ce790ff25",
+  "authorEvidence": "770381bc61b49b5abed96acdf0ab09f2d4b610ca",
+  "driverSha256": "2db94b8bf54405e5713b103bd677c873fcc0b153454b3deed13ee8ab4e90583e",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "product": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "helper": {
+    "sha256": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db",
+    "excerptSha256": "41e8bbf0e913189bf8b273a93499ac597515928b264cc52ac5c86b151a3d5cd7"
+  },
+  "normalizedRows": [
+    {
+      "name": "TOOL-ROUTES.json",
+      "rawSha256": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7",
+      "normalizedSha256": "b440b32475d24642d0fbe5dc222356ac1f209a11597baa07d63d286b06b68ca9"
+    },
+    {
+      "name": "INSTRUCTION-PROJECTION.json",
+      "rawSha256": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537",
+      "normalizedSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb"
+    },
+    {
+      "name": "OS-INSTRUCTION-FENCE.json",
+      "rawSha256": "8beb3aeb244fd490bd1904fa32bddc1332a7ccfb4c48d36dfe8c6ebbf3305a7f",
+      "normalizedSha256": "8046db8a870470e5a80a0e47b1619236cd6ba67e14b27a372a0b9fb2a587d9f9"
+    },
+    {
+      "name": "EXTERNAL-RECEIPT.json",
+      "rawSha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+      "normalizedSha256": "f480794f3ba641fbacd82be4a2f4fa3f9af97b98712069c9a22a150873b37478"
+    }
+  ],
+  "shippingClosure": {
+    "files": 38,
+    "otherUnchanged": 35,
+    "changedFromFe15": [
+      "DRIVER.json",
+      "execute.mjs",
+      "tool-routing.mjs"
+    ],
+    "copied": [
+      "tool-routing.mjs",
+      "fenced-supervisor.mjs",
+      "os-instruction-fence.mjs",
+      "supervise.mjs",
+      "process-observer.mjs",
+      "common.mjs",
+      "transport.mjs",
+      "projection.mjs",
+      "policy.mjs",
+      "external-admission.mjs",
+      "external.mjs",
+      "CANDIDATE.json",
+      "TOOL-ROUTES.json",
+      "OS-INSTRUCTION-FENCE.json",
+      "EXTERNAL-RECEIPT.json",
+      "EXTERNAL.json.gz.base64",
+      "INSTRUCTION-PROJECTION.json"
+    ]
+  },
+  "oldCohort": {
+    "seal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+    "pass": 30,
+    "fail": 2,
+    "unexecuted": 1,
+    "kinds": {
+      "adapterDynamic": 20,
+      "lifecycle": 1,
+      "static": 9
+    },
+    "coordinatorExit": 1,
+    "collectorCombinedBytesUnchanged": true,
+    "rescored": false
+  },
+  "newCohort": {
+    "counts": {
+      "pass": 14,
+      "fail": 0,
+      "unexecuted": 0
+    },
+    "classifications": {
+      "freshOriginalObligations": 2,
+      "additionalAdapterCases": 2,
+      "offlineComparatorCompanions": 7,
+      "actualCollectorCompanions": 2,
+      "offlineReceiptCompanions": 1
+    },
+    "actualAuthorityDispatches": 2,
+    "actualExpectedNegativeCollectorExit": 7,
+    "coordinatorExit": 0,
+    "launcher": {
+      "pid": 27933,
+      "status": 0,
+      "signal": null,
+      "stdout": "{\"counts\":{\"pass\":14,\"fail\":0,\"unexecuted\":0},\"coordinatorExitCode\":0,\"actualGitReads\":2,\"workerStatus\":0,\"rootsRemoved\":true,\"failure\":null}\n{\"outerAccepted\":true,\"actualCoordinatorStatus\":0,\"signal\":null}\n",
+      "stderr": ""
+    },
+    "window": [
+      "2026-08-28T10:34:41.114Z",
+      "2026-08-28T10:34:42.916Z"
+    ],
+    "retries": 0
+  },
+  "composed": {
+    "supportedOriginalObligations": 32,
+    "inherited": 30,
+    "fresh": 2,
+    "unsupported": 1,
+    "unsupportedId": "E03.3",
+    "unsupportedReason": "Original all-nonempty ambient GIT restoration setup inadmissible by root disposition; R03-N proves refusal, not restoration. R03-E proves one admitted empty configuration only.",
+    "qualifications": "20 inherited dynamic +1 inherited lifecycle +9 inherited static; fresh E10.1 actual narrow authority read and E10.3 receipt sensitivity. Not 33 dynamic controls or full integration execution.",
+    "rows": [
+      {
+        "id": "E01.1",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E01.2",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E01.3",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E02.1",
+        "originalStatus": "PASS",
+        "originalKind": "STATIC_ONLY",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E02.2",
+        "originalStatus": "PASS",
+        "originalKind": "STATIC_ONLY",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E02.3",
+        "originalStatus": "PASS",
+        "originalKind": "STATIC_ONLY",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E02.4",
+        "originalStatus": "PASS",
+        "originalKind": "STATIC_ONLY",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E03.1",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E03.2",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E03.3",
+        "originalStatus": "UNEXECUTED",
+        "originalKind": "EXERCISED_PREREQUISITE_ONLY",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "UNEXECUTED_UNSUPPORTED_INADMISSIBLE_SETUP",
+        "freshEvidence": null
+      },
+      {
+        "id": "E03.4",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E04.1",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E04.2",
+        "originalStatus": "PASS",
+        "originalKind": "STATIC_ONLY",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E05.1",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E05.2",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E05.3",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E06.1",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E06.2",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E07.1",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E07.2",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E07.3",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E08.1",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E08.2",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E09.1",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E09.2",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E09.3",
+        "originalStatus": "PASS",
+        "originalKind": "STATIC_ONLY",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E10.1",
+        "originalStatus": "FAIL",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "FRESH_V2_PASS",
+        "freshEvidence": {
+          "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v2/RESULTS.json",
+          "case": "E10.1",
+          "kind": "ACTUAL_FENCED_AUTHORITY_READ"
+        }
+      },
+      {
+        "id": "E10.2",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E10.3",
+        "originalStatus": "FAIL",
+        "originalKind": "STATIC_ONLY",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "FRESH_V2_PASS",
+        "freshEvidence": {
+          "path": "tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v2/RESULTS.json",
+          "case": "E10.3",
+          "kind": "RECEIPT_VALIDATION_OVER_ACTUAL_READS"
+        }
+      },
+      {
+        "id": "E11.1",
+        "originalStatus": "PASS",
+        "originalKind": "STATIC_ONLY",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E11.2",
+        "originalStatus": "PASS",
+        "originalKind": "EXERCISED_LIFECYCLE",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E12.1",
+        "originalStatus": "PASS",
+        "originalKind": "STATIC_ONLY",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      },
+      {
+        "id": "E12.2",
+        "originalStatus": "PASS",
+        "originalKind": "STATIC_ONLY",
+        "originalSeal": "99684045c7bbd0ea40e1eb2f15271cfef8c626e0",
+        "currentSupport": "INHERITED_BYTE_IDENTICAL",
+        "freshEvidence": null
+      }
+    ]
+  },
+  "shippingCallsites": {
+    "inheritedStaticOnly": [
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+        "line": 74,
+        "scope": "whole awaited prerequisites"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+        "line": 138,
+        "scope": "private-final-sweep"
+      },
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+        "line": 142,
+        "scope": "private-finally"
+      }
+    ],
+    "actualFullFunctionsInvoked": false
+  },
+  "telemetry": [
+    {
+      "pid": 28004,
+      "command": "git",
+      "argv": [
+        "--no-replace-objects",
+        "show",
+        "2519464204c4d2adce29d4a74cbade3599f56141:tests/commands/metadata-stress/canonical-env/runner.mjs"
+      ],
+      "envOptionPresent": false,
+      "PATH": "/private/tmp/unified76-os-write-uS5GX4/controls/native:/private/tmp/unified76-os-write-uS5GX4/controls/tool-bin",
+      "GIT_EXEC_PATH": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+      "GIT_OPTIONAL_LOCKS": "0",
+      "resolvedTarget": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "binarySha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "d354f886b3abc44c137a4da38284aa4692a5dd20612f2619f2467b451a7db849",
+      "stdoutBytes": 28,
+      "stderr": "",
+      "prepostEnvironmentUnchanged": true
+    },
+    {
+      "pid": 28009,
+      "command": "git",
+      "argv": [
+        "--no-replace-objects",
+        "show",
+        "2519464204c4d2adce29d4a74cbade3599f56141:tests/plugins/qualified-current-release/prerequisites.mjs"
+      ],
+      "envOptionPresent": false,
+      "PATH": "/private/tmp/unified76-os-write-uS5GX4/controls/native:/private/tmp/unified76-os-write-uS5GX4/controls/tool-bin",
+      "GIT_EXEC_PATH": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+      "GIT_OPTIONAL_LOCKS": "0",
+      "resolvedTarget": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "binarySha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "62198489156d96c87c509ea7362e8f3812f40ff6b54c2987686298038ebe4c80",
+      "stdoutBytes": 28,
+      "stderr": "",
+      "prepostEnvironmentUnchanged": true
+    }
+  ],
+  "telemetryQualification": "Unique authenticated PATH target before actual bare-name spawn; Node does not supply kernel resolved-exec event. Synchronous returned Git child PIDs/statuses; fast Git children not claimed sampled by outer observer. Original8e6/df89 EPERM target still UNKNOWN.",
+  "fence": {
+    "actualRenderedProfileSha256": "189f211a9394a1f6ec137b098aafc3780679f227a40dbc35d31473ed6b3ea6ad",
+    "externalManifestSha256": "8046db8a870470e5a80a0e47b1619236cd6ba67e14b27a372a0b9fb2a587d9f9",
+    "workerPid": 27984,
+    "workerStatus": 0,
+    "clean": true,
+    "signals": [],
+    "survivors": [],
+    "phasesCompleted": 0,
+    "observerQualification": "Trusted outer read-only ps observer; exact requester PID/birth and admitted child PID/group/birth. No signals or target sandbox policy changes.",
+    "foreignSentinelRerun": false
+  },
+  "verification": {
+    "gzipFiles": 15,
+    "decodedBytes": 43773,
+    "allGzipAndRawHashesVerified": true,
+    "priorV13FilesHashUnchanged": 38,
+    "recipeCodeHashUnchanged": true,
+    "newRoots": [
+      {
+        "path": "/private/tmp/unified76-env-v2-8h280D",
+        "absent": true,
+        "removed": true,
+        "bytes": 733422,
+        "entries": 27
+      },
+      {
+        "path": "/private/tmp/unified76-os-write-uS5GX4",
+        "absent": true,
+        "removed": true,
+        "bytes": 786,
+        "entries": 59
+      },
+      {
+        "path": "/private/tmp/full-gate-unified76-env13v2-8h280D",
+        "absent": true,
+        "removed": true,
+        "bytes": 31970,
+        "entries": 6
+      }
+    ],
+    "oldRootsUntouched": true,
+    "privatePostguardClaim": false,
+    "instructionFilesMaterialized": 0
+  },
+  "remaining": [
+    "Original E03.3 restoration unsupported; not converted to PASS.",
+    "All three shipping integration callsites remain static proofs, not real prerequisites/privateState execution.",
+    "Fresh immutable packet must bind this adapter source/reseal/driver/profile and exact independent recipe/evidence refs before any new root gate authorization.",
+    "No full prerequisites/private operations/A10/pack/native oracle/fullgate execution in v2; c109 carried only.",
+    "No malicious hostJS/hostile preopened FD/TOCTOU/universal background closure/full OS hash attestation claim."
+  ],
+  "systemQualification": {
+    "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+    "pairs": [
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/System/Library/Frameworks/Security.framework/Versions/A/Security"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/usr/lib/libc++.1.dylib"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/usr/lib/libz.1.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/usr/lib/libiconv.2.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+      ],
+      [
+        "/usr/bin/tar",
+        "/usr/lib/libarchive.2.dylib"
+      ],
+      [
+        "/usr/bin/tar",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/usr/bin/sandbox-exec",
+        "/usr/lib/libsandbox.1.dylib"
+      ],
+      [
+        "/usr/bin/sandbox-exec",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+        "/usr/lib/libc++.1.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    ],
+    "claim": "Exactly original11+sandbox2+inspector2 approved reference pairs, not unique-library count/file hashes/full OS attestation; no added exception"
+  }
+}

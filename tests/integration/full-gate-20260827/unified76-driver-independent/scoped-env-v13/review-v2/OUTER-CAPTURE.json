@@ -1,0 +1,32 @@
+{
+  "at": "2026-08-28T10:34:42.923Z",
+  "status": {
+    "pid": 27934,
+    "status": 0,
+    "signal": null,
+    "closed": true,
+    "error": null,
+    "timedOut": false,
+    "outputExceeded": false,
+    "signals": [],
+    "observedBytes": 142
+  },
+  "raw": [
+    {
+      "path": "coordinator-stdout.gz",
+      "bytes": 142,
+      "sha256": "24b5c0eaac52d2b1117171fef47d82d09b4b5375fbf0839e2dbd28364e2c669a",
+      "compressedBytes": 134,
+      "compressedSha256": "4577681ddcda0569838889ae55a2a20fea1b6df89971f64ed20f3d38ec87c0f3"
+    },
+    {
+      "path": "coordinator-stderr.gz",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "compressedBytes": 20,
+      "compressedSha256": "abfbb86f9f5ddfbd9fc1a72c43ab384702ce8bae86b60f3324748485e235e61e"
+    }
+  ],
+  "accepted": true,
+  "claim": "Per-stream lexical collector and actual close status; no reporter-string override or arbitrary background-tree guarantee"
+}

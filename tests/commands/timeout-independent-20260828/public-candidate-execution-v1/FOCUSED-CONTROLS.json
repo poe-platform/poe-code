@@ -1,0 +1,86 @@
+{
+  "schema": "timeout-public-candidate-focused-controls/1",
+  "at": "2026-08-28T05:25:40.711Z",
+  "manifestHash": "74ee8bb5c667f7b143cdbf637627f67d83eaacaa5f7cea802ed5f2e072747826",
+  "requestHash": "6d01916d6cd7c0e6f6cbc79697764fba972e1cfc45f857235965b67e45d6877a",
+  "results": [
+    {
+      "id": "C01-exact-T08",
+      "status": "PASS"
+    },
+    {
+      "id": "C02-old-code",
+      "status": "PASS"
+    },
+    {
+      "id": "C03-wrong-line",
+      "status": "PASS"
+    },
+    {
+      "id": "C04-wrong-column",
+      "status": "PASS"
+    },
+    {
+      "id": "C05-wrong-token",
+      "status": "PASS"
+    },
+    {
+      "id": "C06-wrong-message",
+      "status": "PASS"
+    },
+    {
+      "id": "C07-extra-diagnostic",
+      "status": "PASS"
+    },
+    {
+      "id": "C08-leaf-not-root",
+      "status": "PASS"
+    },
+    {
+      "id": "C09-source-fallback",
+      "status": "PASS"
+    },
+    {
+      "id": "C10-payload-tamper",
+      "status": "PASS"
+    },
+    {
+      "id": "C11-other-case-not-whitelisted",
+      "status": "PASS"
+    },
+    {
+      "id": "C12-unchanged-positive",
+      "status": "PASS"
+    },
+    {
+      "id": "C13-readme-composition",
+      "status": "PASS"
+    },
+    {
+      "id": "C14-readme-wrong-hash",
+      "status": "PASS"
+    },
+    {
+      "id": "C15-all-eight-mutant-patches",
+      "status": "PASS"
+    },
+    {
+      "id": "C16-wrong-mutant-binding",
+      "status": "PASS"
+    },
+    {
+      "id": "C17-explicit-wrong-candidate",
+      "status": "PASS"
+    },
+    {
+      "id": "C18-post-bindings-and-exact-request",
+      "status": "PASS"
+    }
+  ],
+  "passed": 18,
+  "failed": 0,
+  "actualProductRuntime": 0,
+  "actualCompilerRuns": 0,
+  "gitBlobChildren": 8,
+  "natural": true
+}

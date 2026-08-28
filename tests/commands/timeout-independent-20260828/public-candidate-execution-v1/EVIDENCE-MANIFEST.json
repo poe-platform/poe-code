@@ -1,0 +1,65 @@
+{
+  "schema": "timeout-public-candidate-independent-evidence/1",
+  "sealedAt": "2026-08-28T05:34:02.922Z",
+  "recipeCommit": "330ffcb9",
+  "recipeHash": "74ee8bb5c667f7b143cdbf637627f67d83eaacaa5f7cea802ed5f2e072747826",
+  "requestHash": "6d01916d6cd7c0e6f6cbc79697764fba972e1cfc45f857235965b67e45d6877a",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "verdict": "HOLD_VERIFIER_FINDINGS",
+  "files": [
+    {
+      "path": "FOCUSED-CONTROLS.json",
+      "bytes": 1725,
+      "sha256": "43be4c742a75730c76880fc63e6036671909b8c19f30a1a7d8fd624510370d78"
+    },
+    {
+      "path": "summarize.mjs",
+      "bytes": 4707,
+      "sha256": "13e3388bdd345477ed70573d06593e9cb1d3f1ac40ed0b05c117ae897eb45a54"
+    },
+    {
+      "path": "REVIEW.json",
+      "bytes": 66544,
+      "sha256": "2404c2f9bf7b34a7a5586d266bd2c2de403f9b34bef59b8c8a22c63d3c9e3ada"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 7988,
+      "sha256": "018d32ebd56e7fc529168c30cbe7b062e4c52a9294a378f2ac80ee37d43f194a"
+    },
+    {
+      "path": "POSTPROCESS-NOTE.json",
+      "bytes": 558,
+      "sha256": "c076d8ec4a07551f273cb139875a3968893beb566bf22fb1f9dd1e0ff3a5b31f"
+    },
+    {
+      "path": "runs/actual-01/CANDIDATE.json",
+      "bytes": 167198,
+      "sha256": "6d01916d6cd7c0e6f6cbc79697764fba972e1cfc45f857235965b67e45d6877a"
+    },
+    {
+      "path": "runs/actual-01/RESULT.json",
+      "bytes": 1534575,
+      "sha256": "b60816bc1c2f9b275b250fa688aef4585c9bcbeb883cfab7da2a959944cfa3f3"
+    },
+    {
+      "path": "runs/actual-01/CLOSURE.json",
+      "bytes": 2902945,
+      "sha256": "17ca83db368e74163f71b3f25ead7a857f250200c66750ab68cb044a53e6e6ca"
+    },
+    {
+      "path": "runs/actual-01/RESOURCE-CLEANUP.json",
+      "bytes": 211,
+      "sha256": "cbf220c36c7750925cb094e69f29c310057b36d6ff063ae8ba51ae0cf7b86b3d"
+    },
+    {
+      "path": "runs/actual-01/RECEIPTS.json.gz",
+      "bytes": 12882940,
+      "sha256": "9592272d48060cd6b783c2fbbafe0afd2685e563fbaec3dccdb667c2c1a36ec8"
+    }
+  ],
+  "actualInvocations": 1,
+  "retries": 0,
+  "postProcessingNotNewExecution": true,
+  "noPublicAcceptance": true
+}

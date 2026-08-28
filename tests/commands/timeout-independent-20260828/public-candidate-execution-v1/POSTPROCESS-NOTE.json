@@ -1,0 +1,7 @@
+{
+  "schema": "timeout-public-postprocess-note/1",
+  "executionUnaffected": true,
+  "observation": "A read-only progress monitor attempted readdir of runs/actual-01/raw after the completed executor archived and removed it; Node reported ENOENT/scandir and the monitor exited1.",
+  "originalMeasurement": "The actual executor separately exited1 with SCOPED_PUBLIC_TIMEOUT_FINDINGS, runtime90/types20/mutants8/reapedtrue.",
+  "action": "Read and hash-verified the retained archive and untouched RESULT.json; no product or cohort rerun, no original rescore."
+}

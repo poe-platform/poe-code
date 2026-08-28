@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "role": "SYNTHETIC_ONLY",
+  "startedUtc": "2026-08-28T16:34:21.158Z",
+  "recipeIdentity": {
+    "sha256": "4938a5ebb88c5b34f96ecdf7fc91c25a710666a5cfdaef1f9b70a4a48cb5762b",
+    "bytes": 4528,
+    "mode": 420
+  },
+  "before": {
+    "files": 13,
+    "evidenceBytes": 0
+  },
+  "executable": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "identity": {
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "bytes": 112989184,
+      "mode": 493
+    }
+  },
+  "argv": [
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/assertions/synthetic-checks.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/assertions",
+  "env": {
+    "LANG": "C",
+    "TZ": "UTC"
+  },
+  "bounds": {
+    "wallMs": 60000,
+    "cleanupReserveMs": 5000,
+    "outerProcesses": 1,
+    "nestedProcesses": 1,
+    "grandchildren": 0,
+    "retries": 0,
+    "stdoutBytes": 1048576,
+    "stderrBytes": 1048576,
+    "metadataBytes": 1048576,
+    "storageBytes": 18874368
+  },
+  "noTargetGo": true
+}

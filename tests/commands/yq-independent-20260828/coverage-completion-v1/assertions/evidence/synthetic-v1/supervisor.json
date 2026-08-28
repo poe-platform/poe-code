@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "status": "SYNTHETIC_PROCESS_AND_INTEGRITY_MATCH",
+  "raw": {
+    "schema": 1,
+    "code": 0,
+    "signal": null,
+    "stdoutBytes": 246,
+    "stderrBytes": 0,
+    "overflow": false,
+    "timedOut": false,
+    "spawnFailure": null,
+    "captureFailure": null,
+    "childClosed": true,
+    "elapsedMs": 348.84470799999997,
+    "rawBeforeAssert": true,
+    "overflowPolicy": "FAIL_AND_KILL; no passing truncated-capture claim",
+    "descendants": 0,
+    "activeOwnedChildren": 0
+  },
+  "after": {
+    "files": 13,
+    "evidenceBytes": 689168
+  },
+  "integrityFailure": null,
+  "targetExecutions": 0,
+  "acceptance": false,
+  "peakOwnedProcessesIncludingSupervisor": 2,
+  "activeOwnedChildren": 0
+}

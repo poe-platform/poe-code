@@ -38,7 +38,7 @@ export const defaultLimits: Required<ShellLimits> = {
 
 const shellBuiltinNames = new Set([
   ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read",
-  "exit", "return", "break", "continue", "command", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let", "pushd", "dirs", "popd",
+  "exit", "return", "break", "continue", "command", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let", "pushd", "dirs", "popd", "shopt",
 ]);
 
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
@@ -185,6 +185,7 @@ export interface State {
   getopts?: GetoptsBinding;
   directoryStack?: { readonly entries: readonly string[]; readonly bytes: number };
   directoryStackCwdPublication?: symbol;
+  dotglob?: boolean;
   pipefail: boolean;
   errexit?: boolean;
   isolated?: boolean;
@@ -1746,6 +1747,7 @@ export class Runtime {
     return {
       cwd: state.cwd, variables, exported, functions: new Map(), getopts: { cursor: createGetoptsState(), integer: true },
       directoryStack: { entries: [], bytes: 0 },
+      dotglob: false,
       positional: [...args], arg0, profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1,
       loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true,
       errexit: false,
@@ -2548,10 +2550,62 @@ export class Runtime {
     }
   }
 
+  private async shoptBuiltin(context: CommandContext & IO, state: State): Promise<number> {
+    let print = false;
+    let quiet = false;
+    let set = false;
+    let unset = false;
+    let index = 0;
+    for (; index < context.args.length; index++) {
+      this.signal.throwIfAborted();
+      const option = context.args[index]!;
+      if (option === "--") { index++; break; }
+      if (!option.startsWith("-") || option === "-") break;
+      for (const flag of option.slice(1)) {
+        this.signal.throwIfAborted();
+        if (flag === "p") print = true;
+        else if (flag === "q") quiet = true;
+        else if (flag === "s") set = true;
+        else if (flag === "u") unset = true;
+        else {
+          await this.diagnostic(context, `shopt: ${option.startsWith("--") ? option : `-${flag}`}: unsupported option`);
+          await writeText(context.stderr, "shopt: usage: shopt [-pqsu] [--] [dotglob ...]\n");
+          return 2;
+        }
+      }
+    }
+    if (set && unset) {
+      await this.diagnostic(context, "shopt: cannot set and unset shell options simultaneously");
+      return 1;
+    }
+    const emit = async (): Promise<void> => {
+      if (!quiet) await writeText(context.stdout, print ? `shopt -${state.dotglob ? "s" : "u"} dotglob\n` : `dotglob             \t${state.dotglob ? "on" : "off"}\n`);
+    };
+    if (index === context.args.length) {
+      if ((!set || state.dotglob) && (!unset || !state.dotglob)) await emit();
+      return 0;
+    }
+    let status = 0;
+    for (; index < context.args.length; index++) {
+      this.signal.throwIfAborted();
+      const name = context.args[index]!;
+      if (name !== "dotglob") {
+        await this.diagnostic(context, `shopt: ${name}: unsupported shell option name (only dotglob is supported)`);
+        status = 1;
+      } else if (set || unset) state.dotglob = set;
+      else {
+        await emit();
+        if (!state.dotglob) status = 1;
+      }
+    }
+    return status;
+  }
+
   async builtin(context: CommandContext & IO, state: State, assignments: Map<string, SavedVariable>, diagnose?: (error: unknown, diagnostic: string) => void, suppressSpecial = false): Promise<number | undefined> {
     const { command, args, stdout, stderr } = context;
     if (command === ":" || command === "true") return 0;
     if (command === "false") return 1;
+    if (command === "shopt") return this.shoptBuiltin(context, state);
     if (command === "let") return this.letBuiltin(context, state);
     if (command === "getopts") return this.getoptsBuiltin(context, state);
     if (command === "pushd" || command === "dirs" || command === "popd") return this.directoryStackBuiltin(context, state, diagnose);
@@ -3033,7 +3087,7 @@ export class Runtime {
           try { entries = await this.fs.readdir(resolvePath(state.cwd, candidate || "."), { signal: this.signal }); }
           catch (error) { if (["ENOENT", "ENOTDIR", "EACCES"].includes(errorCode(error) ?? "")) continue; throw error; }
           for (const entry of entries) {
-            if ((!entry.name.startsWith(".") || segment.startsWith(".")) && await matches(entry.name)) {
+            if (entry.name !== "." && entry.name !== ".." && (state.dotglob || !entry.name.startsWith(".") || segment.startsWith(".")) && await matches(entry.name)) {
               addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${entry.name}`);
             }
           }

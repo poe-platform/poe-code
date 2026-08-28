@@ -245,6 +245,7 @@ export class Shell implements PluginHost {
         const state: State = {
           cwd, variables, exported, functions: new Map(), positional: [], getopts: { cursor: { index: 0 }, integer: true },
           directoryStack: { entries: [], bytes: 0 },
+          dotglob: false,
           status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, profile: "bash",
         };
         const admission = Runtime.rootCancellationAdmission(budget);

@@ -1,0 +1,307 @@
+{
+  "schemaVersion": 1,
+  "status": "STATIC_AUTHENTICATION_ONLY_NO_IMPORTS_OR_REPLAY",
+  "actualCommit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+  "baseSourceCommit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+  "baseEvidenceCommit": "70fa3df66f9c8dc3f972cfa8c0c5862d77d7514e",
+  "oldCandidateConsumed": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+  "entries": [
+    {
+      "id": "v2:RECIPE-SEAL.json",
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/RECIPE-SEAL.json",
+      "gitMode": "100644",
+      "blob": "22892c312499bf09592788cf1a2732f469a93438",
+      "bytes": 3994,
+      "sha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15"
+    },
+    {
+      "id": "v2:SOURCE-PRESEAL.json",
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/SOURCE-PRESEAL.json",
+      "gitMode": "100644",
+      "blob": "509570c20f13fcd82dec500aae345e9fd007affc",
+      "bytes": 2233,
+      "sha256": "c971d27207b661ae3ee23d61d6e1ee7cfefc2b6a8a890f4e0fde228c81945c64"
+    },
+    {
+      "id": "v2:delta.mjs",
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/delta.mjs",
+      "gitMode": "100644",
+      "blob": "b3226d0aa8a01b88c944c3e2785535f56d5070f8",
+      "bytes": 5957,
+      "sha256": "c4241ec7033dc47171548988c638367a96e923c7a4462f2cddb9f9783bc57ed0"
+    },
+    {
+      "id": "v2:V1-V2.diff",
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/V1-V2.diff",
+      "gitMode": "100644",
+      "blob": "7f289d3b5110d97903e04bb94ab3cfd82c12326c",
+      "bytes": 6923,
+      "sha256": "ae8de91fef938c24df0293a78548492bac44435509a610bf7f7decaede5c59fc"
+    },
+    {
+      "id": "v2:PROTOCOL.md",
+      "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/PROTOCOL.md",
+      "gitMode": "100644",
+      "blob": "2068e857d34521c0cb2f6568a5aefe6d92f26fe4",
+      "bytes": 8571,
+      "sha256": "807acc4a575a6c4b2fbf3a0ad9967048bf64e7a46d4cf579d4ffe0a0b7d5521a"
+    },
+    {
+      "id": "v2:EVIDENCE-SEAL.json",
+      "commit": "70fa3df66f9c8dc3f972cfa8c0c5862d77d7514e",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/EVIDENCE-SEAL.json",
+      "gitMode": "100644",
+      "blob": "116aafc5f98beb96a0af27d04f57bc0700f5ce07",
+      "bytes": 174716,
+      "sha256": "7047fea5ae92f73a3d0b3e2c574afcd30532e63a3a7d25e7cfb4cb2827004c4d"
+    },
+    {
+      "id": "v2:HANDOFF.md",
+      "commit": "70fa3df66f9c8dc3f972cfa8c0c5862d77d7514e",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/HANDOFF.md",
+      "gitMode": "100644",
+      "blob": "a88e67072bc3f535308244942c57936001b22bfe",
+      "bytes": 7318,
+      "sha256": "aaa79412d401fff422926336c74109b4f5b9228fe2a778e8677129c68b9f8684"
+    },
+    {
+      "id": "v1:assert-capture.mjs",
+      "commit": "c49d494dd5a36b19198680239a72e0c95cb90d8d",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/assert-capture.mjs",
+      "gitMode": "100644",
+      "blob": "eaa065137ae8bbf89d0ba93720a422d4980e09bf",
+      "bytes": 3726,
+      "sha256": "8fd16f41cb89b2243f08d46858e33a61ec73140f0bf5ea1ffbbc6258b6623d88"
+    },
+    {
+      "id": "v1:context.mjs",
+      "commit": "c49d494dd5a36b19198680239a72e0c95cb90d8d",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/context.mjs",
+      "gitMode": "100644",
+      "blob": "d3b77a5ff2d548702d7a749fd106a0b3f225db96",
+      "bytes": 4497,
+      "sha256": "1e3c7edee830a662f678e70d54398a0bccaf7a19a4fe29f53eadd27ad0985a23"
+    },
+    {
+      "id": "v1:integrity.mjs",
+      "commit": "c49d494dd5a36b19198680239a72e0c95cb90d8d",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/integrity.mjs",
+      "gitMode": "100644",
+      "blob": "bb6c05e8784e07adadfc64115c829ce91387a9d7",
+      "bytes": 3889,
+      "sha256": "fc8387f9c1c64a979ffce9a4058ed3a4f199e56ac7a5d7b289f490da23ebe60a"
+    },
+    {
+      "id": "v1:source-bindings.json",
+      "commit": "c49d494dd5a36b19198680239a72e0c95cb90d8d",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/source-bindings.json",
+      "gitMode": "100644",
+      "blob": "5f7851ed5ada500c53ff0330724ccb782e61367d",
+      "bytes": 8421,
+      "sha256": "4acd5904bcf78688a2c7a8329d37ffcbd84a03319099bbb32d8242957d5994bc"
+    },
+    {
+      "id": "actual-review",
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/REVIEW.md",
+      "gitMode": "100644",
+      "blob": "c9a0e91294503286c6d1cb3f298ede4fcb695e88",
+      "bytes": 10311,
+      "sha256": "0dd5f571003333214326e8dc58f72b569ffd9ff0ea0622fd2a513cd5ab1b83d7"
+    },
+    {
+      "id": "actual-declared-jobs",
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/DECLARED-JOBS-149.json",
+      "gitMode": "100644",
+      "blob": "8432caf66dbba607cd62117fdc31bb31d82c94cb",
+      "bytes": 1058682,
+      "sha256": "153caa0762421b0f3af3717cae17df95fcf251939a4af8b87de5a75bc0f64ea6"
+    },
+    {
+      "id": "CMD22:boundary.json",
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/boundary.json",
+      "gitMode": "100644",
+      "blob": "bc6e961b553a22389444055a7ddca13110d87f01",
+      "bytes": 110,
+      "sha256": "6a942879619650434b181c3e44fb77cb5027a6b4c9206a8733c37d3aef5bd46a"
+    },
+    {
+      "id": "CMD22:child.json",
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/child.json",
+      "gitMode": "100644",
+      "blob": "b814cf5677e7cdb7dbe966345ac9b44b1e5ec008",
+      "bytes": 207,
+      "sha256": "bd9ffce27698066d2d971f675dad30a6476955015feb3ebb68a1c447b6fec269"
+    },
+    {
+      "id": "CMD22:command-stderr.bin",
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/command-stderr.bin",
+      "gitMode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "CMD22:command-stdout.bin",
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/command-stdout.bin",
+      "gitMode": "100644",
+      "blob": "c508d5366f70bba37fcc09d128b6537c4adb2c79",
+      "bytes": 6,
+      "sha256": "2ed27c1421e6928dbe13dbfdb5c59e1045b30341fe7ebe05700006bc5ac572c0"
+    },
+    {
+      "id": "CMD22:obligations.json",
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/obligations.json",
+      "gitMode": "100644",
+      "blob": "12d110b8402ed0468423a1b01e56f5046d8117b5",
+      "bytes": 101,
+      "sha256": "f86fd34816b1cb7944155a43de29f379fa76c0fa7a3fb62fbc2e57f124b38273"
+    },
+    {
+      "id": "CMD22:receipt.json",
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/receipt.json",
+      "gitMode": "100644",
+      "blob": "3ea94ededb02a5df1e9c43ab6fe3f5af7583792e",
+      "bytes": 1948,
+      "sha256": "4cab62f3c2ab116e5c8e587c3bafcbf9abaf42bde2186fea3b444aabb543df77"
+    },
+    {
+      "id": "CMD22:stderr.bin",
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/stderr.bin",
+      "gitMode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "CMD22:stdout.bin",
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/stdout.bin",
+      "gitMode": "100644",
+      "blob": "6b6b0e7a490ac040db3efcc58f4ce4dd35214aae",
+      "bytes": 1327,
+      "sha256": "7bc71178cfa8f3e3c5c7e5dee3a261c46331b1296b4b6098f22e21ef6bd7c125"
+    },
+    {
+      "id": "CMD22:verdict.json",
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-19-29.600Z-b6244431-0a29-4dcb-b399-2579eab26b61/CMD-22--whole/verdict.json",
+      "gitMode": "100644",
+      "blob": "38e767aa3fd9e8ec0b5fa44d0d6e426b3770cd17",
+      "bytes": 537,
+      "sha256": "ab5cefa8a711951ce8b9309c9770be9006669f60841c18f098fb44df7ff6176a"
+    },
+    {
+      "id": "FS05:receipt",
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-22-03.879Z-e11933d3-f115-43a8-803c-2449a3820e8f/FS-05--whole/receipt.json",
+      "gitMode": "100644",
+      "blob": "c6b4903aadce75232e4a12b37d2bf2c3e79fdc40",
+      "bytes": 2864,
+      "sha256": "c5e6c5899c42a40b1b3a1bf9aeaea08186469c1a551278e60564326c87510b7a"
+    },
+    {
+      "id": "FS05:verdict",
+      "commit": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/raw-compound/captures/run-2026-08-28T10-22-03.879Z-e11933d3-f115-43a8-803c-2449a3820e8f/FS-05--whole/verdict.json",
+      "gitMode": "100644",
+      "blob": "7b35f5a5076d58ac436154c66fbfe342d310dcf8",
+      "bytes": 521,
+      "sha256": "4232d6de1b5ee012b6d458fb453cfb16161adf69de899b304c9a015d457df7ff"
+    },
+    {
+      "id": "baseline-path-contract",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "path": "src/contracts/path.ts",
+      "gitMode": "100644",
+      "blob": "4cbf95a4baa405a6fc5438c23511a9059b977201",
+      "bytes": 1675,
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+    },
+    {
+      "id": "historical-product-resolver-call",
+      "commit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+      "path": "src/commands/yq/index.ts",
+      "gitMode": "100644",
+      "blob": "217c38e5920475f781ebb5f8ab4399afd2456eac",
+      "bytes": 20110,
+      "sha256": "ffa76c2b111d915973634ff1238a709a9a90b1a5db000c690649519378afb283"
+    },
+    {
+      "id": "carry-contract",
+      "commit": "bd471ef682d768692a682d40009a874f51e3ad68",
+      "path": "tests/commands/yq-independent-20260828/final-carry-v1/CONTRACT.md",
+      "gitMode": "100644",
+      "blob": "885a54dd028e86ad164c5d58d27d41228f06cf78",
+      "bytes": 18630,
+      "sha256": "1e31a9883fdaf3e8fbb890c736a4082246b58d6dafd7479ebbec194dd8531401"
+    },
+    {
+      "id": "original-inventory",
+      "commit": "c49d494dd5a36b19198680239a72e0c95cb90d8d",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/inventory.json",
+      "gitMode": "100644",
+      "blob": "6f53ef71631736bdcbd42d734118f6c9b6265e01",
+      "bytes": 192322,
+      "sha256": "21e650910cf1025e20684e9ba434c66d736a376644d988199c588427d5ac355a"
+    },
+    {
+      "id": "packet:freeze-command-parser",
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/command-parser.json",
+      "gitMode": "100644",
+      "blob": "2818796d706eb48e452d769d36c0644754ceefbd",
+      "bytes": 10728,
+      "sha256": "173a594a4b61c17e14ecd09ee850027e1c9cfafac95530e04cfcb65d7c1de18f"
+    },
+    {
+      "id": "packet:freeze-value-query",
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/value-query.json",
+      "gitMode": "100644",
+      "blob": "15386e9f5336d8244ead725f0c5402b4e5a1183d",
+      "bytes": 12730,
+      "sha256": "b83f0f56eeddbc9637947356078d972999533af791d40f200d493008e17ee443"
+    },
+    {
+      "id": "packet:freeze-utf8",
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/utf8.json",
+      "gitMode": "100644",
+      "blob": "d191c59bd40fd9413d4b73d7e8ac57acd4c197c2",
+      "bytes": 4211,
+      "sha256": "bd42933b99802391de2d41d8af9c00a32963f96ac5fb243b4913da3f358f150c"
+    },
+    {
+      "id": "packet:freeze-accounting",
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/accounting.json",
+      "gitMode": "100644",
+      "blob": "122721e4bef71663f098456e94990b8055b84b87",
+      "bytes": 10897,
+      "sha256": "f81e089520ccaffcd3cd73589f46737dd658cb9be295f43089156f64382381cf"
+    },
+    {
+      "id": "packet:freeze-integration",
+      "commit": "f074c142411ba839cbd9da45a499cc798965149d",
+      "path": "tests/commands/yq-independent-20260828/freeze/integration.json",
+      "gitMode": "100644",
+      "blob": "889e6db198ca7521e175501e39864a42ffc71e24",
+      "bytes": 12184,
+      "sha256": "5486bac2261fec24e85b2ebe2a48eaccbd59be0f8013cdbd852f081c3cc1af30"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "schema": "timeout-author-regression-freeze/1",
+  "date": "2026-08-28",
+  "baseline": {
+    "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "tree": "48e5ae39ce98e1c8e416bae77da40d88b75e1db5",
+    "qualification": "coherent77 author-combined baseline; independent timeout review pending"
+  },
+  "policy": {
+    "packet": "257bf6d7fe51b03c224fbca7e91519e692bfadd3",
+    "packetReadmeSha256": "e050a86f9e1ee14f5f842d49ef99cd11b4b9decfcd1223d429b287c82444ecef",
+    "parserClarification": "a0c6adaecad2665ea65eedb7b07dc6ade5f209c0",
+    "independentFreeze": "8843c519c23ad529677d51811f3acd370e53dffb",
+    "independentValidation": "0e83ced9ef58f95dc49e1ecbd5d18a7995d9f35f"
+  },
+  "focusedCases": [
+    "factory validation, exact read order, capture, receivers, freshness and collision preflight",
+    "informational paths avoid invoker, scheduler, cleanup and stdin activity",
+    "zero duration omits all deadline resources and forwards literal streams",
+    "MAX_SAFE boundary, invalid-before-overflow, long zero and late fraction",
+    "one live opaque handle, chunk rearm and cleanup through child closure",
+    "outer cancellation with the observed own reason remains parent cancellation",
+    "retirement clear failure equal to the own deadline reason remains cleanup failure",
+    "internal-only module leaves the default aggregate at 77"
+  ],
+  "excluded": [
+    "root export or package subpath",
+    "default or aggregate timeout wiring",
+    "independent 32-family and 70-vector execution",
+    "native 12-row execution",
+    "SafeJS replay"
+  ]
+}
+

@@ -1,0 +1,16 @@
+command: node --import tsx --test tests/commands/timeout-author-20260828/timeout.test.ts
+node: v22.22.2
+exit: 1
+
+TAP version 13
+# Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/kjopek/Workspace/safe-bash/src/commands/timeout/index.js' imported from /Users/kjopek/Workspace/safe-bash/tests/commands/timeout-author-20260828/timeout.test.ts
+# code: ERR_MODULE_NOT_FOUND
+# url: file:///Users/kjopek/Workspace/safe-bash/src/commands/timeout/index.js
+# Subtest: tests/commands/timeout-author-20260828/timeout.test.ts
+not ok 1 - tests/commands/timeout-author-20260828/timeout.test.ts
+1..1
+# tests 1
+# pass 0
+# fail 1
+
+Qualification: literal missing-module chronology control only; no timeout product source existed and no semantic assertion executed.

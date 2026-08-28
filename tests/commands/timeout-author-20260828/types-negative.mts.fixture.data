@@ -1,0 +1,8 @@
+import { type TimeoutCommandOptions, type TimeoutCommandsOptions } from "virtual-bash/internal-timeout-candidate";
+
+const commandOptions: TimeoutCommandOptions = {};
+commandOptions.invoke = undefined;
+const commandsOptions: TimeoutCommandsOptions = { replace: "yes" };
+const unknownOption: TimeoutCommandOptions = { timeoutLimit: 1 };
+void commandsOptions;
+void unknownOption;

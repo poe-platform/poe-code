@@ -1,0 +1,57 @@
+{
+  "schema": "p16-historical-document-only-continuation",
+  "originalSealSha256": "3646095af804f8e49030fe458db81077387f5c2d7b25b5aabf7636f3fb951fff",
+  "originalRootReceipt": "a38a5eb4",
+  "originalOuterBirthEpochMs": 1787953603598.265,
+  "absoluteDeadlineEpochMs": 1787954803598,
+  "corrected": {
+    "expression": "dcaa5ccc54fb31b48d16a207484ea15a3bbedc91:docs/COMMAND_PRIORITIES.md",
+    "path": "docs/COMMAND_PRIORITIES.md",
+    "bytes": 16839,
+    "sha256": "713d89f0f03223dcc5c0d5a4f9151754c3b79fc065770f019035cf6774e4e048"
+  },
+  "oldChild": {
+    "path": "tests/integration/priority-command-workflows-20260828/p16-independent/RUN-P16-INDEPENDENT-01/records/child-001.json",
+    "bytes": 9029862,
+    "mode": 420,
+    "sha256": "d75a12b96aa746dcf8649d9aedf727f9aeea834b0381ad046d167125cb1fa4cc"
+  },
+  "roles": [
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/p16-independent/CONTINUATION-PRESEAL.md",
+      "bytes": 2045,
+      "mode": 420,
+      "sha256": "2ff9c6a4db2732a36511c5116405ad96be86eb73e9e18838c6053791cf200a49"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/p16-independent/continuation.mjs",
+      "bytes": 7898,
+      "mode": 420,
+      "sha256": "677adf4dc78600e10d0df814b28e2c6f7653bd4a4558e3dbab76401a2706d1b7"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/p16-independent/OUTER.stdout",
+      "bytes": 515,
+      "mode": 420,
+      "sha256": "1b6d2b43d04edce8357388c66cd273589569e2c8caf1fd1332d11d272d37a483"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/p16-independent/OUTER.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/p16-independent/RUN-P16-INDEPENDENT-01/records/child-001.json",
+      "bytes": 9029862,
+      "mode": 420,
+      "sha256": "d75a12b96aa746dcf8649d9aedf727f9aeea834b0381ad046d167125cb1fa4cc"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/p16-independent/RUN-P16-INDEPENDENT-01/records/FINAL.json",
+      "bytes": 2234,
+      "mode": 420,
+      "sha256": "efdef2d5356dbe079e8412d8530fc772897148b861d7dd176f4f304156390d7e"
+    }
+  ]
+}

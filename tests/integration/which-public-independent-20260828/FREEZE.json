@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "classification": "Independent public77 pre-wiring freeze; NOT candidate execution or gate acceptance",
+  "sealedAt": "2026-08-28T00:48:25.753Z",
+  "inspectionRevision": "fd3f71e5c84988dd960d00119597eec51db79c6c",
+  "publicCandidate": null,
+  "rootBindingRequiredBeforeExecution": true,
+  "moduleCandidate": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+  "moduleReview": "ea7e6cf31636779226455c89b09a617e7b5459a0",
+  "amendedB18Qualification": "c40bc5fa2716ba59f20cbda73e74737f5310258e",
+  "families": {
+    "runtime": 18,
+    "types": 4,
+    "total": 22
+  },
+  "layouts": [
+    "installed",
+    "moved"
+  ],
+  "publicExecutionsAtSeal": 0,
+  "typeCompilationsAtSeal": 0,
+  "nativeWhichRuns": 0,
+  "executedNegativeControls": 0,
+  "expectedDefaultCount": 77,
+  "preservedPreviousCount": 76,
+  "excludedDefaults": [
+    "getopts",
+    "curl",
+    "safejs"
+  ],
+  "timing": "After module implementation/review and approved selected B18 replay; before public root/subpath/aggregate wiring",
+  "absenceObserved": {
+    "rootReexport": true,
+    "packageSubpath": true,
+    "aggregateImport": true,
+    "aggregateOption": true
+  },
+  "sourceHashes": {
+    "package.json": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a",
+    "package-lock.json": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b",
+    "src/index.ts": "3b1f71706c8d43507d83c2fa069dd6e60c9fef565d277f8f680474d33ca357ca",
+    "src/plugins/index.ts": "6a7eed948ef4ad66d4292060119e216a08c2e09d79f75170e79202fd5bd2821b",
+    "tests/plugins/agent-commands.test.ts": "545abe3256596949f0c6e0bf4aac0d218b425cf0bd568187430ae2366df9dd92",
+    "src/commands/which/index.ts": "30286503e52a17e8d2f3e7e6bb590dc8d0307c3fb6e696ace00fc9a996ec7d9a",
+    "src/commands/which/options.ts": "c27af0cdf354a5eb39dc7f21eace39e96f9949ee3aed5f1b9c7cf67e4ddbef15",
+    "src/commands/which/which.ts": "98ace870f4721aa3061893ce5a26b47641e672ce1f5f544cb0d4416f48498a40",
+    "src/contracts/command.ts": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+    "src/contracts/io.ts": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+  },
+  "fixtureHashes": {
+    "cohort.mjs": "46ed767896a6da884dbbe379ed5d2d0e5d8ff53fdb138f3ba4ad5b68377ad8aa",
+    "cases.json": "0d6902f9e4f1522e14394e39d2bcebef6caccab941bbc552ca91f81887aa2e6d",
+    "types.json": "fcde00964796e535c55716fbec15ff23ef741d107b94ca91bde1576ba0d7d948",
+    "negative-plan.json": "812ba74128af85a9dfe7ec66b4ba741b88c713edad6092a90bc8ebc6bb41c656",
+    "README.md": "0742090f2a723b8fe356cabe6e8f666a9e3c627bbb3956e1a4265f0398a2700a",
+    "seal.mjs": "4922a4a92f58489ae64d7bb21f672d7db7abf3ec88fe193a825dc4432a466582",
+    "verify.mjs": "229dd23a9470b35c4f50791641fb32c1441f5720703f324342d0f9c17bb29f9b"
+  },
+  "limits": [
+    "fixed76 gate unchanged",
+    "original module25of26 unchanged",
+    "no public/native/full-gate pass claim",
+    "future candidate supplied only by root"
+  ]
+}

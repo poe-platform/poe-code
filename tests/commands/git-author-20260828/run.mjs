@@ -151,7 +151,7 @@ async function main() {
   const movedRoot = path.join(moved, 'node_modules/virtual-bash');
   const movedRun = await packageRun('moved', movedRoot);
   demand(movedRun.code === 0, 'moved controls failed');
-  const consumer = (await fs.readFile(path.join(harness, 'consumer.ts.fixture'), 'utf8')).replaceAll('PACKAGE_LEAF', pathToFileURL(path.join(movedRoot, 'dist/commands/git/index.js')).pathname);
+  const consumer = (await fs.readFile(path.join(harness, 'consumer.ts.fixture'), 'utf8')).replaceAll('PACKAGE_LEAF', path.join(movedRoot, 'dist/commands/git/index.js'));
   await write(path.join(moved, 'consumer.ts'), consumer);
   const types = await child('types', process.execPath, [compiler, '--strict', '--noEmit', '--target', 'ES2022', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--skipLibCheck', '--typeRoots', path.join(source, 'node_modules/@types'), path.join(moved, 'consumer.ts')], moved);
   demand(types.code === 0, 'strict consumer/types negatives failed');

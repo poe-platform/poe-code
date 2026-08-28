@@ -1,0 +1,15 @@
+{
+  "case": "F11",
+  "before": "for(const directory of ['/w','/scripts','/search/project'])",
+  "after": "for(const directory of ['/w','/scripts','/search/project','/dev'])",
+  "qualification": "Only add the virtual output parent. Original script, stdout, stderr, exitCode and all other case bytes are unchanged. This is not a host /dev write or special null-device support.",
+  "negative": {
+    "layout": "source-build-original-missing-parent",
+    "worker": "original unchanged worker",
+    "stdout": "/w|stable\n",
+    "stderr": "shell: line 1: /dev/null: No such file or directory\nshell: line 1: /dev/null: No such file or directory\nshell: line 1: /dev/null: No such file or directory\n",
+    "exitCode": 0,
+    "workerExitCode": 1,
+    "originalAssertionPass": false
+  }
+}

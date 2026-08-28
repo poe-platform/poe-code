@@ -1,0 +1,79 @@
+{
+  "status": "design only; no production edits; ROOT R1-R4 and different freeze pending",
+  "recordedAt": "2026-08-28T07:00:05.691Z",
+  "inspectedHead": "08dd69d06a2f40edd31263631605ae153a9cf318",
+  "cd": {
+    "source": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+    "acceptance": "2585f78dcd5cfd2ea454977462c57b23f7044a12",
+    "final": "192ab78b4202be5afc92ffc12a72816da98ddfe0",
+    "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "provider": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+    "packSha256": "06ea635b201a1296268adaa452a2419682f92ec93906cb9083e327dc69f85914",
+    "qualification": "L24 actual candidate Runtime, scripted provider, all3 layouts. Historical Memory batch stopped at L07 setup after61 passes; L24 blocked, not failed assertion. Private invariants retain declared pinned-source roles."
+  },
+  "sources": [
+    {
+      "path": "src/shell/runtime.ts",
+      "sha256": "93c06908aec9d5d61d801657f99ab75122cadb6688f038e1941c587b4a8d4ed3",
+      "commit": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290"
+    },
+    {
+      "path": "src/fs/webdav/webdav.ts",
+      "sha256": "cf65b82429bd92ca52b73490e1d6c1070545b5912fbddaba7037e01c57cc21f5",
+      "commit": "ca1d33424b94a21ae0f40a36412fd8191611e2df"
+    },
+    {
+      "path": "src/fs/webdav/README.md",
+      "sha256": "b931ac0545c709d3be2bd7d8e328fe9b1137cdb6514dfd8e9975c64c1fecb7bd",
+      "commit": "ca1d33424b94a21ae0f40a36412fd8191611e2df"
+    }
+  ],
+  "primaryLocal": [
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/builtins/pushd.def",
+      "sha256": "8858a0686089f77a55f4185635595d53fe4061e9c3915ce87d4757fca62ebf5a",
+      "role": "read-only primary source/manual inspection, no source copies or native-execution inference"
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/general.c",
+      "sha256": "669ef408f4bcc6b4ce424677d29532f28e903430c93b335fa1a292dd360bd165",
+      "role": "read-only primary source/manual inspection, no source copies or native-execution inference"
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+      "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5",
+      "role": "read-only primary source/manual inspection, no source copies or native-execution inference"
+    }
+  ],
+  "history": {
+    "originalCompressedSha256": "fe150ca75f031031acc8e3591ed6add03ea24d669e7bcc63d97d2990d7452211",
+    "topologyCompressedSha256": "4400c5f78510f39a8882480f2789caaff0e697b6b1569408f1f8f0f0d95b8d66",
+    "nativeOriginal": 34,
+    "virtualOriginal": 34,
+    "virtualMatches": 0,
+    "topologyNativeOnly": 4
+  },
+  "newGrammar": {
+    "sealCommit": "23fca35fc5d7c749a7273015b802aef6376096a2",
+    "compressedSha256": "e5016aa6e95b38cc8787b0ad7bc1186bc58e36afdfe9a975215addd33473a6cd",
+    "fileSha256": "211e3c926df5651e5342e03b8a3fe530bbdab00b1b4db4b00e09158b4db79e19",
+    "nativeOnly": 8,
+    "virtualRuns": 0,
+    "closedDirectChildren": 8,
+    "temporaryRemoved": true,
+    "binarySha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+    "version": "GNU bash 5.3.0(1)-release (aarch64-apple-darwin25.4.0), identity inherited from unchanged pinned binary; no new version invocation",
+    "root": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-stack-final-grammar-pWyaYs"
+  },
+  "packetSha256": "af77d8b26ddcbc26ec933d3678f07ac4a0777ed9e5f871ace2dcd067eb1006b9"
+}

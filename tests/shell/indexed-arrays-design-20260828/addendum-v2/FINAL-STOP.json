@@ -1,0 +1,41 @@
+{
+  "schema": "indexed-array-final-binding-stop-v1",
+  "date": "2026-08-28",
+  "status": "STOPPED_FINAL_INTEGRITY",
+  "phase": "additive binding, after completed and committed native capture",
+  "attemptedCommand": "node tests/shell/indexed-arrays-design-20260828/addendum-v2/bind-metadata.mjs bind",
+  "exitCode": 1,
+  "error": "protected new entry: /Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-design-20260828",
+  "expectedRootNamesExcludingAuthorizedNewTrees": [
+    "PROFILE.md",
+    "REPORT.md",
+    "SOURCE-BINDING.json",
+    "addendum-v1",
+    "native-preseal-v1"
+  ],
+  "observedRootNamesExcludingAuthorizedNewTrees": [
+    "PROFILE.md",
+    "REPORT.md",
+    "SOURCE-BINDING.json",
+    "addendum-v1",
+    "native-preseal-v1",
+    "observation-review-v1"
+  ],
+  "addedNames": ["observation-review-v1"],
+  "missingNames": [],
+  "foreignEntryContentsRead": false,
+  "additionalCheck": "Read names only to identify the reported mismatch; no guard rerun or altered whitelist",
+  "checksCompletedBeforeStop": "All sixteen original/review file bytes compared with their sealed hashes and exact immutable Git blobs; final protected-root entry census then refused",
+  "checksNotReached": "Final evidence inventory, accepted-source blob and binary/manual rechecks in the stopped binder",
+  "captureStatusAtCompletion": "OBSERVED_NOT_SCORED",
+  "captureEvidenceCommit": "4e8f8a13590d489df5b5e7c70fe684de4abd2b5d",
+  "captureEvidenceSha256": "9ecea95e1f9e9e94a80fd799874051ec2b62b97180152ecef019f14aa3f3199d",
+  "captureIntegrityAtCompletion": "NO_DRIFT, including new-entry census; all16 children already reaped and known groups absent before final metadata stop",
+  "nativeCallsAfterStop": 0,
+  "bindingRetries": 0,
+  "whitelistChanges": 0,
+  "platformBlock": false,
+  "productCalls": 0,
+  "tests": 0,
+  "nextAuthority": "Root disposition of the final metadata boundary; no new native execution or product approval inferred"
+}

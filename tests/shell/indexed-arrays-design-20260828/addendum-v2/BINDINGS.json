@@ -1,0 +1,316 @@
+{
+  "schema": "indexed-array-additive-response-binding-v2-stopped",
+  "createdAt": "2026-08-28T10:19:11.258Z",
+  "status": "STOPPED_FINAL_INTEGRITY",
+  "qualification": "Carried historical identities plus authored-document hashes only; not a retry, repaired guard, fresh final-tree seal or product approval",
+  "stop": {
+    "path": "tests/shell/indexed-arrays-design-20260828/addendum-v2/FINAL-STOP.json",
+    "bytes": 1941,
+    "sha256": "25f1393193044710e5aedb6e55156c6f2d50fc75b1646b6888128142e576205d"
+  },
+  "reportWords": 573,
+  "commits": {
+    "original": "2cb939883a91b495bed7dadb8973cd1939b16e6a",
+    "preseal": "abe53e03b654cd576dfa5f8f7a6cf435edc2b4d0",
+    "review": "0d70a9d4d30f4623a5ec2594e7f8568f5e2dbb43",
+    "supervisorSeal": "f0c6321f506f866f37c42d4162dc332a80668925",
+    "evidence": "4e8f8a13590d489df5b5e7c70fe684de4abd2b5d"
+  },
+  "manifestSha256": "f731d304306b02d11df41b386d4528405ad307ca33098d25f1bc2a0193c0764f",
+  "evidenceSha256": "9ecea95e1f9e9e94a80fd799874051ec2b62b97180152ecef019f14aa3f3199d",
+  "acceptedComposition": {
+    "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "cd": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+    "let": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+    "runtimeSha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193"
+  },
+  "sourceBlobsCarriedFromCompletedSeal": [
+    {
+      "path": "src/shell/runtime.ts",
+      "revision": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+      "bytes": 139761,
+      "sha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+      "blob": "9e70a9d556e46ecf23b977a048f089b1c0d25e5c"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 36304,
+      "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+      "blob": "f570235d1f65ade0f7279ccacf805ec1333155f7"
+    },
+    {
+      "path": "src/shell/arithmetic.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 9922,
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "blob": "223101946d13ac9b44f4a898f58fd16004ba86b9"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 15002,
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24",
+      "blob": "0b96a82f4ec29da4dbdd447806cca6a2f514311a"
+    },
+    {
+      "path": "src/shell/input.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 9881,
+      "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+      "blob": "3eec71b72f87dd48ddac572d6e7feb9097d32be4"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 9253,
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "blob": "ef94adf238122441a66c2232fb3055aaee62d290"
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 207,
+      "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "blob": "5a2cda6417f2f28af38b33f2d32a56271c0f5a58"
+    },
+    {
+      "path": "src/shell/display.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 2605,
+      "sha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069",
+      "blob": "ecff8bf185cd542940607a79ee5257f292e844f5"
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "blob": "eae04650a553e4820da9c7b08b0255a6b20fc01c"
+    },
+    {
+      "path": "src/commands/execution.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 9269,
+      "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+      "blob": "61e49c6d8684ccdb5c2f80624d9c8fda9f1d5d2c"
+    },
+    {
+      "path": "src/commands/expr/internal.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 6600,
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+      "blob": "46b7604d21fe6823167301e1012d97d0ed7b6342"
+    },
+    {
+      "path": "src/commands/table-text/internal.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 8443,
+      "sha256": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9",
+      "blob": "ae46eef22675c641a0c47995c20ed1def0985a37"
+    },
+    {
+      "path": "src/commands/stream-format/rev.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 2772,
+      "sha256": "250220ec8942cbf624a1acec6dfc5012afa3c68605b6c13e11283877769ce753",
+      "blob": "8da48d7cb4426f7954f8a70c20ca5cd79dfe7ec6"
+    },
+    {
+      "path": "src/commands/streams.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 17782,
+      "sha256": "1a00a55bf30b1c917041e9c32011988a29b539b0876e46d41e311d3e469dc45d",
+      "blob": "3ea14daa9679a18f03e9d819cb829b18f6ea43c8"
+    },
+    {
+      "path": "src/commands/metadata/mktemp.ts",
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "bytes": 5683,
+      "sha256": "1165d822477e68f6b4dfac3db6a7fa43247226137122c0d980e1490b80bc34d4",
+      "blob": "5e650b9bead674f831430d87da9e530c740e73d0"
+    }
+  ],
+  "anchorConvention": "R=c26892c3 runtime; B=5137a74e other src/shell paths. Exact revisions/hashes in carried source rows; never current HEAD.",
+  "findingResponses": [
+    {
+      "id": "G1",
+      "title": "Publication, indices and error phases need one ratified table",
+      "path": "tests/shell/indexed-arrays-independent-20260828/FINDINGS.md",
+      "line": 8,
+      "revision": "0d70a9d4d30f4623a5ec2594e7f8568f5e2dbb43",
+      "status": "OPEN_FOR_ROOT",
+      "sourceAnchors": [
+        "R runtime.ts:1301",
+        "R runtime.ts:1935"
+      ]
+    },
+    {
+      "id": "G2",
+      "title": "Identity/tombstone storage must itself be bounded",
+      "path": "tests/shell/indexed-arrays-independent-20260828/FINDINGS.md",
+      "line": 34,
+      "revision": "0d70a9d4d30f4623a5ec2594e7f8568f5e2dbb43",
+      "status": "OPEN_FOR_ROOT",
+      "sourceAnchors": [
+        "R runtime.ts:160",
+        "R runtime.ts:293",
+        "R runtime.ts:297",
+        "R runtime.ts:2342"
+      ]
+    },
+    {
+      "id": "G3",
+      "title": "Async full-map copy changes the snapshot problem",
+      "path": "tests/shell/indexed-arrays-independent-20260828/FINDINGS.md",
+      "line": 57,
+      "revision": "0d70a9d4d30f4623a5ec2594e7f8568f5e2dbb43",
+      "status": "OPEN_FOR_ROOT",
+      "sourceAnchors": [
+        "R runtime.ts:278",
+        "R runtime.ts:794",
+        "R runtime.ts:817",
+        "R runtime.ts:824"
+      ]
+    },
+    {
+      "id": "G4",
+      "title": "Setter-only charging misses expression and output storage",
+      "path": "tests/shell/indexed-arrays-independent-20260828/FINDINGS.md",
+      "line": 79,
+      "revision": "0d70a9d4d30f4623a5ec2594e7f8568f5e2dbb43",
+      "status": "OPEN_FOR_ROOT",
+      "sourceAnchors": [
+        "R runtime.ts:135",
+        "R runtime.ts:2508",
+        "R runtime.ts:2525",
+        "R runtime.ts:2658"
+      ]
+    },
+    {
+      "id": "G5",
+      "title": "Work/cleanup schedule is not yet operationally complete",
+      "path": "tests/shell/indexed-arrays-independent-20260828/FINDINGS.md",
+      "line": 105,
+      "revision": "0d70a9d4d30f4623a5ec2594e7f8568f5e2dbb43",
+      "status": "OPEN_FOR_ROOT",
+      "sourceAnchors": [
+        "B cleanup.ts:33",
+        "B cleanup.ts:46",
+        "abe53e03 addendum-v1/ACCOUNTING.md:59",
+        "abe53e03 addendum-v1/ACCOUNTING.md:72"
+      ]
+    },
+    {
+      "id": "G6",
+      "title": "Arithmetic is coherent; cap policy still needs ratification",
+      "path": "tests/shell/indexed-arrays-independent-20260828/FINDINGS.md",
+      "line": 129,
+      "revision": "0d70a9d4d30f4623a5ec2594e7f8568f5e2dbb43",
+      "status": "OPEN_FOR_ROOT",
+      "sourceAnchors": [
+        "R runtime.ts:29",
+        "R runtime.ts:62",
+        "B shell.ts:162"
+      ]
+    },
+    {
+      "id": "G7",
+      "title": "Scalar boundaries are viable with exact selection and phase rules",
+      "path": "tests/shell/indexed-arrays-independent-20260828/FINDINGS.md",
+      "line": 161,
+      "revision": "0d70a9d4d30f4623a5ec2594e7f8568f5e2dbb43",
+      "status": "OPEN_FOR_ROOT",
+      "sourceAnchors": [
+        "R runtime.ts:1046",
+        "R runtime.ts:1049",
+        "R runtime.ts:1293",
+        "R runtime.ts:1379",
+        "R runtime.ts:1479",
+        "R runtime.ts:2245",
+        "R runtime.ts:2331",
+        "R runtime.ts:2441"
+      ]
+    },
+    {
+      "id": "G8",
+      "title": "Close the restricted grammar before authoring expected fixtures",
+      "path": "tests/shell/indexed-arrays-independent-20260828/FINDINGS.md",
+      "line": 192,
+      "revision": "0d70a9d4d30f4623a5ec2594e7f8568f5e2dbb43",
+      "status": "OPEN_FOR_ROOT",
+      "sourceAnchors": [
+        "B parser.ts:6",
+        "B parser.ts:274",
+        "B parser.ts:439",
+        "R runtime.ts:309",
+        "R runtime.ts:824",
+        "R runtime.ts:2512"
+      ]
+    }
+  ],
+  "authored": [
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v2/REPORT.md",
+      "bytes": 4686,
+      "sha256": "e59d4521925fdad08fbcec79961dd4aee42854e97374126e5f8cfbe419b5585f"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v2/DECISIONS.md",
+      "bytes": 18427,
+      "sha256": "593338b07ffd4a96f17db2328a6b0d678b034e4cf80cb7405d8ff910e23a7781"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v2/FINAL-STOP.json",
+      "bytes": 1941,
+      "sha256": "25f1393193044710e5aedb6e55156c6f2d50fc75b1646b6888128142e576205d"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v2/bind-metadata.mjs",
+      "bytes": 11712,
+      "sha256": "8233eee314309b750905c90bfc436f74f29cab5c52a11e6bdbcd947bcdd1748e"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-design-20260828/addendum-v2/record-stop.mjs",
+      "bytes": 9265,
+      "sha256": "668aab7c4da3b9cf85575eddb70a3d58e4a01e1399856bfe76cce745c0beef24"
+    }
+  ],
+  "captureTotalsCarried": {
+    "launched": 16,
+    "exit0": 14,
+    "exit127": 2,
+    "stdoutBytes": 3247,
+    "stderrBytes": 468,
+    "combinedBytes": 3715,
+    "activeMs": 201.37608099999898,
+    "maxRowMs": 18.907584000000043,
+    "fixtureEffectFiles": 1,
+    "fixtureEffectBytes": 5,
+    "fixturePeakEntries": 4,
+    "cleanupRootAbsent": true,
+    "sentSignals": 0,
+    "nativeContextsDeclaredUpperBound": 18
+  },
+  "originalEvidencePreservation": "No writes to original2cb93988/abe53e03/0d70a9d4 or capture. Sixteen historical source/review files reauthenticated before stopped census; remaining final binder checks not reached.",
+  "rootSettled": [
+    "fresh ledger per independent public Shell.exec; shared within internal descendants/invoke",
+    "staged target publication, RHS once, completed RHS effects not rolled back",
+    "scalar assignment sequence unchanged",
+    "canonical literal indices 0..2147483647 and explicit exclusions"
+  ],
+  "tests": 0,
+  "productCalls": 0,
+  "productImports": 0,
+  "nativeAdditionalCalls": 0,
+  "implementationApproval": false,
+  "eightFindingsClosed": false,
+  "crossExecOrRSSClaim": false
+}

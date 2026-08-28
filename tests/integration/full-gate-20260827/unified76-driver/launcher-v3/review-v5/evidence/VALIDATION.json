@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-08-28T03:22:29.020Z",
+  "rawFilesVerified": [
+    "author-review/REPORT.json",
+    "author-review/typecheck-all/report.json",
+    "controls/REPORT.json",
+    "controls/v4.stdout",
+    "controls/v4.stderr",
+    "outer/REPORT.json",
+    "outer/stdout",
+    "outer/stderr",
+    "launch/stdout",
+    "launch/stderr",
+    "controls/launch.json",
+    "author-review/SETUP-COMPLETE.json",
+    "author-review/cold-typecheck.json",
+    "author-review/cold-typecheck.stdout",
+    "author-review/cold-typecheck.stderr",
+    "author-review/typecheck-all.json",
+    "author-review/typecheck-all.stdout",
+    "author-review/typecheck-all.stderr",
+    "author-review/cold-types/report.json",
+    "production-build-audit/328-fb07f644-8afb-4d46-b724-8e11778b7d30.json"
+  ],
+  "driverFilesVerified": 30,
+  "driverSha256": "3d8d2a15214f12c07b64e3223f5e0088989845b8f60a74abb0a521dba32fa018",
+  "sourceSealUnchanged": true,
+  "exactAttemptProcessesStillObserved": [],
+  "qualification": "Offline evidence verification plus bounded read-only process observation; not a new candidate run, independent acceptance or a universal process census."
+}

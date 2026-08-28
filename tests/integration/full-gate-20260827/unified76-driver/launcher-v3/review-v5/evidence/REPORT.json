@@ -1,0 +1,313 @@
+{
+  "schema": 1,
+  "capturedAt": "2026-08-28T03:21:14.302Z",
+  "sourceCommit": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+  "driverSha256": "3d8d2a15214f12c07b64e3223f5e0088989845b8f60a74abb0a521dba32fa018",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "stableBindings": {
+    "CANDIDATE.json": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+    "PROFILE.json.gz.base64": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+    "PROFILE-RECEIPT.json": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+    "CLEANUP.json": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+    "EXTERNAL.json.gz.base64": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+    "EXTERNAL-RECEIPT.json": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84"
+  },
+  "unchangedFrom2713": [
+    "CANDIDATE.json",
+    "PROFILE.json.gz.base64",
+    "PROFILE-RECEIPT.json",
+    "CLEANUP.json",
+    "EXTERNAL.json.gz.base64",
+    "EXTERNAL-RECEIPT.json"
+  ],
+  "profile": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "syntax": "posix",
+    "separator": "/"
+  },
+  "controls": {
+    "pass": 5,
+    "fail": 0,
+    "results": [
+      {
+        "name": "pinned POSIX profile and unchanged complete candidate membership",
+        "status": "PASS"
+      },
+      {
+        "name": "slash traversal NUL absolute git and symlink-ancestor refusals remain",
+        "status": "PASS"
+      },
+      {
+        "name": "actual fixed backslash members extract without reinterpretation",
+        "status": "PASS"
+      },
+      {
+        "name": "literal backslash links stay contained; escaping targets and metadata fail",
+        "status": "PASS"
+      },
+      {
+        "name": "unchanged actual duplicate-build and owned-outer-observer controls",
+        "status": "PASS"
+      }
+    ],
+    "unchangedV4Replay": {
+      "pass": 4,
+      "fail": 0,
+      "qualification": "Nested within group5; real tiny-project duplicate compiler controls and trusted outer PID observer, not extra candidate production builds."
+    }
+  },
+  "actualReview": {
+    "attempts": 1,
+    "sourceArchive": {
+      "entries": 37397,
+      "bytes": 2382440321,
+      "closed": true,
+      "survivors": [],
+      "qualification": "validated declared Git blobs streamed directly; no tar headers or extraction filters"
+    },
+    "status": "REVIEW_ONLY_BUILD_TYPES_PASS",
+    "exitCode": 0,
+    "startedAt": "2026-08-28T03:14:02.244Z",
+    "finishedAt": "2026-08-28T03:18:45.653Z",
+    "driverProductionBuilds": 1,
+    "actualProductionBuilds": [
+      {
+        "nonce": "92eede5f-4d6e-43a9-9e4f-9a19452ffce0",
+        "pid": 328,
+        "parent": 300,
+        "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "compiler": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-build-types-a0Ei9i/source/node_modules/typescript/bin/tsc",
+        "project": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-build-types-a0Ei9i/source/tsconfig.build.json",
+        "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-build-types-a0Ei9i/source",
+        "args": [
+          "-p",
+          "tsconfig.build.json"
+        ],
+        "startedAt": "2026-08-28T03:16:38.380Z"
+      }
+    ],
+    "phases": [
+      {
+        "label": "cold-typecheck",
+        "status": 78,
+        "expectedStatus": 78,
+        "clean": true,
+        "closed": true,
+        "signals": [],
+        "survivors": []
+      },
+      {
+        "label": "typecheck-all",
+        "status": 0,
+        "expectedStatus": 0,
+        "clean": true,
+        "closed": true,
+        "signals": [],
+        "survivors": []
+      }
+    ],
+    "typing": {
+      "status": "typecheck-passed-not-runtime-acceptance",
+      "builds": 1,
+      "phases": [
+        {
+          "label": "build",
+          "status": 0
+        },
+        {
+          "label": "source-and-tests",
+          "status": 0
+        },
+        {
+          "label": "historical-build-first-consumer",
+          "status": 0
+        },
+        {
+          "label": "source-consumer-atomic-webdav-profile-source",
+          "status": 0
+        },
+        {
+          "label": "source-consumer-atomic-webdav-independent-source",
+          "status": 0
+        },
+        {
+          "label": "source-consumer-env-split-public-source",
+          "status": 0
+        },
+        {
+          "label": "consumer-du-leaf",
+          "status": 0
+        },
+        {
+          "label": "consumer-grep-aliases-public",
+          "status": 0
+        },
+        {
+          "label": "consumer-column-public",
+          "status": 0
+        },
+        {
+          "label": "consumer-network-zero-caps-public",
+          "status": 0
+        },
+        {
+          "label": "consumer-regex",
+          "status": 0
+        },
+        {
+          "label": "consumer-regex-continuation",
+          "status": 0
+        },
+        {
+          "label": "consumer-regex-followup",
+          "status": 0
+        },
+        {
+          "label": "consumer-regex-production",
+          "status": 0
+        },
+        {
+          "label": "consumer-regex-production-continuation",
+          "status": 0
+        },
+        {
+          "label": "consumer-s3-constructor",
+          "status": 0
+        },
+        {
+          "label": "consumer-s3-http-author",
+          "status": 0
+        },
+        {
+          "label": "consumer-s3-http-independent",
+          "status": 0
+        },
+        {
+          "label": "consumer-s3-rmdir",
+          "status": 0
+        },
+        {
+          "label": "consumer-webdav-loopback",
+          "status": 0
+        },
+        {
+          "label": "consumer-webdav-services",
+          "status": 0
+        },
+        {
+          "label": "consumer-stream-inspection",
+          "status": 0
+        },
+        {
+          "label": "consumer-stream-five",
+          "status": 0
+        },
+        {
+          "label": "consumer-time-env-public",
+          "status": 0
+        },
+        {
+          "label": "consumer-time-env-leaf",
+          "status": 0
+        },
+        {
+          "label": "consumer-env-split-public-types",
+          "status": 0
+        },
+        {
+          "label": "consumer-webdav-atomic",
+          "status": 0
+        },
+        {
+          "label": "consumer-webdav-atomic-independent",
+          "status": 0
+        },
+        {
+          "label": "consumer-webdav-timestamp-independent",
+          "status": 0
+        },
+        {
+          "label": "negative-env-split-invalid-binding",
+          "status": 2
+        },
+        {
+          "label": "negative-time-env-public-negative",
+          "status": 2
+        },
+        {
+          "label": "negative-time-env-leaf-negative",
+          "status": 2
+        }
+      ],
+      "currentConsumerGroups": 23,
+      "sourceConsumerGroups": 3,
+      "negativeTypeGroups": [
+        {
+          "name": "env-split-invalid-binding",
+          "status": "pass",
+          "diagnostics": 1
+        },
+        {
+          "name": "time-env-public-negative",
+          "status": "pass",
+          "diagnostics": 2
+        },
+        {
+          "name": "time-env-leaf-negative",
+          "status": "pass",
+          "diagnostics": 5
+        }
+      ],
+      "runtimeExecutions": 0,
+      "cleaned": true
+    },
+    "reuseBinding": {
+      "metadataSha256": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a",
+      "declarationCount": 208
+    },
+    "emittedReceipt": {
+      "files": 832,
+      "sha256": "f628eb40fdd27ec3980f98c6b026238b316d345fc0eb759584c0b82d22a675b4",
+      "qualification": "Fresh built dist receipt, not an npm-pack tarball hash or rebuilt c109 package proof."
+    },
+    "afterAuthorizedSetup": {
+      "entries": 45583,
+      "sha256": "a2d7504efc83faa6f02d9fa41c7c72b8e29121501c999ca85b093c7ff470e441"
+    },
+    "guardsPassed": true,
+    "cleanupComplete": true,
+    "outer": {
+      "pid": 93444,
+      "closed": true,
+      "clean": true,
+      "signals": [],
+      "survivors": [],
+      "timedOut": false,
+      "outputExceeded": false
+    },
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "version": "24.11.1",
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+    }
+  },
+  "expectedPackage": {
+    "sha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "rebuiltInThisAttempt": false
+  },
+  "priorEvidence": "dfcb0069c6d2d87c46109fd028e215e70aaff67d",
+  "wholeGateLaunched": false,
+  "independentAcceptance": false,
+  "qualifications": [
+    "Exactly one new author review-only attempt; prior zero-build failure remains unchanged.",
+    "No canonical/native/SafeJS/runtime-consumer/package phase executed.",
+    "Five controls include a nested unchanged four-group replay; no old22-group independent score is recomputed.",
+    "No product, candidate, native, cleanup or profile inputs changed.",
+    "OS boundary remains the approved trusted macOS system-library qualification, not full-OS attestation.",
+    "Literal backslash acceptance is only the pinned POSIX profile; other-platform profile overrides refused on this Mac, not executed on those OSes."
+  ],
+  "rawIndex": "RAW-INDEX.json"
+}

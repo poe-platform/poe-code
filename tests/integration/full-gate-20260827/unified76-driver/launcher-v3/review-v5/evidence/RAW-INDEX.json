@@ -1,0 +1,147 @@
+{
+  "schema": 2,
+  "qualification": "Exact raw reports retained losslessly; no product archive, dependency tree or tarball is embedded.",
+  "files": [
+    {
+      "path": "author-review/REPORT.json",
+      "originalPath": "/tmp/unified76-build-types-review-e062bcc1-author01/REPORT.json",
+      "bytes": 31295823,
+      "sha256": "ed2835d6568ced56de4f12907522a1517425069893b079d5c36542dd15453a2a",
+      "encoding": "base64(gzip(exact file bytes))",
+      "artifact": "BUILD-TYPE-REPORT.json.gz.base64",
+      "compressedBytes": 5104695,
+      "compressedSha256": "dcf2cd847788c5bfebc412326d67ef5240e5e979e93239929ce7dfc32fe6b073",
+      "artifactSha256": "b13a9106ab8c061d5b1cbb4c64183a59983d10949054745fa2fb6c31567578d8"
+    },
+    {
+      "path": "author-review/typecheck-all/report.json",
+      "originalPath": "/tmp/unified76-build-types-review-e062bcc1-author01/typecheck-all/report.json",
+      "bytes": 30868204,
+      "sha256": "6d05533c57e0bf4ceef0fd99c9c9de005043da857060fb98b720cdb321580e61",
+      "encoding": "base64(gzip(exact file bytes))",
+      "artifact": "TYPECHECK-REPORT.json.gz.base64",
+      "compressedBytes": 656389,
+      "compressedSha256": "1ae744d39766c974bbcec18c497e482f36f074460bb5a2bdc76474170cebcc9c",
+      "artifactSha256": "11313708ae7859f943f48ae8df84a6f03cc6b27a97a0cc930486c0911a9036cf"
+    }
+  ],
+  "envelope": {
+    "encoding": "base64(gzip(JSON))",
+    "artifact": "RAW.json.gz.base64",
+    "uncompressedBytes": 191270,
+    "uncompressedSha256": "0797cc149a315a9984d3e66dee3451d14f5832c05456c9670267aa117122fa70",
+    "compressedBytes": 18732,
+    "compressedSha256": "1d2e2e80d7ae0c4ffc70fa3562c793a19d89d8d78ee6d9f7788edc3520548937",
+    "artifactSha256": "847316630ccdda017a794b7e1dda05d7717cb1ef4e75019d2d1b065fc96564e2",
+    "files": [
+      {
+        "path": "controls/REPORT.json",
+        "originalPath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-review-v5-controls-jdHIeW/REPORT.json",
+        "bytes": 17399,
+        "sha256": "badd0c6f3da237d011e12d4592994490bb6b513a32c9a204112d50e6613c5a56"
+      },
+      {
+        "path": "controls/v4.stdout",
+        "originalPath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-review-v5-controls-jdHIeW/v4.stdout",
+        "bytes": 196,
+        "sha256": "2f7ec05756739c24ee795640916130aa4550684d24e5599c699aa1a8111c6756"
+      },
+      {
+        "path": "controls/v4.stderr",
+        "originalPath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-review-v5-controls-jdHIeW/v4.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "outer/REPORT.json",
+        "originalPath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-build-types-outer-j1UHj5/REPORT.json",
+        "bytes": 98298,
+        "sha256": "19f72cd1aba0f1b3f07822cd737a6d2270e1fa92faf9b07cb449bab778858b64"
+      },
+      {
+        "path": "outer/stdout",
+        "originalPath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-build-types-outer-j1UHj5/stdout",
+        "bytes": 304,
+        "sha256": "188c75240f2d937b26e6cd3e9ed58ea7591e6e50f416c7172579b2854b7c0c3f"
+      },
+      {
+        "path": "outer/stderr",
+        "originalPath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-build-types-outer-j1UHj5/stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "launch/stdout",
+        "originalPath": "/tmp/unified76-build-types-review-e062bcc1-launch.stdout",
+        "bytes": 287,
+        "sha256": "1b87e99186001359e69dd0a37e02e326a57329a1a7b028c7f1b3ec6f946f8c3e"
+      },
+      {
+        "path": "launch/stderr",
+        "originalPath": "/tmp/unified76-build-types-review-e062bcc1-launch.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "controls/launch.json",
+        "originalPath": "/tmp/unified76-review-v5-controls-1.json",
+        "bytes": 242,
+        "sha256": "a14740b952ce94d3271c16a15ee19da7819429421cf031c810c9caa010e66e90"
+      },
+      {
+        "path": "author-review/SETUP-COMPLETE.json",
+        "originalPath": "/tmp/unified76-build-types-review-e062bcc1-author01/SETUP-COMPLETE.json",
+        "bytes": 109,
+        "sha256": "b64585d58a8527a48e888fc6d17ddf995e8e5d11c3b537442c4c753dd984118d"
+      },
+      {
+        "path": "author-review/cold-typecheck.json",
+        "originalPath": "/tmp/unified76-build-types-review-e062bcc1-author01/cold-typecheck.json",
+        "bytes": 1265,
+        "sha256": "8d21ea74b1dcfec3822e590548cf7321d7c47c335953412371a87561f03d22e2"
+      },
+      {
+        "path": "author-review/cold-typecheck.stdout",
+        "originalPath": "/tmp/unified76-build-types-review-e062bcc1-author01/cold-typecheck.stdout",
+        "bytes": 257,
+        "sha256": "e3899c351932d8af0db261cfe6876f48ed26074aa15da322807e5b9d782b3762"
+      },
+      {
+        "path": "author-review/cold-typecheck.stderr",
+        "originalPath": "/tmp/unified76-build-types-review-e062bcc1-author01/cold-typecheck.stderr",
+        "bytes": 221,
+        "sha256": "d9a742f7de6590b0c05d2a920fb100de95afbadcdff9d97d181746b32bcd2a3b"
+      },
+      {
+        "path": "author-review/typecheck-all.json",
+        "originalPath": "/tmp/unified76-build-types-review-e062bcc1-author01/typecheck-all.json",
+        "bytes": 18734,
+        "sha256": "38b9d37f37504ab7bfe771157a45dc97213164d906f0c392d2084dacb7ac766d"
+      },
+      {
+        "path": "author-review/typecheck-all.stdout",
+        "originalPath": "/tmp/unified76-build-types-review-e062bcc1-author01/typecheck-all.stdout",
+        "bytes": 1787,
+        "sha256": "755981c39544da721ebdbe26c583a173403fcb2871f1ed28ea5b35cd669827bd"
+      },
+      {
+        "path": "author-review/typecheck-all.stderr",
+        "originalPath": "/tmp/unified76-build-types-review-e062bcc1-author01/typecheck-all.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "author-review/cold-types/report.json",
+        "originalPath": "/tmp/unified76-build-types-review-e062bcc1-author01/cold-types/report.json",
+        "bytes": 508,
+        "sha256": "d3a066a694a140b390a5fcd0ea4bbdeb07ba1bacb435df0a230d00e4a3655cb8"
+      },
+      {
+        "path": "production-build-audit/328-fb07f644-8afb-4d46-b724-8e11778b7d30.json",
+        "originalPath": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-build-types-a0Ei9i/production-build-audit/328-fb07f644-8afb-4d46-b724-8e11778b7d30.json",
+        "bytes": 577,
+        "sha256": "c0c4fbbe9814b1b91cc3a85d5b58d0dbf98e45e31192f753f0fc7d89adaa5dd0"
+      }
+    ]
+  }
+}

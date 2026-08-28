@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "version": "yq-b8-core-worker-v1",
+  "date": "2026-08-28",
+  "status": "SEALED_IMPLEMENTATION_INTERFACE_NO_EXECUTION_GO",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "entry": {
+    "cli": "core/cli.mjs --root-go ABSOLUTE_JSON --root-go-sha256 HEX --recipe ABSOLUTE_JSON --recipe-sha256 HEX --evidence ABSOLUTE_NEW_DIRECTORY",
+    "default": "DENY before candidate import, child admission or evidence effects when any authorization is absent",
+    "workerModule": "export async function runWorker(api) -> result; no top-level effects, child spawn, product import or CLI required",
+    "dispatch": {
+      "build": "workers/build-worker.mjs",
+      "types": "workers/type-worker.mjs",
+      "loaded": "workers/loaded-worker.mjs",
+      "semantic": "core/semantic-worker.mjs",
+      "sourceAudit": "core/source-audit-worker.mjs",
+      "infrastructure": "core/infrastructure-worker.mjs"
+    }
+  },
+  "workerApi": {
+    "version": "yq-b8-core-worker-v1",
+    "request": "Deep-frozen JSON {schema:1,job,rootGoSha256,recipeSha256,evidenceRoot,scratchRoot,bindings,deadline:{globalNs,phaseNs,jobNs,workNs},nonce}; decimal monotonic nanoseconds absolute in same host boot clock",
+    "job": "Exact effective336-slot record; stable job.id; runtimeJobId optional; environment source-built-direct|installed-moved-direct|null",
+    "bindings": "Deep-frozen {candidate,sourceRoot,sourceManifest,sourceBuiltRoot,sourceBuiltManifest,installedRoot,packageManifest,toolRoot,toolManifest,typescriptRoot,nodeTypesRoot,undiciTypesRoot,runtimeJobs,diagnosticCatalogue,typePlan,mutantPlan,sourceProofPlan,compiledEntry,toolRequests,buildPlan}; future paths/manifests independently bound by RootGO; stage results expose freshly guarded built paths without granting new origin authority",
+    "phase": "async phase(name, detail={}) -> acknowledged parent event; ordered setup -> admission -> operation -> capture -> cleanup -> complete; optional repeated operation named subevents use note(); begin admission BEFORE imports and operation BEFORE command/compiler",
+    "note": "async note(kind, detail={}) -> acknowledged bounded parent-timestamped event; never changes deadlines",
+    "writeJson": "async writeJson(relativePath, value) -> {path,sha256,bytes}; evidence-relative unique atomic publication only, maximum16MiB, no overwrite",
+    "writeBytes": "async writeBytes(relativePath, Uint8Array) -> {path,sha256,bytes}; evidence-relative unique atomic publication only, maximum16MiB",
+    "runTool": "async runTool({kind:\"compiler\",configPath,timeoutMs:60000|120000}) -> {code,signal,timedOut,reaped,stdoutPath,stderrPath,stdoutBytes,stderrBytes,stdoutSha256,stderrSha256}; configPath canonical regular under scratch; supervisor derives fixed copied Node/TS argv, guards config/tool trees, maximum one tool in flight; negative compiler result classification belongs inside zero-exit worker; timeout/unknown reap always failure",
+    "materializePackage": "async materializePackage({environment,variant:null|{id,edits:[{path,before,after,count,preSha256,postSha256}]}}) -> {root,manifest,entry,environment,variantId}; full strict regular copy and (B) physical rename; unchanged baseline README; enrolled variant must exactly match RootGO/control plan; source-built basis only after independent build; all copies retained and cumulatively guarded",
+    "captureSemantic": "async captureSemantic({materialization,runtimeJobId}) -> {receipt,capturePath,loaded}; import only through core authenticated candidate loader, fixture/F02 reason scope kept in child; raw durable before return; no semantic assertions",
+    "assertProjection": "async assertProjection({receipt,runtimeJobId}) -> {status:\"BOUND_PROJECTION_ONLY\"|\"INCOMPLETE\"|\"FAIL\",error,obligationsPath}; unchanged F01/CMD22 projection, no full-record success; raw must already exist",
+    "guard": "async guard() -> {integrity:true}; strict source/package/tools/recipe/materializations and evidence membership guards; failures throw unsafe",
+    "readBoundJson": "async readBoundJson(name) -> data; named sealed data in bindings only, not arbitrary paths",
+    "result": "Return {status:\"PASS\"|\"FAIL\"|\"UNRUN\"|\"INCOMPLETE\",proofRole:string,details:JSON,artifacts?:[{path,sha256,bytes}],stageOutput?:JSON}; only core emits exactly one job receipt. PASS describes role-only proof, never full194/record acceptance. Ordinary asserted failure return FAIL; integrity/admission/loader violations throw with unsafe=true; unknown thrown errors default unsafe. No worker process.exit()."
+  },
+  "protocol": {
+    "ipc": "{schema:1,nonce,jobId,seq,type,payload}; exact keys; monotonic per sender sequence and independently bound nonce/jobId; supervisor brokers tools, coordinator stamps phase events from process.hrtime.bigint(); no worker timestamp grants time",
+    "workerReceipt": "{schema:1,jobId,environment,role,status,details,artifacts,stageOutput,rootGoSha256,recipeSha256}; one RESULT IPC only; stdout never receipts; duplicate/missing/unknown/malformed receipt => FAIL and unsafe if admission integrity unclear",
+    "toolKinds": [
+      "git-show",
+      "git-tree",
+      "compiler"
+    ],
+    "git": "Only exact presealed immutable {revision,path} tuples. Parent derives executable, argv, cwd and environment; no caller-supplied executable or shell.",
+    "spawn": "Supervisor owns coordinator, at most one outer and one nested tool concurrently, separate tracked POSIX groups; registered before spawn request acknowledged. Worker may not spawn. Parent supervisor +coordinator +outer +tool =4 maximum processes excluding OS tool internals (none authorized). Node loader thread is not a process.",
+    "reap": "TERM at min(slot/phase/global) minus reserved5000ms; KILL after1000ms; known child close AND group absence required within remaining4000ms; unknown/failed reap stops all admissions. Host stalls can defeat wall scheduling; no escaped-descendant/opaque-host-preemption guarantee."
+  },
+  "matrix": {
+    "profiles": [
+      "source-built-direct",
+      "installed-moved-direct"
+    ],
+    "runtimeJobsEach": 149,
+    "uniqueRuntimeIds": 132,
+    "directTypeFixturesEach": 6,
+    "conditionalPublicFixtures": 5,
+    "outerSlots": 336,
+    "compilerMaximum": 18,
+    "loadedSlots": 10,
+    "installedUnmoved": "Admission/movement origin only, not third semantic profile"
+  },
+  "bounds": {
+    "globalMs": 24165000,
+    "phaseMs": [
+      120000,
+      300000,
+      180000,
+      570000,
+      300000,
+      6705000,
+      13410000,
+      1560000,
+      900000,
+      120000
+    ],
+    "globalDiskBytes": 25769803776,
+    "oneActiveOuter": true,
+    "oneActiveNestedTool": true,
+    "workerStdoutBytes": 16777216,
+    "workerStderrBytes": 16777216,
+    "workerCombinedBytes": 16777216,
+    "compilerCombinedBytes": 8388608,
+    "ipcMessageBytes": 262144,
+    "ipcMessagesPerJob": 2048,
+    "parentEventsPerJob": 4096,
+    "metadataBytesPerJob": 33554432,
+    "fixtureOutputCombinedBytes": 2097152,
+    "fixtureEvents": 20000,
+    "treeEntries": 4096,
+    "treeBytes": 67108864,
+    "fileBytes": 16777216,
+    "toolNodeFileBytes": 134217728,
+    "maxPackageCopies": 180,
+    "maxGitCallsPerJob": 32768,
+    "maxGitCallsGlobal": 11010048,
+    "overflow": "No silent truncation; preserve written prefix and explicit failure marker, stop when integrity/completeness unknown",
+    "memory": "Bounds on retained buffers/messages, not RSS; JSON hex doubles captured bytes, fixture events and FS snapshots remain bounded. Disk spools process streams without Buffer.concat."
+  },
+  "authority": {
+    "rootGo": false,
+    "legacyHistoricalMode": "Content-only ORIGINAL_MODE_UNATTESTED for explicitly historical prior FINAL-SEAL; excluded executable/admission mode closure; old DENY unchanged",
+    "activeClosure": "Every code/data projection controlling new execution receives newly sealed mode/hash/size/kind/path and exact parent membership. Root must independently bind expected recipe and GO hashes."
+  },
+  "compatibility": "Core implementation MUST preserve this v1 interface; incompatible delta requires separately sealed version and root routing, not silent edits."
+}

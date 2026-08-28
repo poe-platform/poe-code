@@ -1,0 +1,85 @@
+{
+  "createdAt": "2026-08-28T04:47:43.194Z",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "tree": "2b8110a17559ba1ddbc94b9b8ac619e9dda00d40",
+  "sourceTree": "f64fd91310f7897563ac2a242b8f6336103907aa",
+  "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "source": "382abba5a73ddad13ba424bafbe1992b4f7ca7e9",
+  "acceptedModule": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+  "changes": [
+    {
+      "path": "src/commands/timeout/README.md",
+      "revision": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+      "role": "accepted unchanged module",
+      "mode": "100644",
+      "bytes": 1202,
+      "blob": "b72a4cf5b45eaaa51cb5345030d5519f3bd50724",
+      "sha256": "2e41cca9923eb92e6811d12e13144552e29e553d5b707300ef30728b87433eb0"
+    },
+    {
+      "path": "src/commands/timeout/duration.ts",
+      "revision": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+      "role": "accepted unchanged module",
+      "mode": "100644",
+      "bytes": 2508,
+      "blob": "ffb713e6f0fd379697f7c564ab014f9fb14a8b07",
+      "sha256": "870a3800f9ba46a1d38ed831d0b6e7da804d4d34c6f5d3ebe86ada535d90b835"
+    },
+    {
+      "path": "src/commands/timeout/index.ts",
+      "revision": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+      "role": "accepted unchanged module",
+      "mode": "100644",
+      "bytes": 10250,
+      "blob": "d6cb9e9797c6cae524ec7228877de4788c7c57ab",
+      "sha256": "e68bd5177a0c45ebbcff4dbb834e46581c9c51d216897cda261836afa1c8a90b"
+    },
+    {
+      "path": "src/commands/timeout/scheduler.ts",
+      "revision": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+      "role": "accepted unchanged module",
+      "mode": "100644",
+      "bytes": 3480,
+      "blob": "a5839e09b810b88dd340e4b36ff4b100533e481b",
+      "sha256": "fa542007183e5f097c105c70b7a9502f2fa26bd801430e899f9f1bddd7962af3"
+    },
+    {
+      "path": "src/index.ts",
+      "revision": "382abba5a73ddad13ba424bafbe1992b4f7ca7e9",
+      "role": "root public integration",
+      "mode": "100644",
+      "bytes": 1638,
+      "blob": "f54199ce30c02eaa15a6956434df3ff0163d17c4",
+      "sha256": "8ffbd42cb44f477a9720eb49c59ca77e38a9875dd0a57254231a297ed6d5d472"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "revision": "382abba5a73ddad13ba424bafbe1992b4f7ca7e9",
+      "role": "root public integration",
+      "mode": "100644",
+      "bytes": 6665,
+      "blob": "1741b55650062b6ae282d410d20969cac283fa8e",
+      "sha256": "35e65e44501ee190f6027e44bb4be28108954a316d46ab3aa2d76ce5e2924751"
+    },
+    {
+      "path": "package.json",
+      "revision": "382abba5a73ddad13ba424bafbe1992b4f7ca7e9",
+      "role": "root public integration",
+      "mode": "100644",
+      "bytes": 4979,
+      "blob": "c4a95d039e69a7c437b559f28a8e14204c0ecda3",
+      "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12"
+    }
+  ],
+  "rawCommitBase64": "dHJlZSAyYjgxMTBhMTc1NTliYTFkZGJjOTRiOWI4YWM2MTllOWRkYTAwZDQwCnBhcmVudCA1MTM3YTc0ZWM4NTVhMzJkOGE4ODYwZWI2NmI2MmViNDRkMTFlMjkwCmF1dGhvciBLYW1pbCBKb3BlayA8a2pvcGVrQHF1b3JhLmNvbT4gMTc4Nzg5MjQ2MiAtMDUwMApjb21taXR0ZXIgS2FtaWwgSm9wZWsgPGtqb3Bla0BxdW9yYS5jb20+IDE3ODc4OTI0NjIgLTA1MDAKClRpbWVvdXQ3OCBwdWJsaWMgY2FuZGlkYXRlOiBleGFjdCBjb2hlcmVudDUxMzcgKyBhY2NlcHRlZCBhMjM4IG1vZHVsZSArIHRocmVlIGV4cGxpY2l0IHJvb3QgYmxvYnMK",
+  "rawCommitSha256": "4876a3b710d351cd746fdc7d8074a291952262d749d1614ce8ed509a6cf92591",
+  "packageManifestSha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12",
+  "readme": {
+    "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1",
+    "qualification": "Exact baseline packed README retained; current root documentation and maintained test deltas separately bound, not silently overlaid"
+  },
+  "defaultCount": 78,
+  "fullGateLaunched": false,
+  "independentlyAccepted": false
+}

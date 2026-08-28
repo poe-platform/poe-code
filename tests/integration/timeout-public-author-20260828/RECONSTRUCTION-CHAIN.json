@@ -1,0 +1,411 @@
+[
+  {
+    "schema": 2,
+    "createdAt": "2026-08-28T00:49:22.874Z",
+    "candidate": "2ffcb23d6029250c48950030120ed0adad2e5769",
+    "tree": "d1e5f90a4ebcf184b9558b96ff6b7c5f0c410d35",
+    "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "fixtureSourceCommit": "fd3f71e5c84988dd960d00119597eec51db79c6c",
+    "sourceTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+    "changes": [
+      {
+        "path": "tests/commands/split/integration.test.ts",
+        "beforeSha256": "925551e6befe9ccb1d907948a74e002f490a49f51640943069d7599ef794c705",
+        "afterSha256": "2710d4467c42c63713cf406e3c12683c791d8d2e0e020ec54556b494732ac01e",
+        "beforeBlob": "b7444047a32c83eadf4fd4a5d5c2e91d98be6d7c",
+        "replacements": [
+          [
+            "contains 73 including",
+            "contains 76 including"
+          ],
+          [
+            "createAgentCommands().length, 73",
+            "createAgentCommands().length, 76"
+          ],
+          [
+            "shell.commands.list().length, 73",
+            "shell.commands.list().length, 76"
+          ]
+        ],
+        "afterBlob": "88fff30270f01d7eab63279e5777cb88db1cbb8e"
+      },
+      {
+        "path": "tests/commands/stream-format-author-stress/contracts.test.ts",
+        "beforeSha256": "f75b17b6530611215aedb8459bc8bb00b82ac1d31eb96126e0e2a8962ed9a0b1",
+        "afterSha256": "7ae8987438c07e17bba5ff71a13c949c51937cd955e2e5eaade355672849ad08",
+        "beforeBlob": "873ab37faf8b155e562eda8bb196d02f74ca2040",
+        "replacements": [
+          [
+            "contains73 and standalone",
+            "contains76 and standalone"
+          ],
+          [
+            "createAgentCommands().length, 73",
+            "createAgentCommands().length, 76"
+          ],
+          [
+            "instance.commands.list().length, 73",
+            "instance.commands.list().length, 76"
+          ]
+        ],
+        "afterBlob": "23a999dfd948993e45976276225645f861af3db1"
+      },
+      {
+        "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+        "beforeSha256": "4919909cde0944c851bb9aea39bf2aae5971683d39d48d3924bb5cd668e1c2c0",
+        "afterSha256": "be43f926bbfd9d48e3100435b9d36ffa419c80aac189e2c17c9a253fcbea3908",
+        "beforeBlob": "d56a27dc4f2b6e84ca2c01471fe474ffe989b34c",
+        "replacements": [
+          [
+            "target.commands.list().length, 74",
+            "target.commands.list().length, 77",
+            2
+          ],
+          [
+            "assert.equal(definitions.length, 73);",
+            "assert.equal(definitions.length, 76);"
+          ]
+        ],
+        "afterBlob": "8426f7d1dbfff1cc8ca0965659438d05423fd305"
+      },
+      {
+        "path": "tests/plugins/stream-five-public/consumer.mjs",
+        "beforeSha256": "79c962dd5d8686af1e9e03b60e5d3f3b1bdb5f4fa7acedbaff6c5009891276b6",
+        "afterSha256": "cdfdb6acf03a48d315fe70ae99f0d2563ab83dc558171ea561c303d59236bb35",
+        "beforeBlob": "96375d606df3f9f480d13d20d00f3a779ee330fe",
+        "replacements": [
+          [
+            "names.length, 70",
+            "names.length, 76"
+          ],
+          [
+            "new Set(names).size, 70",
+            "new Set(names).size, 76"
+          ],
+          [
+            "commands.list().length, 70",
+            "commands.list().length, 76"
+          ]
+        ],
+        "afterBlob": "4434cfa99fec9c9d8559718d45edf8c71f9c13bc"
+      }
+    ],
+    "rawCommitBase64": "dHJlZSBkMWU1ZjkwYTRlYmNmMTg0Yjk1NThiOTZmZjZiN2M1ZjBjNDEwZDM1CnBhcmVudCA0NGYwMGJmODQyNzhlMzM2MWI1MjEwNjQ3OGQ1OWM3MDdhYjdiMmJjCmF1dGhvciBLYW1pbCBKb3BlayA8a2pvcGVrQHF1b3JhLmNvbT4gMTc4Nzg3ODE2MiAtMDUwMApjb21taXR0ZXIgS2FtaWwgSm9wZWsgPGtqb3Bla0BxdW9yYS5jb20+IDE3ODc4NzgxNjIgLTA1MDAKClVuaWZ5NzYgdjI6IGV4YWN0bHkgZm91ciBmaXh0dXJlIHBhdGhzLCBhZGRpbmcgb25seSBhdXRob3JpemVkIG9yZGluYXJ5IGNvdW50IGh1bmsK",
+    "rawCommitSha256": "afcef98a8f65e8b3ea5bdc3985d76c7347c006e2e27b9fbc2e384c6aefa7fa03",
+    "expectedPackageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "release": "HOLD_PUBLIC_AND_DRIVER_REVIEW",
+    "wholeGateLaunched": false,
+    "previousCandidate": "07047e8f7bd577f60350246b1380732712305f58",
+    "previousDriver": "86f75025b423f9d25a9dbcb35d07e73e95d33f9d",
+    "amendmentFreezeSha256": "04044ceb59587dc99b179e160d025c7a3455c399bce44f7f8b0a9ec17898aabb"
+  },
+  {
+    "schema": 1,
+    "createdAt": "2026-08-28T00:58:15.966Z",
+    "candidate": "284857d7aa9b0ee0df2b6fdd1a71f41115d7b909",
+    "tree": "f4eaa4c268ff7f43e1c9eac7b469faf6a3846edb",
+    "base": "2ffcb23d6029250c48950030120ed0adad2e5769",
+    "rootSource": "ee1f69e721e350fcc77d634b92e5c9f13f61dedb",
+    "moduleSource": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+    "independentFreeze": "02ccea66d1e7983056c0ed114f8842fbd7ec3255",
+    "changes": [
+      {
+        "path": "src/index.ts",
+        "sourceRevision": "ee1f69e721e350fcc77d634b92e5c9f13f61dedb",
+        "blob": "ff7ab9b4e4a2f2a25eb0fae8db1d3149c514ad16",
+        "sha256": "6d847ff37316fcdc851145024a422cb6541f0cbeab15895c5a972d7f1f97bb6b",
+        "bytes": 1593
+      },
+      {
+        "path": "src/plugins/index.ts",
+        "sourceRevision": "ee1f69e721e350fcc77d634b92e5c9f13f61dedb",
+        "blob": "f84f2acb218c9d6227abe9dd21dedaf5e6c96c85",
+        "sha256": "83d6bd40582d124d1b1ec2471e4abc5fbe8df1f0f2320397b79399330c8e8abf",
+        "bytes": 6235
+      },
+      {
+        "path": "package.json",
+        "sourceRevision": "ee1f69e721e350fcc77d634b92e5c9f13f61dedb",
+        "blob": "161191ea9e8e56bbea0e74b48af54ee57b646015",
+        "sha256": "64846cc0868630f863fade5119cef195a949aa0ed36ecc341bd9a076d6c363e2",
+        "bytes": 4840
+      },
+      {
+        "path": "README.md",
+        "sourceRevision": "ee1f69e721e350fcc77d634b92e5c9f13f61dedb",
+        "blob": "c3df8bd958d07298f5df85e0a81ec73589123742",
+        "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1",
+        "bytes": 36273
+      },
+      {
+        "path": "src/commands/which/ACCESS-POLICY-v2.md",
+        "sourceRevision": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+        "blob": "0d2823190301c1fd8743bfd14b345b02c3dde693",
+        "sha256": "a70422274aca08f251fa6154b90dcff93405a220189b6ba9cbaa35e09da9f8a1",
+        "bytes": 10868
+      },
+      {
+        "path": "src/commands/which/DESIGN.md",
+        "sourceRevision": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+        "blob": "82ed8c9dd2a6f1573aca035a8bf439354a547e94",
+        "sha256": "fc8984c7a6858709ee9341c5e2b17f3f01c4a4b2306571229229d54584ada15c",
+        "bytes": 24691
+      },
+      {
+        "path": "src/commands/which/README.md",
+        "sourceRevision": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+        "blob": "91fa544bf73c11c2884d81a2715618f5e3cfcdfc",
+        "sha256": "68efa7634eb72ad75cfbec3b58b25661f75fe1baba9ec50fd517da9fc603afc7",
+        "bytes": 2177
+      },
+      {
+        "path": "src/commands/which/design-evidence/access-provenance-v2.json",
+        "sourceRevision": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+        "blob": "daeae695c3767f2efd516d52e57b8dc2f3dd922e",
+        "sha256": "7f8f1758964a9c6eb942f0c9677df105c5e436beae96dfc8d1ee3877064e4c71",
+        "bytes": 4834
+      },
+      {
+        "path": "src/commands/which/design-evidence/getopt-source.data",
+        "sourceRevision": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+        "blob": "2b5e3fa6903256e9b1d50306f243ff339598bcc7",
+        "sha256": "a911e3dcd3cdfed04cc1192e7668feabe5452435c58304c53870a3d7a26f0fce",
+        "bytes": 4134
+      },
+      {
+        "path": "src/commands/which/design-evidence/provenance.json",
+        "sourceRevision": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+        "blob": "19af869b0ed86ed8f97e08f9e8b8a3c6f6ea7fc7",
+        "sha256": "4e7641429f299054e45c54cd82421757c475145547d849e5c782db1183178a90",
+        "bytes": 4216
+      },
+      {
+        "path": "src/commands/which/design-evidence/which-manual.data",
+        "sourceRevision": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+        "blob": "5a6b041563cd0df4b9bd385f3ab7bda0a39a5b2c",
+        "sha256": "904c4c1e74bbbbb1b6c0114cdea88b0609282cb6f7ed39513cfb4a912f151cdb",
+        "bytes": 3543
+      },
+      {
+        "path": "src/commands/which/design-evidence/which-source.data",
+        "sourceRevision": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+        "blob": "dc22efb815d84ee225f8be7343a732a1ddd6f81c",
+        "sha256": "dce7ea97b948b1ba0248a1a699248b8ab63c36f4887d8b95a8ae2b8cbe6bae25",
+        "bytes": 3470
+      },
+      {
+        "path": "src/commands/which/index.ts",
+        "sourceRevision": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+        "blob": "108a7e763923cec492a3308a5b53c919f666ee3d",
+        "sha256": "30286503e52a17e8d2f3e7e6bb590dc8d0307c3fb6e696ace00fc9a996ec7d9a",
+        "bytes": 985
+      },
+      {
+        "path": "src/commands/which/options.ts",
+        "sourceRevision": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+        "blob": "cfb4c7659c05d65a8110b680913aa876ddfcb82b",
+        "sha256": "c27af0cdf354a5eb39dc7f21eace39e96f9949ee3aed5f1b9c7cf67e4ddbef15",
+        "bytes": 1207
+      },
+      {
+        "path": "src/commands/which/which.ts",
+        "sourceRevision": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+        "blob": "f71f7d31c71d60b85eff5be08c9c90f5ddb2ad12",
+        "sha256": "98ace870f4721aa3061893ce5a26b47641e672ce1f5f544cb0d4416f48498a40",
+        "bytes": 9728
+      }
+    ],
+    "rawCommitBase64": "dHJlZSBmNGVhYTRjMjY4ZmY3ZjQzZTFjOWVhYzdiNDY5ZmFmNmEzODQ2ZWRiCnBhcmVudCAyZmZjYjIzZDYwMjkyNTBjNDg5NTAwMzAxMjBlZDBhZGFkMmU1NzY5CmF1dGhvciBLYW1pbCBKb3BlayA8a2pvcGVrQHF1b3JhLmNvbT4gMTc4Nzg3ODY5NSAtMDUwMApjb21taXR0ZXIgS2FtaWwgSm9wZWsgPGtqb3Bla0BxdW9yYS5jb20+IDE3ODc4Nzg2OTUgLTA1MDAKCklzb2xhdGVkIFdISUNINzc6IGZyb3plbjc2IHBsdXMgYWNjZXB0ZWQwOTAyIG1vZHVsZSBhbmQgZm91ciBwdWJsaWMgd2lyaW5nIHBhdGhzCg==",
+    "rawCommitSha256": "2f83d117b527beaa87224de597e37b9aefb56ef878140fa86196ec6124bbac5d",
+    "sourceTree": "af36deaa9871dfb37c27a1cae0d3d6a773238988",
+    "packageManifestSha256": "64846cc0868630f863fade5119cef195a949aa0ed36ecc341bd9a076d6c363e2",
+    "publicStatus": "AUTHOR_CANDIDATE_NOT_INDEPENDENT_ACCEPTANCE",
+    "wholeGateLaunched": false
+  },
+  {
+    "schema": 1,
+    "createdAt": "2026-08-28T01:57:35.922Z",
+    "candidate": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "tree": "48e5ae39ce98e1c8e416bae77da40d88b75e1db5",
+    "sourceTree": "2922ffbc540b0f114905b3d3d9b80a508de23aed",
+    "base": "284857d7aa9b0ee0df2b6fdd1a71f41115d7b909",
+    "fixtureSource": "7119f0c084e8d4f50074ca4c47c7311bc48792c8",
+    "freezeSha256": "afa209c6f4718fa54b95ff02fc325939919c92a53334093c7bd82483e4994c89",
+    "changes": [
+      {
+        "path": "src/shell/cancellation.ts",
+        "revision": "57855a0293edb83bff98113123806497b4427416",
+        "blob": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+        "sha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2",
+        "bytes": 31986,
+        "role": "accepted source/doc blob"
+      },
+      {
+        "path": "src/contracts/command.md",
+        "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+        "blob": "ef94adf238122441a66c2232fb3055aaee62d290",
+        "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+        "bytes": 9253,
+        "role": "accepted source/doc blob"
+      },
+      {
+        "path": "src/contracts/command.ts",
+        "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+        "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+        "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+        "bytes": 2968,
+        "role": "accepted source/doc blob"
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+        "blob": "bf41b4a97de4c20a0206abfd7b235cefd0aee1db",
+        "sha256": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169",
+        "bytes": 132362,
+        "role": "accepted source/doc blob"
+      },
+      {
+        "path": "src/shell/shell.ts",
+        "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+        "blob": "0b96a82f4ec29da4dbdd447806cca6a2f514311a",
+        "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24",
+        "bytes": 15002,
+        "role": "accepted source/doc blob"
+      },
+      {
+        "path": "src/shell/types.ts",
+        "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+        "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+        "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+        "bytes": 2223,
+        "role": "accepted source/doc blob"
+      },
+      {
+        "path": "tests/commands/split/integration.test.ts",
+        "revision": "7119f0c084e8d4f50074ca4c47c7311bc48792c8",
+        "blob": "4dc071248f05a803e2434535623df38a8d4db235",
+        "sha256": "4b26e93acfe8ff5b178f3a529519cb5db941157b3c6dd1ab8a0fe4779431f957",
+        "bytes": 5201,
+        "role": "authorized maintained inventory fixture"
+      },
+      {
+        "path": "tests/commands/stream-format-author-stress/contracts.test.ts",
+        "revision": "7119f0c084e8d4f50074ca4c47c7311bc48792c8",
+        "blob": "a9ffb762f0a4953830d8317d2965418cefe8bfef",
+        "sha256": "c9174c37590ca02e367e5674bee185965a4530b3ef1edaa94a5cc483807ea4ab",
+        "bytes": 8978,
+        "role": "authorized maintained inventory fixture"
+      },
+      {
+        "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+        "revision": "7119f0c084e8d4f50074ca4c47c7311bc48792c8",
+        "blob": "96727c36b1099e121bafef3a85784ddc76f5e410",
+        "sha256": "9431438e95b088146bc9c56b7e24c87e0ab333b26de97205b4da424e67c0a928",
+        "bytes": 9815,
+        "role": "authorized maintained inventory fixture"
+      },
+      {
+        "path": "tests/plugins/stream-five-public/consumer.mjs",
+        "revision": "7119f0c084e8d4f50074ca4c47c7311bc48792c8",
+        "blob": "669e0ba7bb8e123f5e06a60198ecc6baeb99028f",
+        "sha256": "3e840eefb1f1bfd3b14b7168bcb5b89116679d6dbd28f8784c988e40dcecf221",
+        "bytes": 7809,
+        "role": "authorized maintained inventory fixture"
+      }
+    ],
+    "rawCommitBase64": "dHJlZSA0OGU1YWUzOWNlOThlMWM4ZTQxNmJhZTc3ZGE0MGQ4OGI3NWUxZGI1CnBhcmVudCAyODQ4NTdkN2FhOWIwZWUwZGYyYjZmZGQxYTcxZjQxMTE1ZDdiOTA5CmF1dGhvciBLYW1pbCBKb3BlayA8a2pvcGVrQHF1b3JhLmNvbT4gMTc4Nzg4MjI1NSAtMDUwMApjb21taXR0ZXIgS2FtaWwgSm9wZWsgPGtqb3Bla0BxdW9yYS5jb20+IDE3ODc4ODIyNTUgLTA1MDAKCkNvaGVyZW50NzcgcmVhZGluZXNzOiBhY2NlcHRlZCBXSElDSDc3ICsgaGVscGVyNTc4ICsgZXhhY3QgU3RhZ2UyIGZpdmUgYmxvYnMgKyBmb3VyIG1haW50YWluZWQgaW52ZW50b3JpZXMK",
+    "rawCommitSha256": "285999c1e01e52076a2ae9075db6cafd26c791a73a7c5af24cd9ce02e1039f59",
+    "packageManifestSha256": "64846cc0868630f863fade5119cef195a949aa0ed36ecc341bd9a076d6c363e2",
+    "basePackageSha256": "49191d098e1e9f5b946f24dd898377144062110047cf6975d3cbf5d2c71214c0",
+    "packageQualification": "The accepted base tarball is historical; a new package hash must be observed after the Stage2 rebuild.",
+    "defaultCount": 77,
+    "customCount": 78,
+    "wholeGateLaunched": false,
+    "independentCombinedAcceptance": false
+  },
+  {
+    "createdAt": "2026-08-28T04:47:43.194Z",
+    "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "tree": "2b8110a17559ba1ddbc94b9b8ac619e9dda00d40",
+    "sourceTree": "f64fd91310f7897563ac2a242b8f6336103907aa",
+    "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "source": "382abba5a73ddad13ba424bafbe1992b4f7ca7e9",
+    "acceptedModule": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+    "changes": [
+      {
+        "path": "src/commands/timeout/README.md",
+        "revision": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+        "role": "accepted unchanged module",
+        "mode": "100644",
+        "bytes": 1202,
+        "blob": "b72a4cf5b45eaaa51cb5345030d5519f3bd50724",
+        "sha256": "2e41cca9923eb92e6811d12e13144552e29e553d5b707300ef30728b87433eb0"
+      },
+      {
+        "path": "src/commands/timeout/duration.ts",
+        "revision": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+        "role": "accepted unchanged module",
+        "mode": "100644",
+        "bytes": 2508,
+        "blob": "ffb713e6f0fd379697f7c564ab014f9fb14a8b07",
+        "sha256": "870a3800f9ba46a1d38ed831d0b6e7da804d4d34c6f5d3ebe86ada535d90b835"
+      },
+      {
+        "path": "src/commands/timeout/index.ts",
+        "revision": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+        "role": "accepted unchanged module",
+        "mode": "100644",
+        "bytes": 10250,
+        "blob": "d6cb9e9797c6cae524ec7228877de4788c7c57ab",
+        "sha256": "e68bd5177a0c45ebbcff4dbb834e46581c9c51d216897cda261836afa1c8a90b"
+      },
+      {
+        "path": "src/commands/timeout/scheduler.ts",
+        "revision": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+        "role": "accepted unchanged module",
+        "mode": "100644",
+        "bytes": 3480,
+        "blob": "a5839e09b810b88dd340e4b36ff4b100533e481b",
+        "sha256": "fa542007183e5f097c105c70b7a9502f2fa26bd801430e899f9f1bddd7962af3"
+      },
+      {
+        "path": "src/index.ts",
+        "revision": "382abba5a73ddad13ba424bafbe1992b4f7ca7e9",
+        "role": "root public integration",
+        "mode": "100644",
+        "bytes": 1638,
+        "blob": "f54199ce30c02eaa15a6956434df3ff0163d17c4",
+        "sha256": "8ffbd42cb44f477a9720eb49c59ca77e38a9875dd0a57254231a297ed6d5d472"
+      },
+      {
+        "path": "src/plugins/index.ts",
+        "revision": "382abba5a73ddad13ba424bafbe1992b4f7ca7e9",
+        "role": "root public integration",
+        "mode": "100644",
+        "bytes": 6665,
+        "blob": "1741b55650062b6ae282d410d20969cac283fa8e",
+        "sha256": "35e65e44501ee190f6027e44bb4be28108954a316d46ab3aa2d76ce5e2924751"
+      },
+      {
+        "path": "package.json",
+        "revision": "382abba5a73ddad13ba424bafbe1992b4f7ca7e9",
+        "role": "root public integration",
+        "mode": "100644",
+        "bytes": 4979,
+        "blob": "c4a95d039e69a7c437b559f28a8e14204c0ecda3",
+        "sha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12"
+      }
+    ],
+    "rawCommitBase64": "dHJlZSAyYjgxMTBhMTc1NTliYTFkZGJjOTRiOWI4YWM2MTllOWRkYTAwZDQwCnBhcmVudCA1MTM3YTc0ZWM4NTVhMzJkOGE4ODYwZWI2NmI2MmViNDRkMTFlMjkwCmF1dGhvciBLYW1pbCBKb3BlayA8a2pvcGVrQHF1b3JhLmNvbT4gMTc4Nzg5MjQ2MiAtMDUwMApjb21taXR0ZXIgS2FtaWwgSm9wZWsgPGtqb3Bla0BxdW9yYS5jb20+IDE3ODc4OTI0NjIgLTA1MDAKClRpbWVvdXQ3OCBwdWJsaWMgY2FuZGlkYXRlOiBleGFjdCBjb2hlcmVudDUxMzcgKyBhY2NlcHRlZCBhMjM4IG1vZHVsZSArIHRocmVlIGV4cGxpY2l0IHJvb3QgYmxvYnMK",
+    "rawCommitSha256": "4876a3b710d351cd746fdc7d8074a291952262d749d1614ce8ed509a6cf92591",
+    "packageManifestSha256": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12",
+    "readme": {
+      "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1",
+      "qualification": "Exact baseline packed README retained; current root documentation and maintained test deltas separately bound, not silently overlaid"
+    },
+    "defaultCount": 78,
+    "fullGateLaunched": false,
+    "independentlyAccepted": false
+  }
+]

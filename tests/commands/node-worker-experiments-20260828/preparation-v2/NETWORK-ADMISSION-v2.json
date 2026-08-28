@@ -1,0 +1,17 @@
+{
+  "schema": "wrq-source-network-supplement-v2",
+  "authorization": "ROOT already authorizes exact-commit public-core transitive sources; this freezes a larger finite file ceiling BEFORE exceeding the initial24",
+  "supersedesOnly": "PRESEAL.md new-source request ceiling24 becomes96; all origins, commit, path-edge rules, byte/time/process limits and no-retry policy unchanged",
+  "beforeThisAdmission": { "newSourceRequests": 2, "treeRequests": 1, "maximumOriginalSources": 24 },
+  "maximumNewSourceRequests": 96,
+  "maximumTreeRequests": 16,
+  "maximumNetworkBodyBytes": 8388608,
+  "maximumSingleBodyBytes": 2097152,
+  "maximumConcurrentNetworkRequests": 1,
+  "reason": "Authenticated src/lint/index.ts has27 runtime rule-module targets plus one type-only module-registry target, exceeding24 before their own transitive helpers. No third-party dependency has yet been found.",
+  "knownNextRelativeTargets": [
+    "src/lint/rules/AS001.ts", "src/lint/rules/AS003.ts", "src/lint/rules/AS004.ts", "src/lint/rules/AS005.ts", "src/lint/rules/AS006-007.ts", "src/lint/rules/AS008.ts", "src/lint/rules/AS009.ts", "src/lint/rules/AS010.ts", "src/lint/rules/AS011.ts", "src/lint/rules/AS013.ts", "src/lint/rules/AS015.ts", "src/lint/rules/AS-async-not-needed.ts", "src/lint/rules/AS-await-non-promise.ts", "src/lint/rules/AS-destructure-null-default.ts", "src/lint/rules/AS-export-import-meta.ts", "src/lint/rules/AS-floating-promise.ts", "src/lint/rules/AS-frontmatter-field-unused.ts", "src/lint/rules/AS-import-cycle.ts", "src/lint/rules/AS-jsdoc-type.ts", "src/lint/rules/AS-large-literal.ts", "src/lint/rules/AS-missing-async.ts", "src/lint/rules/AS-mutating-frozen.ts", "src/lint/rules/AS-needless-template.ts", "src/lint/rules/AS-shadow-global.ts", "src/lint/rules/AS-unbounded-loop.ts", "src/lint/rules/AS-unreachable.ts", "src/lint/rules/AS-unused-import.ts", "src/lint/rules/module-registry.ts"
+  ],
+  "remainingDiscovery": "Only literal required-core import/export/type-reference relative edges in already authenticated admitted sources; no guessed filenames, branch refs, repo snapshots, unrelated root/CLI imports or retry",
+  "executionAuthorized": false
+}

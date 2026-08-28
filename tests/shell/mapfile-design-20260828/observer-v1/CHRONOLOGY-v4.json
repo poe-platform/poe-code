@@ -1,0 +1,43 @@
+{
+  "schema": "mapfile-observer-chronology-preseal-v4",
+  "date": "2026-08-28",
+  "base": "de9dae6d52fa5066646731b01e5811c6d3108555",
+  "independentReport": "b1485454a25fb09c283e6b53627bc9ef74ac17f9",
+  "history": "47/49 unique peer predicates; initial30/31 stdout interruption plus remaining17/18 preserved; not rescored",
+  "execution": "DATA/SYNTHETIC ONLY: exact whole node-driver/lifecycle/observer dependency graph evaluated with finite injected Node primitives; no real child, native recipe, product/private engine or network capability",
+  "timing": "before new executor or lifecycle implementation",
+  "statePolicy": {
+    "normal": ["not-started", "awaiting-spawn", "running", "exited", "closed"],
+    "validEvents": "spawn only awaiting-spawn; exit only running; close only exited. Duplicates or out-of-order lifecycle events latch invalid permanently; later flags/group absence cannot heal it.",
+    "failedSpawn": "An observed error without a spawned process is a failed attempt, not fabricated spawn/exit/close and not by itself a chronology violation. Existing immediate no-PID error settlement remains; later notifications cannot rewrite it.",
+    "errors": "Independent stream/host errors fault without being lifecycle duplicates. Preserve first actual thrown reason by identity, including falsy values. Chronology diagnostics do not fabricate a host-thrown reason.",
+    "facts": "Record bounded preterminal arrival order including exit/close code+signal, flags/counts and first violation. No rollback of observed facts. Postterminal callbacks remain handled without mutating the frozen report; model trace records their delivery separately.",
+    "cleanup": "Fault/escalate once, retain group monitoring and original3000ms terminal ceiling. Never settle success after invalid order. Do not call missing notifications to repair accounting. Release exactly once; retain cleanup error identity."
+  },
+  "bounds": { "scenarios": 20, "modelEventsPerScenario": 4096, "modelMilliseconds": 150001, "maxStartsPerScenario": 2, "captureBytes": 2097152, "actualChildren": 0, "native43": 0, "realNetwork": 0, "rowTermMilliseconds": 2500, "rowKillMilliseconds": 2750, "rowTerminalMilliseconds": 3000 },
+  "baselineSelection": ["T01", "T03", "T04"],
+  "cases": [
+    { "id": "T01", "name": "natural-zero", "success": true, "events": [[0,"spawn"],[1,"exit",0],[2,"absent"],[2,"close",0]] },
+    { "id": "T02", "name": "natural-nonzero", "success": true, "events": [[0,"spawn"],[1,"exit",7],[2,"absent"],[2,"close",7]] },
+    { "id": "T03", "name": "close-before-spawn-live-group", "success": false, "violation": true, "events": [[1,"exit",0],[1,"close",0],[2,"spawn"],[3,"absent"]] },
+    { "id": "T04", "name": "exit-before-spawn-live-group", "success": false, "violation": true, "events": [[1,"exit",0],[2,"spawn"],[3,"absent"],[3,"close",0]] },
+    { "id": "T05", "name": "duplicate-spawn-live-group", "success": false, "violation": true, "events": [[0,"spawn"],[1,"spawn"],[2,"exit",0],[3,"close",0],[4,"absent"]] },
+    { "id": "T06", "name": "duplicate-exit-live-group", "success": false, "violation": true, "events": [[0,"spawn"],[1,"exit",0],[2,"exit",7],[3,"close",7],[4,"absent"]] },
+    { "id": "T07", "name": "duplicate-close-live-group", "success": false, "violation": true, "events": [[0,"spawn"],[1,"exit",0],[2,"close",0],[3,"close",7],[4,"absent"]] },
+    { "id": "T08", "name": "close-exit-spawn", "success": false, "violation": true, "events": [[1,"close",0],[2,"exit",0],[3,"spawn"],[4,"absent"]] },
+    { "id": "T09", "name": "spawn-close-exit", "success": false, "violation": true, "events": [[0,"spawn"],[1,"close",0],[2,"exit",0],[3,"absent"]] },
+    { "id": "T10", "name": "error-without-process", "success": false, "noPid": true, "reason": "object", "events": [[0,"absent"],[1,"error","first"],[2,"close",null]] },
+    { "id": "T11", "name": "synchronous-spawn-throw", "success": false, "syncThrow": true, "reason": "object", "events": [] },
+    { "id": "T12", "name": "error-then-invalid-order", "success": false, "violation": true, "reason": "false", "events": [[0,"error","first"],[1,"exit",0],[2,"spawn"],[3,"close",0],[4,"absent"]] },
+    { "id": "T13", "name": "multiple-errors-valid-chronology", "success": false, "reason": "false", "events": [[0,"spawn"],[1,"error","first"],[2,"error","second"],[3,"exit",0],[4,"absent"],[4,"close",0]] },
+    { "id": "T14", "name": "stdout-error-valid-chronology", "success": false, "reason": "object", "events": [[0,"spawn"],[1,"stream-error","first"],[2,"exit",0],[3,"close",0],[4,"absent"]] },
+    { "id": "T15", "name": "release-error-after-valid-close", "success": false, "releaseThrow": true, "reason": "object", "events": [[0,"spawn"],[1,"exit",0],[2,"absent"],[2,"close",0]] },
+    { "id": "T16", "name": "invalid-order-and-release-error", "success": false, "violation": true, "releaseThrow": true, "reason": "object", "events": [[1,"exit",0],[2,"spawn"],[3,"close",0],[4,"absent"]] },
+    { "id": "T17", "name": "late-events-do-not-rewrite", "success": true, "events": [[0,"spawn"],[1,"exit",0],[2,"absent"],[2,"close",0],[3,"spawn"],[4,"exit",7],[5,"close",7],[6,"stream-error","first"]] },
+    { "id": "T18", "name": "invalid-order-surviving-group", "success": false, "violation": true, "survives": true, "events": [[1,"exit",0],[2,"spawn"],[3,"close",0]] },
+    { "id": "T19", "name": "missing-spawn-already-absent", "success": false, "violation": true, "events": [[0,"absent"],[1,"exit",0],[1,"close",0]] },
+    { "id": "T20", "name": "output-and-valid-chronology", "success": true, "events": [[0,"spawn"],[1,"data","00ff41"],[2,"exit",0],[2,"data","42"],[3,"close",0],[4,"absent"]] }
+  ],
+  "recipePolicy": "Original32 and additive11 Bash recipes unchanged/unexecuted. New traces are not claims about real Node event order. Current37+27 author controls replay after source fix; no peer predicate rescore.",
+  "futureOS": "Only after synthetic closure prepare a minimal exact harmless-child proposal; no OS execution or authorization from this packet. ROOT cursor policy unchanged."
+}

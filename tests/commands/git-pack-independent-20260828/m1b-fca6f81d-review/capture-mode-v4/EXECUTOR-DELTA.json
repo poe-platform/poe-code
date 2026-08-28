@@ -1,0 +1,62 @@
+{
+  "sourceCommit": "dcdaa7c12d5b3924d3f605014dd701fc60e7be84",
+  "changes": [
+    {
+      "path": "runner/outer.mjs",
+      "before": {
+        "path": "runner/outer.mjs",
+        "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v3/outer.mjs",
+        "sourceCommit": "c90ad78b9ed27f83ed5ba8dd0ca1a548e0e1629f",
+        "role": "ACTIVE_VERSIONED_EXECUTABLE",
+        "blob": "5b54358c0e5a75aa14ca52283aa82835fe4c57c8",
+        "mode": 420,
+        "bytes": 11222,
+        "sha256": "ab3b68bac534f982971c925cb0453ec7abca71874f32cdfbd770f376317d67db"
+      },
+      "after": {
+        "path": "runner/outer.mjs",
+        "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v4/outer.mjs",
+        "sourceCommit": "dcdaa7c12d5b3924d3f605014dd701fc60e7be84",
+        "role": "ACTIVE_VERSIONED_EXECUTABLE",
+        "blob": "2c560241485eecf2f1a06e15b0ddd8cb9abc19cb",
+        "mode": 420,
+        "bytes": 11222,
+        "sha256": "5f6e45bbfd23d8bd5796e31e10ab1c45b18937700d12d7faa6a7c9ae57047bc1"
+      }
+    },
+    {
+      "path": "runner/launch.mjs",
+      "before": {
+        "path": "runner/launch.mjs",
+        "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v3/launch.mjs",
+        "sourceCommit": "c90ad78b9ed27f83ed5ba8dd0ca1a548e0e1629f",
+        "role": "ACTIVE_VERSIONED_EXECUTABLE",
+        "blob": "4cffa56d6d3af7e1a7c00939e062f851ebcd2a6a",
+        "mode": 420,
+        "bytes": 8019,
+        "sha256": "f5375ba662e3fd3b9e84c0d1c826efe6076eec3b1eacaae2819251d88bb98cfc"
+      },
+      "after": {
+        "path": "runner/launch.mjs",
+        "sourcePath": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/v4/launch.mjs",
+        "sourceCommit": "dcdaa7c12d5b3924d3f605014dd701fc60e7be84",
+        "role": "ACTIVE_VERSIONED_EXECUTABLE",
+        "blob": "dd727f4e02d2302da5db7de4e282b41d0a72c112",
+        "mode": 420,
+        "bytes": 8019,
+        "sha256": "fd8a0114e69c677bf34e91d32a7bfd55b095ad71782d7560560c9b664fa77a25"
+      }
+    }
+  ],
+  "unchangedAssemblyEntries": 53,
+  "productUnchanged": true,
+  "fixturesUnchanged": true,
+  "callsUnchanged": true,
+  "modeAuthority": {
+    "role": "CAPTURE_POSIX_MODE",
+    "creationMode": 384,
+    "creationFlags": "wx",
+    "creationSourceSha256": "a2fb4dae7394c5fb7ed04b99ce9f79afb1b287f3a84fce9ef601559b61fcf414",
+    "archiveSha256": "ca809a22ac6570310bc0f6d93024884997964aacb0f549fba8af988b05247ed5"
+  }
+}

@@ -1,0 +1,206 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "state": "STATIC_ONLY_NOT_EXECUTION_GO",
+  "checks": [
+    {
+      "id": "SEAL-INPUT-PRESEAL.json",
+      "status": "STATIC_PASS",
+      "files": 21,
+      "sha256": "b15d033f7a397b35b2dc3cd39f8a0f77f6cc160394b5160d62782394796e0f7b"
+    },
+    {
+      "id": "SEAL-SOURCE-PRESEAL.json",
+      "status": "STATIC_PASS",
+      "files": 26,
+      "sha256": "9319fd64441c728fba358be8b9def804d6990fc2e1042ee21e4939c3b8944dfb"
+    },
+    {
+      "id": "IMMUTABLE-REFERENCES",
+      "status": "STATIC_PASS",
+      "count": 20,
+      "originalMode": "ORIGINAL_MODE_UNATTESTED"
+    },
+    {
+      "id": "TYPE-FIXTURES",
+      "status": "STATIC_PASS",
+      "fixtures": 11,
+      "directPerProfile": 6,
+      "publicReserved": 5,
+      "compilerCalls": 0
+    },
+    {
+      "id": "FULL-MAPS",
+      "status": "STATIC_PASS",
+      "maps": 4,
+      "filesEach": 870,
+      "transformations": 3,
+      "README": {
+        "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1",
+        "bytes": 36273,
+        "mode": 420
+      }
+    },
+    {
+      "id": "FROZEN-WITNESSES",
+      "status": "STATIC_PASS",
+      "witnesses": 4,
+      "changedBytes": 0,
+      "correctedDescriptiveLabels": 2
+    },
+    {
+      "id": "FINITE-MATRIX",
+      "status": "STATIC_PASS",
+      "outerPlan": 336,
+      "fullSemanticProfiles": 2,
+      "runtimeJobsPerProfile": 149,
+      "ourOuterSlots": 13,
+      "loadedInvocations": 10,
+      "uniqueTransformations": 3,
+      "mutantWitnessSlots": 8,
+      "compilerMaximum": 18,
+      "globalMs": 24165000,
+      "typeMs": 1560000,
+      "loadedMs": 900000
+    },
+    {
+      "id": "STATIC-IMPORT-GRAPH",
+      "status": "STATIC_PASS",
+      "modules": 3,
+      "graph": {
+        "worker-support.mjs": [
+          "node:crypto",
+          "node:fs/promises",
+          "node:path",
+          "node:url"
+        ],
+        "type-worker.mjs": [
+          "node:fs/promises",
+          "node:path",
+          "./worker-support.mjs"
+        ],
+        "loaded-worker.mjs": [
+          "node:path",
+          "./worker-support.mjs"
+        ]
+      },
+      "importsExecuted": 0
+    },
+    {
+      "id": "SYNTAX",
+      "status": "STATIC_PASS",
+      "modules": 3,
+      "method": "node --check; no authored imports"
+    },
+    {
+      "id": "SPECIFICATION-FORMAT",
+      "status": "STATIC_PASS",
+      "warnings": 0
+    },
+    {
+      "id": "DEFERRED-CONTROL-INVENTORY",
+      "status": "STATIC_PASS",
+      "declared": 20,
+      "executed": 0
+    },
+    {
+      "id": "FRESH-COMPONENT-FILES",
+      "status": "STATIC_PASS",
+      "files": 28,
+      "mode": 420,
+      "symlinks": 0
+    }
+  ],
+  "checkGroups": 12,
+  "rawCommands": [
+    {
+      "command": [
+        "node",
+        "--check",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/worker-support.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/type-worker.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/loaded-worker.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/SPECIFICATION.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "OK: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/SPECIFICATION.md (0 warning(s))\n",
+      "stderr": ""
+    }
+  ],
+  "preliminaryValidation": {
+    "syntaxInvocations": 3,
+    "syntaxFailures": 0,
+    "originalProtocolFormatErrors": [
+      "H1 missing Specification",
+      "Problem Statement heading absent",
+      "Goals and Non-Goals heading absent",
+      "Test and Validation Matrix heading absent",
+      "Conformance Criteria heading absent",
+      "Implemented Through metadata suffix"
+    ],
+    "originalProtocolPreserved": true,
+    "correction": "SPECIFICATION.md adds required layout/metadata without changing protocol requirements",
+    "correctedSpecPreliminaryStatus": 0
+  },
+  "dataPreparation": {
+    "packageSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+    "archiveSha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+    "regularTarFiles": 870,
+    "fullMaps": 4,
+    "literalTransformations": 3,
+    "literalEdits": 4,
+    "literalOccurrences": 5,
+    "witnesses": 4,
+    "fixtures": 11,
+    "README": {
+      "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1",
+      "bytes": 36273,
+      "mode": 420
+    }
+  },
+  "authorExecution": {
+    "workerImports": 0,
+    "workerRuns": 0,
+    "compilerRuns": 0,
+    "productImports": 0,
+    "productRuns": 0,
+    "loaderRuns": 0,
+    "harnessControls": 0,
+    "nativeOracles": 0
+  },
+  "remainingDynamicControls": 20,
+  "publicExport": "PUBLIC_EXPORT_GAP",
+  "coreIntegration": "RESULT-SCHEMA and INTEGRATION commitments require core binding and different review",
+  "fullRecipeComplete": false
+}

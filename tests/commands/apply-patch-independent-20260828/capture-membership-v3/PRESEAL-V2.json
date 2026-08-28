@@ -1,0 +1,785 @@
+{
+  "schema": "c18-author-source-preseal-v3-correction-2",
+  "classification": "DATA/SYNTHETIC AUTHOR, NOT independent acceptance",
+  "priorSource": "d8cbb7d76459e14d20f57e19f7c01ce04fa08702",
+  "priorEvidence": "d3817018efd58d7a6e319192ef388aff7c9cc2cd",
+  "priorVerifier": "d50aa32af3d5c7398252d2eed6f4cca530bd2c2b",
+  "candidate": "58be2d6c5706f3e90f01d48e695ecfd9daa52669",
+  "productEvidence": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+  "priorExecutionSealSha256": "c05afd4ca977cc32e81d0ea4cff9311b44e6475a72c54ebf7bcdba7f47a2b116",
+  "entries": [
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/CONTROLS.json",
+      "bytes": 189662,
+      "mode": 420,
+      "sha256": "a0978555b6db9e008b64d8f10d86c2c422fe665670c3aa7f4deaf1f186929ea3"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/FUTURE-COMPOSITION.json",
+      "bytes": 1695,
+      "mode": 420,
+      "sha256": "bf0d9f891628abcf9e0a3e87e9dd43f3d32698632e87d6a54f0eff60e3ad450e"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/FUTURE-EXECUTION-SEAL.json",
+      "bytes": 71177,
+      "mode": 420,
+      "sha256": "ec2f19e1825970b662d60a99f2128158ab7ab494b4161ce2a4b0f121f4dcc8e5"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/RECIPE.md",
+      "bytes": 6989,
+      "mode": 420,
+      "sha256": "728e6452b3c276ab1ba6a061a9f4b0abc620989bf0d88283445099143dc09093"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/author-run.mjs",
+      "bytes": 6537,
+      "mode": 420,
+      "sha256": "c1a0a72958c3bf0cd092ceaa34a58af7bfb699d0f729ce80b8f0f897fc8c9755"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/capture-io.mjs",
+      "bytes": 11557,
+      "mode": 420,
+      "sha256": "5dd92eb174774fd2d847e8ee514bb1e3b084bf4631bae5b874233eafbb745fbb"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/compose-future.mjs",
+      "bytes": 1586,
+      "mode": 420,
+      "sha256": "14451cc91e2c64ddcc84bf68a65b69a7873a33532530c305552251613aae9906"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/controller-admission.mjs",
+      "bytes": 349,
+      "mode": 420,
+      "sha256": "c2918349890e88d869fe5b88ecfffa183909b9ce2a6eb02c3b9068d7a6ef8773"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/controller.mjs",
+      "bytes": 561,
+      "mode": 420,
+      "sha256": "4e6df441ed659a776f28b5a539b75c9c8191654968b1658c0c02db99ab4476b1"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/freeze.mjs",
+      "bytes": 6939,
+      "mode": 420,
+      "sha256": "d51fd9dd22db0efbaf5f537b26e593d9219ee40590e2f1b17119ef4a4af6413a"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifest-bindings.mjs",
+      "bytes": 16630,
+      "mode": 420,
+      "sha256": "1c3a339c76a0b3ab73abfbed0523022c658bb94c832af85183e73d15c45901f4"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/absolute-alias.json",
+      "bytes": 1138,
+      "mode": 420,
+      "sha256": "b7a1c344f623bd7536c3cbcd401f1b7924442d74dccf8c53cef353eedd58f6a3"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/c18-original.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/cross-realm.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/descriptor-extra.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "a948aaade14da88173fa5280418f274d0bbf8c7108e750924cfff3727b74e1f8"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/descriptor-hash.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "33aadc59b8f528cec9c79e405272d38920741361aa7bc8c9a2bbc7653751a38e"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/descriptor-size.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "344491980b3ad23702727564ad7225a3e4e6961f68553cf12f37335c5850f070"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/dot-alias.json",
+      "bytes": 1139,
+      "mode": 420,
+      "sha256": "90859c8d2b08b319f165052884b36026ae5f8141229fc4c36f0776df30b67ef0"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/dotdot-alias.json",
+      "bytes": 1140,
+      "mode": 420,
+      "sha256": "1fb60c080914bb074c504de682e2f95557a26d1083555cf41c3f50e0e4fad20d"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/empty.json",
+      "bytes": 240,
+      "mode": 420,
+      "sha256": "8f3b2dc729b4a0956bfcf85a3334462de92d24168eb60e7967027619ef871d6f"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/file-directory.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/file-hash.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/file-mode.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/file-symlink.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/future-inventory.json",
+      "bytes": 40500,
+      "mode": 420,
+      "sha256": "0751a23111c717c37f48002a334e67a4f9339cac249f020749c1bd45f608f8a5"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/joined-namespace.json",
+      "bytes": 1325,
+      "mode": 420,
+      "sha256": "ce648a70c5daeea146ab37bb7642fc6fe15af91273224fa274b5be907af6e0b3"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/manifest-extra.json",
+      "bytes": 1150,
+      "mode": 420,
+      "sha256": "80b2212656ab083022fc215571cb1a6153fb7e90c2e35148a49df46db8d3440b"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/manifest-file-duplicate.json",
+      "bytes": 1289,
+      "mode": 420,
+      "sha256": "8510b843fe94e7788d6d5d03457b38680e9a3c91e45b8a2a7fe290f331d09fd1"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/manifest-file-hash.json",
+      "bytes": 1076,
+      "mode": 420,
+      "sha256": "7b92720837876544ee47909a6b180d0feb2cf279a9c028f2a5f3a62c39ab0780"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/manifest-file-order.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "7fd753c76e614334617524a7313f2012faa0bd960232893aa54d1022e1e1c70e"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/manifest-file-type.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "df79a3b42e42b60d1ccf783a83adcf7d7195616d827807d72101efd6480f8b9d"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/manifest-kind.json",
+      "bytes": 1138,
+      "mode": 420,
+      "sha256": "de744da7497e922a339cf3dc32aa5aeca8550b174024c53215aa4a6397fc0bb4"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/manifest-mode.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "65a36e3ea6736229715e863ec3c1806871c2f517de4f535f6cba9a9bbe8ef944"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/manifest-version-type.json",
+      "bytes": 1139,
+      "mode": 420,
+      "sha256": "1c8167f3c6123fec260e79a195bee6ec762f73c6d596bce360dc6c259629757d"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/missing.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/null-prototype.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/object-array-extra.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/object-array-getter.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/object-boxed.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/object-getter.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/object-hole.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/object-inherited.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/object-nan.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/object-nonenumerable.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/object-self-asserted-hash.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/object-symbol.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/object-wrong-order.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/other-receipt-invalid.json",
+      "bytes": 1325,
+      "mode": 420,
+      "sha256": "f8c7fc7bb137d20b54c07bf2c28e96635b76246e70c83af4fa84a17e1eb0b0e7"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/positive.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/receipt-bytes-type.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "7debc49dfe997c2f5a32ebab3c72711add27b3565fb5dff5ea16abd966743aa5"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/receipt-bytes.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "d5264bb952221cba163a59f89713260cb1a7c8476b03bb8ae08dd7c10114cef2"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/receipt-count.json",
+      "bytes": 1109,
+      "mode": 420,
+      "sha256": "6241c5a37185b727239e347e71362a6ff8775f634000ceee70bcd0ea81e97f75"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/receipt-extra.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "a74bf483a952a5a9a8b6bc625d8946e844a3366028a105f0b5e1104af6ae7322"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/receipt-hash.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "fa3adef8fab4e6f5f130a082c7f5d8832bb088d76c3199fbdc8b0cb5bad24553"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/receipt-outcome.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "b0d0ca9ae597c4b320696fd3448f22cda20c1e1353a36b0ac97492026c9d1855"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/receipt-reference-order.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "a7f4c97217fa0fcf29d8ebdb49899ebf80b55545a2a4f6cef5dc8f7313763cbd"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/receipt-reference-unknown.json",
+      "bytes": 1126,
+      "mode": 420,
+      "sha256": "f6b62ce93ad5e8b3348e1faf698142cb3af4c5eba2e55d7c9388f57ad572734d"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/record-base64-canonical.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "fc8c55b36a5fd097be062072fdad6b49b8c3a1c01f03d0df2410071d6b05ab33"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/record-base64-type.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "2e81696a4aba0e3e934a40fd706b97166b70036730e43eefb664a02410f1cd19"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/record-channel.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "5f3afc7eec7bacef2d89f94c291cd3080d6c6359ccf13e5039e71a40d57cf540"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/record-extra.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "d52e3224818ec6d7c439b17a82558e6ee7b5a4af851181d3c8f29abb5af50d47"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/record-hash-type.json",
+      "bytes": 1136,
+      "mode": 420,
+      "sha256": "5246b387a5111cdc6f0997043bc93d5b6164a7c3c9969ed747cf3bfe170e4b36"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/record-hash.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "f20b7029e10accabea5698b376179d9529fae8c7f0106aeb0acdc6fcbd255c04"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/record-length.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "b376f3117481e41969f2800a9238fddd98022df619490a1df61a01d016b380d6"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/record-missing.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "647d0364dbea7bc7cee840324ef2ac4a953552160a76e810f726f2b2ca49b04e"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/record-offset-fraction.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "b3ba7804333a61792e52f868804a63011fedea078dbcf96359bb0e5a4d1744bc"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/record-offset-negative.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "ae719909426ad11f0361c9ccad4134be8010797bddeae36025012b7b6e121c1e"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/record-offset-type.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "d08ae2d0178454a186f453566afe73dcf4768b6d02ce3ec0ec1895ca6f9a73bf"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/record-total-truncated.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "6cf573d885f0550670794006789522f3635256cb8fcfed09d561c4bc961cd455"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/record-total-type.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "48f84de0068056b694fdd65d0f7a13a508454e224b010d4530d32cc0e3a839ad"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/referenced-duplicate.json",
+      "bytes": 1164,
+      "mode": 420,
+      "sha256": "3712640c6a5400c83b6fa4fbfd037ad6a406d38eae60851758115dfb71bdb221"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/slash-alias.json",
+      "bytes": 1142,
+      "mode": 420,
+      "sha256": "4abdcd7dcc1569a556804526c27204e67729e6ea9aff0942660d9921d054fbe6"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/stderr.json",
+      "bytes": 1316,
+      "mode": 420,
+      "sha256": "b1498e7079d947a8e74a40ca45f4a326c555580c7e02c84f5b687dfc87274672"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/truncated.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/unicode-alias.json",
+      "bytes": 1138,
+      "mode": 420,
+      "sha256": "513117b3d62e3926986f570fbfc89b7fbec424ef5a1a6c9111d600fc5d121f06"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/unknown-extra.json",
+      "bytes": 1137,
+      "mode": 420,
+      "sha256": "66bbadd6e0d3753e62323fb1dfab9a67103c3c5b41610f63b8dceb3205ba0509"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/manifests/unreferenced-manifest-record.json",
+      "bytes": 1292,
+      "mode": 420,
+      "sha256": "3b8316f0d399915738a2ee3e6b2b42793be8129c06bd039e30f1b7c2df988549"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/prepare.mjs",
+      "bytes": 11704,
+      "mode": 420,
+      "sha256": "cbfacec316e675c22e3cf35f050e13a890b99448e72eee1f443cab197eed1dfb"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/run-controls.mjs",
+      "bytes": 5655,
+      "mode": 420,
+      "sha256": "7a6d6425245dbebeac05a8c85fc2e70e3640a2a1e0d3f55347871a45c9d9ef31"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2/controller.mjs",
+      "bytes": 32173,
+      "mode": 420,
+      "sha256": "0abda8e112db27b69e514eeb71d5e0ab4ed8d62406330a6c5051b4c4fe107f15"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2/capture-io.mjs",
+      "bytes": 4583,
+      "mode": 420,
+      "sha256": "204734850d99fc9319b86ee4066785253b2087c06e41fb8fb12fa1399f826d72"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs",
+      "bytes": 6056,
+      "mode": 420,
+      "sha256": "77d326d80d16be07150722cc589030f09324796c747acaa9f3f83dc08cd04f94"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2/supervisor.mjs",
+      "bytes": 4880,
+      "mode": 420,
+      "sha256": "8f7baa5b0c7c79d28bee15534a08b71caf205c926002902ce042e1972f597198"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2/deadline.mjs",
+      "bytes": 1413,
+      "mode": 420,
+      "sha256": "b2538ecd3b45ea7ea9e4114ca29fae73d7e39aad585ce53259da7968922eb55e"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2/EXECUTION-SEAL.json",
+      "bytes": 70098,
+      "mode": 420,
+      "sha256": "c05afd4ca977cc32e81d0ea4cff9311b44e6475a72c54ebf7bcdba7f47a2b116"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2/METADATA.json",
+      "bytes": 166612,
+      "mode": 420,
+      "sha256": "42e769c9dd36f2180fba990d59a09971ecedb980addb2073ad52c9441a2d0e59"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2/EXPECTED.json",
+      "bytes": 874,
+      "mode": 420,
+      "sha256": "6269ad64464f499d419079c5bed10d08a007826f2fed95d74b42ea10df464163"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2/bootstrap.mjs",
+      "bytes": 1734,
+      "mode": 420,
+      "sha256": "848d730fdc7d20fa5e0cc5c6e2c460255fda79e69266e129a347b14707aeab55"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2/loader.mjs",
+      "bytes": 3266,
+      "mode": 420,
+      "sha256": "377495e5490a5803eac46617b7c3c41846cd454b296c340eb6a055fa8d7fe9d4"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2/worker.mjs",
+      "bytes": 25968,
+      "mode": 420,
+      "sha256": "6563b3319cb495dea5c0b5c0499d166eaf5bf63806fd9e12487ed42b6f046296"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2/guard-control.mjs",
+      "bytes": 1145,
+      "mode": 420,
+      "sha256": "e507f769ec8c19445062587f11ddfe151147a62d45f9ce845540bc69df8d5ee2"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2-review/CONTROLS.json",
+      "bytes": 678348,
+      "mode": 420,
+      "sha256": "e8601ad08a14bcfaf372729882ee0b0ac1b37b46512d0469a31b1b84cb1042b8"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2-review/run-review-v2.mjs",
+      "bytes": 18017,
+      "mode": 420,
+      "sha256": "c3beca2b42cba465395f61c89ac22e383ff6ca4e9ab30d4da979de0de9fc7600"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2-review/review-reference.mjs",
+      "bytes": 2846,
+      "mode": 420,
+      "sha256": "b3c1744700a8397247ffb1ead9d3c0a1fc564540c5ac2d1db6f0a5069d356680"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2-review/REPORT.md",
+      "bytes": 10135,
+      "mode": 420,
+      "sha256": "676ba95a6be8c4b0e0243271df868927bb82ce9c2d82c950e1e64241747f61c6"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/path-transport-v2-review/SOURCE-REVIEW.md",
+      "bytes": 8809,
+      "mode": 420,
+      "sha256": "b8572c02d8bb3dcd7e54da8a710f08fd749e452390db35e387cc7cdc7bce5b91"
+    },
+    {
+      "path": "../../.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/PRESEAL.json",
+      "bytes": 30006,
+      "mode": 420,
+      "sha256": "d7c744499fa6b3124aed52d680a17f469e66e8ced04356d521a6cfe26dac97a0"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/runs/author-01/receipt.json",
+      "bytes": 3323,
+      "mode": 420,
+      "sha256": "f8b2469aa7fbb12d375cd3d79a90b6152f543fed8ac6d70775076d584ebc6e55"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/runs/author-01/stdout.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/runs/author-01/stderr.raw",
+      "bytes": 873,
+      "mode": 420,
+      "sha256": "87dfd8cca12a31d1bf98bf1dfbdd43e18aeb65416fb07e799558c878a7a3ceb6"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/run-controls-v2.mjs",
+      "bytes": 5840,
+      "mode": 420,
+      "sha256": "17cb23220d53dccfb4f1378e7916e2062e4489380cafe467b2639234a3434a37"
+    },
+    {
+      "path": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/author-run-v2.mjs",
+      "bytes": 7173,
+      "mode": 420,
+      "sha256": "411b5463e8d4152bc31d3e9b9a7b454a5d697b97a786c9477e8cf13d564f720a"
+    }
+  ],
+  "rootInputNames": [
+    "CONTROLS.json",
+    "FUTURE-COMPOSITION.json",
+    "FUTURE-EXECUTION-SEAL.json",
+    "RECIPE.md",
+    "author-run.mjs",
+    "capture-io.mjs",
+    "compose-future.mjs",
+    "controller-admission.mjs",
+    "controller.mjs",
+    "freeze.mjs",
+    "manifest-bindings.mjs",
+    "manifests",
+    "prepare.mjs",
+    "run-controls.mjs",
+    "PRESEAL.json",
+    "PRESEAL-V2.json",
+    "author-run-v2.mjs",
+    "run-controls-v2.mjs"
+  ],
+  "manifestNames": [
+    "absolute-alias.json",
+    "c18-original.json",
+    "cross-realm.json",
+    "descriptor-extra.json",
+    "descriptor-hash.json",
+    "descriptor-size.json",
+    "dot-alias.json",
+    "dotdot-alias.json",
+    "empty.json",
+    "file-directory.json",
+    "file-hash.json",
+    "file-mode.json",
+    "file-symlink.json",
+    "future-inventory.json",
+    "joined-namespace.json",
+    "manifest-extra.json",
+    "manifest-file-duplicate.json",
+    "manifest-file-hash.json",
+    "manifest-file-order.json",
+    "manifest-file-type.json",
+    "manifest-kind.json",
+    "manifest-mode.json",
+    "manifest-version-type.json",
+    "missing.json",
+    "null-prototype.json",
+    "object-array-extra.json",
+    "object-array-getter.json",
+    "object-boxed.json",
+    "object-getter.json",
+    "object-hole.json",
+    "object-inherited.json",
+    "object-nan.json",
+    "object-nonenumerable.json",
+    "object-self-asserted-hash.json",
+    "object-symbol.json",
+    "object-wrong-order.json",
+    "other-receipt-invalid.json",
+    "positive.json",
+    "receipt-bytes-type.json",
+    "receipt-bytes.json",
+    "receipt-count.json",
+    "receipt-extra.json",
+    "receipt-hash.json",
+    "receipt-outcome.json",
+    "receipt-reference-order.json",
+    "receipt-reference-unknown.json",
+    "record-base64-canonical.json",
+    "record-base64-type.json",
+    "record-channel.json",
+    "record-extra.json",
+    "record-hash-type.json",
+    "record-hash.json",
+    "record-length.json",
+    "record-missing.json",
+    "record-offset-fraction.json",
+    "record-offset-negative.json",
+    "record-offset-type.json",
+    "record-total-truncated.json",
+    "record-total-type.json",
+    "referenced-duplicate.json",
+    "slash-alias.json",
+    "stderr.json",
+    "truncated.json",
+    "unicode-alias.json",
+    "unknown-extra.json",
+    "unreferenced-manifest-record.json"
+  ],
+  "expected": {
+    "helper": 66,
+    "composed": 66
+  },
+  "limits": {
+    "totalMsIncludingCleanup": 300000,
+    "maximumChildren": 8,
+    "plannedChildren": 1,
+    "peakIncludingController": 2,
+    "captures": 16777216,
+    "work": 67108864,
+    "retryPolicy": "One explicitly presealed fixture-preparation correction under the original window, preserving author-01; no further attempt, no permission/cap/expectation changes"
+  },
+  "child": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=128",
+      "--permission",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/path-transport-v2/path-bytes.mjs",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/package.json",
+      "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/runs/author-01/work",
+      "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/runs/author-01/work/*",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/run-controls-v2.mjs"
+    ],
+    "env": {
+      "PATH": "/usr/bin:/bin",
+      "HOME": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/runs/author-01/work",
+      "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/capture-membership-v3/runs/author-01/work",
+      "NO_COLOR": "1"
+    },
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "timeoutMs": 60000,
+    "maxBytes": 1048576,
+    "grandchildren": 0
+  },
+  "recipe": {
+    "budgetOrigin": "first author-run.mjs control invocation, performance.now, includes pre/post guard and cleanup",
+    "dispatch": "Same single DATA child and unchanged permission argv except versioned runner path. Parent precreates only exact in-scope symlink fixture; child validates it, never calls symlink API.",
+    "input": "CONTROLS.json exact original C18 compact JSON bytes and frozen manifests; all manifests source SHA-bound by manifest-bindings.mjs",
+    "expected": "66 helper + 66 composed admission observations, each frozen accepted/rejected; original C18 rejected then same namespace restored and joins 126 bytes",
+    "output": "Unique runs/author-02 raw streams/receipt; original author-01 streams/receipt authenticated and immutable. Reacquire absent author-01/work only because source-bound manifest directories remain exact; no old work remains.",
+    "cleanup": "only unique work subtree after child close and process-group absence; lstat, unlink symlinks without following; rmdir descendants/root; source+manifest guards before/after",
+    "noReplays": "original197P/1F/1unsupported/7unrun,98/50002,25DATA/68NOTRUN,274selected/882planned,32+80 unchanged"
+  },
+  "future": {
+    "executionSealSha256": "ec2f19e1825970b662d60a99f2128158ab7ab494b4161ce2a4b0f121f4dcc8e5",
+    "generatedProductHashes": null,
+    "policy": "unchanged 6600000ms,70 jobs; HOLD pending different reviewer and fresh root GO; no staging/dispatch now"
+  },
+  "correction": {
+    "anchoredStart": "2026-08-28T18:48:37.102Z",
+    "deadline": "2026-08-28T18:53:37.102Z",
+    "originalSourceCommit": "33e2b4c7fb14c2ab5ad23be50ac07bcc4bfed848",
+    "originalPresealSha256": "d7c744499fa6b3124aed52d680a17f469e66e8ced04356d521a6cfe26dac97a0",
+    "authority": "User explicitly permits necessary corrections inside original five-minute window; ROOT-COORDINATION confirms no reset/no permission broadening. Supersedes only initial author no-retry preparation recipe, preserving it and its failure.",
+    "unchanged": [
+      "65 cases plus restore",
+      "all expected outcomes",
+      "all manifests and capture-io/controller-admission bodies",
+      "all child permission grants",
+      "future composition/seal"
+    ],
+    "firstAttempt": "Setup failure at symlink API. Zero durable per-control observations; no partial passes claimed.",
+    "remaining": "One new 60s-timeout child; inclusive original-window clock with 90s dispatch reserve, same supervisor cleanup. No new authorization."
+  }
+}

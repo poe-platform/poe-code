@@ -1,0 +1,116 @@
+{
+  "schema": "m1b-source-bound-failure-classification-v1",
+  "sourceCapture": {
+    "path": "raw/000005-source-objects-stdout.bin",
+    "sha256": "61250a287c3808cd7b51e891c1c057103f775e49650ee4d0cb74427de0a559f9"
+  },
+  "sources": [
+    {
+      "input": {
+        "path": "src/commands/git/queries.ts",
+        "commit": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+        "mode": "100644",
+        "blob": "81d78f8a340447922d32ee709a5e6cc3acd831a3",
+        "bytes": 13155,
+        "sha256": "28b7b89203ddc3d7442647863cfeaf008664d2bf2b4f213522743faaa7230c0e"
+      },
+      "excerpts": [
+        {
+          "line": 195,
+          "text": "    demand(colon > 0 && !parsed.format, \"M1A show requires REV:path or --no-patch --format\");"
+        }
+      ]
+    },
+    {
+      "input": {
+        "path": "src/commands/git/README.md",
+        "commit": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+        "mode": "100644",
+        "blob": "c3b2c7e92320cd00e648e385d4b76018a4b34ab0",
+        "bytes": 5986,
+        "sha256": "6aa3b8d01ca8fa72555b4ce7d4648fa4a6e38656449838fdf80ca1a2a655f6cb"
+      },
+      "excerpts": [
+        {
+          "line": 23,
+          "text": "  -n/--max-count=0..2000; show --no-patch with the two explicit formats."
+        },
+        {
+          "line": 24,
+          "text": "- show REV:path emits verified raw blob bytes, including binary content."
+        }
+      ]
+    },
+    {
+      "input": {
+        "path": "src/commands/git/pack.ts",
+        "commit": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+        "mode": "100644",
+        "blob": "ed67d2e55de0286dbc8c1e8c96a400ef98397366",
+        "bytes": 12685,
+        "sha256": "42c9d44c1648a139c3c6414228b050923c2280194eb818428676b3cce88627ce"
+      },
+      "excerpts": []
+    },
+    {
+      "input": {
+        "path": "src/commands/git/codec.ts",
+        "commit": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+        "mode": "100644",
+        "blob": "0c320318979fef4b9c9764bda4010b28b70eb986",
+        "bytes": 7913,
+        "sha256": "365fa7576691126c4baaa8b8d8c5ddf0fc9a02cf4a659d2839cf3baaffa8b8e2"
+      },
+      "excerpts": [
+        {
+          "line": 12,
+          "text": "  let written: Promise<void> | undefined;"
+        },
+        {
+          "line": 54,
+          "text": "    written = write();"
+        },
+        {
+          "line": 55,
+          "text": "    void written.catch(() => {});"
+        },
+        {
+          "line": 65,
+          "text": "    await written;"
+        },
+        {
+          "line": 77,
+          "text": "    await written?.catch(() => {});"
+        },
+        {
+          "line": 103,
+          "text": "  let written: Promise<void> | undefined;"
+        },
+        {
+          "line": 109,
+          "text": "  const writer = async (): Promise<void> => {"
+        },
+        {
+          "line": 127,
+          "text": "    } catch (error) { codec.destroy(error instanceof Error ? error : new Error(\"Git codec writer stopped\")); throw error; }"
+        },
+        {
+          "line": 130,
+          "text": "    written = writer();"
+        },
+        {
+          "line": 131,
+          "text": "    void written.catch(() => {});"
+        },
+        {
+          "line": 160,
+          "text": "    await written;"
+        },
+        {
+          "line": 174,
+          "text": "    await written?.catch(() => {});"
+        }
+      ]
+    }
+  ]
+}

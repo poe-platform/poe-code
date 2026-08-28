@@ -62,6 +62,7 @@ export async function regular(filename, expected) {
   const before = await fs.lstat(filename);
   demand(before.isFile() && !before.isSymbolicLink(), `REGULAR:${filename}`);
   demand(before.size <= 134217728, 'FILE_SIZE');
+  if (expected) demand(before.size === expected.bytes && (before.mode & 0o777) === expected.mode, `FILE_PREALLOCATION_BINDING:${filename}`);
   const bytes = await fs.readFile(filename);
   const after = await fs.lstat(filename);
   demand(before.dev === after.dev && before.ino === after.ino && before.size === after.size && before.mtimeMs === after.mtimeMs && before.mode === after.mode, 'FILE_CHANGED_DURING_READ');

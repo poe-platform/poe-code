@@ -11,7 +11,7 @@ export function validateCases(manifests, recipe) {
     demand(manifest.schema === 'm1b-cases-v1' && Array.isArray(manifest.cases), 'CASE_MANIFEST');
     for (const source of manifest.cases) {
       const item = exact(source, fields);
-      demand(typeof item.id === 'string' && /^[A-Za-z0-9_.-]{1,100}$/.test(item.id) && !ids.has(item.id), 'CASE_ID');
+      demand(typeof item.id === 'string' && /^[A-Za-z0-9_.-]{1,100}$/.test(item.id) && !['.', '..'].includes(item.id) && !ids.has(item.id), 'CASE_ID');
       ids.add(item.id);
       relative(item.entry);
       demand(recipe.harness.files.some(row => row.path === item.entry && item.entry.endsWith('.mjs')), 'CASE_ENTRY_CLOSURE');
@@ -27,6 +27,9 @@ export function validateCases(manifests, recipe) {
   const batches = recipe.batches;
   const enrolled = new Set();
   for (const batch of batches) {
+    exact(batch, ['id', 'layout', 'phase', 'ids', 'timeoutMs', 'streamBytes', 'mutant']);
+    demand(typeof batch.id === 'string' && /^[A-Za-z0-9_-]{1,100}$/.test(batch.id) && ['stock', 'mechanical', 'types', 'loaded'].includes(batch.phase), 'BATCH_ID_PHASE');
+    demand(Number.isSafeInteger(batch.streamBytes) && batch.streamBytes > 0 && batch.streamBytes <= 524288, 'BATCH_STREAM_CAP');
     demand(['S', 'M'].includes(batch.layout) && batch.ids.length > 0 && batch.ids.length <= 16, 'BATCH_SHAPE');
     let cumulative = 0;
     for (const id of batch.ids) {
@@ -36,11 +39,11 @@ export function validateCases(manifests, recipe) {
       enrolled.add(`${batch.layout}:${id}`);
       cumulative += item.timeoutMs;
     }
-    demand(batch.timeoutMs > 0 && batch.timeoutMs <= cumulative && batch.timeoutMs <= 480000, 'BATCH_DEADLINE');
+    demand(Number.isSafeInteger(batch.timeoutMs) && batch.timeoutMs > 0 && batch.timeoutMs <= cumulative && batch.timeoutMs <= 480000, 'BATCH_DEADLINE');
   }
   for (const item of cases.filter(row => !['SOURCE_ONLY', 'UNRUN'].includes(row.role))) for (const layout of item.layouts) demand(enrolled.has(`${layout}:${item.id}`), 'CASE_UNSCHEDULED');
   const compilerCalls = cases.filter(row => row.role === 'TYPE').reduce((sum, row) => sum + row.layouts.length, 0);
-  demand(compilerCalls === 10 && 3 + batches.length + compilerCalls <= 168, 'ALL_NESTED_STARTS');
+  demand(compilerCalls === 10 && 4 + batches.length + compilerCalls <= 168, 'ALL_NESTED_STARTS');
   return { cases, plannedChildStarts: 3 + batches.length + compilerCalls, compilerCalls };
 }
 export async function runBatch(state, batch, items, candidateRoot, compile) {
@@ -54,8 +57,11 @@ export async function runBatch(state, batch, items, candidateRoot, compile) {
   const binding = { builtins: recipe.loader.builtins, files: [...candidateBefore.filter(row => row.kind === 'file' && row.path.endsWith('.js')).map(row => ({ ...row, absolute: path.join(candidateRoot, row.path) })), ...harnessBefore.filter(row => row.kind === 'file' && row.path.endsWith('.mjs')).map(row => ({ ...row, absolute: path.join(harnessRoot, row.path) }))] };
   const jobFile = path.join(root, 'control', `${batch.id}-job.json`);
   const bindingFile = path.join(root, 'control', `${batch.id}-load.json`);
+  let controlBytes = 0;
   const writeControl = async (filename, value) => {
     const bytes = Buffer.from(JSON.stringify(value));
+    controlBytes += bytes.length;
+    demand(controlBytes <= 131072, 'JOB_AND_LOAD_CONTROL_BYTES');
     budget.reserveCapture(bytes.length);
     await writeExclusive(filename, bytes);
     return regular(filename);
@@ -69,20 +75,26 @@ export async function runBatch(state, batch, items, candidateRoot, compile) {
   let captures = 0;
   let capturedBytes = 0;
   let compiled = false;
+  let caseStream;
+  let framingBytes = 0;
   const deadline = Math.min(budget.deadline(recipe.phaseEndsMs[batch.phase]), budget.now() + batch.timeoutMs);
-  const child = await supervise(budget, { id: batch.id, executable: state.node, argv: ['--experimental-loader', path.join(harnessRoot, 'runner/loader.mjs'), path.join(harnessRoot, 'runner/worker.mjs')], cwd: caseBase, env: { ...state.env, M1B_JOB: jobFile, M1B_LOAD_BINDING: bindingFile }, streamBytes: 4194304, deadline }, async (message, record, clocks) => {
+  const child = await supervise(budget, { id: batch.id, executable: state.node, argv: ['--experimental-loader', path.join(harnessRoot, 'runner/loader.mjs'), path.join(harnessRoot, 'runner/worker.mjs')], cwd: caseBase, env: { ...state.env, M1B_JOB: jobFile, M1B_LOAD_BINDING: bindingFile }, streamBytes: batch.streamBytes, deadline }, async (message, record, clocks) => {
     const frame = exact(message, ['sequence', 'type', 'value']);
     demand(frame.sequence === ++lastSequence && !ended, 'RPC_SEQUENCE');
     let value = null;
     if (frame.type === 'CASE_BEGIN') {
       const body = exact(frame.value, ['caseId']);
       demand(active === null && items[completed.length]?.id === body.caseId, 'CASE_SEQUENCE');
+      await guard(candidateRoot, candidateBefore);
+      await guard(harnessRoot, harnessBefore);
       active = items[completed.length];
       captures = 0;
       capturedBytes = 0;
       compiled = false;
+      framingBytes = 0;
+      caseStream = await budget.stream(`${batch.id}-case-${completed.length}.frames.bin`);
       const deadlineOffsetMs = clocks.beginCase(active.timeoutMs);
-      await budget.record(`${batch.id}-case-begin`, { caseId: active.id, parentElapsedMs: budget.elapsed(), deadlineOffsetMs });
+      await budget.record(`${batch.id}-case-begin`, { caseId: active.id, parentElapsedMs: budget.elapsed(), deadlineOffsetMs, capturePath: caseStream.path });
     } else if (frame.type === 'CAPTURE') {
       const body = exact(frame.value, ['caseId', 'label', 'encoding', 'data']);
       demand(active?.id === body.caseId && typeof body.label === 'string' && /^[A-Za-z0-9_.-]{1,80}$/.test(body.label), 'CAPTURE_CASE');
@@ -95,8 +107,17 @@ export async function runBatch(state, batch, items, candidateRoot, compile) {
       } else bytes = Buffer.from(JSON.stringify(ownData(body.data)));
       capturedBytes += bytes.length;
       demand(capturedBytes <= active.captureBytes, 'CAPTURE_CASE_LIMIT');
-      const raw = await budget.raw(`${batch.id}-case-${completed.length}-capture.bin`, bytes);
-      await budget.record(`${batch.id}-capture-reference`, { caseId: active.id, label: body.label, encoding: body.encoding, raw });
+      const headerText = JSON.stringify({ label: body.label, encoding: body.encoding, bytes: bytes.length });
+      demand(Buffer.byteLength(headerText) <= 256 && captures < 576, 'CAPTURE_FRAME_HEADER');
+      framingBytes += Buffer.byteLength(headerText) + 4;
+      demand(framingBytes <= 65536, 'CASE_FRAMING_BYTES');
+      const header = Buffer.from(headerText);
+      const prefix = Buffer.alloc(4);
+      prefix.writeUInt32BE(header.length);
+      await caseStream.append(prefix);
+      await caseStream.append(header);
+      await caseStream.append(bytes);
+      await caseStream.flush();
       captures++;
     } else if (frame.type === 'COMPILE') {
       const body = exact(frame.value, ['caseId', 'fixtureId']);
@@ -105,18 +126,25 @@ export async function runBatch(state, batch, items, candidateRoot, compile) {
       value = await compile(body.fixtureId, candidateRoot, active, clocks.deadline());
       captures++;
     } else if (frame.type === 'CASE_END') {
-      const body = exact(frame.value, ['caseId', 'status', 'captured', 'rawBytes', 'assertions', 'cleanupFailed', 'escaped', 'thrownType']);
+      const body = exact(frame.value, ['caseId', 'status', 'captured', 'rawBytes', 'assertions', 'cleanupFailed', 'escaped', 'thrownType', 'aborted']);
       demand(active?.id === body.caseId && ['PASS', 'FAIL', 'INCOMPLETE'].includes(body.status), 'CASE_RECEIPT');
-      demand(Array.isArray(body.assertions) && body.assertions.length <= 4096 && typeof body.cleanupFailed === 'boolean' && typeof body.escaped === 'boolean', 'ASSERTION_RECEIPT');
+      demand(Array.isArray(body.assertions) && body.assertions.length <= 4096 && typeof body.cleanupFailed === 'boolean' && typeof body.escaped === 'boolean' && typeof body.aborted === 'boolean', 'ASSERTION_RECEIPT');
       for (const assertion of body.assertions) {
         const row = exact(assertion, ['label', 'passed', 'details']);
         demand(typeof row.label === 'string' && typeof row.passed === 'boolean', 'ASSERTION_TYPE');
       }
-      const actualStatus = body.cleanupFailed || body.escaped || [...body.assertions].some(row => !row.passed) ? 'FAIL' : body.assertions.length === 0 ? 'INCOMPLETE' : 'PASS';
+      const actualStatus = body.cleanupFailed || body.escaped || body.aborted || [...body.assertions].some(row => !row.passed) ? 'FAIL' : body.assertions.length === 0 ? 'INCOMPLETE' : 'PASS';
       demand(actualStatus === body.status && (body.assertions.length === 0 || captures > 0), 'ASSERTION_STATUS');
-      await budget.record(`${batch.id}-case-end`, { ...body, parentElapsedMs: budget.elapsed(), captures });
+      const captureReference = await caseStream.close();
+      caseStream = undefined;
+      const receipt = { ...body, parentElapsedMs: budget.elapsed(), captures, framingBytes, captureReference };
+      demand(Buffer.byteLength(JSON.stringify(receipt)) <= 65536, 'CASE_METADATA_BOUND');
+      await budget.record(`${batch.id}-case-end`, receipt);
       if (body.status !== 'PASS') budget.fail(`${batch.id}:${body.caseId}:${body.status}`);
       if (body.cleanupFailed) budget.fail(`${batch.id}:${body.caseId}:UNKNOWN_COOPERATIVE_CLEANUP`, true);
+      if (body.escaped) budget.fail(`${batch.id}:${body.caseId}:ESCAPING_SETUP_OR_ACTOR_FAILURE`, true);
+      await guard(candidateRoot, candidateBefore);
+      await guard(harnessRoot, harnessBefore);
       completed.push({ id: body.caseId, status: body.status });
       active = null;
       clocks.endCase();
@@ -132,7 +160,7 @@ export async function runBatch(state, batch, items, candidateRoot, compile) {
   await guard(harnessRoot, harnessBefore);
   await regular(jobFile, jobHash);
   await regular(bindingFile, bindingHash);
-  if (!ended || active !== null) budget.fail(`${batch.id}:MISSING_TERMINAL_RECEIPT`);
+  if (!ended || active !== null) budget.fail(`${batch.id}:MISSING_TERMINAL_RECEIPT`, true);
   const caseAfter = await inventory(caseBase, { maxBytes: workGrant });
   demand(caseAfter.filter(row => row.kind === 'file').reduce((sum, row) => sum + row.bytes, 0) <= workGrant, 'CASE_WORK_LIMIT');
   demand(child.closed && budget.active.size === 0 && budget.unsafe === null, 'RETIREMENT_BARRIER');

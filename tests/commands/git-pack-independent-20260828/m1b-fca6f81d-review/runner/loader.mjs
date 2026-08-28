@@ -1,19 +1,15 @@
 import fs from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
+import { enrolledUrl } from './load-policy.mjs';
 
 const binding = JSON.parse(await fs.readFile(process.env.M1B_LOAD_BINDING, 'utf8'));
 const files = new Map(binding.files.map(row => [row.absolute, row]));
 const builtins = new Set(binding.builtins);
 function demand(condition, label) { if (!condition) throw new Error(label); }
 export async function resolve(specifier, context, nextResolve) {
-  if (specifier.startsWith('node:')) {
-    demand(builtins.has(specifier), `BUILTIN_DENIED:${specifier}`);
-    return nextResolve(specifier, context);
-  }
-  demand(specifier.startsWith('file:') || specifier.startsWith('./') || specifier.startsWith('../') || specifier.startsWith('/'), `AMBIENT_IMPORT_DENIED:${specifier}`);
-  const url = specifier.startsWith('/') ? pathToFileURL(specifier).href : new URL(specifier, context.parentURL).href;
-  demand(!new URL(url).search && !new URL(url).hash && files.has(fileURLToPath(url)), 'LOAD_NOT_ENROLLED');
+  const url = enrolledUrl(specifier, context.parentURL, files, builtins);
+  if (url.startsWith('node:')) return nextResolve(specifier, context);
   return { url, shortCircuit: true };
 }
 export async function load(url, context, nextLoad) {

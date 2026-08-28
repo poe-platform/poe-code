@@ -1,0 +1,18 @@
+{
+  "schema": "m1b-root-route-schema-v1",
+  "role": "SCHEMA_ONLY_NOT_A_ROUTE_GO_TOKEN_OR_RESERVATION",
+  "orderedRequiredKeys": ["schema", "recipeSha256", "finalSealSha256", "sourceCommit", "derivedTree", "packageSha256", "componentReviews", "outputRoot", "originHrtimeNs", "action"],
+  "schemaValue": "m1b-root-route-v1",
+  "actionValue": "ONE_SCOPED_REVIEW",
+  "recipeSha256": "Root independently supplies exact committed RECIPE.json raw SHA256",
+  "finalSealSha256": "Root independently supplies exact committed FINAL-SEAL.json raw SHA256",
+  "sourceCommit": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+  "derivedTree": "23074ef0c443ca618c4f26204b5f3d2274b86895",
+  "packageSha256": "cc0e75c2d0d12f713f0458e608ddeae157cf3432b4e0b48277a329a98115aa1a",
+  "componentReviews": "One source-bound different-reviewer reference for each RECIPE.requiredReviews item: component,sourceSeal,commit,receiptSha256,disposition=PRELAUNCH_COMPONENT_REVIEW_COMPLETE. Root authenticates these referenced receipts before routing; regex format alone is not independent review.",
+  "outputRoot": "/private/tmp/git-m1b-fca-independent- followed by 8..80 alphanumeric/hyphen characters; MUST NOT already exist or belong to another review",
+  "originHrtimeNs": "Decimal string from root same-host process.hrtime.bigint() before the single launch; no renewal on resume. Excludes no later setup/cleanup/finalization time. An old/future origin is refused.",
+  "rootReceiptRawSha256": "Separately supplied CLI --expect-root; not inferred from the receipt itself",
+  "mode": "regular file, <=65536 bytes, exact real path",
+  "executionAtSchemaSeal": 0
+}

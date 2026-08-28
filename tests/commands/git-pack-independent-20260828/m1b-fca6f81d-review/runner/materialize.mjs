@@ -5,9 +5,9 @@ import { demand, under, regular, inventory, guard, writeExclusive } from './prim
 export async function materializeFiles(root, rows, read, budget) {
   await fs.mkdir(root, { recursive: true, mode: 0o700 });
   for (const row of rows) {
+    budget.reserveWork(row.bytes);
     const bytes = await read(row);
     demand(bytes.length === row.bytes, 'MATERIALIZE_BYTES');
-    budget.reserveWork(bytes.length);
     await writeExclusive(under(root, row.path), bytes, row.mode);
     await regular(under(root, row.path), row);
   }
@@ -16,8 +16,8 @@ export async function materializeFiles(root, rows, read, budget) {
 export async function admitTools(map, destination, budget) {
   for (const binary of map.binaries) {
     demand(await fs.realpath(binary.origin) === binary.realpath && binary.realpath === binary.origin, 'TOOL_SOURCE_REALPATH');
+    budget.reserveWork(binary.bytes);
     const row = await regular(binary.origin, binary);
-    budget.reserveWork(row.bytes);
     const target = under(destination, binary.destination);
     await writeExclusive(target, row.body, row.mode);
     await regular(target, binary);
@@ -37,8 +37,8 @@ export async function admitTools(map, destination, budget) {
         await fs.chmod(under(target, row.path), row.mode);
       }
       else {
+        budget.reserveWork(row.bytes);
         const source = await regular(under(tree.origin, row.path), row);
-        budget.reserveWork(source.bytes);
         await writeExclusive(under(target, row.path), source.body, row.mode);
       }
     }
@@ -64,4 +64,8 @@ export async function packageGuard(root, expected) {
   }
   demand(rows.filter(row => row.kind === 'directory').length === neededDirectories.size && rows.every(row => row.kind === 'file' || neededDirectories.has(row.path)), 'FULL_PACKAGE_ADDED_DIRECTORY');
   return rows;
+}
+export async function movedGuard(original, moved, expected) {
+  demand(await fs.lstat(original).then(() => false, error => error.code === 'ENOENT'), 'MOVE_OLD_ABSENCE');
+  return packageGuard(moved, expected);
 }

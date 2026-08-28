@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import { fileURLToPath } from 'node:url';
 
-const origin = performance.now();
+let origin = performance.now();
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 function demand(condition, label) { if (!condition) throw new Error(label); }
 const arguments_ = process.argv.slice(2);
@@ -18,8 +18,13 @@ demand(routeStat.isFile() && routeStat.size <= 65536, 'ROOT_RECEIPT_REGULAR_BOUN
 const routeBytes = await fs.readFile(routeFile);
 demand(sha(routeBytes) === arguments_[3], 'ROOT_RECEIPT_EXPECTED_HASH');
 const route = JSON.parse(routeBytes.toString('utf8'));
-demand(JSON.stringify(Object.keys(route)) === JSON.stringify(['schema', 'recipeSha256', 'finalSealSha256', 'sourceCommit', 'derivedTree', 'packageSha256', 'componentReviews', 'outputRoot', 'action']), 'ROOT_RECEIPT_KEYS_ORDER');
+demand(JSON.stringify(Object.keys(route)) === JSON.stringify(['schema', 'recipeSha256', 'finalSealSha256', 'sourceCommit', 'derivedTree', 'packageSha256', 'componentReviews', 'outputRoot', 'originHrtimeNs', 'action']), 'ROOT_RECEIPT_KEYS_ORDER');
 demand(route.schema === 'm1b-root-route-v1' && route.action === 'ONE_SCOPED_REVIEW' && route.sourceCommit === 'fca6f81d2d96db2bbceabf3247cd57ffe240bde6' && route.derivedTree === '23074ef0c443ca618c4f26204b5f3d2274b86895' && route.packageSha256 === 'cc0e75c2d0d12f713f0458e608ddeae157cf3432b4e0b48277a329a98115aa1a', 'ROOT_SOURCE_AUTHORITY');
+demand(typeof route.originHrtimeNs === 'string' && /^[0-9]{1,24}$/.test(route.originHrtimeNs), 'ROOT_MONOTONIC_ORIGIN');
+const elapsedNs = process.hrtime.bigint() - BigInt(route.originHrtimeNs);
+demand(elapsedNs >= 0n && elapsedNs < 7200000000000n, 'ROOT_ORIGIN_EXPIRED_OR_FUTURE');
+origin = performance.now() - Number(elapsedNs) / 1000000;
+demand(process.execArgv.length === 0 && !process.env.NODE_OPTIONS && !process.env.NODE_PATH, 'BOOTSTRAP_STARTUP_CLOSURE');
 const recipeBytes = await fs.readFile(path.join(scope, 'RECIPE.json'));
 const sealBytes = await fs.readFile(path.join(scope, 'FINAL-SEAL.json'));
 for (const filename of ['RECIPE.json', 'FINAL-SEAL.json']) {

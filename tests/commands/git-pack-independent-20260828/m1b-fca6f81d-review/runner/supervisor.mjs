@@ -3,11 +3,16 @@ import { demand } from './primitives.mjs';
 
 export async function supervise(budget, job, onMessage) {
   budget.admit(job.deadline);
-  demand(budget.starts < budget.caps.childStarts && budget.active.size < 2, 'PROCESS_ADMISSION');
+  demand(budget.starts + 1 < budget.caps.childStarts && budget.active.size < 2, 'PROCESS_ADMISSION');
   demand(job.deadline - budget.now() > budget.caps.reapMs, 'NO_REAP_TIME');
   const number = ++budget.starts;
   const record = { number, id: job.id, executable: job.executable, argv: job.argv, cwd: job.cwd, startedMs: budget.elapsed(), pid: null, code: null, signal: null, closed: false, timedOut: false, spawnError: null, captureError: null, raw: [], stdoutBytes: 0, stderrBytes: 0 };
-  await budget.record(`${job.id}-admission`, { ...record, deadlineOffsetMs: job.deadline - budget.origin, environment: job.env });
+  const admission = { ...record, deadlineOffsetMs: job.deadline - budget.origin, environment: job.env };
+  const admissionBytes = Buffer.byteLength(JSON.stringify(admission));
+  demand(admissionBytes <= 32768, 'CHILD_ADMISSION_METADATA');
+  await budget.record(`${job.id}-admission`, admission);
+  const spools = { stdout: await budget.stream(`${job.id}-stdout.bin`), stderr: await budget.stream(`${job.id}-stderr.bin`) };
+  budget.admit(job.deadline);
   const child = spawn(job.executable, job.argv, { cwd: job.cwd, env: job.env, shell: false, detached: false, stdio: ['pipe', 'pipe', 'pipe', ...(onMessage ? ['ipc'] : [])], serialization: 'json' });
   record.pid = child.pid ?? null;
   if (child.pid) budget.active.set(child.pid, child);
@@ -64,9 +69,9 @@ export async function supervise(budget, job, onMessage) {
       child[stream].pause();
       record[`${stream}Bytes`] += bytes.length;
       chain = chain.then(async () => {
-        demand(record[`${stream}Bytes`] <= job.streamBytes, 'STREAM_LIMIT');
-        demand(record.raw.length < 8192, 'STREAM_METADATA_LIMIT');
-        record.raw.push({ stream, ...await budget.raw(`${job.id}-${stream}.bin`, bytes) });
+        const streamLimit = typeof job.streamBytes === 'number' ? job.streamBytes : job.streamBytes[stream];
+        demand(Number.isSafeInteger(streamLimit) && record[`${stream}Bytes`] <= streamLimit, 'STREAM_LIMIT');
+        await spools[stream].append(bytes);
       }).catch(error => {
         record.captureError = String(error);
         budget.fail(`${job.id}:CAPTURE:${error}`, true);
@@ -101,7 +106,9 @@ export async function supervise(budget, job, onMessage) {
   await Promise.race([chain.then(() => { chainDone = true; }), new Promise(resolve => { captureTimer = setTimeout(resolve, Math.max(1, currentDeadline - budget.now())); })]);
   clearTimeout(captureTimer);
   if (!chainDone) budget.fail(`${job.id}:UNSETTLED_CAPTURE_OR_TOOL`, true);
+  if (chainDone) for (const stream of ['stdout', 'stderr']) record.raw.push({ stream, ...await spools[stream].close() });
   if (record.code !== 0 || record.signal !== null || record.timedOut || record.spawnError || record.captureError || !record.closed) budget.fail(`${job.id}:CHILD_FAIL`);
+  demand(admissionBytes + Buffer.byteLength(JSON.stringify(record)) <= 65536, 'CHILD_TOTAL_METADATA');
   record.receipt = await budget.record(`${job.id}-retirement`, record, true);
   return record;
 }

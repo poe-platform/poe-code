@@ -40,6 +40,7 @@ for (const item of request.cases) {
   let cleanupFailed = false;
   let escaped = false;
   let thrownType = null;
+  let cleanupAdmissionOpen = true;
   await rpc('CASE_BEGIN', { caseId: item.id });
   const caseRoot = path.join(request.caseBase, item.id);
   await fs.mkdir(caseRoot, { mode: 0o700 });
@@ -50,6 +51,7 @@ for (const item of request.cases) {
     caseRoot,
     signal: controller.signal,
     async load(name) {
+      demand(cleanupAdmissionOpen, 'LOAD_ADMISSION_CLOSED');
       relative(name);
       demand(name.startsWith('dist/') && name.endsWith('.js'), 'PRODUCT_ENTRY');
       const result = await import(pathToFileURL(path.join(request.candidateRoot, name)).href);
@@ -70,8 +72,9 @@ for (const item of request.cases) {
       demand(typeof label === 'string' && /^[A-Za-z0-9_.-]{1,80}$/.test(label), 'CAPTURE_LABEL');
       demand(rawBytes + bytes.byteLength <= item.captureBytes, 'CASE_CAPTURE_LIMIT');
       rawBytes += bytes.byteLength;
-      for (let offset = 0; offset < bytes.byteLength || offset === 0; offset += 49152) {
-        const owned = Buffer.from(bytes.buffer.slice(bytes.byteOffset + offset, bytes.byteOffset + Math.min(offset + 49152, bytes.byteLength)));
+      const copy = Buffer.from(bytes);
+      for (let offset = 0; offset < copy.byteLength || offset === 0; offset += 49152) {
+        const owned = copy.subarray(offset, Math.min(offset + 49152, copy.byteLength));
         await rpc('CAPTURE', { caseId: item.id, label, encoding: 'base64', data: owned.toString('base64') });
       }
       captured++;
@@ -81,14 +84,14 @@ for (const item of request.cases) {
       assertions.push({ label, passed, details: ownData(details) });
     },
     registerCleanup(callback) {
-      demand(typeof callback === 'function' && cleanups.length < 256, 'CLEANUP_ADMISSION');
+      demand(cleanupAdmissionOpen && typeof callback === 'function' && cleanups.length < 256, 'CLEANUP_ADMISSION');
       let promise;
       const once = () => promise ??= Promise.resolve().then(callback);
       cleanups.push(once);
       return once;
     },
     async compile(fixtureId) {
-      demand(item.role === 'TYPE' && typeof fixtureId === 'string' && item.requires.includes(fixtureId), 'COMPILER_ROLE');
+      demand(arguments.length === 1 && item.role === 'TYPE' && typeof fixtureId === 'string' && item.requires.includes(fixtureId), 'COMPILER_ROLE');
       const result = await rpc('COMPILE', { caseId: item.id, fixtureId });
       captured++;
       return { code: result.code, signal: result.signal, stdout: Uint8Array.from(Buffer.from(result.stdout, 'base64')), stderr: Uint8Array.from(Buffer.from(result.stderr, 'base64')) };
@@ -103,13 +106,14 @@ for (const item of request.cases) {
     thrownType = reason === null ? 'null' : typeof reason;
     await api.capture('escaping-reason-type', { escaped: true, type: thrownType });
   } finally {
+    cleanupAdmissionOpen = false;
     for (const cleanup of cleanups.reverse()) {
       try { await cleanup(); }
       catch { cleanupFailed = true; }
     }
   }
   const status = escaped || cleanupFailed || controller.signal.aborted || assertions.some(row => !row.passed) ? 'FAIL' : assertions.length === 0 ? 'INCOMPLETE' : 'PASS';
-  await rpc('CASE_END', { caseId: item.id, status, captured, rawBytes, assertions, cleanupFailed, escaped, thrownType });
+  await rpc('CASE_END', { caseId: item.id, status, captured, rawBytes, assertions, cleanupFailed, escaped, thrownType, aborted: controller.signal.aborted });
   if (status !== 'PASS') { failed = true; break; }
 }
 await rpc('BATCH_END', { failed });

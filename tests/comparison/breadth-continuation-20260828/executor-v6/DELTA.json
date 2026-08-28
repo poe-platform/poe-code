@@ -1,0 +1,95 @@
+{
+  "schema": "v6-entry-edge-minimal-delta",
+  "baseRecipe": "d6369210fccf5623c786bd9d4c9409a6384d0ad3",
+  "baseEvidence": "d8559e1f3de0308b96bc2e8e1c2b0e682fc1df25",
+  "findingReview": "8d711d755637351336de718cd180f3e7ef949781",
+  "changes": [
+    {
+      "prior": {
+        "path": "../executor-v5/loader.mjs",
+        "bytes": 3519,
+        "mode": 420,
+        "sha256": "b6fd004fd53342d6b2a03a03130e4ea6431b7b48eb41fe0f0636a8e42864917b"
+      },
+      "current": {
+        "path": "loader.mjs",
+        "bytes": 5431,
+        "mode": 420,
+        "sha256": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+      }
+    },
+    {
+      "prior": {
+        "path": "../executor-v5/worker.mjs",
+        "bytes": 8729,
+        "mode": 420,
+        "sha256": "40b176c2e0c7498bd9a055e589eed1637172ca63c752d0f2045a150477a40693"
+      },
+      "current": {
+        "path": "worker.mjs",
+        "bytes": 9011,
+        "mode": 420,
+        "sha256": "aa18dd6294fab08bd1f74132f0ca292f0dc0227138cf5956f25ba8c4084e568f"
+      }
+    },
+    {
+      "prior": {
+        "path": "../executor-v5/authorization.mjs",
+        "bytes": 3484,
+        "mode": 420,
+        "sha256": "4df22f9a9ff19cc08cd796dc80a94ba1646b226258fb7c0029d0473674fefe82"
+      },
+      "current": {
+        "path": "authorization.mjs",
+        "bytes": 3564,
+        "mode": 420,
+        "sha256": "0ddc0a6acce5bdff205d3b85d2f4ae5211b72a9eb7c09c69663a50c05423a5ca"
+      }
+    },
+    {
+      "prior": {
+        "path": "../executor-v5/projection.mjs",
+        "bytes": 8547,
+        "mode": 420,
+        "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d"
+      },
+      "current": {
+        "path": "projection.mjs",
+        "bytes": 161,
+        "mode": 420,
+        "sha256": "bae12ed78c57f801ae5f036a0a56ef0bae516192edc7a817e20d75922e42d031"
+      }
+    }
+  ],
+  "byteIdenticalInNewRoot": [
+    {
+      "path": "coordinator.mjs",
+      "bytes": 12062,
+      "mode": 420,
+      "sha256": "87a590e7233d742aa992471fe22ea70061640b9dbe05b876d68ad81895fc37a4"
+    },
+    {
+      "path": "synthetic-worker.mjs",
+      "bytes": 5033,
+      "mode": 420,
+      "sha256": "4f2f09d61ff806503b12d2e8345bc60e9901ce637ea937d37d9401cbd70be175"
+    },
+    {
+      "path": "OPERATION-PLAN.json",
+      "bytes": 33346,
+      "mode": 420,
+      "sha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4"
+    }
+  ],
+  "inheritedUnchanged": [
+    "executor-v5/consumer-scope.mjs",
+    "executor-v5/CONSUMER-SCOPES.json",
+    "all four executor-v5 wrapper artifacts",
+    "executor-v5 projection implementation",
+    "all v4 operations/safety/controls/adapter/predicates/ledger/supervisor",
+    "v3 offline/transport/source-reader",
+    "all actual product/comparator indices"
+  ],
+  "protectionWidened": false,
+  "newActualAdmission": false
+}

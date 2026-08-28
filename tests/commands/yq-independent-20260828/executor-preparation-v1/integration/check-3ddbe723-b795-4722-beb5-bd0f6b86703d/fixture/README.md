@@ -1,0 +1,1 @@
+synthetic read-only fixture

@@ -23,3 +23,11 @@ native oracle or candidate-admission worker invocation has occurred here.
 The 301-versus-271 Git source mismatch is a real schema composition gap, not
 a failed YQ behavior. The 273-versus-271 materialization distinction and public
 export gap remain explicit. No opaque unsealed admission receipt is used.
+
+4. Final source seal `e0e62f3e80227daf89d2c858faf9cb483e266474`: all six
+   syntax checks and all original 22 controls pass again. Protocol checker
+   passes with zero warnings. Capture:
+   `check-3ddbe723-b795-4722-beb5-bd0f6b86703d/RESULT.json`; raw console/status
+   files: `validation-Z0Lqwkh4/`. Both component recipes were verified before
+   and after. Final integration/evidence seal verification passes for all four
+   named capture scopes. No candidate or framework child cohort ran.

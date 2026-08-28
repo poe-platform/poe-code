@@ -1,0 +1,19 @@
+# prospective-only; not executed; UTF-8 text with JS-style escapes in input field
+# id|kind|input|expected|scope|meaning
+string-empty|string|""|0|public-semantics|zero code points
+string-ascii|string|"abc"|3|public-semantics|three ASCII code points
+string-astral|string|"A\uD83D\uDE00B"|3|public-semantics|surrogate pair counts once
+string-combining|string|"e\u0301"|2|public-semantics|not a grapheme-cluster count
+string-zwj-family|string|"\uD83D\uDC69\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66"|7|public-semantics|four emoji plus three ZWJ code points
+string-pair|string|"\uD83D\uDE00"|1|direct-internal|one valid surrogate pair
+string-lone-high|string|"\uD800"|1|direct-internal|one unpaired code unit iterates once
+string-lone-low|string|"\uDC00"|1|direct-internal|one unpaired code unit iterates once
+null|null|null|0|direct-internal|existing null behavior
+number-positive|number|3.5|3.5|direct-internal|existing Math.abs behavior
+number-negative|number|-3.5|3.5|direct-internal|existing Math.abs behavior
+number-negative-zero|number|-0|0|direct-internal|expected positive zero
+number-infinity|number|-Infinity|Infinity|direct-internal|existing Math.abs behavior; yq rejects non-finite
+number-nan|number|NaN|NaN|direct-internal|existing Math.abs behavior; yq rejects non-finite
+array-three|array|[null,false,"x"]|3|direct-internal|element count
+object-two|object|ordered{"a":null,"b":false}|2|direct-internal|objectKeys count
+boolean-error|boolean|true|JqError:boolean has no length|direct-internal|existing error unchanged

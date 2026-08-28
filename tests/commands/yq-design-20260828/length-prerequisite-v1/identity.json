@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-28",
+  "status": "design-only-author-reviewer-protocol",
+  "implementationAuthorized": false,
+  "acceptedBaseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "execution": {
+    "sourceImplementationRuns": 0,
+    "testsRun": 0,
+    "productRuns": 0,
+    "nativeOrReferenceRuns": 0,
+    "runtimeProbes": 0,
+    "dependenciesChanged": 0
+  },
+  "artifacts": [
+    {
+      "path": "tests/commands/yq-design-20260828/length-prerequisite-v1/README.md",
+      "sha256": "f97311654ee5ef5a8a97d4f0bb1f0036209c2fe342b19774b568b90cfdcdf6e4"
+    },
+    {
+      "path": "tests/commands/yq-design-20260828/length-prerequisite-v1/vectors.data",
+      "sha256": "25c4faf53610e29b0ee0afb7408441771d2abb5344a6287d2c2d1f6fea924cb9",
+      "classification": "literal prospective vectors; not executed"
+    }
+  ],
+  "fixedSource": {
+    "path": "src/commands/structured/interpreter.ts",
+    "gitBlob": "f7e0dfcb1815aa90ae49d495e453b4d069139108",
+    "sha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc",
+    "function": "Interpreter.call",
+    "lengthBranchLines": "210-217",
+    "stringExpressionLine": 213,
+    "boundBytes": "else if (typeof input === \"string\") yield Array.from(input).length;"
+  },
+  "futureWriteScopeAfterSeparateFreeze": {
+    "productPaths": ["src/commands/structured/interpreter.ts"],
+    "productRegion": "string arm of length branch only",
+    "prospectiveTestPaths": ["tests/commands/structured/length-codepoints.test.ts"],
+    "forbidden": [
+      "new-or-changed-public-api",
+      "signature-or-import-export-change",
+      "other-interpreter-branch-change",
+      "new-budget-charge-or-yield",
+      "parser-encoder-limit-default-or-yq-change"
+    ]
+  },
+  "semanticInvariant": {
+    "stringMeasure": "JavaScript string iterator elements (Unicode code points for valid pairs; each lone surrogate once)",
+    "notMeasures": ["UTF-16 code units", "UTF-8 bytes", "grapheme clusters"],
+    "nonStringBehavior": "unchanged from fixed Interpreter.call lines 210-217",
+    "budgetCallsAdded": 0,
+    "schedulerYieldsAdded": 0,
+    "signalChecksAdded": 0,
+    "resultSemanticsChanged": false
+  },
+  "fixedRegressionBlobs": [
+    {
+      "path": "tests/commands/structured/semantics.test.ts",
+      "gitBlob": "35197fd469e27baf4c08ea5baec9e5d7ca189c33",
+      "sha256": "a548ea576635f788b97d0165efee8ee7cd6641755a9d5c4156b779c78a71f831",
+      "case": "semantic matrix 22: length,.[1:2]",
+      "lines": "28,98-102"
+    },
+    {
+      "path": "tests/commands/structured/resources.test.ts",
+      "gitBlob": "4a6877982b2934d820bcf6ace6992af2624af6d2",
+      "sha256": "c61d9f482fc8c76a432d962a134c7834e4fb381a9a501e94b92dc27f79012061",
+      "cases": [
+        "limits protect hidden Cartesian expansion, collections, and emitted results",
+        "input, source, output, slurp and result budgets enforce boundary values"
+      ],
+      "lines": "60-91"
+    }
+  ],
+  "reviewGate": {
+    "differentPreCodeFreezeRequired": true,
+    "differentReviewerRequired": true,
+    "differentFreezeOrReviewCompleted": false,
+    "prePatchTestsRequired": true,
+    "staticSingleBranchDeltaRequired": true,
+    "isolatedTinyArrayFromDiscriminatorProposed": true,
+    "revertedMutantRequired": true,
+    "largeResourceProbeAllowed": false
+  },
+  "qualification": "Static fixed-source proof and prospective test design only; no implementation, test execution, runtime probe, native/reference behavior, heap/RSS, timing, parity, or completion claim."
+}

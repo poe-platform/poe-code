@@ -1,0 +1,31 @@
+{
+  "schema": "unified76-shared-v6-followup-freeze",
+  "createdAt": "2026-08-28T03:43:31.836Z",
+  "previousRecipe": "271e2cb9",
+  "preserved": {
+    "reportSha256": "1d90d607fff6ba3ab97af3539690afef88eb5d7ba3e38024c5aadbe9e1d9fe54",
+    "positive": "FAIL cold status1 expected78; zero production builds; /bin/sh refused executing /bin/bash under independent sandbox",
+    "observer": "PASS new13 independent subcontrols,4 actual Git groups; foreign sentinel survived; oldv5 EPERM untouched"
+  },
+  "scope": "Slice positive and real duplicate only; do not repeat passed observer controls",
+  "change": "Add exact hash-bound /bin/bash execute permission for pinned Darwin /bin/sh variant. No driver/product edits; same actual APIs/options, clean environment/module guard. New empty work-followup/raw-followup; original raw/work untouched until cleanup. Add concrete independent group counts and cooperative disk/output watchdog; no changed expected result.",
+  "tools": {
+    "sandboxExec": {
+      "path": "/usr/bin/sandbox-exec",
+      "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+    },
+    "bash": {
+      "path": "/bin/bash",
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "qualification": "Additional readable system executable hash, not new unreadable library exception or full process-image attestation"
+    }
+  },
+  "recipeSha256": "b29d3daa3bd4436ed9a2c47570653d24e1a92cd2bc71967e7ca1b827622a459e",
+  "expected": [
+    "Actual cold78 with zero audit events",
+    "Actual shared typecheckall0;one actual compiler production build;23+3 positive type groups and3 expected diagnostic negatives;832 emitted files208 declarations",
+    "Second real compiler exits0; actual default audit raises duplicate; diagnostic maximum2 exposes two real PIDs; identical dist bytes"
+  ],
+  "bounds": "Original limits retained; 5s cooperative disk sampling/phase360s/whole1200s, no kernel-hard deadline claim",
+  "fullGate": false
+}

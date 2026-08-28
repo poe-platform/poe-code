@@ -1,0 +1,119 @@
+{
+  "schema": "let-design-evidence-seal-v1",
+  "created": "2026-08-28T07:02:13.036Z",
+  "preNativeRecipeCommit": "cd1926ba",
+  "preNativeManifestSHA256": "f47b59eee0c8072334788bed76bb969969a4a2e4ca5d1e21c6686c9df9483d10",
+  "nativeRows": 28,
+  "productExecutions": 0,
+  "implementation": "HELD for root choices and runtime owner release",
+  "files": [
+    {
+      "path": "BINDINGS.json",
+      "mode": 420,
+      "bytes": 4868,
+      "sha256": "1d548b490fb4312de0e7036edcb518b1d944b3911acdd53e9eaa9296505638b5"
+    },
+    {
+      "path": "CASES.json",
+      "mode": 420,
+      "bytes": 6114,
+      "sha256": "103d97293576fb36945871e41b5b130051ee04abd298219af515487e7f1ba44e"
+    },
+    {
+      "path": "FUTURE-FREEZE.md",
+      "mode": 420,
+      "bytes": 5923,
+      "sha256": "eaf7836487ee5af1dc1f884ad99b9026716de5fd450747f81edc9e4502415d96"
+    },
+    {
+      "path": "HANDOFF.md",
+      "mode": 420,
+      "bytes": 3050,
+      "sha256": "bccfe51ad60784a7adfdacd3b0407fca4d8d1f72fb775df3723bea77e7b4c7ba"
+    },
+    {
+      "path": "MANIFEST-V2.json",
+      "mode": 420,
+      "bytes": 1597,
+      "sha256": "f47b59eee0c8072334788bed76bb969969a4a2e4ca5d1e21c6686c9df9483d10"
+    },
+    {
+      "path": "MANIFEST.json",
+      "mode": 420,
+      "bytes": 926,
+      "sha256": "e9242cabe090833e1192a35dc7c613080cdd7f20e9ae2cfd8a8b6040f78efb24"
+    },
+    {
+      "path": "PREPARATION.json",
+      "mode": 420,
+      "bytes": 494,
+      "sha256": "9457f97c2b769be4be8d713334946fa83363ab6532e041a3abefa2c2a0a6402b"
+    },
+    {
+      "path": "PROFILE.md",
+      "mode": 420,
+      "bytes": 13631,
+      "sha256": "26cb0596cd4bc11c9ee2cb2ce7dd9fe994235e8d6aa2a7c5c250c66ffada95de"
+    },
+    {
+      "path": "PROTOCOL.md",
+      "mode": 420,
+      "bytes": 3263,
+      "sha256": "3f725721d12027250305572ac49fe5336d6bd84693cbe86a12fbebc99051c630"
+    },
+    {
+      "path": "REFERENCE-BINDINGS.json",
+      "mode": 420,
+      "bytes": 893,
+      "sha256": "d1e5efeec0291951cb42e322d044e01c48791e5dc6b4b7265c8b11702d15e02e"
+    },
+    {
+      "path": "VALIDATION.json",
+      "mode": 420,
+      "bytes": 620,
+      "sha256": "0084bc1ab5f40c351b885335632aa91b487403b585fbf39276749f1adbdfb085"
+    },
+    {
+      "path": "native-preparation-syntax-failure.data",
+      "mode": 420,
+      "bytes": 6628,
+      "sha256": "a620de3e71cad0d221bb655d01450eb2386c423845a6e859736176c9cfc2ccb7"
+    },
+    {
+      "path": "native-v1/PRE.json",
+      "mode": 420,
+      "bytes": 1275,
+      "sha256": "3dd5e0300d34408d1407794dbe7d4efae1d5614e2d9177601a1cdf936d487e6c"
+    },
+    {
+      "path": "native-v1/SUMMARY.json",
+      "mode": 420,
+      "bytes": 521,
+      "sha256": "7e1c98087747508f037b785e49ee6663d6c9986d8a1793ae944d330209309b47"
+    },
+    {
+      "path": "native-v1/rows.jsonl",
+      "mode": 420,
+      "bytes": 22296,
+      "sha256": "bf06201ed01c5c3defb925ed6e7c035d52244b3d9040d8c8ce37d7f74782012a"
+    },
+    {
+      "path": "native.mjs",
+      "mode": 420,
+      "bytes": 6656,
+      "sha256": "b8e980489835fa49d4ee7527c7af12eaf28bc8da197af295232aceeda5f100c0"
+    },
+    {
+      "path": "seal.mjs",
+      "mode": 420,
+      "bytes": 3324,
+      "sha256": "91d7a29d5f7d8b33c4cbe368cd69c48671eeeef48ede889f0df7fbfccd68cb7d"
+    },
+    {
+      "path": "validate.mjs",
+      "mode": 420,
+      "bytes": 2883,
+      "sha256": "e66f07479f2eb7612d30e50bebde3f59d9df9ef742a19dfbbf98998f91a49ad0"
+    }
+  ]
+}

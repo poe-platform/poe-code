@@ -1,0 +1,20 @@
+{
+  "schema": "let-native-observations-v1",
+  "started": "2026-08-28T06:57:12.824Z",
+  "finished": "2026-08-28T06:57:13.350Z",
+  "manifestSHA256": "f47b59eee0c8072334788bed76bb969969a4a2e4ca5d1e21c6686c9df9483d10",
+  "attempted": 28,
+  "unexecuted": [],
+  "naturallyClosed": 28,
+  "observationsNotProductPasses": true,
+  "statusHistogram": {
+    "0": 27,
+    "1": 1
+  },
+  "capturedBytes": 3558,
+  "preGuard": "passed",
+  "postGuard": "passed",
+  "failure": null,
+  "productExecutions": 0,
+  "asyncAbortNativeCases": 0
+}

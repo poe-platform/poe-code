@@ -1,0 +1,44 @@
+{
+  "schema": "timeout-public-preparation-evidence/1",
+  "sealedAt": "2026-08-28T04:59:58.650Z",
+  "recipeCommit": "58de550221d4f5a9a0ae54f86bb1fd5b1cd8b2ee",
+  "recipeSha256": "45d41c9e97d69febabaa700766f84950a9c36db3ca6fd99c921492296a518813",
+  "controls": 26,
+  "passed": 26,
+  "intentionalNegativeChildren": 2,
+  "allChildrenReaped": true,
+  "actualPublicCases": 0,
+  "actualProductImports": 0,
+  "files": [
+    {
+      "path": "HANDOFF.md",
+      "bytes": 2814,
+      "sha256": "fe0185f6ebebb682bad8e99dec48c1ef7953c2a777167f7bc7992c8a3cd229b8"
+    },
+    {
+      "path": "runs/preparation-controls/LOCK.json",
+      "bytes": 132,
+      "sha256": "15fb5ee769c91059dd0d62683ba025039cc3a81f1692e7a6e1ea81b36109aabf"
+    },
+    {
+      "path": "runs/preparation-controls/RESULT.json",
+      "bytes": 3605,
+      "sha256": "a6f6657f515343a1038ca8512cd4d027be79f014cd5d85a38a13be63f4e3a793"
+    },
+    {
+      "path": "runs/preparation-controls/RECEIPTS.json.gz",
+      "bytes": 2758,
+      "sha256": "e5f48c0727df32e9974a0d40bd3549b6d2bc7014aeb579b340e41f76b6c2e2d8"
+    },
+    {
+      "path": "runs/preparation-controls/CLOSURE.json",
+      "bytes": 1336,
+      "sha256": "86794ecf1f413cd8a80bd1ada893a913a1b377a09d96d36deedfeccde26d7379"
+    },
+    {
+      "path": "runs/preparation-controls/RESOURCE-CLEANUP.json",
+      "bytes": 227,
+      "sha256": "51ea3aaf73d9cc46b6c5fc603fd8a273b79dfdcd7732297ca8ae9ae516efbff2"
+    }
+  ]
+}

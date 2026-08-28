@@ -1,0 +1,11 @@
+{
+  "at": "2026-08-28T04:58:06.910Z",
+  "allChildrenReaped": true,
+  "archiveVerified": true,
+  "removed": [
+    "runs/preparation-controls/raw",
+    "node_modules/preparation-controls"
+  ],
+  "rawFiles": 3,
+  "workFiles": 2
+}

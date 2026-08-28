@@ -1,0 +1,380 @@
+{
+  "schema": 1,
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "repair": "437778996f60109e212e20b1b242455866fda285",
+  "gitObjectReads": 33,
+  "totalSourceBytes": 357361,
+  "sources": [
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/commands/expr/inactive-prefix.test.ts",
+      "bytes": 11923,
+      "sha256": "52e079b8bc89f1b8e4f2b256baab11f8388a5f54d23c174d64d8a4de9c194c3e",
+      "gitBlob": "cc648d4a39dff3e2b04a7e404489e546317a5dfe",
+      "lineCount": 231,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/commands/expr/helpers.ts",
+      "bytes": 1294,
+      "sha256": "51448c59444bb12337860c53c6fc2a9b2e4a193e172630f425a096fadee1b390",
+      "gitBlob": "47d3d1b7e224f278d1b592432884163c6b0a3587",
+      "lineCount": 25,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "src/commands/expr/index.ts",
+      "bytes": 5041,
+      "sha256": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e",
+      "gitBlob": "1031dd28c5dda297d35914dbff4c99f8844c8981",
+      "lineCount": 86,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "src/commands/expr/internal.ts",
+      "bytes": 6600,
+      "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+      "gitBlob": "46b7604d21fe6823167301e1012d97d0ed7b6342",
+      "lineCount": 151,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "src/commands/regex-execution/client.ts",
+      "bytes": 15319,
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "gitBlob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "lineCount": 335,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "src/contracts/command.ts",
+      "bytes": 2923,
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8",
+      "gitBlob": "671327d43c48c5964658ad8c630578fe889421e2",
+      "lineCount": 102,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "src/contracts/command.md",
+      "bytes": 8066,
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8",
+      "gitBlob": "16371126acaccd07a8db2505b53a0625eb9b4592",
+      "lineCount": 131,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/commands/metadata-stress/chmod-controls.test.ts",
+      "bytes": 3737,
+      "sha256": "f93d92ce384307a5226ad85b27cdf74da1d2026125d14e575109e661eb56c02c",
+      "gitBlob": "051736d3cd116eb546508bc3828025f3568c9c83",
+      "lineCount": 63,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/commands/metadata-stress/permission-profile/fixtures.ts",
+      "bytes": 4232,
+      "sha256": "659652208d50a185f52ecb5c220c296a2056e07cd686da39db79ba30771b856b",
+      "gitBlob": "ee702209611b41448e01b30742ad84f568ecbca6",
+      "lineCount": 78,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/commands/metadata-stress/permission-profile/qualification.test.ts",
+      "bytes": 5012,
+      "sha256": "182f4e56f18a20414811589d91d4cd25db7196101d063353942df38158c50084",
+      "gitBlob": "b3d7557f1479f0e673660e88ff3d43a96ac73511",
+      "lineCount": 89,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts",
+      "bytes": 8581,
+      "sha256": "33290f649220fa0affd8b1f2e3d290c1f857c0f0e739531d5665c09b288dfa52",
+      "gitBlob": "69b032f15f8e391f5e04b075651bbbcf0fb89d23",
+      "lineCount": 151,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/commands/metadata-stress/native-differential.test.ts",
+      "bytes": 6698,
+      "sha256": "eb0c185f1ccef217971faeac4394150695b8f47c4906d01c0367f7094b16b999",
+      "gitBlob": "42cbf702a90b0736c295dd10c8e2389155a126a0",
+      "lineCount": 104,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/commands/metadata-stress/helpers.ts",
+      "bytes": 3161,
+      "sha256": "cb70e69c261db9e634ce5afe6b6661139f63dbe489c1044853a083ba2020acd2",
+      "gitBlob": "a67510e1d000e902a8cc66d1730ea1c9d949e0b6",
+      "lineCount": 55,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "src/commands/metadata/chmod.ts",
+      "bytes": 6888,
+      "sha256": "9286ebc9bea074bf9dad58cb6197aa5e10d325c549187eefbc9203ac76b09cfd",
+      "gitBlob": "c8a5ce1fa00216db5df8468110c674cf61329da6",
+      "lineCount": 108,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "src/fs/memory/index.ts",
+      "bytes": 23533,
+      "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "gitBlob": "29551d4afa95503783f915410fcdafaf518a6786",
+      "lineCount": 560,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "src/contracts/filesystem.md",
+      "bytes": 20876,
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "gitBlob": "574db49cd823e7d662cb6ada5ad4dd0c92a8d192",
+      "lineCount": 323,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/commands/stream-inspection/oracle.ts",
+      "bytes": 3924,
+      "sha256": "7e6b128a0f52c42f45ac3b43edbda9b7bed71671d0fc584069bb692ebb8e35c5",
+      "gitBlob": "ad8efbeab3e79c65a52d078cbdcc8caf95ec19d7",
+      "lineCount": 57,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/commands/stream-inspection/native.test.ts",
+      "bytes": 2376,
+      "sha256": "7c1e58afbf4a98934c358fe0a5624d85f572dd154af0aeccdf604d6580ccc8ed",
+      "gitBlob": "cb26dff9b18684a5debc57809f9aa01d22d6030a",
+      "lineCount": 45,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/commands/stream-inspection/cases.ts",
+      "bytes": 3323,
+      "sha256": "a4b8591055e7c4939551250795c55aafa7200fe304fe5a97c544ad990c7f019a",
+      "gitBlob": "2c6a611af4341c54cc438e3e280ad2ee9613d727",
+      "lineCount": 49,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/fs/real/adversarial.test.ts",
+      "bytes": 12556,
+      "sha256": "a04ce637795b184e7ac636d137579e87ee11a4c1bd937a0cf918ce23be8b55b0",
+      "gitBlob": "9883b7a29ba920897696531f17a58c2c1b7885e4",
+      "lineCount": 236,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/fs/real/helpers.ts",
+      "bytes": 1551,
+      "sha256": "7e796cabc885da663b37b67aa71b1b6e669fc7497ef2d25283db3a593c0149e2",
+      "gitBlob": "977f1013153ccf7edb3cf96c9009bfebe929114b",
+      "lineCount": 36,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "src/fs/real/index.ts",
+      "bytes": 23656,
+      "sha256": "ab139aa429c2705c7d5ec13a20d1583bacb182e3e2347fcdee2f169704c0bc9a",
+      "gitBlob": "fd2e528075dd2f4be46eb18e2a72fa44dbfb57c4",
+      "lineCount": 536,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/plugins/qualified-current-release-native-data/helpers.ts",
+      "bytes": 2145,
+      "sha256": "87f899c204d96b6aec5cd6f3f804222ac995678f0efdffd4672c1ab7dec609af",
+      "gitBlob": "0054247216915edb1207224a5113329dd50d61e9",
+      "lineCount": 49,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/plugins/qualified-current-release-native-data/controls.test.ts",
+      "bytes": 15745,
+      "sha256": "f1a94e3a45750bd66ce3118a27664922599124abca0a303279b5143fa8b9dc92",
+      "gitBlob": "6b74276b312d8ae3da194efcfb007adb878d7f1f",
+      "lineCount": 213,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/shell-stress/script-entrypoint/cases.ts",
+      "bytes": 14019,
+      "sha256": "d4bc2f83da4bb3924b11f8ad13cd1a16d11e1ad807ce4318a2684c51656ca00d",
+      "gitBlob": "a3d6ed2df47bacfe530e37bff55775a9b3d5f7d6",
+      "lineCount": 286,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/shell-stress/script-entrypoint/holdout.test.ts",
+      "bytes": 1408,
+      "sha256": "c22f2c16e0ca822f4e1cffbfab2b5ae8a0de996ac13df30b1bf1021fd967ad05",
+      "gitBlob": "b7b7cbe0d2375cc0db465d0ec844b8743916d3f1",
+      "lineCount": 27,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/shell-stress/script-entrypoint/probe.ts",
+      "bytes": 263,
+      "sha256": "266c42c9b3615f77259ef5470c197afc94c58a7bfe3a79b9828bd946cbe9391d",
+      "gitBlob": "15ff641451378725f5c716eb698cc5503f162073",
+      "lineCount": 8,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "tests/shell/helpers.ts",
+      "bytes": 1670,
+      "sha256": "ea3bfd82b48886c5da020ef3983243d5139b9da23821a6a36336cb58eb804cb4",
+      "gitBlob": "b7a6e998a356dbe58056990de1bf71f149c3136e",
+      "lineCount": 20,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "src/shell/runtime.ts",
+      "bytes": 116814,
+      "sha256": "c746e4cee0f5245d94bba2082ce72b62fdc3b251fd400ee247371fa44dfed722",
+      "gitBlob": "b826b1f3d8cb8a0f3703c949bda5003cce06f326",
+      "lineCount": 2196,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "src/commands/execution.ts",
+      "bytes": 9269,
+      "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+      "gitBlob": "61e49c6d8684ccdb5c2f80624d9c8fda9f1d5d2c",
+      "lineCount": 149,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "path": "src/commands/env-split.ts",
+      "bytes": 7492,
+      "sha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4",
+      "gitBlob": "437c36d72c12e985d39c5dc9e09b6bb644753500",
+      "lineCount": 198,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "437778996f60109e212e20b1b242455866fda285",
+      "path": "tests/commands/stream-inspection/oracle.ts",
+      "bytes": 4449,
+      "sha256": "144a0ab22228978c68a4b89d137ff48f27cf20cfb69ec9784f73976ad7fc9ee7",
+      "gitBlob": "6f71cd1303fc6a4f1c6a751e96afd3b1d24263a5",
+      "lineCount": 68,
+      "sourceExecuted": false
+    },
+    {
+      "commit": "437778996f60109e212e20b1b242455866fda285",
+      "path": "tests/plugins/qualified-current-release-native-data/helpers.ts",
+      "bytes": 2817,
+      "sha256": "fd55635268b461f69d50bf7403f1ca94f00f27210337303f3352f97ee7b68f05",
+      "gitBlob": "192112e71c099f0463be4f80a910a51cc4d057e1",
+      "lineCount": 62,
+      "sourceExecuted": false
+    }
+  ],
+  "primaryLocalSources": [
+    {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+      "physical": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/doc/coreutils.texi",
+      "bytes": 667701,
+      "sha256": "39b126752866fff675e462bd44d76f3e034abafe462a069cebd53ef39fc53eca",
+      "role": "Primary GNU9.7 env-S syntax documentation only, not new native execution",
+      "lines": [
+        18146,
+        18235,
+        18252,
+        18270
+      ]
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/un.h",
+      "physical": "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/un.h",
+      "bytes": 4671,
+      "sha256": "a733cb89955ef81312f4bc3a42002c6cc873e27381eb43656c7158ef9a433c24",
+      "role": "Primary installed Apple SDK declaration of sun_path[104], not binding actual libuv branch",
+      "lines": [
+        79
+      ]
+    }
+  ],
+  "inputBindings": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-diagnosis-v1/FAILURES.json",
+      "bytes": 205430,
+      "sha256": "031a489c0da790e649b077bba1d436119813bc0322fc445b2868feb0fb8a5295"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11/TAP-NONPASSING.json",
+      "bytes": 463757,
+      "sha256": "91792a4ef1888435d2e19dcb1aeedbeaa9552ce518c16843cd31b4bf310978c2"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11/RESULT-SEAL.json",
+      "bytes": 2470,
+      "sha256": "f0f835a538242164440516e5c46499a4a5d58d46b0a95fa75ba93fc16bd33782"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-diagnosis-v1/OBSERVATIONS.json",
+      "bytes": 111620,
+      "sha256": "4d2666cebfe71824c8ff28ab5757b1154c734b8636d7f7cfb4dab9e9c4a529cb"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/SOURCE-CANDIDATE.json",
+      "bytes": 6245,
+      "sha256": "47741f284b1593aa96b012d6e2ab9e9f6b64f38d69034b17554dc52544b59e71"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/EVIDENCE-SEAL.json",
+      "bytes": 2287,
+      "sha256": "8d6824c66c92b52fffe7a4f94fd0ce60273482c368d0989fc626b00ff41869fd"
+    }
+  ],
+  "socket": {
+    "path": "/private/tmp/unified76-os-write-9hZxpj/tmp/unified76-execution-FQM0aw/tmp/virtual-bash-real-ZN0iVJ/root/socket",
+    "utf8Bytes": 110,
+    "sdkSunPathBytes": 104,
+    "causalQualification": "Length hypothesis; actual Node/libuv/permission cause not established."
+  },
+  "tacCapturedDiagnosticStrings": [
+    "tac: failed to create temporary file '/var/tmp/cutmpeeMAwR': Operation not permitted\n",
+    "tac: failed to create temporary file '/var/tmp/cutmp4IGDeT': Operation not permitted\n",
+    "tac: failed to create temporary file '/var/tmp/cutmpxsaf0P': Operation not permitted\n",
+    "tac: failed to create temporary file '/var/tmp/cutmpM5O4Fy': Operation not permitted\n",
+    "tac: failed to create temporary file '/var/tmp/cutmpqyQbOl': Operation not permitted\n",
+    "tac: failed to create temporary file '/var/tmp/cutmp49Mbxj': Operation not permitted\n",
+    "tac: failed to create temporary file '/var/tmp/cutmp7Yb3x8': Operation not permitted\n",
+    "tac: failed to create temporary file '/var/tmp/cutmp9BTwvD': Operation not permitted\ntac: failed to create temporary file '/var/tmp/cutmpSnNs4y': Operation not permitted\n"
+  ],
+  "qualification": "Only source object/data reads; no imports/evaluation of subject source, no native/compiler/product/private/test/build/network execution, no old roots touched."
+}

@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "mode": "SOURCE_DATA_ONLY",
+  "files": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-held-boundaries-diagnosis/README.md",
+      "bytes": 12215,
+      "sha256": "13987149307908a3fe894360c07ed3be7c3fc2166f791aa895c6a09a8fb5836c"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-held-boundaries-diagnosis/CROSSWALK.json",
+      "bytes": 24033,
+      "sha256": "29160bfbf2a1edc9cd506dc0b2eab60df8cf3f58d60584f77788f27be2441a6a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-held-boundaries-diagnosis/CAPTURES.json",
+      "bytes": 85494,
+      "sha256": "1f005ec0299d466429d25ea2c0998a3ebf39cbfa429853916be321093a396284"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-held-boundaries-diagnosis/DIRECTORY-MISMATCHES.json",
+      "bytes": 7622,
+      "sha256": "c0317014a903a76b37ff0e5c5be4082343893c772c8b935d20a5a82ce2303e1d"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-held-boundaries-diagnosis/SOURCE-BINDINGS.json",
+      "bytes": 15599,
+      "sha256": "256792b1cfba29fe745d9fd12d5d0d6a90bb6f085a827cb9ec1f49cf1a5de8fd"
+    }
+  ],
+  "coverage": {
+    "heldOriginalFailures": 15,
+    "groups": {
+      "G04": 6,
+      "G05": 2,
+      "G06": 1,
+      "G07": 2,
+      "G10": 1,
+      "G11": 1,
+      "G13": 1,
+      "G14": 1
+    },
+    "rawDetailsAuthenticated": 15,
+    "sourceBindings": 33,
+    "primaryLocalDocumentBindings": 2,
+    "subordinateDirectoryMismatches": 32,
+    "subordinateDirectoryTapFailures": 1,
+    "originalInputHashesRechecked": 6
+  },
+  "executions": {
+    "nativeSubject": 0,
+    "product": 0,
+    "compiler": 0,
+    "tests": 0,
+    "build": 0,
+    "private": 0,
+    "network": 0,
+    "gate": 0
+  },
+  "newSourceEdits": 0,
+  "fixtureExpectationsChanged": 0,
+  "oldRootsCleaned": false,
+  "oldScore": {
+    "pass": 19425,
+    "fail": 132,
+    "skip": 7,
+    "completedPhases": 6,
+    "totalPhases": 14,
+    "integrity": false,
+    "cleanup": false
+  },
+  "independentAcceptance": false,
+  "limits": [
+    "Read-only Git source/data analysis, not a fresh behavioral reproducer, dynamic cleanup or syscall attribution proof.",
+    "Original failures retained. Structural surrogate acceptance unresolved; directory-cause telemetry missing; Node22 profiles not executed under Node24; socket length is a hypothesis, not permission denial proof.",
+    "Tac/npm437 fixes remain author source/synthetic evidence; no new success. env-S fourth-header identification is source-supported, raw header identity unrecorded.",
+    "No broader immutable-tree or928-file rehash in this sidecar. Six declared prior input hashes and15 raw-detail hashes match."
+  ]
+}

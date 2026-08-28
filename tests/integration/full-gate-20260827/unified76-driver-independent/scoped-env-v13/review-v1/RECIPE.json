@@ -1,0 +1,3410 @@
+{
+  "schema": "scoped-env-v13-independent-recipe-v1",
+  "createdAt": "2026-08-28T10:06:35.856Z",
+  "timing": "POST-author and POST-candidate body inspection; PRE-all driver imports and actual controls, under original bdb49d75 expectations",
+  "freeze": "bdb49d758809134e5aeb2aef57f8656a580f142e",
+  "source": "02a5060019bccdd2a64f9811812104ba09d2aaee",
+  "reseal": "96daebc077381fb63ab6447a26ab707ce790ff25",
+  "evidence": "770381bc61b49b5abed96acdf0ab09f2d4b610ca",
+  "handoff": "tests/integration/full-gate-20260827/unified76-driver/inherited-routes-author-v1/HANDOFF.md",
+  "driverSha256": "2db94b8bf54405e5713b103bd677c873fcc0b153454b3deed13ee8ab4e90583e",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "product": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "closure": [
+    {
+      "name": "DRIVER.json",
+      "bytes": 4332,
+      "sha256": "acbb37f19f8d83c2c068520f4eb25edffe5841cb99eb9c3a2a7d2bbf7211ee5b",
+      "unchangedFromFe15": false
+    },
+    {
+      "name": "CANDIDATE.json",
+      "bytes": 4663,
+      "sha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "PROFILE.json.gz.base64",
+      "bytes": 1409701,
+      "sha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "PROFILE-RECEIPT.json",
+      "bytes": 976,
+      "sha256": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "CLEANUP.json",
+      "bytes": 27233,
+      "sha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "EXTERNAL.json.gz.base64",
+      "bytes": 476241,
+      "sha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "EXTERNAL-RECEIPT.json",
+      "bytes": 592,
+      "sha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "common.mjs",
+      "bytes": 6427,
+      "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "profile.mjs",
+      "bytes": 8384,
+      "sha256": "4746445e74d7a14d7a8f8b29cbd6daee4d5af2488d6627fda268d7b73579de0e",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "admission.mjs",
+      "bytes": 4523,
+      "sha256": "b4e38b581d8be10604c8ea823b74551912e43bfc9806fbdb138b304d40bc7f90",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "inventory.mjs",
+      "bytes": 5911,
+      "sha256": "4474327377ffdf4d46344e84c8bfb5022664511f94bef53d77bac77253ad88d1",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "run.mjs",
+      "bytes": 2811,
+      "sha256": "a93d31887f2fd363d8747baec1a5cba405fb1c580fbf023cc80a9daa1bc2d1f2",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "worker.mjs",
+      "bytes": 537,
+      "sha256": "8c3ad0676c804d02b45f9d7b8acfc355966ee23413dca8a8dfb2b2a4e2189e3a",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "supervise.mjs",
+      "bytes": 6047,
+      "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "execute.mjs",
+      "bytes": 21106,
+      "sha256": "ca3f2f5379539c9b3c10b22bd90500ba1c10b36d8986b98b7777cdc92fe4f275",
+      "unchangedFromFe15": false
+    },
+    {
+      "name": "policy.mjs",
+      "bytes": 4441,
+      "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "transport.mjs",
+      "bytes": 9553,
+      "sha256": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "external.mjs",
+      "bytes": 6032,
+      "sha256": "546906a56a37ac8448385fb069a9ee703ed5c1309157953fc2c2b62987186ba8",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "external-admission.mjs",
+      "bytes": 4991,
+      "sha256": "0c8bf4c9cc810610bbcc8bf951b24e0b1d294c14317ef2d23affd475aaa7d9c2",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "built-consumers.mjs",
+      "bytes": 2958,
+      "sha256": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "consumer-admission.mjs",
+      "bytes": 1940,
+      "sha256": "2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "tap.mjs",
+      "bytes": 3405,
+      "sha256": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "public.mjs",
+      "bytes": 2892,
+      "sha256": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "consumer.mts.fixture",
+      "bytes": 840,
+      "sha256": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "negative.mts.fixture",
+      "bytes": 250,
+      "sha256": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "build-audit.mjs",
+      "bytes": 1239,
+      "sha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "build-types.mjs",
+      "bytes": 4115,
+      "sha256": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "phase-runner.mjs",
+      "bytes": 2528,
+      "sha256": "ac679021137624fc2b4beaed6460d06acc6851a36d52351b390a4b53fad9bd88",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "process-observer.mjs",
+      "bytes": 3667,
+      "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "review-build-types.mjs",
+      "bytes": 9630,
+      "sha256": "ef79cc344dc0259bfef3d2351fa61ea5a2f716ac8c427dfab346294498d0a507",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "review-build-types-worker.mjs",
+      "bytes": 351,
+      "sha256": "e69573ee434436bb9ab9bda807155cfaaa5a687a2eb32a09a4b6b0d54214f295",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "projection.mjs",
+      "bytes": 5765,
+      "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "INSTRUCTION-PROJECTION.json",
+      "bytes": 2542,
+      "sha256": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "os-instruction-fence.mjs",
+      "bytes": 6239,
+      "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "fenced-supervisor.mjs",
+      "bytes": 7580,
+      "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "OS-INSTRUCTION-FENCE.json",
+      "bytes": 1845,
+      "sha256": "8beb3aeb244fd490bd1904fa32bddc1332a7ccfb4c48d36dfe8c6ebbf3305a7f",
+      "unchangedFromFe15": true
+    },
+    {
+      "name": "tool-routing.mjs",
+      "bytes": 16268,
+      "sha256": "bf8abf7cba221f23fbe79eea143ca718cdc6fa2864d3335e67904504042147f6",
+      "unchangedFromFe15": false
+    },
+    {
+      "name": "TOOL-ROUTES.json",
+      "bytes": 2520,
+      "sha256": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7",
+      "unchangedFromFe15": true
+    }
+  ],
+  "importModules": [
+    "tool-routing.mjs",
+    "fenced-supervisor.mjs",
+    "os-instruction-fence.mjs",
+    "supervise.mjs",
+    "process-observer.mjs",
+    "common.mjs",
+    "transport.mjs",
+    "projection.mjs",
+    "policy.mjs",
+    "external-admission.mjs",
+    "external.mjs"
+  ],
+  "copyFiles": [
+    "tool-routing.mjs",
+    "fenced-supervisor.mjs",
+    "os-instruction-fence.mjs",
+    "supervise.mjs",
+    "process-observer.mjs",
+    "common.mjs",
+    "transport.mjs",
+    "projection.mjs",
+    "policy.mjs",
+    "external-admission.mjs",
+    "external.mjs",
+    "CANDIDATE.json",
+    "TOOL-ROUTES.json",
+    "OS-INSTRUCTION-FENCE.json",
+    "EXTERNAL-RECEIPT.json",
+    "EXTERNAL.json.gz.base64",
+    "INSTRUCTION-PROJECTION.json"
+  ],
+  "tools": [
+    {
+      "origin": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "physical": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "bytes": 117591472,
+      "mode": 493,
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+    },
+    {
+      "origin": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    },
+    {
+      "origin": "/bin/sh",
+      "physical": "/bin/sh",
+      "bytes": 101232,
+      "mode": 493,
+      "sha256": "094fc5e188feb7cc18906900b1b5c417e03aaed03a9fc132e925f38640d9bd59"
+    },
+    {
+      "origin": "/usr/bin/tar",
+      "physical": "/usr/bin/bsdtar",
+      "bytes": 275344,
+      "mode": 493,
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+    },
+    {
+      "origin": "/bin/ps",
+      "physical": "/bin/ps",
+      "bytes": 170816,
+      "mode": 493,
+      "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+    },
+    {
+      "origin": "/usr/sbin/lsof",
+      "physical": "/usr/sbin/lsof",
+      "bytes": 307600,
+      "mode": 493,
+      "sha256": "1c7ea75ae284bfb569f693ce50ad25c04a780dfe5ae80ae93a5d2ed285c6b456"
+    },
+    {
+      "origin": "/usr/bin/sw_vers",
+      "physical": "/usr/bin/sw_vers",
+      "bytes": 135536,
+      "mode": 493,
+      "sha256": "19944ce73b498bbc997043b8530984aff4c6ca9741cb3a044c9320369bb019dd"
+    },
+    {
+      "origin": "/usr/bin/bsdtar",
+      "physical": "/usr/bin/bsdtar",
+      "bytes": 275344,
+      "mode": 493,
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+    },
+    {
+      "origin": "/usr/bin/gzip",
+      "physical": "/usr/bin/gzip",
+      "bytes": 171712,
+      "mode": 493,
+      "sha256": "7bd218bc6b12fced475163901547a796736f72f99533cbec60eea150ed21afa3"
+    },
+    {
+      "origin": "/usr/bin/gunzip",
+      "physical": "/usr/bin/gunzip",
+      "bytes": 197504,
+      "mode": 493,
+      "sha256": "5ba665e19226838310b102c16b6cebed89f2048ccfc5bba2e8083deb80acec73"
+    },
+    {
+      "origin": "/bin/bash",
+      "physical": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+    },
+    {
+      "origin": "/usr/bin/sed",
+      "physical": "/usr/bin/sed",
+      "bytes": 170336,
+      "mode": 493,
+      "sha256": "5b74ed702abbb642a7bf39335aa6716ecbf2312084cf2249ca4e59f93c559360"
+    },
+    {
+      "origin": "/usr/bin/awk",
+      "physical": "/usr/bin/awk",
+      "bytes": 302368,
+      "mode": 493,
+      "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505"
+    },
+    {
+      "origin": "/usr/bin/jq",
+      "physical": "/usr/bin/jq",
+      "bytes": 1492208,
+      "mode": 493,
+      "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f"
+    },
+    {
+      "origin": "/usr/bin/curl",
+      "physical": "/usr/bin/curl",
+      "bytes": 552624,
+      "mode": 493,
+      "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226"
+    },
+    {
+      "origin": "/usr/bin/rev",
+      "physical": "/usr/bin/rev",
+      "bytes": 101328,
+      "mode": 493,
+      "sha256": "40ebd8f8a85d697fa454466c35def2ae20bb4a266b69310a033a23191db55247"
+    },
+    {
+      "origin": "/usr/bin/expand",
+      "physical": "/usr/bin/expand",
+      "bytes": 101616,
+      "mode": 493,
+      "sha256": "dbd3b0cd2a186fce021164e4e95efd050c7027a5ce7bd7f348f28a559a741e78"
+    },
+    {
+      "origin": "/usr/bin/fold",
+      "physical": "/usr/bin/fold",
+      "bytes": 101808,
+      "mode": 493,
+      "sha256": "0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035"
+    },
+    {
+      "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+      "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+      "bytes": 472320,
+      "mode": 493,
+      "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69",
+      "binding": "TOOL-ROUTES.json"
+    },
+    {
+      "origin": "/usr/bin/sandbox-exec",
+      "physical": "/usr/bin/sandbox-exec",
+      "path": "/usr/bin/sandbox-exec",
+      "bytes": 102560,
+      "mode": 493,
+      "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42",
+      "binding": "OS-INSTRUCTION-FENCE.json"
+    }
+  ],
+  "toolAuthentication": {
+    "at": "2026-08-28T10:05:00.892Z",
+    "regularPhysicalFiles": 70,
+    "gitCoreEntries": 197,
+    "gitCoreSha256": "e4399d286413829c3619e1c7e7411a48f6632e6a1feace8355ebffb578d8ed5b"
+  },
+  "gitCore": {
+    "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+    "root": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+    "entries": [
+      {
+        "path": ".",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "git",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-add",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-add",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-am",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-am",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-annotate",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-annotate",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-apply",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-apply",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-archive",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-archive",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-backfill",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-backfill",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-bisect",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-bisect",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-blame",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-blame",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-branch",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-branch",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-bugreport",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-bugreport",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-bundle",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-bundle",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-cat-file",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-cat-file",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-check-attr",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-check-attr",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-check-ignore",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-check-ignore",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-check-mailmap",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-check-mailmap",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-check-ref-format",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-check-ref-format",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-checkout",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-checkout",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-checkout--worker",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-checkout--worker",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-checkout-index",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-checkout-index",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-cherry",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-cherry",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-cherry-pick",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-cherry-pick",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-clean",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-clean",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-clone",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-clone",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-column",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-column",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-commit",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-commit",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-commit-graph",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-commit-graph",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-commit-tree",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-commit-tree",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-config",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-config",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-count-objects",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-count-objects",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-credential",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-credential",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-credential-cache",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-credential-cache",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-credential-cache--daemon",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-credential-cache--daemon",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-credential-osxkeychain",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-credential-osxkeychain",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-credential-osxkeychain",
+        "bytes": 57744,
+        "mode": 493,
+        "sha256": "a3c6a6ca843c3f37f940e7ecf8136bd3783c1bd9027729b2c34c736188b66c1e"
+      },
+      {
+        "path": "git-credential-store",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-credential-store",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-daemon",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-daemon",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-daemon",
+        "bytes": 2246432,
+        "mode": 493,
+        "sha256": "71f1df4fbec02e3ab45828386a7af1553f614f0c221297203e593394dfe5a974"
+      },
+      {
+        "path": "git-describe",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-describe",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-diagnose",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-diagnose",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-diff",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-diff",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-diff-files",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-diff-files",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-diff-index",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-diff-index",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-diff-pairs",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-diff-pairs",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-diff-tree",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-diff-tree",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-difftool",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-difftool",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-difftool--helper",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-difftool--helper",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-difftool--helper",
+        "bytes": 2660,
+        "mode": 493,
+        "sha256": "eafba74e4934494c0017f8b06375b3c7e67c84ac285b8492976c51de2f7da619"
+      },
+      {
+        "path": "git-fast-export",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-fast-export",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-fast-import",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-fast-import",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-fetch",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-fetch",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-fetch-pack",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-fetch-pack",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-filter-branch",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-filter-branch",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-filter-branch",
+        "bytes": 15791,
+        "mode": 493,
+        "sha256": "62285b171fa3f70ece4eb5b8283f60a4d112b65f0cb6b9e593b1f16b93248282"
+      },
+      {
+        "path": "git-fmt-merge-msg",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-fmt-merge-msg",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-for-each-ref",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-for-each-ref",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-for-each-repo",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-for-each-repo",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-format-patch",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-format-patch",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-fsck",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-fsck",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-fsck-objects",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-fsck-objects",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-fsmonitor--daemon",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-fsmonitor--daemon",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-gc",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-gc",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-get-tar-commit-id",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-get-tar-commit-id",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-grep",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-grep",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-gui--askpass",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-gui--askpass",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-gui--askpass",
+        "bytes": 1840,
+        "mode": 493,
+        "sha256": "82b8e579d931d9eced6af3d07080fdc8b11887dfc5d11298d395465c543b5088"
+      },
+      {
+        "path": "git-hash-object",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-hash-object",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-help",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-help",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-hook",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-hook",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-http-backend",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-http-backend",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-http-backend",
+        "bytes": 2229120,
+        "mode": 493,
+        "sha256": "4026051f87a437197a913d4ca5d3196f1d749bf6060f84c74cc374263988110a"
+      },
+      {
+        "path": "git-http-fetch",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-http-fetch",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-http-fetch",
+        "bytes": 2288768,
+        "mode": 493,
+        "sha256": "b598ece9c0428c92135bc54e1d149ba04f7ef7a73b10251e69657cf98b3d9d32"
+      },
+      {
+        "path": "git-http-push",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-http-push",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-http-push",
+        "bytes": 2289936,
+        "mode": 493,
+        "sha256": "16c7ac35906693df4c9aa8cd389bbd170c97f6e09de282f31cdf08a6adf83d3e"
+      },
+      {
+        "path": "git-imap-send",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-imap-send",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-imap-send",
+        "bytes": 2288768,
+        "mode": 493,
+        "sha256": "0def90bf17f7e614892d263e9ef2db875562a3f09c3a7979b69e07f78729dedc"
+      },
+      {
+        "path": "git-index-pack",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-index-pack",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-init",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-init",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-init-db",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-init-db",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-interpret-trailers",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-interpret-trailers",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-log",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-log",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-ls-files",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-ls-files",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-ls-remote",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-ls-remote",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-ls-tree",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-ls-tree",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-mailinfo",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-mailinfo",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-mailsplit",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-mailsplit",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-maintenance",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-maintenance",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-merge",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-merge",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-merge-base",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-merge-base",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-merge-file",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-merge-file",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-merge-index",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-merge-index",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-merge-octopus",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-merge-octopus",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-merge-octopus",
+        "bytes": 2477,
+        "mode": 493,
+        "sha256": "c5d08a8c4e5afc8b48d965c309d3b98930592da304cf04ac265c8b24ea3d6891"
+      },
+      {
+        "path": "git-merge-one-file",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-merge-one-file",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-merge-one-file",
+        "bytes": 3695,
+        "mode": 493,
+        "sha256": "496bd3daaca988726b23252e8032f8e3cc38913dbe2a0d9f1bafd7b7276ae717"
+      },
+      {
+        "path": "git-merge-ours",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-merge-ours",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-merge-recursive",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-merge-recursive",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-merge-resolve",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-merge-resolve",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-merge-resolve",
+        "bytes": 1226,
+        "mode": 493,
+        "sha256": "5638e11ae0ffa26607545afc060cc603083863acb1f7c723547d6dc1d3ff29c9"
+      },
+      {
+        "path": "git-merge-subtree",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-merge-subtree",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-merge-tree",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-merge-tree",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-mergetool",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-mergetool",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-mergetool",
+        "bytes": 11693,
+        "mode": 493,
+        "sha256": "445d33f9aa9e1f93afda20fab277904599151af08463316ad45ff0a650031d10"
+      },
+      {
+        "path": "git-mergetool--lib",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-mergetool--lib",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-mergetool--lib",
+        "bytes": 10916,
+        "mode": 420,
+        "sha256": "79779329c7870ac0f63c775943214ebc805f0ebc96594877b290b28ee672d470"
+      },
+      {
+        "path": "git-mktag",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-mktag",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-mktree",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-mktree",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-multi-pack-index",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-multi-pack-index",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-mv",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-mv",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-name-rev",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-name-rev",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-notes",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-notes",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-p4",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-p4",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-p4",
+        "bytes": 172866,
+        "mode": 493,
+        "sha256": "c45c9f2beedd62fdc075c8e3d006d36ab959a9646d1d919367a2e191f92ad44b"
+      },
+      {
+        "path": "git-pack-objects",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-pack-objects",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-pack-redundant",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-pack-redundant",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-pack-refs",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-pack-refs",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-patch-id",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-patch-id",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-prune",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-prune",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-prune-packed",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-prune-packed",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-pull",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-pull",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-push",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-push",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-quiltimport",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-quiltimport",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-quiltimport",
+        "bytes": 3696,
+        "mode": 493,
+        "sha256": "a103092c9c97d3b202477ae1391ea56b3c30ad40a2cef152dca6980fb5e57fa4"
+      },
+      {
+        "path": "git-range-diff",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-range-diff",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-read-tree",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-read-tree",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-rebase",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-rebase",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-receive-pack",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-receive-pack",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-reflog",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-reflog",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-refs",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-refs",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-remote",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-remote",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-remote-ext",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-remote-ext",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-remote-fd",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-remote-fd",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-remote-ftp",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "git-remote-http",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-remote-http",
+        "insideOrigin": true,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-remote-ftp",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-remote-http",
+          "bytes": 2305920,
+          "mode": 493,
+          "sha256": "76169453971bd5e40598de217998bcb77ace9fd1ec72ba97fbaa68c17ad56611"
+        }
+      },
+      {
+        "path": "git-remote-ftps",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "git-remote-http",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-remote-http",
+        "insideOrigin": true,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-remote-ftps",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-remote-http",
+          "bytes": 2305920,
+          "mode": 493,
+          "sha256": "76169453971bd5e40598de217998bcb77ace9fd1ec72ba97fbaa68c17ad56611"
+        }
+      },
+      {
+        "path": "git-remote-http",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-remote-http",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-remote-http",
+        "bytes": 2305920,
+        "mode": 493,
+        "sha256": "76169453971bd5e40598de217998bcb77ace9fd1ec72ba97fbaa68c17ad56611"
+      },
+      {
+        "path": "git-remote-https",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "git-remote-http",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-remote-http",
+        "insideOrigin": true,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-remote-https",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-remote-http",
+          "bytes": 2305920,
+          "mode": 493,
+          "sha256": "76169453971bd5e40598de217998bcb77ace9fd1ec72ba97fbaa68c17ad56611"
+        }
+      },
+      {
+        "path": "git-repack",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-repack",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-replace",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-replace",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-replay",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-replay",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-request-pull",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-request-pull",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-request-pull",
+        "bytes": 3992,
+        "mode": 493,
+        "sha256": "679c05f4a1fde059dc14e583deb3b63f4ba3f79697c08bb69af2b6130c0bd104"
+      },
+      {
+        "path": "git-rerere",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-rerere",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-reset",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-reset",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-restore",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-restore",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-rev-list",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-rev-list",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-rev-parse",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-rev-parse",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-revert",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-revert",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-rm",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-rm",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-send-email",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-send-email",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-send-email",
+        "bytes": 71141,
+        "mode": 493,
+        "sha256": "4e75a6118eb2b11381d6bf48ddf652602412b6411b613ca76477220067017727"
+      },
+      {
+        "path": "git-send-pack",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-send-pack",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-sh-i18n",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-sh-i18n",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-sh-i18n",
+        "bytes": 1747,
+        "mode": 420,
+        "sha256": "ba23450160e8b137001dccc977100ee20c8e7cfc16b38cf2e427953a3d0bb60a"
+      },
+      {
+        "path": "git-sh-i18n--envsubst",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-sh-i18n--envsubst",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-sh-i18n--envsubst",
+        "bytes": 2228272,
+        "mode": 493,
+        "sha256": "ec038a1e641451e8eaedd1d245acf091b23925d6a61880bfe99e77dd4e5a4bbd"
+      },
+      {
+        "path": "git-sh-setup",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-sh-setup",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-sh-setup",
+        "bytes": 8398,
+        "mode": 420,
+        "sha256": "59445c54657ed5fbc6676ec0ce2eb23deb3d1fd388ad71819d24c18fd9282e5a"
+      },
+      {
+        "path": "git-shell",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git-shell",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git-shell",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-shell",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git-shell",
+          "bytes": 2228080,
+          "mode": 493,
+          "sha256": "2dbf400c1d16adb8ad88047bace43140e46a7d928c376578841cd8e92ff01672"
+        }
+      },
+      {
+        "path": "git-shortlog",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-shortlog",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-show",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-show",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-show-branch",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-show-branch",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-show-index",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-show-index",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-show-ref",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-show-ref",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-sparse-checkout",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-sparse-checkout",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-stage",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-stage",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-stash",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-stash",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-status",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-status",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-stripspace",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-stripspace",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-submodule",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-submodule",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-submodule",
+        "bytes": 10493,
+        "mode": 493,
+        "sha256": "55a1a450b48fb98cc8c3f5745c411e3391ac7659f46eb4b7eef9053aa3614353"
+      },
+      {
+        "path": "git-submodule--helper",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-submodule--helper",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-subtree",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-subtree",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-subtree",
+        "bytes": 25798,
+        "mode": 493,
+        "sha256": "a07b68937506350d20e620a7b4db40e16a7f492acd6cb2b90cd42639f8fc0696"
+      },
+      {
+        "path": "git-switch",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-switch",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-symbolic-ref",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-symbolic-ref",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-tag",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-tag",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-unpack-file",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-unpack-file",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-unpack-objects",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-unpack-objects",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-update-index",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-update-index",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-update-ref",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-update-ref",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-update-server-info",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-update-server-info",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-upload-archive",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-upload-archive",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-upload-pack",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-upload-pack",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-var",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-var",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-verify-commit",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-verify-commit",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-verify-pack",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-verify-pack",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-verify-tag",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-verify-tag",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-version",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-version",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-web--browse",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-web--browse",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-web--browse",
+        "bytes": 4401,
+        "mode": 493,
+        "sha256": "5c0d1d91dadfba3fe353add1f07be76016a7c6a3b2260ff9dfec5491fcd9e5e6"
+      },
+      {
+        "path": "git-whatchanged",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-whatchanged",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-worktree",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-worktree",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "git-write-tree",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/git",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/git-write-tree",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      },
+      {
+        "path": "mergetools",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "mergetools/araxis",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/araxis",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/araxis",
+        "bytes": 515,
+        "mode": 420,
+        "sha256": "49aa2286e6ec2d7c0fb4077a2f9c5a757537476c07f517694fcc79dca021aa31"
+      },
+      {
+        "path": "mergetools/bc",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/bc",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/bc",
+        "bytes": 584,
+        "mode": 420,
+        "sha256": "e54e6e1b38bbcd7ededcad7d6e05638453dd4c10631e392ecebfae8d396b01b6"
+      },
+      {
+        "path": "mergetools/codecompare",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/codecompare",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/codecompare",
+        "bytes": 510,
+        "mode": 420,
+        "sha256": "7ee88c614edf10653d6c66f94a6f19a469551cd21aab224ad97101661cda0dc2"
+      },
+      {
+        "path": "mergetools/deltawalker",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/deltawalker",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/deltawalker",
+        "bytes": 818,
+        "mode": 420,
+        "sha256": "4c64c36c09ba536fc5bd822be2750f6f6dd74b5c2feffc5564b5d51d55f120c1"
+      },
+      {
+        "path": "mergetools/diffmerge",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/diffmerge",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/diffmerge",
+        "bytes": 460,
+        "mode": 420,
+        "sha256": "d1b72ad340d905e6ea652069b870fcac2cbfa5296e13b35701d99d3cabc7bfbf"
+      },
+      {
+        "path": "mergetools/diffuse",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/diffuse",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/diffuse",
+        "bytes": 395,
+        "mode": 420,
+        "sha256": "ba5c97c501cae4219a7f4db36ea3934dbde0768a06818b1d49acc63070acbdaf"
+      },
+      {
+        "path": "mergetools/ecmerge",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/ecmerge",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/ecmerge",
+        "bytes": 453,
+        "mode": 420,
+        "sha256": "2d23869a9a5c52a45d1d76fff9b446a77fd2205a1db63090fa072ea3e12d5fa6"
+      },
+      {
+        "path": "mergetools/emerge",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/emerge",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/emerge",
+        "bytes": 535,
+        "mode": 420,
+        "sha256": "014c19e4a9c4227cc08b53703ada35283882ecabada96198ca98c7238cfc9135"
+      },
+      {
+        "path": "mergetools/examdiff",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/examdiff",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/examdiff",
+        "bytes": 493,
+        "mode": 420,
+        "sha256": "162a10db12c2574d424172fdf00c1b097e0c1be900458da27d4619a9005d281d"
+      },
+      {
+        "path": "mergetools/guiffy",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/guiffy",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/guiffy",
+        "bytes": 432,
+        "mode": 420,
+        "sha256": "294fd58816e5105234628d99af3c64bcc105826171da32ea8134649d9592613b"
+      },
+      {
+        "path": "mergetools/gvimdiff",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/gvimdiff",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/gvimdiff",
+        "bytes": 29,
+        "mode": 420,
+        "sha256": "bc1d96063154a0e5a7f55f5f3579d275c124e84ba33eb50db2f5802e259b479f"
+      },
+      {
+        "path": "mergetools/kdiff3",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/kdiff3",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/kdiff3",
+        "bytes": 818,
+        "mode": 420,
+        "sha256": "b5c69d346db89853a21287b3b2b9f0f923123b691e9f0ebeb0422125fdd8a5ac"
+      },
+      {
+        "path": "mergetools/kompare",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/kompare",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/kompare",
+        "bytes": 264,
+        "mode": 420,
+        "sha256": "1e57841ff2f88c6d66cb979b43f382a3e476a747825c1abd32a95f0c26e64b6f"
+      },
+      {
+        "path": "mergetools/meld",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/meld",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/meld",
+        "bytes": 2213,
+        "mode": 420,
+        "sha256": "8913bd55b2ab6afd4b9776b18cc7b409e134beeb3dd63aa05d21b53fe027312b"
+      },
+      {
+        "path": "mergetools/nvimdiff",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/nvimdiff",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/nvimdiff",
+        "bytes": 29,
+        "mode": 420,
+        "sha256": "bc1d96063154a0e5a7f55f5f3579d275c124e84ba33eb50db2f5802e259b479f"
+      },
+      {
+        "path": "mergetools/opendiff",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/opendiff",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/opendiff",
+        "bytes": 418,
+        "mode": 420,
+        "sha256": "b43bb602aff994bc92f007d72398cb1439bfaa8d5eb5df3cc99f9e6aaec73901"
+      },
+      {
+        "path": "mergetools/p4merge",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/p4merge",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/p4merge",
+        "bytes": 784,
+        "mode": 420,
+        "sha256": "4d1f6e3cdd1a06d600c672ee4ca88d83b50b8cf42c4f7be0fac323b5c4b32993"
+      },
+      {
+        "path": "mergetools/smerge",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/smerge",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/smerge",
+        "bytes": 423,
+        "mode": 420,
+        "sha256": "a40d6cae6fa097464595c94ffcca127672b7838d21c5b47efad880fd6afe04f5"
+      },
+      {
+        "path": "mergetools/tkdiff",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/tkdiff",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/tkdiff",
+        "bytes": 403,
+        "mode": 420,
+        "sha256": "f1c788423c7a7792319168ce5c5c871918b7f6f428c7304e511692702bf260d9"
+      },
+      {
+        "path": "mergetools/tortoisemerge",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/tortoisemerge",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/tortoisemerge",
+        "bytes": 761,
+        "mode": 420,
+        "sha256": "6d0a7e1f66eb108327816949b6cbaef0c727d05fc77c60870a2555b401a93c5b"
+      },
+      {
+        "path": "mergetools/vimdiff",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/vimdiff",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/vimdiff",
+        "bytes": 18437,
+        "mode": 420,
+        "sha256": "2790ec6c7df4288946952239936dad94fd1077b4974fc550d8559dc6a1b4d980"
+      },
+      {
+        "path": "mergetools/vscode",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/vscode",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/vscode",
+        "bytes": 373,
+        "mode": 420,
+        "sha256": "58677f9c457844c3138fa66905a54a9670954ff9721c1f03c229176b7feaafe1"
+      },
+      {
+        "path": "mergetools/winmerge",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/winmerge",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/winmerge",
+        "bytes": 510,
+        "mode": 420,
+        "sha256": "18e584efa573fef5a04d5701fa237f83dfa5fb058b790c6aaff27eba33835f07"
+      },
+      {
+        "path": "mergetools/xxdiff",
+        "kind": "file",
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/xxdiff",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/mergetools/xxdiff",
+        "bytes": 913,
+        "mode": 420,
+        "sha256": "9184e4eab6bb40f09834f27dca31244e8f9028047a97d07467d9c340abb82a87"
+      },
+      {
+        "path": "scalar",
+        "kind": "symlink",
+        "mode": 493,
+        "target": "../../bin/scalar",
+        "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/scalar",
+        "insideOrigin": false,
+        "targetFile": {
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core/scalar",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/scalar",
+          "bytes": 2265568,
+          "mode": 493,
+          "sha256": "f1bbb102269f10a04d64796737a25766a4d8dca62d642c4b8210fb043cead964"
+        }
+      }
+    ],
+    "bytes": 16319360,
+    "sha256": "e4399d286413829c3619e1c7e7411a48f6632e6a1feace8355ebffb578d8ed5b"
+  },
+  "systemQualification": {
+    "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+    "pairs": [
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/System/Library/Frameworks/Security.framework/Versions/A/Security"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/usr/lib/libc++.1.dylib"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/System/Library/Frameworks/CoreServices.framework/Versions/A/CoreServices"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/usr/lib/libz.1.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/usr/lib/libiconv.2.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+        "/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation"
+      ],
+      [
+        "/usr/bin/tar",
+        "/usr/lib/libarchive.2.dylib"
+      ],
+      [
+        "/usr/bin/tar",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/usr/bin/sandbox-exec",
+        "/usr/lib/libsandbox.1.dylib"
+      ],
+      [
+        "/usr/bin/sandbox-exec",
+        "/usr/lib/libSystem.B.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+        "/usr/lib/libc++.1.dylib"
+      ],
+      [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+        "/usr/lib/libSystem.B.dylib"
+      ]
+    ],
+    "claim": "Exactly original11+sandbox2+inspector2 approved reference pairs, not unique-library count/file hashes/full OS attestation; no added exception"
+  },
+  "helper": {
+    "path": "tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs",
+    "sha256": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db",
+    "excerpt": "  const authorityFiles = [\"tests/commands/metadata-stress/canonical-env/runner.mjs\", \"tests/plugins/qualified-current-release/prerequisites.mjs\"];\n  result.authorities = authorityFiles.map(path => {\n    const expected = execFileSync(\"git\", [\"--no-replace-objects\", \"show\", `${candidate}:${path}`], { cwd: repository });\n    assert.equal(sha(readFileSync(join(source, path))), sha(expected), `native helper drift: ${path}`);\n    return { path, sha256: sha(expected) };\n  });",
+    "excerptSha256": "41e8bbf0e913189bf8b273a93499ac597515928b264cc52ac5c86b151a3d5cd7"
+  },
+  "sourceFacts": [
+    {
+      "line": 27,
+      "text": "let output,report,temporary,source,privateModule,sourceGuard,helperRoute,exitCode=0,totalOutput=0;"
+    },
+    {
+      "line": 72,
+      "text": "  helperRoute=createInheritedHelperRoute(report.toolRoutes,environment,join(temporary,'native'));report.inheritedHelperRoutes=helperRoute.records;"
+    },
+    {
+      "line": 74,
+      "text": "  report.prerequisites=await helperRoute.run('prerequisites',()=>privateModule.prerequisites({repository,source,temporary,environment,candidate:candidate.candidate}));"
+    },
+    {
+      "line": 75,
+      "text": "  report.privateBefore=report.prerequisites.safejs.before;"
+    },
+    {
+      "line": 92,
+      "text": "  const verify=async()=>{helperRoute.assertIdle();await verifyExternal();verifyToolPath(report.toolRoutes,environment,join(temporary,'native'));if(sourceGuard)assert.deepEqual((await sourceGuard.check()).changes,[],'source additions/removals/content/type/mode changed after setup');else for(const entry of protectedInputs)assert.deepEqual((await entry.guard.check()).changes,[],entry.name);verifyNativeStaging(report.nativeStaged);assert.equal(sha(readFileSync(node24)),preflight.runtime.identity.sha256);assert.equal(sha(readFileSync(npm)),report.npmCli.sha256);assert.equal(sha(readFileSync(cleanup)),sha(JSON.stringify(profile.cleanup,null,2)+'\\n'));verifyDriverSeal();};"
+    },
+    {
+      "line": 138,
+      "text": "  requireOrdered(completed,'final-sweep');await verify();await tracked();assert.deepEqual((await packageGuard.check()).changes,[]);assert.equal((await fileIdentity(tarball)).sha256,report.packageSha256);assert.deepEqual(await helperRoute.run('private-final-sweep',()=>privateModule.privateState()),report.privateBefore);report.phases.push({label:'final-sweep',status:0,expectedStatus:0});completed.push('final-sweep');"
+    },
+    {
+      "line": 142,
+      "text": "  if(report){if(report.privateBefore&&privateModule){try{report.privateAfter=await helperRoute.run('private-finally',()=>privateModule.privateState());report.privateUnchanged=JSON.stringify(report.privateBefore)===JSON.stringify(report.privateAfter);report.privateFileChanges=report.prerequisites.safejs.files.filter(entry=>{const file=join(report.privateBefore.root,'packages/safejs',entry.path),stat=lstatSync(file);return!stat.isFile()||stat.isSymbolicLink()||(stat.mode&0o777)!==entry.mode||sha(readFileSync(file))!==entry.sha256;}).map(entry=>entry.path);if(!report.privateUnchanged||report.privateFileChanges.length)exitCode=1;}catch(error){report.privateGuardError=error.stack;exitCode=1;}}"
+    }
+  ],
+  "api": "createInheritedHelperRoute(binding, environment, nativeRoot) -> records/assertIdle/run(label,callback)",
+  "groups": [
+    "core",
+    "compound-errors",
+    "poison-restoration",
+    "partial-installation",
+    "authority"
+  ],
+  "staticCases": [
+    "E02.1",
+    "E02.2",
+    "E02.3",
+    "E02.4",
+    "E04.2",
+    "E09.3",
+    "E10.3",
+    "E11.1",
+    "E12.1",
+    "E12.2"
+  ],
+  "bounds": {
+    "cohortMs": 180000,
+    "workerMs": 30000,
+    "authorityWorkerMs": 60000,
+    "workerOutputBytes": 1048576,
+    "totalCaptureBytes": 12582912,
+    "ownedDiskBytes": 67108864,
+    "gitTimeoutMs": 5000,
+    "gitOutputBytes": 2097152,
+    "controlledDeadlineMs": 25,
+    "expectedCleanupAllowanceMs": 5000
+  },
+  "permission": {
+    "rootGo": "Current user permits one independent scoped adapter cohort and narrow SHIPPING-FENCED inherited Git read only; no old GO reused",
+    "allowed": [
+      "static callsite/mutant source checks",
+      "actual isolated shipping adapter callbacks",
+      "owned benign synthetic Git objects plus literal unchanged helper authority-map excerpt only",
+      "actual shipping outer supervisor/fence with phases=[]"
+    ],
+    "forbidden": [
+      "actual execute/run/worker driver entry",
+      "actual prerequisites/privateState/privatecopy",
+      "product build/A10/pack/fullgate",
+      "private access/network/installs/new tool bindings",
+      "real instruction payload/path materialization"
+    ],
+    "note": "No product/canonical/private/native oracle module copied or imported. No mutable live fallback."
+  },
+  "recipe": {
+    "launch": "Pinned Node24 review.mjs --cohort-once; copied exact candidate modules, load allowlist/hash hooks, fresh minimal temp root. Five fresh shipping-fenced workers, no phase RPCs.",
+    "environment": "Parent finite PATH=/dev/null, LANG/LC_ALL=C,TZ=UTC; no inherited NODE_OPTIONS/NODE_PATH/GIT_*/developer/loader selections. Shipping fence sets only owned HOME/TMP/IPC. Adapter installs verified native:tool-bin PATH, Git core and optional locks0.",
+    "authority": "Create a tiny original synthetic owned Git object graph with two benign authority files at the frozen excerpt paths, no instruction objects. Run exact source excerpt with owned fixture commit/repository/source substitutions and bounded exec binding; both calls remain executable=\"git\" with no env option. No absolute Git probe substitutes for these calls.",
+    "telemetry": "Before dispatch: verify actual finite PATH components, unique first executable route and realpath/hash/core, record argv/cwd/effective env. Then spawnSync bare git (env omitted); record PID/status/signal/error fields/stdout bytes/hash/stderr and postchecks. This is unique pre-dispatch resolution, not kernel exec-event observation; original EPERM still unknown.",
+    "restorationFixtures": "Proxy-backed process.env only in fresh review worker for controlled restoration/install faults; original worker env restored in harness finally; adapter state is not reset. No malicious-host security proof.",
+    "knownBoundary": "E03.3 cannot exercise nonempty GIT_* restoration through rejecting shipping admission: record observed refusal and UNEXECUTED restoration scope, not PASS or guard bypass. PATH nonempty restore exercised separately.",
+    "failure": "Aggregate ordinary assertions after clean restoration/integrity. Unknown route/capture/lifecycle violation stops affected work. One cohort marker; no retry. Missing cases unexecuted; coordinator exit1 for failure/unexecuted/unclean, never status override.",
+    "cleanup": "Capture raw stdout/stderr and worker/fence/child receipts, metadata/hash owned trees; remove only exact newly created roots after capture, including poisoned-worker roots. Preserve all old roots/evidence."
+  },
+  "contractCases": [
+    {
+      "id": "E01.1",
+      "input": "Fresh exact candidate-bound tool/native/Git-core closure and verified local routing",
+      "expected": "Verify before mutation/callback; install only admitted PATH, GIT_EXEC_PATH and GIT_OPTIONAL_LOCKS=0; record entry identity"
+    },
+    {
+      "id": "E01.2",
+      "input": "Previously verified route made stale: changed alias target, tool bytes or native shadow",
+      "expected": "Refuse before callback/target exec, no fallback; exact prior env retained. Enumerate variant actually exercised"
+    },
+    {
+      "id": "E01.3",
+      "input": "Parent-supplied attacker PATH or unapproved GIT_* presented as authority",
+      "expected": "Never use as routing authority or silently accept injection. Unapproved binding refused; existing ambient admission remains effective"
+    },
+    {
+      "id": "E02.1",
+      "input": "Whole awaited prerequisites call, fe15 execute:73; delayed no-side-effect callback if safe seam is provided",
+      "expected": "Exact shipping callsite encloses complete await; source proof covers helper internal privateState:54,73; no real prerequisites invoked"
+    },
+    {
+      "id": "E02.2",
+      "input": "Outer final-sweep privateState, fe15 execute:137, controlled callback only",
+      "expected": "Adapter encloses privateState call, not surrounding verifyExternal; restoration before subsequent work. Static/exercised parts labeled separately"
+    },
+    {
+      "id": "E02.3",
+      "input": "Outer finally privateState, fe15 execute:141, controlled callback only",
+      "expected": "Same authenticated adapter remains available on eligible failure path; no unwrapped fallback or omitted required guard to obtain success"
+    },
+    {
+      "id": "E02.4",
+      "input": "Source sensitivity variant removes any one wrapper or ends it before awaited callback settlement",
+      "expected": "Integration proof rejects that affected scope. A standalone adapter pass cannot substitute for all three shipping routes; unavailable seam stays unexecuted"
+    },
+    {
+      "id": "E03.1",
+      "input": "Each controlled key originally absent in an isolated trusted callback fixture",
+      "expected": "Restore by deletion; Object.hasOwn remains false for each key"
+    },
+    {
+      "id": "E03.2",
+      "input": "Each controlled key originally present-empty",
+      "expected": "Restore present-empty, not deletion or string undefined"
+    },
+    {
+      "id": "E03.3",
+      "input": "Each controlled key originally present-nonempty in adapter-only trusted fixture",
+      "expected": "Restore exact original strings; this fixture is NOT acceptance of ambient GIT_* in shipping admission"
+    },
+    {
+      "id": "E03.4",
+      "input": "Mixed absent/empty/nonempty across the three keys, success and throwing callback variants",
+      "expected": "Independent own-presence/value snapshot for each key; no truthiness-based restoration"
+    },
+    {
+      "id": "E04.1",
+      "input": "Unrelated owned env sentinels; callbacks do not mutate them; success/refusal paths",
+      "expected": "Adapter changes no keys outside exact three; HOME/TMP/loader/observer settings unchanged"
+    },
+    {
+      "id": "E04.2",
+      "input": "Sensitivity variant adds permanent GIT_* injection or selector/library/permission/helper changes",
+      "expected": "Reject scope/binding change; no weakening of later verifyExternal. No requirement to undo arbitrary unrelated callback writes is invented"
+    },
+    {
+      "id": "E05.1",
+      "input": "Nested adapter entry inside callback",
+      "expected": "Reject nested entry before its mutation/callback; outer ownership preserved"
+    },
+    {
+      "id": "E05.2",
+      "input": "Second entry while first callback deliberately awaits controlled settlement",
+      "expected": "Reject overlap, including attempted mutation-before-lock sensitivity; first scope retains installed values until settlement/restoration"
+    },
+    {
+      "id": "E05.3",
+      "input": "Entry attempt during controlled restoration boundary, if candidate exposes a safe seam",
+      "expected": "Lock still held; no reuse before exact restoration. No seam means source proof plus explicit dynamic limitation, not fake runtime pass"
+    },
+    {
+      "id": "E06.1",
+      "input": "Callback leaves an installed controlled key altered",
+      "expected": "Persistent drift reported independently of callback result; exact prior state restored or poisoned failure retained"
+    },
+    {
+      "id": "E06.2",
+      "input": "Caller changes the supplied routing object during await to conceal changed installed value",
+      "expected": "Trusted entry expectations cannot silently follow mutable caller data; drift remains refusal. No claim that entry/exit checks detect transient changed-then-restored env"
+    },
+    {
+      "id": "E07.1",
+      "input": "Owned callback throws, restoration succeeds",
+      "expected": "Original callback failure retained and non-success propagated; exact env restoration"
+    },
+    {
+      "id": "E07.2",
+      "input": "Callback throws and leaves persistent drift",
+      "expected": "Both callback and drift retained distinctly, neither replaces the other"
+    },
+    {
+      "id": "E07.3",
+      "input": "Callback failure plus drift plus controlled restoration failure, using only a safe declared seam",
+      "expected": "All three diagnostics survive result/report propagation; no masking by finally or string-only aggregation loss. No seam: blocked, not executed"
+    },
+    {
+      "id": "E08.1",
+      "input": "Successful callback but one restoration operation fails; attempt subsequent adapter entry",
+      "expected": "Attempt remaining restores, preserve failure, poison unusable context, refuse reuse/gate work; never success merely because callback succeeded"
+    },
+    {
+      "id": "E08.2",
+      "input": "Controlled failure after partial installation, before callback",
+      "expected": "Restore every changed key; callback not entered; retain installation/restoration failures and poison if exact prior state cannot be established"
+    },
+    {
+      "id": "E09.1",
+      "input": "Cooperatively cancelled/throwing delayed callback settles",
+      "expected": "Keep ownership through settlement/restoration; cancellation not converted to success; no future callback admission during closure"
+    },
+    {
+      "id": "E09.2",
+      "input": "Controlled callback remains unresolved at recipe deadline or remote phase disconnects",
+      "expected": "HOLD, no concurrent reuse or restoration raced against live callback; outer bounded teardown evidence explicit. Await/timeout is not all-background-work closure"
+    },
+    {
+      "id": "E09.3",
+      "input": "Source/controlled-finally cases: failure before verified handle/privateBefore versus failure after eligible privateBefore with incomplete phase cleanup",
+      "expected": "Preserve original guard eligibility; no fabricated private postguard. Eligible check uses verified scope, unresolved ownership/cleanup remains HOLD. No actual privateState call"
+    },
+    {
+      "id": "E10.1",
+      "input": "Only if expressly authorized later: admitted Git reads benign authority from an owned fixture using actual frozen adapter",
+      "expected": "Independently bind binary realpath/hash, Git-core route, exact argv/cwd/effective selected env, owned fixture object/digest and status/stdout/stderr. Dispatch target evidenced before/at exec, not bare argv or posthoc hash alone; no real prerequisites/private read"
+    },
+    {
+      "id": "E10.2",
+      "input": "Wrong/stale binary binding or denied selector route supplied to same future owned-read recipe",
+      "expected": "Refusal before unauthorized target dispatch, unchanged owned authority, truthful attempted/denied counts. Do not execute an unbound binary to test its hash"
+    },
+    {
+      "id": "E10.3",
+      "input": "Telemetry claims resolved target using only bare git spelling/post-run hash, or drops original exec failure fields",
+      "expected": "Reject proof as insufficient. Preserve code/errno/syscall/path/spawnargs/status/signal when available; missing fields explicitly unknown. Node does not automatically prove resolved executable. Explicit-target probe alone does not prove unchanged helper's bare-name dispatch"
+    },
+    {
+      "id": "E11.1",
+      "input": "Candidate source/load graph and future recipe selection",
+      "expected": "No actual prerequisites/privateState/copy, A10/fullgate or live fallback via callback tests; old helper/OS fence/exact-six projection/qualified tool-library policy remain bound. Unexpected reachable work blocks admission"
+    },
+    {
+      "id": "E11.2",
+      "input": "Normal versus failure/forced-teardown receipts and any inherited changed-source claim",
+      "expected": "Distinguish process-local lock from parent/observer/child environment isolation; record owned children/stdio/cleanup only if observed. No survivor-free/private-clean/security guarantee from mere callback await or prior cohort; FD qualifications unchanged"
+    },
+    {
+      "id": "E12.1",
+      "input": "Candidate requests reuse of old97c/7fd evidence with changed versus byte-identical members",
+      "expected": "Only explicitly enumerated identical bindings may carry; changed adapter/callsites/DRIVER require fresh review. Preserve old attempts/counts, exact EPERM target unknown, no retroactive attribution"
+    },
+    {
+      "id": "E12.2",
+      "input": "Missing immutable packet, missing independent scoped GO, author-only GO, mutable selection or old release",
+      "expected": "No execution admitted. Future permission table must name each allowed phase; no fullgate/prerequisite/private/A10 permission inferred"
+    }
+  ],
+  "authorHistory": "Original9/10 G09 schema failure, focused two inherited reads with erroneous coordinator EXIT1, offline reporter8 retained; no counts imported",
+  "preexecutionReaderCorrections": [
+    "Handoff was at driver/inherited-routes-author-v1, not launcher-v3 subpath",
+    "External directories is keyed object, not array",
+    "Sandbox and inspector bindings reside in separate existing manifests, not external.tools; no new route added"
+  ]
+}

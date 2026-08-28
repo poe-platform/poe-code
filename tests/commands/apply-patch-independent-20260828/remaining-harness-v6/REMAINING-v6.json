@@ -1,0 +1,1732 @@
+{
+  "classification": "OLDcandidate mapping only; NOT an executable successor plan; old43 stay UNRUN; new root handoff required",
+  "candidate": "58be2d6c5706f3e90f01d48e695ecfd9daa52669",
+  "frozen43": {
+    "classification": "UNRUN; separate root GO only",
+    "frozenSealSha256": "ec2f19e1825970b662d60a99f2128158ab7ab494b4161ce2a4b0f121f4dcc8e5",
+    "originalBounds": {
+      "controllerMs": 6600000,
+      "cleanupReserveMs": 30000,
+      "peakOwnedProcesses": 2,
+      "userPeakCap": 4,
+      "workingBytes": 536870912,
+      "captureBytes": 134217728,
+      "oldSpaceMiB": 256,
+      "oldSpaceQualification": "Not RSS limit",
+      "worstPlannedChildTimeoutMs": 3400000
+    },
+    "originalCounts": {
+      "plannedChildren": 70,
+      "byRole": {
+        "git": 3,
+        "guard": 4,
+        "build": 1,
+        "type": 15,
+        "product": 47
+      },
+      "plannedCommandEntries": 401,
+      "plannedCaseReceipts": 422,
+      "plannedIndependentRowsPerLayout": 112,
+      "expandedPerLayout": 126,
+      "sourceBuilds": 1,
+      "physicalMoves": 1,
+      "offlineAssemblySubprocesses": 0,
+      "workerInstances": 0,
+      "testServers": 0,
+      "nativeOracles": 0,
+      "networkRequests": 0
+    },
+    "jobs": [
+      {
+        "id": "types-moved-positive",
+        "role": "type",
+        "timeoutMs": 120000,
+        "maxBytes": 262144,
+        "layout": "moved",
+        "variant": "positive"
+      },
+      {
+        "id": "types-moved-bad-value",
+        "role": "type",
+        "timeoutMs": 120000,
+        "maxBytes": 262144,
+        "layout": "moved",
+        "variant": "bad-value"
+      },
+      {
+        "id": "types-moved-bad-value-repair",
+        "role": "type",
+        "timeoutMs": 120000,
+        "maxBytes": 262144,
+        "layout": "moved",
+        "variant": "bad-value-repair"
+      },
+      {
+        "id": "types-moved-root-negative",
+        "role": "type",
+        "timeoutMs": 120000,
+        "maxBytes": 262144,
+        "layout": "moved",
+        "variant": "root-negative"
+      },
+      {
+        "id": "types-moved-root-repair",
+        "role": "type",
+        "timeoutMs": 120000,
+        "maxBytes": 262144,
+        "layout": "moved",
+        "variant": "root-repair"
+      },
+      {
+        "id": "cap-L01-minus",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L01",
+        "endpoint": "minus"
+      },
+      {
+        "id": "cap-L01-at",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L01",
+        "endpoint": "at"
+      },
+      {
+        "id": "cap-L01-over",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L01",
+        "endpoint": "over"
+      },
+      {
+        "id": "cap-L02-minus",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L02",
+        "endpoint": "minus"
+      },
+      {
+        "id": "cap-L02-at",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L02",
+        "endpoint": "at"
+      },
+      {
+        "id": "cap-L02-over",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L02",
+        "endpoint": "over"
+      },
+      {
+        "id": "cap-L05-minus",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L05",
+        "endpoint": "minus"
+      },
+      {
+        "id": "cap-L05-at",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L05",
+        "endpoint": "at"
+      },
+      {
+        "id": "cap-L05-over",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L05",
+        "endpoint": "over"
+      },
+      {
+        "id": "cap-L06-minus",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L06",
+        "endpoint": "minus"
+      },
+      {
+        "id": "cap-L06-at",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L06",
+        "endpoint": "at"
+      },
+      {
+        "id": "cap-L06-over",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L06",
+        "endpoint": "over"
+      },
+      {
+        "id": "cap-L07-minus",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L07",
+        "endpoint": "minus"
+      },
+      {
+        "id": "cap-L07-at",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L07",
+        "endpoint": "at"
+      },
+      {
+        "id": "cap-L07-over",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L07",
+        "endpoint": "over"
+      },
+      {
+        "id": "cap-L10-minus",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L10",
+        "endpoint": "minus"
+      },
+      {
+        "id": "cap-L10-at",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L10",
+        "endpoint": "at"
+      },
+      {
+        "id": "cap-L10-over",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L10",
+        "endpoint": "over"
+      },
+      {
+        "id": "real-scoped",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "backend": "real",
+        "ids": [
+          "P01",
+          "P06",
+          "P09",
+          "S41"
+        ]
+      },
+      {
+        "id": "mock-s3-scoped",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "backend": "mock-s3",
+        "ids": [
+          "P01",
+          "P06",
+          "P09",
+          "S41"
+        ]
+      },
+      {
+        "id": "mutation-M01-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M01",
+        "phase": "before",
+        "ids": [
+          "P02"
+        ]
+      },
+      {
+        "id": "mutation-M01-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M01",
+        "phase": "mutant",
+        "ids": [
+          "P02"
+        ]
+      },
+      {
+        "id": "mutation-M01-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M01",
+        "phase": "restored",
+        "ids": [
+          "P02"
+        ]
+      },
+      {
+        "id": "mutation-M03-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M03",
+        "phase": "before",
+        "ids": [
+          "P18"
+        ]
+      },
+      {
+        "id": "mutation-M03-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M03",
+        "phase": "mutant",
+        "ids": [
+          "P18"
+        ]
+      },
+      {
+        "id": "mutation-M03-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M03",
+        "phase": "restored",
+        "ids": [
+          "P18"
+        ]
+      },
+      {
+        "id": "mutation-M04-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M04",
+        "phase": "before",
+        "ids": [
+          "P16"
+        ]
+      },
+      {
+        "id": "mutation-M04-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M04",
+        "phase": "mutant",
+        "ids": [
+          "P16"
+        ]
+      },
+      {
+        "id": "mutation-M04-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M04",
+        "phase": "restored",
+        "ids": [
+          "P16"
+        ]
+      },
+      {
+        "id": "mutation-M09-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M09",
+        "phase": "before",
+        "ids": [
+          "S40"
+        ]
+      },
+      {
+        "id": "mutation-M09-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M09",
+        "phase": "mutant",
+        "ids": [
+          "S40"
+        ]
+      },
+      {
+        "id": "mutation-M09-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M09",
+        "phase": "restored",
+        "ids": [
+          "S40"
+        ]
+      },
+      {
+        "id": "mutation-M12-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M12",
+        "phase": "before",
+        "ids": [
+          "S49"
+        ]
+      },
+      {
+        "id": "mutation-M12-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M12",
+        "phase": "mutant",
+        "ids": [
+          "S49"
+        ]
+      },
+      {
+        "id": "mutation-M12-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M12",
+        "phase": "restored",
+        "ids": [
+          "S49"
+        ]
+      },
+      {
+        "id": "mutation-M18-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M18",
+        "phase": "before",
+        "ids": [],
+        "cap": "L10",
+        "endpoint": "over"
+      },
+      {
+        "id": "mutation-M18-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M18",
+        "phase": "mutant",
+        "ids": [],
+        "cap": "L10",
+        "endpoint": "over"
+      },
+      {
+        "id": "mutation-M18-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M18",
+        "phase": "restored",
+        "ids": [],
+        "cap": "L10",
+        "endpoint": "over"
+      }
+    ]
+  },
+  "fresh43": [
+    {
+      "id": "V6-FRESH-types-moved-positive",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "moved",
+      "variant": "positive",
+      "frozenJobId": "types-moved-positive",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-types-moved-bad-value",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "moved",
+      "variant": "bad-value",
+      "frozenJobId": "types-moved-bad-value",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-types-moved-bad-value-repair",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "moved",
+      "variant": "bad-value-repair",
+      "frozenJobId": "types-moved-bad-value-repair",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-types-moved-root-negative",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "moved",
+      "variant": "root-negative",
+      "frozenJobId": "types-moved-root-negative",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-types-moved-root-repair",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "moved",
+      "variant": "root-repair",
+      "frozenJobId": "types-moved-root-repair",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L01-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L01",
+      "endpoint": "minus",
+      "frozenJobId": "cap-L01-minus",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L01-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L01",
+      "endpoint": "at",
+      "frozenJobId": "cap-L01-at",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L01-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L01",
+      "endpoint": "over",
+      "frozenJobId": "cap-L01-over",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L02-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L02",
+      "endpoint": "minus",
+      "frozenJobId": "cap-L02-minus",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L02-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L02",
+      "endpoint": "at",
+      "frozenJobId": "cap-L02-at",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L02-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L02",
+      "endpoint": "over",
+      "frozenJobId": "cap-L02-over",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L05-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L05",
+      "endpoint": "minus",
+      "frozenJobId": "cap-L05-minus",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L05-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L05",
+      "endpoint": "at",
+      "frozenJobId": "cap-L05-at",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L05-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L05",
+      "endpoint": "over",
+      "frozenJobId": "cap-L05-over",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L06-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L06",
+      "endpoint": "minus",
+      "frozenJobId": "cap-L06-minus",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L06-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L06",
+      "endpoint": "at",
+      "frozenJobId": "cap-L06-at",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L06-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L06",
+      "endpoint": "over",
+      "frozenJobId": "cap-L06-over",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L07-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L07",
+      "endpoint": "minus",
+      "frozenJobId": "cap-L07-minus",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L07-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L07",
+      "endpoint": "at",
+      "frozenJobId": "cap-L07-at",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L07-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L07",
+      "endpoint": "over",
+      "frozenJobId": "cap-L07-over",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L10-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L10",
+      "endpoint": "minus",
+      "frozenJobId": "cap-L10-minus",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L10-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L10",
+      "endpoint": "at",
+      "frozenJobId": "cap-L10-at",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-cap-L10-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L10",
+      "endpoint": "over",
+      "frozenJobId": "cap-L10-over",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-real-scoped",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "backend": "real",
+      "ids": [
+        "P01",
+        "P06",
+        "P09",
+        "S41"
+      ],
+      "frozenJobId": "real-scoped",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mock-s3-scoped",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "backend": "mock-s3",
+      "ids": [
+        "P01",
+        "P06",
+        "P09",
+        "S41"
+      ],
+      "frozenJobId": "mock-s3-scoped",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M01-before",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M01",
+      "phase": "before",
+      "ids": [
+        "P02"
+      ],
+      "frozenJobId": "mutation-M01-before",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M01-mutant",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M01",
+      "phase": "mutant",
+      "ids": [
+        "P02"
+      ],
+      "frozenJobId": "mutation-M01-mutant",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M01-restored",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M01",
+      "phase": "restored",
+      "ids": [
+        "P02"
+      ],
+      "frozenJobId": "mutation-M01-restored",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M03-before",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M03",
+      "phase": "before",
+      "ids": [
+        "P18"
+      ],
+      "frozenJobId": "mutation-M03-before",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M03-mutant",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M03",
+      "phase": "mutant",
+      "ids": [
+        "P18"
+      ],
+      "frozenJobId": "mutation-M03-mutant",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M03-restored",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M03",
+      "phase": "restored",
+      "ids": [
+        "P18"
+      ],
+      "frozenJobId": "mutation-M03-restored",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M04-before",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M04",
+      "phase": "before",
+      "ids": [
+        "P16"
+      ],
+      "frozenJobId": "mutation-M04-before",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M04-mutant",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M04",
+      "phase": "mutant",
+      "ids": [
+        "P16"
+      ],
+      "frozenJobId": "mutation-M04-mutant",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M04-restored",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M04",
+      "phase": "restored",
+      "ids": [
+        "P16"
+      ],
+      "frozenJobId": "mutation-M04-restored",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M09-before",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M09",
+      "phase": "before",
+      "ids": [
+        "S40"
+      ],
+      "frozenJobId": "mutation-M09-before",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M09-mutant",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M09",
+      "phase": "mutant",
+      "ids": [
+        "S40"
+      ],
+      "frozenJobId": "mutation-M09-mutant",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M09-restored",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M09",
+      "phase": "restored",
+      "ids": [
+        "S40"
+      ],
+      "frozenJobId": "mutation-M09-restored",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M12-before",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M12",
+      "phase": "before",
+      "ids": [
+        "S49"
+      ],
+      "frozenJobId": "mutation-M12-before",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M12-mutant",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M12",
+      "phase": "mutant",
+      "ids": [
+        "S49"
+      ],
+      "frozenJobId": "mutation-M12-mutant",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M12-restored",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M12",
+      "phase": "restored",
+      "ids": [
+        "S49"
+      ],
+      "frozenJobId": "mutation-M12-restored",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M18-before",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M18",
+      "phase": "before",
+      "ids": [],
+      "cap": "L10",
+      "endpoint": "over",
+      "frozenJobId": "mutation-M18-before",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M18-mutant",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M18",
+      "phase": "mutant",
+      "ids": [],
+      "cap": "L10",
+      "endpoint": "over",
+      "frozenJobId": "mutation-M18-mutant",
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-FRESH-mutation-M18-restored",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M18",
+      "phase": "restored",
+      "ids": [],
+      "cap": "L10",
+      "endpoint": "over",
+      "frozenJobId": "mutation-M18-restored",
+      "execution": "NOT_RUN"
+    }
+  ],
+  "fixtureTail": [
+    {
+      "id": "V6-TAIL-source",
+      "role": "product",
+      "layout": "source",
+      "ids": [
+        "V6-S62-CANONICAL",
+        "V6-S64-LITERAL-NOPULL",
+        "V6-S71-ACCESS-MODE",
+        "V6-S74-EXACT-BRANCH-SET"
+      ],
+      "timeoutMs": 60000,
+      "maxBytes": 2097152,
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-TAIL-installed",
+      "role": "product",
+      "layout": "installed",
+      "ids": [
+        "V6-S62-CANONICAL",
+        "V6-S64-LITERAL-NOPULL",
+        "V6-S71-ACCESS-MODE",
+        "V6-S74-EXACT-BRANCH-SET"
+      ],
+      "timeoutMs": 60000,
+      "maxBytes": 2097152,
+      "execution": "NOT_RUN"
+    },
+    {
+      "id": "V6-TAIL-moved",
+      "role": "product",
+      "layout": "moved",
+      "ids": [
+        "V6-S62-CANONICAL",
+        "V6-S64-LITERAL-NOPULL",
+        "V6-S71-ACCESS-MODE",
+        "V6-S74-EXACT-BRANCH-SET"
+      ],
+      "timeoutMs": 60000,
+      "maxBytes": 2097152,
+      "execution": "NOT_RUN"
+    }
+  ],
+  "auxiliary": [
+    {
+      "id": "V6-AUX-GIT-tree",
+      "role": "git",
+      "timeoutMs": 15000,
+      "maxBytes": 1048576,
+      "execution": "NOT_RUN",
+      "admission": "EXPLICIT LATER GO; route and exact argv/permissions not yet qualified"
+    },
+    {
+      "id": "V6-AUX-GIT-candidate",
+      "role": "git",
+      "timeoutMs": 15000,
+      "maxBytes": 1048576,
+      "execution": "NOT_RUN",
+      "admission": "EXPLICIT LATER GO; route and exact argv/permissions not yet qualified"
+    },
+    {
+      "id": "V6-AUX-GIT-objects",
+      "role": "git",
+      "timeoutMs": 15000,
+      "maxBytes": 1048576,
+      "execution": "NOT_RUN",
+      "admission": "EXPLICIT LATER GO; route and exact argv/permissions not yet qualified"
+    },
+    {
+      "id": "V6-AUX-GUARD-loader-positive",
+      "role": "guard",
+      "timeoutMs": 30000,
+      "maxBytes": 262144,
+      "execution": "NOT_RUN",
+      "admission": "EXPLICIT LATER GO; route and exact argv/permissions not yet qualified"
+    },
+    {
+      "id": "V6-AUX-GUARD-loader-negative",
+      "role": "guard",
+      "timeoutMs": 30000,
+      "maxBytes": 262144,
+      "execution": "NOT_RUN",
+      "admission": "EXPLICIT LATER GO; route and exact argv/permissions not yet qualified"
+    },
+    {
+      "id": "V6-AUX-GUARD-stdout-bytes",
+      "role": "guard",
+      "timeoutMs": 30000,
+      "maxBytes": 262144,
+      "execution": "NOT_RUN",
+      "admission": "EXPLICIT LATER GO; route and exact argv/permissions not yet qualified"
+    },
+    {
+      "id": "V6-AUX-GUARD-process-envelope",
+      "role": "guard",
+      "timeoutMs": 30000,
+      "maxBytes": 262144,
+      "execution": "NOT_RUN",
+      "admission": "EXPLICIT LATER GO; route and exact argv/permissions not yet qualified"
+    },
+    {
+      "id": "V6-AUX-BUILD-source",
+      "role": "build",
+      "timeoutMs": 600000,
+      "maxBytes": 2097152,
+      "execution": "NOT_RUN",
+      "admission": "EXPLICIT LATER GO; route and exact argv/permissions not yet qualified"
+    },
+    {
+      "id": "V6-AUX-RUNTIME-SEAL-add",
+      "role": "git",
+      "timeoutMs": 30000,
+      "maxBytes": 262144,
+      "execution": "NOT_RUN",
+      "admission": "EXPLICIT LATER GO; route and exact argv/permissions not yet qualified"
+    },
+    {
+      "id": "V6-AUX-RUNTIME-SEAL-commit",
+      "role": "git",
+      "timeoutMs": 30000,
+      "maxBytes": 262144,
+      "execution": "NOT_RUN",
+      "admission": "EXPLICIT LATER GO; route and exact argv/permissions not yet qualified"
+    },
+    {
+      "id": "V6-AUX-RUNTIME-SEAL-identity",
+      "role": "git",
+      "timeoutMs": 30000,
+      "maxBytes": 262144,
+      "execution": "NOT_RUN",
+      "admission": "EXPLICIT LATER GO; route and exact argv/permissions not yet qualified"
+    }
+  ],
+  "counts": {
+    "freshRemainingJobs": 43,
+    "movedTypes": 5,
+    "limits": 18,
+    "adapters": 2,
+    "mutants": 18,
+    "fresh43ProductCaseReceipts": 44,
+    "newFixtureIds": 4,
+    "tailLayouts": 3,
+    "tailJobs": 3,
+    "tailRows": 12,
+    "proposedProductCaseReceiptsWithTail": 56,
+    "auxiliaryJobs": 11,
+    "totalProposedChildren": 57,
+    "productJobs": 41
+  },
+  "mapping": {
+    "movedTypes": [
+      {
+        "id": "V6-FRESH-types-moved-positive",
+        "role": "type",
+        "timeoutMs": 120000,
+        "maxBytes": 262144,
+        "layout": "moved",
+        "variant": "positive",
+        "frozenJobId": "types-moved-positive",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-types-moved-bad-value",
+        "role": "type",
+        "timeoutMs": 120000,
+        "maxBytes": 262144,
+        "layout": "moved",
+        "variant": "bad-value",
+        "frozenJobId": "types-moved-bad-value",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-types-moved-bad-value-repair",
+        "role": "type",
+        "timeoutMs": 120000,
+        "maxBytes": 262144,
+        "layout": "moved",
+        "variant": "bad-value-repair",
+        "frozenJobId": "types-moved-bad-value-repair",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-types-moved-root-negative",
+        "role": "type",
+        "timeoutMs": 120000,
+        "maxBytes": 262144,
+        "layout": "moved",
+        "variant": "root-negative",
+        "frozenJobId": "types-moved-root-negative",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-types-moved-root-repair",
+        "role": "type",
+        "timeoutMs": 120000,
+        "maxBytes": 262144,
+        "layout": "moved",
+        "variant": "root-repair",
+        "frozenJobId": "types-moved-root-repair",
+        "execution": "NOT_RUN"
+      }
+    ],
+    "limits": [
+      {
+        "id": "V6-FRESH-cap-L01-minus",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L01",
+        "endpoint": "minus",
+        "frozenJobId": "cap-L01-minus",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L01-at",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L01",
+        "endpoint": "at",
+        "frozenJobId": "cap-L01-at",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L01-over",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L01",
+        "endpoint": "over",
+        "frozenJobId": "cap-L01-over",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L02-minus",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L02",
+        "endpoint": "minus",
+        "frozenJobId": "cap-L02-minus",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L02-at",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L02",
+        "endpoint": "at",
+        "frozenJobId": "cap-L02-at",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L02-over",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L02",
+        "endpoint": "over",
+        "frozenJobId": "cap-L02-over",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L05-minus",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L05",
+        "endpoint": "minus",
+        "frozenJobId": "cap-L05-minus",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L05-at",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L05",
+        "endpoint": "at",
+        "frozenJobId": "cap-L05-at",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L05-over",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L05",
+        "endpoint": "over",
+        "frozenJobId": "cap-L05-over",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L06-minus",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L06",
+        "endpoint": "minus",
+        "frozenJobId": "cap-L06-minus",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L06-at",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L06",
+        "endpoint": "at",
+        "frozenJobId": "cap-L06-at",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L06-over",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L06",
+        "endpoint": "over",
+        "frozenJobId": "cap-L06-over",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L07-minus",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L07",
+        "endpoint": "minus",
+        "frozenJobId": "cap-L07-minus",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L07-at",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L07",
+        "endpoint": "at",
+        "frozenJobId": "cap-L07-at",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L07-over",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L07",
+        "endpoint": "over",
+        "frozenJobId": "cap-L07-over",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L10-minus",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L10",
+        "endpoint": "minus",
+        "frozenJobId": "cap-L10-minus",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L10-at",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L10",
+        "endpoint": "at",
+        "frozenJobId": "cap-L10-at",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-cap-L10-over",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "cap": "L10",
+        "endpoint": "over",
+        "frozenJobId": "cap-L10-over",
+        "execution": "NOT_RUN"
+      }
+    ],
+    "adapters": [
+      {
+        "id": "V6-FRESH-real-scoped",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "backend": "real",
+        "ids": [
+          "P01",
+          "P06",
+          "P09",
+          "S41"
+        ],
+        "frozenJobId": "real-scoped",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mock-s3-scoped",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 2097152,
+        "layout": "source",
+        "backend": "mock-s3",
+        "ids": [
+          "P01",
+          "P06",
+          "P09",
+          "S41"
+        ],
+        "frozenJobId": "mock-s3-scoped",
+        "execution": "NOT_RUN"
+      }
+    ],
+    "mutants": [
+      {
+        "id": "V6-FRESH-mutation-M01-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M01",
+        "phase": "before",
+        "ids": [
+          "P02"
+        ],
+        "frozenJobId": "mutation-M01-before",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M01-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M01",
+        "phase": "mutant",
+        "ids": [
+          "P02"
+        ],
+        "frozenJobId": "mutation-M01-mutant",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M01-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M01",
+        "phase": "restored",
+        "ids": [
+          "P02"
+        ],
+        "frozenJobId": "mutation-M01-restored",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M03-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M03",
+        "phase": "before",
+        "ids": [
+          "P18"
+        ],
+        "frozenJobId": "mutation-M03-before",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M03-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M03",
+        "phase": "mutant",
+        "ids": [
+          "P18"
+        ],
+        "frozenJobId": "mutation-M03-mutant",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M03-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M03",
+        "phase": "restored",
+        "ids": [
+          "P18"
+        ],
+        "frozenJobId": "mutation-M03-restored",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M04-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M04",
+        "phase": "before",
+        "ids": [
+          "P16"
+        ],
+        "frozenJobId": "mutation-M04-before",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M04-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M04",
+        "phase": "mutant",
+        "ids": [
+          "P16"
+        ],
+        "frozenJobId": "mutation-M04-mutant",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M04-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M04",
+        "phase": "restored",
+        "ids": [
+          "P16"
+        ],
+        "frozenJobId": "mutation-M04-restored",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M09-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M09",
+        "phase": "before",
+        "ids": [
+          "S40"
+        ],
+        "frozenJobId": "mutation-M09-before",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M09-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M09",
+        "phase": "mutant",
+        "ids": [
+          "S40"
+        ],
+        "frozenJobId": "mutation-M09-mutant",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M09-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M09",
+        "phase": "restored",
+        "ids": [
+          "S40"
+        ],
+        "frozenJobId": "mutation-M09-restored",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M12-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M12",
+        "phase": "before",
+        "ids": [
+          "S49"
+        ],
+        "frozenJobId": "mutation-M12-before",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M12-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M12",
+        "phase": "mutant",
+        "ids": [
+          "S49"
+        ],
+        "frozenJobId": "mutation-M12-mutant",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M12-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M12",
+        "phase": "restored",
+        "ids": [
+          "S49"
+        ],
+        "frozenJobId": "mutation-M12-restored",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M18-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M18",
+        "phase": "before",
+        "ids": [],
+        "cap": "L10",
+        "endpoint": "over",
+        "frozenJobId": "mutation-M18-before",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M18-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M18",
+        "phase": "mutant",
+        "ids": [],
+        "cap": "L10",
+        "endpoint": "over",
+        "frozenJobId": "mutation-M18-mutant",
+        "execution": "NOT_RUN"
+      },
+      {
+        "id": "V6-FRESH-mutation-M18-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M18",
+        "phase": "restored",
+        "ids": [],
+        "cap": "L10",
+        "endpoint": "over",
+        "frozenJobId": "mutation-M18-restored",
+        "execution": "NOT_RUN"
+      }
+    ]
+  },
+  "budget": {
+    "controllerMs": 6600000,
+    "cleanupReserveMs": 30000,
+    "peakAllOwnedProcesses": 2,
+    "children": 57,
+    "captureBytes": 134217728,
+    "scratchBytes": 536870912,
+    "sumDeclaredChildTimeoutMs": 2775000,
+    "sumDeclaredChildCaptureCaps": 75497472,
+    "otherOSChildrenAllowed": 0
+  },
+  "barriers": [
+    "S54 separate Poincare adjudication",
+    "Versioned worker for new fields/IDs remains to be authored and bound",
+    "Build/metadata/guard paths and permission closure require later review",
+    "Keep committed runtime seal; real Git add/commit machinery unqualified",
+    "No durable-file or serialized-handoff change without explicit later authority"
+  ]
+}

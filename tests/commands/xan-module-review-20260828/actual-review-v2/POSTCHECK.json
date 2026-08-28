@@ -1,0 +1,1289 @@
+{
+  "classification": "READ_ONLY_EVIDENCE_CHECK_NO_PRODUCT_RERUN_OR_RESCORE",
+  "checked": "2026-08-28T06:41:23.583Z",
+  "appendAwareTrees": [
+    "admitted source",
+    "admitted tools",
+    "physically moved package",
+    "independent emission"
+  ],
+  "recipeFileHashes": "exact bound files; not append-proof review output directory",
+  "finals": [
+    {
+      "id": "SOURCE-000",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-001",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-002",
+      "code": 1,
+      "failures": 6,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-003",
+      "code": 1,
+      "failures": 14,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-004",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-005",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-006",
+      "code": 1,
+      "failures": 13,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-007",
+      "code": 1,
+      "failures": 37,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-008",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-009",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-010",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-011",
+      "code": 1,
+      "failures": 3,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-012",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-013",
+      "code": 1,
+      "failures": 5,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-014",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-015",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-016",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-017",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-018",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-019",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-020",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-021",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-022",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-023",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-024",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-025",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-026",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-027",
+      "code": 1,
+      "failures": 1,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-028",
+      "code": 1,
+      "failures": 1,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-029",
+      "code": 1,
+      "failures": 1,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-030",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-031",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-032",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-033",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-034",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-035",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-036",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-037",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-038",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-039",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-040",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-041",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-042",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-043",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-044",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-045",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-046",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-047",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-048",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-049",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-050",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-051",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-052",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-053",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-054",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-055",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-056",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-057",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-058",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-059",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-060",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-061",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-062",
+      "code": 1,
+      "failures": 2,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-063",
+      "code": 1,
+      "failures": 1,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-064",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-065",
+      "code": 1,
+      "failures": 1,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-066",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-067",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-068",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-069",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-070",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-071",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-072",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-073",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-074",
+      "code": 1,
+      "failures": 6,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-075",
+      "code": 1,
+      "failures": 1,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-076",
+      "code": 1,
+      "failures": 1,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-077",
+      "code": 1,
+      "failures": 1,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "SOURCE-078",
+      "code": 1,
+      "failures": 4,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-000",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-001",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-002",
+      "code": 1,
+      "failures": 6,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-003",
+      "code": 1,
+      "failures": 14,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-004",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-005",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-006",
+      "code": 1,
+      "failures": 13,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-007",
+      "code": 1,
+      "failures": 37,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-008",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-009",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-010",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-011",
+      "code": 1,
+      "failures": 3,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-012",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-013",
+      "code": 1,
+      "failures": 5,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-014",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-015",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-016",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-017",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-018",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-019",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-020",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-021",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-022",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-023",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-024",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-025",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-026",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-027",
+      "code": 1,
+      "failures": 1,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-028",
+      "code": 1,
+      "failures": 1,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-029",
+      "code": 1,
+      "failures": 1,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-030",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-031",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-032",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-033",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-034",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-035",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-036",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-037",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-038",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-039",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-040",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-041",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-042",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-043",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-044",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-045",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-046",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-047",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-048",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-049",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-050",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-051",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-052",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-053",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-054",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-055",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-056",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-057",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-058",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-059",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-060",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-061",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-062",
+      "code": 1,
+      "failures": 2,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-063",
+      "code": 1,
+      "failures": 1,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-064",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-065",
+      "code": 1,
+      "failures": 1,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-066",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-067",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-068",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-069",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-070",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-071",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-072",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-073",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-074",
+      "code": 1,
+      "failures": 6,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-075",
+      "code": 1,
+      "failures": 1,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-076",
+      "code": 0,
+      "failures": 0,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-077",
+      "code": 1,
+      "failures": 1,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    },
+    {
+      "id": "INSTALLED_MOVED-078",
+      "code": 1,
+      "failures": 4,
+      "complete": true,
+      "closed": true,
+      "intact": true
+    }
+  ],
+  "allActualExitChannelsAgree": true,
+  "cohortChildren": 164,
+  "reaped": 164,
+  "movedDefaultOutput": {
+    "bytes": 268435456,
+    "expectedSha256": "80a8883eceabf2303952d9e620cd9c23314152cfcf54618e9ff6a73e508112b4",
+    "actualSha256": "80a8883eceabf2303952d9e620cd9c23314152cfcf54618e9ff6a73e508112b4",
+    "reference": "sealed preparation-v2 independent output generator",
+    "actualRaw": "evidence-continuation/INSTALLED_MOVED-076/stdout.raw",
+    "newProductInvocations": 0
+  },
+  "parentAuditCaveat": "unexecuted nonzero-exit/all-PASS inconsistency remains unqualified; this check confirms it did not occur in these actual receipts"
+}

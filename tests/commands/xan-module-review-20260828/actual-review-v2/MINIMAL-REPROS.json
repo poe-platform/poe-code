@@ -1,0 +1,2392 @@
+{
+  "classification": "COPIED_ACTUAL_RAW_WITH_BINDINGS_NOT_A_REPLAY",
+  "cases": [
+    {
+      "layout": "SOURCE",
+      "id": "X4-S01/P0",
+      "source": {
+        "path": "evidence-continuation/SOURCE-002/stdout.raw",
+        "bytes": 82054,
+        "sha256": "a70b4a2b5a0f28e4ff791eceaff10e2ec32c335bf2bb46f4d5dccdc59d0c4f6f",
+        "mode": "644"
+      },
+      "control": {
+        "id": "X4-S01/P0",
+        "row": "X4-S01",
+        "schedule": "P0",
+        "reuse": false,
+        "kind": "case"
+      },
+      "frozenRow": {
+        "id": "X4-S01",
+        "fixture": "A",
+        "argv": [
+          "select",
+          "--",
+          "0,,1"
+        ],
+        "class": "S",
+        "category": 1,
+        "phase": "BEFORE_IO",
+        "condition": "interior empty clause",
+        "controls": [
+          "X4-P02",
+          "X4-P06"
+        ],
+        "group": "selector36",
+        "stdin": {
+          "utf8": "a,b\n1,2\n3,4\n"
+        },
+        "expected": {
+          "status": 1,
+          "stdout": {
+            "utf8": ""
+          },
+          "stderr": {
+            "precision": "SEMANTIC_BOUNDED",
+            "identifiesCommand": "xan select",
+            "required": "Identify the failing syntax/numeric/resolution condition; nonempty and bounded by existing budgets. Preserve inherited exact diagnostics where already bound; no newly invented full stderr bytes or native goldens."
+          },
+          "files": {}
+        }
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "X4-S01/P0",
+        "observation": {
+          "result": {
+            "exitCode": 1
+          },
+          "failed": false,
+          "stdoutBase64": "",
+          "stderrBase64": "eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg==",
+          "inputEvents": [],
+          "fsEvents": [],
+          "closed": true,
+          "files": {},
+          "cleanup": {
+            "drained": true,
+            "failures": 0
+          },
+          "deliveryLengths": [
+            12
+          ],
+          "chargedInputBytes": 0
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "X4-S01/P0",
+        "kind": "case",
+        "status": "FAIL",
+        "closed": true,
+        "intact": true,
+        "failure": {
+          "name": "AssertionError",
+          "message": "one contextual condition X4-S01, not unrelated substrings",
+          "stack": "AssertionError [ERR_ASSERTION]: one contextual condition X4-S01, not unrelated substrings\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+        }
+      }
+    },
+    {
+      "layout": "SOURCE",
+      "id": "X4-R04/P0",
+      "source": {
+        "path": "evidence-continuation/SOURCE-002/stdout.raw",
+        "bytes": 82054,
+        "sha256": "a70b4a2b5a0f28e4ff791eceaff10e2ec32c335bf2bb46f4d5dccdc59d0c4f6f",
+        "mode": "644"
+      },
+      "control": {
+        "id": "X4-R04/P0",
+        "row": "X4-R04",
+        "schedule": "P0",
+        "reuse": false,
+        "kind": "case"
+      },
+      "frozenRow": {
+        "id": "X4-R04",
+        "fixture": "C",
+        "argv": [
+          "select",
+          "--",
+          "z*"
+        ],
+        "class": "R",
+        "phase": "AFTER_FIRST_RECORD_BEFORE_SELECTED_OUTPUT",
+        "condition": "prefix has no match",
+        "group": "selector36",
+        "stdin": {
+          "utf8": "a,ba,*,a,a*,ab,\"a\"\"\"\"b\",0,,a]\nv0,v1,v2,v3,v4,v5,v6,v7,v8,v9\n"
+        },
+        "expected": {
+          "status": 1,
+          "stdout": {
+            "utf8": ""
+          },
+          "stderr": {
+            "precision": "SEMANTIC_BOUNDED",
+            "identifiesCommand": "xan select",
+            "required": "Identify the failing syntax/numeric/resolution condition; nonempty and bounded by existing budgets. Preserve inherited exact diagnostics where already bound; no newly invented full stderr bytes or native goldens."
+          },
+          "files": {}
+        }
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "X4-R04/P0",
+        "observation": {
+          "result": {
+            "exitCode": 1
+          },
+          "failed": false,
+          "stdoutBase64": "",
+          "stderrBase64": "eGFuIHNlbGVjdDogUHJlZml4ICd6JyBzZWxlY3RlZCBub3RoaW5nLgo=",
+          "inputEvents": [
+            "acquire",
+            "next",
+            {
+              "delivered": 60
+            }
+          ],
+          "fsEvents": [],
+          "closed": true,
+          "files": {},
+          "cleanup": {
+            "drained": true,
+            "failures": 0
+          },
+          "deliveryLengths": [
+            60
+          ],
+          "chargedInputBytes": 60
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "X4-R04/P0",
+        "kind": "case",
+        "status": "FAIL",
+        "closed": true,
+        "intact": true,
+        "failure": {
+          "name": "AssertionError",
+          "message": "one contextual condition X4-R04, not unrelated substrings",
+          "stack": "AssertionError [ERR_ASSERTION]: one contextual condition X4-R04, not unrelated substrings\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+        }
+      }
+    },
+    {
+      "layout": "SOURCE",
+      "id": "B01-R1-repeat/P0",
+      "source": {
+        "path": "evidence-continuation/SOURCE-003/stdout.raw",
+        "bytes": 91278,
+        "sha256": "fed37f03f5e175570698d2625ff78a822fd6a8c0c0d56ce7a74af6e851107781",
+        "mode": "644"
+      },
+      "control": {
+        "id": "B01-R1-repeat/P0",
+        "row": "B01-R1-repeat",
+        "schedule": "P0",
+        "reuse": false,
+        "kind": "case"
+      },
+      "frozenRow": {
+        "id": "B01-R1-repeat",
+        "argv": [
+          "count",
+          "-n",
+          "-n"
+        ],
+        "expected": {
+          "status": 1,
+          "stdout": {
+            "utf8": ""
+          },
+          "stderr": {
+            "precision": "NONEXACT",
+            "required": "Nonempty bounded diagnostic identifying the rejected argument/condition; wording and prefix not globally frozen; existing local/parent output budgets still govern"
+          },
+          "files": {}
+        },
+        "validation": "before I/O; zero input acquisition/reads and output creation",
+        "rule": "B01-R1",
+        "group": "ratification14",
+        "stdin": {
+          "utf8": "a,b\n1,2\n3,4\n"
+        }
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "B01-R1-repeat/P0",
+        "observation": {
+          "result": {
+            "exitCode": 1
+          },
+          "failed": false,
+          "stdoutBase64": "",
+          "stderrBase64": "eGFuIGNvdW50OiByZXBlYXRlZCBvcHRpb24gLS1uby1oZWFkZXJzCg==",
+          "inputEvents": [],
+          "fsEvents": [],
+          "closed": true,
+          "files": {},
+          "cleanup": {
+            "drained": true,
+            "failures": 0
+          },
+          "deliveryLengths": [
+            12
+          ],
+          "chargedInputBytes": 0
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "B01-R1-repeat/P0",
+        "kind": "case",
+        "status": "FAIL",
+        "closed": true,
+        "intact": true,
+        "failure": {
+          "name": "AssertionError",
+          "message": "one contextual condition B01-R1-repeat, not unrelated substrings",
+          "stack": "AssertionError [ERR_ASSERTION]: one contextual condition B01-R1-repeat, not unrelated substrings\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+        }
+      }
+    },
+    {
+      "layout": "SOURCE",
+      "id": "X4-R01/file-split",
+      "source": {
+        "path": "evidence-continuation/SOURCE-007/stdout.raw",
+        "bytes": 104726,
+        "sha256": "a1c13f5ab697842027027c0b89c5d8698e6adb0310500d95ac82da407463fc11",
+        "mode": "644"
+      },
+      "control": {
+        "id": "X4-R01/file-split",
+        "kind": "phase",
+        "row": "X4-R01",
+        "delivery": "split"
+      },
+      "frozenRow": {
+        "id": "X4-R01",
+        "fixture": "C",
+        "argv": [
+          "select",
+          "--",
+          "missing"
+        ],
+        "class": "R",
+        "phase": "AFTER_FIRST_RECORD_BEFORE_SELECTED_OUTPUT",
+        "condition": "missing header name",
+        "group": "selector36",
+        "stdin": {
+          "utf8": "a,ba,*,a,a*,ab,\"a\"\"\"\"b\",0,,a]\nv0,v1,v2,v3,v4,v5,v6,v7,v8,v9\n"
+        },
+        "expected": {
+          "status": 1,
+          "stdout": {
+            "utf8": ""
+          },
+          "stderr": {
+            "precision": "SEMANTIC_BOUNDED",
+            "identifiesCommand": "xan select",
+            "required": "Identify the failing syntax/numeric/resolution condition; nonempty and bounded by existing budgets. Preserve inherited exact diagnostics where already bound; no newly invented full stderr bytes or native goldens."
+          },
+          "files": {}
+        }
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "X4-R01/file-split",
+        "observation": {
+          "result": {
+            "exitCode": 1
+          },
+          "failed": false,
+          "stdoutBase64": "",
+          "stderrBase64": "eGFuIHNlbGVjdDogdG9vIG1hbnkgaW5wdXQgZmlsZXMK",
+          "events": [
+            "register",
+            "command-settle",
+            "root-drain"
+          ],
+          "inputEvents": [],
+          "fsEvents": [],
+          "closed": true,
+          "files": {
+            "input.csv": "YSxiYSwqLGEsYSosYWIsImEiIiIiYiIsMCwsYV0KdjAsdjEsdjIsdjMsdjQsdjUsdjYsdjcsdjgsdjkK"
+          },
+          "acquired": 0,
+          "reads": 0,
+          "released": 0,
+          "charged": 0,
+          "logicalHeaderBytes": 30
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "X4-R01/file-split",
+        "kind": "phase",
+        "status": "FAIL",
+        "closed": true,
+        "intact": true,
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n0 !== 30\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 30\n\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:77:19)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+        }
+      }
+    },
+    {
+      "layout": "SOURCE",
+      "id": "F01-files",
+      "source": {
+        "path": "evidence-continuation/SOURCE-011/stdout.raw",
+        "bytes": 84820,
+        "sha256": "6804465a22331218cbf205142a2ef2238a18830fcaca7d832be84e84c97f3dc4",
+        "mode": "644"
+      },
+      "control": {
+        "id": "F01-files",
+        "kind": "workflow",
+        "route": "files"
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "F01-files",
+        "observation": {
+          "result": {
+            "stdout": "1\n",
+            "stderr": "shell: line 1: Cannot read properties of undefined (reading 'exitCode')\nshell: line 1: Cannot read properties of undefined (reading 'exitCode')\nshell: line 1: Cannot read properties of undefined (reading 'exitCode')\n",
+            "stdoutBytes": {
+              "0": 49,
+              "1": 10
+            },
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 67,
+              "16": 97,
+              "17": 110,
+              "18": 110,
+              "19": 111,
+              "20": 116,
+              "21": 32,
+              "22": 114,
+              "23": 101,
+              "24": 97,
+              "25": 100,
+              "26": 32,
+              "27": 112,
+              "28": 114,
+              "29": 111,
+              "30": 112,
+              "31": 101,
+              "32": 114,
+              "33": 116,
+              "34": 105,
+              "35": 101,
+              "36": 115,
+              "37": 32,
+              "38": 111,
+              "39": 102,
+              "40": 32,
+              "41": 117,
+              "42": 110,
+              "43": 100,
+              "44": 101,
+              "45": 102,
+              "46": 105,
+              "47": 110,
+              "48": 101,
+              "49": 100,
+              "50": 32,
+              "51": 40,
+              "52": 114,
+              "53": 101,
+              "54": 97,
+              "55": 100,
+              "56": 105,
+              "57": 110,
+              "58": 103,
+              "59": 32,
+              "60": 39,
+              "61": 101,
+              "62": 120,
+              "63": 105,
+              "64": 116,
+              "65": 67,
+              "66": 111,
+              "67": 100,
+              "68": 101,
+              "69": 39,
+              "70": 41,
+              "71": 10,
+              "72": 115,
+              "73": 104,
+              "74": 101,
+              "75": 108,
+              "76": 108,
+              "77": 58,
+              "78": 32,
+              "79": 108,
+              "80": 105,
+              "81": 110,
+              "82": 101,
+              "83": 32,
+              "84": 49,
+              "85": 58,
+              "86": 32,
+              "87": 67,
+              "88": 97,
+              "89": 110,
+              "90": 110,
+              "91": 111,
+              "92": 116,
+              "93": 32,
+              "94": 114,
+              "95": 101,
+              "96": 97,
+              "97": 100,
+              "98": 32,
+              "99": 112,
+              "100": 114,
+              "101": 111,
+              "102": 112,
+              "103": 101,
+              "104": 114,
+              "105": 116,
+              "106": 105,
+              "107": 101,
+              "108": 115,
+              "109": 32,
+              "110": 111,
+              "111": 102,
+              "112": 32,
+              "113": 117,
+              "114": 110,
+              "115": 100,
+              "116": 101,
+              "117": 102,
+              "118": 105,
+              "119": 110,
+              "120": 101,
+              "121": 100,
+              "122": 32,
+              "123": 40,
+              "124": 114,
+              "125": 101,
+              "126": 97,
+              "127": 100,
+              "128": 105,
+              "129": 110,
+              "130": 103,
+              "131": 32,
+              "132": 39,
+              "133": 101,
+              "134": 120,
+              "135": 105,
+              "136": 116,
+              "137": 67,
+              "138": 111,
+              "139": 100,
+              "140": 101,
+              "141": 39,
+              "142": 41,
+              "143": 10,
+              "144": 115,
+              "145": 104,
+              "146": 101,
+              "147": 108,
+              "148": 108,
+              "149": 58,
+              "150": 32,
+              "151": 108,
+              "152": 105,
+              "153": 110,
+              "154": 101,
+              "155": 32,
+              "156": 49,
+              "157": 58,
+              "158": 32,
+              "159": 67,
+              "160": 97,
+              "161": 110,
+              "162": 110,
+              "163": 111,
+              "164": 116,
+              "165": 32,
+              "166": 114,
+              "167": 101,
+              "168": 97,
+              "169": 100,
+              "170": 32,
+              "171": 112,
+              "172": 114,
+              "173": 111,
+              "174": 112,
+              "175": 101,
+              "176": 114,
+              "177": 116,
+              "178": 105,
+              "179": 101,
+              "180": 115,
+              "181": 32,
+              "182": 111,
+              "183": 102,
+              "184": 32,
+              "185": 117,
+              "186": 110,
+              "187": 100,
+              "188": 101,
+              "189": 102,
+              "190": 105,
+              "191": 110,
+              "192": 101,
+              "193": 100,
+              "194": 32,
+              "195": 40,
+              "196": 114,
+              "197": 101,
+              "198": 97,
+              "199": 100,
+              "200": 105,
+              "201": 110,
+              "202": 103,
+              "203": 32,
+              "204": 39,
+              "205": 101,
+              "206": 120,
+              "207": 105,
+              "208": 116,
+              "209": 67,
+              "210": 111,
+              "211": 100,
+              "212": 101,
+              "213": 39,
+              "214": 41,
+              "215": 10
+            },
+            "exitCode": 1
+          },
+          "stageBytes": [
+            "right,left,right\nC,A,C\n",
+            "right,left,right\nC,A,C\n"
+          ],
+          "middleware": [
+            "select:before",
+            "select:after",
+            "slice:before",
+            "slice:after",
+            "count:before",
+            "count:after"
+          ],
+          "origins": [
+            true,
+            true,
+            true
+          ],
+          "contexts": [
+            {
+              "cwd": "/work",
+              "env": {
+                "KEEP": "parent",
+                "PWD": "/work"
+              }
+            },
+            {
+              "cwd": "/work",
+              "env": {
+                "KEEP": "parent",
+                "PWD": "/work"
+              }
+            },
+            {
+              "cwd": "/work",
+              "env": {
+                "KEEP": "parent",
+                "PWD": "/work"
+              }
+            }
+          ],
+          "defaultNames": [
+            "true",
+            "false",
+            "echo",
+            "pwd",
+            "basename",
+            "dirname",
+            "printf",
+            "mkdir",
+            "touch",
+            "cp",
+            "mv",
+            "rm",
+            "rmdir",
+            "ln",
+            "readlink",
+            "realpath",
+            "ls",
+            "cat",
+            "head",
+            "tail",
+            "wc",
+            "tee",
+            "tr",
+            "sort",
+            "uniq",
+            "cut",
+            "grep",
+            "test",
+            "[",
+            "env",
+            "xargs",
+            "find",
+            "sed",
+            "awk",
+            "jq",
+            "rg",
+            "base64",
+            "base32",
+            "xxd",
+            "od",
+            "sha256sum",
+            "sha1sum",
+            "md5sum",
+            "cksum",
+            "gzip",
+            "gunzip",
+            "zcat",
+            "diff",
+            "patch",
+            "chmod",
+            "stat",
+            "mktemp",
+            "tar",
+            "paste",
+            "comm",
+            "join",
+            "tac",
+            "expand",
+            "fold",
+            "strings",
+            "seq",
+            "nl",
+            "rev",
+            "unexpand",
+            "split",
+            "date",
+            "sleep",
+            "printenv",
+            "tree",
+            "file",
+            "egrep",
+            "fgrep",
+            "column",
+            "html-to-markdown",
+            "du",
+            "expr",
+            "which"
+          ],
+          "registryAfterExplicitUse": [
+            "xan"
+          ]
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "F01-files",
+        "kind": "workflow",
+        "status": "FAIL",
+        "closed": true,
+        "intact": true,
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n1 !== 0\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at runExtra (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v1/extra.mjs:84:14)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+        }
+      }
+    },
+    {
+      "layout": "SOURCE",
+      "id": "F08-shell-escaping-over-local",
+      "source": {
+        "path": "evidence-continuation/SOURCE-013/stdout.raw",
+        "bytes": 93070,
+        "sha256": "fb81dfafe2abb9f270b9686d709ff768c4aed9f45e9b2b265e1b869032f2b424",
+        "mode": "644"
+      },
+      "control": {
+        "id": "F08-shell-escaping-over-local",
+        "kind": "shell-lifecycle",
+        "trigger": "escaping-over-local"
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "F08-shell-escaping-over-local",
+        "observation": {
+          "trigger": "escaping-over-local",
+          "events": [
+            "bridge",
+            "register",
+            "acquire",
+            "owned-return",
+            "write",
+            "cleanup-start",
+            "sibling-cleanup",
+            "cleanup-end",
+            "exec-settle",
+            "dispose-settle"
+          ],
+          "before": {
+            "settled": false,
+            "disposed": false,
+            "cleanupStarts": 1,
+            "acquired": 1,
+            "events": [
+              "bridge",
+              "register",
+              "acquire",
+              "owned-return",
+              "write",
+              "cleanup-start",
+              "sibling-cleanup"
+            ]
+          },
+          "sameCompletion": true,
+          "releases": 1,
+          "cleanupStarts": 1,
+          "acquired": 1,
+          "disposed": true,
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: [object Object]\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 91,
+              "16": 111,
+              "17": 98,
+              "18": 106,
+              "19": 101,
+              "20": 99,
+              "21": 116,
+              "22": 32,
+              "23": 79,
+              "24": 98,
+              "25": 106,
+              "26": 101,
+              "27": 99,
+              "28": 116,
+              "29": 93,
+              "30": 10
+            },
+            "exitCode": 1
+          },
+          "callerIdentity": false,
+          "localIdentity": false,
+          "escapingIdentity": false,
+          "cleanupIdentity": false
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "F08-shell-escaping-over-local",
+        "kind": "shell-lifecycle",
+        "status": "FAIL",
+        "closed": true,
+        "intact": true,
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- Error: actual sink escaping\n-     at lifecycle (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/lifecycle.mjs:9:20)\n-     at file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:63\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- Error: actual sink escaping\n-     at lifecycle (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/lifecycle.mjs:9:20)\n-     at file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:63\n\n    at lifecycle (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/lifecycle.mjs:70:51)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:57"
+        }
+      }
+    },
+    {
+      "layout": "SOURCE",
+      "id": "F11-default-maxInputBytes-0",
+      "source": {
+        "path": "evidence-continuation/SOURCE-028/stdout.raw",
+        "bytes": 59689,
+        "sha256": "9dc341002ced074890444ee7b3dfdf998f0e2d44104930ed962830fae30bb6e4",
+        "mode": "644"
+      },
+      "control": {
+        "id": "F11-default-maxInputBytes-0",
+        "kind": "resource",
+        "name": "maxInputBytes",
+        "limit": 268435456,
+        "target": 268435456,
+        "scale": "DEFAULT"
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "F11-default-maxInputBytes-0",
+        "observation": {
+          "failed": true,
+          "error": {
+            "reviewDeadline": true
+          },
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "events": [
+            "register",
+            "register",
+            "command-settle",
+            "root-drain"
+          ],
+          "inputEvents": [],
+          "fsEvents": [],
+          "closed": true,
+          "files": {},
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "input": {
+            "bytes": 159645696,
+            "sha256": "f0e0f836c582ed074449c079aedfa56f25168625407d8b866eb894509c661227"
+          },
+          "chunks": 2436,
+          "target": 268435456,
+          "configuredLimit": 268435456,
+          "argv": [
+            "count"
+          ],
+          "independent": {
+            "inputBytes": 268435456
+          },
+          "siblingLimits": {
+            "maxArgs": 4096,
+            "maxArgumentBytes": 1048576,
+            "maxInputFiles": 256,
+            "maxInputBytes": 268435456,
+            "maxChunks": 4194304,
+            "maxChunkBytes": 67108864,
+            "maxRecordBytes": 67108864,
+            "maxCellBytes": 33554432,
+            "maxColumns": 65536,
+            "maxRecords": 16000000,
+            "maxSelectorBytes": 262144,
+            "maxSelectorNodes": 65536,
+            "maxSelectorDepth": 2,
+            "maxSelectedColumns": 65536,
+            "maxLastRows": 65536,
+            "maxWork": 16000000000,
+            "maxOutputBytes": 4294967296,
+            "maxRetainedBytes": 268435456
+          },
+          "scale": "DEFAULT"
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "F11-default-maxInputBytes-0",
+        "kind": "resource",
+        "status": "BLOCKED",
+        "closed": true,
+        "intact": true,
+        "reason": "ACTUAL_RESOURCE_ATTEMPT_INCOMPLETE_35_SECOND_BOUND; cooperative cleanup settled; partial raw retained, not a pass"
+      }
+    },
+    {
+      "layout": "SOURCE",
+      "id": "F11-ledger-maxWork--1",
+      "source": {
+        "path": "evidence-continuation/SOURCE-074/stdout.raw",
+        "bytes": 64943,
+        "sha256": "84814f2917818ea76cf18b9d628790699b427f7fbacbe9132341c69103e58b54",
+        "mode": "644"
+      },
+      "control": {
+        "id": "F11-ledger-maxWork--1",
+        "kind": "ledger",
+        "name": "maxWork",
+        "delta": -1
+      },
+      "literalInvocation": {
+        "argv": [
+          "count"
+        ],
+        "stdinHex": "610a",
+        "options": {
+          "limits": {
+            "maxWork": 14
+          }
+        }
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "F11-ledger-maxWork--1",
+        "observation": {
+          "result": {
+            "exitCode": 1
+          },
+          "failed": false,
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "events": [
+            "register",
+            "register",
+            "register",
+            "command-settle",
+            "root-drain"
+          ],
+          "inputEvents": [
+            "acquire",
+            "next",
+            {
+              "delivered": 2
+            },
+            "next"
+          ],
+          "fsEvents": [],
+          "closed": true,
+          "files": {},
+          "exact": 15,
+          "limit": 14,
+          "ledger": [
+            {
+              "phase": "argv UTF8 inspection",
+              "amount": 5
+            },
+            {
+              "phase": "scanner delivered bytes inspected",
+              "amount": 2
+            },
+            {
+              "phase": "text size",
+              "amount": 2
+            },
+            {
+              "phase": "encode text size",
+              "amount": 2
+            },
+            {
+              "phase": "encoded writes",
+              "amount": 2
+            },
+            {
+              "phase": "managed output delivery",
+              "amount": 2
+            }
+          ],
+          "scope": "SOURCE_AUDITED_SIMPLE_PATH_NOT_ALL_PATH_LEDGER_OR_DEFAULT_SCALE"
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "F11-ledger-maxWork--1",
+        "kind": "ledger",
+        "status": "FAIL",
+        "closed": true,
+        "intact": true,
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'xan count: maxWork limit exceeded\\n'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'xan count: maxWork limit exceeded\\n'\n\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:178:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+        }
+      }
+    },
+    {
+      "layout": "SOURCE",
+      "id": "F11-default-maxOutputBytes-0",
+      "source": {
+        "path": "evidence-continuation/SOURCE-076/stdout.raw",
+        "bytes": 60254,
+        "sha256": "f074b38d68528ecd54b7c679b63e9352b158df914a5cbeb0012865bee79ad987",
+        "mode": "644"
+      },
+      "control": {
+        "id": "F11-default-maxOutputBytes-0",
+        "kind": "resource",
+        "name": "maxOutputBytes",
+        "limit": 268435456,
+        "target": 268435456,
+        "scale": "DEFAULT"
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "F11-default-maxOutputBytes-0",
+        "observation": {
+          "failed": true,
+          "error": {
+            "reviewDeadline": true
+          },
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "events": [
+            "register",
+            "register",
+            "command-settle",
+            "root-drain"
+          ],
+          "inputEvents": [],
+          "fsEvents": [],
+          "closed": true,
+          "files": {},
+          "stdout": {
+            "bytes": 242451968,
+            "sha256": "7c9a05fee06cc29fbfff77aeb60ac1d9d314be61fcf5299d454d54d1d7117513"
+          },
+          "input": {
+            "bytes": 983042,
+            "sha256": "280731c25d44fb6c5d8c846dc781c5bd9b74ba308b311d5bf1b7b89cf254ca5a"
+          },
+          "chunks": 16,
+          "target": 268435456,
+          "configuredLimit": 268435456,
+          "argv": [
+            "select",
+            "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
+          ],
+          "independent": {
+            "outputBytes": 268435456,
+            "outputRecords": 524288,
+            "outputColumns": 256
+          },
+          "siblingLimits": {
+            "maxArgs": 4096,
+            "maxArgumentBytes": 1048576,
+            "maxInputFiles": 256,
+            "maxInputBytes": 4294967296,
+            "maxChunks": 4194304,
+            "maxChunkBytes": 67108864,
+            "maxRecordBytes": 67108864,
+            "maxCellBytes": 33554432,
+            "maxColumns": 65536,
+            "maxRecords": 16000000,
+            "maxSelectorBytes": 262144,
+            "maxSelectorNodes": 65536,
+            "maxSelectorDepth": 2,
+            "maxSelectedColumns": 65536,
+            "maxLastRows": 65536,
+            "maxWork": 16000000000,
+            "maxOutputBytes": 268435456,
+            "maxRetainedBytes": 268435456
+          },
+          "scale": "DEFAULT"
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "F11-default-maxOutputBytes-0",
+        "kind": "resource",
+        "status": "BLOCKED",
+        "closed": true,
+        "intact": true,
+        "reason": "ACTUAL_RESOURCE_ATTEMPT_INCOMPLETE_35_SECOND_BOUND; cooperative cleanup settled; partial raw retained, not a pass"
+      }
+    },
+    {
+      "layout": "SOURCE",
+      "id": "F11-ledger-maxRetainedBytes--1",
+      "source": {
+        "path": "evidence-continuation/SOURCE-078/stdout.raw",
+        "bytes": 62882,
+        "sha256": "ae93586bb60c78810058814e25bdc1b485bfa32329322384dc337af46c4ca3a8",
+        "mode": "644"
+      },
+      "control": {
+        "id": "F11-ledger-maxRetainedBytes--1",
+        "kind": "ledger",
+        "name": "maxRetainedBytes",
+        "delta": -1
+      },
+      "literalInvocation": {
+        "argv": [
+          "count"
+        ],
+        "stdinHex": "610a",
+        "options": {
+          "limits": {
+            "maxRetainedBytes": 63
+          }
+        }
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "F11-ledger-maxRetainedBytes--1",
+        "observation": {
+          "result": {
+            "exitCode": 1
+          },
+          "failed": false,
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "events": [
+            "register",
+            "register",
+            "register",
+            "command-settle",
+            "root-drain"
+          ],
+          "inputEvents": [
+            "acquire",
+            "next",
+            {
+              "delivered": 2
+            }
+          ],
+          "fsEvents": [],
+          "closed": true,
+          "files": {},
+          "exact": 64,
+          "limit": 63,
+          "ledger": [
+            {
+              "phase": "scanner slot",
+              "capacity": 32
+            },
+            {
+              "phase": "count row slot overlapping scanner",
+              "capacity": 32
+            },
+            {
+              "phase": "row released; output allocation",
+              "capacity": 2
+            }
+          ],
+          "scope": "SOURCE_AUDITED_SIMPLE_PATH_NOT_ALL_PATH_LEDGER_OR_DEFAULT_SCALE"
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "F11-ledger-maxRetainedBytes--1",
+        "kind": "ledger",
+        "status": "FAIL",
+        "closed": true,
+        "intact": true,
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'xan count: maxRetainedBytes limit exceeded\\n'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'xan count: maxRetainedBytes limit exceeded\\n'\n\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:178:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+        }
+      }
+    },
+    {
+      "layout": "INSTALLED_MOVED",
+      "id": "X4-S01/P0",
+      "source": {
+        "path": "evidence-continuation/INSTALLED_MOVED-002/stdout.raw",
+        "bytes": 82506,
+        "sha256": "97afe2561504867098243f7404afb533dd1d26249ca9f9f28fb24fa0b5dd1718",
+        "mode": "644"
+      },
+      "control": {
+        "id": "X4-S01/P0",
+        "row": "X4-S01",
+        "schedule": "P0",
+        "reuse": false,
+        "kind": "case"
+      },
+      "frozenRow": {
+        "id": "X4-S01",
+        "fixture": "A",
+        "argv": [
+          "select",
+          "--",
+          "0,,1"
+        ],
+        "class": "S",
+        "category": 1,
+        "phase": "BEFORE_IO",
+        "condition": "interior empty clause",
+        "controls": [
+          "X4-P02",
+          "X4-P06"
+        ],
+        "group": "selector36",
+        "stdin": {
+          "utf8": "a,b\n1,2\n3,4\n"
+        },
+        "expected": {
+          "status": 1,
+          "stdout": {
+            "utf8": ""
+          },
+          "stderr": {
+            "precision": "SEMANTIC_BOUNDED",
+            "identifiesCommand": "xan select",
+            "required": "Identify the failing syntax/numeric/resolution condition; nonempty and bounded by existing budgets. Preserve inherited exact diagnostics where already bound; no newly invented full stderr bytes or native goldens."
+          },
+          "files": {}
+        }
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "X4-S01/P0",
+        "observation": {
+          "result": {
+            "exitCode": 1
+          },
+          "failed": false,
+          "stdoutBase64": "",
+          "stderrBase64": "eGFuIHNlbGVjdDogdW5zdXBwb3J0ZWQgaW4gYm91bmRlZCBDU1YgcHJvZmlsZTogc2VsZWN0b3Igc3ludGF4Cg==",
+          "inputEvents": [],
+          "fsEvents": [],
+          "closed": true,
+          "files": {},
+          "cleanup": {
+            "drained": true,
+            "failures": 0
+          },
+          "deliveryLengths": [
+            12
+          ],
+          "chargedInputBytes": 0
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "X4-S01/P0",
+        "kind": "case",
+        "status": "FAIL",
+        "closed": true,
+        "intact": true,
+        "failure": {
+          "name": "AssertionError",
+          "message": "one contextual condition X4-S01, not unrelated substrings",
+          "stack": "AssertionError [ERR_ASSERTION]: one contextual condition X4-S01, not unrelated substrings\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+        }
+      }
+    },
+    {
+      "layout": "INSTALLED_MOVED",
+      "id": "X4-R04/P0",
+      "source": {
+        "path": "evidence-continuation/INSTALLED_MOVED-002/stdout.raw",
+        "bytes": 82506,
+        "sha256": "97afe2561504867098243f7404afb533dd1d26249ca9f9f28fb24fa0b5dd1718",
+        "mode": "644"
+      },
+      "control": {
+        "id": "X4-R04/P0",
+        "row": "X4-R04",
+        "schedule": "P0",
+        "reuse": false,
+        "kind": "case"
+      },
+      "frozenRow": {
+        "id": "X4-R04",
+        "fixture": "C",
+        "argv": [
+          "select",
+          "--",
+          "z*"
+        ],
+        "class": "R",
+        "phase": "AFTER_FIRST_RECORD_BEFORE_SELECTED_OUTPUT",
+        "condition": "prefix has no match",
+        "group": "selector36",
+        "stdin": {
+          "utf8": "a,ba,*,a,a*,ab,\"a\"\"\"\"b\",0,,a]\nv0,v1,v2,v3,v4,v5,v6,v7,v8,v9\n"
+        },
+        "expected": {
+          "status": 1,
+          "stdout": {
+            "utf8": ""
+          },
+          "stderr": {
+            "precision": "SEMANTIC_BOUNDED",
+            "identifiesCommand": "xan select",
+            "required": "Identify the failing syntax/numeric/resolution condition; nonempty and bounded by existing budgets. Preserve inherited exact diagnostics where already bound; no newly invented full stderr bytes or native goldens."
+          },
+          "files": {}
+        }
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "X4-R04/P0",
+        "observation": {
+          "result": {
+            "exitCode": 1
+          },
+          "failed": false,
+          "stdoutBase64": "",
+          "stderrBase64": "eGFuIHNlbGVjdDogUHJlZml4ICd6JyBzZWxlY3RlZCBub3RoaW5nLgo=",
+          "inputEvents": [
+            "acquire",
+            "next",
+            {
+              "delivered": 60
+            }
+          ],
+          "fsEvents": [],
+          "closed": true,
+          "files": {},
+          "cleanup": {
+            "drained": true,
+            "failures": 0
+          },
+          "deliveryLengths": [
+            60
+          ],
+          "chargedInputBytes": 60
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "X4-R04/P0",
+        "kind": "case",
+        "status": "FAIL",
+        "closed": true,
+        "intact": true,
+        "failure": {
+          "name": "AssertionError",
+          "message": "one contextual condition X4-R04, not unrelated substrings",
+          "stack": "AssertionError [ERR_ASSERTION]: one contextual condition X4-R04, not unrelated substrings\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+        }
+      }
+    },
+    {
+      "layout": "INSTALLED_MOVED",
+      "id": "B01-R1-repeat/P0",
+      "source": {
+        "path": "evidence-continuation/INSTALLED_MOVED-003/stdout.raw",
+        "bytes": 91730,
+        "sha256": "d3e346a5d1647e7027013800568944dd5068bb84de9f11200303c1df75094288",
+        "mode": "644"
+      },
+      "control": {
+        "id": "B01-R1-repeat/P0",
+        "row": "B01-R1-repeat",
+        "schedule": "P0",
+        "reuse": false,
+        "kind": "case"
+      },
+      "frozenRow": {
+        "id": "B01-R1-repeat",
+        "argv": [
+          "count",
+          "-n",
+          "-n"
+        ],
+        "expected": {
+          "status": 1,
+          "stdout": {
+            "utf8": ""
+          },
+          "stderr": {
+            "precision": "NONEXACT",
+            "required": "Nonempty bounded diagnostic identifying the rejected argument/condition; wording and prefix not globally frozen; existing local/parent output budgets still govern"
+          },
+          "files": {}
+        },
+        "validation": "before I/O; zero input acquisition/reads and output creation",
+        "rule": "B01-R1",
+        "group": "ratification14",
+        "stdin": {
+          "utf8": "a,b\n1,2\n3,4\n"
+        }
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "B01-R1-repeat/P0",
+        "observation": {
+          "result": {
+            "exitCode": 1
+          },
+          "failed": false,
+          "stdoutBase64": "",
+          "stderrBase64": "eGFuIGNvdW50OiByZXBlYXRlZCBvcHRpb24gLS1uby1oZWFkZXJzCg==",
+          "inputEvents": [],
+          "fsEvents": [],
+          "closed": true,
+          "files": {},
+          "cleanup": {
+            "drained": true,
+            "failures": 0
+          },
+          "deliveryLengths": [
+            12
+          ],
+          "chargedInputBytes": 0
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "B01-R1-repeat/P0",
+        "kind": "case",
+        "status": "FAIL",
+        "closed": true,
+        "intact": true,
+        "failure": {
+          "name": "AssertionError",
+          "message": "one contextual condition B01-R1-repeat, not unrelated substrings",
+          "stack": "AssertionError [ERR_ASSERTION]: one contextual condition B01-R1-repeat, not unrelated substrings\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs:77:14)\n    at Object.assert (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:23:55)\n    at assertCase (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/cases.mjs:59:59)\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:52:5)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+        }
+      }
+    },
+    {
+      "layout": "INSTALLED_MOVED",
+      "id": "X4-R01/file-split",
+      "source": {
+        "path": "evidence-continuation/INSTALLED_MOVED-007/stdout.raw",
+        "bytes": 105178,
+        "sha256": "684f087ac5823f68ca76716c40b662409b555546bd510a7224b7be660519193e",
+        "mode": "644"
+      },
+      "control": {
+        "id": "X4-R01/file-split",
+        "kind": "phase",
+        "row": "X4-R01",
+        "delivery": "split"
+      },
+      "frozenRow": {
+        "id": "X4-R01",
+        "fixture": "C",
+        "argv": [
+          "select",
+          "--",
+          "missing"
+        ],
+        "class": "R",
+        "phase": "AFTER_FIRST_RECORD_BEFORE_SELECTED_OUTPUT",
+        "condition": "missing header name",
+        "group": "selector36",
+        "stdin": {
+          "utf8": "a,ba,*,a,a*,ab,\"a\"\"\"\"b\",0,,a]\nv0,v1,v2,v3,v4,v5,v6,v7,v8,v9\n"
+        },
+        "expected": {
+          "status": 1,
+          "stdout": {
+            "utf8": ""
+          },
+          "stderr": {
+            "precision": "SEMANTIC_BOUNDED",
+            "identifiesCommand": "xan select",
+            "required": "Identify the failing syntax/numeric/resolution condition; nonempty and bounded by existing budgets. Preserve inherited exact diagnostics where already bound; no newly invented full stderr bytes or native goldens."
+          },
+          "files": {}
+        }
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "X4-R01/file-split",
+        "observation": {
+          "result": {
+            "exitCode": 1
+          },
+          "failed": false,
+          "stdoutBase64": "",
+          "stderrBase64": "eGFuIHNlbGVjdDogdG9vIG1hbnkgaW5wdXQgZmlsZXMK",
+          "events": [
+            "register",
+            "command-settle",
+            "root-drain"
+          ],
+          "inputEvents": [],
+          "fsEvents": [],
+          "closed": true,
+          "files": {
+            "input.csv": "YSxiYSwqLGEsYSosYWIsImEiIiIiYiIsMCwsYV0KdjAsdjEsdjIsdjMsdjQsdjUsdjYsdjcsdjgsdjkK"
+          },
+          "acquired": 0,
+          "reads": 0,
+          "released": 0,
+          "charged": 0,
+          "logicalHeaderBytes": 30
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "X4-R01/file-split",
+        "kind": "phase",
+        "status": "FAIL",
+        "closed": true,
+        "intact": true,
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n0 !== 30\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n0 !== 30\n\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:77:19)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+        }
+      }
+    },
+    {
+      "layout": "INSTALLED_MOVED",
+      "id": "F01-files",
+      "source": {
+        "path": "evidence-continuation/INSTALLED_MOVED-011/stdout.raw",
+        "bytes": 85272,
+        "sha256": "1d82b6cd0870d624afb58b0ade3b0b0b481d2a5b0ae3f6596e3ef11a5cf746f7",
+        "mode": "644"
+      },
+      "control": {
+        "id": "F01-files",
+        "kind": "workflow",
+        "route": "files"
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "F01-files",
+        "observation": {
+          "result": {
+            "stdout": "1\n",
+            "stderr": "shell: line 1: Cannot read properties of undefined (reading 'exitCode')\nshell: line 1: Cannot read properties of undefined (reading 'exitCode')\nshell: line 1: Cannot read properties of undefined (reading 'exitCode')\n",
+            "stdoutBytes": {
+              "0": 49,
+              "1": 10
+            },
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 67,
+              "16": 97,
+              "17": 110,
+              "18": 110,
+              "19": 111,
+              "20": 116,
+              "21": 32,
+              "22": 114,
+              "23": 101,
+              "24": 97,
+              "25": 100,
+              "26": 32,
+              "27": 112,
+              "28": 114,
+              "29": 111,
+              "30": 112,
+              "31": 101,
+              "32": 114,
+              "33": 116,
+              "34": 105,
+              "35": 101,
+              "36": 115,
+              "37": 32,
+              "38": 111,
+              "39": 102,
+              "40": 32,
+              "41": 117,
+              "42": 110,
+              "43": 100,
+              "44": 101,
+              "45": 102,
+              "46": 105,
+              "47": 110,
+              "48": 101,
+              "49": 100,
+              "50": 32,
+              "51": 40,
+              "52": 114,
+              "53": 101,
+              "54": 97,
+              "55": 100,
+              "56": 105,
+              "57": 110,
+              "58": 103,
+              "59": 32,
+              "60": 39,
+              "61": 101,
+              "62": 120,
+              "63": 105,
+              "64": 116,
+              "65": 67,
+              "66": 111,
+              "67": 100,
+              "68": 101,
+              "69": 39,
+              "70": 41,
+              "71": 10,
+              "72": 115,
+              "73": 104,
+              "74": 101,
+              "75": 108,
+              "76": 108,
+              "77": 58,
+              "78": 32,
+              "79": 108,
+              "80": 105,
+              "81": 110,
+              "82": 101,
+              "83": 32,
+              "84": 49,
+              "85": 58,
+              "86": 32,
+              "87": 67,
+              "88": 97,
+              "89": 110,
+              "90": 110,
+              "91": 111,
+              "92": 116,
+              "93": 32,
+              "94": 114,
+              "95": 101,
+              "96": 97,
+              "97": 100,
+              "98": 32,
+              "99": 112,
+              "100": 114,
+              "101": 111,
+              "102": 112,
+              "103": 101,
+              "104": 114,
+              "105": 116,
+              "106": 105,
+              "107": 101,
+              "108": 115,
+              "109": 32,
+              "110": 111,
+              "111": 102,
+              "112": 32,
+              "113": 117,
+              "114": 110,
+              "115": 100,
+              "116": 101,
+              "117": 102,
+              "118": 105,
+              "119": 110,
+              "120": 101,
+              "121": 100,
+              "122": 32,
+              "123": 40,
+              "124": 114,
+              "125": 101,
+              "126": 97,
+              "127": 100,
+              "128": 105,
+              "129": 110,
+              "130": 103,
+              "131": 32,
+              "132": 39,
+              "133": 101,
+              "134": 120,
+              "135": 105,
+              "136": 116,
+              "137": 67,
+              "138": 111,
+              "139": 100,
+              "140": 101,
+              "141": 39,
+              "142": 41,
+              "143": 10,
+              "144": 115,
+              "145": 104,
+              "146": 101,
+              "147": 108,
+              "148": 108,
+              "149": 58,
+              "150": 32,
+              "151": 108,
+              "152": 105,
+              "153": 110,
+              "154": 101,
+              "155": 32,
+              "156": 49,
+              "157": 58,
+              "158": 32,
+              "159": 67,
+              "160": 97,
+              "161": 110,
+              "162": 110,
+              "163": 111,
+              "164": 116,
+              "165": 32,
+              "166": 114,
+              "167": 101,
+              "168": 97,
+              "169": 100,
+              "170": 32,
+              "171": 112,
+              "172": 114,
+              "173": 111,
+              "174": 112,
+              "175": 101,
+              "176": 114,
+              "177": 116,
+              "178": 105,
+              "179": 101,
+              "180": 115,
+              "181": 32,
+              "182": 111,
+              "183": 102,
+              "184": 32,
+              "185": 117,
+              "186": 110,
+              "187": 100,
+              "188": 101,
+              "189": 102,
+              "190": 105,
+              "191": 110,
+              "192": 101,
+              "193": 100,
+              "194": 32,
+              "195": 40,
+              "196": 114,
+              "197": 101,
+              "198": 97,
+              "199": 100,
+              "200": 105,
+              "201": 110,
+              "202": 103,
+              "203": 32,
+              "204": 39,
+              "205": 101,
+              "206": 120,
+              "207": 105,
+              "208": 116,
+              "209": 67,
+              "210": 111,
+              "211": 100,
+              "212": 101,
+              "213": 39,
+              "214": 41,
+              "215": 10
+            },
+            "exitCode": 1
+          },
+          "stageBytes": [
+            "right,left,right\nC,A,C\n",
+            "right,left,right\nC,A,C\n"
+          ],
+          "middleware": [
+            "select:before",
+            "select:after",
+            "slice:before",
+            "slice:after",
+            "count:before",
+            "count:after"
+          ],
+          "origins": [
+            true,
+            true,
+            true
+          ],
+          "contexts": [
+            {
+              "cwd": "/work",
+              "env": {
+                "KEEP": "parent",
+                "PWD": "/work"
+              }
+            },
+            {
+              "cwd": "/work",
+              "env": {
+                "KEEP": "parent",
+                "PWD": "/work"
+              }
+            },
+            {
+              "cwd": "/work",
+              "env": {
+                "KEEP": "parent",
+                "PWD": "/work"
+              }
+            }
+          ],
+          "defaultNames": [
+            "true",
+            "false",
+            "echo",
+            "pwd",
+            "basename",
+            "dirname",
+            "printf",
+            "mkdir",
+            "touch",
+            "cp",
+            "mv",
+            "rm",
+            "rmdir",
+            "ln",
+            "readlink",
+            "realpath",
+            "ls",
+            "cat",
+            "head",
+            "tail",
+            "wc",
+            "tee",
+            "tr",
+            "sort",
+            "uniq",
+            "cut",
+            "grep",
+            "test",
+            "[",
+            "env",
+            "xargs",
+            "find",
+            "sed",
+            "awk",
+            "jq",
+            "rg",
+            "base64",
+            "base32",
+            "xxd",
+            "od",
+            "sha256sum",
+            "sha1sum",
+            "md5sum",
+            "cksum",
+            "gzip",
+            "gunzip",
+            "zcat",
+            "diff",
+            "patch",
+            "chmod",
+            "stat",
+            "mktemp",
+            "tar",
+            "paste",
+            "comm",
+            "join",
+            "tac",
+            "expand",
+            "fold",
+            "strings",
+            "seq",
+            "nl",
+            "rev",
+            "unexpand",
+            "split",
+            "date",
+            "sleep",
+            "printenv",
+            "tree",
+            "file",
+            "egrep",
+            "fgrep",
+            "column",
+            "html-to-markdown",
+            "du",
+            "expr",
+            "which"
+          ],
+          "registryAfterExplicitUse": [
+            "xan"
+          ]
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "F01-files",
+        "kind": "workflow",
+        "status": "FAIL",
+        "closed": true,
+        "intact": true,
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n\n1 !== 0\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n1 !== 0\n\n    at runExtra (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v1/extra.mjs:84:14)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+        }
+      }
+    },
+    {
+      "layout": "INSTALLED_MOVED",
+      "id": "F08-shell-escaping-over-local",
+      "source": {
+        "path": "evidence-continuation/INSTALLED_MOVED-013/stdout.raw",
+        "bytes": 93522,
+        "sha256": "f9a87cd6464209c33822817da1bb42ec2e06708ceca85c6c86c267a657894274",
+        "mode": "644"
+      },
+      "control": {
+        "id": "F08-shell-escaping-over-local",
+        "kind": "shell-lifecycle",
+        "trigger": "escaping-over-local"
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "F08-shell-escaping-over-local",
+        "observation": {
+          "trigger": "escaping-over-local",
+          "events": [
+            "bridge",
+            "register",
+            "acquire",
+            "owned-return",
+            "write",
+            "cleanup-start",
+            "sibling-cleanup",
+            "cleanup-end",
+            "exec-settle",
+            "dispose-settle"
+          ],
+          "before": {
+            "settled": false,
+            "disposed": false,
+            "cleanupStarts": 1,
+            "acquired": 1,
+            "events": [
+              "bridge",
+              "register",
+              "acquire",
+              "owned-return",
+              "write",
+              "cleanup-start",
+              "sibling-cleanup"
+            ]
+          },
+          "sameCompletion": true,
+          "releases": 1,
+          "cleanupStarts": 1,
+          "acquired": 1,
+          "disposed": true,
+          "result": {
+            "stdout": "",
+            "stderr": "shell: line 1: [object Object]\n",
+            "stdoutBytes": {},
+            "stderrBytes": {
+              "0": 115,
+              "1": 104,
+              "2": 101,
+              "3": 108,
+              "4": 108,
+              "5": 58,
+              "6": 32,
+              "7": 108,
+              "8": 105,
+              "9": 110,
+              "10": 101,
+              "11": 32,
+              "12": 49,
+              "13": 58,
+              "14": 32,
+              "15": 91,
+              "16": 111,
+              "17": 98,
+              "18": 106,
+              "19": 101,
+              "20": 99,
+              "21": 116,
+              "22": 32,
+              "23": 79,
+              "24": 98,
+              "25": 106,
+              "26": 101,
+              "27": 99,
+              "28": 116,
+              "29": 93,
+              "30": 10
+            },
+            "exitCode": 1
+          },
+          "callerIdentity": false,
+          "localIdentity": false,
+          "escapingIdentity": false,
+          "cleanupIdentity": false
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "F08-shell-escaping-over-local",
+        "kind": "shell-lifecycle",
+        "status": "FAIL",
+        "closed": true,
+        "intact": true,
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- Error: actual sink escaping\n-     at lifecycle (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/lifecycle.mjs:9:20)\n-     at file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:63\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- Error: actual sink escaping\n-     at lifecycle (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/lifecycle.mjs:9:20)\n-     at file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:63\n\n    at lifecycle (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/lifecycle.mjs:70:51)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:57"
+        }
+      }
+    },
+    {
+      "layout": "INSTALLED_MOVED",
+      "id": "F11-default-maxInputBytes-0",
+      "source": {
+        "path": "evidence-continuation/INSTALLED_MOVED-028/stdout.raw",
+        "bytes": 60141,
+        "sha256": "260a6cc2fd9e53f5dcf8c76376734aaed2f34227129e5e0c526f7237814636c5",
+        "mode": "644"
+      },
+      "control": {
+        "id": "F11-default-maxInputBytes-0",
+        "kind": "resource",
+        "name": "maxInputBytes",
+        "limit": 268435456,
+        "target": 268435456,
+        "scale": "DEFAULT"
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "F11-default-maxInputBytes-0",
+        "observation": {
+          "failed": true,
+          "error": {
+            "reviewDeadline": true
+          },
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "events": [
+            "register",
+            "register",
+            "command-settle",
+            "root-drain"
+          ],
+          "inputEvents": [],
+          "fsEvents": [],
+          "closed": true,
+          "files": {},
+          "stdout": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "input": {
+            "bytes": 159121408,
+            "sha256": "214f71d78b4e2921ba0ca7e85031b81981e21eaa7591ba818f832ee22b02cd74"
+          },
+          "chunks": 2428,
+          "target": 268435456,
+          "configuredLimit": 268435456,
+          "argv": [
+            "count"
+          ],
+          "independent": {
+            "inputBytes": 268435456
+          },
+          "siblingLimits": {
+            "maxArgs": 4096,
+            "maxArgumentBytes": 1048576,
+            "maxInputFiles": 256,
+            "maxInputBytes": 268435456,
+            "maxChunks": 4194304,
+            "maxChunkBytes": 67108864,
+            "maxRecordBytes": 67108864,
+            "maxCellBytes": 33554432,
+            "maxColumns": 65536,
+            "maxRecords": 16000000,
+            "maxSelectorBytes": 262144,
+            "maxSelectorNodes": 65536,
+            "maxSelectorDepth": 2,
+            "maxSelectedColumns": 65536,
+            "maxLastRows": 65536,
+            "maxWork": 16000000000,
+            "maxOutputBytes": 4294967296,
+            "maxRetainedBytes": 268435456
+          },
+          "scale": "DEFAULT"
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "F11-default-maxInputBytes-0",
+        "kind": "resource",
+        "status": "BLOCKED",
+        "closed": true,
+        "intact": true,
+        "reason": "ACTUAL_RESOURCE_ATTEMPT_INCOMPLETE_35_SECOND_BOUND; cooperative cleanup settled; partial raw retained, not a pass"
+      }
+    },
+    {
+      "layout": "INSTALLED_MOVED",
+      "id": "F11-ledger-maxWork--1",
+      "source": {
+        "path": "evidence-continuation/INSTALLED_MOVED-074/stdout.raw",
+        "bytes": 65395,
+        "sha256": "7e2784e69808e9774514d479e76c3d2d4bb0032ea904231f924044e4ee300ec9",
+        "mode": "644"
+      },
+      "control": {
+        "id": "F11-ledger-maxWork--1",
+        "kind": "ledger",
+        "name": "maxWork",
+        "delta": -1
+      },
+      "literalInvocation": {
+        "argv": [
+          "count"
+        ],
+        "stdinHex": "610a",
+        "options": {
+          "limits": {
+            "maxWork": 14
+          }
+        }
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "F11-ledger-maxWork--1",
+        "observation": {
+          "result": {
+            "exitCode": 1
+          },
+          "failed": false,
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "events": [
+            "register",
+            "register",
+            "register",
+            "command-settle",
+            "root-drain"
+          ],
+          "inputEvents": [
+            "acquire",
+            "next",
+            {
+              "delivered": 2
+            },
+            "next"
+          ],
+          "fsEvents": [],
+          "closed": true,
+          "files": {},
+          "exact": 15,
+          "limit": 14,
+          "ledger": [
+            {
+              "phase": "argv UTF8 inspection",
+              "amount": 5
+            },
+            {
+              "phase": "scanner delivered bytes inspected",
+              "amount": 2
+            },
+            {
+              "phase": "text size",
+              "amount": 2
+            },
+            {
+              "phase": "encode text size",
+              "amount": 2
+            },
+            {
+              "phase": "encoded writes",
+              "amount": 2
+            },
+            {
+              "phase": "managed output delivery",
+              "amount": 2
+            }
+          ],
+          "scope": "SOURCE_AUDITED_SIMPLE_PATH_NOT_ALL_PATH_LEDGER_OR_DEFAULT_SCALE"
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "F11-ledger-maxWork--1",
+        "kind": "ledger",
+        "status": "FAIL",
+        "closed": true,
+        "intact": true,
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'xan count: maxWork limit exceeded\\n'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'xan count: maxWork limit exceeded\\n'\n\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:178:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+        }
+      }
+    },
+    {
+      "layout": "INSTALLED_MOVED",
+      "id": "F11-default-maxOutputBytes-0",
+      "source": {
+        "path": "evidence-continuation/INSTALLED_MOVED-076/stdout.raw",
+        "bytes": 60572,
+        "sha256": "90e89bfd054968d2f0e6a9992b20a005d14a373466f560c504b9bfe9b601c14f",
+        "mode": "644"
+      },
+      "control": {
+        "id": "F11-default-maxOutputBytes-0",
+        "kind": "resource",
+        "name": "maxOutputBytes",
+        "limit": 268435456,
+        "target": 268435456,
+        "scale": "DEFAULT"
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "F11-default-maxOutputBytes-0",
+        "observation": {
+          "result": {
+            "exitCode": 0
+          },
+          "failed": false,
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "events": [
+            "register",
+            "register",
+            "command-settle",
+            "root-drain"
+          ],
+          "inputEvents": [],
+          "fsEvents": [],
+          "closed": true,
+          "files": {},
+          "stdout": {
+            "bytes": 268435456,
+            "sha256": "80a8883eceabf2303952d9e620cd9c23314152cfcf54618e9ff6a73e508112b4"
+          },
+          "input": {
+            "bytes": 1048576,
+            "sha256": "7174225a618d01e9a03479a916f7b413dccf256a7ee5f55948eee73e3bfcc714"
+          },
+          "chunks": 17,
+          "target": 268435456,
+          "configuredLimit": 268435456,
+          "argv": [
+            "select",
+            "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0"
+          ],
+          "independent": {
+            "outputBytes": 268435456,
+            "outputRecords": 524288,
+            "outputColumns": 256
+          },
+          "siblingLimits": {
+            "maxArgs": 4096,
+            "maxArgumentBytes": 1048576,
+            "maxInputFiles": 256,
+            "maxInputBytes": 4294967296,
+            "maxChunks": 4194304,
+            "maxChunkBytes": 67108864,
+            "maxRecordBytes": 67108864,
+            "maxCellBytes": 33554432,
+            "maxColumns": 65536,
+            "maxRecords": 16000000,
+            "maxSelectorBytes": 262144,
+            "maxSelectorNodes": 65536,
+            "maxSelectorDepth": 2,
+            "maxSelectedColumns": 65536,
+            "maxLastRows": 65536,
+            "maxWork": 16000000000,
+            "maxOutputBytes": 268435456,
+            "maxRetainedBytes": 268435456
+          },
+          "scale": "DEFAULT"
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "F11-default-maxOutputBytes-0",
+        "kind": "resource",
+        "status": "PASS",
+        "closed": true,
+        "intact": true
+      }
+    },
+    {
+      "layout": "INSTALLED_MOVED",
+      "id": "F11-ledger-maxRetainedBytes--1",
+      "source": {
+        "path": "evidence-continuation/INSTALLED_MOVED-078/stdout.raw",
+        "bytes": 63334,
+        "sha256": "a5749af4b7f8d7fbb4a96b2f3e8abbdbf5f30a4b0edab657089164795ef028e5",
+        "mode": "644"
+      },
+      "control": {
+        "id": "F11-ledger-maxRetainedBytes--1",
+        "kind": "ledger",
+        "name": "maxRetainedBytes",
+        "delta": -1
+      },
+      "literalInvocation": {
+        "argv": [
+          "count"
+        ],
+        "stdinHex": "610a",
+        "options": {
+          "limits": {
+            "maxRetainedBytes": 63
+          }
+        }
+      },
+      "observation": {
+        "stage": "RAW_OBSERVATION",
+        "id": "F11-ledger-maxRetainedBytes--1",
+        "observation": {
+          "result": {
+            "exitCode": 1
+          },
+          "failed": false,
+          "stdoutBase64": "",
+          "stderrBase64": "",
+          "events": [
+            "register",
+            "register",
+            "register",
+            "command-settle",
+            "root-drain"
+          ],
+          "inputEvents": [
+            "acquire",
+            "next",
+            {
+              "delivered": 2
+            }
+          ],
+          "fsEvents": [],
+          "closed": true,
+          "files": {},
+          "exact": 64,
+          "limit": 63,
+          "ledger": [
+            {
+              "phase": "scanner slot",
+              "capacity": 32
+            },
+            {
+              "phase": "count row slot overlapping scanner",
+              "capacity": 32
+            },
+            {
+              "phase": "row released; output allocation",
+              "capacity": 2
+            }
+          ],
+          "scope": "SOURCE_AUDITED_SIMPLE_PATH_NOT_ALL_PATH_LEDGER_OR_DEFAULT_SCALE"
+        }
+      },
+      "outcome": {
+        "stage": "CASE",
+        "id": "F11-ledger-maxRetainedBytes--1",
+        "kind": "ledger",
+        "status": "FAIL",
+        "closed": true,
+        "intact": true,
+        "failure": {
+          "name": "AssertionError",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'xan count: maxRetainedBytes limit exceeded\\n'\n",
+          "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'xan count: maxRetainedBytes limit exceeded\\n'\n\n    at run (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs:178:31)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/worker.mjs:22:84"
+        }
+      }
+    }
+  ]
+}

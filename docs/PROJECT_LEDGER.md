@@ -3199,3 +3199,53 @@ that any implementation, command, fixture, or test currently exists.
   Old consumed8e6b/df89 stays0/14 with its EPERM target UNKNOWN. E03.3 stays
   unsupported; priorA10/protection/package proofs are bound-only, not rerun.
   Current features/XAN are not injected or accepted by this failed fixed76 run.
+
+### 2026-08-28T11:43Z — Prospective historical eligibility author candidate
+
+- ROOT ratifies independent3077ba0295b1064e575d8ff66bde4e83619d9514 optionA:
+  exactly NA-2755/NA-6755 are HISTORICAL August28 observations bound to55db52a4,
+  UNSUPPORTED_HOST_OPERATION/native parity UNQUALIFIED. They are not fresh
+  capabilities, a49/51 semantic score, or automatic classifications of Node,
+  directories, symbolic modes or canonical tests. No denied probe is repeated.
+- Preseal6b959e54 precedes source/control candidate
+  e35d83ca97f6aa4f32b2cb8542f5e711458f6aeb. Evidence149d0fcb records one actual
+  Node24.11.1 run:15 DATA/SYNTHETIC groups pass, zero fail/skip/TODO/cancelled.
+  Zero real native probes, real setup, private copies, production builds or gate
+  phases. Synthetic callbacks do not prove real private behavior. Independent
+  freeze17b9249a has40 proposed controls and remains unexecuted by this author.
+- Shipping41 bindings preserve fixedf5/c109, all632 canonical bodies/paths,
+  192 classifications,256 cleanup and51 identities. New effective profile
+  fa6731eec6b41915f3f56affa9cdf29e7352a10e939bb0f1fe1b9d675caa7510 adds only
+  historical eligibility to unchanged strict8c9363ea data. Normalized driver
+  f192ca9330a440d33e49544e135a04305a48e84ce85858f902860aafa2ccd4f9.
+  Aggregate remains nonzero even if all future runtime checks pass. Raw counts,
+  unexecuted phases, unsupported obligations and unknown attribution stay separate.
+- Source-only capture initially hit Git-show ENOBUFS on large PROFILE bytes;
+  no output files or test rerun followed that failure. Bounded tree OIDs/local
+  blob hashing completed metadata capture without increasing buffers. Failure
+  is disclosed in evidence, not a product/control failure or gate attempt.
+  Handoff: `tests/integration/full-gate-20260827/unified76-driver/chmod-eligibility-v1/HANDOFF.md`.
+  Different review/new ROOT release are pending. c222/55db stays consumed0/14,
+  old EPERM origin UNKNOWN, failed roots unchanged; no inherited GO.
+
+### 2026-08-28T11:43Z — ROOT accepts qualified DOTGLOB composition
+
+- ROOT scoped acceptance: sourced2502aae3c8458e0ac92662f2af07e7f9fc3923a;
+  selected tree37ad3f94f9fa07037e61d2bd27a4a4b7cddb4d5e from accepted STACK099455.
+  Full846 packageb0544dcb3d0d9b22420932fc86e4d4693377fcc813fde6bde95c8625edc951aa.
+  No fixed76 change or new combined78 acceptance follows.
+- Original2e2bfa68 preserves102/102 command checks,696/696 unsupported-matrix
+  checks,71/72 globs,14/14 state scripts and8/8 overlapping byte checks in each
+  of three layouts. Twenty-five non-R24 procedures pass in their declared roles;
+  original shared R24 fails before later reconciliation. Original G039/R24
+  failures and zero original mutant kills stay unchanged; no26/26 old rescore.
+- Additive preseala5193e0e/evidence8fa48028 executes G039-v2 and R24-v2 each3/3,
+  eleven actual compiled-artifact mutant kills plus11 restored positives and
+  nine fresh guards;40 children reaped/coordinator0. These are not production
+  patches. Original5 strict types/20 controls are retained, not rerun or added
+  to fresh compatibility counts. Evidence:
+  `tests/shell/dotglob-independent-20260828/continuation-evidence-v2/README.md`.
+- STACK136/C06partial/S13unsupported remains qualified as before. Runtime
+  acceptance does not authorize arrays (design unratified); ROOT will separately
+  assign coherent78+DAV/CD/LET/STACK/DOTGLOB/length composition verification.
+  YQ/XAN are not integrated or accepted here; XAN execution hold/no retry remains.

@@ -1,0 +1,42 @@
+{
+  "schema": "independent-tool-routes-release-inputs/1",
+  "notRootRelease": true,
+  "source": "fe15f1e406fa1039accddec25c696ae7187f6135",
+  "evidence": "cdf2803ee6d7956556819be484e5b632dc407a0d",
+  "prefreeze": "290b7fa0b4c6152ce29f38edb30d57cc75334e34",
+  "recipe": "fec226b5c5bae456f60ec9b42ceaafd001836857",
+  "artifactCorrection": "c5e2e47ce980b030b41c4a005096601cead5256f",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driverSha256": "25ee4ded79df9c4fe0a9c8031721887dd7c8e22cb56f10d42b3d415eb30c0527",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "projectionSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb",
+  "toolRoutesNormalizedSha256": "b440b32475d24642d0fbe5dc222356ac1f209a11597baa07d63d286b06b68ca9",
+  "toolRoutesRawSha256": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7",
+  "toolRoutingSourceSha256": "b3cbdfb52fdae6067d58a8c1f57d5890a2b0f2755f29c66c6744ec028582cdb6",
+  "osManifestRawSha256": "8beb3aeb244fd490bd1904fa32bddc1332a7ccfb4c48d36dfe8c6ebbf3305a7f",
+  "osFenceSourceSha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69",
+  "externalSha256": "23458bf9f68194b0620d73cdbd00a144a3cdb06000144cdb30588c54eb62ba48",
+  "gitCoreSha256": "e4399d286413829c3619e1c7e7411a48f6632e6a1feace8355ebffb578d8ed5b",
+  "inspector": {
+    "origin": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+    "physical": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/otool-classic",
+    "bytes": 472320,
+    "mode": 493,
+    "sha256": "6beb1ad9c4fb7edafd59fddcb093f358f9a250bfe1db2db9f04ed1aacd523a69"
+  },
+  "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "emitManifestSha256": "3760c3b33307ffc7e4ed26c34073cda665d48a742cd3cc69f1894f6ee50e72fc",
+  "emitIdenticalToV9": true,
+  "resultSha256": "c923d6233ec5c91097ed0f5f3886716c6e47e8d26206f932ee6362e6565e6ca5",
+  "qualificationSha256": "e9bcf0e1942a413ec57a2b93b14868596355a93f1d162ec667725d99e72025d4",
+  "freshPack": false,
+  "fullGateLaunched": false,
+  "rootMustSupply": [
+    "new ROOT_RELEASE_UNIFIED76 action",
+    "exact candidate/driver/profile/package hashes",
+    "public74/public75/public76 and independentDriverAccepted decision",
+    "authorization",
+    "independentEvidence bound to final independent seal"
+  ],
+  "qualification": "Scoped final-route/fence/A10 evidence ready; no valid release is issued here. Full14phase finite-PATH compatibility remains unexecuted. Six previous refusal proof statuses remain inherited; not all seven newly accepted."
+}

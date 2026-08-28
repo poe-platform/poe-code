@@ -1,0 +1,971 @@
+{
+  "schema": 1,
+  "status": "SCOPED_FINAL_ROUTE_AND_A10_ACCEPTED_ROOT_RELEASE_ABSENT",
+  "source": "fe15f1e406fa1039accddec25c696ae7187f6135",
+  "evidence": "cdf2803ee6d7956556819be484e5b632dc407a0d",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driverSha256": "25ee4ded79df9c4fe0a9c8031721887dd7c8e22cb56f10d42b3d415eb30c0527",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "projectionSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb",
+  "toolRoutesSha256": "b440b32475d24642d0fbe5dc222356ac1f209a11597baa07d63d286b06b68ca9",
+  "externalReceipt": {
+    "schema": 3,
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "observationCandidate": "2ffcb23d6029250c48950030120ed0adad2e5769",
+    "sha256": "23458bf9f68194b0620d73cdbd00a144a3cdb06000144cdb30588c54eb62ba48",
+    "encodedSha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+    "qualification": "Exact readable identities reused only after fresh verification; original observation retains its pre-approval incomplete-binding status. Root separately approved precisely eleven macOS26.4.1/build25E253 references; no full OS or unknown-image attestation."
+  },
+  "packet": {
+    "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tool-routes-v1/HANDOFF-v2.md",
+    "sha256": "c4e4300ae60cc36356302354e7bf8a3499871fe08efebb5f897b981e86457b28"
+  },
+  "controlFreezeSha256": "fdf9f1598407d12075ad0861ef1209fe361ef7373dc7d2f680fd1246000433ab",
+  "controls": {
+    "routePrerequisites": {
+      "pass": 8,
+      "fail": 0,
+      "cases": [
+        {
+          "id": "P01-complete-external-prerequisite",
+          "status": "PASS"
+        },
+        {
+          "id": "P02-four-real-direct-inspections",
+          "status": "PASS"
+        },
+        {
+          "id": "P03-ambient-injection-refusal",
+          "status": "PASS"
+        },
+        {
+          "id": "P04-unlisted-inspection-target",
+          "status": "PASS"
+        },
+        {
+          "id": "P05-wrong-inspector-digest",
+          "status": "PASS"
+        },
+        {
+          "id": "P06-unapproved-reference-pair",
+          "status": "PASS"
+        },
+        {
+          "id": "P07-actual-inspector-output-mismatch",
+          "status": "PASS"
+        },
+        {
+          "id": "P08-readable-reference-metadata-refusal",
+          "status": "PASS"
+        }
+      ]
+    },
+    "shippingPhases": {
+      "pass": 3,
+      "fail": 0,
+      "cases": [
+        {
+          "id": "finite-git",
+          "status": 0
+        },
+        {
+          "id": "selectors",
+          "status": 0
+        },
+        {
+          "id": "resolved-boundary",
+          "status": 0
+        }
+      ]
+    },
+    "shadowMutations": [
+      {
+        "kind": "regular",
+        "refusal": {
+          "message": "unbound native PATH entry: git",
+          "code": "ERR_ASSERTION"
+        },
+        "markerAbsent": true
+      },
+      {
+        "kind": "symlink",
+        "refusal": {
+          "message": "native PATH entries must not become aliases",
+          "code": "ERR_ASSERTION"
+        },
+        "markerAbsent": true
+      },
+      {
+        "kind": "changed-alias",
+        "refusal": {
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '/usr/bin/git'\n- '/Applications/Xcode.app/Contents/Developer/usr/bin/git'\n",
+          "code": "ERR_ASSERTION"
+        }
+      }
+    ],
+    "shippingDescriptors": [
+      {
+        "descriptor": 0,
+        "regular": false,
+        "device": 18446744073409750000,
+        "inode": 336
+      },
+      {
+        "descriptor": 1,
+        "regular": false,
+        "device": 18446744073709552000,
+        "inode": 2132950
+      },
+      {
+        "descriptor": 2,
+        "regular": false,
+        "device": 18446744073709552000,
+        "inode": 2132951
+      },
+      {
+        "descriptor": 3,
+        "regular": false,
+        "device": 18446744073709552000,
+        "inode": 2133024
+      },
+      {
+        "descriptor": 4,
+        "regular": false,
+        "device": 0,
+        "inode": 0
+      },
+      {
+        "descriptor": 5,
+        "regular": false,
+        "device": 0,
+        "inode": 12509495157919480000
+      },
+      {
+        "descriptor": 6,
+        "regular": false,
+        "device": 0,
+        "inode": 2785539436771976700
+      },
+      {
+        "descriptor": 7,
+        "regular": false,
+        "device": 16777232,
+        "inode": 2
+      },
+      {
+        "descriptor": 8,
+        "regular": false,
+        "device": 0,
+        "inode": 0
+      },
+      {
+        "descriptor": 9,
+        "regular": false,
+        "device": 16777232,
+        "inode": 2
+      },
+      {
+        "descriptor": 10,
+        "regular": false,
+        "device": 0,
+        "inode": 0
+      },
+      {
+        "descriptor": 11,
+        "regular": false,
+        "device": 16777232,
+        "inode": 2
+      },
+      {
+        "descriptor": 12,
+        "regular": false,
+        "device": 18446744073409750000,
+        "inode": 336
+      }
+    ],
+    "sentinel": {
+      "pid": 28609,
+      "survived": true,
+      "close": {
+        "code": null,
+        "signal": "SIGTERM"
+      }
+    },
+    "qualification": "Eight route groups,three shipping phases and three worker-side shadow mutations have distinct denominators; no author12 or old22 outcomes counted."
+  },
+  "a10": {
+    "cold": 78,
+    "typecheckAll": 0,
+    "driverProductionBuilds": [
+      {
+        "nonce": "d5289a8e-429b-43ff-bbf7-2f9707906113",
+        "pid": 38070,
+        "parent": 38053,
+        "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "compiler": "/private/tmp/unified76-os-write-Gj8Bpw/tmp/unified76-build-types-fOF2TW/source/node_modules/typescript/bin/tsc",
+        "project": "/private/tmp/unified76-os-write-Gj8Bpw/tmp/unified76-build-types-fOF2TW/source/tsconfig.build.json",
+        "cwd": "/private/tmp/unified76-os-write-Gj8Bpw/tmp/unified76-build-types-fOF2TW/source",
+        "args": [
+          "-p",
+          "tsconfig.build.json"
+        ],
+        "startedAt": "2026-08-28T08:43:55.032Z"
+      }
+    ],
+    "compilerInvocations": 32,
+    "maintained": [
+      {
+        "name": "du-leaf",
+        "status": "pass"
+      },
+      {
+        "name": "grep-aliases-public",
+        "status": "pass"
+      },
+      {
+        "name": "column-public",
+        "status": "pass"
+      },
+      {
+        "name": "network-zero-caps-public",
+        "status": "pass"
+      },
+      {
+        "name": "regex",
+        "status": "pass"
+      },
+      {
+        "name": "regex-continuation",
+        "status": "pass"
+      },
+      {
+        "name": "regex-followup",
+        "status": "pass"
+      },
+      {
+        "name": "regex-production",
+        "status": "pass"
+      },
+      {
+        "name": "regex-production-continuation",
+        "status": "pass"
+      },
+      {
+        "name": "s3-constructor",
+        "status": "pass"
+      },
+      {
+        "name": "s3-http-author",
+        "status": "pass"
+      },
+      {
+        "name": "s3-http-independent",
+        "status": "pass"
+      },
+      {
+        "name": "s3-rmdir",
+        "status": "pass"
+      },
+      {
+        "name": "webdav-loopback",
+        "status": "pass"
+      },
+      {
+        "name": "webdav-services",
+        "status": "pass"
+      },
+      {
+        "name": "stream-inspection",
+        "status": "pass"
+      },
+      {
+        "name": "stream-five",
+        "status": "pass"
+      },
+      {
+        "name": "time-env-public",
+        "status": "pass"
+      },
+      {
+        "name": "time-env-leaf",
+        "status": "pass"
+      },
+      {
+        "name": "env-split-public-types",
+        "status": "pass"
+      },
+      {
+        "name": "webdav-atomic",
+        "status": "pass"
+      },
+      {
+        "name": "webdav-atomic-independent",
+        "status": "pass"
+      },
+      {
+        "name": "webdav-timestamp-independent",
+        "status": "pass"
+      }
+    ],
+    "maintainedCount": 23,
+    "source": [
+      {
+        "name": "atomic-webdav-profile-source",
+        "status": "pass"
+      },
+      {
+        "name": "atomic-webdav-independent-source",
+        "status": "pass"
+      },
+      {
+        "name": "env-split-public-source",
+        "status": "pass"
+      }
+    ],
+    "sourceCount": 3,
+    "expectedNegative": [
+      {
+        "name": "env-split-invalid-binding",
+        "status": "pass",
+        "diagnostics": 1
+      },
+      {
+        "name": "time-env-public-negative",
+        "status": "pass",
+        "diagnostics": 2
+      },
+      {
+        "name": "time-env-leaf-negative",
+        "status": "pass",
+        "diagnostics": 5
+      }
+    ],
+    "emitted": 832,
+    "declarations": 208,
+    "emitManifestSha256": "3760c3b33307ffc7e4ed26c34073cda665d48a742cd3cc69f1894f6ee50e72fc",
+    "candidateBinding": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a",
+    "cleaned": true,
+    "runtimeExecutions": 0,
+    "toolPath": {
+      "path": "/private/tmp/unified76-os-write-Gj8Bpw/tmp/unified76-build-types-fOF2TW/tool-bin",
+      "device": 16777232,
+      "inode": 180945031,
+      "aliases": [
+        {
+          "name": "node",
+          "origin": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "physical": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "bytes": 117591472,
+          "mode": 493,
+          "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+        },
+        {
+          "name": "git",
+          "origin": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "physical": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+          "bytes": 3704880,
+          "mode": 493,
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        },
+        {
+          "name": "sh",
+          "origin": "/bin/sh",
+          "physical": "/bin/sh",
+          "bytes": 101232,
+          "mode": 493,
+          "sha256": "094fc5e188feb7cc18906900b1b5c417e03aaed03a9fc132e925f38640d9bd59"
+        },
+        {
+          "name": "tar",
+          "origin": "/usr/bin/tar",
+          "physical": "/usr/bin/bsdtar",
+          "bytes": 275344,
+          "mode": 493,
+          "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+        },
+        {
+          "name": "ps",
+          "origin": "/bin/ps",
+          "physical": "/bin/ps",
+          "bytes": 170816,
+          "mode": 493,
+          "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+        },
+        {
+          "name": "lsof",
+          "origin": "/usr/sbin/lsof",
+          "physical": "/usr/sbin/lsof",
+          "bytes": 307600,
+          "mode": 493,
+          "sha256": "1c7ea75ae284bfb569f693ce50ad25c04a780dfe5ae80ae93a5d2ed285c6b456"
+        },
+        {
+          "name": "sw_vers",
+          "origin": "/usr/bin/sw_vers",
+          "physical": "/usr/bin/sw_vers",
+          "bytes": 135536,
+          "mode": 493,
+          "sha256": "19944ce73b498bbc997043b8530984aff4c6ca9741cb3a044c9320369bb019dd"
+        },
+        {
+          "name": "bsdtar",
+          "origin": "/usr/bin/bsdtar",
+          "physical": "/usr/bin/bsdtar",
+          "bytes": 275344,
+          "mode": 493,
+          "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+        },
+        {
+          "name": "gzip",
+          "origin": "/usr/bin/gzip",
+          "physical": "/usr/bin/gzip",
+          "bytes": 171712,
+          "mode": 493,
+          "sha256": "7bd218bc6b12fced475163901547a796736f72f99533cbec60eea150ed21afa3"
+        },
+        {
+          "name": "gunzip",
+          "origin": "/usr/bin/gunzip",
+          "physical": "/usr/bin/gunzip",
+          "bytes": 197504,
+          "mode": 493,
+          "sha256": "5ba665e19226838310b102c16b6cebed89f2048ccfc5bba2e8083deb80acec73"
+        },
+        {
+          "name": "bash",
+          "origin": "/bin/bash",
+          "physical": "/bin/bash",
+          "bytes": 1293840,
+          "mode": 365,
+          "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+        },
+        {
+          "name": "sed",
+          "origin": "/usr/bin/sed",
+          "physical": "/usr/bin/sed",
+          "bytes": 170336,
+          "mode": 493,
+          "sha256": "5b74ed702abbb642a7bf39335aa6716ecbf2312084cf2249ca4e59f93c559360"
+        },
+        {
+          "name": "awk",
+          "origin": "/usr/bin/awk",
+          "physical": "/usr/bin/awk",
+          "bytes": 302368,
+          "mode": 493,
+          "sha256": "116aa4d27323ba29b0b481119e2e0b0aec0f518e1d535f424531c002311ac505"
+        },
+        {
+          "name": "jq",
+          "origin": "/usr/bin/jq",
+          "physical": "/usr/bin/jq",
+          "bytes": 1492208,
+          "mode": 493,
+          "sha256": "1625910a3f99fbd11c3ad58cc16ebc359507e6e19c21e91d8ab7da2116c8429f"
+        },
+        {
+          "name": "curl",
+          "origin": "/usr/bin/curl",
+          "physical": "/usr/bin/curl",
+          "bytes": 552624,
+          "mode": 493,
+          "sha256": "5ef748580e05e8208c8faacc9be88d1aa48d9970101c0a29ba26896e017e6226"
+        },
+        {
+          "name": "rev",
+          "origin": "/usr/bin/rev",
+          "physical": "/usr/bin/rev",
+          "bytes": 101328,
+          "mode": 493,
+          "sha256": "40ebd8f8a85d697fa454466c35def2ae20bb4a266b69310a033a23191db55247"
+        },
+        {
+          "name": "expand",
+          "origin": "/usr/bin/expand",
+          "physical": "/usr/bin/expand",
+          "bytes": 101616,
+          "mode": 493,
+          "sha256": "dbd3b0cd2a186fce021164e4e95efd050c7027a5ce7bd7f348f28a559a741e78"
+        },
+        {
+          "name": "fold",
+          "origin": "/usr/bin/fold",
+          "physical": "/usr/bin/fold",
+          "bytes": 101808,
+          "mode": 493,
+          "sha256": "0eea78dff161682f185f0cba9a5711b6cbcb92b8758adaa3655727606ae0b035"
+        }
+      ],
+      "gitCore": {
+        "origin": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+        "entries": 197,
+        "sha256": "e4399d286413829c3619e1c7e7411a48f6632e6a1feace8355ebffb578d8ed5b"
+      },
+      "qualification": "Finite declared aliases only; no ambient/system/developer-directory PATH fallback."
+    },
+    "duplicate": {
+      "compiler": 0,
+      "refusal": {
+        "message": "unexpected duplicate driver production build",
+        "code": "ERR_ASSERTION"
+      },
+      "events": [
+        {
+          "nonce": "d5289a8e-429b-43ff-bbf7-2f9707906113",
+          "pid": 38070,
+          "parent": 38053,
+          "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "compiler": "/private/tmp/unified76-os-write-Gj8Bpw/tmp/unified76-build-types-fOF2TW/source/node_modules/typescript/bin/tsc",
+          "project": "/private/tmp/unified76-os-write-Gj8Bpw/tmp/unified76-build-types-fOF2TW/source/tsconfig.build.json",
+          "cwd": "/private/tmp/unified76-os-write-Gj8Bpw/tmp/unified76-build-types-fOF2TW/source",
+          "args": [
+            "-p",
+            "tsconfig.build.json"
+          ],
+          "startedAt": "2026-08-28T08:43:55.032Z"
+        },
+        {
+          "nonce": "d5289a8e-429b-43ff-bbf7-2f9707906113",
+          "pid": 44742,
+          "parent": 31062,
+          "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+          "compiler": "/private/tmp/unified76-os-write-Gj8Bpw/tmp/unified76-build-types-fOF2TW/source/node_modules/typescript/bin/tsc",
+          "project": "/private/tmp/unified76-os-write-Gj8Bpw/tmp/unified76-build-types-fOF2TW/source/tsconfig.build.json",
+          "cwd": "/private/tmp/unified76-os-write-Gj8Bpw/tmp/unified76-build-types-fOF2TW/source",
+          "args": [
+            "-p",
+            "tsconfig.build.json"
+          ],
+          "startedAt": "2026-08-28T08:46:34.061Z"
+        }
+      ],
+      "emittedUnchanged": true
+    }
+  },
+  "fullProjection": {
+    "logical": {
+      "count": 37397,
+      "bytes": 2382440321
+    },
+    "physical": 37392,
+    "candidateMetadataOnly": [
+      {
+        "path": "AGENTS.md",
+        "mode": "100644",
+        "blob": "d24f9e50fc271acbedf14c6bf415393572376622",
+        "bytes": 12424,
+        "sha256": "d54a4610a70cb11e81ce06471951c40fd5f96707fd28d802844fa06e977605a8"
+      },
+      {
+        "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      }
+    ],
+    "dependencies": [
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/node_modules",
+        "logical": {
+          "files": 314,
+          "bytes": 48179371,
+          "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+        },
+        "physical": {
+          "files": 314,
+          "bytes": 48179371,
+          "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+        },
+        "metadataOnly": [],
+        "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+        "logical": {
+          "files": 3497,
+          "bytes": 75292558,
+          "sha256": "101679a28f9b302d6d17553344cbc427807a0510c66246fff3162cb86e033b3e"
+        },
+        "physical": {
+          "files": 3496,
+          "bytes": 75283327,
+          "sha256": "60a11cf540097d742ec2d916414e6b392bf4aa1fa9862919c9ae69138e1e8137"
+        },
+        "metadataOnly": [
+          {
+            "role": "benchmark",
+            "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+            "path": "just-bash/dist/AGENTS.md",
+            "mode": "100644",
+            "bytes": 9231,
+            "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979"
+          }
+        ],
+        "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+      }
+    ],
+    "secondHop": [
+      {
+        "origin": "/private/tmp/unified76-independent-tool-v10-zUUgKh/repository/node_modules",
+        "logical": {
+          "files": 314,
+          "bytes": 48179371,
+          "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+        },
+        "physical": {
+          "files": 314,
+          "bytes": 48179371,
+          "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+        },
+        "metadataOnly": [],
+        "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+      },
+      {
+        "origin": "/private/tmp/unified76-independent-tool-v10-zUUgKh/repository/benchmarks/node_modules",
+        "logical": {
+          "files": 3496,
+          "bytes": 75283327,
+          "sha256": "60a11cf540097d742ec2d916414e6b392bf4aa1fa9862919c9ae69138e1e8137"
+        },
+        "physical": {
+          "files": 3496,
+          "bytes": 75283327,
+          "sha256": "60a11cf540097d742ec2d916414e6b392bf4aa1fa9862919c9ae69138e1e8137"
+        },
+        "metadataOnly": [],
+        "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+      }
+    ],
+    "compositePhysicalHashesMatch": true,
+    "opaqueHistory": {
+      "revisions": [
+        "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+        "284a4c5a193e2001c373fd35806e920bf3ffb90f",
+        "6699804ace9f5522aa67be6a017a8008bfc09f30",
+        "656ee2b04aa91b1cc40da865173be1b472a2c4ce"
+      ],
+      "bytes": 480921521,
+      "sha256": "3bbe8ca53ee0f901c8d783d65811e7969296908516b3d8e22735713478bbb6c6",
+      "lifecycle": [
+        {
+          "pid": 29391,
+          "status": 0,
+          "signal": null
+        },
+        {
+          "pid": 29392,
+          "status": 0,
+          "signal": null
+        }
+      ],
+      "logs": {
+        "0": {
+          "pid": 29391,
+          "stderr": "",
+          "stdout": ""
+        },
+        "1": {
+          "pid": 29392,
+          "stderr": "",
+          "stdout": "pack\tabcef2d21d4ce981ba7b522b8b67880fadd1f772\n"
+        }
+      },
+      "checkout": false,
+      "alternates": false,
+      "instructionPolicy": "Original opaque objects only; no instruction file materialized"
+    },
+    "assembly": {
+      "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+      "sourceTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+      "paths": 4
+    },
+    "qualification": "Complete candidate,not typing-only subset. Exact5 candidate+1 benchmark omission; second-hop copies already projected dependencies; no instruction text snapshot or checkout."
+  },
+  "provenance": {
+    "sourceFileHashes": {
+      "DRIVER.json": {
+        "sha256": "966848549f5a9969faa0eee9345991698afd8275dcef0abcb90379cf07666f96",
+        "gitBlob": "ee51d1117b7dcd9bcfaeb7ba054e907f301e55f5",
+        "bytes": 4332
+      },
+      "CANDIDATE.json": {
+        "sha256": "b46ac2defc2ae1c199f291f37099445d401a561e43bc4acb1cca563476d0bddd",
+        "gitBlob": "70d776fafe01afacdc29299e2f33867aabdcb691",
+        "bytes": 4663
+      },
+      "PROFILE.json.gz.base64": {
+        "sha256": "a98b340fbede2d12e9cb0264726a13bc9d7ace4853a8705e17fc69c07df60d37",
+        "gitBlob": "3a662ce727c931a5cdd3065a8d95d3ff4e1e02d6",
+        "bytes": 1409701
+      },
+      "PROFILE-RECEIPT.json": {
+        "sha256": "bae07fe064489bf3c2eab1f49520d784b43b9deda5cc579a0af6af6b4a512ca0",
+        "gitBlob": "cc0049a0568f3924b47fd705651fb705dfeecd81",
+        "bytes": 976
+      },
+      "CLEANUP.json": {
+        "sha256": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
+        "gitBlob": "161431a7a7ac90755bb895f3ff9c1fc3f5124626",
+        "bytes": 27233
+      },
+      "EXTERNAL.json.gz.base64": {
+        "sha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+        "gitBlob": "cb03f3cab771028df57fe70aade72574d2b3921b",
+        "bytes": 476241
+      },
+      "EXTERNAL-RECEIPT.json": {
+        "sha256": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
+        "gitBlob": "4cbafbae57d48d1fd4b1aae515005f6b2eeb46bf",
+        "bytes": 592
+      },
+      "common.mjs": {
+        "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4",
+        "gitBlob": "bb44d03dfe124a336db8964ef138b0c8d698b0e3",
+        "bytes": 6427
+      },
+      "profile.mjs": {
+        "sha256": "4746445e74d7a14d7a8f8b29cbd6daee4d5af2488d6627fda268d7b73579de0e",
+        "gitBlob": "a5a31d596998be0e801a0aaa4107fd17e4cded12",
+        "bytes": 8384
+      },
+      "admission.mjs": {
+        "sha256": "b4e38b581d8be10604c8ea823b74551912e43bfc9806fbdb138b304d40bc7f90",
+        "gitBlob": "5caa46278fb84c010fdc027a1f70764030eaff97",
+        "bytes": 4523
+      },
+      "inventory.mjs": {
+        "sha256": "4474327377ffdf4d46344e84c8bfb5022664511f94bef53d77bac77253ad88d1",
+        "gitBlob": "429b8c73aba142c18d510e93d91ff6a765978b45",
+        "bytes": 5911
+      },
+      "run.mjs": {
+        "sha256": "a93d31887f2fd363d8747baec1a5cba405fb1c580fbf023cc80a9daa1bc2d1f2",
+        "gitBlob": "2b467083dce5c3bf8ff8de08b3b64043bb4bb0bf",
+        "bytes": 2811
+      },
+      "worker.mjs": {
+        "sha256": "8c3ad0676c804d02b45f9d7b8acfc355966ee23413dca8a8dfb2b2a4e2189e3a",
+        "gitBlob": "ce91b51b3db512d7c7331bd5e108e906b3eea5dc",
+        "bytes": 537
+      },
+      "supervise.mjs": {
+        "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b",
+        "gitBlob": "bc4db8061db8aafcf0a4f7c926267ff20dc3e83a",
+        "bytes": 6047
+      },
+      "execute.mjs": {
+        "sha256": "fadf7b45c9fb628c0f91cf9c0af514733421942bee6c1a9f0e9fd1437f1de040",
+        "gitBlob": "ac336a9683bc3696abb4deb6ba834ffec6204f7e",
+        "bytes": 20764
+      },
+      "policy.mjs": {
+        "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
+        "gitBlob": "49228227576c2d4e750edd6a00ed3f8611a3e69a",
+        "bytes": 4441
+      },
+      "transport.mjs": {
+        "sha256": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646",
+        "gitBlob": "f00563f5583154e494b8f97605141f0a28ab0bfb",
+        "bytes": 9553
+      },
+      "external.mjs": {
+        "sha256": "546906a56a37ac8448385fb069a9ee703ed5c1309157953fc2c2b62987186ba8",
+        "gitBlob": "684372da6826145d119fe4cbc2c0ef94b60d7374",
+        "bytes": 6032
+      },
+      "external-admission.mjs": {
+        "sha256": "0c8bf4c9cc810610bbcc8bf951b24e0b1d294c14317ef2d23affd475aaa7d9c2",
+        "gitBlob": "ee15d4353eb3b54fad59d92382d5dbb975051ed1",
+        "bytes": 4991
+      },
+      "built-consumers.mjs": {
+        "sha256": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8",
+        "gitBlob": "4a712e0a36261c6c1a73aa1df65354841d4e4e1a",
+        "bytes": 2958
+      },
+      "consumer-admission.mjs": {
+        "sha256": "2d60adf6b0039b6fd56250bc2e31eeaecdae6e167ba106f8c9344822e841aeb7",
+        "gitBlob": "95e05dd5d3c689c68d6c4c108b18e41aebdb8d76",
+        "bytes": 1940
+      },
+      "tap.mjs": {
+        "sha256": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b",
+        "gitBlob": "4913ccc42598b861b6bf0f9e34238901d5e8ebcd",
+        "bytes": 3405
+      },
+      "public.mjs": {
+        "sha256": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
+        "gitBlob": "13aaed92eec7fd29db226c194202f862b0a96942",
+        "bytes": 2892
+      },
+      "consumer.mts.fixture": {
+        "sha256": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
+        "gitBlob": "212a6cb22f7c70b72a9106431a642a250e3fddef",
+        "bytes": 840
+      },
+      "negative.mts.fixture": {
+        "sha256": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3",
+        "gitBlob": "ea76b2f6ead1689fe8f751ffdda0b25a0ec6a491",
+        "bytes": 250
+      },
+      "build-audit.mjs": {
+        "sha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+        "gitBlob": "1f7389579d9cb04812b81a05b238387c7736ed66",
+        "bytes": 1239
+      },
+      "build-types.mjs": {
+        "sha256": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a",
+        "gitBlob": "f9cf36f20696032c607910df66922a0674ec300d",
+        "bytes": 4115
+      },
+      "phase-runner.mjs": {
+        "sha256": "ac679021137624fc2b4beaed6460d06acc6851a36d52351b390a4b53fad9bd88",
+        "gitBlob": "2a5bdddcd55867219f0b405edea6e84b4217ead9",
+        "bytes": 2528
+      },
+      "process-observer.mjs": {
+        "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
+        "gitBlob": "925f27ff6a40c580414e81bddff2d17480a8be8a",
+        "bytes": 3667
+      },
+      "review-build-types.mjs": {
+        "sha256": "ef79cc344dc0259bfef3d2351fa61ea5a2f716ac8c427dfab346294498d0a507",
+        "gitBlob": "c657767026174b0a3da0084759fbbf7df49462ea",
+        "bytes": 9630
+      },
+      "review-build-types-worker.mjs": {
+        "sha256": "e69573ee434436bb9ab9bda807155cfaaa5a687a2eb32a09a4b6b0d54214f295",
+        "gitBlob": "17fc149caf58eaa4a8e12399720bb8cbe9c60320",
+        "bytes": 351
+      },
+      "projection.mjs": {
+        "sha256": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8",
+        "gitBlob": "e1ecc3bda2e4313fa40281e1a6b97cbe38b05a82",
+        "bytes": 5765
+      },
+      "INSTRUCTION-PROJECTION.json": {
+        "sha256": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537",
+        "gitBlob": "b3954b6ade7d6eaedde0a4284e95694cf9abbd4c",
+        "bytes": 2542
+      },
+      "os-instruction-fence.mjs": {
+        "sha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69",
+        "gitBlob": "71baaf76ac8097454dc27b147793b198eb5ea121",
+        "bytes": 6239
+      },
+      "fenced-supervisor.mjs": {
+        "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8",
+        "gitBlob": "9f85df10b564b4fc4781ab5a3da9fb60c7fd1ff9",
+        "bytes": 7580
+      },
+      "OS-INSTRUCTION-FENCE.json": {
+        "sha256": "8beb3aeb244fd490bd1904fa32bddc1332a7ccfb4c48d36dfe8c6ebbf3305a7f",
+        "gitBlob": "28ef6498c599fa37f1293532453470b842eea15e",
+        "bytes": 1845
+      },
+      "tool-routing.mjs": {
+        "sha256": "b3cbdfb52fdae6067d58a8c1f57d5890a2b0f2755f29c66c6744ec028582cdb6",
+        "gitBlob": "58ca434dd543c8a74af4369922a1ffe405060714",
+        "bytes": 11917
+      },
+      "TOOL-ROUTES.json": {
+        "sha256": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7",
+        "gitBlob": "5836669cb9ef9929977ad2b05c6fb5091c92e293",
+        "bytes": 2520
+      }
+    },
+    "osProfiles": [
+      "835b38f769c86eaf12b028463afee429f6fffcc9c8274954c359afa520158e06",
+      "726b3da659e98ac6f485db7be1d754e431004547830ec20ef4c3112c3213960b"
+    ],
+    "priorArtifactsUnchanged": 366
+  },
+  "protectedAttempts": {
+    "operations": 2,
+    "denied": 2,
+    "unexpectedPhysicalInstructionFiles": 0,
+    "qualification": "Fresh benign Node/native protected-target operations only; not syscall counts. Inert links intentionally created. Historical tar attempts inherited,not rerun or added to fresh denominator."
+  },
+  "transport": {
+    "unboundInitialSymlink": {
+      "message": "Expected values to be strictly equal:\n\n37398 !== 37397\n",
+      "code": "ERR_ASSERTION"
+    },
+    "qualification": "Actual frozen extraction-path admission refusal,not broadened runtime symlink policy"
+  },
+  "sevenNew76Proofs": [
+    {
+      "id": "binding-complete",
+      "status": "SCOPED_EVIDENCE_READY_FRESH_ROOT_RELEASE_BINDING_ABSENT_FULLGATE_UNEXECUTED"
+    },
+    {
+      "id": "binding-pending-template",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN"
+    },
+    {
+      "id": "binding-mutable-head",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN"
+    },
+    {
+      "id": "binding-missing-asset",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN"
+    },
+    {
+      "id": "binding-missing-classification",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN"
+    },
+    {
+      "id": "binding-missing-cleanup-manifest",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN"
+    },
+    {
+      "id": "binding-skipped-case",
+      "status": "PRIOR_BOUNDED_REFUSAL_HISTORY_NOT_RERUN"
+    }
+  ],
+  "package": {
+    "sha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "freshPack": false,
+    "qualification": "Identical candidate/source with prior v9 package lineage carried; no author or independent fresh pack in this cohort"
+  },
+  "limits": {
+    "rawBytes": 99853410,
+    "regularBytes": 3187266496,
+    "regularFiles": 46413,
+    "qualification": "Finite shipping/parent watchdog,stream and capture bounds; cooperative disk accounting,not a kernel disk/RSS or malicious-host security boundary"
+  },
+  "remaining": [
+    "Root fresh release absent; full14phase finite PATH compatibility unexecuted",
+    "Known externally supplied writable FD limitation; shipping closure checked,not hostile-provider security",
+    "Poll-based process metadata and exact inspection receipts are not every dynamic library/process-image attestation",
+    "No full native semantics/private engine/network corpus; historical stopped0/14 and forbidden-copy incident unchanged"
+  ],
+  "history": "All366 earlier independent artifacts including38a4e7b,f1f1daaa,e584,old unbound-tool and failures unchanged. Original22 and author cohorts not rescored.",
+  "publicPrerequisites": "Root HTML/DU/Expr accepted",
+  "fullGateLaunched": false,
+  "privateAccess": false,
+  "rootRelease": "ABSENT"
+}

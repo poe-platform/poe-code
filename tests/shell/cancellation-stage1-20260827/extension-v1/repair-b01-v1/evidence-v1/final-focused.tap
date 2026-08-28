@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: B01-R01-budget-observed-control preserves observed budget control
+ok 1 - B01-R01-budget-observed-control preserves observed budget control
+  ---
+  duration_ms: 1.631583
+  type: 'test'
+  ...
+# Subtest: B01-R02-pipeline-observed-falsy preserves observed falsy pipeline control
+ok 2 - B01-R02-pipeline-observed-falsy preserves observed falsy pipeline control
+  ---
+  duration_ms: 0.611667
+  type: 'test'
+  ...
+# Subtest: B01-R03-budget-descendant-report preserves a budget descendant report
+ok 3 - B01-R03-budget-descendant-report preserves a budget descendant report
+  ---
+  duration_ms: 0.339333
+  type: 'test'
+  ...
+# Subtest: B01-R04-pipeline-report-equal-invoke keeps control provenance for equal reasons
+ok 4 - B01-R04-pipeline-report-equal-invoke keeps control provenance for equal reasons
+  ---
+  duration_ms: 0.256209
+  type: 'test'
+  ...
+# Subtest: B01-R05-actual-root-priority retains actual root priority
+ok 5 - B01-R05-actual-root-priority retains actual root priority
+  ---
+  duration_ms: 0.271667
+  type: 'test'
+  ...
+# Subtest: B01-R06-unknown-equal-remains-unrelated does not infer provenance from equality
+ok 6 - B01-R06-unknown-equal-remains-unrelated does not infer provenance from equality
+  ---
+  duration_ms: 0.132958
+  type: 'test'
+  ...
+# Subtest: B01-R07-genuine-invoke-remains-ranked continues ranking authenticated invokes
+ok 7 - B01-R07-genuine-invoke-remains-ranked continues ranking authenticated invokes
+  ---
+  duration_ms: 0.237375
+  type: 'test'
+  ...
+# Subtest: B01-R08-close-stability keeps closed child selection stable
+ok 8 - B01-R08-close-stability keeps closed child selection stable
+  ---
+  duration_ms: 0.411458
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 163.578958

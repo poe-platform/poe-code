@@ -1,0 +1,159 @@
+{
+  "version": 1,
+  "capturedAt": "2026-08-28",
+  "tools": {
+    "node": "v22.22.2",
+    "typescript": "5.9.3"
+  },
+  "bindings": {
+    "regressionFreeze": {
+      "commit": "2d02ebe87bf7b18548190ba6a607649cef8d04e3",
+      "tree": "756cfbff6c06c6c9294c1faa3d1730b6bcd7b5dd",
+      "rawCommitSha256": "5a7afc92cd7aa10a8980c3b7bb84eec259b0a3912ed029a889f32e43d5130726"
+    },
+    "repairCandidate": {
+      "commit": "57855a0293edb83bff98113123806497b4427416",
+      "tree": "de963dbd521d4e08efde7b13f62aeb338dbae4e0",
+      "parent": "2d02ebe87bf7b18548190ba6a607649cef8d04e3",
+      "rawCommitSha256": "4a2c5054fdd8af78e9113fc9f60eab6d6b401c73f6a14a568d1c9329f62d90c1",
+      "pathset": ["src/shell/cancellation.ts"],
+      "gitBlob": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+      "sha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2"
+    },
+    "rejectedSource": {
+      "commit": "373437cf84424939e1792470805cdd9e60bd3898",
+      "gitBlob": "3b7b55abc14718c0e23aa0c352af392b967a4905",
+      "sha256": "f628801379acd1c86c247a778e973f4cb89f8bbe2c3089f8192c31f3c5b273a5"
+    },
+    "independent": {
+      "freeze": "cbed682564e1e3b1c2ac8062157ece7b8b997f30",
+      "evidence": "8e62751d4b3b05cb493bed79aa1fd535df251da8",
+      "audit": "e41fbc22eb659e565f0a16f908ef8b6dd31c2df0"
+    }
+  },
+  "controls": [
+    "B01-R01-budget-observed-control",
+    "B01-R02-pipeline-observed-falsy",
+    "B01-R03-budget-descendant-report",
+    "B01-R04-pipeline-report-equal-invoke",
+    "B01-R05-actual-root-priority",
+    "B01-R06-unknown-equal-remains-unrelated",
+    "B01-R07-genuine-invoke-remains-ranked",
+    "B01-R08-close-stability"
+  ],
+  "commands": [
+    {
+      "id": "focused-final",
+      "command": "node --import tsx --test tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts",
+      "commandSha256": "d29c62c8914f7a88d05680884427fa7a10c3d91468b44db0b4e7437180b667b6",
+      "exit": 0,
+      "pass": 8,
+      "fail": 0,
+      "retried": false,
+      "raw": "final-focused.tap"
+    },
+    {
+      "id": "extension-runtime",
+      "command": "node --import tsx --test --test-reporter=spec tests/shell/cancellation-stage1-20260827/extension-v1/cancellation-extension.test.ts",
+      "commandSha256": "17877dc3034ae6798d1d92b085ebb16cf5c29ca7502bdcaeaa966aebe10dd963",
+      "exit": 0,
+      "pass": 22,
+      "fail": 0
+    },
+    {
+      "id": "stage1-runtime",
+      "command": "node --import tsx --test --test-reporter=spec tests/shell/cancellation-stage1-20260827/cancellation.test.ts",
+      "commandSha256": "bc2eebd1bed18bf174c567f3a0c8dbff4cbca0f9ca32a896fd338b5f49ade021",
+      "exit": 0,
+      "pass": 22,
+      "fail": 0
+    },
+    {
+      "id": "repair-runtime",
+      "command": "node --import tsx --test --test-reporter=spec tests/shell/cancellation-stage1-20260827/repair-v1/cancellation-repair.test.ts",
+      "commandSha256": "a7099f9bc95afb83239ff14d1860c15a80911fbde4bc50465ead4be7b6840cd1",
+      "exit": 0,
+      "pass": 5,
+      "fail": 0
+    },
+    {
+      "id": "focused-strict",
+      "command": "./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/tsconfig.strict.json",
+      "commandSha256": "ab666d806a1d828dea1dbc92cd473d09879de2107331f9832e89b799d1d31b95",
+      "exit": 0
+    },
+    {
+      "id": "extension-strict",
+      "command": "./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/extension-v1/tsconfig.strict.json",
+      "commandSha256": "8057327356fc2babccd61c0ce9010e3328cf0092deed3aa64b0a4964f9151280",
+      "exit": 0
+    },
+    {
+      "id": "extension-negative",
+      "command": "./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/extension-v1/tsconfig.type-negative.json",
+      "commandSha256": "91a9759cee85a2e76054efbe64756b05aab7222990d45ce8d1aeaae20509ea8f",
+      "exit": 0,
+      "expectedErrorRows": 5
+    },
+    {
+      "id": "stage1-strict",
+      "command": "./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/tsconfig.strict.json",
+      "commandSha256": "21b82355f188b9292785680b989e92d844071381124ea45dec4776fa51f43aa4",
+      "exit": 0
+    },
+    {
+      "id": "stage1-negative",
+      "command": "./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/tsconfig.type-negative.json",
+      "commandSha256": "34bb6b5e181f826af04c8e3429c7a39159165673d0cd5905ab4376e3fcd81be8",
+      "exit": 0,
+      "expectedErrorRows": 4
+    },
+    {
+      "id": "focused-build",
+      "command": "./node_modules/.bin/tsc -p tests/shell/cancellation-stage1-20260827/extension-v1/tsconfig.build.json --outDir tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/.scratch-build",
+      "commandSha256": "127ce518fced2698e4c00576169513a8a48273ef4eaec84d5eca719e36906af7",
+      "exit": 0,
+      "artifacts": {
+        "cancellation.js": "c625630b78e1a0771c7fd14ee5bbdf190cad7f8ee50e05b4cbd0966fe351b43d",
+        "cancellation.js.map": "c80ccd3e91d8f4b7be126b9d387e32d6073661151f68803d1a0c54b1d94e3e57",
+        "cancellation.d.ts": "a15924621b222bfaa5fffd8aebed3b7aaedd0110ec36b84eb621111d9b37d123",
+        "cancellation.d.ts.map": "869d63389e05027a5f081d4492d3fb462a413f9b6a19767020f691a3bc35e734"
+      }
+    },
+    {
+      "id": "focused-build-import",
+      "command": "node --input-type=module -e \"const module = await import('./tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/.scratch-build/src/shell/cancellation.js'); for (const name of ['prepareChildCancellation', 'activateChildCancellation', 'selectRuntimeCancellationOutcome']) { if (typeof module[name] !== 'function') throw new Error('missing ' + name); }\"",
+      "commandSha256": "288fa89a092ff2d98622ac91d05713d5bcaa5ef6d114367f98ff82c4ed071732",
+      "exit": 0,
+      "exports": [
+        "prepareChildCancellation",
+        "activateChildCancellation",
+        "selectRuntimeCancellationOutcome"
+      ]
+    }
+  ],
+  "historicalIndependent": {
+    "extensionIsolated": "11/12",
+    "extensionMoved": "11/12",
+    "originalStage1Isolated": "12/12",
+    "originalStage1Moved": "12/12",
+    "nearbyRepairIsolated": "4/4",
+    "nearbyRepairMoved": "4/4",
+    "oldMalformedTypeRows": 6,
+    "newMalformedTypeRows": 8,
+    "mutants": 4,
+    "rerun": false,
+    "rescored": false,
+    "edited": false
+  },
+  "retainedAuthorHistory": {
+    "extensionActivationReplay": "1/1",
+    "rerun": false
+  },
+  "closure": {
+    "scratchRemoved": true,
+    "ownProcessesSettledNaturally": true,
+    "ownedBoundariesAndListenersClosedByTests": true,
+    "subagentsUsed": 0
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "capturedAt": "2026-08-28",
+  "regressionFreezeCommit": "2d02ebe87bf7b18548190ba6a607649cef8d04e3",
+  "repairCandidateCommit": "57855a0293edb83bff98113123806497b4427416",
+  "repairCandidateTree": "de963dbd521d4e08efde7b13f62aeb338dbae4e0",
+  "repairCandidateSource": {
+    "gitBlob": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+    "sha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2"
+  },
+  "frozenFiles": {
+    "API-UNCHANGED.md": "d0292b2e2f0ea99e4ea3f0c3252f3a8d01f1a395c35ddff96a1da0b48dd63ee4",
+    "POLICY.md": "577b5e4271f77c3a1f0610a238d324a6f04e409e14684bbd5caf2f2c9cc3fe4e",
+    "cases.json": "55f5bb4ebbad47b964cdd3be7bcf1d0ca638c0e5c7493f3fbbc3cffecc086b8a",
+    "cancellation-repair-b01.test.ts": "b93ab6296ad6f637e68d24665a6b732b3206c6644b8d73371c40509a71f2a01d",
+    "tsconfig.strict.json": "114ee470a2e6e59dd3c50a8bd125dfce37387640208c16343550369a7c3c41a5",
+    "PREFREEZE-ATTEMPT-v0.md": "857c86a2bd1b0aaaa55a7a296fcd73b1b5eaa82dbf270839dfc7002cdb5ccdff",
+    "baseline-v1.tap": "1ce39a17b72e9d7125accaadb3a59d4279f104c7bbb6705ba8ea9907fb0eed2b",
+    "BASELINE.md": "1e0de4a115611337b0bd609e910a46d7dfe4304d619542eee49c7c893f622e45",
+    "freeze-manifest.json": "6daca47888b49d32ebb92e3c9eca48ccb0bdf3d30a2943220e43b347714a205a"
+  },
+  "evidenceFiles": {
+    "RESULTS.md": "02daaf9b5250c41e998b65f78d9a1cadf38d591708b80f946de3829a0b7c8bc3",
+    "checks.json": "c7de61133f7e32a771ca7aa3c424e88d100628290a8a9c52d9a313783bf70812",
+    "final-focused.tap": "bef2eeeae4c499ee24b073392c546605aa8c81e09926c4f4977153ba454dd947"
+  },
+  "commitPathsets": {
+    "regressionFreeze": [
+      "tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/API-UNCHANGED.md",
+      "tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/BASELINE.md",
+      "tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/POLICY.md",
+      "tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/PREFREEZE-ATTEMPT-v0.md",
+      "tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/baseline-v1.tap",
+      "tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cancellation-repair-b01.test.ts",
+      "tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/cases.json",
+      "tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/freeze-manifest.json",
+      "tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/tsconfig.strict.json"
+    ],
+    "repairCandidate": ["src/shell/cancellation.ts"],
+    "evidence": [
+      "tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/evidence-v1/RESULTS.md",
+      "tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/evidence-v1/checks.json",
+      "tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/evidence-v1/evidence-manifest.json",
+      "tests/shell/cancellation-stage1-20260827/extension-v1/repair-b01-v1/evidence-v1/final-focused.tap"
+    ]
+  },
+  "scope": {
+    "runtimeIntegration": false,
+    "timeoutClaims": false,
+    "stage2Executed": false,
+    "independentHistoricalResultsRerun": false,
+    "independentHistoricalResultsRescored": false,
+    "allOwnedResourcesClosed": true
+  }
+}

@@ -1,0 +1,1 @@
+{"stage":"prepared","selected":357,"tools":[{"name":"typescript","version":"5.9.3","entries":147},{"name":"node-types","version":"22.20.1","entries":83},{"name":"undici-types","version":"6.21.0","entries":41},{"name":"npm","version":"10.9.7","entries":2556}],"inputsSha256":"0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3","productExecutions":0}

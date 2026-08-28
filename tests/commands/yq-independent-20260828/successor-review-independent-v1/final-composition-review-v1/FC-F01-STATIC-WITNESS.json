@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "id": "FC-F01",
+  "classification": "CODE_TOOL_ROLE_OWN_DATA_VALIDATION_BEFORE_SERIALIZATION",
+  "status": "STATIC_CONTRADICTION_NO_EXECUTION",
+  "criteria": "FC03",
+  "authority": "Current live AGENTS.md: cross-realm tool-role validation checks exact finite own-data types/keys/values/sequence, rejects accessors/holes/extras without coercion; no prototype identity requirement or hostile host-JS sandbox claim.",
+  "sources": [
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/worker-api.mjs",
+      "sha256": "e6548d6d4d7d8c6433f11953a0f62638e8f699a91dc31617cfc2dea2740fc876",
+      "bytes": 13187,
+      "startLine": 176,
+      "endLine": 181,
+      "exactSource": "  return {\n    version: 'yq-b8-core-worker-v1', request: deepFreeze(request), job: request.job, bindings: request.bindings,\n    phase, note, writeJson, writeBytes, materializePackage, captureSemantic, assertProjection,\n    runTool: call => rpc('TOOL', call),\n    guard: () => rpc('GUARD', {}),\n    async readBoundJson(name) { if (name === 'toolManifest') return request.bindings.toolProfile; const descriptor = request.data[name]; requireFact(descriptor, 'UNKNOWN_BOUND_DATA'); const value = readBoundJson(descriptor.path, descriptor.sha256); return name === 'runtimeJobs' ? { jobs: value } : value; },\n"
+    },
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/worker-host.mjs",
+      "sha256": "62fdb743912b058200fcaf745aac894a3878a067082b6aa2e0a0a953544b45e3",
+      "bytes": 3038,
+      "startLine": 25,
+      "endLine": 31,
+      "exactSource": "const rpc = (type, payload) => new Promise((resolve, reject) => {\n  const seq = sent++;\n  const message = { schema: 1, nonce: request.nonce, jobId: request.job.id, seq, type, payload };\n  requireFact(seq < 2048 && Buffer.byteLength(JSON.stringify(message)) <= 262144, 'WORKER_IPC_BOUND');\n  waiting.set(seq, { resolve, reject });\n  process.send(message, error => { if (error) { waiting.delete(seq); reject(error); } });\n});\n"
+    },
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/tool-bridge.mjs",
+      "sha256": "5837e2f3f36fafdd9c5f935610a9b23601b4353a5302b11cde4983a67308477d",
+      "bytes": 8640,
+      "startLine": 12,
+      "endLine": 25,
+      "exactSource": "  async run(call, context) {\n    requireFact(!this.active, 'NESTED_TOOL_CONCURRENCY');\n    const tools = this.admission.root.toolchain;\n    let executable;\n    let argv;\n    let limit;\n    let timeout;\n    if (call.kind === 'compiler') {\n      keys(call, ['kind', 'configPath', 'timeoutMs']);\n      requireFact([60000, 120000].includes(call.timeoutMs), 'COMPILER_TIMEOUT_PROFILE');\n      requireFact(call.timeoutMs === (context.job.phase === 'BUILD' ? 120000 : 60000), 'COMPILER_ROLE');\n      requireFact(['BUILD', 'TYPES'].includes(context.job.phase), 'COMPILER_PHASE');\n      canonicalPath(call.configPath);\n      requireFact(inside(context.request.scratchRoot, call.configPath) && lstatSync(call.configPath).isFile(), 'COMPILER_CONFIG_PATH');\n"
+    },
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/primitives.mjs",
+      "sha256": "a8b62e46f4256765810c5ec30010fb618239b7193f83e9151e06ce25a76db506",
+      "bytes": 8044,
+      "startLine": 14,
+      "endLine": 21,
+      "exactSource": "export function canonical(value) {\n  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;\n  if (value && typeof value === 'object') return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonical(value[key])}`).join(',')}}`;\n  return JSON.stringify(value);\n}\nexport function keys(value, expected) {\n  requireFact(value && !Array.isArray(value) && typeof value === 'object' && canonical(Object.keys(value).sort()) === canonical([...expected].sort()), 'SCHEMA_KEYS');\n}\n"
+    }
+  ],
+  "benignWitnessDescription": {
+    "boundary": "api.runTool(call), before worker-host serializes call as TOOL payload",
+    "validValues": "kind compiler; configPath an otherwise genuinely enrolled regular compiler config; timeoutMs the exact admitted role cap",
+    "malformedShape": "Own enumerable accessor kind returning compiler, with a benign getter-side counter; alternatively an otherwise exact own-data call with one extra own property whose value is undefined.",
+    "notExecuted": true
+  },
+  "staticTrace": [
+    "worker-api:179 forwards the original call object to rpc without finite own-data descriptor/extra-key validation.",
+    "worker-host:28 JSON.stringify(message) runs before any TOOL shape rejection. It reads accessor properties; an own extra undefined-valued key is omitted from JSON. IPC serializes the payload again.",
+    "The parent receives a normalized plain-data object; tool-bridge:19-20 and primitives:19-20 cannot detect the original accessor or dropped extra key. An otherwise correctly enrolled call can reach all normal parent checks with that evidence erased.",
+    "No target module, getter, IPC route, compiler, tool or control was invoked by this reviewer. This is a source ordering/validation contradiction, not an observed native launch or product bug."
+  ],
+  "requiredCorrection": "At the real pre-serialization tool-call boundary, validate exact own-data descriptors/keys/types/values without reading accessors or coercing values; retain cross-realm acceptance without prototype equality and preserve strict parent route/enrollment checks. Root must route a separate owner correction and reseal; reviewer does not patch it.",
+  "scope": "Malformed harness tool requests only; not a new YAML case or hostile host-JS sandbox demand.",
+  "rootGO": false,
+  "targetExecutions": 0,
+  "controlPasses": 0
+}

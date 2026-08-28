@@ -1,0 +1,130 @@
+{
+  "schema": "p16-preparation-stop-v3",
+  "status": "STOP_INCOMPLETE_NOT_REVIEW_READY",
+  "recordedAt": 1787951458181,
+  "window": {
+    "start": 1787951159207,
+    "endpoint": 1787951759207,
+    "totalMs": 600000,
+    "elapsedAtRecord": 298974,
+    "reset": false
+  },
+  "candidateWritten": false,
+  "qualification": {
+    "attempts": 0,
+    "passes": 0,
+    "failures": 0,
+    "reason": "No executable candidate or coherent stored sourceauth closure exists; do not treat preparation as qualification."
+  },
+  "originalControls": {
+    "count": 9,
+    "positive": 2,
+    "negative": 7,
+    "status": "data copied and intended authority independently reconstructed; artifact seal mismatch, not qualified"
+  },
+  "additionalControlSpecifications": {
+    "count": 7,
+    "concreteStagePayloads": 2,
+    "namedScenariosWithoutFullPayloads": 5,
+    "status": "INCOMPLETE; not seven executed or fully materialized controls"
+  },
+  "blockers": [
+    "Initial shell batch consumed six known processes (shell plus three Git commands and two cats). Root coordination consumes one additional slot. First apply_patch consumes one slot. Four remaining slots are reserved only for STOP artifact patch, explicit-path git add, explicit-path git commit --only and scoped git status. Three packet/code/seal commits require at least six Git children alone; coherent delivery is impossible within remaining allowance.",
+    "Initial controller -> shell -> Git/cat nesting may peak at three processes, not requested two; no compliant sequential-peak2 claim. Shell startup descendants and apply_patch launcher internals were not instrumented.",
+    "PRECODE-SEAL.json contains hashes of intended text, but apply_patch appended one additional LF to each file. Actual stored bytes do not match those declared hashes. Preserve this failed preparation artifact verbatim; no qualification retry and no claim of valid preseal. STOP-ARTIFACTS.json records actual artifact hashes.",
+    "Observer exposes argv/stdinIsDefault/kind/exitCode (or thrown reason identity), not parent/origin IDs. An identical-tuple substitution is indistinguishable. Unique tuple matching can reject swaps of observable tuple properties and ambiguous declarations, but cannot prove actual invocation origin. ROOT must resolve the requested guarantee, not invent runtime provenance."
+  ],
+  "sourceAttribution": {
+    "diagnosisCommit": "860eafdf7bd796f758912babf395f9ff9f408dbb",
+    "manifestSha256": "f8deba3b25ef43f1b4ee5043cbff1fd436abe8484271eaf7babbd48810899e29",
+    "role": "read supplied frozen files as DATA; no new stored Git-object batch authentication",
+    "bothValidators": "top-level-only and contradictory to predeclared literal children",
+    "correction": "Selected Shell supplies context.invoke; find rg children reach middleware. The adapter bypass claim is false. No product fix."
+  },
+  "processAccounting": {
+    "initialShell": 1,
+    "initialGitCommands": [
+      "git rev-parse --show-toplevel",
+      "git status --short",
+      "git diff --cached --name-only"
+    ],
+    "initialCatCommands": [
+      "cat ../AGENTS.md",
+      "cat AGENTS.md"
+    ],
+    "knownInitialTotal": 6,
+    "rootCoordinationOutsideLeaf": 1,
+    "completedInstrumented": [
+      {
+        "command": "apply_patch",
+        "args": [],
+        "start": 1787951346072,
+        "end": 1787951346088,
+        "status": 0,
+        "signal": null,
+        "bytes": 395,
+        "reaped": true
+      }
+    ],
+    "remainingAuthorizedSlots": 4,
+    "plannedFinalization": [
+      "apply_patch STOP artifacts",
+      "git add explicit owned files",
+      "git commit --only explicit owned files",
+      "git status --short -- owned subtree"
+    ],
+    "knownProjectedTotal": 12,
+    "unknownDescendants": "No exhaustive process instrumentation; known tally is not proof of total descendant count.",
+    "allCompletedObservedCallsReturned": true
+  },
+  "captureAccounting": {
+    "instrumentedChildBytes": 395,
+    "initialShellAndToolRenderedOutputBytes": null,
+    "reason": "Initial output and tool renderer were not instrumented byte-for-byte; no invented exact aggregate.",
+    "cap": 33554432
+  },
+  "oldReservation": {
+    "status": "CLOSED_TO_FUTURE_CONSUMPTION",
+    "remaining": {
+      "children": 77,
+      "workerStarts": 353,
+      "loaderThreads": 77,
+      "captureBytes": 418174207,
+      "scratchBytes": 347730492
+    },
+    "workerStartsWithheld": 4,
+    "aggregate": "UNKNOWN",
+    "refund": false,
+    "release": false,
+    "reuse": false,
+    "reset": false
+  },
+  "newReservation": {
+    "status": "INACTIVE_TEMPLATE_ONLY_NOT_GLOBAL_OS_QUOTA",
+    "template": "PARENT-BUDGET.template.json",
+    "activation": "Different review plus fresh ROOT GO required",
+    "effectiveWindowMs": 1200000,
+    "absoluteDeadlineUnchanged": 1788026556000,
+    "root": "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-run-02",
+    "rootCreated": false
+  },
+  "unchanged": {
+    "original31ScriptsFixturesExpectedOutputsStatusesFsEffects": true,
+    "originalSTOP": true,
+    "sourceGuards268": true,
+    "packageSha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e",
+    "dependentProductPermissions": true,
+    "oldGrantAndBudget": true
+  },
+  "notProduced": [
+    "executable repaired adapter/supervisor",
+    "coherent packet commit",
+    "full314 stored sourceauth closure/mapping",
+    "code commit",
+    "valid runtime preparation seal",
+    "GO template",
+    "copyable executable future command"
+  ],
+  "forbiddenExecutionPerformed": false
+}
+

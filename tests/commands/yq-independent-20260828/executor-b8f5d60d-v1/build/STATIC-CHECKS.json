@@ -1,0 +1,391 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "STATIC_SOURCE_AND_DATA_CHECKS_PASS_ONLY",
+  "scope": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "sourceFilesChecked": [
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-worker.mjs",
+      "target": "workers/build-worker.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 21275,
+      "sha256": "3ad2268b34242f2ae5f58e0be611e77dd43c3387fe19139fc52ab31e85fbfbf4"
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-fs.mjs",
+      "target": "workers/build-fs.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7894,
+      "sha256": "a2fda10264dec281c808336c7bf1ee3e1ce5547d03eb6b69d9406947d914ad21"
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-outputs.mjs",
+      "target": "workers/build-outputs.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7266,
+      "sha256": "0e258aedc60788440caf0a2216d360b9c05fe592418c1d932b11984d7741fe1a"
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-plan.json",
+      "target": "workers/build-plan.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 170411,
+      "sha256": "364115ed79bb648ab174d602a7e153e5de59c2753ba97ab3a4206a04a2241ec1"
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-source-manifest.json",
+      "target": "workers/build-source-manifest.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 47504,
+      "sha256": "413432105677fcef5454d5f273d2b1dcb72ce014a52bf3e13e172af3a0a31286"
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-package-manifest.json",
+      "target": "workers/build-package-manifest.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 152021,
+      "sha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7"
+    }
+  ],
+  "commands": [
+    {
+      "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "argv": [
+        "--check",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-worker.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "role": "SYNTAX_ONLY_NO_IMPORT_OR_INVOCATION"
+    },
+    {
+      "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "argv": [
+        "--check",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-fs.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "role": "SYNTAX_ONLY_NO_IMPORT_OR_INVOCATION"
+    },
+    {
+      "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "argv": [
+        "--check",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-outputs.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "role": "SYNTAX_ONLY_NO_IMPORT_OR_INVOCATION"
+    },
+    {
+      "tool": "python3",
+      "argv": [
+        "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/BUILD-SPECIFICATION.md"
+      ],
+      "environmentOverride": {
+        "PYTHONDONTWRITEBYTECODE": "1"
+      },
+      "checkerSha256": "e866d8f5806a40483cbe25f3250fc583f9a1e45d29a4255af41f6839693430bd",
+      "status": 0,
+      "signal": null,
+      "stdout": "OK: /Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/BUILD-SPECIFICATION.md (0 warning(s))\n",
+      "stderr": "",
+      "role": "NORMATIVE_DOCUMENT_LINT_ONLY"
+    },
+    {
+      "tool": "git",
+      "argv": [
+        "diff",
+        "--cached",
+        "--check",
+        "--",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/ASSEMBLY-MAP.json",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/BUILD-RESULT-SCHEMA.json",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/BUILD-SPECIFICATION.md",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/DEFERRED-CONTROLS.json",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/INPUTS.json",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/INTEGRATION.md",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/PREPARATION-HISTORY.md",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/README.md",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-fs.mjs",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-outputs.mjs",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-package-manifest.json",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-plan.json",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-source-manifest.json",
+        "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-worker.mjs"
+      ],
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "role": "OWNED_STAGED_WHITESPACE_ONLY"
+    }
+  ],
+  "hostSyntaxParser": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "canonicalPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "role": "STATIC_SYNTAX_ENGINE_NOT_FUTURE_COPIED_TOOL_PROOF"
+  },
+  "authenticatedGitReferences": [
+    {
+      "revision": "9d582d791336fd66d865f6592b830c39a359d344",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/CORE-INTERFACE.json",
+      "sha256": "c5e36798741667981f21f002755be3f420fbd6103b8a4b3f8783531a9f6fc412",
+      "bytes": 8164,
+      "gitMode": "100644",
+      "gitModeRole": "REGULAR_NONEXECUTABLE_CLASS_NOT_POSIX_MODE_AUTHORITY"
+    },
+    {
+      "revision": "5bbf54dd0b99dfbb679d7cb04ac3d7cf912b8d56",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/PLAN.json",
+      "sha256": "c690e28f8cc57cebe3fb29b2a1afd373d13c4c53fafe231489c8db382d3d9c92",
+      "bytes": 6323,
+      "gitMode": "100644",
+      "gitModeRole": "REGULAR_NONEXECUTABLE_CLASS_NOT_POSIX_MODE_AUTHORITY"
+    },
+    {
+      "revision": "46806f6eac2b7be26b476d6a7a04d08a17d20771",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v2/FINAL-SEAL.json",
+      "sha256": "e5e789d888f0fe6c5b48af2e850f19f44a557a867bcc91c2d556fc1e3eeb1c98",
+      "bytes": 5137,
+      "gitMode": "100644",
+      "gitModeRole": "REGULAR_NONEXECUTABLE_CLASS_NOT_POSIX_MODE_AUTHORITY"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FINAL-SEAL.json",
+      "sha256": "26d8efbb48aed8e93a54b325e832c5350139da4fe1269b2288fbf5afde707678",
+      "bytes": 6776,
+      "gitMode": "100644",
+      "gitModeRole": "REGULAR_NONEXECUTABLE_CLASS_NOT_POSIX_MODE_AUTHORITY"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/COMPOSITION.json",
+      "sha256": "11ed97c58bc06b5bdce88fb6b423d2693742e054cf11df6de49aebd029230b4f",
+      "bytes": 25587,
+      "gitMode": "100644",
+      "gitModeRole": "REGULAR_NONEXECUTABLE_CLASS_NOT_POSIX_MODE_AUTHORITY"
+    },
+    {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-AUTHORITY.proposed.json",
+      "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+      "bytes": 3766,
+      "gitMode": "100644",
+      "gitModeRole": "REGULAR_NONEXECUTABLE_CLASS_NOT_POSIX_MODE_AUTHORITY"
+    },
+    {
+      "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INPUTS.json",
+      "sha256": "63eaea01df7f206f0c0d10f9f7b39f4a3c83e1d6d63172582953cc261ba3c83c",
+      "bytes": 116989,
+      "gitMode": "100644",
+      "gitModeRole": "REGULAR_NONEXECUTABLE_CLASS_NOT_POSIX_MODE_AUTHORITY"
+    },
+    {
+      "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/RECIPE.md",
+      "sha256": "c0f5b4c60a94502031cea536a13ce231c1b7468cebeb4ea4c44e44da8ad8f6b1",
+      "bytes": 7880,
+      "gitMode": "100644",
+      "gitModeRole": "REGULAR_NONEXECUTABLE_CLASS_NOT_POSIX_MODE_AUTHORITY"
+    },
+    {
+      "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/build-once.mjs",
+      "sha256": "07c20e18ab1f34299a2d00ca3c65588ce0f4964334ea2eb9b3b8a7d14cf134d2",
+      "bytes": 32955,
+      "gitMode": "100644",
+      "gitModeRole": "REGULAR_NONEXECUTABLE_CLASS_NOT_POSIX_MODE_AUTHORITY"
+    },
+    {
+      "revision": "71a16afd5b430175180fc4741531b75c31b25882",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-v1/PRESEAL.md",
+      "sha256": "87275436c926a1a42568fd66bae5bd5bd955645b9ccb5865a06e640c2f91243c",
+      "bytes": 8714,
+      "gitMode": "100644",
+      "gitModeRole": "REGULAR_NONEXECUTABLE_CLASS_NOT_POSIX_MODE_AUTHORITY"
+    },
+    {
+      "revision": "71a16afd5b430175180fc4741531b75c31b25882",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-v1/admit-data.mjs",
+      "sha256": "61622adcb914d3536b2d1c4c0501e08ca865300ee54a1ecf9e82433c332af792",
+      "bytes": 34337,
+      "gitMode": "100644",
+      "gitModeRole": "REGULAR_NONEXECUTABLE_CLASS_NOT_POSIX_MODE_AUTHORITY"
+    },
+    {
+      "revision": "c0353685540288d504b93f206735fe4c448268ef",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/RESULT-SCHEMA.json",
+      "sha256": "c0d2a2d224a906bdba73fc5785cbfb16e3509b6086c329948d4cd5d6253a000c",
+      "bytes": 3403,
+      "gitMode": "100644",
+      "gitModeRole": "REGULAR_NONEXECUTABLE_CLASS_NOT_POSIX_MODE_AUTHORITY"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/SOURCE-BASE.json",
+      "sha256": "75acd3804802c92aabf77bab12a27e61a15468341af8022338a1c68d028c4043",
+      "bytes": 63100,
+      "gitMode": "100644",
+      "gitModeRole": "REGULAR_NONEXECUTABLE_CLASS_NOT_POSIX_MODE_AUTHORITY"
+    },
+    {
+      "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/BASELINE-PACKAGE.json",
+      "sha256": "8ba0f0aa078a213b96ee54a25db773b68b2795a740d17acb9e3bf5b40b4608d7",
+      "bytes": 116848,
+      "gitMode": "100644",
+      "gitModeRole": "REGULAR_NONEXECUTABLE_CLASS_NOT_POSIX_MODE_AUTHORITY"
+    },
+    {
+      "revision": "71a16afd5b430175180fc4741531b75c31b25882",
+      "path": "tests/commands/yq-independent-20260828/candidate-35da1854-v1/MAPS.json",
+      "sha256": "4759a03c95d51330176a196ba6d10bc7724d1a8f964071de4efc1f4bd3993506",
+      "bytes": 504342,
+      "gitMode": "100644",
+      "gitModeRole": "REGULAR_NONEXECUTABLE_CLASS_NOT_POSIX_MODE_AUTHORITY"
+    }
+  ],
+  "composition": {
+    "sourceBaseFiles": 264,
+    "selectedAdditions": 7,
+    "sourceProjection": 271,
+    "sourceArchive": 273,
+    "sourceDelta": 5,
+    "packageDelta": 17,
+    "sourceTypeScript": 217,
+    "compilerExpectedOutputs": 868,
+    "rawNonMaps": 434,
+    "maps": 434,
+    "baselinePackage": 846,
+    "emittedAdditions": 24,
+    "fullPackage": 870,
+    "readme": {
+      "path": "README.md",
+      "sourceRevision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "sourceBlob": "c3df8bd958d07298f5df85e0a81ec73589123742",
+      "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1",
+      "bytes": 36273,
+      "mode": 420,
+      "independentlyCompared": true
+    },
+    "sourceMapSha256": "9b0e0d62ea50eea55ef9ff4bff9e4bcef9cba6b73e416793bee6956666171002",
+    "packageMapSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321",
+    "archiveExpectedSha256": {
+      "sourceSha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+      "packageSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+      "tarSha256": "b54cb581ebd8e50be90af34dfa37a43470ccfb4963ee55e650756e9b96f98115",
+      "tarBytes": 5031936,
+      "packageBytes": 786778
+    }
+  },
+  "staticProofs": [
+    "Generated source map equals authenticated baseline-plus-seven selected descriptors exactly.",
+    "Generated package map equals complete846 baseline plus24 additions exactly.",
+    "All expected217 source-to868 output names bijective; no test or AGENTS paths.",
+    "All870 packing names/order equal pinned old serializer order and new expected package paths; byte-size arithmetic only, no serialization.",
+    "Tool full trees/pins equal old immutable method inputs; directory derivation exact.",
+    "Six-file assembly identities and relative-import closure match; builtin allowlist only.",
+    "Worker source has one literal api.runTool request site; manual no-top-level-effects review, lexical forbidden-call scan and syntax parse only.",
+    "Result schema local references resolve; all16 deferred controls remainUNRUN."
+  ],
+  "importAudit": [
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-worker.mjs",
+      "target": "workers/build-worker.mjs",
+      "imports": [
+        "node:path",
+        "./build-fs.mjs",
+        "./build-outputs.mjs"
+      ],
+      "relativeTargets": [
+        "workers/build-fs.mjs",
+        "workers/build-outputs.mjs"
+      ]
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-fs.mjs",
+      "target": "workers/build-fs.mjs",
+      "imports": [
+        "node:crypto",
+        "node:fs/promises",
+        "node:path"
+      ],
+      "relativeTargets": []
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-outputs.mjs",
+      "target": "workers/build-outputs.mjs",
+      "imports": [
+        "node:zlib",
+        "node:path",
+        "./build-fs.mjs"
+      ],
+      "relativeTargets": [
+        "workers/build-fs.mjs"
+      ]
+    }
+  ],
+  "jsonFilesParsed": [
+    "ASSEMBLY-MAP.json",
+    "BUILD-RESULT-SCHEMA.json",
+    "DEFERRED-CONTROLS.json",
+    "INPUTS.json",
+    "build-package-manifest.json",
+    "build-plan.json",
+    "build-source-manifest.json"
+  ],
+  "limits": [
+    "No behavioral or synthetic control executed.",
+    "Result schema JSON/reference structure checked without running a JSON Schema validator.",
+    "No current candidate/archive/tool materialization or reproduction claimed.",
+    "Core provenance/config enrollment/local publication/stage adoption need separately sealed integration."
+  ],
+  "actualRuns": {
+    "worker": 0,
+    "compiler": 0,
+    "compilerVersionProbe": 0,
+    "productImport": 0,
+    "productExecution": 0,
+    "serializer": 0,
+    "loader": 0,
+    "proposedHarness": 0,
+    "syntheticControls": 0
+  },
+  "preparationFailures": [
+    {
+      "exit": 1,
+      "error": "TypeError: Cannot read properties of undefined (reading 'revision')",
+      "cause": "inputs.dataComposition lookup instead of inputs.composition",
+      "classification": "STATIC_METADATA_READER_TYPO_NO_BUILD_ATTEMPT"
+    },
+    {
+      "exit": 1,
+      "error": "AssertionError [ERR_ASSERTION]: ASSEMBLY-MAP.json: 1 !== 0",
+      "cause": "git diff --no-index --check new-file difference incorrectly expected0; stdout/stderr empty",
+      "correction": "git diff --cached --check explicit owned paths",
+      "classification": "STATIC_WHITESPACE_READER_ASSERTION_NO_BUILD_ATTEMPT"
+    }
+  ],
+  "preservedFailureHistory": "PREPARATION-HISTORY.md",
+  "futureExecution": "DENY_WITHOUT_FRESH_COMPOUND_SEAL_AND_ROOT_GO"
+}

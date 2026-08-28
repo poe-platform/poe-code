@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "status": "ALL_UNRUN_STATIC_DESIGN_ONLY",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "authorization": "No worker/helper/compiler/repacker/core or synthetic cohort invocation authorized in this component preparation.",
+  "automaticRuns": 0,
+  "partOfSemantic149": false,
+  "newGlobalSlots": 0,
+  "controls": [
+    {
+      "id": "B01",
+      "condition": "Wrong candidate/source bytes, missing/added source path, wrong mode, symlink/hardlink/path alias",
+      "expected": "UNSAFE_STOP",
+      "status": "UNRUN"
+    },
+    {
+      "id": "B02",
+      "condition": "Wrong/missing/added copied Node/TS/@types file or mode, mutable/ambient tool path",
+      "expected": "UNSAFE_STOP",
+      "status": "UNRUN"
+    },
+    {
+      "id": "B03",
+      "condition": "Wrong config bytes/flags, unsafe output root, ambient environment or unsealed generated input",
+      "expected": "UNSAFE_STOP",
+      "status": "UNRUN"
+    },
+    {
+      "id": "B04",
+      "condition": "One authorized compiler produces868 exact emissions and the870 package matches full SHA",
+      "expected": "ROLE_ONLY_PASS_AFTER_ALL_CHECKS_AND_PARENT_ADOPTION",
+      "status": "UNRUN"
+    },
+    {
+      "id": "B05",
+      "condition": "Compiler nonzero, signal, timeout or bounded capture overflow",
+      "expected": "FAIL_NO_RETRY",
+      "status": "UNRUN"
+    },
+    {
+      "id": "B06",
+      "condition": "Unknown reap, absent/contradictory provenance or unavailable raw stream identity",
+      "expected": "UNSAFE_STOP",
+      "status": "UNRUN"
+    },
+    {
+      "id": "B07",
+      "condition": "One raw JavaScript/declaration differs despite plausible normalized equivalent",
+      "expected": "FAIL_WITH_RAW_RETAINED",
+      "status": "UNRUN"
+    },
+    {
+      "id": "B08",
+      "condition": "Map has unexpected metadata/sourceRoot/multiple sources/unselected source/path alias",
+      "expected": "FAIL_WITH_RAW_RETAINED",
+      "status": "UNRUN"
+    },
+    {
+      "id": "B09",
+      "condition": "Map relocation changes anything except selected sources[0], or relocated bytes differ",
+      "expected": "FAIL_WITH_RAW_RETAINED",
+      "status": "UNRUN"
+    },
+    {
+      "id": "B10",
+      "condition": "Missing/extra output or wrong output/directory mode, including unexpected nested entries",
+      "expected": "FAIL_OR_UNSAFE_STOP_FOR_PATH_INTEGRITY",
+      "status": "UNRUN"
+    },
+    {
+      "id": "B11",
+      "condition": "870 package README or other metadata differs, or tar/gzip whole SHA differs",
+      "expected": "FAIL_WITH_ALL_EXISTING_ARTIFACTS_RETAINED",
+      "status": "UNRUN"
+    },
+    {
+      "id": "B12",
+      "condition": "Source/tools/config/raw/package membership/content/mode changes before final guard",
+      "expected": "UNSAFE_STOP",
+      "status": "UNRUN"
+    },
+    {
+      "id": "B13",
+      "condition": "Phase/global budget insufficient before dispatch; no timer reset or extra cleanup phase",
+      "expected": "CORE_UNRUN_BEFORE_DISPATCH_OR_FAIL_IF_ADMITTED_TIMEOUT",
+      "status": "UNRUN"
+    },
+    {
+      "id": "B14",
+      "condition": "Worker emits PASS then outer exits nonzero/unknown reap or postworker integrity fails",
+      "expected": "CORE_OVERRIDES_PASS_NO_PROFILE_A",
+      "status": "UNRUN"
+    },
+    {
+      "id": "B15",
+      "condition": "Author copied output or old35da build offered as source-built A",
+      "expected": "DENY_ORIGIN_NOT_INDEPENDENT",
+      "status": "UNRUN"
+    },
+    {
+      "id": "B16",
+      "condition": "Oversized artifact/IPC/metadata or multiple compiler requests",
+      "expected": "DENY_OR_FAIL_NO_EXTRA_BUDGET",
+      "status": "UNRUN"
+    }
+  ],
+  "limits": "Defined controls are not passed tests, fresh execution authorization, added slots, or evidence of product fixes."
+}

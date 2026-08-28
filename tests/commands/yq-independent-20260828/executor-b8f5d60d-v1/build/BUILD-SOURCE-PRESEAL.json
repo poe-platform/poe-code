@@ -1,0 +1,164 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "SOURCE_SEALED_DYNAMIC_UNRUN_CORE_INTEGRATION_REQUIRED",
+  "scope": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build",
+  "candidate": {
+    "source": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+    "evidence": "644460b932feb6fa87222b7042d705da1219cf0c",
+    "handoff": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+    "selectedBaseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+    "sourceArchiveSha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+    "packageSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+    "sourceMapSha256": "9b0e0d62ea50eea55ef9ff4bff9e4bcef9cba6b73e416793bee6956666171002",
+    "packageMapSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321"
+  },
+  "core": {
+    "version": "yq-b8-core-worker-v1",
+    "interfaceCommit": "9d582d791336fd66d865f6592b830c39a359d344",
+    "interfaceSha256": "c5e36798741667981f21f002755be3f420fbd6103b8a4b3f8783531a9f6fc412",
+    "requiredResultRefinement": "Observed runTool.provenance specified by BUILD-RESULT-SCHEMA.json; absent in base ABI, not independently verified here",
+    "newApiMethods": [],
+    "unsealedCoreBodiesRead": false
+  },
+  "activeProjection": [
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-worker.mjs",
+      "target": "workers/build-worker.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 21275,
+      "sha256": "3ad2268b34242f2ae5f58e0be611e77dd43c3387fe19139fc52ab31e85fbfbf4"
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-fs.mjs",
+      "target": "workers/build-fs.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7894,
+      "sha256": "a2fda10264dec281c808336c7bf1ee3e1ce5547d03eb6b69d9406947d914ad21"
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-outputs.mjs",
+      "target": "workers/build-outputs.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7266,
+      "sha256": "0e258aedc60788440caf0a2216d360b9c05fe592418c1d932b11984d7741fe1a"
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-plan.json",
+      "target": "workers/build-plan.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 170411,
+      "sha256": "364115ed79bb648ab174d602a7e153e5de59c2753ba97ab3a4206a04a2241ec1"
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-source-manifest.json",
+      "target": "workers/build-source-manifest.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 47504,
+      "sha256": "413432105677fcef5454d5f273d2b1dcb72ce014a52bf3e13e172af3a0a31286"
+    },
+    {
+      "source": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-package-manifest.json",
+      "target": "workers/build-package-manifest.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 152021,
+      "sha256": "fa3f05161730244a4760938640470ee10a75e780ece4ceeacc51e70dfc913da7"
+    }
+  ],
+  "activeModuleEntry": "workers/build-worker.mjs",
+  "activeExport": "runWorker",
+  "assembly": {
+    "path": "ASSEMBLY-MAP.json",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 3254,
+    "sha256": "3d3040400ee14017a2eed7277603b7421c4348a6ae67db1c2b49799278d802bd"
+  },
+  "inputs": {
+    "path": "INPUTS.json",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 4658,
+    "sha256": "7403eba2325c6ad1804f57defe7610c924496cf482f8b72fdd573ff500222368"
+  },
+  "contracts": [
+    {
+      "path": "BUILD-SPECIFICATION.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9270,
+      "sha256": "960522cb5f4d90979353540748531efb9df6fa6bf846874ea74fc87519d2a16c"
+    },
+    {
+      "path": "BUILD-RESULT-SCHEMA.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 22550,
+      "sha256": "da85783b1c82dfa63c6bc7644b9ef9882214445c5f7b2cd5fb750b57ff2ee603"
+    },
+    {
+      "path": "INTEGRATION.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5306,
+      "sha256": "2db77e2e883513e7fdf0c2f0beed0c2ea5af67c791390be70c141544a2efc111"
+    },
+    {
+      "path": "DEFERRED-CONTROLS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3786,
+      "sha256": "dd0836ec6f696bd4adfa3f8283202b0e88cf5a663d5c80597743b726ddda1435"
+    }
+  ],
+  "staticChecks": {
+    "path": "STATIC-CHECKS.json",
+    "kind": "file",
+    "mode": 420,
+    "bytes": 16300,
+    "sha256": "2ce07b4ee61174b9e4b9b827f1b5c1ffadea6068828763480f98337bc990a9eb"
+  },
+  "budget": {
+    "phaseMs": 300000,
+    "compilerDescendantsMaximum": 1,
+    "compilerCapMs": 120000,
+    "allWorkInsideSamePhase": true,
+    "globalOuterMaximum": 336,
+    "globalCapMs": 24165000,
+    "retries": 0,
+    "extraSlots": 0,
+    "compilerCombinedBytes": 8388608,
+    "maximumIpcBytes": 262144,
+    "maximumArtifactBytes": 16777216,
+    "maximumMetadataBytes": 33554432,
+    "heapOrRssGuarantee": false
+  },
+  "authorArtifactRole": "BOUND_AUTHOR_BUILD until future fresh scoped compiler, raw+map proof, full870 comparison, serialization and parent adoption all succeed",
+  "newIndependentProof": null,
+  "currentAuthorization": "STATIC_AUTHORING_AND_DATA_SYNTAX_CHECKS_ONLY_NO_ROOT_GO",
+  "dynamicRuns": {
+    "worker": 0,
+    "compiler": 0,
+    "product": 0,
+    "serializer": 0,
+    "loader": 0,
+    "syntheticControls": 0
+  },
+  "integrationRequiredBeforeGo": [
+    "Fresh six-file workers projection union sealed without modifying the old workers scope.",
+    "Core generated-input config derivation/enrollment and cumulative scratch/output guards.",
+    "Observed tool argv/cwd/identity/environment/start/end/reap/overflow return refinement.",
+    "Local bounded evidence writes; only compact references over IPC.",
+    "Outer zero-exit/known-reap and whole stageOutput revalidation before A loading."
+  ],
+  "history": "PREPARATION-HISTORY.md; original409/90a633/4b219/CMD22/deadline failures unchanged; old code/tool proof reused only as method/pin authority.",
+  "modeAuthority": "Fresh owned regular files inspected as0644 and directory0755. Git100644 independently denotes nonexecutable regular class only. Historical unattested modes never authorize active code.",
+  "sealedCommitBinding": "Exact commit and FINAL-SEAL SHA routed externally; neither mutable HEAD nor old whole-tree identity supplies component authority."
+}

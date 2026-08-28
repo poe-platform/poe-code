@@ -1,0 +1,20 @@
+[
+  {
+    "name": "policy",
+    "source": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-policy-v3-5oKz3L/REPORT.json",
+    "bytes": 3340,
+    "sha256": "3d5988bb3c603cc93fbd2076d7131cf780b43e76d829649e9a3cd583f912e3df"
+  },
+  {
+    "name": "build-seam",
+    "source": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-built-consumer-v3-D5Yhmv/REPORT.json",
+    "bytes": 1806,
+    "sha256": "7764a5e4aa7f115e5bd62d6ed71c8a0b1fcc8b7965e5d5b3997a91d912913b27"
+  },
+  {
+    "name": "external",
+    "source": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-external-v3-h15XTf/REPORT.json",
+    "bytes": 3218486,
+    "sha256": "23458bf9f68194b0620d73cdbd00a144a3cdb06000144cdb30588c54eb62ba48"
+  }
+]

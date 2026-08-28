@@ -1,0 +1,19 @@
+{
+  "createdAt": "2026-08-28T05:00:12.725Z",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "sourceChanged": false,
+  "original": "public.mjs",
+  "revised": "public-v3.mjs",
+  "originalSha256": "ae029276214113bfd5e658f6f2a810ec08623a9124d69686e5e59732d24ab9ae",
+  "revisedSha256": "396fb54d34a12e5128d9904f49b96bc6b3de3bdac4e41540950982b152ae45ef",
+  "reason": "CommandRegistry.register stores Object.freeze({...command,name,execute}) at src/contracts/command.ts:76. Compare replacement/preservation to actual registry entries captured before setup, not input definitions. Existing maintained agent test uses the same registered-entry identity boundary.",
+  "delta": "Two identity operands only, in one author test. The timeout replacement operand now also detects a no-op replacement instead of trivially differing from cloned input. Other 12 tests and all inputs unchanged.",
+  "originalRun": {
+    "path": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v2-XcKXZm/REPORT.json",
+    "sha256": "6bb840fa996f18a323cd01fbb0c20ab670808a409e1d6162d623812194eedc2f",
+    "counts": "12 pass / 1 fail",
+    "fixtures": "83/83",
+    "remainder": "UNRUN"
+  },
+  "negativeControls": "Fresh corrected assertion group must reject an unchanged timeout entry and a replaced unrelated entry; controls run separately against immutable moved package, no source mutations."
+}

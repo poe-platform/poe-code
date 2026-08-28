@@ -1,0 +1,26 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+    "install",
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-OlASFg/pack/virtual-bash-0.0.0.tgz",
+    "--offline",
+    "--ignore-scripts",
+    "--no-audit",
+    "--no-fund",
+    "--package-lock=false"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-OlASFg/installed",
+  "started": "2026-08-28T07:55:45.440Z",
+  "finished": "2026-08-28T07:55:46.900Z",
+  "pid": 26400,
+  "code": 0,
+  "signal": null,
+  "spawnError": null,
+  "failure": null,
+  "groupAbsent": true,
+  "closeObserved": true,
+  "stdout": "\nadded 1 package in 1s\n",
+  "stderr": "",
+  "bytes": 23
+}

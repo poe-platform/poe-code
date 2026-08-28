@@ -1,0 +1,91 @@
+--- c0353685540288d504b93f206735fe4c448268ef:tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/type-worker.mjs
++++ 89bc7bd545f8b6f7215b7c2a49cccf644a08e07f:tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f01-v2/type-worker.mjs
+@@ -85,12 +85,16 @@
+   if (stderr.length !== 0) return failure('UNEXPECTED_COMPILER_STDERR');
+   if (fixture.outcome === 'accept' && raw.code === 0 && text === '') return { status: 'PASS', classification: 'ACCEPTED_COMPILE' };
+   const diagnostics = [];
+-  let unexpectedOutput = false;
+-  for (const line of text.split(/\r?\n/u)) {
+-    if (line === '') continue;
++  const continuationLines = fixture.name === 'replace-undefined' && fixture.diagnostic?.code === 2379
++    ? ["  Types of property 'replace' are incompatible.", "    Type 'undefined' is not assignable to type 'boolean'."]
++    : [];
++  const lines = text.split(/\r?\n/u);
++  if (lines.at(-1) === '') lines.pop();
++  let unexpectedOutput = lines.length !== 1 + continuationLines.length;
++  for (const [index, line] of lines.entries()) {
+     const match = /^(.+)\((\d+),(\d+)\): error TS(\d+): (.+)$/u.exec(line);
+     if (match) diagnostics.push({ file: resolve(raw.provenance.cwd, match[1]), line: Number(match[2]), column: Number(match[3]), code: Number(match[4]), message: match[5] });
+-    else if (diagnostics.length === 0 || !/^ {2,}\S/u.test(line)) unexpectedOutput = true;
++    else if (index === 0 || line !== continuationLines[index - 1]) unexpectedOutput = true;
+   }
+   const expected = fixture.diagnostic;
+   if (fixture.outcome === 'reject' && [1, 2].includes(raw.code) && !unexpectedOutput && diagnostics.length === 1 && diagnostics[0].file === fixturePath && diagnostics[0].line === expected.line && diagnostics[0].column > 0 && diagnostics[0].code === expected.code) {
+--- c0353685540288d504b93f206735fe4c448268ef:tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers/loaded-worker.mjs
++++ 9fe3c8574b32df9839284307942be5003d87d0a0:tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f02-v2/loaded-worker.mjs
+@@ -50,6 +50,13 @@
+   return true;
+ }
+ 
++function pristineStatus(facts, witness, projection) {
++  requireFact(['BOUND_PROJECTION_ONLY', 'INCOMPLETE', 'FAIL'].includes(projection.status), 'Unknown pristine projection status');
++  if (!baselineMatches(facts, witness) || projection.status === 'FAIL') return 'FAIL';
++  if (projection.status === 'INCOMPLETE' || witness.job.expected.assertions?.length) return 'INCOMPLETE';
++  return 'PASS';
++}
++
+ function changedPrimitive(facts, witness, variant) {
+   const expected = witness.job.expected;
+   if (variant.id === 'retained-view') return facts.status !== expected.status || facts.stdoutHex !== Buffer.from(expected.stdoutUtf8).toString('hex');
+@@ -71,7 +78,8 @@
+   artifacts.push(await api.writeJson('loaded/pristine-prerequisite.json', { runtimeJobId: prior.runtimeJobId, environment: prior.environment, capture: identity, receipt: prior.receipt, loaded: prior.loaded }));
+   const projection = await api.assertProjection({ receipt: prior.receipt, runtimeJobId: slot.runtimeJobId });
+   const facts = normalFacts(prior);
+-  return { valid: projection.status === 'BOUND_PROJECTION_ONLY' && baselineMatches(facts, witness), projection, facts, capture: identity };
++  const status = pristineStatus(facts, witness, projection);
++  return { valid: status === 'PASS', status, projection, facts, capture: identity };
+ }
+ 
+ export async function runWorker(api) {
+@@ -91,6 +99,21 @@
+   requireFact(coreWitnesses.length === 1 && canonical(coreWitnesses[0]) === canonical(witness.job), 'Core runtime witness differs from frozen input');
+   const variant = slot.variantId === null ? null : plan.variants.find(item => item.id === slot.variantId);
+   requireFact(slot.variantId === null || variant, 'Unknown variant');
++  if (variant?.id === 'retained-view' && witness.job.expected.assertions?.length) {
++    const details = {
++      environment: slot.environment, runtimeJobId: slot.runtimeJobId, variantId: slot.variantId,
++      classification: 'UNRUN_CONTROL_PRISTINE_OBSERVATION_BINDING_GAP',
++      unfulfilled: witness.job.expected.assertions.map((_assertion, index) => 'expected.assertions[' + index + ']'),
++      prerequisite: 'Same-environment earlier149 pristine witness remains incomplete under frozen F01',
++      materializationRequests: 0, importRequests: 0, witnessInvocations: 0,
++      semanticPasses: 0, fullRecordAcceptance: false, publicExport: 'PUBLIC_EXPORT_GAP', parentExitAndReapStillRequired: true,
++    };
++    await api.note('control-prerequisite-gap', details);
++    await api.phase('operation', { admitted: false });
++    await api.phase('capture');
++    const artifacts = [await api.writeJson('loaded/prerequisite-gap.json', { status: 'UNRUN', ...details })];
++    return finish(api, { status: 'UNRUN', proofRole: 'LOADED_CONTROL_NOT_SEMANTIC', details, artifacts });
++  }
+   const materialization = await checkedMaterialization(api, slot, variant);
+   requireFact(sha256(canonical(materialization.manifest)) === (variant?.mapSha256 ?? plan.pristineMapSha256), 'Control/pristine complete map digest mismatch');
+   await api.note('loaded-admission', { root: materialization.root, entry: materialization.entry, mapSha256: variant?.mapSha256 ?? plan.pristineMapSha256, variantId: slot.variantId, runtimeJobId: slot.runtimeJobId, actualQuoteStyle: slot.actualQuoteStyle ?? null });
+@@ -109,12 +132,15 @@
+     classification = 'NON_COMMAND_FAILURE_NOT_A_KILL';
+   } else if (variant === null) {
+     const projection = await api.assertProjection({ receipt: captured.receipt, runtimeJobId: slot.runtimeJobId });
+-    status = projection.status === 'BOUND_PROJECTION_ONLY' && baselineMatches(facts, witness) ? 'PASS' : 'FAIL';
+-    classification = status === 'PASS' ? 'ACTUAL_PRISTINE_LOAD_AND_WITNESS' : 'PRISTINE_WITNESS_FAILURE';
+-    baseline = { projection };
++    status = pristineStatus(facts, witness, projection);
++    classification = status === 'PASS' ? 'ACTUAL_PRISTINE_LOAD_AND_WITNESS' : status === 'INCOMPLETE' ? 'PRISTINE_OBSERVATION_BINDING_GAP' : 'PRISTINE_WITNESS_FAILURE';
++    baseline = { projection, unfulfilled: (witness.job.expected.assertions ?? []).map((_assertion, index) => 'expected.assertions[' + index + ']') };
+   } else {
+     baseline = await pristinePrerequisite(api, captured, slot, plan, witness, materialization.root, artifacts);
+-    if (!baseline.valid) classification = 'PRISTINE_PREREQUISITE_FAILURE';
++    if (baseline.status === 'INCOMPLETE') {
++      status = 'UNRUN';
++      classification = 'UNRUN_CONTROL_PRISTINE_OBSERVATION_BINDING_GAP';
++    } else if (!baseline.valid) classification = 'PRISTINE_PREREQUISITE_FAILURE';
+     else if (changedPrimitive(facts, witness, variant)) {
+       status = 'PASS';
+       classification = 'LOADED_MUTANT_KILLED_BY_DECLARED_PRIMITIVE';

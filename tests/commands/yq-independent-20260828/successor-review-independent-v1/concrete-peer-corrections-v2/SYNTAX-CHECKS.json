@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "role": "SYNTAX_PARSING_ONLY_NOT_CONTROL_COMPILER_OR_PRODUCT_EXECUTION",
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "timeoutPerSyntaxProcessMs": 15000,
+  "rawCapturedBeforeAssessment": true,
+  "records": [
+    {
+      "revision": "89bc7bd545f8b6f7215b7c2a49cccf644a08e07f",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f01-v2/type-worker.mjs",
+      "sourceSha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--input-type=module",
+        "--check"
+      ],
+      "environment": {
+        "LANG": "C",
+        "LC_ALL": "C"
+      },
+      "stdin": "EXACT_COMMITTED_SOURCE_BYTES",
+      "rawStdoutHex": "",
+      "rawStderrHex": "",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "syntaxProcessPid": 19784,
+      "syntaxProcessWaited": true,
+      "targetEvaluation": false
+    },
+    {
+      "revision": "9fe3c8574b32df9839284307942be5003d87d0a0",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers-cw-f02-v2/loaded-worker.mjs",
+      "sourceSha256": "be03ad51d6ef185093236776bf0b0f7dde17e520be6a4ed8505656dbeef4e26c",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--input-type=module",
+        "--check"
+      ],
+      "environment": {
+        "LANG": "C",
+        "LC_ALL": "C"
+      },
+      "stdin": "EXACT_COMMITTED_SOURCE_BYTES",
+      "rawStdoutHex": "",
+      "rawStderrHex": "",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "syntaxProcessPid": 19786,
+      "syntaxProcessWaited": true,
+      "targetEvaluation": false
+    },
+    {
+      "revision": "937c1f6a35c620146e62924b16d90e808319024f",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-worker.mjs",
+      "sourceSha256": "3ad2268b34242f2ae5f58e0be611e77dd43c3387fe19139fc52ab31e85fbfbf4",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--input-type=module",
+        "--check"
+      ],
+      "environment": {
+        "LANG": "C",
+        "LC_ALL": "C"
+      },
+      "stdin": "EXACT_COMMITTED_SOURCE_BYTES",
+      "rawStdoutHex": "",
+      "rawStderrHex": "",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "syntaxProcessPid": 19788,
+      "syntaxProcessWaited": true,
+      "targetEvaluation": false
+    },
+    {
+      "revision": "937c1f6a35c620146e62924b16d90e808319024f",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-fs.mjs",
+      "sourceSha256": "a2fda10264dec281c808336c7bf1ee3e1ce5547d03eb6b69d9406947d914ad21",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--input-type=module",
+        "--check"
+      ],
+      "environment": {
+        "LANG": "C",
+        "LC_ALL": "C"
+      },
+      "stdin": "EXACT_COMMITTED_SOURCE_BYTES",
+      "rawStdoutHex": "",
+      "rawStderrHex": "",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "syntaxProcessPid": 19790,
+      "syntaxProcessWaited": true,
+      "targetEvaluation": false
+    },
+    {
+      "revision": "937c1f6a35c620146e62924b16d90e808319024f",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/build/build-outputs.mjs",
+      "sourceSha256": "0e258aedc60788440caf0a2216d360b9c05fe592418c1d932b11984d7741fe1a",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--input-type=module",
+        "--check"
+      ],
+      "environment": {
+        "LANG": "C",
+        "LC_ALL": "C"
+      },
+      "stdin": "EXACT_COMMITTED_SOURCE_BYTES",
+      "rawStdoutHex": "",
+      "rawStderrHex": "",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "syntaxProcessPid": 19792,
+      "syntaxProcessWaited": true,
+      "targetEvaluation": false
+    }
+  ],
+  "syntaxChecks": 5,
+  "syntaxFailures": 0,
+  "targetImports": 0,
+  "targetInvocations": 0,
+  "controlPasses": 0,
+  "runtimePasses": 0,
+  "noDescendantOrHardPreemptionClaim": true
+}

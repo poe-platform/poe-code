@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "role": "STATIC_TOOL_ORIGIN_BINDINGS_NOT_TOOL_ADMISSION",
+  "buildPlanSha256": "364115ed79bb648ab174d602a7e153e5de59c2753ba97ab3a4206a04a2241ec1",
+  "parentTypePlanCommit": "c0353685540288d504b93f206735fe4c448268ef",
+  "tools": [
+    {
+      "name": "node",
+      "pin": {
+        "version": "v22.22.2",
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "bytes": 112989184,
+        "mode": 493
+      },
+      "matchesParentToolOrigin": true,
+      "futureCopiedToolAdmission": "UNRUN_NOT_PROVEN_BY_STATIC_PIN",
+      "freshRelativePath": "node",
+      "fileCount": 0
+    },
+    {
+      "name": "typescript",
+      "pin": {
+        "path": "node_modules/typescript",
+        "version": "5.9.3",
+        "sha256": "11b47d397f587bd61bda8ebad9e87ed9f11cc95a2503309c88aaceadc3c39410",
+        "entries": 147
+      },
+      "matchesParentToolOrigin": true,
+      "futureCopiedToolAdmission": "UNRUN_NOT_PROVEN_BY_STATIC_PIN",
+      "freshRelativePath": "typescript",
+      "fileCount": 132
+    },
+    {
+      "name": "nodeTypes",
+      "pin": {
+        "path": "node_modules/@types/node",
+        "sha256": "6eeb16f926819ced24c5dc85a8f6c6c7b03254d56848d2a11113b923469706a9",
+        "entries": 83
+      },
+      "matchesParentToolOrigin": true,
+      "futureCopiedToolAdmission": "UNRUN_NOT_PROVEN_BY_STATIC_PIN",
+      "freshRelativePath": "node_modules/@types/node",
+      "fileCount": 74
+    },
+    {
+      "name": "undiciTypes",
+      "pin": {
+        "path": "node_modules/undici-types",
+        "sha256": "b54bcdc8b6540ae264924c04ed48eaa7a2ff3c3d6805f978a91232ff3d9331eb",
+        "entries": 41
+      },
+      "matchesParentToolOrigin": true,
+      "futureCopiedToolAdmission": "UNRUN_NOT_PROVEN_BY_STATIC_PIN",
+      "freshRelativePath": "node_modules/undici-types",
+      "fileCount": 41
+    }
+  ],
+  "copiedToolVerificationRuns": 0
+}

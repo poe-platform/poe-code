@@ -1,0 +1,16 @@
+{
+  "version":1,
+  "classification":"Strict consumer fixture source strings; materialize only owned scratch consumer.mts, archive then remove; never canonical test discovery",
+  "prefix":"import {Shell,MemoryFileSystem,agentCommands,networkCommands,WebDavFileSystem} from 'virtual-bash';\nimport type {CommandContext,CommandInvokeOptions,AgentCommandsOptions,TimeoutScheduler} from 'virtual-bash';\nimport {createTimeoutCommand} from 'virtual-bash/commands/timeout';\nconst fs = new MemoryFileSystem();\n",
+  "positive":[
+    {"id":"P1","body":"const scheduler:TimeoutScheduler={now(){return 0},setTimeout(callback,milliseconds){return {callback,milliseconds}},clearTimeout(handle){void handle}}; new Shell({fs,limits:{maxCommands:2}}).use(agentCommands({replace:true,timeout:{scheduler}})); createTimeoutCommand({scheduler}); const options:CommandInvokeOptions={signal:undefined,replaceEnv:true,env:{ONLY:'x'}}; void options;"},
+    {"id":"P2","body":"const handler=async(context:CommandContext)=>{const cleanup=async()=>{}; context.registerCleanup?.(cleanup); return context.invoke?.('dirs',[],{signal:new AbortController().signal,stdinIsDefault:false});}; networkCommands({authorize:()=>true,transport:async request=>({status:200,statusText:'OK',headers:[],body:{async *[Symbol.asyncIterator](){request.signal.throwIfAborted();yield new Uint8Array()}},async dispose(){}})}); new WebDavFileSystem({baseUrl:'https://dav.invalid/',fetch:async()=>new Response(null,{status:404})}); void handler;"}
+  ],
+  "negative":[
+    {"id":"N1","body":"new Shell({fs,dotglob:true});","code":"TS2353","term":"dotglob","inversion":"new Shell({fs});"},
+    {"id":"N2","body":"new Shell({fs,limits:{maxDirectoryStackEntries:5}});","code":"TS2353","term":"maxDirectoryStackEntries","inversion":"new Shell({fs,limits:{maxCommands:5}});"},
+    {"id":"N3","body":"const options:AgentCommandsOptions={timeout:{replace:true}}; void options;","code":"TS2353","term":"replace","inversion":"const options:AgentCommandsOptions={replace:true,timeout:{}}; void options;"},
+    {"id":"N4","body":"const options:CommandInvokeOptions={signal:7}; void options;","code":"TS2322","term":"AbortSignal","inversion":"const options:CommandInvokeOptions={signal:new AbortController().signal}; void options;"},
+    {"id":"N5","body":"declare const context:CommandContext; context.registerCleanup?.(7);","code":"TS2345","term":"InvocationCleanup","inversion":"declare const context:CommandContext; context.registerCleanup?.(async()=>{});"}
+  ]
+}

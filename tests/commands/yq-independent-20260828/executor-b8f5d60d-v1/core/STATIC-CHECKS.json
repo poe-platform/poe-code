@@ -1,0 +1,256 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "state": "STATIC_AUTHOR_PREPARATION_NO_EXECUTION",
+  "jobs": 336,
+  "phaseTotalMs": 24165000,
+  "phases": [
+    {
+      "id": "AUTHENTICATION",
+      "capMs": 120000,
+      "count": 1,
+      "slotSumMs": 120000
+    },
+    {
+      "id": "BUILD",
+      "capMs": 300000,
+      "count": 1,
+      "slotSumMs": 300000
+    },
+    {
+      "id": "SETUP",
+      "capMs": 180000,
+      "count": 2,
+      "slotSumMs": 180000
+    },
+    {
+      "id": "CONTROLS",
+      "capMs": 570000,
+      "count": 19,
+      "slotSumMs": 570000
+    },
+    {
+      "id": "SOURCE_AUDIT",
+      "capMs": 300000,
+      "count": 1,
+      "slotSumMs": 300000
+    },
+    {
+      "id": "SOURCE_RUNTIME",
+      "capMs": 6705000,
+      "count": 149,
+      "slotSumMs": 6705000
+    },
+    {
+      "id": "MOVED_RUNTIME",
+      "capMs": 13410000,
+      "count": 149,
+      "slotSumMs": 13410000
+    },
+    {
+      "id": "TYPES",
+      "capMs": 1560000,
+      "count": 3,
+      "slotSumMs": 1560000
+    },
+    {
+      "id": "LOADED_CONTROLS",
+      "capMs": 900000,
+      "count": 10,
+      "slotSumMs": 900000
+    },
+    {
+      "id": "FINALIZATION",
+      "capMs": 120000,
+      "count": 1,
+      "slotSumMs": 120000
+    }
+  ],
+  "compilerMaximum": 18,
+  "rawJobSha256": "c48185f7b165ab97d689f3a88e308b0cf1df39d93d7ab304dc8ad15ad9098f27",
+  "peerSourceCommit": "c0353685540288d504b93f206735fe4c448268ef",
+  "peerSealSha256": "f5eb6e660f627c6cf1d029682b06f0f9b836b4bc98ccd5bc85c3ec68b811a0e2",
+  "sourceMapSha256": "9b0e0d62ea50eea55ef9ff4bff9e4bcef9cba6b73e416793bee6956666171002",
+  "packageMapSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321",
+  "toolFiles": 249,
+  "toolBytes": 146740654,
+  "phaseInterpreterExecuted": false,
+  "authoredModuleImports": 0,
+  "productImports": 0,
+  "compilerRuns": 0,
+  "loaderRuns": 0,
+  "predicateOrControlRuns": 0,
+  "harnessRuns": 0,
+  "activeOwnedExecutionChildren": 0,
+  "syntax": {
+    "files": 28,
+    "results": [
+      {
+        "path": "admission.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "build-stage.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "classification.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "cli.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "compose.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "coordinator.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "copy-tools.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "coverage.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "frozen/assert-capture.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "frozen/cmd22-read-paths.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "frozen/context.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "frozen/deferred-fixtures.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "frozen/integrity.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "frozen/loaded-primitive-assert.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "frozen/original-assert-capture.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "infrastructure-worker.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "loader.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "materialization.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "owned-process.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "phase-capture.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "primitives.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "semantic-worker.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "source-audit-worker.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "supervisor.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "tool-bridge.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "tool-profile.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "worker-api.mjs",
+        "operation": "node --check only",
+        "status": 0
+      },
+      {
+        "path": "worker-host.mjs",
+        "operation": "node --check only",
+        "status": 0
+      }
+    ],
+    "importsEvaluated": 0
+  },
+  "staticImportGraph": {
+    "relativeEdges": 48,
+    "externalPackages": 0,
+    "allRelativeTargetsExist": true
+  },
+  "peer": {
+    "commit": "c0353685540288d504b93f206735fe4c448268ef",
+    "files": 30,
+    "sealSha256": "f5eb6e660f627c6cf1d029682b06f0f9b836b4bc98ccd5bc85c3ec68b811a0e2",
+    "membershipModesHashesVerified": true
+  },
+  "recipeDelta": {
+    "F01FullRecordUnchanged": true,
+    "F02ContextByteIdentical": true,
+    "CMD22ExactSealedOutput": true,
+    "loadedFourPrimitiveWitnessOnly": true,
+    "original149DataUnchanged": true
+  },
+  "writeSpec": {
+    "result": "OK",
+    "warnings": 0,
+    "initialErrors": 5,
+    "correctedBeforeSeal": true
+  },
+  "checkScope": "Static data algebra, bytes/modes/membership, parse-only source syntax and spec formatting; no authored module or candidate execution"
+}

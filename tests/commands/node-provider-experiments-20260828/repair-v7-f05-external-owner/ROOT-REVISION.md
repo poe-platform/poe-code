@@ -1,0 +1,7 @@
+# ROOT revised F05 supervision profile
+
+2026-08-28. Authorizes ONE exact34 inert qualification under a NEW profile, not rescoring old34 UNRUN histories. Owner + unchanged v5 CLI + unchanged controller = peak3 OS processes, <=12 owned qualification children. Wall: observed owner top-level entry through confirmed retirement <=300000ms. Scheduling/process startup before owner entry is excluded, not a universal startup bound.32MiB capture/128MiB working storage; each existing inner16MiB/64MiB bound remains stricter. Tool-body streamed hashing reports throughput separately from64KiB scratch.
+
+The unchanged v5 ROOT-GO field peakProcesses2 is the nested CLI/controller subtotal; this revision explicitly adds the external owner. Grant source/file bytes are additive under v5/ROOT-GO.json, not modifications of any historical source/seal. Existing token remains unused until this one admission. New owner's FS grants add ONLY its new runtime capture root; old child grants unchanged. No private/compiler/Worker/engine authority.
+
+Owner deadline/raw output files are enrolled before child preflight/spawn. Child handle and close/error handlers are enrolled immediately after spawn before publication. Publication/pipe/error failure contains owned process group and awaits close; no Promise.race abandonment. Unknown retirement is never clean. Owner exit is observed separately by the outer exec tool. Raw captures retained; existing CLI authenticates archive before removing its exact v4 run paths. No new actual engine results.

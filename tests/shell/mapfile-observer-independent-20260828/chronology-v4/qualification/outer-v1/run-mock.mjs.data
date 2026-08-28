@@ -1,0 +1,103 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
+import { EventEmitter } from 'node:events';
+import childProcess from 'node:child_process';
+import { syncBuiltinESMExports } from 'node:module';
+
+const root='tests/shell/mapfile-observer-independent-20260828/chronology-v4/qualification/outer-v1';
+const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+const sealBytes=fs.readFileSync(`${root}/PREEXECUTION.json`),seal=JSON.parse(sealBytes);assert.equal(hash(sealBytes),process.env.EXPECTED_OUTER_SEAL);
+for(const item of seal.files){const bytes=fs.readFileSync(`${root}/${item.name}`);assert.equal(hash(bytes),item.sha256);assert.equal(bytes.length,item.bytes);}
+const inputs=JSON.parse(fs.readFileSync(`${root}/INPUTS.json`)),controls=JSON.parse(fs.readFileSync(`${root}/CONTROLS.json`));
+let safetyAttempts=0;const deny=()=>{safetyAttempts++;throw new Error('SAFETY_REAL_CAPABILITY');};
+for(const name of ['spawn','spawnSync','exec','execSync','execFile','execFileSync','fork'])childProcess[name]=deny;syncBuiltinESMExports();
+const deadline=setTimeout(()=>{process.stderr.write('PREP_HOST_TIMEOUT\n');process.exit(124);},30000);
+const context=vm.createContext({Buffer,Uint8Array,console:{log:deny,error:deny}}),loads=[];
+const cryptoModule=new vm.SyntheticModule(['createHash'],function(){this.setExport('createHash',crypto.createHash);},{context});
+await cryptoModule.link(()=>{throw Error('unexpected crypto import');});await cryptoModule.evaluate();
+async function load(name,bytes){loads.push({name,sha256:hash(bytes),bytes:bytes.length});const module=new vm.SourceTextModule(bytes.toString('utf8'),{context,identifier:name,importModuleDynamically:deny});await module.link(specifier=>{if(specifier==='node:crypto')return cryptoModule;safetyAttempts++;throw Error('SAFETY_IMPORT '+specifier);});await module.evaluate({timeout:1000});return module.namespace;}
+for(const binding of Object.values(inputs.reused))assert.equal(hash(Buffer.from(binding.base64,'base64')),binding.sha256);
+const data=await load('pinned:data.mjs',Buffer.from(inputs.reused.data.base64,'base64'));
+const owner=await load('pinned:owner.mjs.data',Buffer.from(inputs.reused.owner.base64,'base64'));
+const bounded=await load('bounded-fs.mjs.data',fs.readFileSync(`${root}/bounded-fs.mjs.data`));
+const outer=await load('outer.mjs.data',fs.readFileSync(`${root}/outer.mjs.data`));
+const limits={metadata:8192,readBytes:8388608,writeBytes:1048576,descriptors:8,files:8};
+function makeFs(rootPath){
+  const nodes=new Map(),fds=new Map();let nextInode=1,nextFd=10,tick=1,opens=0,closes=0,directoryCloses=0,readEntries=0,writeBytes=0,throwOnOpen;
+  const add=(filename,bytes,mode=bytes===null?0o700:0o600)=>nodes.set(filename,{bytes:bytes===null?null:Buffer.from(bytes),mode,ino:nextInode++,mtimeMs:tick,ctimeMs:tick});
+  add('/private/tmp',null,0o1777);
+  const get=filename=>{const node=nodes.get(filename);if(!node)throw Object.assign(new Error('ENOENT'),{code:'ENOENT'});return node;};
+  const stat=node=>({dev:1,ino:node.ino,size:node.bytes?.length??0,mode:node.mode|(node.bytes===null?0o40000:0o100000),mtimeMs:node.mtimeMs,ctimeMs:node.ctimeMs,isFile:()=>node.bytes!==null,isDirectory:()=>node.bytes===null,isSymbolicLink:()=>false});
+  let scanEntries;
+  const api={constants:fs.constants,
+    lstatSync:filename=>stat(get(filename)),fstatSync:fd=>stat(get(fds.get(fd).filename)),realpathSync(filename){get(filename);return filename;},
+    mkdirSync(filename,options){if(nodes.has(filename))throw Error('EEXIST');add(filename,null,options.mode);},
+    openSync(filename,flags,mode){if(throwOnOpen)throwOnOpen(filename);if(flags&fs.constants.O_CREAT){if(nodes.has(filename))throw Error('EEXIST');add(filename,Buffer.alloc(0),mode);}else get(filename);const fd=nextFd++;fds.set(fd,{filename,offset:0});opens++;return fd;},
+    writeSync(fd,bytes,offset,length){const node=get(fds.get(fd).filename);node.bytes=Buffer.concat([node.bytes,bytes.subarray(offset,offset+length)]);node.mtimeMs=++tick;node.ctimeMs=tick;writeBytes+=length;return length;},
+    readSync(fd,buffer,offset,length,position){const record=fds.get(fd),node=get(record.filename),start=position??record.offset,count=Math.max(0,Math.min(length,node.bytes.length-start));node.bytes.copy(buffer,offset,start,start+count);if(position===null)record.offset+=count;return count;},
+    closeSync(fd){assert.ok(fds.delete(fd));closes++;},fsyncSync(){},
+    readdirSync:deny,
+    opendirSync(filename,options){assert.equal(options.bufferSize,1);const entries=scanEntries??[...nodes.keys()].filter(value=>value.startsWith(filename+'/')&&!value.slice(filename.length+1).includes('/')).map(value=>value.slice(filename.length+1));let index=0,closed=false;return{readSync(){assert.equal(closed,false);readEntries++;return index<entries.length?{name:entries[index++]}:null;},closeSync(){assert.equal(closed,false);closed=true;directoryCloses++;}};}
+  };
+  return{api,nodes,fds,add,setOpenFault(fn){throwOnOpen=fn;},setEntries(entries){scanEntries=entries;},get accounting(){return{opens,closes,directoryCloses,readEntries,writeBytes,remainingDescriptors:fds.size};},artifacts:()=>[...nodes].filter(([filename,node])=>filename.startsWith(rootPath)&&node.bytes!==null).map(([filename,node])=>({path:filename,mode:node.mode,bytes:node.bytes.length,sha256:hash(node.bytes),base64:node.bytes.toString('base64')}))};
+}
+const results=[];
+for(const control of controls.cases){
+  const runId=`outer-mock-${control.id}-000001`,rootPath=`/private/tmp/mapfile-observer-outer-${runId}`,model=makeFs(rootPath),timers=new Map(),signals=[],events=[];
+  let now=0,timerId=0,starts=0,releases=0,coercions=0,getterCalls=0,result,rawError;
+  const reason=Object.freeze({tag:'original host publication reason',toString(){coercions++;return'wrong';}});
+  const plan={kind:'SYNTHETIC_OUTER_CAPTURE_ONLY',runId,root:rootPath,parentPath:inputs.parentSource.sourcePath,parentSha256:inputs.parentSource.sha256,sourceManifestSha256:hash(sealBytes),expectedParentReport:{success:true,phase:'AFTER_DESCRIPTOR_CLEANUP_AND_FINAL_AUTHENTICATION',parentFinalSha256:'b'.repeat(64),guardSha256:'c'.repeat(64),parentRoot:`${rootPath}-modeled-parent`,rootGuard:`${rootPath}-modeled-parent-guard.bin`}};
+  const supplied=vm.runInNewContext('('+JSON.stringify(plan)+')');assert.notEqual(Object.getPrototypeOf(supplied),Object.prototype);
+  const spec={root:rootPath,runId,inputs:{}};
+  const schedule=(delay,callback,repeat=0)=>{const id=++timerId;timers.set(id,{at:now+delay,callback,repeat});return id;};
+  let evidence;
+  try{
+    if(control.scenario==='finite-fs-budget'){
+      model.add(rootPath,null,0o700);const bytes=Buffer.alloc(control.readFileBytes,42);
+      for(const name of ['first','second']){const filename=rootPath+'/'+name;model.add(filename,bytes,0o644);spec.inputs[filename]={bytes:bytes.length,mode:0o644,sha256:hash(bytes)};}
+      model.setEntries(control.directoryEntries);const store=bounded.createBoundedFs(model.api,spec,{...limits,readBytes:control.readQuota},data);
+      assert.throws(()=>store.scan(['first','second']));assert.equal(model.accounting.readEntries,3);assert.equal(model.accounting.directoryCloses,1);
+      assert.equal(store.read(rootPath+'/first',65536).length,65536);const opens=model.accounting.opens;
+      assert.throws(()=>store.read(rootPath+'/second',65536));assert.equal(model.accounting.opens,opens);assert.equal(store.counters.descriptors,0);
+      evidence={counters:{...store.counters},accounting:model.accounting,wholeDirectoryReads:0};
+    }else{
+      if(control.scenario==='accessor-admission')Object.defineProperty(supplied,'kind',{enumerable:true,get(){getterCalls++;return'SYNTHETIC_OUTER_CAPTURE_ONLY';}});
+      if(control.scenario==='final-receipt-write-throws')model.setOpenFault(filename=>{if(filename.endsWith('/receipt.seal.json'))throw reason;});
+      const store=bounded.createBoundedFs(model.api,spec,limits,data);
+      let child;
+      function terminal(code,signal,delay=0){if(child.terminalScheduled)return;child.terminalScheduled=true;schedule(delay,()=>{events.push({name:'exit',code,signal,at:now});child.emit('exit',code,signal);});schedule(delay+1,()=>{child.absent=true;events.push({name:'close',code,signal,at:now});child.emit('close',code,signal);});}
+      const ports={now:()=>now,timer:(delay,callback)=>schedule(delay,callback),interval:(delay,callback)=>schedule(delay,callback,delay),clear:id=>timers.delete(id),store,
+        authenticate(value){data.assertOwnData(value,plan);if(control.scenario==='startup-deadline')now=Math.max(now,control.authenticationReturnsAtMs);},
+        spawn(value){data.assertOwnData(value,plan);starts++;child=new EventEmitter();child.pid=501;child.stdout=new EventEmitter();child.stderr=new EventEmitter();schedule(0,()=>{events.push({name:'spawn',at:now});child.emit('spawn');});
+          if(control.scenario==='parent-timeout')return child;
+          if(control.scenario==='parent-crash'){schedule(5,()=>terminal(7,null));return child;}
+          if(control.scenario==='combined-output-overflow'){schedule(1,()=>child.stdout.emit('data',Buffer.alloc(control.stdoutBytes,120)));schedule(2,()=>child.stderr.emit('data',Buffer.alloc(control.stderrBytes,121)));return child;}
+          schedule(1,()=>child.stdout.emit('data',Buffer.from(JSON.stringify(plan.expectedParentReport)+'\n')));schedule(2,()=>child.stderr.emit('data',Buffer.from('modeled Node warning\n')));schedule(3,()=>terminal(0,null));return child;
+        },
+        signal(handle,pid,signal){assert.equal(handle,child);assert.equal(pid,501);signals.push(signal);if(control.scenario==='parent-timeout'&&signal==='SIGTERM')return;terminal(null,signal,control.scenario==='parent-timeout'?control.closeAfterKillMs:0);},
+        groupExists(handle,pid){assert.equal(handle,child);assert.equal(pid,501);return!child.absent;},release(handle){assert.equal(handle,child);releases++;}
+      };
+      let complete=false;outer.collect(ports,supplied,plan,owner,data).then(value=>{result=value;complete=true;},error=>{rawError=error;complete=true;});let steps=0;
+      while(!complete){for(let count=0;count<50;count++)await Promise.resolve();if(complete)break;if(++steps>20000)throw Error('SAFETY_QUEUE_CEILING');const next=[...timers].sort((first,second)=>first[1].at-second[1].at||first[0]-second[0])[0];if(!next)throw Error('SAFETY_UNSETTLED_WITHOUT_TIMER');const[id,timer]=next;now=Math.max(now,timer.at);if(now>75000)throw Error('SAFETY_VIRTUAL_WALL');if(timer.repeat)timer.at=now+timer.repeat;else timers.delete(id);timer.callback();}
+      evidence={result:result?{...result,failureDescription:Object.hasOwn(result,'failureReason')?data.describeReason(result.failureReason):null}:null,error:rawError?data.describeReason(rawError):null,starts,releases,signals,events,now,coercions,getterCalls,accounting:model.accounting,store:store.state(),artifacts:model.artifacts(),remainingTimers:timers.size};
+      if(control.scenario==='accessor-admission'){assert.ok(rawError);assert.equal(starts,0);assert.equal(store.counters.acquisitions,0);assert.equal(getterCalls,0);}
+      else{
+        assert.equal(rawError,undefined);assert.equal(starts,control.expected.parentStarts);assert.equal(result.qualificationAuthorized,false);assert.equal(result.captureComplete,control.expected.captureComplete);
+        if(control.expected.persistedCaptureReceipt!==undefined)assert.equal(result.receiptPublished,control.expected.persistedCaptureReceipt);
+        if(control.expected.parentCode!==undefined)assert.equal(result.knownParent.code,control.expected.parentCode);
+        if(control.expected.signals)assert.deepEqual(signals,control.expected.signals);
+        if(control.expected.descendantCleanupUnknown!==undefined)assert.equal(result.descendantCleanupUnknown,control.expected.descendantCleanupUnknown);
+        if(control.expected.failure)assert.equal(data.describeReason(result.failureReason),control.expected.failure);
+        if(control.expected.originalHostReasonIdentity){assert.equal(result.failureReason,reason);assert.equal(coercions,0);evidence.originalHostReasonIdentity=true;}
+        if(control.expected.retainedBytes!==undefined){const retained=model.artifacts().filter(item=>item.path.endsWith('.raw')).reduce((sum,item)=>sum+item.bytes,0);assert.equal(retained,control.expected.retainedBytes);}
+        if(control.expected.parentCloseObserved)assert.equal(result.knownParent.closed,true);
+        assert.equal(store.counters.descriptors,0);
+      }
+    }
+    assert.equal(model.fds.size,0);assert.equal(timers.size,0);assert.equal(outer.main().status,'HOLD');results.push({id:control.id,pass:true,evidence});
+  }catch(error){const clean=model.fds.size===0&&timers.size===0;results.push({id:control.id,pass:false,error:{message:data.describeReason(error),stack:typeof error?.stack==='string'?error.stack.slice(0,8192):null},evidence,clean});if(!clean||safetyAttempts||String(error?.message).startsWith('SAFETY_'))break;}
+}
+const result={classification:'OUTER_COMPONENT_MOCK_ONLY_WHOLE_PACKET_HOLD',preexecutionSha256:hash(sealBytes),controlsSha256:hash(fs.readFileSync(`${root}/CONTROLS.json`)),executed:results.length,planned:8,pass:results.filter(item=>item.pass).length,fail:results.filter(item=>!item.pass).length,safetyAttempts,realQualificationChildren:0,realQualificationParents:0,toolBodyReads:0,loads,results};
+const bytes=Buffer.from(JSON.stringify(result));assert.ok(bytes.length<=1048576);fs.writeFileSync(`${root}/CAPTURE-01.json`,bytes,{flag:'wx',mode:0o644});process.stdout.write(JSON.stringify({pass:result.pass,fail:result.fail,executed:result.executed,bytes:bytes.length,sha256:hash(bytes),status:'HOLD'})+'\n');process.exitCode=result.fail||result.executed!==8||safetyAttempts?1:0;clearTimeout(deadline);

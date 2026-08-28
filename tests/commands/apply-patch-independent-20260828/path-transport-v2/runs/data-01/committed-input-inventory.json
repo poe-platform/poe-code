@@ -1,0 +1,39 @@
+{
+  "id": "committed-input-inventory",
+  "executable": "/usr/bin/git",
+  "args": [
+    "--no-replace-objects",
+    "ls-tree",
+    "-rz",
+    "--full-tree",
+    "d8cbb7d76459e14d20f57e19f7c01ce04fa08702",
+    "--",
+    "tests/commands/apply-patch-independent-20260828/path-transport-v2"
+  ],
+  "started": "2026-08-28T18:14:55.339Z",
+  "finished": "2026-08-28T18:14:55.634Z",
+  "startedElapsedMs": 27.878833,
+  "finishedElapsedMs": 321.566292,
+  "pid": 99235,
+  "spawnAttempted": true,
+  "spawnReturned": true,
+  "spawnEvent": true,
+  "spawnThrew": false,
+  "code": 0,
+  "signal": null,
+  "closeObserved": true,
+  "groupAbsent": true,
+  "spawnError": null,
+  "fault": null,
+  "bytes": 36944,
+  "fragments": [
+    {
+      "name": "committed-input-inventory-stdout-0.json",
+      "bytes": 36944,
+      "sha256": "60bc87d8b899be683a75363edb04453a34b4f699dcea0b434edacf09ac2dae66"
+    }
+  ],
+  "stdoutSha256": "60bc87d8b899be683a75363edb04453a34b4f699dcea0b434edacf09ac2dae66",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "knownChildCleanup": true
+}

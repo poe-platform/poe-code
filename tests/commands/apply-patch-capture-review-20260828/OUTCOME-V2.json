@@ -1,0 +1,140 @@
+{
+  "schema": "independent-c18-regular-closure-v2",
+  "disposition": "QUALIFIED_REGULAR_FILE_HELPER_AND_SHARED_ADMISSION_ONLY",
+  "source": "33e2b4c7fb14c2ab5ad23be50ac07bcc4bfed848",
+  "successor": "7e2ce586e0bd144efc30a003c6141e3aa3bf437b",
+  "grantCommit": "8137ea578ad19c4b452d7223b4c527537feda8ef",
+  "presealSha256": "406ab6f12ddc2bb52fd6daf70af40f95a3c4f57ad1aa71b8a3524abed478efd7",
+  "runId": "data-v2-01",
+  "attempts": 1,
+  "observations": {
+    "planned": 52,
+    "executed": 52,
+    "qualified": 52,
+    "helper": 26,
+    "controllerWrapper": 21,
+    "directSharedController": 5,
+    "expectedAccept": 10,
+    "expectedReject": 42,
+    "unexpected": 0
+  },
+  "bindingCounterchecks": {
+    "planned": 3,
+    "executed": 3,
+    "qualified": 3
+  },
+  "child": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=128",
+      "--permission",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828",
+      "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/data-v2-01/scratch/capture-membership-v3/runs/author-01/work",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/observe.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/data-v2-01/scratch",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/PAYLOAD.json"
+    ],
+    "pid": 44679,
+    "closeObserved": true,
+    "groupAbsent": true,
+    "stdoutBytes": 12862,
+    "stderrBytes": 0,
+    "fault": null,
+    "code": 0,
+    "signal": null,
+    "stdoutRetained": 12862,
+    "stdoutSha256": "52c7fe9ae14d741560a3791eee84c879025dd2691e146fe99d4f575962d96d6b",
+    "stderrRetained": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "outerToolObservedExit": 0,
+  "elapsedMs": 528,
+  "peakOwnedProcesses": 2,
+  "workingBytesWritten": 92840,
+  "runArtifactBytes": 33550,
+  "guards": [
+    {
+      "entries": 120,
+      "checked": true
+    },
+    {
+      "entries": 120,
+      "checked": true
+    }
+  ],
+  "cleanup": {
+    "scratchAbsent": true,
+    "allChildrenClosed": true
+  },
+  "captureLossBytes": 0,
+  "symlinkProof": {
+    "executed": 0,
+    "status": "EXACT_EXECUTABLE_PREPARATION_NOT_SEALED_AT_GO; PROPOSAL_ONLY",
+    "proposal": "SYMLINK-PROPOSAL.md"
+  },
+  "controllerComposition": "SEPARATE_STATIC_PROOF_NOT_FULL_LIFECYCLE_EXECUTION",
+  "loadQualification": "actual invoked exact five-module harness import closure; not universal loader trace",
+  "history": {
+    "independentData01": "ENOENT 0/52 unchanged",
+    "author01": "fixture permission failure unchanged",
+    "author02": "unauthorized 66+66 remain NOT_CREDITED",
+    "originalC18": "helper-local, no demonstrated controller bypass"
+  },
+  "productActual": 0,
+  "builds": 0,
+  "nativeOracles": 0,
+  "privateAccess": 0,
+  "network": 0,
+  "nodeBridgeActual": 0,
+  "files": [
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/ROOT-GO-V2.json",
+      "bytes": 1080,
+      "mode": 420,
+      "sha256": "82abbef533b31c6eadb84edb92cc2c41c16b9142f274d121e953b5e42ba350a3"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/REPORT-V2.md",
+      "bytes": 3624,
+      "mode": 420,
+      "sha256": "c4991c8632bb07f9a88c25a6c4057b8361c6613ec85cf4620f02c8175680f1a9"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/SYMLINK-PROPOSAL.md",
+      "bytes": 5543,
+      "mode": 420,
+      "sha256": "03218341c6ed9c4eb791f55f9d040d13f634df9242857e87347d974f4c9bab05"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/data-v2-01/stdout.raw",
+      "bytes": 12862,
+      "mode": 420,
+      "sha256": "52c7fe9ae14d741560a3791eee84c879025dd2691e146fe99d4f575962d96d6b"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/data-v2-01/stderr.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/data-v2-01/RECEIPT.json",
+      "bytes": 20462,
+      "mode": 420,
+      "sha256": "d4f37bc71c8e548ea43b8ba116042781e81b5ddd26e4b958a006fcb7ac35a818"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/launch-v2.stdout.raw",
+      "bytes": 226,
+      "mode": 420,
+      "sha256": "acaf8b300362f0f66d0ec563931fd360b16be0343f5f82122b7155b82dc9e574"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/launch-v2.stderr.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -1,0 +1,336 @@
+{
+  "schema": 1,
+  "authority": {
+    "author": "63d811bf1a809b467f47f309f41b1445486e71db",
+    "limits": {
+      "commit": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/LIMITS.json",
+      "bytes": 1939,
+      "mode": 420,
+      "sha256": "e9ca0e94394738e8a2a6623b4d86111babfa75c83171f351986e65f57e0fb873",
+      "gitBlob": "e4aed380c0d1642ba822581c8c1a1259fab6d0f3",
+      "role": "READ_ONLY_AUTHOR_DESIGN_AUTHORITY"
+    },
+    "m1a": "9885390fb11454fa194a3e60fdbef198dbfdf633"
+  },
+  "status": "PROPOSED_EXACT_DIMENSIONS_FOR_R01_AUTHOR_CONFIRMATION",
+  "rows": [
+    {
+      "name": "maxArgumentBytes",
+      "value": 65536,
+      "unit": "bytes",
+      "dimension": "aggregate argv admission per invocation",
+      "seam": "arguments.ts:16",
+      "caseId": "RC01",
+      "qualification": "Original argument grammar remains unchanged.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxPathBytes",
+      "value": 4096,
+      "unit": "UTF8 bytes",
+      "dimension": "per component and resolved path",
+      "seam": "io.ts:84",
+      "caseId": "RC01",
+      "qualification": "Not a cumulative path-length sum.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxReadBytes",
+      "value": 67108864,
+      "unit": "bytes",
+      "dimension": "cumulative VFS bytes across admission/rereads/query",
+      "seam": "io.ts:178",
+      "caseId": "RC03",
+      "qualification": "No per-pack/object refund; provider allocation is not an owned-resident claim.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxInflatedBytes",
+      "value": 134217728,
+      "unit": "bytes",
+      "dimension": "cumulative codec output plus delta reconstructed bytes",
+      "seam": "codec.ts:60; SPEC.md:146",
+      "caseId": "RC04",
+      "qualification": "Include discarded/duplicate output; work mask requires source proof, not injected counters.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxObjectBytes",
+      "value": 8388608,
+      "unit": "bytes",
+      "dimension": "per direct body, delta program and reconstructed body independently",
+      "seam": "limits.ts:8; SPEC.md:105",
+      "caseId": "RC21",
+      "qualification": "Not their cumulative sum and not permission to allocate all independently without resident checks.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxWorkingFileBytes",
+      "value": 8388608,
+      "unit": "bytes",
+      "dimension": "per working file",
+      "seam": "limits.ts:8",
+      "caseId": "RC32",
+      "qualification": "Preserved M1A query boundary; no broader working-file reader.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxIndexBytes",
+      "value": 16777216,
+      "unit": "bytes",
+      "dimension": "per working index or pack idx admission",
+      "seam": "io.ts:207; SPEC.md:141",
+      "caseId": "RC09",
+      "qualification": "D2 proposes same numerical size ceiling for inert sidecar lstat, not a body-read grant.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxMetadataBytes",
+      "value": 1048576,
+      "unit": "bytes",
+      "dimension": "per admitted metadata region/file/header as existing callers require",
+      "seam": "repository.ts:158",
+      "caseId": "RC32",
+      "qualification": "Preserved per-value admission, not a new global metadata counter.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxResidentBytes",
+      "value": 67108864,
+      "unit": "logical owned bytes",
+      "dimension": "live reserved occupancy",
+      "seam": "io.ts:45",
+      "caseId": "RC05",
+      "qualification": "Only successful ownership release refunds occupancy; includes charged text/tables; not exact RSS.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxEntries",
+      "value": 20000,
+      "unit": "entries",
+      "dimension": "shared cumulative directory/table/traversal admission units",
+      "seam": "io.ts:145; SPEC.md:82",
+      "caseId": "RC08",
+      "qualification": "Physical pack occurrences must be charged; specify repeated listing/table charging sites.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxObjects",
+      "value": 32768,
+      "unit": "object names",
+      "dimension": "invocation deduplicated loose plus packed OID census",
+      "seam": "repository.ts:74; SPEC.md:74",
+      "caseId": "RC08",
+      "qualification": "Global name dedup cannot bypass verification of any physical location.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxCommits",
+      "value": 2000,
+      "unit": "commits",
+      "dimension": "shared cumulative parsed-commit count plus existing command/traversal bounds",
+      "seam": "repository.ts:195; queries.ts:203",
+      "caseId": "RC32",
+      "qualification": "Cached commits are not reparsed as new owners; preserve original query limits.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxDepth",
+      "value": 128,
+      "unit": "levels",
+      "dimension": "per directory/tree/discovery traversal depth",
+      "seam": "io.ts:128",
+      "caseId": "RC32",
+      "qualification": "Not cumulative across unrelated trees; no recursion-reset loophole.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxRefDepth",
+      "value": 16,
+      "unit": "edges/iterations",
+      "dimension": "per symbolic-ref or tag resolution chain",
+      "seam": "repository.ts:176",
+      "caseId": "RC32",
+      "qualification": "Distinct from delta representation depth.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxDeltaDepth",
+      "value": 32,
+      "unit": "delta edges",
+      "dimension": "intrinsic per-location representation depth",
+      "seam": "SPEC.md:117",
+      "caseId": "RC13",
+      "qualification": "Direct0; cached base retains intrinsic depth; cannot use cache-miss count.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxSteps",
+      "value": 32000000,
+      "unit": "explicit work units",
+      "dimension": "cumulative invocation work",
+      "seam": "io.ts:30; SPEC.md:148",
+      "caseId": "RC07",
+      "qualification": "Each stated scan/hash/CRC/copy/compare/replay charged before work; checkpoint interleaving still requires source proof.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxDiffCells",
+      "value": 1000000,
+      "unit": "cells",
+      "dimension": "cumulative diff cells across files",
+      "seam": "diff.ts:36",
+      "caseId": "RC32",
+      "qualification": "Original diff algorithm/grammar unchanged; no per-file reset.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxLines",
+      "value": 200000,
+      "unit": "lines",
+      "dimension": "cumulative parsed text lines",
+      "seam": "diff.ts:17",
+      "caseId": "RC32",
+      "qualification": "No per-file reset or package-source waiver.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxOutputBytes",
+      "value": 16777216,
+      "unit": "bytes",
+      "dimension": "cumulative stdout publication",
+      "seam": "io.ts:216",
+      "caseId": "RC26",
+      "qualification": "Not a promise any object/query can reach this ceiling after earlier masks.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxDiagnosticBytes",
+      "value": 65536,
+      "unit": "UTF8 bytes",
+      "dimension": "per diagnostic publication under existing single diagnostic path",
+      "seam": "index.ts:13",
+      "caseId": "RC27",
+      "qualification": "Separate from stdout; no blanket diagnostic/status relaxation.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxChunkBytes",
+      "value": 65536,
+      "unit": "bytes",
+      "dimension": "per yielded VFS/codec chunk and output partition",
+      "seam": "io.ts:178; codec.ts:59",
+      "caseId": "RC17",
+      "qualification": "Does not alone bound total output, queues, native work or allocation.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxChunks",
+      "value": 32768,
+      "unit": "chunks",
+      "dimension": "cumulative yielded VFS source rows in existing Session",
+      "seam": "io.ts:177",
+      "caseId": "RC18",
+      "qualification": "Author must declare any new codec-output counting extension; do not silently change inherited scope.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxPacks",
+      "value": 8,
+      "unit": "complete pairs",
+      "dimension": "invocation pack census",
+      "seam": "SPEC.md:141",
+      "caseId": "RC10",
+      "qualification": "No per-pack reset or ignored ninth unselected pair under eager admission.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    },
+    {
+      "name": "maxPackBytes",
+      "value": 33554432,
+      "unit": "bytes",
+      "dimension": "per pack stat and exact read extent",
+      "seam": "SPEC.md:141",
+      "caseId": "RC10",
+      "qualification": "At-C success masked by shared read/work; +1 admission refusal is separate.",
+      "valueChange": false,
+      "proof": "STATIC_DIMENSION_REVIEW_FUTURE_TARGET_UNRUN"
+    }
+  ],
+  "coexistenceEquation": "resident = pack + retainedRawIdx + decodedMetadata + cacheOwners + currentProgram + currentResult + wrapperBuffers + otherInvocationOwners; count a cached base once, retain duplicate body until verified dedup",
+  "arithmetic": [
+    {
+      "id": "A1",
+      "expression": "P+(P-20)+(P-32)+P = 4P-52",
+      "inputP": 8000014,
+      "lowerBoundWork": 32000004,
+      "cap": 32000000,
+      "role": "STATIC_NECESSARY_CONDITION_UNDER_SEPARATE_PER_BYTE_OPERATION_CHARGES_NOT_BENCHMARK"
+    },
+    {
+      "id": "A2",
+      "expression": "2*(33554432+1072)",
+      "lowerBoundRead": 67111008,
+      "cap": 67108864,
+      "excess": 2144,
+      "role": "STATIC_MASK_NOT_AT_CAP_RUNTIME_PASS"
+    },
+    {
+      "id": "A3",
+      "expression": "1072+28*20000+8*20000",
+      "upperBoundPackIdx": 721072,
+      "cap": 16777216,
+      "peerStricterNonemptyBound": 721064,
+      "role": "COUNT_LAYOUT_MASK_NOT_WORKING_INDEX_MASK"
+    },
+    {
+      "id": "A4",
+      "expression": "charged copy work >= admitted codec-produced plus delta-reconstructed bytes",
+      "workCap": 32000000,
+      "inflatedCap": 134217728,
+      "role": "PROPOSED_ACCOUNTING_IMPLICATION_NOT_NATIVE_OVERSHOOT_PROOF"
+    },
+    {
+      "id": "A5",
+      "expression": "8*4+3",
+      "maximumSidecarNames": 35,
+      "eachSizeCeiling": 16777216,
+      "role": "ENTRY_CENSUS_NOT_CUMULATIVE_BODY_READ_GRANT"
+    },
+    {
+      "id": "A6",
+      "expression": "(32+16+8+8+8)*1048576",
+      "independentCeilingSum": 75497472,
+      "residentCap": 67108864,
+      "jointlyFeasible": false,
+      "role": "DO_NOT_USE_IMPOSSIBLE_SUM_AS_RUNTIME_FIXTURE"
+    }
+  ],
+  "numericExecution": false,
+  "limitOverrides": false,
+  "newBudget": false,
+  "refunds": "Resident only after owned lifetime proof; never read/inflate/work/depth refunds"
+}

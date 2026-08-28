@@ -1,0 +1,42 @@
+{
+  "kind": "ONE_COORDINATOR_LAUNCH",
+  "started": "2026-08-28T13:00:52.309Z",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=256",
+    "tests/comparison/breadth-continuation-20260828/executor-v6/coordinator.mjs",
+    "admission",
+    "admission-v6-01",
+    "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/AUTH.json"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "authSha256": "5ab1ff02e9e52f517c2a2e43d478b3f61bdc13ad3885feb93680b43f467bf619",
+  "pid": 94468,
+  "group": 94468,
+  "exit": {
+    "code": 1,
+    "signal": null
+  },
+  "close": {
+    "code": 1,
+    "signal": null
+  },
+  "reaped": true,
+  "errors": [
+    {
+      "phase": "stdout",
+      "code": null,
+      "message": "OUTER_CAPTURE_CAP"
+    }
+  ],
+  "captureBytes": {
+    "stdout": 359581,
+    "stderr": 0
+  },
+  "childHeapNotRss": true,
+  "outerDeadline": "Frozen coordinator checked elapsed, not extra hard preemption",
+  "finished": "2026-08-28T13:01:00.851Z",
+  "stdoutSha256": "c6c78f8a6bca867ff61b556496b40fab58442588bc3ec710234d5ceb32b6fbec",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

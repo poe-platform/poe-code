@@ -1,0 +1,136 @@
+{
+  "schema": "V6_ONE_ADMISSION_FAILURE_EVIDENCE",
+  "recipeCommit": "931b8e07114b8f69fa50f35e798a7a619f578cdb",
+  "recipeSha256": "937f5551b242c5388febd085aa18905095150f846c9e3005e766db7b39c979a0",
+  "grantCommit": "5ac29fefc1ac73e8ac2795a51bc81c43635c3a00",
+  "grantSha256": "d933f560b089abd29dbf5aa7af5253fb2de257f6306fe45100425cc8c1afef40",
+  "authSha256": "5ab1ff02e9e52f517c2a2e43d478b3f61bdc13ad3885feb93680b43f467bf619",
+  "runId": "admission-v6-01",
+  "resultSha256": "902e4643e0e4865daad215c7a7c0cd1285218a8714904169ccf70e18d3467cb2",
+  "launchReceiptSha256": "1d726f323e7aaa7bed3df018ba9920392391f4e378b5aa353731491c30e288e2",
+  "postAuditSha256": "4c7ede9d60b799825a7d9f633f5c4bc1f949855c7cda0148d121c584a172f90f",
+  "archive": {
+    "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/raw-evidence.json.gz",
+    "bytes": 1174849,
+    "sha256": "4d48578eef41c7d9bfce10abf17fa3772a9cd47be04f351c325c6c57743c33ae",
+    "expandedBytes": 4333168,
+    "members": [
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/AUTHORIZATION.json",
+        "bytes": 844,
+        "mode": 420,
+        "sha256": "5d7080348ab228cb74f4ca485519e474685593259b659be5b7f6653bcd4bcded"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/RESULT.json",
+        "bytes": 531954,
+        "mode": 420,
+        "sha256": "902e4643e0e4865daad215c7a7c0cd1285218a8714904169ccf70e18d3467cb2"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/STAGED.json",
+        "bytes": 979544,
+        "mode": 420,
+        "sha256": "626a9f13bc3b3b7f7ad212772e5c75d52ae0add2e8bc4db45a0318078a5c8e6c"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/child-001.json",
+        "bytes": 148184,
+        "mode": 420,
+        "sha256": "cd669ef8c3882f0f63fa513d6d576c259497b4af8849edd063930fb3abebfd4a"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/child-001.receipt.json",
+        "bytes": 318162,
+        "mode": 420,
+        "sha256": "23bdd145808d64a58af5a6883347404e0376ff4da14e6027c773bfc911c5747d"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/operation-probe-1.claim",
+        "bytes": 179,
+        "mode": 292,
+        "sha256": "deb44df6457a21c3f1146a9b3cd6a0f7b45df773ea6c1102072233d26309ba9c"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/child-002.json",
+        "bytes": 148305,
+        "mode": 420,
+        "sha256": "9aef04735717703fa044dab369595a366218980dd80d188e878b7c144e88a8e0"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/child-002.receipt.json",
+        "bytes": 317978,
+        "mode": 420,
+        "sha256": "03e042b838e3955aee83643ff3b7c830483c3a0787eff6388eb895aa9e1bdc33"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/operation-probe-2.claim",
+        "bytes": 175,
+        "mode": 292,
+        "sha256": "ef64cd54b62f70a2e740e7b0ddb71f7c3467d201058773d5af9141bdc05fc2e2"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/child-003.json",
+        "bytes": 685153,
+        "mode": 420,
+        "sha256": "c7b52b2a586a1b8baa7d3a8d4a3c9b14f065563d7f59a553cae555ec7d966c12"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/child-003.receipt.json",
+        "bytes": 47115,
+        "mode": 420,
+        "sha256": "78bbe43ff593aebc98e603b69c14ac0fc51e330a1863d95761aa90285a1d0dd6"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/operation-probe-3.claim",
+        "bytes": 181,
+        "mode": 292,
+        "sha256": "22bc762c630c0dcf6e53a28c145324263fd1f7e42db2c9f7b4b70f52a3e237cf"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/LAUNCH-INTENT.json",
+        "bytes": 884,
+        "mode": 420,
+        "sha256": "dccaea603a4a4bdeec53487e0e899813336cba34196af1e6c099ee4389002f94"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/LAUNCHED.json",
+        "bytes": 886,
+        "mode": 420,
+        "sha256": "9bdebaaafa37020d727f27d2dec041bd0e273ee4e5beba09f3c25eba84771739"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/LAUNCH-RECEIPT.json",
+        "bytes": 1271,
+        "mode": 420,
+        "sha256": "1d726f323e7aaa7bed3df018ba9920392391f4e378b5aa353731491c30e288e2"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/coordinator.stdout",
+        "bytes": 65536,
+        "mode": 420,
+        "sha256": "c6c78f8a6bca867ff61b556496b40fab58442588bc3ec710234d5ceb32b6fbec"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/coordinator.stderr",
+        "bytes": 0,
+        "mode": 420,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/authority-d933f560b089abd29dbf5aa7af5253fb2de257f6306fe45100425cc8c1afef40.lock",
+        "bytes": 367,
+        "mode": 292,
+        "sha256": "27de3445af669622eab55202b2da1d1f3c3a0d030eb84120cba4f632d62f37e6"
+      }
+    ],
+    "roundTripVerified": true
+  },
+  "qualifications": {
+    "admissionAccepted": false,
+    "previousCohortsUnchanged": true,
+    "missingCoordinatorStdoutNotReconstructed": true,
+    "projectionNotBuild": true,
+    "semanticCohortAuthorized": false
+  }
+}

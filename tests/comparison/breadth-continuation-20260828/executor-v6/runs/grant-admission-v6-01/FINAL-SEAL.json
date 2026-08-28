@@ -1,0 +1,146 @@
+{
+  "kind": "POST_OUTCOME_SEAL_NOT_NEW_EXECUTION_RECIPE",
+  "runId": "admission-v6-01",
+  "status": "UNSAFE_STOP",
+  "admissionAccepted": false,
+  "grantCommit": "5ac29fefc1ac73e8ac2795a51bc81c43635c3a00",
+  "authCommit": "1b08bc9c3b23ba9578e3659e2ec653ccd1b04bba",
+  "protectedInputs": [
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/REVIEW.json",
+      "commit": "fb4ccfd95af9c3d3573d86c97826bed77605e370",
+      "bytes": 4391,
+      "mode": 420,
+      "sha256": "c86d2fd9e7cbfe2dbc0cf173cca1a4e2d453699ea4464144a6d4fa7011b049c5",
+      "unchanged": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/BEFORE.json",
+      "commit": "fb4ccfd95af9c3d3573d86c97826bed77605e370",
+      "bytes": 392214,
+      "mode": 420,
+      "sha256": "d8bd04946aa041f77306ea62248af2f57ce6f007afc4cad0cce2a62704329cbe",
+      "unchanged": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/FINAL-HANDOFF.json",
+      "commit": "fb9afcc3cf484171769985d9f570318117f09f34",
+      "bytes": 441612,
+      "mode": 420,
+      "sha256": "a871711e29840f4bbe82d61f2015ea663f1ec9bc268634a8d5bb57799d6ec809",
+      "unchanged": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/ADMISSION-INTERFACE.json",
+      "commit": "fb4ccfd95af9c3d3573d86c97826bed77605e370",
+      "bytes": 19017,
+      "mode": 420,
+      "sha256": "f8ea38d98bb0efa8cc34932fca25c69726b3331677797dbd14964489ea298634",
+      "unchanged": true
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/ADMISSION-INTERFACE.json",
+      "commit": "931b8e07114b8f69fa50f35e798a7a619f578cdb",
+      "bytes": 5215,
+      "mode": 420,
+      "sha256": "6f1cea302f4b371e94bf0143b333356acc44c9aeb37bbc3f10afa398f8e018e1",
+      "unchanged": true
+    }
+  ],
+  "files": [
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/ROOT-MESSAGE.txt",
+      "bytes": 2260,
+      "mode": 420,
+      "sha256": "cd64b8e2d6ddf48bdc85a3be1068933f62389d31dab60750e9ca39c220e0dbb4"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/GRANT.json",
+      "bytes": 2244,
+      "mode": 420,
+      "sha256": "d933f560b089abd29dbf5aa7af5253fb2de257f6306fe45100425cc8c1afef40"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/AUTH.json",
+      "bytes": 535,
+      "mode": 420,
+      "sha256": "5ab1ff02e9e52f517c2a2e43d478b3f61bdc13ad3885feb93680b43f467bf619"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/PREFLIGHT.json",
+      "bytes": 4437,
+      "mode": 420,
+      "sha256": "71943ae94bbcfe66b3d29baf6c9acea3020362df98c2ba7e2c93000e03661d68"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/INPUTS-PRE.json",
+      "bytes": 87509,
+      "mode": 420,
+      "sha256": "3717ebb3849574bf5da2e4a280797348e819bfe0cf77e606d7e5118e6202107e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/METADATA-CHILDREN.json",
+      "bytes": 131345,
+      "mode": 420,
+      "sha256": "476652637146617610c1edc8702fe5ae872ef3a3cc055c1856528cf8e69f1d1d"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/launch.mjs",
+      "bytes": 3737,
+      "mode": 420,
+      "sha256": "1faf0e0083b6552fb0d39baea8bdefe8192495dca12bc7eddf8e525bdcdd5982"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/LAUNCH-INTENT.json",
+      "bytes": 884,
+      "mode": 420,
+      "sha256": "dccaea603a4a4bdeec53487e0e899813336cba34196af1e6c099ee4389002f94"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/LAUNCHED.json",
+      "bytes": 886,
+      "mode": 420,
+      "sha256": "9bdebaaafa37020d727f27d2dec041bd0e273ee4e5beba09f3c25eba84771739"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/LAUNCH-RECEIPT.json",
+      "bytes": 1271,
+      "mode": 420,
+      "sha256": "1d726f323e7aaa7bed3df018ba9920392391f4e378b5aa353731491c30e288e2"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/seal-outcome.mjs",
+      "bytes": 12764,
+      "mode": 420,
+      "sha256": "eb5612aea8a3e85aad9a57e594fc371e0152f52d6beb351f977c2c7e3bba9678"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/POST-AUDIT.json",
+      "bytes": 72923,
+      "mode": 420,
+      "sha256": "4c7ede9d60b799825a7d9f633f5c4bc1f949855c7cda0148d121c584a172f90f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/raw-evidence.json.gz",
+      "bytes": 1174849,
+      "mode": 420,
+      "sha256": "4d48578eef41c7d9bfce10abf17fa3772a9cd47be04f351c325c6c57743c33ae"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/EVIDENCE-MANIFEST.json",
+      "bytes": 6108,
+      "mode": 420,
+      "sha256": "168e7422b0d969ddb8e5e7e7db3003abfdce0497e41217918c293c24ac22fcca"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/HANDOFF.md",
+      "bytes": 5691,
+      "mode": 420,
+      "sha256": "729b896e1a0ca37dfeb1c36e579df5fa796468ef1497576e5bafe2abf74a1f9a"
+    }
+  ],
+  "rawCaptureArchiveMembers": 18,
+  "coordinatorStdoutMissingBytes": 294045,
+  "missingBytesReconstructed": false,
+  "semanticCohortAuthorized": false
+}

@@ -1,0 +1,251 @@
+{
+  "schema": "virtual-bash-timeout-api-freeze-v1",
+  "status": "proposed-precode-freeze",
+  "implemented": false,
+  "stage2Basis": {
+    "status": "unaccepted-review-pending",
+    "commit": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+    "acceptedHelperCommit": "57855a0293edb83bff98113123806497b4427416",
+    "commandInvokeSignal": "readonly signal?: AbortSignal | undefined"
+  },
+  "existingImportedTypes": [
+    {
+      "name": "CommandInvoker",
+      "use": "trusted optional factory fallback",
+      "newExport": false
+    },
+    {
+      "name": "CommandDefinition",
+      "use": "factory return type",
+      "newExport": false
+    },
+    {
+      "name": "VirtualShellPlugin",
+      "use": "plugin factory return type",
+      "newExport": false,
+      "verification": "actual existing contract name at Stage2 basis"
+    }
+  ],
+  "newExports": [
+    {
+      "kind": "trusted-di-type",
+      "name": "TimeoutScheduler",
+      "signature": "export interface TimeoutScheduler { now(): number; setTimeout(callback: () => void, milliseconds: number): unknown; clearTimeout(handle: unknown): void; }"
+    },
+    {
+      "kind": "options-type",
+      "name": "TimeoutCommandOptions",
+      "signature": "export interface TimeoutCommandOptions { readonly invoke?: CommandInvoker | undefined; readonly scheduler?: TimeoutScheduler | undefined; readonly maxTimerMilliseconds?: number | undefined; }"
+    },
+    {
+      "kind": "options-type",
+      "name": "TimeoutCommandsOptions",
+      "signature": "export interface TimeoutCommandsOptions extends TimeoutCommandOptions { readonly replace?: boolean | undefined; }"
+    },
+    {
+      "kind": "function",
+      "name": "createTimeoutCommand",
+      "signature": "export function createTimeoutCommand(options?: TimeoutCommandOptions): CommandDefinition;"
+    },
+    {
+      "kind": "function",
+      "name": "createTimeoutCommands",
+      "signature": "export function createTimeoutCommands(options?: TimeoutCommandsOptions): readonly CommandDefinition[];"
+    },
+    {
+      "kind": "function",
+      "name": "timeoutCommands",
+      "signature": "export function timeoutCommands(options?: TimeoutCommandsOptions): VirtualShellPlugin;"
+    }
+  ],
+  "newPublicApiBeyondListedSix": [],
+  "excludedPublicApi": [
+    "TimeoutLimits",
+    "capability field or type",
+    "capability probe",
+    "fallback Shell",
+    "observed-status channel or wrapper",
+    "factory alias",
+    "fourth factory",
+    "aggregate-specific export"
+  ],
+  "limitsShape": {
+    "separateObjectOrInterface": false,
+    "property": "TimeoutCommandOptions.maxTimerMilliseconds",
+    "default": 2147483647,
+    "minimum": 1,
+    "maximum": 2147483647,
+    "integer": true,
+    "semanticDurationCap": null
+  },
+  "defaultScheduler": {
+    "clockBinding": "node:perf_hooks performance.now",
+    "timerBindings": ["node:timers setTimeout", "node:timers clearTimeout"],
+    "moduleInternal": true,
+    "globalLookup": false,
+    "ambientHookDiscovery": false,
+    "methodOrArgumentProbeAtFactoryConstruction": false
+  },
+  "factories": {
+    "createTimeoutCommand": {
+      "optionsType": "TimeoutCommandOptions",
+      "returnType": "CommandDefinition",
+      "fresh": true,
+      "shallowFrozen": true,
+      "definitionNames": ["timeout"],
+      "registryEffects": false
+    },
+    "createTimeoutCommands": {
+      "optionsType": "TimeoutCommandsOptions",
+      "returnType": "readonly CommandDefinition[]",
+      "fresh": true,
+      "shallowFrozen": true,
+      "definitionsShallowFrozen": true,
+      "definitionNames": ["timeout"],
+      "registryEffects": false,
+      "replaceUsedForDefinitionConstruction": false
+    },
+    "timeoutCommands": {
+      "optionsType": "TimeoutCommandsOptions",
+      "returnType": "VirtualShellPlugin",
+      "fresh": true,
+      "pluginName": "timeout-commands",
+      "capturesDefinitionsBeforeSetup": true,
+      "replaceFalse": "preflight every captured name and register none on any collision",
+      "replaceTrue": "register exactly each captured definition through existing replacement semantics",
+      "collisionFailureClass": "plugin-setup-error-not-command-status"
+    }
+  },
+  "optionsContainer": {
+    "accepted": [
+      "omitted",
+      "undefined",
+      "ordinary non-null object",
+      "null-prototype non-null object",
+      "class-instance non-null object",
+      "Proxy whose ordinary operations succeed"
+    ],
+    "rejectedWithSynchronousTypeError": [
+      "null",
+      "boolean",
+      "number",
+      "bigint",
+      "string",
+      "symbol",
+      "function",
+      "array"
+    ],
+    "unknownProperties": "not enumerated, read, or rejected",
+    "prototypePolicy": "ordinary inherited lookup is preserved",
+    "accessorAndProxyPolicy": "ordinary effects occur; exact thrown value propagates and stops later reads",
+    "mutatedByFactory": false,
+    "retainedByFactory": false
+  },
+  "propertyReadSequences": {
+    "createTimeoutCommand": [
+      "options.invoke",
+      "options.scheduler",
+      "scheduler.now if scheduler is defined",
+      "scheduler.setTimeout if scheduler is defined",
+      "scheduler.clearTimeout if scheduler is defined",
+      "options.maxTimerMilliseconds"
+    ],
+    "createTimeoutCommands": [
+      "options.invoke",
+      "options.scheduler",
+      "scheduler.now if scheduler is defined",
+      "scheduler.setTimeout if scheduler is defined",
+      "scheduler.clearTimeout if scheduler is defined",
+      "options.maxTimerMilliseconds",
+      "options.replace"
+    ],
+    "timeoutCommands": [
+      "options.invoke",
+      "options.scheduler",
+      "scheduler.now if scheduler is defined",
+      "scheduler.setTimeout if scheduler is defined",
+      "scheduler.clearTimeout if scheduler is defined",
+      "options.maxTimerMilliseconds",
+      "options.replace"
+    ],
+    "perNamedPropertyMaximumReads": 1,
+    "stopAfterFailure": true
+  },
+  "propertyValidation": [
+    {
+      "property": "invoke",
+      "undefined": "no factory fallback",
+      "validDefined": "function",
+      "invalidDefined": "synchronous TypeError"
+    },
+    {
+      "property": "scheduler",
+      "undefined": "captured Node built-in monotonic/timer adapter",
+      "validDefined": "non-null non-array object that is not a function and has three callable methods",
+      "invalidContainerOrMethod": "synchronous TypeError",
+      "methodProbeAtConstruction": false
+    },
+    {
+      "property": "maxTimerMilliseconds",
+      "undefined": 2147483647,
+      "validDefined": "number integer in 1..2147483647",
+      "wrongType": "synchronous TypeError",
+      "numberOutOfRangeOrNonInteger": "synchronous RangeError"
+    },
+    {
+      "property": "replace",
+      "undefined": false,
+      "validDefined": "boolean",
+      "invalidDefined": "synchronous TypeError"
+    }
+  ],
+  "snapshotAndReceiverRules": {
+    "providerFunctionIdentitiesSnapshotted": true,
+    "scalarValuesSnapshotted": true,
+    "laterOptionsPropertyReplacementObserved": false,
+    "laterSchedulerMethodReplacementObserved": false,
+    "explicitSchedulerObjectRetainedAsReceiverOnly": true,
+    "explicitSchedulerMethodReceiver": "explicit scheduler object",
+    "factoryFallbackInvokerReceiver": "undefined",
+    "contextInvokerReceiver": "current CommandContext",
+    "providerInvocationAtConstruction": false,
+    "clockCallAtConstruction": false,
+    "timerCreationOrClearAtConstruction": false,
+    "stdinReadAtConstruction": false
+  },
+  "runtimeInvokerSelection": {
+    "informationPathsInspectInvoker": false,
+    "presenceOperation": "ordinary in check for invoke on CommandContext",
+    "contextPropertyReadsWhenPresent": 1,
+    "order": [
+      "present callable context.invoke",
+      "factory fallback only when context.invoke is absent",
+      "invoke-unavailable status 125"
+    ],
+    "presentUndefined": "malformed present hook; invoke-unavailable status 125; no fallback",
+    "presentOtherNonFunction": "invoke-unavailable status 125; no fallback",
+    "throwingPresenceTrapOrGetter": "propagate exact host failure; no fallback and no status normalization",
+    "singleDispatchMaximum": 1,
+    "capabilityProbe": false,
+    "ambientHookDiscovery": false,
+    "fallbackShell": false
+  },
+  "errorClasses": {
+    "factoryMalformedConfiguration": "synchronous TypeError or RangeError before return",
+    "pluginCollision": "setup error before any registration when replace is false",
+    "runtimeMissingOrMalformedInvoker": "fixed invoke-unavailable diagnostic and status 125",
+    "runtimeProviderTrap": "exact host error",
+    "diagnosticWriteFailure": "exact host/stream error, never normalized to 125",
+    "schedulerSetupFailure": "fixed timer-setup-failed diagnostic and status 125 under sentinel rules",
+    "retirementFailure": "cleanup failure, never wrapper 124 or 125"
+  },
+  "laterAggregate": {
+    "implemented": false,
+    "authorized": false,
+    "rootOwned": true,
+    "reservedOption": "timeout?: Omit<TimeoutCommandsOptions, \"replace\" | \"invoke\">",
+    "usesActualContextInvoker": true,
+    "usesSingleAggregateReplacementPolicy": true,
+    "newExport": false
+  }
+}

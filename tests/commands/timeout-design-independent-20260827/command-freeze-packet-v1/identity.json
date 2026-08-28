@@ -1,0 +1,179 @@
+{
+  "schema": "virtual-bash-timeout-command-freeze-identity-v1",
+  "capturedAt": "2026-08-28",
+  "scope": "docs-json-data-only pre-code freeze packet; no source, tests, or execution",
+  "repository": {
+    "path": "/Users/kjopek/Workspace/safe-bash",
+    "packageName": "virtual-bash",
+    "liveHeadAtTaskStart": "3e02038d41c5b2307a8d7c8bb36557fd309d4dc1",
+    "liveHeadBeforeManifest": "56f550afee7e6fd895b6d700e4cec376b6cf1eaf",
+    "mutableHeadUsedAsProductBasis": false,
+    "foreignWorktreeOrIndexContentIncluded": false
+  },
+  "priorDesign": {
+    "commit": "7b812873c884a432951e981bfa908d7ca7407494",
+    "tree": "1a12d247ec06999b162583fa1ca45b2273b3e9e3",
+    "status": "controlling accepted prior design proposal",
+    "files": {
+      "tests/commands/timeout-design-independent-20260827/README.md": {
+        "bytes": 25998,
+        "sha256": "42ed4a630af5d128f98f4099c437b04e0fa1b82b151597ebc987170a32be947d"
+      },
+      "tests/commands/timeout-design-independent-20260827/identity.json": {
+        "bytes": 3692,
+        "sha256": "511b5629ffbb9004705fe0ba16f942d9b38025b93e7c3896c12155d9fef894a3"
+      }
+    },
+    "modifiedByThisPacket": false
+  },
+  "approvedPrecodeProfile": {
+    "commit": "8036a6c29873c6251d05d73c4b9eec99cf946af9",
+    "tree": "0be20aacf3704e1f2c2b7c12b0cda07c16e6d8fb",
+    "parent": "97ae548cbbf518317457d9b83680d0adb2f2e834",
+    "status": "root-approved-in-principle basis; old bytes immutable",
+    "directory": "tests/commands/timeout-design-independent-20260827/command-precode-v1",
+    "files": {
+      "README.md": {
+        "bytes": 20098,
+        "sha256": "fc3dcdecfbe179999a06119200d499d8b711ec2bf7eb98b840055c6ca6b66f08"
+      },
+      "profile.json": {
+        "bytes": 5541,
+        "sha256": "f70c139c5b675bd25691eacfccfac3c20f856a2ca69d14dc08335bd920df2c2d"
+      },
+      "diagnostics.data": {
+        "bytes": 1314,
+        "sha256": "3453979b5a0fbe4355684c9ac0527c70c4ca0b8e1f64b0d422fbf1b25a463cec"
+      },
+      "freeze-matrix.json": {
+        "bytes": 11985,
+        "sha256": "61af575274ce4c41aafe44ef72fc1763db3e2cbffb0e74b47c7865ccdd084cf0",
+        "virtualRows": 33,
+        "nativeRows": 12
+      },
+      "identity.json": {
+        "bytes": 7720,
+        "sha256": "2f44c516841c3708575faf4051e660e080cffdcff94fc8b8a5c8bc2a64ab28ee"
+      }
+    },
+    "modifiedByThisPacket": false,
+    "rowsCopiedByThisPacket": false
+  },
+  "stage2Basis": {
+    "status": "UNACCEPTED-review-pending-timeout-implementation-HELD",
+    "sourceCommit": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+    "sourceTree": "639d21ae58647bb3a33026549f3bb8b0e9595549",
+    "authorEvidenceCommit": "43af14a520160fad4e144a6b60c30ca123bd9ab9",
+    "acceptedHelperCommit": "57855a0293edb83bff98113123806497b4427416",
+    "acceptedHelperPath": "src/shell/cancellation.ts",
+    "acceptedHelperBytes": 31986,
+    "acceptedHelperSha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2",
+    "signalShape": "readonly signal?: AbortSignal | undefined",
+    "actualFindingsPriority": true,
+    "verifierBugSuppliedOrProbedInThisTask": false
+  },
+  "oldToNewProfileDelta": {
+    "classification": "explicit replacement records; old 8036 bytes remain unchanged",
+    "profileFile": {
+      "oldBytes": 5541,
+      "oldSha256": "f70c139c5b675bd25691eacfccfac3c20f856a2ca69d14dc08335bd920df2c2d",
+      "newBytes": 10264,
+      "newSha256": "d4101ec53792e2bc7842b8ab6d68d3d50593f561c7829a05d1d4e8d391bde0d5",
+      "byteDelta": 4723
+    },
+    "fixtureFile": {
+      "oldBytes": 1314,
+      "oldSha256": "3453979b5a0fbe4355684c9ac0527c70c4ca0b8e1f64b0d422fbf1b25a463cec",
+      "newBytes": 1330,
+      "newSha256": "8ec35ea72e54b3bc0fbfea8295a10ec03834cc9e2a309037fcd613cf91a10d88",
+      "byteDelta": 16,
+      "recordCount": 14,
+      "unchangedDecodedRecords": 12
+    },
+    "help": {
+      "oldUtf8Bytes": 103,
+      "oldDecodedSha256": "89eae84e50bb1c3b728d1313c4bdb988176c26a8869963adaf1b1b6f928d5f1e",
+      "newUtf8Bytes": 108,
+      "newDecodedSha256": "f92c51ec49fec965451ac165ec1f07e9cb298f157ca2530a8e34ce50c2f05bf9",
+      "newText": "Usage: timeout [OPTION] DURATION COMMAND [ARG]...\nRun a virtual-bash command with a cooperative time limit.\n"
+    },
+    "version": {
+      "oldUtf8Bytes": 36,
+      "oldDecodedSha256": "96384b3f43c8654dc45d1ee080a559a0e1c25184ea50ef5b70fca3fecfc116ee",
+      "newUtf8Bytes": 43,
+      "newDecodedSha256": "bed4c9ff4727a66db7fb9611e7971198a23d88b145ac9762493af68936c68285",
+      "newText": "timeout (virtual-bash cooperative profile)\n"
+    },
+    "reason": "bind explicit virtual-bash cooperative profile identity without GNU/native/package-version claim"
+  },
+  "nativeProfile": {
+    "sourceCommit": "8036a6c29873c6251d05d73c4b9eec99cf946af9",
+    "matrixPath": "tests/commands/timeout-design-independent-20260827/command-precode-v1/freeze-matrix.json",
+    "matrixSha256": "61af575274ce4c41aafe44ef72fc1763db3e2cbffb0e74b47c7865ccdd084cf0",
+    "profilePath": "tests/commands/timeout-design-independent-20260827/command-precode-v1/profile.json",
+    "profileSha256": "f70c139c5b675bd25691eacfccfac3c20f856a2ca69d14dc08335bd920df2c2d",
+    "nativeRows": 12,
+    "newNativeExecution": false,
+    "newNativeClaims": []
+  },
+  "gnuOracle": {
+    "availabilityCheckedReadOnlyAt": "2026-08-28",
+    "available": true,
+    "executedByThisTask": false,
+    "binary": {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/timeout",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/timeout",
+      "type": "regular file",
+      "mode": "-rwxr-xr-x",
+      "bytes": 95240,
+      "architecture": "Mach-O 64-bit executable arm64",
+      "sha256": "36fc11afeb227c7ea50054de958b80de954088139f1d5ef4c03df95ef811a55e"
+    },
+    "source": {
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/timeout.c",
+      "bytes": 19329,
+      "sha256": "e11dc2897e468a2fc4bcf44dc3643f08f9ae063b7ce03b88def9dd866250c8ad"
+    },
+    "versionClaimBasis": "prior frozen markers/profile only; no --version execution",
+    "requiredFutureProfile": "predeclared executable/hash, argv, cwd, env, raw capture, helper/fixture identities, and cleanup before execution"
+  },
+  "packetFilesExcludingThisIdentity": {
+    "README.md": {
+      "bytes": 18788,
+      "sha256": "e050a86f9e1ee14f5f842d49ef99cd11b4b9decfcd1223d429b287c82444ecef"
+    },
+    "api.json": {
+      "bytes": 9074,
+      "sha256": "da0d7dca239420df91a776d3683e44e72a4ce9b5a277be1cab9f2edf98280508"
+    },
+    "profile.json": {
+      "bytes": 10264,
+      "sha256": "d4101ec53792e2bc7842b8ab6d68d3d50593f561c7829a05d1d4e8d391bde0d5"
+    },
+    "diagnostics.data": {
+      "bytes": 1330,
+      "sha256": "8ec35ea72e54b3bc0fbfea8295a10ec03834cc9e2a309037fcd613cf91a10d88"
+    },
+    "freeze-delta.json": {
+      "bytes": 8322,
+      "sha256": "ec6a430923e0abdfcad5e233945c4b3444bfda28515a704fdaf2cab5eb3be1b1"
+    }
+  },
+  "authorization": {
+    "rootApprovedProfileAndCapabilityChoiceInPrinciple": true,
+    "ramanIndependentFreezeRoute": "root controlled after DU29",
+    "stage2AcceptanceRequired": true,
+    "independentFreezeRequired": true,
+    "explicitImplementationReleaseRequired": true,
+    "timeoutImplementationHeld": true,
+    "sourceAuthorized": false,
+    "testsAuthorized": false,
+    "nativeExecutionAuthorized": false,
+    "rootOrPackageExportsAuthorized": false,
+    "aggregateWiringAuthorized": false,
+    "productAcceptanceClaim": false,
+    "stage2AcceptanceClaim": false,
+    "independentFreezeClaim": false,
+    "nativeParityClaim": false
+  }
+}

@@ -1,0 +1,199 @@
+{
+  "schema": "virtual-bash-timeout-independent-freeze-delta-v1",
+  "status": "prospective-not-independently-frozen-not-executed",
+  "date": "2026-08-28",
+  "base": {
+    "commit": "8036a6c29873c6251d05d73c4b9eec99cf946af9",
+    "matrixPath": "tests/commands/timeout-design-independent-20260827/command-precode-v1/freeze-matrix.json",
+    "matrixBytes": 11985,
+    "matrixSha256": "61af575274ce4c41aafe44ef72fc1763db3e2cbffb0e74b47c7865ccdd084cf0",
+    "profilePath": "tests/commands/timeout-design-independent-20260827/command-precode-v1/profile.json",
+    "profileBytes": 5541,
+    "profileSha256": "f70c139c5b675bd25691eacfccfac3c20f856a2ca69d14dc08335bd920df2c2d",
+    "virtualRows": 33,
+    "nativeRows": 12,
+    "rowsCopiedHere": false,
+    "baseBytesModified": false
+  },
+  "resultingProspectiveFamily": {
+    "virtualRows": 33,
+    "nativeRows": 12,
+    "additionalCountedRows": 0,
+    "interpretation": "base rows by immutable hash plus the refinements below",
+    "independentlyFrozen": false,
+    "executed": false,
+    "passed": false
+  },
+  "virtualRowRefinements": [
+    {
+      "baseIds": ["V01"],
+      "class": "help-profile-identity",
+      "requirements": [
+        "use help fixture in this packet",
+        "status 0 only after exact stdout write succeeds",
+        "empty stderr",
+        "no child/invoker inspection, clock/timer operation, cleanup registration, or stdin read"
+      ]
+    },
+    {
+      "baseIds": ["V02"],
+      "class": "version-profile-identity",
+      "requirements": [
+        "use version fixture in this packet",
+        "status 0 only after exact stdout write succeeds",
+        "identity is virtual-bash cooperative profile only",
+        "no GNU/native/package-version claim",
+        "empty stderr and no child/timer/stdin effects"
+      ]
+    },
+    {
+      "baseIds": ["V14", "V15"],
+      "class": "exact-leading-option-policy",
+      "requirements": [
+        "the five unsupported long exact/equals and first-short-flag families use their fixed 125 fixtures",
+        "--help=..., --version=..., -h, --signalx, and other unknown leading options use invalid-option/125",
+        "after duration every option-looking token is literal child argv"
+      ]
+    },
+    {
+      "baseIds": ["V28"],
+      "class": "scheduler-failure-classification",
+      "requirements": [
+        "factory shape/range errors are synchronous TypeError or RangeError",
+        "owned clock/arm setup failure follows exact timer-failure-sentinel 125 rules",
+        "clear/retirement failure is cleanup failure and never wrapper 124 or 125",
+        "diagnostic write failure follows exact host contract and is not normalized"
+      ]
+    },
+    {
+      "baseIds": ["V29", "V30"],
+      "class": "timer-chunk-and-retirement",
+      "requirements": [
+        "integer chunks remain in 1..2147483647 and no 24-hour cap exists",
+        "at most one handle is live",
+        "all returned handles including undefined, null, 0, false, and empty string are retired exactly once",
+        "cleanup registration precedes clock, timer acquisition, and child admission",
+        "late callbacks after closed admission do nothing"
+      ]
+    },
+    {
+      "baseIds": ["V32"],
+      "class": "absent-only-invoker-fallback",
+      "requirements": [
+        "present callable context.invoke wins and receives context as receiver",
+        "factory fallback is used only when the context invoke property is absent and receives undefined receiver",
+        "present non-function including present undefined produces invoke-unavailable/125 without fallback",
+        "neither hook produces invoke-unavailable/125 without child admission",
+        "presence/getter trap failures propagate exactly and do not fall back"
+      ]
+    },
+    {
+      "baseIds": ["V33"],
+      "class": "trusted-host-limit",
+      "requirements": [
+        "no capability field, probe, ambient hook, fallback Shell, or second dispatch",
+        "nonconforming invoker or scheduler has no 124 or bounded-settlement guarantee",
+        "no universal termination claim"
+      ]
+    }
+  ],
+  "compactOptionValidationAssertions": [
+    {
+      "id": "FD01",
+      "foldInto": ["V01", "V02", "V32"],
+      "assert": "omitted/undefined options default; null, primitives, functions, and arrays synchronously TypeError; ordinary/null-prototype/class objects admitted"
+    },
+    {
+      "id": "FD02",
+      "foldInto": ["V32"],
+      "assert": "options are read once in the api.json order; inherited/accessor/Proxy ordinary effects and exact throws are preserved; unknown fields are not enumerated"
+    },
+    {
+      "id": "FD03",
+      "foldInto": ["V28", "V29"],
+      "assert": "explicit scheduler object/method validation occurs without calls; method identities and receiver are snapshotted; default adapter creates no timer at construction"
+    },
+    {
+      "id": "FD04",
+      "foldInto": ["V29"],
+      "assert": "maxTimerMilliseconds undefined defaults to 2147483647; wrong type TypeError; every numeric non-integer/out-of-range value RangeError"
+    },
+    {
+      "id": "FD05",
+      "foldInto": ["V32"],
+      "assert": "defined factory invoke must be callable; snapshot changes are not observed; context precedence and absent-only fallback dispatch once"
+    },
+    {
+      "id": "FD06",
+      "foldInto": ["V32"],
+      "assert": "replace undefined defaults false, defined non-boolean TypeError; plugin performs complete collision preflight and no partial registration"
+    }
+  ],
+  "apiReviewOnly": {
+    "countedAsTestRows": false,
+    "newExports": [
+      "TimeoutScheduler",
+      "TimeoutCommandOptions",
+      "TimeoutCommandsOptions",
+      "createTimeoutCommand",
+      "createTimeoutCommands",
+      "timeoutCommands"
+    ],
+    "newExportsBeyondList": [],
+    "returnTypes": [
+      "CommandDefinition",
+      "readonly CommandDefinition[]",
+      "VirtualShellPlugin"
+    ]
+  },
+  "nativeProfile": {
+    "classification": "prospective GNU 9.7 Darwin arm64 comparator; not a product dependency, identity, or parity claim",
+    "baseRows": "N01..N12 from immutable base matrix",
+    "rowsCopiedHere": false,
+    "currentReadOnlyAvailability": {
+      "checked": true,
+      "executed": false,
+      "path": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/timeout",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/timeout",
+      "type": "regular file",
+      "mode": "-rwxr-xr-x",
+      "bytes": 95240,
+      "architecture": "Mach-O 64-bit executable arm64",
+      "sha256": "36fc11afeb227c7ea50054de958b80de954088139f1d5ef4c03df95ef811a55e"
+    },
+    "requiredPredeclaredCaptureProfileBeforeAnyRow": {
+      "oracle": "fixture-owned absolute executable path plus regular-file type, mode, byte size, architecture, and SHA-256",
+      "argv": "exact literal argv array for the row; no shell interpolation",
+      "cwd": "fresh unique isolated capture directory with exact absolute path recorded",
+      "environment": {
+        "LC_ALL": "C",
+        "LANG": "C",
+        "TZ": "UTC",
+        "PATH": "/usr/bin:/bin"
+      },
+      "helpersAndFixtures": "fixture-owned absolute identity, type, mode, bytes, and SHA-256 for every executable/helper/file before launch",
+      "rawCapture": "unique predeclared stdout, stderr, status, monotonic start/end, and metadata destinations",
+      "cleanupFirst": "register idempotent capture/process-resource cleanup before launch; after row settlement close process streams/resources naturally and await cleanup",
+      "mismatch": "row unavailable; never pass or fail",
+      "forbidden": [
+        "PATH or filesystem oracle hunt",
+        "network fetch",
+        "shell-interpolated command",
+        "uncontrolled process discovery or cleanup",
+        "execution before the profile and cleanup are sealed"
+      ]
+    },
+    "newNativeClaims": []
+  },
+  "routingAndGates": {
+    "ramanIndependentCommandFreeze": "root-routed after DU29",
+    "stage2AcceptanceRequired": true,
+    "independentCommandFreezeRequired": true,
+    "explicitImplementationReleaseRequired": true,
+    "timeoutImplementationHeld": true,
+    "actualStage2FindingsPriority": true,
+    "stage2VerifierBugSuppliedOrProbedHere": false,
+    "nativeExecutionAuthorized": false,
+    "sourceOrTestWorkAuthorized": false
+  }
+}

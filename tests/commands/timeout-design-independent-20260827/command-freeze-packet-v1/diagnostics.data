@@ -1,0 +1,15 @@
+# schema: label<TAB>exit-code<TAB>stream<TAB>decoded-byte-length<TAB>base64
+missing-duration	125	stderr	26	dGltZW91dDogbWlzc2luZyBkdXJhdGlvbgo=
+invalid-duration	125	stderr	26	dGltZW91dDogaW52YWxpZCBkdXJhdGlvbgo=
+duration-overflow	125	stderr	42	dGltZW91dDogZHVyYXRpb24gZXhjZWVkcyBzdXBwb3J0ZWQgcmFuZ2UK
+missing-command	125	stderr	25	dGltZW91dDogbWlzc2luZyBjb21tYW5kCg==
+invalid-option	125	stderr	24	dGltZW91dDogaW52YWxpZCBvcHRpb24K
+unsupported-preserve-status	125	stderr	49	dGltZW91dDogb3B0aW9uIC0tcHJlc2VydmUtc3RhdHVzIGlzIHVuc3VwcG9ydGVkCg==
+unsupported-signal	125	stderr	40	dGltZW91dDogb3B0aW9uIC0tc2lnbmFsIGlzIHVuc3VwcG9ydGVkCg==
+unsupported-kill-after	125	stderr	44	dGltZW91dDogb3B0aW9uIC0ta2lsbC1hZnRlciBpcyB1bnN1cHBvcnRlZAo=
+unsupported-foreground	125	stderr	44	dGltZW91dDogb3B0aW9uIC0tZm9yZWdyb3VuZCBpcyB1bnN1cHBvcnRlZAo=
+unsupported-verbose	125	stderr	41	dGltZW91dDogb3B0aW9uIC0tdmVyYm9zZSBpcyB1bnN1cHBvcnRlZAo=
+invoke-unavailable	125	stderr	43	dGltZW91dDogY29tbWFuZCBpbnZvY2F0aW9uIGlzIHVuYXZhaWxhYmxlCg==
+timer-setup-failed	125	stderr	28	dGltZW91dDogdGltZXIgc2V0dXAgZmFpbGVkCg==
+help	0	stdout	108	VXNhZ2U6IHRpbWVvdXQgW09QVElPTl0gRFVSQVRJT04gQ09NTUFORCBbQVJHXS4uLgpSdW4gYSB2aXJ0dWFsLWJhc2ggY29tbWFuZCB3aXRoIGEgY29vcGVyYXRpdmUgdGltZSBsaW1pdC4K
+version	0	stdout	43	dGltZW91dCAodmlydHVhbC1iYXNoIGNvb3BlcmF0aXZlIHByb2ZpbGUpCg==

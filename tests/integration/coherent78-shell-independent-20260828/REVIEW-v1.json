@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "status": "stopped-safety-or-setup-blocker",
+  "candidate": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "presealCommit": "083d939c3583a92a81db263d266c91b3e0756f47",
+  "executorCommit": "121ac8aa32700d75fc98c43b9f3712a287953d1c",
+  "rawArchive": "RAW-v1.json.gz.base64",
+  "archiveSha256": "3e2048eb7290fd2d369bd46d677838f0d3a6dc0b70f13c2c8ef2849e254f6116",
+  "decodedGzipSha256": "ba33f58a9fa8e4e89ceb3895d88bfb8445571fbdfa50fc4232b868557070d2dd",
+  "children": 29,
+  "naturallyReaped": 29,
+  "layouts": [],
+  "typeExecutions": 0,
+  "typeMatched": 0,
+  "controlResults": [
+    {
+      "id": "K1",
+      "role": "source-proof refusal",
+      "pass": true,
+      "materializedBeforeRefusal": false
+    }
+  ],
+  "failures": [],
+  "safetyStops": [
+    {
+      "name": "AssertionError",
+      "code": "ERR_ASSERTION",
+      "message": "Expected values to be strictly equal:\n\nundefined !== 0\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nundefined !== 0\n\n    at runtime (file:///Users/kjopek/Workspace/safe-bash/[eval1]:161:45)\n    at layout (file:///Users/kjopek/Workspace/safe-bash/[eval1]:194:77)\n    at file:///Users/kjopek/Workspace/safe-bash/[eval1]:259:3\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+    }
+  ],
+  "components": [
+    {
+      "path": "src/commands/structured/interpreter.ts",
+      "revision": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+      "blob": "d3ba11f0057b07d5ad307c5dfbb5f0612a87a047",
+      "mode": "100644",
+      "bytes": 21632,
+      "sha256": "e32ad45efe69544ed95b43b97f191006f10d3beea9ca9e2a3327843dffd45a74",
+      "role": "explicit accepted override"
+    },
+    {
+      "path": "src/fs/webdav/README.md",
+      "revision": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "blob": "94f6f2e6d83d76cbf5f0bd8b38994ca3f4e81e78",
+      "mode": "100644",
+      "bytes": 43172,
+      "sha256": "b931ac0545c709d3be2bd7d8e328fe9b1137cdb6514dfd8e9975c64c1fecb7bd",
+      "role": "explicit accepted override"
+    },
+    {
+      "path": "src/fs/webdav/webdav.ts",
+      "revision": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "blob": "cb5454597ff3ee2d87f55b18c467d947020ed677",
+      "mode": "100644",
+      "bytes": 54400,
+      "sha256": "cf65b82429bd92ca52b73490e1d6c1070545b5912fbddaba7037e01c57cc21f5",
+      "role": "explicit accepted override"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "blob": "69125acc1d3afefcaeba642e71539ab0cc40e055",
+      "mode": "100644",
+      "bytes": 154603,
+      "sha256": "100361256ee71d7a263c92fa607de31ec1d3be9b1fb5c601b337c19e700ac4b3",
+      "role": "explicit accepted override"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "mode": "100644",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "role": "explicit accepted override"
+    }
+  ],
+  "package": {
+    "bytes": 759089,
+    "sha256": "6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e",
+    "files": 858,
+    "installedManifestSha256": "484c1dd76c63f126376cff810b445c8185e791825ec83fd94e996691b2b1eb5d"
+  },
+  "elapsedMs": 54651,
+  "foreignIndexUnchanged": true,
+  "cleanup": {
+    "explicitlyEnumeratedRoot": "/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-shell-independent-20260828/.scratch-review-v1",
+    "archivedBeforeRemoval": true,
+    "appendDetectingPrecheck": true,
+    "bytes": 173621630,
+    "policy": "Raw outcomes, selected original inputs, full original npm tarball, mutant source, source/tree/tool/load/declaration receipts archived. Audited regular tool copies are reconstructible from pinned original inventories; no authored original or raw outcome is discarded. No general descendant or opaque-work claim.",
+    "removed": true
+  }
+}

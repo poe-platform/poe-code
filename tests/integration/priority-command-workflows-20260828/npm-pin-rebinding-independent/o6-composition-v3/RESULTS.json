@@ -1,0 +1,130 @@
+{
+  "schema": "o6-composition-proof-v3",
+  "status": "O6_COMPLETE",
+  "aggregate": "PASS_SOURCE_DATA_ONLY",
+  "rebindAssessment": "ACCEPTED_REBIND",
+  "assessmentScope": "O6 new source/data proof plus immutable qualified prior results; not runtime acceptance or GO",
+  "sourceInputs": 268,
+  "originVerified": 268,
+  "composedVerified": 268,
+  "unresolved": [],
+  "base": {
+    "commit": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "tree": "2b8110a17559ba1ddbc94b9b8ac619e9dda00d40"
+  },
+  "target": {
+    "role": "DERIVED_ONLY",
+    "commit": null,
+    "oid": "8437e4eda904e1248c25eeef0d9d455b1d251495"
+  },
+  "actualRoot": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "rootBytes": 449,
+  "rootSha256": "6b292c82a39055942f776b79a8b854d6b78e666be41c9397301f46176844e520",
+  "selectedInputTableSha256": "c6efddf8b14d2b15231b95e3a5be975c9c93c7c10f309acf77c80883f9cc074c",
+  "storedCommitCount": 4,
+  "storedAncestorTreeCount": 56,
+  "overrides": [
+    {
+      "path": "src/commands/structured/interpreter.ts",
+      "revision": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+      "root": "d8cf14b4d784d122d5f4ce01eba45ddb4f3c76cd"
+    },
+    {
+      "path": "src/fs/webdav/README.md",
+      "revision": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "root": "cd00357010ca5824404af0bb641ac0f533dc70f3"
+    },
+    {
+      "path": "src/fs/webdav/webdav.ts",
+      "revision": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+      "root": "9b4de6a3866f9d9b6ecf28085deab952a865d1bd"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "root": "c7ccfa702b41515e361236922b947cf85bf0652d"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "root": "8437e4eda904e1248c25eeef0d9d455b1d251495"
+    }
+  ],
+  "checks": [
+    {
+      "id": "O6-origin-membership-268",
+      "pass": true,
+      "detail": "Every selected byte body and path/mode is authenticated in its actual stored origin commit tree."
+    },
+    {
+      "id": "O6-canonical-root",
+      "pass": true,
+      "detail": "Canonical Git tree recomposition from stored base plus exactly five replacements; no Git write or derived-object lookup."
+    },
+    {
+      "id": "O6-composed-membership-268",
+      "pass": true,
+      "detail": "All268 selected paths resolve in the composed tree; no sparse-witness assumption."
+    },
+    {
+      "id": "O6-input-table",
+      "pass": true,
+      "detail": "Full ordered source catalog identity retained."
+    }
+  ],
+  "priorResultsCommit": "76395fa65b9b7723ea5d96c161bb42c5db925353",
+  "inheritedQualifiedObligations": [
+    {
+      "id": "O1",
+      "status": "VERIFIED_DATA",
+      "scope": "2039 original rows and2027 projected rows; twelve link exclusions; exact ordered noLF canonical hashes and historical regular modes"
+    },
+    {
+      "id": "O2",
+      "status": "VERIFIED_SOURCE_AUTHORITY",
+      "scope": "Original root PRESEAL pins full inventory; old BINDINGS pins projection; new BINDINGS differs at that sole leaf"
+    },
+    {
+      "id": "O3",
+      "status": "VERIFIED_LITERAL_SOURCE_DELTA",
+      "scope": "Seven exact single-occurrence substitutions across three executables; all other bytes unchanged"
+    },
+    {
+      "id": "O4",
+      "status": "VERIFIED_PACKET_DATA",
+      "scope": "Six byte-identical files and exact dependent seven-member manifest"
+    },
+    {
+      "id": "O5",
+      "status": "VERIFIED_DECLARED_CLOSURE",
+      "scope": "314 actual Git records;8rebound306unchanged; complete envelope;110 frozen historical file bindings match;99artifact roles authenticated (16stored83historical)"
+    },
+    {
+      "id": "O7",
+      "status": "VERIFIED_STATIC_SCOPE",
+      "scope": "Exact source delta only; Git100644 modes unchanged; old/new template limits/layouts/budget/root identical. No runtime or retrospective POSIX mode claim"
+    },
+    {
+      "id": "O8",
+      "status": "ROLE_ASSESSED_NOT_REPLAYED",
+      "scope": "34authorDATA observations=12positive22negative; not runtime proof or inherited independent passes. Separate12reviewercontrols have zero children"
+    },
+    {
+      "id": "O9",
+      "status": "QUALIFIED_ACCOUNTING_ASSESSED",
+      "scope": "516115ms root-relayed final charge includes60000ms allowance;456115ms post-init portion;27710ms after preseal;83885ms headroom. Exact initial wall unavailable; final closure delegated to author handoff, not independently timestamped here. HOLD/budget unchanged"
+    }
+  ],
+  "inheritedResultsAreNewPasses": false,
+  "previousO6FailureRescored": false,
+  "authorTimingQualification": "516115ms is the ROOT-relayed conservative prior charge INCLUDING60000ms allowance, not independently measured initial startup or a new closure timestamp. This newly authorized O6 clock does not renew any old deadline.",
+  "runtimeExecutions": 0,
+  "workflowUnrun": 93,
+  "roleControlReplays": 0,
+  "authorControlReplays": 0,
+  "source314Replays": 0,
+  "inventory2039Replays": 0,
+  "reservationActions": 0,
+  "executionGo": false,
+  "elapsedAtProofResultMs": 267.03549999999814
+}

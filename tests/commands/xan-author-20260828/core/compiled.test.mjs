@@ -7,7 +7,7 @@ assert.ok(process.env.XAN_PACKAGE_ROOT, 'requires assembled moved compiled packa
 const root = process.env.XAN_PACKAGE_ROOT;
 const load = relative => import(pathToFileURL(join(root, 'dist', relative)).href);
 const { createXanCommand, createXanCommands, xanCommands, defaultLimits, hardLimits } = await load('commands/xan/index.js');
-const { Budget, Bytes } = await load('commands/xan/budget.js');
+const { Budget, Bytes, LimitError } = await load('commands/xan/budget.js');
 const { MemoryFileSystem } = await load('fs/memory/index.js');
 const { FsError } = await load('contracts/errors.js');
 const { CommandRegistry } = await load('contracts/command.js');
@@ -254,6 +254,9 @@ test('caller cancellation exact primitives/errors and sink failures escape uncha
   for (const reason of [0, undefined, new Error('sink'), new FsError('EIO')]) {
     await assert.rejects(run(['select', '*'], ordinary, { stdout: { async write() { throw reason; } } }), error => error === reason);
   }
+  for (const reason of [0, undefined, new LimitError('maxOutputBytes'), new Error('stderr sink')]) {
+    await assert.rejects(run(['select', 'missing'], ordinary, { stderr: { async write() { throw reason; } } }), error => error === reason);
+  }
   const controller = new AbortController(); const reason = { caller: true };
   await assert.rejects(run(['select', '*'], ordinary, { signal: controller.signal, stdout: { async write() { controller.abort(reason); throw new Error('secondary'); } } }), error => error === reason);
 });
@@ -377,11 +380,34 @@ test('whole-result fallback checks simultaneous staging before publication', asy
   await assert.rejects(fs.stat('/fallback-limit'), error => error.code === 'ENOENT');
   const { publish, outputOperation } = await load('commands/xan/io.js');
   const context = { signal: new AbortController().signal, fs: fallback, stdout: { async write() {} } };
-  const budget = new Budget({ ...defaultLimits, maxRetainedBytes: 230 }, context.signal);
+  const budget = new Budget({ ...defaultLimits, maxRetainedBytes: 300 }, context.signal);
   const operation = outputOperation(context, true);
   const chunks = { async *[Symbol.asyncIterator]() { yield new Uint8Array(100); yield new Uint8Array(100); } };
   await assert.rejects(publish(context, { path: '/staging', flag: 'wx' }, chunks, operation, budget), /maxRetainedBytes/u);
   assert.equal(publications, 0); await operation.close();
+  assert.equal(budget.retained, 0);
+  const exactBudget = new Budget({ ...defaultLimits, maxRetainedBytes: 464 }, context.signal);
+  const exactOperation = outputOperation(context, true);
+  await publish(context, { path: '/staging-exact', flag: 'wx' }, chunks, exactOperation, exactBudget);
+  assert.equal(publications, 1); assert.equal(exactBudget.retained, 0); await exactOperation.close();
+});
+
+test('opaque metadata and file sink promises are observed, not cleanup barriers', async () => {
+  for (const phase of ['metadata', 'write']) {
+    const fs = new MemoryFileSystem();
+    const controller = new AbortController(); const reason = new Error(`abort ${phase}`);
+    let acquired;
+    const started = new Promise(resolve => { acquired = resolve; });
+    let rejectLate;
+    const opaque = () => { acquired(); return new Promise((resolve, reject) => { rejectLate = reject; }); };
+    if (phase === 'metadata') fs.lstat = opaque;
+    else fs.writeStream = opaque;
+    const pending = run(['select', '*', '-o', '/new'], ordinary, { fs, signal: controller.signal });
+    const checked = assert.rejects(pending, error => error === reason);
+    await started; controller.abort(reason); await checked;
+    rejectLate(new Error('late host failure'));
+    await new Promise(resolve => setImmediate(resolve));
+  }
 });
 
 test('delimiter inference, independent output inference, literal leading-dash paths and help', async () => {

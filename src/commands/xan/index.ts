@@ -58,10 +58,12 @@ async function execute(context: CommandContext, limits: XanLimits): Promise<Comm
               }
             } finally { budget.release(encoded.length); }
           }
-          await stderr.output.write(bytes);
+          try { await stderr.output.write(bytes); }
+          catch (sinkError) { throw new EscapingFailure(sinkError); }
         }
       } catch (diagnosticError) {
-        if (!(diagnosticError instanceof LimitError)) { failed = true; failure = diagnosticError; }
+        if (diagnosticError instanceof EscapingFailure) { failed = true; failure = diagnosticError.reason; }
+        else if (!(diagnosticError instanceof LimitError)) { failed = true; failure = diagnosticError; }
       } finally {
         if (bytes) budget.release(bytes.length);
         try { await stderr.close(); } catch (cleanupError) { if (!failed) { failed = true; failure = cleanupError; } }

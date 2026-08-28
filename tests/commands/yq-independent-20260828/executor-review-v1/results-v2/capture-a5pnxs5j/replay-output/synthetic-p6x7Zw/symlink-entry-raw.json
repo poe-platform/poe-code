@@ -1,0 +1,10 @@
+{
+  "id": "symlink-entry",
+  "expected": "SYMLINK",
+  "value": null,
+  "error": {
+    "code": "SYMLINK",
+    "message": "SYMLINK: dist/synthetic.js",
+    "stack": "Error: SYMLINK: dist/synthetic.js\n    at requireFact (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:20:39)\n    at visit (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:69:7)\n    at visit (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:72:9)\n    at inspectTree (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:85:3)\n    at assertPackageTree (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:94:18)\n    at symlink-entry (file:///private/tmp/yq-composition-independent-aoq9aj85/replay.mjs:93:140)\n    at file:///private/tmp/yq-composition-independent-aoq9aj85/replay.mjs:153:41"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "compiler-outside-binding",
+  "expected": "COMPILER_BINDING",
+  "value": null,
+  "error": {
+    "code": "COMPILER_BINDING",
+    "message": "COMPILER_BINDING: /private/tmp/yq-composition-independent-aoq9aj85/.synthetic-DqaDhO/compiler-outside-binding/foreign.d.ts",
+    "stack": "Error: COMPILER_BINDING: /private/tmp/yq-composition-independent-aoq9aj85/.synthetic-DqaDhO/compiler-outside-binding/foreign.d.ts\n    at requireFact (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:20:39)\n    at classifyCompilerOutcome (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/type-worker.mjs:38:5)\n    at compileControl (file:///private/tmp/yq-composition-independent-aoq9aj85/replay.mjs:52:10)\n    at compiler-outside-binding (file:///private/tmp/yq-composition-independent-aoq9aj85/replay.mjs:131:38)\n    at file:///private/tmp/yq-composition-independent-aoq9aj85/replay.mjs:153:41"
+  }
+}

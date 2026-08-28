@@ -1,0 +1,11 @@
+{
+  "id": "C20-archive273-not-projection",
+  "expected": "PACKAGE_MEMBERSHIP",
+  "value": null,
+  "error": {
+    "code": "PACKAGE_MEMBERSHIP",
+    "message": "PACKAGE_MEMBERSHIP: ",
+    "stack": "Error: PACKAGE_MEMBERSHIP: \n    at requireFact (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:20:39)\n    at assertPackageTree (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:95:3)\n    at Module.assertSourceMaterialization (file:///private/tmp/yq-composition-independent-aoq9aj85/object-reader/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs:252:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/check.mjs:64:64\n    at observe (file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/check.mjs:23:23)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/executor-review-v1/results-v2/check.mjs:64:9"
+  },
+  "role": "DATA_OR_SYNTHETIC_NOT_YQ"
+}

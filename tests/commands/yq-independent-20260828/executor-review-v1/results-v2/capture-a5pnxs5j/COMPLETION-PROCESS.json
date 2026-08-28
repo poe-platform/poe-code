@@ -1,0 +1,11 @@
+{
+  "classification": "READ_ONLY_COMPLETION_AUDIT_TOOL_CAPTURE",
+  "command": "python3 tests/commands/yq-independent-20260828/executor-review-v1/results-v2/complete.py fc411fbb60540aed3e46fe27c09d3e49658e5b32",
+  "toolSession": 22692,
+  "exitStatus": 0,
+  "stdout": "{\"verdict\": \"PASS_SELECTED_COMPOSITION_DATA_SYNTHETIC_ONLY\", \"admission\": 25, \"replay\": 36, \"initialPostprocessorFailureRetained\": true}\n",
+  "stderr": "",
+  "nodeWorkersRerun": 0,
+  "originalExecutionAggregate": "FAIL_EXIT_1_RETAINED",
+  "scope": "Checks existing raw evidence and integrity; does not rescore the original nonzero invocation."
+}

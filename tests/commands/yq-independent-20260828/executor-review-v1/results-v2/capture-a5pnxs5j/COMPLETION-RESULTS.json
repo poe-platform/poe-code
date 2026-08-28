@@ -1,0 +1,99 @@
+{
+  "verdict": "PASS_SELECTED_COMPOSITION_DATA_SYNTHETIC_ONLY",
+  "preseal": "1dc3b2bc7fa200ee674504cecf86db152aac5085",
+  "completionPreseal": "fc411fbb60540aed3e46fe27c09d3e49658e5b32",
+  "initialPythonExitStatus": 1,
+  "initialFailureRetained": "POSTPROCESS-FAILURE.json",
+  "admissionChecks": 25,
+  "matchedAdmissionChecks": 25,
+  "frozenReplayedControls": 36,
+  "matchedFrozenControls": 36,
+  "workerStatuses": [
+    0,
+    0
+  ],
+  "knownOwnedGroupsReaped": 2,
+  "after": {
+    "archive": {
+      "path": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/source-archive-273",
+      "files": 273,
+      "directories": 46,
+      "fileMapSha256": "fe1c69f46314ee6aad5c953410c716897253c89d265059afec3ce8bbaeef8fa1",
+      "directoryMapSha256": "64a087b689042c9ef2a86410615fbbff5986f03b34e7042c83877b99594ea214",
+      "fileIdentityMapSha256": "1022c40255fce86b9e62eaa09d4e5dba9294f4a9dc2ae2416b4effdfbf0a2ee7",
+      "directoryIdentity": {
+        "ino": 181019952,
+        "dev": 16777232
+      }
+    },
+    "source-original": {
+      "path": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/source-271-original",
+      "files": 271,
+      "directories": 45,
+      "fileMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+      "directoryMapSha256": "8120f80d1e5cf1a51a4b2e47ad6ab1d7b2b98cebf84ee621fdb47bb3bbb3266c",
+      "fileIdentityMapSha256": "1c2f319c15f6e9ba3314145452147c69b12d39007bbc4a0546f4be3bfa7022f5",
+      "directoryIdentity": {
+        "ino": 181020271,
+        "dev": 16777232
+      }
+    },
+    "source-moved": {
+      "path": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/source-271-moved",
+      "files": 271,
+      "directories": 45,
+      "fileMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+      "directoryMapSha256": "8120f80d1e5cf1a51a4b2e47ad6ab1d7b2b98cebf84ee621fdb47bb3bbb3266c",
+      "fileIdentityMapSha256": "d0b5bcea208a6f96f1a7da584459a4b05298712c45399eab1fbf350fdca23697",
+      "directoryIdentity": {
+        "ino": 181020587,
+        "dev": 16777232
+      }
+    },
+    "package-original": {
+      "path": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/package-870-original",
+      "files": 870,
+      "directories": 44,
+      "fileMapSha256": "00b1b86aa438c94545a1bf9719a38dc235570ebb6d7b5b6e1f71ec41c10e9922",
+      "directoryMapSha256": "be671ccd895867f4980aa62c27e524abeeebb16364e6cf23fe7563ff7a1c8810",
+      "fileIdentityMapSha256": "fb4f8ba3130ea8994ab3c0953624ce024f44dfdb33a25dd6e17fc9e25456ae97",
+      "directoryIdentity": {
+        "ino": 181020908,
+        "dev": 16777232
+      }
+    },
+    "package-moved": {
+      "path": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/package-870-moved",
+      "files": 870,
+      "directories": 44,
+      "fileMapSha256": "00b1b86aa438c94545a1bf9719a38dc235570ebb6d7b5b6e1f71ec41c10e9922",
+      "directoryMapSha256": "be671ccd895867f4980aa62c27e524abeeebb16364e6cf23fe7563ff7a1c8810",
+      "fileIdentityMapSha256": "68d4112d77a12cfe7a2af2c8d1c3757eafa216c743e7edc462e138e0be93791f",
+      "directoryIdentity": {
+        "ino": 181021822,
+        "dev": 16777232
+      }
+    }
+  },
+  "priorReviewFilesPreserved": 203,
+  "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+  "archiveMembers": 273,
+  "selectedSourceMembers": 271,
+  "packageMembers": 870,
+  "archiveSupportPreserved": [
+    "package-lock.json",
+    "scripts/typecheck.mjs"
+  ],
+  "projectionMatchesAlreadyPresealedPolicy": true,
+  "authorBoundBuildOnly": true,
+  "productImports": 0,
+  "productRuns": 0,
+  "builds": 0,
+  "compilerRuns": 0,
+  "runtimeV2Read": false,
+  "remainingGates": [
+    "Separately routed sealed runtime-v2 fixes and fence",
+    "Trusted build/compound recipe preseal",
+    "Loaded-code/public/type/product review under separate root route"
+  ]
+}

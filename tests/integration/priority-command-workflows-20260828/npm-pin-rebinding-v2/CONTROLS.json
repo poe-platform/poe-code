@@ -1,0 +1,387 @@
+{
+  "schema": "npm-pin-rebinding-data-controls-v2",
+  "role": "DATA_ONLY_NOT_RUNTIME_ACCEPTANCE",
+  "checks": 34,
+  "positive": 12,
+  "negative": 22,
+  "observations": [
+    {
+      "name": "full canonical domain, preserved HOLD, archive and projection",
+      "kind": "positive",
+      "pass": true
+    },
+    {
+      "name": "copied projection cannot satisfy full pin",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "global tuple sorting cannot replace depth-first traversal",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "trailing LF changes canonical digest",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "missing internal symlink rejected",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "regular mode mutation rejected",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "only BINDINGS npm sha256 differs",
+      "kind": "positive",
+      "pass": true
+    },
+    {
+      "name": "six byte-identical packet copies and exact dependent manifest",
+      "kind": "positive",
+      "pass": true
+    },
+    {
+      "name": "runtime delta allowlist roundtrip preserves all behavior bytes",
+      "kind": "positive",
+      "pass": true
+    },
+    {
+      "name": "unauthorized runtime mutation rejected by source equivalence",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "all314 requests preserve exact canonical306 and rebind8",
+      "kind": "positive",
+      "pass": true
+    },
+    {
+      "name": "old packet attribution rejected",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "old BINDINGS digest rejected",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "old manifest digest rejected",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "old physical packet path rejected",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "template only packet seal supervisor futureGO differ; original reservation",
+      "kind": "positive",
+      "pass": true
+    },
+    {
+      "name": "template not actual GO",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "historical GO cannot authorize new packet",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "replacement budget path rejected",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "relocated future-run root rejected",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "changed seal rejected",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "99 original seal pins mapped plus predecessor seal",
+      "kind": "positive",
+      "pass": true
+    },
+    {
+      "name": "268 inputs and canonical derived composition",
+      "kind": "positive",
+      "pass": true
+    },
+    {
+      "name": "858 file package unchanged",
+      "kind": "positive",
+      "pass": true
+    },
+    {
+      "name": "actual packet8 and code8 commit:path verified",
+      "kind": "positive",
+      "pass": true
+    },
+    {
+      "name": "all100 actual seal paths exact",
+      "kind": "positive",
+      "pass": true
+    },
+    {
+      "name": "entire314 source-auth closure DATA accepted",
+      "kind": "positive",
+      "pass": true
+    },
+    {
+      "name": "missing final tree",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "extra stored row",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "wrong kind",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "wrong oid",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "wrong byte length",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "wrong archive hash",
+      "kind": "negative",
+      "pass": true
+    },
+    {
+      "name": "reordered rows",
+      "kind": "negative",
+      "pass": true
+    }
+  ],
+  "preparationFailures": [
+    {
+      "kind": "parse",
+      "count": 2,
+      "phase": "initial controller setup",
+      "childStarts": 0
+    },
+    {
+      "kind": "DATA harness assertion",
+      "control": "306 preserved source-auth rows",
+      "reason": "structuredClone crossed realm; node assert.deepEqual compared prototypes. JSON-parsed finite data compared byte-exact canonical JSON instead; not product failure.",
+      "childStarts": 0
+    },
+    {
+      "kind": "DATA tree lookup control",
+      "reason": "Implicit captured tree root caused stale packet traversal during code-commit check; corrected by explicit commit argument and per-component reset. All8 code/auth commit:path objects independently match. No product execution or file changes from failure.",
+      "childStarts": 0
+    }
+  ],
+  "authentication": {
+    "originalGitBatchRequests": 334,
+    "sourceAuthRequests": 314,
+    "unchangedSourceAuthRows": 306,
+    "newPacketRows": 8,
+    "newCodeAndAuthRows": 8,
+    "originalSealPins": 99,
+    "newSealPins": 100,
+    "selectedInputs": 268,
+    "derivedComposition": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+    "storedDerivedTreeRequired": false,
+    "packageFiles": 858,
+    "originalNpmRows": 2039,
+    "projectedNpmRows": 2027,
+    "removedInternalSymlinks": 12,
+    "originalCanonicalBytes": 249034,
+    "projectedCanonicalBytes": 248103
+  },
+  "scope": "DATA comparisons only. No copied source imported/evaluated/compiled. Exact byte allowlist reversal proves no other runtime source edits. Historical safety behavior not re-executed. Negative controls are finite DATA mutations, not execution of production validators.",
+  "zero": {
+    "product": 0,
+    "compiler": 0,
+    "npm": 0,
+    "version": 0,
+    "install": 0,
+    "nativeOracle": 0,
+    "network": 0,
+    "comparator": 0,
+    "private": 0,
+    "workers": 0,
+    "loaders": 0,
+    "actualGrants": 0,
+    "dispatch": 0
+  },
+  "budgetAtPreseal": {
+    "started": 1787943334468,
+    "children": 8,
+    "peak": 2,
+    "capture": 9456158,
+    "events": [
+      {
+        "cmd": "git",
+        "args": [
+          "status",
+          "--short"
+        ],
+        "code": 0,
+        "signal": null,
+        "elapsed": 511,
+        "reaped": true
+      },
+      {
+        "cmd": "git",
+        "args": [
+          "rev-parse",
+          "--show-toplevel",
+          "HEAD"
+        ],
+        "code": 0,
+        "signal": null,
+        "elapsed": 33,
+        "reaped": true
+      },
+      {
+        "cmd": "git",
+        "args": [
+          "cat-file",
+          "--batch"
+        ],
+        "code": 0,
+        "signal": null,
+        "elapsed": 163,
+        "reaped": true
+      },
+      {
+        "cmd": "apply_patch",
+        "args": [],
+        "code": 0,
+        "signal": null,
+        "elapsed": 18,
+        "reaped": true
+      },
+      {
+        "cmd": "git",
+        "args": [
+          "add",
+          "--",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/READY.md",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/CASES.json",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/FIXTURES.json",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SCHEMA.json",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/BINDINGS.json",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/MANIFEST.json",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/EXECUTION-RECIPE.md",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/verify.mjs",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/admission.mjs",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/source-auth.mjs",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-supervisor.mjs",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-adapter.mjs",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/runtime-entry.mjs",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-observer.mjs",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-preload.mjs",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SOURCE-AUTH.json",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/PREPARATION-SEAL-v3.json",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/GO-v3.template.json",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/REBINDING.json",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/CONTROLS.json",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/HANDOFF.md"
+        ],
+        "code": 0,
+        "signal": null,
+        "elapsed": 94,
+        "reaped": true
+      },
+      {
+        "cmd": "git",
+        "args": [
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "commit.gpgsign=false",
+          "commit",
+          "--only",
+          "-m",
+          "test: version corrected full npm inventory packet",
+          "--",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/READY.md",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/CASES.json",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/FIXTURES.json",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SCHEMA.json",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/BINDINGS.json",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/MANIFEST.json",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/EXECUTION-RECIPE.md",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/verify.mjs"
+        ],
+        "code": 0,
+        "signal": null,
+        "elapsed": 151,
+        "reaped": true
+      },
+      {
+        "cmd": "apply_patch",
+        "args": [],
+        "code": 0,
+        "signal": null,
+        "elapsed": 19,
+        "reaped": true
+      },
+      {
+        "cmd": "git",
+        "args": [
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "commit.gpgsign=false",
+          "commit",
+          "--only",
+          "-m",
+          "test: bind versioned runtime metadata to corrected packet",
+          "--",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/admission.mjs",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/source-auth.mjs",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-supervisor.mjs",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/future-adapter.mjs",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/runtime-entry.mjs",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-observer.mjs",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/worker-preload.mjs",
+          "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/SOURCE-AUTH.json"
+        ],
+        "code": 0,
+        "signal": null,
+        "elapsed": 208,
+        "reaped": true
+      }
+    ],
+    "initialParseFailures": 2,
+    "elapsedMs": 488405,
+    "clockQualification": "60-second conservative startup allowance before first successful controller initialization includes two parse failures; exact initial wall time unavailable. Clock never reset.",
+    "allStartedChildrenClosed": true,
+    "reservedRemainingChildren": 4,
+    "limits": {
+      "elapsedMs": 600000,
+      "directChildren": 12,
+      "peakProcesses": 2,
+      "captureBytes": 33554432,
+      "newEvidenceBytes": 134217728
+    },
+    "qualification": "Final apply_patch/commit/status settlement and final elapsed/capture reported in handoff message, not self-referential committed exit receipt."
+  }
+}

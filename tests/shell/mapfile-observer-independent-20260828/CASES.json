@@ -1,0 +1,35 @@
+{
+  "schema": "independent-observer-cases-v1",
+  "originalSix": ["module-mode-only", "native-not-executable", "runtime-not-executable", "final-mode-only", "deadline-crossed-during-auth", "close-without-spawn"],
+  "observer": [
+    ["positive", true],
+    ["module-mode-only", false], ["native-not-executable", false], ["runtime-not-executable", false],
+    ["final-mode-only", false], ["deadline-crossed-during-auth", false], ["close-without-spawn", false],
+    ["missing-close", false], ["group-survives", false],
+    ["final-control:observer.mjs", false], ["final-control:config", false],
+    ["final-control:auth", false], ["final-control:SEAL", false], ["final-control:ADMITTED", false],
+    ["final-new-module", false], ["final-new-receipt", false],
+    ["post-mkdir-stat-fails", false], ["spawn-publication-fails", false],
+    ["row-publication-fails", false], ["final-publication-fails", false],
+    ["sync-spawn-throw", false], ["async-no-process", false],
+    ["deadline-during-attempt", false], ["deadline-final-admission", false],
+    ["late-error-after-exit", false], ["late-error-after-close", true],
+    ["error-during-final-publication", true], ["stdin-end-throws", false], ["release-throws", false],
+    ["forged-child-flags", false], ["close-before-spawn-live-group", false],
+    ["exit-before-spawn-live-group", false], ["vm-config-positive", true],
+    ["vm-config-extra", false], ["vm-runtime-extra", false], ["vm-runtime-accessor", false],
+    ["vm-rowids-hole", false], ["vm-rowids-extra", false], ["route-native-kind", false],
+    ["route-reordered-ids", false], ["host-reason-identity", false]
+  ],
+  "direct": ["ownership-before-mkdir", "hash-descriptor-finally", "cli-absent-admission", "vm-own-data-positive", "vm-null-prototype-positive", "vm-rejection-matrix", "host-proxy-reason-identity", "stat-mode-projection"],
+  "holdoutPredicates": {
+    "S1": "missing close/surviving group: <=3000 virtual ms, explicit uncertainty, no next row; signal is not close",
+    "S2": "post-final persistence drift of supervisor/config/auth/SEAL/explicit external ADMITTED and added entries refuses; provisional is not success",
+    "S3": "registered planned before mkdir, acquired before failing stat; no guessed destructive cleanup",
+    "S4": "spawn/row/final receipt failures retain actual adapter launch/close accounting and exact thrown object",
+    "S5": "synchronous throw/no-PID error cannot invent spawn/close; actual driver's listener wiring recorded",
+    "order": "close or exit preceding spawn must not become successful solely because group absence is delayed",
+    "late": "error between exit and close faults; errors after terminal close/final persistence do not mutate completed report or escape listeners (declared terminal policy)",
+    "data": "actual VM values: exact own keys/types/sequence, no prototype equality, holes/accessors/symbols/extras/coercion refused; host thrown reference survives"
+  }
+}

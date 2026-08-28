@@ -1,0 +1,62 @@
+{
+  "schema": "post-source-pre-execution-independent-freeze-v1",
+  "date": "2026-08-28",
+  "candidate": "de9dae6d52fa5066646731b01e5811c6d3108555",
+  "evidence": "a935889beab9a5f633a1e60a660eb575fdb03024",
+  "prior": "075fbe24b893e3ceaa3ed9bb138c4576ab7ab032",
+  "older": "d4f3d9f91a8549ebdd3a222fbac04d379c6ce770",
+  "moduleSealSha256": "e0e9257426d969633c75749066ac94fe75bb13083179b0e3352ece17b0001381",
+  "classification": "all inputs and .mjs.data are opt-in SOURCE/DATA/SYNTHETIC, not canonical tests",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "canonical": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "dev": 16777232,
+    "ino": 3707231,
+    "mtimeMs": 1774313550000,
+    "ctimeMs": 1776794488519.6758,
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "hashStatus": "binary bytes deliberately not read; inherited handoff hash not independently attested"
+  },
+  "git": {
+    "path": "/usr/bin/git",
+    "canonical": "/usr/bin/git",
+    "bytes": 118928,
+    "mode": 493,
+    "dev": 16777232,
+    "ino": 1152921500312570900,
+    "mtimeMs": 1775463057000,
+    "ctimeMs": 1775463057000
+  },
+  "dependencies": "existing Node builtins only, no install; no external tool/binary contents read",
+  "files": {
+    "RECIPE.md": {
+      "bytes": 4430,
+      "sha256": "f7dd4df42992b9abd6db2f87052d2010cf275ad3a3fbf573e784bce8a73bd102",
+      "mode": 420
+    },
+    "CASES.json": {
+      "bytes": 2938,
+      "sha256": "13a9aa3a85c564b48aed64e53b621201a94a4b5e2f1e2f3b9c5beb675cb9bd45",
+      "mode": 420
+    },
+    "prepare.mjs.data": {
+      "bytes": 4383,
+      "sha256": "3a1e3074474b021bb3b028090995cb48144606d4086f26a97fd6a104291e96cb",
+      "mode": 420
+    },
+    "review.mjs.data": {
+      "bytes": 33606,
+      "sha256": "2faa315db1601ff14dd4847da450ba10621e8a5a2da3b59d07515008e2fb2501",
+      "mode": 420
+    },
+    "BUNDLE.json": {
+      "bytes": 223576,
+      "sha256": "3c0645aaeed69d9fc4585f0f3157731d571956c773387329073137366ff94b87",
+      "mode": 420
+    }
+  }
+}

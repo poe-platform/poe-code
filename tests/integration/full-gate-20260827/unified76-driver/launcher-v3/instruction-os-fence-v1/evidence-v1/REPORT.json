@@ -1,0 +1,294 @@
+{
+  "at": "2026-08-28T06:39:25.801Z",
+  "status": "AUTHOR_SCOPED_REVIEW_READY_NOT_FULL_RELEASE",
+  "source": "86038b27d1bee03333f13560e374ad407db417b8",
+  "primitiveSource": "4e60fbeb",
+  "additionalControls": "65bb898d17af8e674842e060ddd7ea61f91ff5bc",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "expectedPackageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "packageRepacked": false,
+  "driverSha256": "a99c9f24b9edee16ef959139b48905e943ee108080c0aa39511965103f32f26a",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "projectionSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb",
+  "groups": [
+    {
+      "id": "C01",
+      "requirement": "Ordinary Node write/truncate/rename/remove and ordinary near-miss basenames succeed",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "currentMechanism/C01"
+    },
+    {
+      "id": "C02",
+      "requirement": "Ordinary native Git archive and tar extraction succeed with exact bytes",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "supplementQualified/C02-C20"
+    },
+    {
+      "id": "C03",
+      "requirement": "One actual review-only production build/type path succeeds; duplicate-build control still fails",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "BUILD-TYPE-REPORT; projectionControls unchanged duplicate-build control"
+    },
+    {
+      "id": "C04",
+      "requirement": "Node zero-byte AGENTS.md creation is denied before any file exists",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "currentMechanism/C04"
+    },
+    {
+      "id": "C05",
+      "requirement": "Native shell/touch instruction-name creation denied, including empty environment",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "currentMechanism/C05; native"
+    },
+    {
+      "id": "C06",
+      "requirement": "Node child and grandchild empty env preserve OS denial without NODE_OPTIONS",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "currentMechanism/C06; supplementQualified/C06-C07-C08"
+    },
+    {
+      "id": "C07",
+      "requirement": "Native child/grandchild empty env preserve OS denial",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "native actual distinct native shell PIDs"
+    },
+    {
+      "id": "C08",
+      "requirement": "Replacing/removing JS preload cannot remove inherited OS denial",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "supplementQualified/C06-C07-C08"
+    },
+    {
+      "id": "C09",
+      "requirement": "Ordinary-file rename to instruction basename denied; source unchanged",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "currentMechanism/C09; native"
+    },
+    {
+      "id": "C10",
+      "requirement": "Hard-link destination instruction basename denied; source and link count unchanged",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "currentMechanism/C10; native"
+    },
+    {
+      "id": "C11",
+      "requirement": "Symlink named instruction basename denied; no dangling entry published",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "currentMechanism/C11; native"
+    },
+    {
+      "id": "C12",
+      "requirement": "Ordinary symlink targeting forbidden basename cannot create/write target",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "currentMechanism/C12"
+    },
+    {
+      "id": "C13",
+      "requirement": "Slash, dot, dot-dot and directory-alias paths cannot bypass denial",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "currentMechanism/C13"
+    },
+    {
+      "id": "C14",
+      "requirement": "All256 ASCII letter-case variants of AGENTS.md denied",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "currentMechanism/C14; additional caseFold/caseDenial ordinary surrogate"
+    },
+    {
+      "id": "C15",
+      "requirement": "Unicode parent and literal-backslash POSIX parent retain the same basename boundary",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "currentMechanism/C15"
+    },
+    {
+      "id": "C16",
+      "requirement": "External-directory import via rename refused even for an ordinary surrogate subtree",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "currentMechanism/C16; native"
+    },
+    {
+      "id": "C17",
+      "requirement": "External-file hard-link import refused; ordinary in-universe hardlinks still succeed",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "currentMechanism/C17; native"
+    },
+    {
+      "id": "C18",
+      "requirement": "Symlink escape write refused, while safe in-universe ordinary links work",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "currentMechanism/C18"
+    },
+    {
+      "id": "C19",
+      "requirement": "Initial dirty/aliased writable-root admission refused before sandbox launch",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "supplementQualified/C19-C25-C26-C27"
+    },
+    {
+      "id": "C20",
+      "requirement": "Synthetic Git tree with zero-byte AGENTS member archives opaquely; native tar reaches ordinary member but cannot publish forbidden member",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "supplementQualified/C02-C20"
+    },
+    {
+      "id": "C21",
+      "requirement": "Pre-opened descriptor limitation demonstrated only with non-instruction surrogate",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "supplementQualified/C21"
+    },
+    {
+      "id": "C22",
+      "requirement": "Actual launcher drops all unrelated writable file handles; native and Node observers check inode identities",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "protocol9/fd"
+    },
+    {
+      "id": "C23",
+      "requirement": "Existing readonly/private/network/process fences retain actual refusal/control behavior",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "supplementQualified/C23-C29; protocol9 loopback/network/observe"
+    },
+    {
+      "id": "C24",
+      "requirement": "Nested looser sandbox invocation cannot remove inherited instruction denial",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "supplementQualified/C24"
+    },
+    {
+      "id": "C25",
+      "requirement": "Changed/missing sandbox binary or unreadable-reference mismatch fails78 before target execution",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "supplementQualified/C19-C25-C26-C27; admission changed-tool-binding"
+    },
+    {
+      "id": "C26",
+      "requirement": "Unsupported OS/architecture and ambiguous roots fail78 before target writes",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "supplementQualified/C19-C25-C26-C27; admission platform/architecture"
+    },
+    {
+      "id": "C27",
+      "requirement": "Guard-removal/profile-tamper/receipt-omission controls cannot qualify launch",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "admission missing-binding/changed-guard/missing-receipt; protocol9 invalid namespace/extra options"
+    },
+    {
+      "id": "C28",
+      "requirement": "Trusted outer observer binds only actual owned PID/group/birth; no survivors or unowned kills",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "protocol9 observe/abandon; actual A10 outer receipt; PS-DIAGNOSTIC"
+    },
+    {
+      "id": "C29",
+      "requirement": "stdout/stderr ordinary pipes and required build outputs remain usable",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "supplementQualified/C23-C29; actual A10 outputs"
+    },
+    {
+      "id": "C30",
+      "requirement": "Original six logical projection and opaque Git provenance remain exact, no plaintext instruction body copied",
+      "status": "SCOPED_WITNESS_RECORDED",
+      "witness": "projectionControls; actual A10 five candidate plus one dependency metadata omissions"
+    }
+  ],
+  "rawCohorts": [
+    {
+      "name": "unchanged mechanism, original",
+      "pass": 14,
+      "fail": 1,
+      "qualification": "C28-ps assumes ps can spawn inside sandbox; failed, unchanged."
+    },
+    {
+      "name": "unchanged mechanism, current 86038 driver",
+      "pass": 14,
+      "fail": 1,
+      "qualification": "Same inside-ps failure preserved, not rewritten as pass."
+    },
+    {
+      "name": "supplement v1",
+      "completed": 1,
+      "fail": 1,
+      "qualification": "Generated native-grandchild JavaScript quoting defect; following cases unrun."
+    },
+    {
+      "name": "supplement v2",
+      "completed": 3,
+      "fail": 1,
+      "qualification": "Nested sandbox refuses at apply with71, not assumed target error1; following cases unrun."
+    },
+    {
+      "name": "supplement qualified",
+      "pass": 6,
+      "fail": 0,
+      "qualification": "Six result records map multiple presealed groups; nested target unexecuted after exact71 refusal; FD limitation explicitly witnessed."
+    },
+    {
+      "name": "outer protocol initial",
+      "pass": 6,
+      "fail": 0
+    },
+    {
+      "name": "outer protocol plus abandoned phase",
+      "pass": 7,
+      "fail": 0
+    },
+    {
+      "name": "outer protocol final",
+      "pass": 9,
+      "fail": 0,
+      "qualification": "Forced owned cleanup and non-loopback rejection are negative controls: their target fence receipts correctly remain non-clean."
+    },
+    {
+      "name": "additional native ancestry/aliases",
+      "pass": 1,
+      "fail": 0,
+      "qualification": "One driver with actual distinct shell PIDs, six refusals and one ordinary native hard-link positive."
+    },
+    {
+      "name": "driver admission",
+      "pass": 8,
+      "fail": 0,
+      "qualification": "One positive/seven pre-target refusals. Synthetic platform diagnostics are not execution on another OS."
+    },
+    {
+      "name": "unchanged projection control driver",
+      "pass": 14,
+      "fail": 0,
+      "qualification": "Includes unchanged actual duplicate tiny-compiler build controls and previous V4/V5 observer controls; no new full gate."
+    },
+    {
+      "name": "actual production review-only slice",
+      "pass": 1,
+      "fail": 0,
+      "productionBuilds": 1,
+      "emitted": 832,
+      "typingConsumers": 23,
+      "phases": [
+        [
+          "cold-typecheck",
+          78
+        ],
+        [
+          "typecheck-all",
+          0
+        ]
+      ],
+      "forcedCleanup": false,
+      "guardsPassed": true,
+      "cleanupComplete": true,
+      "qualification": "One actual shared production build, source/test/current typing and declaration reuse. No runtime-consumer, canonical, native-semantic, actual SafeJS or package phase."
+    }
+  ],
+  "limitations": [
+    "Kernel pathname/acquisition guard, not content-aware arbitrary data-copy protection.",
+    "Only approved pinned macOS/arm64 and exact two fresh roots. No cross-platform or full OS attestation.",
+    "Read-only outer observation is outside the target OS profile; phase targets are siblings launched under the identical profile. No candidate code runs in the trusted observer.",
+    "An intentionally inherited writable regular-file FD bypasses pathname acquisition. Production launcher passes ignored stdin, stdout/stderr pipes and explicit IPC, no writable regular-file descriptors.",
+    "ASCII case variants plus one ordinary Unicode case-fold neighbor tested; not exhaustive Unicode/OS alias proof.",
+    "Existing loopback-listener observation preserved, not a new universal outbound-network firewall.",
+    "All original inside-ps, quote and nested-status failures remain immutable.",
+    "Root release and different Dirac review still required. Full gate not launched; historical f5 composition only."
+  ],
+  "fullGateLaunched": false
+}

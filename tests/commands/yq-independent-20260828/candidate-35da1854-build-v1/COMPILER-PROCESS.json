@@ -1,0 +1,63 @@
+{
+  "pid": 86780,
+  "startedAt": "2026-08-28T10:17:29.000Z",
+  "exitedAt": "2026-08-28T10:17:33.813Z",
+  "closedAt": "2026-08-28T10:17:33.813Z",
+  "elapsedMs": 4812.600917,
+  "exitCode": 0,
+  "signal": null,
+  "spawnError": null,
+  "timedOut": false,
+  "overflow": false,
+  "exitSeen": true,
+  "closeObserved": true,
+  "reapTimedOut": false,
+  "reaped": true,
+  "groupAbsent": true,
+  "signals": [],
+  "stdoutObservedBytes": 0,
+  "stderrObservedBytes": 0,
+  "command": {
+    "executable": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/node",
+    "args": [
+      "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/typescript/lib/tsc.js",
+      "--project",
+      "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source/tsconfig.build.json",
+      "--outDir",
+      "/private/tmp/yq-independent-build-35da1854-PJ4uYL/raw-output/dist",
+      "--typeRoots",
+      "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/types"
+    ],
+    "cwd": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source",
+    "umask": 18,
+    "env": {
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/home",
+      "TMPDIR": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/scratch"
+    }
+  },
+  "bounds": {
+    "deadlineMs": 120000,
+    "termGraceMs": 2000,
+    "reapMs": 5000,
+    "captureBytesPerStream": 4194304,
+    "treeBytes": 67108864,
+    "treeEntries": 4096
+  },
+  "stdout": {
+    "path": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/evidence/compiler.stdout",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "mode": 420
+  },
+  "stderr": {
+    "path": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/evidence/compiler.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0,
+    "mode": 420
+  },
+  "captureBeforeAssertion": true,
+  "rawOutputRoot": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/raw-output"
+}

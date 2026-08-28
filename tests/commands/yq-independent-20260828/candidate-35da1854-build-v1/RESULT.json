@@ -1,0 +1,76 @@
+{
+  "status": "INDEPENDENT_BUILD_AND_BYTE_EXACT_PACKAGE_PASS",
+  "commits": {
+    "packet": "71a16afd5b430175180fc4741531b75c31b25882",
+    "source": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+    "evidence": "ef6032b210feb5cf19e6f6f94c40413740bef335",
+    "handoff": "bcec1ead34aee37c8fe574b248a8242ad4f60cfa",
+    "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "length": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+    "compositionReview": "7ed356ade4509e492e15615587408eb4b41f92e0",
+    "runtimeReview": "6af0eb2d627f3ed80255c295b79299708436d372",
+    "consumers": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+    "runtimeSource": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+    "runtimeEvidence": "70fa3df66f9c8dc3f972cfa8c0c5862d77d7514e",
+    "integrationSource": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+    "integrationEvidence": "83035d641c415019ac62a0d0114cf2836ba77e45"
+  },
+  "buildReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INDEPENDENT-BUILD-RECEIPT.json",
+    "sha256": "ae74c3f95061d481aec2dab99260214eb22babf5b1d2682b37928a9cc8dd62d6",
+    "bytes": 4718,
+    "mode": 420
+  },
+  "fullReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/FULL-RECEIPT.json",
+    "sha256": "edf7a483436475c87a3fb8293517788905d4669fb8515790be1e098a6fdbb14d",
+    "bytes": 7454,
+    "mode": 420
+  },
+  "packageRoot": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/independent-package",
+  "packageArtifact": {
+    "path": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/evidence/virtual-bash-0.0.0.tgz",
+    "sha256": "2942ba1f6982a2e217350bbbad420e93d43e9336324b6db8a3d1d88b5a7aee4d",
+    "bytes": 782141,
+    "mode": 420
+  },
+  "rawOutputRoot": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/raw-output",
+  "sourceRoot": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source",
+  "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+  "packageMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088",
+  "buildPresealSha256": "0577678fbc1a6f3cb73e615213c378645f0e7f706f620e9c7be1fbed95c8f469",
+  "counts": {
+    "source": 271,
+    "archivedSource": 273,
+    "compiledSource": 217,
+    "compilerOutputs": 868,
+    "rawEqual": 434,
+    "relocatedMaps": 434,
+    "finalEqual": 868,
+    "fullPackage": 870,
+    "baselinePackage": 846,
+    "additions": 24
+  },
+  "compiler": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/COMPILER-PROCESS.json",
+    "sha256": "576130630afd01d3b0f05636e217575fcc781ea617af1f209233148beec1cabc",
+    "bytes": 2012,
+    "mode": 420
+  },
+  "remaining": [
+    "Root routing of new independent build proof; fixed integration-v2 still pins original author receipt",
+    "Actual semantic/type/moved/lifecycle/CARRY review elsewhere",
+    "Public exports remain absent; no global typecheck acceptance"
+  ],
+  "execution": {
+    "compilerAttempts": 1,
+    "productImports": 0,
+    "productRuns": 0,
+    "declarationConsumerRuns": 0,
+    "semanticVectors": 0,
+    "authorTestRuns": 0,
+    "npm": 0,
+    "nativeYaml": 0,
+    "retries": 0
+  }
+}

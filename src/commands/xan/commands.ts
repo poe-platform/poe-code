@@ -86,6 +86,22 @@ async function* rows(args: Arguments, scanner: Scanner, first: RecordRow | undef
 }
 const whitespace = (code: number): boolean => (code >= 9 && code <= 13) || code === 32 || code === 133 || code === 160 || code === 5760 || (code >= 8192 && code <= 8202) || code === 8232 || code === 8233 || code === 8239 || code === 8287 || code === 12288;
 async function sanitize(text: string, budget: Budget): Promise<string> {
+  const parts: string[] = [];
+  let normalizedLength = 0;
+  let segment = "";
+  for (let offset = 0; offset < text.length; offset++) {
+    const code = text.charCodeAt(offset);
+    const part = code === 173 || (code < 32 && !whitespace(code)) ? "" : code === 10 ? "\\n" : code === 13 ? "\\r" : code === 9 ? "\\t" : code === 12 ? "\\f" : text[offset]!;
+    budget.hold(part.length * 2); budget.work(part.length); segment += part; normalizedLength += part.length;
+    if (segment.length >= 4096) { budget.hold(32); parts.push(segment); segment = ""; }
+    if ((offset & 1023) === 0) await budget.checkpoint();
+  }
+  if (segment) { budget.hold(32); parts.push(segment); }
+  budget.hold(normalizedLength * 2);
+  for (let offset = 0; offset < normalizedLength; offset += 4096) { budget.work(Math.min(4096, normalizedLength - offset)); await budget.checkpoint(); }
+  text = parts.join("");
+  budget.release(normalizedLength * 2 + parts.length * 32);
+  parts.length = 0;
   let start = 0;
   let end = text.length;
   while (start < end && whitespace(text.charCodeAt(start))) { budget.work(); start++; }
@@ -95,21 +111,47 @@ async function sanitize(text: string, budget: Budget): Promise<string> {
     const code = text.charCodeAt(offset);
     let part: string;
     if (offset < start || offset >= end) part = "·".repeat(code < 128 ? 1 : code < 2048 ? 2 : 3);
-    else if (code === 173 || (code < 32 && !whitespace(code))) part = "";
-    else if (code === 10) part = "\\n";
-    else if (code === 13) part = "\\r";
-    else if (code === 9) part = "\\t";
-    else if (code === 12) part = "\\f";
     else part = text[offset]!;
     budget.hold(part.length * 2); budget.work(part.length); result += part;
     if ((offset & 1023) === 0) await budget.checkpoint();
   }
+  budget.release(normalizedLength * 2);
   return result;
+}
+async function decodeHeader(bytes: Uint8Array, field: number, budget: Budget): Promise<string> {
+  for (let offset = 0; offset < bytes.length;) {
+    const first = bytes[offset]!;
+    budget.work();
+    let width = first < 128 ? 1 : first >= 194 && first <= 223 ? 2 : first >= 224 && first <= 239 ? 3 : first >= 240 && first <= 244 ? 4 : 0;
+    if (offset + width > bytes.length) width = 0;
+    for (let index = 1; index < width; index++) {
+      budget.work(); const byte = bytes[offset + index]!;
+      if (byte < 128 || byte > 191 || (index === 1 && ((first === 224 && byte < 160) || (first === 237 && byte > 159) || (first === 240 && byte < 144) || (first === 244 && byte > 143)))) { width = 0; break; }
+    }
+    if (!width) throw new XanError(`CSV parse error: record 0 (line 1, field: ${field}, byte: 0): invalid utf-8: invalid UTF-8 in field ${field} near byte index ${offset}`);
+    offset += width;
+    await budget.checkpoint();
+  }
+  const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+  const metadata = Math.ceil(bytes.length / 4096) * 32;
+  budget.hold(bytes.length * 2 + metadata);
+  const parts: string[] = [];
+  let length = 0;
+  try {
+    for (let offset = 0; offset < bytes.length; offset += 4096) {
+      const fragment = bytes.subarray(offset, offset + 4096);
+      budget.work(fragment.length);
+      const part = decoder.decode(fragment, { stream: offset + 4096 < bytes.length });
+      parts.push(part); length += part.length; await budget.checkpoint();
+    }
+    budget.hold(length * 2);
+    for (let offset = 0; offset < length; offset += 2048) { budget.work(Math.min(2048, length - offset) * 2); await budget.checkpoint(); }
+    return parts.join("");
+  } finally { budget.release(bytes.length * 2 + metadata); }
 }
 interface Header { row?: RecordRow; names: string[]; display: string[] }
 async function prepareHeaders(args: Arguments, scope: InputScope, budget: Budget, writer: Writer): Promise<ByteSource> {
   const headers: Header[] = [];
-  const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
   try {
     for (const path of args.inputs) {
       const scanner = scope.open(path, args);
@@ -119,11 +161,8 @@ async function prepareHeaders(args: Arguments, scope: InputScope, budget: Budget
       budget.hold(32); headers.push(header);
       for (let index = 0; index < (row?.cells.length ?? 0); index++) {
         const bytes = row!.cells[index]!.decoded.view();
-        budget.hold(bytes.length * 2 + 32); budget.work(bytes.length); await budget.checkpoint();
-        let name: string;
-        try { name = decoder.decode(bytes); }
-        catch { throw new XanError(`CSV header UTF-8 error: field ${index}, record 1 (byte: ${row!.offset})`); }
-        budget.release(bytes.length * 2 - name.length * 2);
+        budget.hold(32);
+        const name = await decodeHeader(bytes, index, budget);
         header.names.push(name);
         header.display.push(args.csv ? "" : await sanitize(name, budget));
       }

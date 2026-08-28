@@ -2,7 +2,7 @@ import type { CommandContext, CommandDefinition, CommandResult } from "../../con
 import { FsError } from "../../contracts/errors.js";
 import { createOutputOperation } from "../../contracts/output.js";
 import type { VirtualShellPlugin } from "../../contracts/plugin.js";
-import { DeserializationError, inferDelimiter, parseArguments } from "./argv.js";
+import { DeserializationError, UsageError, inferDelimiter, parseArguments } from "./argv.js";
 import { Budget, LimitError, XanError } from "./budget.js";
 import { prepareRows } from "./commands.js";
 import { EscapingFailure, InputScope, managedOutput, outputOperation, preflight, publish } from "./io.js";
@@ -40,13 +40,24 @@ async function execute(context: CommandContext, limits: XanLimits): Promise<Comm
     else if (operation?.signal.aborted) { failed = true; failure = operation.signal.reason; }
     else {
       result = { exitCode: 1 };
-      const diagnostic = error instanceof DeserializationError ? `${error.message}\n` : `xan${command ? ` ${command}` : ""}: ${error.message}\n`;
+      const parts = error instanceof DeserializationError || error instanceof UsageError ? [error.message, "\n"] : ["xan", command ? " " : "", command, ": ", error.message, "\n"];
       const stderr = createOutputOperation(context, context.stderr);
       let bytes: Uint8Array | undefined;
       try {
-        const size = await budget.textSize(diagnostic);
+        let size = 0;
+        for (const part of parts) size += await budget.textSize(part);
         if (size <= limits.maxOutputBytes - (budget.totals.get("maxOutputBytes") ?? 0)) {
-          budget.add("maxOutputBytes", size); bytes = await budget.encode(diagnostic);
+          budget.add("maxOutputBytes", size); budget.hold(size); bytes = new Uint8Array(size);
+          let offset = 0;
+          for (const part of parts) {
+            const encoded = await budget.encode(part);
+            try {
+              for (let start = 0; start < encoded.length; start += 4096) {
+                const fragment = encoded.subarray(start, start + 4096);
+                budget.work(fragment.length); bytes.set(fragment, offset); offset += fragment.length; await budget.checkpoint();
+              }
+            } finally { budget.release(encoded.length); }
+          }
           await stderr.output.write(bytes);
         }
       } catch (diagnosticError) {

@@ -53,7 +53,7 @@ test('factory validation: all eighteen defaults/hard ceilings and invalid values
     }
     createXanCommand({ limits: { [key]: 1 } }); createXanCommand({ limits: { [key]: hardLimits[key] } });
   }
-  for (const options of [{ bogus: true }, { limits: { bogus: 2 } }, { replace: 'yes' }, { limits: null }, null]) assert.throws(() => createXanCommand(options), TypeError);
+  for (const options of [{ bogus: true }, { limits: { bogus: 2 } }, { replace: 'yes' }, { replace: undefined }, { limits: null }, null]) assert.throws(() => createXanCommand(options), TypeError);
   const registry = new CommandRegistry(createXanCommands());
   assert.throws(() => xanCommands().setup({ commands: registry }), /already registered/u);
   xanCommands({ replace: true }).setup({ commands: registry });
@@ -160,6 +160,7 @@ test('headers presentation, multiple inputs duplicate tally and transposed CSV',
   await good(['headers'], 'alpha,beta\nignored,body\n', '0   alpha\n1   beta\n');
   await good(['h', '-js10000'], 'alpha,beta\n', 'alpha\nbeta\n');
   await good(['headers', '-s10000'], 'a,b\n', '10000a\n10001b\n');
+  await good(['headers', '--color', 'never', '-s9'], '\ufeffname,"line\nfield",name," tab\t "\r\n1,2,3,4\r\n', '9   name\n10  line\\nfield\n11  name\n12  ·tab\\t·\n');
   await good(['headers', '-j'], '" x ","a\nb",a\u00adb,\u00a0z\u00a0\n', '·x·\na\\nb\nab\n··z··\n');
   const fs = new MemoryFileSystem();
   await fs.writeFile('/one.csv', bytes('a,a,b\n'));
@@ -390,6 +391,9 @@ test('delimiter inference, independent output inference, literal leading-dash pa
   await good(['select', '-d;', '--', '1,0', '-file'], '', 'y,x\n2,1\n', { fs });
   const overflow = await run(['slice', '--start', '18446744073709551616'], '');
   assert.equal(overflow.err, "Could not deserialize '18446744073709551616' to u64 for '--start'.\n");
+  assert.equal((await run(['headers', '-n'], 'a\n')).err, "Usage:\n    xan headers [options] [<input>...]\n    xan h [options] [<input>...]\n\nUnknown flag: '-n' Use the -h/--help flag for more information.\n");
+  assert.equal((await run(['select'], 'a\n')).err, "Usage:\n    xan select [options] [--] <selection> [<input>]\n    xan select --help\n\nInvalid subcommand or arguments! Use the -h/--help flag for more information.\n");
+  assert.equal((await run(['headers'], Buffer.from([255, 44, 98, 10, 49, 44, 50, 10]))).err, 'xan headers: CSV parse error: record 0 (line 1, field: 0, byte: 0): invalid utf-8: invalid UTF-8 in field 0 near byte index 0\n');
   for (const args of [['--help'], ['headers', '-h'], ['count', '-h'], ['select', '-h'], ['slice', '-h']]) {
     const result = await run(args, '', { stdin: { [Symbol.asyncIterator]() { throw new Error('help acquired input'); } } });
     assert.equal(result.exitCode, 0); assert.match(result.out, /unsupported/u);

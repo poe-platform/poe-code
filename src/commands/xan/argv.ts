@@ -20,6 +20,8 @@ export interface Arguments {
 }
 const unsignedMax = (1n << 64n) - 1n;
 export class DeserializationError extends XanError {}
+export class UsageError extends XanError {}
+const headersUsage = "Usage:\n    xan headers [options] [<input>...]\n    xan h [options] [<input>...]\n\n";
 export async function unsigned(text: string, option: string, budget: Budget): Promise<bigint> {
   let offset = text.startsWith("+") ? 1 : 0;
   let value = 0n;
@@ -79,6 +81,7 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
     if (!positional && arg.startsWith("--")) {
       const equals = arg.indexOf("=");
       const name = arg.slice(2, equals < 0 ? undefined : equals);
+      if (command === "headers" && name === "no-headers") throw new UsageError(`${headersUsage}Unknown flag: '--no-headers' Use the -h/--help flag for more information.`);
       if (!allowed[command].has(name)) throw new XanError(`unsupported in bounded CSV profile: --${name}`);
       if (switches.has(name)) {
         if (equals >= 0) throw new XanError(`option --${name} takes no value`);
@@ -92,6 +95,7 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
       for (let position = 1; position < arg.length; position++) {
         const letter = arg[position]!;
         const name = shortOptions[letter];
+        if (command === "headers" && letter === "n") throw new UsageError(`${headersUsage}Unknown flag: '-n' Use the -h/--help flag for more information.`);
         if (!name || !allowed[command].has(name)) throw new XanError(`unsupported in bounded CSV profile: -${letter}`);
         if (switches.has(name)) put(name, "true");
         else {
@@ -104,7 +108,7 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
   }
   const help = values.has("help");
   const selection = command === "select" ? operands.shift() : "";
-  if (selection === undefined && !help) throw new XanError("missing selection");
+  if (selection === undefined && !help) throw new UsageError("Usage:\n    xan select [options] [--] <selection> [<input>]\n    xan select --help\n\nInvalid subcommand or arguments! Use the -h/--help flag for more information.");
   if (command !== "headers" && operands.length > 1) throw new XanError("too many input files");
   if (operands.filter(path => path === "-").length > 1) throw new XanError("stdin may appear only once");
   if (!operands.length) operands.push("-");

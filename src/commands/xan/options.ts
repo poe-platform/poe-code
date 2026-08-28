@@ -22,7 +22,7 @@ export const hardLimits: XanLimits = Object.freeze({
 export function validateOptions(options: XanCommandsOptions = {}): { limits: XanLimits; replace: boolean } {
   if (!options || typeof options !== "object" || Array.isArray(options)) throw new TypeError("Invalid xan options");
   for (const key of Reflect.ownKeys(options)) if (key !== "limits" && key !== "replace") throw new TypeError(`Unknown xan option: ${String(key)}`);
-  if (options.replace !== undefined && typeof options.replace !== "boolean") throw new TypeError("Invalid xan replace");
+  if (Object.hasOwn(options, "replace") && typeof options.replace !== "boolean") throw new TypeError("Invalid xan replace");
   const supplied = options.limits;
   if (supplied !== undefined && (!supplied || typeof supplied !== "object" || Array.isArray(supplied))) throw new TypeError("Invalid xan limits");
   const limits = { ...defaultLimits } as { -readonly [Key in keyof XanLimits]: number };

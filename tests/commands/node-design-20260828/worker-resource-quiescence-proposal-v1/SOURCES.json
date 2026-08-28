@@ -1,0 +1,839 @@
+{
+  "schema": "WRQ-source-bindings-v1",
+  "date": "2026-08-28",
+  "classification": "post-source/post-ROOT-followup source-only proposal; zero new Worker/engine/control execution",
+  "authority": {
+    "kind": "user transcript, not a fabricated commit",
+    "description": "ROOT follow-up after repair7b269a29; own only new worker-resource-quiescence-proposal-v1 subtree; source/docs only; Worker/SAB alternative unselected; root relays to Raman"
+  },
+  "frozenEngine": {
+    "commit": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "rootTree": "ebcb4508690856b288a40e60e7682331d6fad8ff",
+    "packageTree": "1d6076301241aa299043359fc1b9f9e0ce58a633",
+    "commitBodySha256": "38f0704e0a7aba9de1ae1af2f0a0679906b415ddcfb686f04a22a071c17ceded",
+    "archivePath": "tests/commands/node-provider-experiments-20260828/PUBLIC-SOURCE.json.gz.base64",
+    "archiveEncodedBytes": 338073,
+    "archiveEncodedSha256": "9723f42cc9f01e3dff7c3ad8705538f99cbdc1c507a2d0699a4575ecb4a227ec",
+    "sourceManifestPath": "tests/commands/node-provider-experiments-20260828/SOURCES.json",
+    "sourceManifestSha256": "a670629995f8cb7331a5e24d35ad4bb185dc0fbe5f70de8281598de615cd35b1",
+    "verification": "This task recomputed commit ID,13 raw tree object IDs and all66 blob IDs/memberships from NUL-terminated raw Git tree records. No private repository access/materialization, whole snapshot, build or engine import. Prior all18 input binding remains inherited evidence; members newly verified as data, not runtime acceptance.",
+    "authenticatedMembers": 66,
+    "inspectedMembers": 14,
+    "publicSourceAuthority": "Official poe-platform/poe-code commit; archived authenticated public bytes, not live HEAD or unrelated SafeJS namesakes"
+  },
+  "hashConvention": "Member SHA256 covers original full bytes. bodySha256 covers UTF8 from the final opening brace on bodyOpeningLine through closing brace on lines[1], retaining indentation/LF inside and excluding final LF; lines are 1-based inclusive. Signature whitespace is compacted for readability. Whole function body hashes bind bytes; inspection claims only listed ranges, not a new exhaustive review.",
+  "sourceGroups": [
+    {
+      "id": "S1",
+      "members": [
+        {
+          "path": "src/run.ts",
+          "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/run.ts",
+          "bytes": 25016,
+          "gitBlob": "2f829e27c65da9421001772f2db2233adc5edfe0",
+          "sha256": "243e3ca4efef03f6df73a50ef2f23fdcee4ef07c4e26eca7f498bf7823988e1b",
+          "inspectedLineRanges": [
+            [
+              83,
+              101
+            ],
+            [
+              162,
+              218
+            ],
+            [
+              243,
+              297
+            ],
+            [
+              370,
+              419
+            ],
+            [
+              420,
+              505
+            ]
+          ],
+          "bodies": [
+            {
+              "name": "run",
+              "signature": "export function run(source: string, options: RunOptions = {}): Promise<RunResult>",
+              "lines": [
+                162,
+                475
+              ],
+              "bodyOpeningLine": 162,
+              "bodySha256": "213f7c91dc56be59d6600e33eb473ebab0e9d1765ec96f7cd77f8b18a2834135"
+            },
+            {
+              "name": "throwIfReturnedPromiseRejected",
+              "signature": "async function throwIfReturnedPromiseRejected(result: InterpreterResult): Promise<void>",
+              "lines": [
+                477,
+                501
+              ],
+              "bodyOpeningLine": 477,
+              "bodySha256": "21341c34ef4ecbdccba691da11616803f9ebec839dd3ba7acd2dd095888fef63"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "members": [
+        {
+          "path": "src/interp/host-bridge.ts",
+          "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/host-bridge.ts",
+          "bytes": 30852,
+          "gitBlob": "5e1a6ef3b90912c190d0f4a849c1b1e91f845b1c",
+          "sha256": "68b91c99f60d971a80cd70996f94d8d1686713dfe3c14ec283ca4e732c457b90",
+          "inspectedLineRanges": [
+            [
+              34,
+              113
+            ],
+            [
+              116,
+              400
+            ],
+            [
+              433,
+              521
+            ],
+            [
+              719,
+              899
+            ],
+            [
+              901,
+              903
+            ]
+          ],
+          "bodies": [
+            {
+              "name": "wrapCallerInjectedBindings",
+              "signature": "export function wrapCallerInjectedBindings( bindings: Record<string, CallerInjectedBinding>, options: HostBridgeOptions ): Record<string, SandboxValue>",
+              "lines": [
+                99,
+                114
+              ],
+              "bodyOpeningLine": 102,
+              "bodySha256": "4ad681a13f739c9f6a7a44780aa8aa90d6409fe2df2b59f4e8bbd872df90acc0"
+            },
+            {
+              "name": "wrapCallerInjectedFunction",
+              "signature": "function wrapCallerInjectedFunction( name: string, value: CallerInjectedFunction, options: HostBridgeOptions, state: { seen: WeakMap<object, SandboxValue> } ): SandboxValue",
+              "lines": [
+                116,
+                245
+              ],
+              "bodyOpeningLine": 121,
+              "bodySha256": "3836aa90c6596c5f4eda1d4e19d3a369f997dc8f9425a8758526ef9d93c9b896"
+            },
+            {
+              "name": "invokeHostCallback",
+              "signature": "function invokeHostCallback(invoke: () => unknown, options: HostBridgeOptions): unknown",
+              "lines": [
+                247,
+                267
+              ],
+              "bodyOpeningLine": 247,
+              "bodySha256": "a27b83403f282acb282b24a7d3c3bff6f074243d14f2fc30e68e23a94a427ba4"
+            },
+            {
+              "name": "executeHostCall",
+              "signature": "function executeHostCall( record: HostCallRecord, restored: boolean, invoke: () => unknown, stackFrames: readonly string[], options: HostBridgeOptions, span?: ErrorSourceSpan, callbacks?: HostCallbacks, onReplay?: (outcome: HostCallOutcome) => void ): SandboxValue",
+              "lines": [
+                269,
+                400
+              ],
+              "bodyOpeningLine": 278,
+              "bodySha256": "d79e6790fe55f4b41c2e55ccf54a9e2af7a81a9705a37a94480ae0bbcabffcf5"
+            },
+            {
+              "name": "createHostCallPromise",
+              "signature": "function createHostCallPromise( record: HostCallRecord, outcomePromise: Promise<HostCallOutcome>, hostCalls: HostCallJournal ): SandboxValue",
+              "lines": [
+                433,
+                448
+              ],
+              "bodyOpeningLine": 437,
+              "bodySha256": "8fe1de1f681f8e1bd36905d927374715a2da093f404f328021aa801d8f04ca95"
+            },
+            {
+              "name": "copyHostResultToSandbox",
+              "signature": "function copyHostResultToSandbox( result: unknown, stackFrames: readonly string[], options: HostBridgeOptions ): SandboxValue",
+              "lines": [
+                459,
+                475
+              ],
+              "bodyOpeningLine": 463,
+              "bodySha256": "42d843252d06033e02bfae6b42b31be99eef857f5d509085fd89e1e460e914eb"
+            },
+            {
+              "name": "createHostErrorValue",
+              "signature": "function createHostErrorValue( reason: unknown, stackFrames: readonly string[], budget: Budget, span?: ErrorSourceSpan ): SandboxObject",
+              "lines": [
+                477,
+                499
+              ],
+              "bodyOpeningLine": 482,
+              "bodySha256": "e3eebef27ebf623bd2656de472634d3ed860b221d4b3c416ce63fe16f48de976"
+            },
+            {
+              "name": "copyHostValueToSandbox",
+              "signature": "function copyHostValueToSandbox( value: unknown, stackFrames: readonly string[], options: HostBridgeOptions, state: { seen: WeakMap<object, SandboxValue>; }, path: string ): SandboxValue",
+              "lines": [
+                719,
+                899
+              ],
+              "bodyOpeningLine": 727,
+              "bodySha256": "cfe0f1451e453ec55ed49bcd6e4256070908aacdb91461d21b2d3c4d88edf7a2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "members": [
+        {
+          "path": "src/interp/interpreter.ts",
+          "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/interpreter.ts",
+          "bytes": 97921,
+          "gitBlob": "07f5c623d88a7799dfa45028fdd0393ab589dd8e",
+          "sha256": "4d33fdba962311153d7cc8ce10d93990fe5db2604513b52fa1f3ea4cbdffc715",
+          "inspectedLineRanges": [
+            [
+              284,
+              334
+            ],
+            [
+              3352,
+              3391
+            ],
+            [
+              3451,
+              3487
+            ],
+            [
+              3660,
+              3693
+            ]
+          ],
+          "bodies": [
+            {
+              "name": "evaluateResolvedCallExpression",
+              "signature": "async function evaluateResolvedCallExpression( node: CallExpression, callee: InterpreterValue, context: EvaluationContext, thisValue: SandboxValue = undefined ): Promise<EvaluationResult>",
+              "lines": [
+                3352,
+                3391
+              ],
+              "bodyOpeningLine": 3357,
+              "bodySha256": "5cd39f2a76d9fb3a298b4ee30d14735a662bad85edcc843f75f3ceaa4c91a4cf"
+            },
+            {
+              "name": "invokeSandboxClosure",
+              "signature": "async function invokeSandboxClosure( callee: Extract<InterpreterValue, { kind: \"fn\" }>, args: readonly SandboxValue[], context: EvaluationContext, stack: readonly string[], span?: SourceSpan, thisValue: SandboxValue = undefined ): Promise<SandboxValue>",
+              "lines": [
+                3451,
+                3487
+              ],
+              "bodyOpeningLine": 3458,
+              "bodySha256": "aaa6e2ff07f8ccad4cdf50d2aac7a88c952c1a3a4c8dc7d4b22f5e056d310b7e"
+            },
+            {
+              "name": "wrapHostResult",
+              "signature": "function wrapHostResult( result: InterpreterValue | Promise<InterpreterValue> | PromiseLike<InterpreterValue>, stack: readonly string[] ): InterpreterValue | Promise<InterpreterValue>",
+              "lines": [
+                3660,
+                3677
+              ],
+              "bodyOpeningLine": 3663,
+              "bodySha256": "4bf2724d4d55f2d2c47382d92097e50f810fe50bfb5d40677a7aa0074ee0becc"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "members": [
+        {
+          "path": "src/interp/jobs.ts",
+          "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/jobs.ts",
+          "bytes": 2737,
+          "gitBlob": "33a67b3fe4b50dea7d1934781aa19b5ef0c03eea",
+          "sha256": "92c1e20439879b172d460b7b684fcfecf1e5f855441ec5652e576da7f80ab09e",
+          "inspectedLineRanges": [
+            [
+              1,
+              100
+            ]
+          ],
+          "bodies": [
+            {
+              "name": "SandboxJobQueue.run",
+              "signature": "async run<T>(task: () => T | Promise<T>): Promise<T>",
+              "lines": [
+                37,
+                47
+              ],
+              "bodyOpeningLine": 37,
+              "bodySha256": "e4b8eea0792c307cba6816ffdb48af9ae346596dd7be0966cb4e1fe4df2516dd"
+            },
+            {
+              "name": "SandboxJobQueue.drain",
+              "signature": "async drain(): Promise<void>",
+              "lines": [
+                49,
+                57
+              ],
+              "bodyOpeningLine": 49,
+              "bodySha256": "a7947fe59e4ed9c24a9db0b99bbb902a8433e221bef8bf8712d90840e2cacf50"
+            },
+            {
+              "name": "runPromiseJob",
+              "signature": "export function runPromiseJob<T>(task: () => T | Promise<T>): Promise<T>",
+              "lines": [
+                70,
+                73
+              ],
+              "bodyOpeningLine": 70,
+              "bodySha256": "e4c139c191718a5156d5285ed52d146732a8286ddfdf3fff00d2c75d5ef1eac7"
+            },
+            {
+              "name": "suspendJob",
+              "signature": "export async function suspendJob<T>(pending: Promise<T>): Promise<T>",
+              "lines": [
+                91,
+                100
+              ],
+              "bodyOpeningLine": 91,
+              "bodySha256": "4b5589182fa2a9bbc7407b81ce7e5eb098b5c05e04b033f4bb45cc04b85c7d52"
+            }
+          ]
+        },
+        {
+          "path": "src/interp/async.ts",
+          "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/async.ts",
+          "bytes": 12403,
+          "gitBlob": "4feb1a05dad236daa18f05692a7d811f58a6e586",
+          "sha256": "e67052b01017ecface7b6b6e69d62f2939b89c5a4d1c247ec1bb4ddbca5353cb",
+          "inspectedLineRanges": [
+            [
+              253,
+              287
+            ]
+          ],
+          "bodies": [
+            {
+              "name": "evaluateAwaitExpression",
+              "signature": "export async function evaluateAwaitExpression( node: AwaitExpression, context: AsyncEvaluationContext, evaluateNode: EvaluateAsyncNode ): Promise<AsyncEvaluationResult>",
+              "lines": [
+                253,
+                287
+              ],
+              "bodyOpeningLine": 257,
+              "bodySha256": "d15963ea0c15fb3af343a8b0e93a4f49f6d7a02c2db3f566f158c2aa59a3375f"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "members": [
+        {
+          "path": "src/interp/promise.ts",
+          "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/promise.ts",
+          "bytes": 15619,
+          "gitBlob": "a07cedbbe3ebe8ca86604cb42307fc33a94f97df",
+          "sha256": "7753754f9ca15ce2e27eaa6bb9134356e812f90215e1d2672064b687466ad70c",
+          "inspectedLineRanges": [
+            [
+              1,
+              169
+            ],
+            [
+              425,
+              438
+            ]
+          ],
+          "bodies": [
+            {
+              "name": "createPromiseGlobals",
+              "signature": "export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobals",
+              "lines": [
+                20,
+                107
+              ],
+              "bodyOpeningLine": 20,
+              "bodySha256": "808ae7501c11c688fb63b5ec8e989fc814a678e76bf95890f07deb67835253b6"
+            },
+            {
+              "name": "getPromiseMember",
+              "signature": "export function getPromiseMember( target: SandboxPromise, property: string | number, budget: Budget ): SandboxValue",
+              "lines": [
+                109,
+                169
+              ],
+              "bodyOpeningLine": 113,
+              "bodySha256": "2e42da7d216dbbf3447d3a2962502acedba4422510be4fa57232a20e50a50adf"
+            },
+            {
+              "name": "callInPromiseJob",
+              "signature": "function callInPromiseJob( handler: SandboxClosure, args: readonly SandboxValue[], thisValue: SandboxValue = undefined ): Promise<{ value: SandboxValue | Promise<SandboxValue> }>",
+              "lines": [
+                425,
+                438
+              ],
+              "bodyOpeningLine": 429,
+              "bodySha256": "13d1e7d71c84406b8c7765f450470a9c6cbbd07ed2ce05ae03715b7533491650"
+            }
+          ]
+        },
+        {
+          "path": "src/interp/values.ts",
+          "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/values.ts",
+          "bytes": 24602,
+          "gitBlob": "7fab3dbf15a67cfa8a9fe51b1da95ec90dd73269",
+          "sha256": "931e3d99b2ca4c279600fd00d053e382be7add117d26420f8d8ebf3a157336dd",
+          "inspectedLineRanges": [
+            [
+              173,
+              222
+            ]
+          ],
+          "bodies": [
+            {
+              "name": "createSandboxPromise",
+              "signature": "export function createSandboxPromise( promise: Promise<SandboxValue>, metadata: { trackReplay?: boolean; synchronousPrefix?: Promise<void>; hostCall?: import(\"./host-call.js\").HostCallRecord; hostCallJournal?: import(\"./host-call.js\").HostCallJournal; span?: SandboxCallContext[\"span\"]; } = {} ): SandboxPromise",
+              "lines": [
+                173,
+                222
+              ],
+              "bodyOpeningLine": 182,
+              "bodySha256": "6440e1c85ce936855dc118754c795223639e47bb20f55466413fb463f3b7a208"
+            }
+          ]
+        },
+        {
+          "path": "src/interp/promise-tracker.ts",
+          "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/promise-tracker.ts",
+          "bytes": 2427,
+          "gitBlob": "0f7d921e02c9caf03cb2203b9d958f377c3872ae",
+          "sha256": "4e98449297680ee631b4e98f69512442d4a3bd1c209f9d04e0aa239375959581",
+          "inspectedLineRanges": [
+            [
+              1,
+              94
+            ]
+          ],
+          "bodies": [
+            {
+              "name": "SandboxPromiseRejectionTracker.track",
+              "signature": "track(promise: SandboxPromise): void",
+              "lines": [
+                24,
+                45
+              ],
+              "bodyOpeningLine": 24,
+              "bodySha256": "7f9c11f19110bfd4efdd24b3b889eada0b7a933228be014fbb50e04be60a0fe6"
+            },
+            {
+              "name": "SandboxPromiseRejectionTracker.findUnhandledRejection",
+              "signature": "async findUnhandledRejection(): Promise< | { reason: SandboxValue | undefined; span: ErrorSourceSpan | undefined; } | undefined >",
+              "lines": [
+                47,
+                66
+              ],
+              "bodyOpeningLine": 53,
+              "bodySha256": "51dd8e976502810ceac59107d627bd5f5431d17347b6b3b3bd108c902ade4e25"
+            },
+            {
+              "name": "flushPromiseJobs",
+              "signature": "async function flushPromiseJobs(): Promise<void>",
+              "lines": [
+                90,
+                94
+              ],
+              "bodyOpeningLine": 90,
+              "bodySha256": "e3e4529a1c3b997406c96ddc44a7802b4936409d9453fa10ee39e06acdbf8ba2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "members": [
+        {
+          "path": "src/interp/cancel.ts",
+          "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/cancel.ts",
+          "bytes": 6588,
+          "gitBlob": "03f38bbee5e0cfb8aee2ef032606a75efa506ac4",
+          "sha256": "6e6b5a9a1dc3b58fcdf7e259a3a2e129877bdf97c93b09268ace0084d9e3e97a",
+          "inspectedLineRanges": [
+            [
+              17,
+              136
+            ],
+            [
+              204,
+              214
+            ]
+          ],
+          "bodies": [
+            {
+              "name": "wrapCancelableBindings",
+              "signature": "export function wrapCancelableBindings( bindings: Record<string, SandboxValue>, signal?: AbortSignal ): Record<string, SandboxValue>",
+              "lines": [
+                17,
+                26
+              ],
+              "bodyOpeningLine": 20,
+              "bodySha256": "61c69353f6f70fbd547f06f7ecc16a044bc96a11b147b213f0c3dea718b08afe"
+            },
+            {
+              "name": "wrapCancelableValue",
+              "signature": "function wrapCancelableValue( value: SandboxValue, signal: AbortSignal, seen: WeakMap<object, SandboxValue> ): SandboxValue",
+              "lines": [
+                28,
+                99
+              ],
+              "bodyOpeningLine": 32,
+              "bodySha256": "d57c55df33f0cad8aeeca9dc99994570ad6e48bcf21ad7f6248f80a518503924"
+            },
+            {
+              "name": "wrapCancelableResult",
+              "signature": "function wrapCancelableResult( result: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>, signal: AbortSignal, seen: WeakMap<object, SandboxValue> ): SandboxValue | Promise<SandboxValue>",
+              "lines": [
+                101,
+                111
+              ],
+              "bodyOpeningLine": 105,
+              "bodySha256": "c6b6bc4d5bb6775e85601aad387ccc8eb25b32b2814f5c3574a1aecbc7f87ab0"
+            },
+            {
+              "name": "awaitSandboxValue",
+              "signature": "export function awaitSandboxValue( value: SandboxValue, signal?: AbortSignal ): Promise<SandboxValue>",
+              "lines": [
+                127,
+                136
+              ],
+              "bodyOpeningLine": 130,
+              "bodySha256": "e663b8d74fcc91b05e6a3fb382e857da2cdf00ca393273c2987bf4f5a30265a2"
+            },
+            {
+              "name": "readAbortReason",
+              "signature": "function readAbortReason(signal: AbortSignal): unknown",
+              "lines": [
+                212,
+                214
+              ],
+              "bodyOpeningLine": 212,
+              "bodySha256": "7a4a1f1be3376fa5894d75834eaffac7278d356016585c81846458b7402fa66f"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "members": [
+        {
+          "path": "src/interp/exceptions.ts",
+          "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/exceptions.ts",
+          "bytes": 19651,
+          "gitBlob": "94a7e5d191435c599c8a8ebbcc1acb8fe43d7519",
+          "sha256": "089f08ed0a282d62ef751407ecd9e0ea938e6b2172e41530ca95a0b95b7c6773",
+          "inspectedLineRanges": [
+            [
+              121,
+              169
+            ],
+            [
+              186,
+              214
+            ]
+          ],
+          "bodies": [
+            {
+              "name": "evaluateTryStatement",
+              "signature": "export async function evaluateTryStatement<TContext extends ExceptionContext, TError>( node: TryStatement, context: TContext, evaluateNode: EvaluateExceptionNode<TContext, TError> ): Promise<EvaluationResult<TError>>",
+              "lines": [
+                121,
+                169
+              ],
+              "bodyOpeningLine": 125,
+              "bodySha256": "139d373d2f0239c48893d8cddb3bfff80e72247eb56cacae052cadb1b7c28d6d"
+            },
+            {
+              "name": "coerceThrownValue",
+              "signature": "export function coerceThrownValue( reason: unknown, budget: Budget, stackFrames: readonly string[], span?: ErrorSourceSpan ): SandboxValue",
+              "lines": [
+                186,
+                214
+              ],
+              "bodyOpeningLine": 191,
+              "bodySha256": "1a0d3230bbdcad0afa0b5b536e4e2d6ede327b323bb083f76c5b93cfffc8edc3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "members": [
+        {
+          "path": "src/modules/registry.ts",
+          "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/modules/registry.ts",
+          "bytes": 6478,
+          "gitBlob": "8d7d52115b27822446540edf9267beb20e58688b",
+          "sha256": "466490d886714c678d8e99d5e4cf6703a0a26a130365ea0db365094356f13d0f",
+          "inspectedLineRanges": [
+            [
+              77,
+              154
+            ]
+          ],
+          "bodies": [
+            {
+              "name": "bindImportDeclaration",
+              "signature": "function bindImportDeclaration( declaration: ImportDeclaration, registry: NormalizedModuleRegistry, wrappedModules: Map<string, Record<string, SandboxValue>>, bindings: Record<string, SandboxValue>, options: { budget: Budget; hostCalls?: HostCallJournal; signal?: AbortSignal; allowMissing?: boolean; } ): void",
+              "lines": [
+                77,
+                131
+              ],
+              "bodyOpeningLine": 88,
+              "bodySha256": "3bbee8bb70451230b2d16bc301b302f3055a77d0c849f407f2cd917b7e908477"
+            },
+            {
+              "name": "resolveImportSpecifier",
+              "signature": "function resolveImportSpecifier( moduleName: string, specifier: ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier, wrappedExports: Record<string, SandboxValue> ): SandboxValue",
+              "lines": [
+                133,
+                154
+              ],
+              "bodyOpeningLine": 137,
+              "bodySha256": "cb3d7193220eebd4b69e7a88602bd1f2199ff07e57c6f9347094dc855e6cdb95"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S9",
+      "members": [
+        {
+          "path": "src/interp/budget.ts",
+          "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/interp/budget.ts",
+          "bytes": 9007,
+          "gitBlob": "2f69c852a87f134470acfcac7e0be37c6e3d0412",
+          "sha256": "df520d7a1363e017e49cff2d3524ea981ce7aeb710502b62484e7723c4f791f3",
+          "inspectedLineRanges": [
+            [
+              115,
+              151
+            ],
+            [
+              203,
+              215
+            ]
+          ],
+          "bodies": [
+            {
+              "name": "Budget.allocateString",
+              "signature": "allocateString(value: string): string",
+              "lines": [
+                115,
+                129
+              ],
+              "bodyOpeningLine": 115,
+              "bodySha256": "f50ee3f9fdf387bde2722857850e66f597e12a66374251d8f6e36d78e4009bd2"
+            },
+            {
+              "name": "Budget.allocateArrayLength",
+              "signature": "allocateArrayLength(length: number): void",
+              "lines": [
+                131,
+                143
+              ],
+              "bodyOpeningLine": 131,
+              "bodySha256": "f031197ee10aa3214e851a542fb957574e39f3f8b941e5325c4ca0c36049d3b6"
+            },
+            {
+              "name": "Budget.reset",
+              "signature": "reset(): void",
+              "lines": [
+                203,
+                215
+              ],
+              "bodyOpeningLine": 203,
+              "bodySha256": "b1e02c6ac5d3579a9bb01a33eec6ee9164d2467eae2ffe9417ff0af1adb6d3f2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "members": [
+        {
+          "path": "src/core.ts",
+          "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/core.ts",
+          "bytes": 396,
+          "gitBlob": "14821488bbc1eb8b0bb18e4ca2be442f320e9161",
+          "sha256": "8be80dabb023c6f260973b7ac78db7a1405b48f55118d384182eaa081e7eff0a",
+          "inspectedLineRanges": [
+            [
+              1,
+              6
+            ]
+          ],
+          "bodies": []
+        },
+        {
+          "path": "src/index.ts",
+          "url": "https://raw.githubusercontent.com/poe-platform/poe-code/bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e/packages/safejs/src/index.ts",
+          "bytes": 3030,
+          "gitBlob": "2a17cf5247c33fa0ea47732f9d320a962f97019c",
+          "sha256": "560faee9a73e3609e2198f5b60921cb1983245b32de3859212a03ff773c35977",
+          "inspectedLineRanges": [
+            [
+              1,
+              23
+            ]
+          ],
+          "bodies": []
+        }
+      ]
+    }
+  ],
+  "officialDocuments": [
+    {
+      "id": "D1",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/worker_threads.html",
+      "version": "Node22.15.0",
+      "retrievedDate": "2026-08-28",
+      "bytes": 136469,
+      "sha256": "a2f966a4c162a687ba3f79c136f2ab5bd59ce73fa2384e768e54559a3706d783",
+      "sections": [
+        "new Worker(filename[, options])",
+        "Event: exit",
+        "worker.terminate()",
+        "Considerations when cloning objects with prototypes, classes, and accessors",
+        "Synchronous blocking of stdio"
+      ],
+      "findings": [
+        "resourceLimits exclude external data/ArrayBuffers; global OOM may abort process",
+        "parent command-line old/semi-space arguments can override heap options; Worker execArgv disallows V8 flags",
+        "terminate returns Promise fulfilled upon exit; no stated hard scheduling/preemption bound",
+        "structured clone does not retain original object/prototype/error identity; provider must preserve parent reasons outside transport"
+      ]
+    },
+    {
+      "id": "D2",
+      "url": "https://tc39.es/ecma262/2024/multipage/structured-data.html",
+      "version": "ECMAScript2024 fifteenth edition snapshot",
+      "retrievedDate": "2026-08-28",
+      "bytes": 879151,
+      "sha256": "620b9365dd529b1c9df3c094dddae11018d12c1888abfd247033c14d24522432",
+      "sections": [
+        "25.4.3.11 SuspendThisAgent",
+        "25.4.3.14 DoWait",
+        "25.4.13 Atomics.wait",
+        "25.4.15 Atomics.notify"
+      ],
+      "findings": [
+        "sync wait suspends the agent; notification or timeout resumes it",
+        "DoWait compares expected value under waiter-list critical section; finite timeout includes implementation-defined additionalTimeout",
+        "application payload ownership and cancellation races still require a correct atomic protocol"
+      ]
+    },
+    {
+      "id": "D3",
+      "url": "https://tc39.es/ecma262/2024/multipage/executable-code-and-execution-contexts.html",
+      "version": "ECMAScript2024 fifteenth edition snapshot",
+      "retrievedDate": "2026-08-28",
+      "bytes": 823493,
+      "sha256": "4e1e3dfc825dfbc9420c98425135b3cca7901f19fee1ae7d62288987112443e0",
+      "sections": [
+        "9.7 Agents",
+        "9.7.2 AgentCanSuspend",
+        "9.8 Agent Clusters"
+      ],
+      "findings": [
+        "blocking permission is host-specific; native Node Worker qualification remains necessary"
+      ]
+    },
+    {
+      "id": "D4",
+      "url": "https://nodejs.org/download/release/v22.15.0/docs/api/process.html",
+      "version": "Node22.15.0",
+      "retrievedDate": "2026-08-28",
+      "bytes": 347870,
+      "sha256": "55b1eda686c4353dce763ea3630e4a31652069ca5e10cb14390953b25ee50f07",
+      "sections": [
+        "process.exit([code])",
+        "process.exitCode"
+      ],
+      "findings": [
+        "explicit exit may abandon pending asynchronous work/output; exitCode is not itself explicit exit",
+        "L modeled-exit ownership/drain policy is a declared difference, not full Node parity"
+      ]
+    }
+  ],
+  "documentationAccess": "Primary web inspection plus bounded public HTML byte retrieval/hashing. Initial 262.ecma-international.org/15.0 openings did not yield usable passages; used official tc39.es/ecma262/2024 snapshot, not moving current draft. No SafeJS prose documentation substituted for exact engine source.",
+  "immutableHistory": {
+    "originalDesign": "fb16cb61b1c1220da0ba464b0eeaf75cf20d0ed2",
+    "sourceCorrection": "6abfe0bb98d9987dd4dee32c0882bb48cc15d007",
+    "abiPreparation": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+    "abiHandoff": "5aeb915c39612a0e04021818af1251e8f3d78973",
+    "np1CjsContract": "3495d20e5d52c3fb90666b2453ed0a964a14a8ce",
+    "ramanIndependentHold": "790a4412198cbe1a9b5b03fcc75aa8d1fcdfd1b9",
+    "coherentRepair": "7b269a291d9fdc76e0760d36446d937e54060757",
+    "previousHookProposal": "6f2a262243d2cb0958743e9bf959e36c1149d93f",
+    "acceptedHistoricalSafejs": "f199787165ed3cfba82152cde31c5b794e03fad0",
+    "executor": "6d7159e35a1cd92b0ede967d3fe428d54a74d4bd",
+    "toolClosure": "808f95497540375aed43c83d305482359e216773bae5d02ccf7f68539dff605f",
+    "engineClosure": "3be5cdcd7869e0b50da41335a34c7aa44a19abcd089ea3c86290529bf08ab687",
+    "meaning": "Historical references only. No old cohort rerun, acceptance transfer, Raman edits, fresh independent review or private-ABI coverage claim."
+  },
+  "inheritedTool": {
+    "manifestPath": "tests/commands/node-provider-experiments-20260828/TOOLS.json",
+    "manifestSha256": "4efc7ff6181d6f92dd9aa3fe67803c55af027adc734b701582998efb452ae788",
+    "nodeVersion": "v22.22.2",
+    "nodePlatform": "darwin",
+    "nodeArch": "arm64",
+    "nodeBytes": 112989184,
+    "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "sourceOnlyQualification": "Read inherited tool metadata only; did not execute/rehash tool binaries, load compiler or approve existing broad builtin allowlist for the new Worker provider. All four prior regular-tool pins remain in original TOOLS.json; a new actual Worker load/launch closure must be sealed."
+  },
+  "remainingRootChoices": [
+    "Select separately named RESOURCE-WRQ-1 or keep only existing NP1/HOLD; never weaken original8MiB in place",
+    "Select Q strict accounting or L with explicit invocation entry-return/guest-exit retirement policy; no default pending-job success",
+    "Allow truthful pending settlement under unconfirmed exit/uncooperative cleanup, or require containment not established by this one-Worker proposal"
+  ],
+  "newExecutionCounts": {
+    "workers": 0,
+    "engineImports": 0,
+    "guestEvaluations": 0,
+    "controls": 0,
+    "builds": 0,
+    "installs": 0
+  },
+  "validationScope": "JSON parse, finite identity/count/arithmetic checks, authenticated source/doc metadata and owned-path diff only; no syntax execution, provider import or experiment qualification.",
+  "dataValidation": {
+    "jsonDocumentsParsedWithoutDuplicateKeys": 3,
+    "archivedMembersAuthenticated": 66,
+    "namedFunctionBodiesRehashed": 37,
+    "futureObligationIdentities": 8,
+    "maximumProposedWorkerInstances": 11,
+    "maximumProposedGuestEvaluations": 10,
+    "fixedSabArithmeticBytes": 197056,
+    "result": "Data checks completed; every future obligation remains unrun and no provider qualification is claimed."
+  }
+}

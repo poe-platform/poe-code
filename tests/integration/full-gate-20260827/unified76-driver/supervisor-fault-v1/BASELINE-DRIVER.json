@@ -15,7 +15,7 @@
     "inventory.mjs": "4474327377ffdf4d46344e84c8bfb5022664511f94bef53d77bac77253ad88d1",
     "run.mjs": "27e60e8c126a31e097ea2fedbc2c7b58c74d25f7e71f95f7a6c5692156aa72d6",
     "worker.mjs": "8c3ad0676c804d02b45f9d7b8acfc355966ee23413dca8a8dfb2b2a4e2189e3a",
-    "supervise.mjs": "3e624d9dd62d30a134540078a0ee3df4b8fdbd16d3f817c75f9583ba60dbcd08",
+    "supervise.mjs": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b",
     "execute.mjs": "025968a81758ca3b8da8d9c17930ab085c2b55740fe2a600eb9fddd8f12d2189",
     "policy.mjs": "0e2946536633ac767414a1ba5b2ddfc813ba4abbd0fdb0cf732546033a16b3b0",
     "transport.mjs": "f4da1e721bef673835a2827901754b612fe9cf4e4d400f77c97bdd60c3991646",
@@ -45,9 +45,9 @@
     "maintained-prerequisites.mjs": "80f0f911d831de243836e5d42c747a25c0d2b6b3cd2babf22eab36a22a87fdd4"
   },
   "wholeGateLaunched": false,
-  "qualification": "H11.2 observer-fault teardown author candidate; whole-module synthetic and at most three harmless direct Node controls only. No native chmod/private/setup/build/gate release. Historical eligibility still forces nonzero; f5/c109/profile/permissions unchanged.",
-  "previousSource": "e35d83ca97f6aa4f32b2cb8542f5e711458f6aeb",
-  "previousDriverSha256": "f192ca9330a440d33e49544e135a04305a48e84ce85858f902860aafa2ccd4f9",
+  "qualification": "AUTHOR CANDIDATE: historical August28 file authority only, always nonzero aggregate; all632 canonical inputs unchanged. DATA/SYNTHETIC controls permitted; no native/setup/private/build/gate execution or fresh release.",
+  "previousSource": "96daebc077381fb63ab6447a26ab707ce790ff25",
+  "previousDriverSha256": "2db94b8bf54405e5713b103bd677c873fcc0b153454b3deed13ee8ab4e90583e",
   "eligibilityProfile": "unified76-historical-file-authority-20260828-v1",
   "strictProfileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
   "historicalEligibilitySha256": "519ac40f0239bf363586c5144bbe7f0f3c72c786f42abbc2d1d9ffb004ba2cf6"

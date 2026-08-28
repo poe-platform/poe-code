@@ -95,6 +95,8 @@ Family options keep their existing types and semantics, with one top-level
 replacement policy:
 
 ```ts
+import { agentCommands } from "virtual-bash";
+
 agentCommands({
   replace: false,
   regex: { maxWorkers: 2, maxQueuedBytes: 8 * 1024 * 1024 },
@@ -127,6 +129,32 @@ and `WhichLimits` are available from root and `virtual-bash/commands/which`.
 Aggregate `which` accepts limits only; top-level `replace` remains authoritative.
 The command awaits provider calls/writes with the invocation signal, without
 acquiring stdin or new output ownership, or preempting opaque provider work.
+
+For explicit stdin, virtual files, option parsing and executable lookup:
+
+```ts
+import { Shell, agentCommands, createMemoryFileSystem } from "virtual-bash";
+
+const fs = createMemoryFileSystem();
+await fs.mkdir("/bin");
+await fs.writeFile("/bin/tool", new TextEncoder().encode("virtual file\n"));
+await fs.chmod("/bin/tool", 0o755);
+const shell = new Shell({ fs, env: { PATH: "/bin" } }).use(agentCommands());
+try {
+  const result = await shell.exec(
+    "set -- -n reader; while getopts ':n:' option; do printf '%s:%s\\n' \"$option\" \"$OPTARG\"; done; which tool; cat",
+    { stdin: "from stdin\n" },
+  );
+  console.log(result.stdout);
+} finally {
+  await shell.dispose();
+}
+```
+
+The result is `n:reader\n/bin/tool\nfrom stdin\n`. `getopts` is a shell builtin,
+not another aggregate plugin. `which` checks the VFS entry; this example does
+not execute `/bin/tool` or consult host PATH. Use `stdoutBytes`/`stderrBytes`
+when preserving binary output; `stdout`/`stderr` are decoded strings.
 
 `timeEnv` accepts an optional `clock: () => number` in Unix milliseconds
 (default `Date.now`), virtual timezone (default UTC), sleep scheduler/timer cap,
@@ -181,6 +209,13 @@ their existing fixed limits. Shell-wide limits belong in `new Shell({ limits })`
 `exec` buffers its returned output under shell limits, while internal pipes use
 streaming byte sources/sinks and backpressure. Commands never spawn native
 processes. Native utilities appear only as trusted test/benchmark oracles.
+
+Host-supplied commands, adapters, transports and SafeJS hooks are trusted
+capabilities, not an OS sandbox for arbitrary host JavaScript. Cancellation is
+cooperative: propagate signals and register owned cleanup before acquisition;
+public settlement awaits registered cooperative cleanup. It cannot preempt
+opaque CPU work or undo completed side effects. Optional owned-output scopes
+close their destination without aborting unrelated file/header/stderr work.
 
 ## Stream Formatting and Splitting
 
@@ -369,24 +404,46 @@ GNU/BSD differences and non-atomic race limits. Author evidence is in
 The user's explicit requirement **"i also need curl"** is implemented as an
 opt-in HTTP(S) command, not ambient networking in `agentCommands()`:
 
-After `npm run build`, run this GET example from the repository using
-`node --input-type=module`. It grants only the example.com HTTPS origin:
+After `npm run build`, this TypeScript example uses an injected mock transport
+and explicit authorization. The `.test` URL is synthetic: no network request,
+DNS lookup or external service is used. Run it with the repository's `tsx`
+development tool, or compile it with TypeScript before running Node:
 
 ```ts
-import { Shell, agentCommands, createMemoryFileSystem, networkCommands } from "virtual-bash";
+import {
+  Shell, agentCommands, createMemoryFileSystem, networkCommands,
+  type HttpTransport,
+} from "virtual-bash";
+
+const transport: HttpTransport = async () => ({
+  status: 200,
+  statusText: "OK",
+  headers: [["content-type", "text/plain; charset=utf-8"]],
+  body: (async function* () {
+    yield new TextEncoder().encode("hello from mock\n");
+  })(),
+  async dispose() {},
+});
 
 const shell = new Shell({ fs: createMemoryFileSystem() })
   .use(agentCommands())
   .use(networkCommands({
-    authorize: ({ url }) => new URL(url).origin === "https://example.com",
+    transport,
+    authorize: ({ url, method }) =>
+      method === "GET" && new URL(url).origin === "https://docs.example.test",
   }));
 try {
-  const result = await shell.exec("curl -fS https://example.com/");
+  const result = await shell.exec("curl -fS https://docs.example.test/");
   console.log(result.exitCode, result.stdout);
 } finally {
   await shell.dispose();
 }
 ```
+
+The result has exitCode `0` and stdout `hello from mock\n`. For actual HTTP(S),
+omit `transport` to use the bundled Node transport and supply an authorizer
+appropriate to your service. That enables real network access; the mock example
+does not establish deployed-service behavior.
 
 Root and `virtual-bash/commands/network` exports include `networkCommands`
 (`curlCommands` alias), `createNetworkCommands`/`createCurlCommands`,
@@ -415,7 +472,7 @@ pre-first-byte `head -n 0` custom lifecycle issue is not fixed by this checkpoin
 it does not prevent delivery of the verified curl scope. Current root assignments
 govern source/test ownership; historical assignments are recorded in the ledger.
 
-The current default aggregate has 76 unique plugin names; optional `curl` and `safejs`
+The current default aggregate has 77 unique plugin names; optional `curl` and `safejs`
 add one each only when explicitly installed. At curl finalization, the committed
 aggregate still had 49 names while uncommitted metadata wiring exposed 52 in
 the working tree and its built package. That historical build/smoke remains a

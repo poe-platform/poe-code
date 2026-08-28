@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "time": "2026-08-28T09:34:34.517Z",
+  "role": "harness admission correction; unchanged regression fixtures/expectations",
+  "prior": "regressions-v1.mjs",
+  "error": "AssertionError: runtime load missing at line44 after test workers refused node:test",
+  "counts": {
+    "tests": 11,
+    "pass": 0,
+    "fail": 11,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "code": 1,
+  "natural": true,
+  "closed": true,
+  "leak": false,
+  "timedOut": false,
+  "correction": "Node22 builtinModules omits mandatory-prefix node:test; admit node:test explicitly for host test runner; product native/require refusal unchanged",
+  "originalGroupsNotReached": [
+    "selected-cd-seams",
+    "selected-let-three"
+  ]
+}

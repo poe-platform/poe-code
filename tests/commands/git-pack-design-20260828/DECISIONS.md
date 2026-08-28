@@ -87,6 +87,28 @@ rebase this DESIGN explicitly against its accepted source before implementation.
 - Limits count simultaneous owners and cumulative work separately. Releasing a
   buffer permits resident reuse, NEVER refunds read/inflate/work or delta depth.
 
+### Required ownership/preallocation proof table
+
+| Owner | Reservation and aliases | Earliest permitted release |
+| --- | --- | --- |
+| Compressed pack | One allocation of admitted stat.size; exact incremental fill. Entry/compressed spans are borrowed views into this owner, not separately releasable bytes. | All entry codecs have closed and all spans are dead; sequential packs may then reuse resident capacity. |
+| Raw idx | Exact admitted size before read; fanout/layout arithmetic checked before decoded tables. | OIDs/offsets/CRCs/observations retained for later use have their own charged representation, and no lookup view still borrows idx. |
+| Decoded location tables | Allocate explicitly sized numeric buffers after count admission; charge their actual byteLength. OID text charges2*length, matching Session.text's logical string convention. No growable uncharged row-by-row object array. | Pack admission graph and dependent lookup/observation consumers have finished. JS Map/Set overhead is count/work-bounded, not claimed exact RSS. |
+| Inflated direct body/program | Packed declared size known before inflation, reserve exact output and fill it while counting every produced byte. Provider/zlib transient chunk is consumed before advancement; retaining it requires an owned copy/reservation. | Program after delta replay and codec closure; direct body only after all cache/query views are done. Do not concatenate a hidden second full body. |
+| Delta result | Decode and validate result size, reserve BEFORE allocation. Base+program+result coexist; result publication waits for inherited type and OID verification. | Failure after owned work closes; otherwise the invocation cache lifetime. |
+| Cache body / duplicate | One retained owner per verified representation until safe dedup; cached lookup/message/header views do not mint new owners or permit early release. Compare duplicate bytes with charged work before discarding the extra body. | All query/commit/message views complete, then catalogue closure releases each retained owner exactly once. |
+| Reader / codec handle | Register cleanup before acquisition, track acquisition/close completion independently of data ownership. Await late-created handles and observed rejections. | Handle is actually closed; promise rejection or consumer closure alone is not release evidence. |
+
+D3 has **no eviction operation** and therefore no synthetic eviction-success
+claim. B10's original cache-eviction wording remains historical; its applicable
+M1B obligation is correct shared-base/pinned-view lifetime and explicit resident
+refusal. If ROOT requires eviction, that needs an additional private lease design
+and real release/reacquisition controls before implementation, not a waived test.
+Numerical external refcounts are not introduced: one cache owner remains pinned
+while query views are live. Future source proof must show every reservation,
+ownership transfer, failed allocation unwind and release site, including thrown
+falsy errors. Counts alone or final GC/RSS samples do not establish these lifetimes.
+
 ## Release path
 
 1. Review these three decisions + neutral data; M1A remains frozen under Dirac.

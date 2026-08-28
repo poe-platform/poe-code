@@ -3412,3 +3412,58 @@ that any implementation, command, fixture, or test currently exists.
   package in safe-bash. No implementation, build, runtime test or root wiring
   occurred for this documentation task. Packet69f5cc1b remains pending metadata
   review/FRESH ROOT release; no gate authorization is implied.
+
+### 2026-08-28T14:06Z — Qualified H11 attempt consumed, 6/14 integrity HOLD
+
+- Fresh ROOT grant ROOT-2026-08-28-UNIFIED76-QUALIFIED-H11-R3-ONE-ATTEMPT was
+  committed021302a1 after metadata acceptancee5ed3ecb. Exact1333-byte receipt
+  SHA256f61bace1ea85dc1aa19b8f80728cbc4526148fbca424ac452a818471c28dc847
+  preceded the single prescribed --run/session93642. Packet69f5cc1b/fixedf5,
+  driveraca88337/effective profilefa6731ee stayed bound. No retry, wider route,
+  permission change or live product overlay occurred. This grant is CONSUMED.
+- Inner start13:57:13.485Z, finish14:06:52.855Z; terminal exit1 is
+  HOLD_OR_QUALIFIED_RED, not all-runtime-qualified/native-unqualified completion.
+  Six phases executed: availability0, cold types expected78, typecheck:all0,
+  benchmark-types1, env-source-binding0, canonical1. One driver production build
+  is recorded. Benchmark checker never started: build-audit.mjs cannot resolve
+  frozen source/benchmarks/node_modules/typescript. No workaround was applied.
+- Canonical raw TAP:19425pass/132fail/7skip/0TODO/0cancelled,19564 test instances.
+  Source-bound offline parsing reconciles the captured footer after exit; the
+  original inner report did not reach canonical accounting after integrity halt.
+  This is not a new run, verdict replacement, zero-skip qualification or proof
+  all632 selected paths executed. Full raw TAP/load traces remain preserved.
+- Post-canonical source immutability rejects286 added entries:71 table-text
+  .native-* roots with left/right/sentinel (284 entries), plus
+  tests/commands/table-text-stress/shared-stdin-fix/.runtime and
+  tests/fs/mount/identity-authority-review/implementation/.runs. Dependent work
+  stops. Current-consumers/pack/public-runtime/public-types/negative-types/
+  missing-root/missing-contracts/final-sweep remain NOT_EXECUTED (8/14).
+  No added paths were removed, old roots resumed or fixtures repaired.
+- Failure routing, not root-cause verdict: diff-patch77, shell33, expr6,
+  metadata5, search7, stream-inspection1, RealFS1, S3 HTTP export-consumer1,
+  maintained native-data fixture1. Exact132 names/paths/details and all seven
+  skip strings are in TAP-NONPASSING.json. Native EPERM/socket EINVAL/Node22-vs24
+  characterizations remain raw, not automatically product bugs or deductions
+  against historical NA-2755/NA-6755. Those two admission probes were not repeated.
+- All six phase receipts and outer worker record closed/clean process lifecycles,
+  zero supervisor faults/signals/recorded survivors; observer survivors empty.
+  Aggregate fence cleanliness and bindingComplete/guardsPassed/cleanupComplete
+  are false because the attempt is incomplete and source integrity fails. Outer
+  also records 'inner driver binding or verdict failed'; nothing is suppressed.
+  These receipts do not certify arbitrary descendants or kernel-hard cleanup.
+- Nine maintained setup stages completed; exact five candidate plus one
+  benchmark instruction metadata omissions remain. Captured private HEADbb23,
+  264 staged regular engine-package files, privateUnchanged=true and no recorded
+  changed files are existing guard results only, not a new private inspection
+  or whole-private certification. No private refresh/read/copy occurred during
+  post-run evidence analysis. H06 dual-private-error remains UNEXECUTED and
+  terminal-persistence conditional; no fault-injection extension is inferred.
+- Evidencec23a8de8 preserves928 regular output/outer files:114734734 raw bytes,
+  11430146 gzip bytes with raw/encoded SHA256, modes, gzip roundtrips and matching
+  capture pre/post inventories/bytes. Original output, outer and temporary source
+  remain retained; the source tree was not recopied into evidence. Author capture
+  code is post-terminal data processing, not an independent/pre-code experiment.
+  Handoff: `tests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11/HANDOFF.md`.
+- Prior8e6b/df89 andc222/55db remain consumed0/14. New021302a1 is consumed6/14;
+  no strict/full-release/currentHEAD/native parity/superiority acceptance. Further
+  diagnosis, repairs and execution require separate ROOT authority; no GO remains.

@@ -1,0 +1,16 @@
+{
+  "label": "late-acquisition",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+    "late-acquisition",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v2"
+  ],
+  "pid": 57956,
+  "status": 0,
+  "signal": null,
+  "reaped": true,
+  "stdoutBase64": "eyJyb2xlIjoiQkVOSUdOX1NUVUJfT05MWV9OT1RfUFJPRFVDVF9QUk9PRiIsIm1vZGUiOiJsYXRlLWFjcXVpc2l0aW9uIiwicGFzcyI6dHJ1ZSwiZXhwZWN0ZWRSZWZ1c2FsIjoiTEFURV9XT1JLRVJfQUNRVUlTSVRJT05fU1RPUCIsImFkbWlzc2lvblJlZnVzYWxzIjpbIkFzc2VydGlvbkVycm9yIFtFUlJfQVNTRVJUSU9OXTogTEFURV9XT1JLRVJfQUNRVUlTSVRJT05fU1RPUFxuXG50cnVlICE9PSBmYWxzZVxuIl0sInJvd3MiOltdLCJwcm9kdWN0SW1wb3J0cyI6MCwicHJvZHVjdERpc3BhdGNoZXMiOjB9Cg==",
+  "stdoutSha256": "75019924d3ab5e71b89f8338fbf14c4a832c8c74bc1b05ee3fecc0305daf68f4",
+  "stderrBase64": ""
+}

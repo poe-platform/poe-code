@@ -1,0 +1,1 @@
+{"pid":57956,"event":"worker-parent","action":"admission-refused","error":"AssertionError [ERR_ASSERTION]: LATE_WORKER_ACQUISITION_STOP\n\ntrue !== false\n"}

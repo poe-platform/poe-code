@@ -104,8 +104,10 @@ setup, but actual worker starts are debited, not automatically treated as create
 
 ## Current authorized qualification
 
-STUB-PROTOCOL.json seals benign task-owned stub bytes and all harness inputs before
-the first check. Only DATA parsing, the original eight malformed-data controls,
+STUB-PROTOCOL.json preserves the first source snapshot at812a72b5; its receipts are
+committed at69985907. STUB-PROTOCOL-v2.json seals the current source at116f5dd7 before
+the second check. The v1 protocol is historical, not a claim about current bytes.
+Only DATA parsing, the original eight malformed-data controls,
 grant/admission synthetic faults, one bounded Git DATA batch, and eight benign
 stub-child scenarios are allowed. No accepted product worker or real product import
 is dispatched. Stub receipts are never product, native-oracle or performance proof.

@@ -1,0 +1,89 @@
+{
+  "schema": "virtual-bash-declare-ratified-v3-payload-seal",
+  "status": "STATIC_METADATA_CHECKED_NOT_PRODUCT_VALIDATION",
+  "date": "2026-08-28",
+  "directory": "tests/shell/declare-design-20260828/ratified-v3",
+  "semanticMatrixRows": 64,
+  "nativePreparedRows": 4,
+  "actualScriptBytesTotal": 1044,
+  "orderedScriptConcatenationSha256": "e1d25b8ca98c4b68256c47596668b872edabc3999687d1be5e4ba8bff787818f",
+  "orderedScriptConcatenationDefinition": "V301.txt || V302.txt || V303.txt || V304.txt exact UTF-8 bytes including final LF, no separators",
+  "actualNativeLaunches": 0,
+  "actualProductExecutions": 0,
+  "testsOrBuildsExecuted": 0,
+  "passes": null,
+  "protectedOldFiles": 21,
+  "frozenShellSourceFiles": 17,
+  "additionalPublicReferenceFiles": 5,
+  "successorOverlayBindingsMatched": 7,
+  "supervisorConstraints": {
+    "nativeAttempts": 4,
+    "allSupervisedStarts": 6,
+    "concurrency": 1,
+    "retries": 0,
+    "descendantAllowance": 0,
+    "terminalDeadlineMs": 3000,
+    "absoluteDeadlineMs": 45000
+  },
+  "verification": "Static Node fs/crypto/assert metadata only; contiguous matrix IDs, exact data sizes/hashes/terminal text, regular-file checks, finite process/byte constraints, old-byte/source/reference authentication; no imports/eval/execution of product/native/script code",
+  "payloads": [
+    {
+      "file": "AUTHENTICATION.json",
+      "bytes": 31417,
+      "sha256": "ad9bd4d2f328d4b071c882dd7263407789c4a0046744cbbb5ca7895cb6357fd9"
+    },
+    {
+      "file": "DESIGN.md",
+      "bytes": 25818,
+      "sha256": "e51a0fdfff562aa70579fb2528f27beb05cc55e3f328ec8d1f42cb9bd32a9078"
+    },
+    {
+      "file": "MANIFEST.json",
+      "bytes": 9831,
+      "sha256": "7857ab7da95d9933e7065014a55cb7afb615a9757d9581a9840554c4c80f5187"
+    },
+    {
+      "file": "MATRIX.md",
+      "bytes": 17208,
+      "sha256": "480fadacce3dcfa812a61c462a04241239166e5e96577912bc73d4b513b3e064"
+    },
+    {
+      "file": "NATIVE-RECIPE.md",
+      "bytes": 9095,
+      "sha256": "1467f0f49c2071811e92d4d543fcedfa5c935baba726107c0cd58ee676f0b794"
+    },
+    {
+      "file": "ROOT-RESPONSE.txt",
+      "bytes": 2649,
+      "sha256": "fe0784920f52356861fabe2d80ac58895a23f538dff9caeeec6ce612ece41cfc"
+    },
+    {
+      "file": "SOURCES.md",
+      "bytes": 18497,
+      "sha256": "baf340f2d2cf4bbd2d4c901ef0a9db56db7da8faf25b5ae3ed287f829dfc7a39"
+    },
+    {
+      "file": "native-prepared/V301.txt",
+      "bytes": 200,
+      "sha256": "783a903e5d0d57f9a31a7ab219341b05af6560c45b2e0e60fb3b0c2b46db5265"
+    },
+    {
+      "file": "native-prepared/V302.txt",
+      "bytes": 269,
+      "sha256": "350ebd9910e594b19d899ee44b0c672a12ed49fdd5ce45055bfde8b6c1f0a475"
+    },
+    {
+      "file": "native-prepared/V303.txt",
+      "bytes": 309,
+      "sha256": "07bbde15be520ec0e76723970f342a1d09c5bdd9a7863966099c43aafd29c4e3"
+    },
+    {
+      "file": "native-prepared/V304.txt",
+      "bytes": 266,
+      "sha256": "3db920bdab7dad0c1e36e0d428c30da5e549d662803f502096a4592d8d32766c"
+    }
+  ],
+  "manifestBinding": "MANIFEST.json is included above by exact bytes/hash; its references are authenticated in AUTHENTICATION.json",
+  "selfHash": "Nonrecursive: this HASHES.json is bound by its Git blob and the explicit owned documentation commit",
+  "historicalCensus": "No old root HASHES edits, old census rerun, new exclusions, or historical pass claim"
+}

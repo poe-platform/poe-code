@@ -1,0 +1,20 @@
+unset d3n
+declare d3n=outer
+d3g() {
+  unset d3n
+  declare -p d3n
+  printf 'g-absent:%s\n' "$?"
+  declare d3n
+  declare -p d3n
+  printf 'g-redeclared:%s\n' "$?"
+}
+d3f() {
+  declare d3n=inner
+  d3g
+  declare -p d3n
+  printf 'f-return:%s\n' "$?"
+}
+d3f
+declare -p d3n
+printf 'outer:%s\n' "$?"
+printf 'END V303\n'

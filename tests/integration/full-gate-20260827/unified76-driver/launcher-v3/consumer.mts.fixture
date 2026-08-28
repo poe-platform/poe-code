@@ -1,0 +1,9 @@
+import {createAgentCommands,htmlToMarkdownCommands,duCommands,exprCommands,type AgentCommandsOptions,type HtmlToMarkdownCommandsOptions,type DuCommandsOptions,type ExprCommandsOptions} from 'virtual-bash';
+import {createHtmlToMarkdownCommands} from 'virtual-bash/commands/html-to-markdown';
+import {createDuCommands} from 'virtual-bash/commands/du';
+import {createExprCommands} from 'virtual-bash/commands/expr';
+const html:HtmlToMarkdownCommandsOptions={};
+const du:DuCommandsOptions={};
+const expr:ExprCommandsOptions={};
+const aggregate:AgentCommandsOptions={replace:true,htmlToMarkdown:html,du,expr:{limits:{maxNumericDigits:32}},regex:{maxWorkers:1}};
+void [createAgentCommands(aggregate),htmlToMarkdownCommands(html),duCommands(du),exprCommands(expr),createHtmlToMarkdownCommands(html),createDuCommands(du),createExprCommands(expr)];

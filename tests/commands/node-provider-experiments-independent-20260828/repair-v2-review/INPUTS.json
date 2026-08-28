@@ -1,0 +1,300 @@
+{
+  "schema": "independent-bridge-repair-inputs-v1",
+  "codeCommit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98",
+  "evidenceCommit": "7b269a291d9fdc76e0760d36446d937e54060757",
+  "priorReviewCommit": "790a4412198cbe1a9b5b03fcc75aa8d1fcdfd1b9",
+  "manifestSha256": "3b4169c6dcb15f5f9d43e08fd417c93a38004604404cebab724cb44dbeae5f8c",
+  "entries": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/MANIFEST.json",
+      "bytes": 6994,
+      "mode": 420,
+      "sha256": "3b4169c6dcb15f5f9d43e08fd417c93a38004604404cebab724cb44dbeae5f8c",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/CONTROL.json",
+      "bytes": 2353,
+      "mode": 420,
+      "sha256": "3ec52fb9c6fd658c7a10c478a647dcd357d8e906c5427c3b697144f747e8d366",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/FROZEN-EXPERIMENTS.json",
+      "bytes": 11607,
+      "mode": 420,
+      "sha256": "ee60580ec6b1035dcc5c38286b84ccea43d2ff92763449477fefec8194a53be2",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/GRANT.template.json",
+      "bytes": 1213,
+      "mode": 420,
+      "sha256": "9edd6342e08b7d8660fdbf0d1e7f5f455fe67be753d71c926d504737f5dab7bd",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/INHERITED.json",
+      "bytes": 3330,
+      "mode": 420,
+      "sha256": "f2a484cad8a1338962e420904e8cf7fce46711f801f4b6e6f8bf4cbd460a6346",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/MECHANISM.json",
+      "bytes": 2620,
+      "mode": 420,
+      "sha256": "d073965757070b9b9642aaf36fc812819470be2725b96cfb42c3268ae549809f",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/PUBLIC-SOURCE.json.gz.base64",
+      "bytes": 338073,
+      "mode": 420,
+      "sha256": "9723f42cc9f01e3dff7c3ad8705538f99cbdc1c507a2d0699a4575ecb4a227ec",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/README.md",
+      "bytes": 589,
+      "mode": 420,
+      "sha256": "f8eed17220e1b6d4539838ee09556331bd620d7be5270f784aab4812e7cbd68d",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/REUSE.json",
+      "bytes": 797,
+      "mode": 420,
+      "sha256": "4974c1a12338a5609468c1261a94c15b290326105a5e5325ebab724ea625f10c",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/REVIEW.template.json",
+      "bytes": 247,
+      "mode": 420,
+      "sha256": "441204146ae7e796a17ad03581cf9ceddb43dcd34fd21cc535c238e101c2a4e2",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/SOURCES.json",
+      "bytes": 35893,
+      "mode": 420,
+      "sha256": "a670629995f8cb7331a5e24d35ad4bb185dc0fbe5f70de8281598de615cd35b1",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/TOOLS.json",
+      "bytes": 2312,
+      "mode": 420,
+      "sha256": "4efc7ff6181d6f92dd9aa3fe67803c55af027adc734b701582998efb452ae788",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/child.mjs.data",
+      "bytes": 17951,
+      "mode": 420,
+      "sha256": "65376bb60a8b0cd5577c7bd6109f62a5ca58edae967b33f9aafaa8b3dff71e34",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/loader.mjs.data",
+      "bytes": 7297,
+      "mode": 420,
+      "sha256": "24c302b637912972ad878ad7c597176aa569d5b5fed2d3fbe75695d097352d04",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/reference-entry.mjs.data",
+      "bytes": 2018,
+      "mode": 420,
+      "sha256": "72d173cbe626079b5cf1e7fcd719f4f62a9b2fb9d7260c4776253c4f56299168",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/recipe/supervisor.mjs.data",
+      "bytes": 47339,
+      "mode": 420,
+      "sha256": "e6a38d60595475d44989b28faa52670185a777e63bcf610811d2ad275373459f",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/EXTRACTION.json",
+      "bytes": 2333,
+      "mode": 420,
+      "sha256": "4a9363c6518b5ec912ec1060b172dfbde6ad847f3422bf4680eb0e6a62ea29d1",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/subject.mjs.data",
+      "bytes": 24264,
+      "mode": 420,
+      "sha256": "9c12199286c437e714700340abe17ae7ab4637073a9d6f2b1065bc5602c47640",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/stub.mjs.data",
+      "bytes": 1249,
+      "mode": 420,
+      "sha256": "640a7ae60a1e5c2f9be1e38ad38cf7b3011396e402583779efd9939729b0dc77",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/controls/F01-INERT-FIXTURE.json",
+      "bytes": 4171,
+      "mode": 420,
+      "sha256": "78954f48666460b4ca6c3c0a92ad52a0e38b82ee1750aeead44e7190474c9a76",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/PRESEAL.md",
+      "bytes": 4583,
+      "mode": 420,
+      "sha256": "bdda6190c1fd40e1423bbfe68206f746fcee92b4dc52319069289ca7841023f1",
+      "commit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/EVIDENCE.json",
+      "bytes": 7444,
+      "mode": 420,
+      "sha256": "9c3df4e3ee40e9c9bc03ba6aa7f0816a3123afdf9aec897f008b76e9a4518b58",
+      "commit": "7b269a291d9fdc76e0760d36446d937e54060757"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/HANDOFF.md",
+      "bytes": 6668,
+      "mode": 420,
+      "sha256": "2d32c9dcca77beef5276c76fd86867957de960f0a7058ae05e200efcc8a17809",
+      "commit": "7b269a291d9fdc76e0760d36446d937e54060757"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-20260828/repair-v2/ENGINE-GRANT.template.json",
+      "bytes": 1278,
+      "mode": 420,
+      "sha256": "a88ffe2968f1c1ae8a9bde7dcaee217a68f481616e8e32736e494e571fbbffbf",
+      "commit": "7b269a291d9fdc76e0760d36446d937e54060757"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/README.md",
+      "bytes": 7586,
+      "mode": 420,
+      "sha256": "9c3d20ca42e9d2a7bfaa8c2e8c61edfca6559401716f978e675a3e3063f9a98a",
+      "commit": "790a4412198cbe1a9b5b03fcc75aa8d1fcdfd1b9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/REVIEW.json",
+      "bytes": 1740,
+      "mode": 420,
+      "sha256": "f974c9a6ba67f9147a14f0cd738485663a0c6fa22b6ae74eed7139123e98ebae",
+      "commit": "790a4412198cbe1a9b5b03fcc75aa8d1fcdfd1b9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/SYNTHETIC-RECIPE.json",
+      "bytes": 8744,
+      "mode": 420,
+      "sha256": "62e9392bc79a4a9851d2e3da8097e22f898d0098f377e0106e7a80d52c43db61",
+      "commit": "790a4412198cbe1a9b5b03fcc75aa8d1fcdfd1b9"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "role": "static-tool-binding-no-compiler-import"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+      "role": "static-tool-binding-no-compiler-import"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/typescript.js",
+      "bytes": 9112572,
+      "mode": 420,
+      "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+      "role": "static-tool-binding-no-compiler-import"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/package.json",
+      "bytes": 3620,
+      "mode": 420,
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6",
+      "role": "static-tool-binding-no-compiler-import"
+    }
+  ],
+  "extraction": {
+    "schema": "node-repair-whole-function-extraction-v2",
+    "classification": "whole exact functions, declared safe ports; no engine imports",
+    "sourceSha256": "e6a38d60595475d44989b28faa52670185a777e63bcf610811d2ad275373459f",
+    "subjectSha256": "9c12199286c437e714700340abe17ae7ab4637073a9d6f2b1065bc5602c47640",
+    "functions": [
+      {
+        "name": "child",
+        "sourcePath": "recipe/supervisor.mjs.data",
+        "startByte": 2442,
+        "endByte": 6787,
+        "startLine": 47,
+        "sha256": "7b17c20121a20305c7e8cc6be5de54cfc0b7043be9e0754e1841d891f38fc5d3"
+      },
+      {
+        "name": "retireActiveChild",
+        "sourcePath": "recipe/supervisor.mjs.data",
+        "startByte": 6788,
+        "endByte": 7015,
+        "startLine": 125,
+        "sha256": "a398b4d16951114d434beb0a32c08d246e72ae59f0e68cd73db7f37b9cb1a594"
+      },
+      {
+        "name": "ownRecord",
+        "sourcePath": "recipe/supervisor.mjs.data",
+        "startByte": 20480,
+        "endByte": 21071,
+        "startLine": 300,
+        "sha256": "c515d8d49ba2f1acda82faacfa2208d05928406a8103975d8d0bf7027bfd5828"
+      },
+      {
+        "name": "denseData",
+        "sourcePath": "recipe/supervisor.mjs.data",
+        "startByte": 21071,
+        "endByte": 21670,
+        "startLine": 309,
+        "sha256": "9f32358ee1cb53926d127d4409cf2dde817f4625cee792e60a04c017a1c08815"
+      },
+      {
+        "name": "primitiveData",
+        "sourcePath": "recipe/supervisor.mjs.data",
+        "startByte": 21670,
+        "endByte": 21901,
+        "startLine": 319,
+        "sha256": "87d7930dd7000ac58e15a314a98ab305b5e42097e89bffad721c7aa452db6e64"
+      },
+      {
+        "name": "reasonShape",
+        "sourcePath": "recipe/supervisor.mjs.data",
+        "startByte": 21901,
+        "endByte": 22481,
+        "startLine": 322,
+        "sha256": "d3b098b7476042697149df2f248b231b0d6353cf43bf0d64a34bcb90a5429f00"
+      },
+      {
+        "name": "reconcileReceipt",
+        "sourcePath": "recipe/supervisor.mjs.data",
+        "startByte": 22481,
+        "endByte": 38406,
+        "startLine": 331,
+        "sha256": "bca180f068eaf46d5ee982ddc4e9c59e8982675ff3914a082200e7c86dc56190"
+      },
+      {
+        "name": "acceptEvaluation",
+        "sourcePath": "recipe/supervisor.mjs.data",
+        "startByte": 38406,
+        "endByte": 39535,
+        "startLine": 452,
+        "sha256": "b68c4e63e9c792d81c6ba8f5855f68f4d28ba4c4b7db16542b271a4b6ddc60fe"
+      }
+    ]
+  },
+  "engineEvaluations": 0,
+  "sourceArchive": "hashed immutable data only; no extraction/materialization/compiler/engine"
+}

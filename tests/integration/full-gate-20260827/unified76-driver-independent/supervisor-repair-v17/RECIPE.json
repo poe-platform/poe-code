@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "source": "f03c260269dfd8ee10666f7fd2560655f8e14a38",
+  "ownedFiles": {
+    "CONTROL-FREEZE.md": "bfe7d424655600104723c0dd0e18256f06a1a4f05ad9e1d8d9d7fd96de91cfae",
+    "bind.py": "8e4f3a277eb8593cae7d2bf45d4e76e72094c15f0948b93f3dbec83a081759ba",
+    "BINDINGS.json": "c952abaf29b46cdfce31b1ed00b7bc432db57523d987be19311a24af155d1a08",
+    "review.mjs": "fa05fee2b8477429861b708d8c778e36c1038aa9ea5b031ae35c8f132a89a424",
+    "controller.py": "de09d49a221fcfa9558326a001388931d9473fb80e124aec6682e3688b7cfdb0",
+    "RECIPE.md": "de2dc2db3d25bf07adb6b01483c033a23c36d9e03029f76e6de94c6db44e1e18"
+  },
+  "counts": {
+    "repairedSynthetic": 11,
+    "oldSyntheticSensitivity": 1,
+    "actualOwnedChildren": 3,
+    "staticDataRecords": 3,
+    "embeddedIndependentRoleSensitivities": 6
+  },
+  "priorBindingCarry": {
+    "source": "e35d83ca97f6aa4f32b2cb8542f5e711458f6aeb",
+    "driverSha256": "f192ca9330a440d33e49544e135a04305a48e84ce85858f902860aafa2ccd4f9",
+    "effectiveProfileSha256": "fa6731eec6b41915f3f56affa9cdf29e7352a10e939bb0f1fe1b9d675caa7510",
+    "strictProfileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+    "eligibilityReceiptSha256": "519ac40f0239bf363586c5144bbe7f0f3c72c786f42abbc2d1d9ffb004ba2cf6",
+    "historicalCaptureSha256": "9f018b4e8bae9f4ce0df48d65c25ecd4693b3b0929687a02f40c3b441ee21cb9",
+    "canonicalCount": 632,
+    "canonicalIdentitySha256": "e19638754f53af210140d5025220ce4e23efe217fe2cb5a457634b224ebbae35",
+    "helperSha256": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db"
+  },
+  "bounds": {
+    "coordinatorSeconds": 200,
+    "streamDeadlineSeconds": 215,
+    "wholeQualifiedSeconds": 240,
+    "syntheticSeconds": 10,
+    "childSupervisorSeconds": 3,
+    "cleanupSeconds": 5,
+    "outerChildRescueSeconds": 8,
+    "streamBytes": 1048576,
+    "childCaptureBytes": 65536,
+    "tempBytes": 33554432
+  },
+  "candidateImportsBeforeSeal": false
+}

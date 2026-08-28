@@ -2790,3 +2790,34 @@ that any implementation, command, fixture, or test currently exists.
   root receipt are needed; f5/c109 and canonical/profile identities must not be
   silently weakened. Exact files/callsites and remaining decision are in
   tests/integration/full-gate-20260827/unified76-driver/release-blocker-instructions-v1/README.md.
+
+## 2026-08-28 UTC — instruction projection author packet, release still held
+
+- Root separately authorized metadata-only projection for the exact five f5
+  instruction entries plus one benchmark document, and original authenticated
+  opaque Git objects as inert provenance. That exception never permits checkout,
+  plaintext alternate snapshots, substituted instructions, or treating historical
+  blobs as active rules. Original a9ec3561 five-plus-one defect/zero-phase stop is
+  unchanged; its previous full-release authorization is not transferable.
+- Metadata/control preseal794bfdbd, driver sourcefb376b3a0bd390598038494235bec321a694383d,
+  corrected controls1152411d, evidenceacd04c3df74a5728fba1a29919b10c44cc4e2e0d:
+  author14/14 control groups, including unchanged nested V5 5/5 and V4 4/4.
+  V1 empty-directory cleanup error and V2 13/14 wrong baseline-import control
+  remain preserved; neither needed a product/transport repair.
+- One review-only actual f5 build/type slice passed: cold78, typecheck-all0,
+  one actual production build,23 maintained strict groups,3 source groups and
+  3 exact negative groups;208 declaration bindings/832 emitted files. Guards and
+  owned-child cleanup pass. Logical37397/2382440321 bytes reconciles physical
+  37392/2382392469 bytes; benchmark3497→3496 files accounts for its9231-byte
+  metadata-only omission. All six targets absent after build. All832 emitted
+  identities equal retained e062 output. Expected c109 pack is not freshly packed.
+- Historical body-reading tree/regex opt-in replay helpers remain unmodified and
+  are not certified by this physical projection. No canonical/runtime/native/
+  private-engine/full-gate phases ran. Different Dirac review and newly bound root
+  release remain required. Driver normalized SHA2922ac6400ecccce808431952e3aaccc97e20c2b4b2acc93041b514f52818809.
+  Handoff: tests/integration/full-gate-20260827/unified76-driver/launcher-v3/instruction-projection-v1/HANDOFF.md.
+- Separate future feature: root accepted timeout modulea23867d6 via Raman33518147
+  scoped source+moved34/34, with numeric/diagnostic/type/control evidence; native
+  and SafeJS execution remain0. Public78 freeze031d4ddf/manifest18e3c23c is ready;
+  root authorized integration only after this projection packet. It is not part
+  of f5 and is not yet a public/default integration acceptance.

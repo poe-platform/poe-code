@@ -1,0 +1,46 @@
+{
+  "removedAt": "2026-08-28T04:30:12.405Z",
+  "removedRoot": "/Users/kjopek/Workspace/safe-bash/tests/fs/webdav/directory-access-independent-20260828/review-ca1d3342/scratch",
+  "inventoryFile": "SCRATCH-INVENTORY.json.gz",
+  "inventorySha256": "336a5360636f95a9245e592afa92cd1e987b58c8f2eb753c9d87c81397740540",
+  "entries": 10702,
+  "logicalBytes": 210386521,
+  "inventoryAuthenticatedBeforeRemoval": true,
+  "membershipCheckIncludedNewEntries": true,
+  "scratchAbsent": true,
+  "originalSevenPreserved": true,
+  "liveScopePreserved": true,
+  "subprocesses": {
+    "total": 19,
+    "natural": 19,
+    "watchdogTerminations": 0,
+    "nonzero": [
+      {
+        "label": "source-types",
+        "status": 1
+      },
+      {
+        "label": "mutant-admission",
+        "status": 1
+      },
+      {
+        "label": "mutant-final-cancel",
+        "status": 1
+      },
+      {
+        "label": "mutant-path-bound",
+        "status": 1
+      },
+      {
+        "label": "mutant-output-bound",
+        "status": 1
+      },
+      {
+        "label": "mutant-response-identity",
+        "status": 1
+      }
+    ]
+  },
+  "noServiceOrSocketCreatedByHarness": true,
+  "qualification": "nineteen captured validation children naturally exited; Git plumbing and preparation parent commands separately qualified; no arbitrary host preemption guarantee"
+}

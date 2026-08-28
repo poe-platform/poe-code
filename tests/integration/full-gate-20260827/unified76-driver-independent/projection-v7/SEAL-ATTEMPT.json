@@ -1,0 +1,19 @@
+{
+  "schema": "projection-v7-metadata-seal-error",
+  "createdAt": "2026-08-28T05:32:06.422Z",
+  "command": "Node24 projection-v7/seal.mjs",
+  "exitStatus": 1,
+  "recipeSha256": "166c46099b7d5eff1201ca83fe74e7aa44e3ad22acf987cae3ecf368c30399a5",
+  "reason": "After completing actual load/dependency/process/no-instruction/prior-hash validation and removing the owned temporary tree, the staged-file-absence assertion collided with the independent CLEANUP.json it had just written. This is not an author artifact still present or a driver/product failure.",
+  "completedProofs": [
+    "complete dependency namespace including exact .bin wrappers",
+    "661 child load rows bound to inputs/tools",
+    "original opaque pack equals transmitted bytes/hash",
+    "no physical instruction paths",
+    "220 prior artifacts unchanged",
+    "no matching recorded process survivors",
+    "owned temporary removed"
+  ],
+  "cleanupReceiptSha256": "b52408aed3893682b9ff063e37ef40298893109303d44194b4d365454bdc2137",
+  "followup": "finish-seal.mjs recognizes the independent receipt by differing digest, checks other author files absent, preserves all prior outputs, then only losslessly compresses raw metadata and writes summary. No control/build/copy/import rerun."
+}

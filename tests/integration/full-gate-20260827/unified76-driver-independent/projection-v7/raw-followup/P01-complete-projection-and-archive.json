@@ -1,0 +1,119 @@
+{
+  "id": "P01-complete-projection-and-archive",
+  "startedAt": "2026-08-28T05:24:01.319Z",
+  "evidence": {
+    "originalArchive": {
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "args": [
+        "--no-replace-objects",
+        "archive",
+        "--format=tar",
+        "f5e9fc49b6abb38e180cc9de16c95fced102ff75"
+      ],
+      "status": 0,
+      "signal": null,
+      "bytes": 2411919360,
+      "sha256": "861579f4bdcb0ee2de01e070b8d789f5181e78c7831c0fcf3372dc88e3174097",
+      "stderr": "",
+      "storedArchive": false
+    },
+    "reconstructedArchive": {
+      "cwd": "/private/tmp/unified76-independent-projection-v7-YP7rTB/original",
+      "args": [
+        "--no-replace-objects",
+        "archive",
+        "--format=tar",
+        "f5e9fc49b6abb38e180cc9de16c95fced102ff75"
+      ],
+      "status": 0,
+      "signal": null,
+      "bytes": 2411919360,
+      "sha256": "861579f4bdcb0ee2de01e070b8d789f5181e78c7831c0fcf3372dc88e3174097",
+      "stderr": "",
+      "storedArchive": false
+    },
+    "archiveBindingNegatives": [
+      {
+        "label": "review-archive-digest",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "independent complete-original-archive binding\n+ actual - expected\n\n  {\n    bytes: 2411919360,\n+   sha256: '0000000000000000000000000000000000000000000000000000000000000000'\n-   sha256: '861579f4bdcb0ee2de01e070b8d789f5181e78c7831c0fcf3372dc88e3174097'\n  }\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "review-archive-size",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "independent complete-original-archive binding\n+ actual - expected\n\n  {\n+   bytes: 2411919361,\n-   bytes: 2411919360,\n    sha256: '861579f4bdcb0ee2de01e070b8d789f5181e78c7831c0fcf3372dc88e3174097'\n  }\n",
+          "code": "ERR_ASSERTION"
+        }
+      }
+    ],
+    "archiveGuardQualification": "Independent static digest/length predicate on actual full archive streams; frozen extractor itself consumes original Git blobs, not an archive-hash parameter.",
+    "logical": {
+      "entries": 37397,
+      "bytes": 2382440321
+    },
+    "physical": {
+      "entries": 37392,
+      "bytes": 2382392469
+    },
+    "projection": {
+      "format": "unified76-logical-projection-v1",
+      "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "projectionSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb",
+      "entriesSha256": "62cac7ea25b6d6904438d0ebb1d2fca95d677a4ecd7e635c9d3e33fe83df89b8",
+      "logical": {
+        "entries": 37397,
+        "bytes": 2382440321
+      },
+      "physical": {
+        "entries": 37392,
+        "bytes": 2382392469
+      },
+      "metadataOnly": [
+        {
+          "path": "AGENTS.md",
+          "mode": "100644",
+          "blob": "d24f9e50fc271acbedf14c6bf415393572376622",
+          "bytes": 12424,
+          "sha256": "d54a4610a70cb11e81ce06471951c40fd5f96707fd28d802844fa06e977605a8"
+        },
+        {
+          "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+          "mode": "100644",
+          "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+          "bytes": 8857,
+          "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+        },
+        {
+          "path": "tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+          "mode": "100644",
+          "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+          "bytes": 8857,
+          "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+        },
+        {
+          "path": "tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+          "mode": "100644",
+          "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+          "bytes": 8857,
+          "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+        },
+        {
+          "path": "tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+          "mode": "100644",
+          "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+          "bytes": 8857,
+          "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+        }
+      ]
+    },
+    "transportSha256": "f36ed60f5640b2a86d75497745036735265330fbb6928477ff4a6d5f09cc849b",
+    "physicalSha256": "e126464046fe9e24634787bfecd5c17672d5abf03aeecaa4bb92d71c1dcd77db",
+    "instructionWrites": []
+  },
+  "status": "PASS",
+  "finishedAt": "2026-08-28T05:24:36.744Z"
+}

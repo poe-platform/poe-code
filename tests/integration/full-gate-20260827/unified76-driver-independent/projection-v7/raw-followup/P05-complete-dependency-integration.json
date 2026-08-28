@@ -1,0 +1,57 @@
+{
+  "id": "P05-complete-dependency-integration",
+  "startedAt": "2026-08-28T05:25:00.428Z",
+  "evidence": {
+    "receipts": [
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/node_modules",
+        "logical": {
+          "files": 314,
+          "bytes": 48179371,
+          "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+        },
+        "physical": {
+          "files": 314,
+          "bytes": 48179371,
+          "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+        },
+        "metadataOnly": [],
+        "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+        "logical": {
+          "files": 3497,
+          "bytes": 75292558,
+          "sha256": "101679a28f9b302d6d17553344cbc427807a0510c66246fff3162cb86e033b3e"
+        },
+        "physical": {
+          "files": 3496,
+          "bytes": 75283327,
+          "sha256": "60a11cf540097d742ec2d916414e6b392bf4aa1fa9862919c9ae69138e1e8137"
+        },
+        "metadataOnly": [
+          {
+            "role": "benchmark",
+            "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+            "path": "just-bash/dist/AGENTS.md",
+            "mode": "100644",
+            "bytes": 9231,
+            "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979"
+          }
+        ],
+        "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+      }
+    ],
+    "npm": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+      "sha256": "52031d4ab5f0c6e400c0e7d73e996641811c752c978c3322c9cb8dec4554590f",
+      "entries": 2557,
+      "bytes": 12446245,
+      "copied": false,
+      "qualification": "Actual fixed npm CLI reads the entire authenticated readonly host tree; no substitute executable, install or projection exemption."
+    }
+  },
+  "status": "PASS",
+  "finishedAt": "2026-08-28T05:25:05.149Z"
+}

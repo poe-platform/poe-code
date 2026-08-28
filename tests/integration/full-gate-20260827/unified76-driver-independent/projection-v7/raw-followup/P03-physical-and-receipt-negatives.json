@@ -1,0 +1,75 @@
+{
+  "id": "P03-physical-and-receipt-negatives",
+  "startedAt": "2026-08-28T05:24:36.744Z",
+  "evidence": {
+    "rows": [
+      {
+        "label": "omitted-content-digest",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "instruction content SHA256 mismatch\n+ actual - expected\n\n+ '0000000000000000000000000000000000000000000000000000000000000000'\n- 'd54a4610a70cb11e81ce06471951c40fd5f96707fd28d802844fa06e977605a8'\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "physical-count-byte-mismatch",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "logical projection receipt mismatch\n+ actual - expected\n... Skipped lines\n\n  {\n    candidate: 'f5e9fc49b6abb38e180cc9de16c95fced102ff75',\n    entriesSha256: '62cac7ea25b6d6904438d0ebb1d2fca95d677a4ecd7e635c9d3e33fe83df89b8',\n    format: 'unified76-logical-projection-v1',\n    logical: {\n...\n    physical: {\n+     bytes: 2382392468,\n-     bytes: 2382392469,\n      entries: 37392\n    },\n    projectionSha256: 'b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb'\n  }\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "missing-stream-receipt",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "instruction projection candidate binding\n+ actual - expected\n\n+ undefined\n- 'f5e9fc49b6abb38e180cc9de16c95fced102ff75'\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "missing-noninstruction-physical",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "archive added/missing physical input\n+ actual - expected\n... Skipped lines\n\n  [\n    '.gitignore',\n    'README.md',\n    'benchmarks/COVERAGE_AUDIT.md',\n    'benchmarks/README.md',\n...\n    'package-lock.json',\n-   'package.json',\n    'scripts/typecheck-consumers.mjs',\n    'scripts/typecheck-inputs.mjs',\n    'scripts/typecheck-staged-inputs.mjs',\n    'scripts/typecheck.mjs',\n    'scripts/verify-current-consumers.mjs',\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "extra-physical-entry",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "archive added/missing physical input\n+ actual - expected\n\n  [\n    '.gitignore',\n+   'INDEPENDENT-EXTRA',\n    'README.md',\n    'benchmarks/COVERAGE_AUDIT.md',\n    'benchmarks/README.md',\n    'benchmarks/classify-triage.mjs',\n    'benchmarks/dialect-fixtures.ts',\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "hardlink-physical-alias",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "The expression evaluated to a falsy value:\n\n  assert.ok(before.isFile()&&before.nlink===1)\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "changed-physical-mode",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "Expected values to be strictly equal:\n\n384 !== 420\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "changed-physical-content",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "Expected values to be strictly equal:\n\n4708 !== 4707\n",
+          "code": "ERR_ASSERTION"
+        }
+      }
+    ],
+    "unmodifiedPositiveWitnessRestored": true
+  },
+  "status": "PASS",
+  "finishedAt": "2026-08-28T05:25:00.427Z"
+}

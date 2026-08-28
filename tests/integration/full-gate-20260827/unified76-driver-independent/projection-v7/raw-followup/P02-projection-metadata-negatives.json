@@ -1,0 +1,222 @@
+{
+  "id": "P02-projection-metadata-negatives",
+  "startedAt": "2026-08-28T05:23:51.818Z",
+  "evidence": {
+    "selected": [
+      {
+        "path": "AGENTS.md",
+        "mode": "100644",
+        "blob": "d24f9e50fc271acbedf14c6bf415393572376622",
+        "bytes": 12424,
+        "sha256": "d54a4610a70cb11e81ce06471951c40fd5f96707fd28d802844fa06e977605a8"
+      },
+      {
+        "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      },
+      {
+        "path": "tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+        "mode": "100644",
+        "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+        "bytes": 8857,
+        "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+      }
+    ],
+    "rows": [
+      {
+        "label": "manifest-path",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "instruction projection metadata changed\n+ actual - expected\n\n+ 'ef82b6eea337f6553680fc6789965ef1ba523e5fcb587ebb39356b82fcebfb36'\n- 'b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb'\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "manifest-mode",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "instruction projection metadata changed\n+ actual - expected\n\n+ 'adec695310742310a561fbf3de0a0801646ad92c1bd9165e841d0f1a6f4caa33'\n- 'b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb'\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "manifest-bytes",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "instruction projection metadata changed\n+ actual - expected\n\n+ 'db57c797785f92ab86840f47191e5f92899e88de5af894629394d102041f718b'\n- 'b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb'\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "manifest-sha256",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "instruction projection metadata changed\n+ actual - expected\n\n+ '6609865ecdadf9292b7dcf3ddefd977caad388e35099270b5e4969205ca28e7b'\n- 'b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb'\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "logical-path",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "unapproved instruction path or body alias",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "logical-mode",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "instruction path/mode/length/blob binding\n+ actual - expected\n\n  {\n    blob: 'd24f9e50fc271acbedf14c6bf415393572376622',\n    bytes: 12424,\n+   mode: '100755',\n-   mode: '100644',\n    path: 'AGENTS.md'\n  }\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "logical-bytes",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "instruction path/mode/length/blob binding\n+ actual - expected\n\n  {\n    blob: 'd24f9e50fc271acbedf14c6bf415393572376622',\n+   bytes: 12425,\n-   bytes: 12424,\n    mode: '100644',\n    path: 'AGENTS.md'\n  }\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "logical-blob",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "instruction path/mode/length/blob binding\n+ actual - expected\n\n  {\n+   blob: '0000000000000000000000000000000000000000',\n-   blob: 'd24f9e50fc271acbedf14c6bf415393572376622',\n    bytes: 12424,\n    mode: '100644',\n    path: 'AGENTS.md'\n  }\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "missing-six-list-member",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "instruction projection metadata changed\n+ actual - expected\n\n+ 'f429cd3f51054a32ddaced300e0f7f9955620f691292925a4352c6686ebad6bf'\n- 'b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb'\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "wrong-original-candidate",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "instruction projection candidate binding\n+ actual - expected\n\n+ '0000000000000000000000000000000000000000'\n- 'f5e9fc49b6abb38e180cc9de16c95fced102ff75'\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "noninstruction-omission",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      blob: '4a3a638fbf6a2b84abfbe40693d3826a0b8763d8',\n      bytes: 54,\n      mode: '100644',\n...\n    {\n-     blob: '1e6bfc1e602dd0f22b8e0a3f064067d411c57e52',\n-     bytes: 4707,\n-     mode: '100644',\n-     path: 'package.json'\n-   },\n-   {\n      blob: '5fb30bcf8d6b3994b30486fc0c23eeee2409f65a',\n      bytes: 9794,\n      mode: '100644',\n      path: 'scripts/typecheck-consumers.mjs'\n    },\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "instruction-body-renamed-alias",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "unapproved instruction path or body alias",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "unknown-basename-not-exempt",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "unapproved instruction path or body alias",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "link-to-instruction",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "symlink instruction alias refused",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "dependency-renamed-body",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "unapproved dependency instruction path/body/origin",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "dependency-wrong-digest",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "benchmark instruction identity\n+ actual - expected\n\n  {\n    bytes: 9231,\n    mode: 420,\n+   sha256: '0000000000000000000000000000000000000000000000000000000000000000'\n-   sha256: '1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979'\n  }\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "dependency-wrong-origin",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "unapproved dependency instruction path/body/origin",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "dependency-name-not-exempt",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "unapproved dependency instruction path/body/origin",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "ambient-GIT_ALTERNATE_OBJECT_DIRECTORIES",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "ambient loader/Git injection refused: GIT_ALTERNATE_OBJECT_DIRECTORIES"
+        }
+      },
+      {
+        "label": "ambient-GIT_REPLACE_REF_BASE",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "ambient loader/Git injection refused: GIT_REPLACE_REF_BASE"
+        }
+      },
+      {
+        "label": "ambient-NODE_OPTIONS",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "ambient loader/Git injection refused: NODE_OPTIONS"
+        }
+      },
+      {
+        "label": "fresh-release-empty",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'ROOT_RELEASE_UNIFIED76'\n",
+          "code": "ERR_ASSERTION"
+        }
+      }
+    ],
+    "instructionWrites": 0,
+    "physicalPresenceNegative": "Not materialized: user forbids any new AGENTS path. Exact logical metadata and positive physical absence exercised instead."
+  },
+  "status": "PASS",
+  "finishedAt": "2026-08-28T05:23:52.340Z"
+}

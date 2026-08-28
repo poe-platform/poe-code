@@ -1,0 +1,962 @@
+{
+  "schema": "unified76-projection-v7-independent-results",
+  "source": "fb376b3a0bd390598038494235bec321a694383d",
+  "evidence": "acd04c3df74a5728fba1a29919b10c44cc4e2e0d",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "startedAt": "2026-08-28T05:23:41.581Z",
+  "finishedAt": "2026-08-28T05:29:26.163Z",
+  "matrix": [
+    {
+      "id": "P01",
+      "status": "SCOPED_PASS",
+      "records": [
+        {
+          "id": "P01-complete-projection-and-archive",
+          "status": "PASS",
+          "startedAt": "2026-08-28T05:24:01.319Z",
+          "finishedAt": "2026-08-28T05:24:36.744Z"
+        }
+      ]
+    },
+    {
+      "id": "P02",
+      "status": "SCOPED_PASS",
+      "records": [
+        {
+          "id": "P02-projection-metadata-negatives",
+          "status": "PASS",
+          "startedAt": "2026-08-28T05:23:51.818Z",
+          "finishedAt": "2026-08-28T05:23:52.340Z"
+        }
+      ]
+    },
+    {
+      "id": "P03",
+      "status": "SCOPED_PASS",
+      "records": [
+        {
+          "id": "P03-physical-and-receipt-negatives",
+          "status": "PASS",
+          "startedAt": "2026-08-28T05:24:36.744Z",
+          "finishedAt": "2026-08-28T05:25:00.427Z"
+        }
+      ]
+    },
+    {
+      "id": "P04",
+      "status": "SCOPED_PASS",
+      "records": [
+        {
+          "id": "P04-original-reachable-objects",
+          "status": "PASS",
+          "startedAt": "2026-08-28T05:23:52.341Z",
+          "finishedAt": "2026-08-28T05:24:01.318Z"
+        }
+      ]
+    },
+    {
+      "id": "P05",
+      "status": "SCOPED_PASS",
+      "records": [
+        {
+          "id": "P05-complete-dependency-integration",
+          "status": "PASS",
+          "startedAt": "2026-08-28T05:25:00.428Z",
+          "finishedAt": "2026-08-28T05:25:05.149Z"
+        }
+      ]
+    },
+    {
+      "id": "P06",
+      "status": "SCOPED_PASS",
+      "records": [
+        {
+          "id": "P06-shared-A10-positive",
+          "status": "PASS",
+          "startedAt": "2026-08-28T05:25:33.262Z",
+          "finishedAt": "2026-08-28T05:28:31.225Z"
+        },
+        {
+          "id": "P06-real-duplicate-build",
+          "status": "PASS",
+          "startedAt": "2026-08-28T05:28:31.267Z",
+          "finishedAt": "2026-08-28T05:28:56.900Z"
+        }
+      ]
+    },
+    {
+      "id": "P07",
+      "status": "SCOPED_PASS",
+      "records": [
+        {
+          "id": "P07-outer-observer-and-foreign-isolation",
+          "status": "PASS",
+          "startedAt": "2026-08-28T05:28:56.901Z",
+          "finishedAt": "2026-08-28T05:28:59.179Z"
+        }
+      ]
+    },
+    {
+      "id": "P08",
+      "status": "SCOPED_PASS",
+      "records": [
+        {
+          "id": "P08-postrun-integrity-and-HOLD",
+          "status": "PASS",
+          "startedAt": "2026-08-28T05:29:03.804Z",
+          "finishedAt": "2026-08-28T05:29:26.150Z"
+        }
+      ]
+    }
+  ],
+  "topLevelRecords": 9,
+  "authorPassesCounted": 0,
+  "initialSetupFailure": {
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/review.mjs"
+    ],
+    "exitStatus": 1,
+    "controls": 0,
+    "copies": 0,
+    "builds": 0,
+    "reason": {
+      "message": "ambient loader/Git injection refused: GIT_CONFIG_NOSYSTEM",
+      "stack": "Error: ambient loader/Git injection refused: GIT_CONFIG_NOSYSTEM\n    at rejectAmbientInjection (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/external-admission.mjs:24:198)\n    at verifyExternal (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/external-admission.mjs:45:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/review.mjs:77:69\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    },
+    "preserved": true
+  },
+  "correctedCommand": {
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/review-followup.mjs"
+    ],
+    "exitStatus": 0,
+    "freeze": "cf4ac115",
+    "hiddenRetries": 0
+  },
+  "projection": {
+    "originalArchive": {
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "args": [
+        "--no-replace-objects",
+        "archive",
+        "--format=tar",
+        "f5e9fc49b6abb38e180cc9de16c95fced102ff75"
+      ],
+      "status": 0,
+      "signal": null,
+      "bytes": 2411919360,
+      "sha256": "861579f4bdcb0ee2de01e070b8d789f5181e78c7831c0fcf3372dc88e3174097",
+      "stderr": "",
+      "storedArchive": false
+    },
+    "reconstructedArchive": {
+      "cwd": "/private/tmp/unified76-independent-projection-v7-YP7rTB/original",
+      "args": [
+        "--no-replace-objects",
+        "archive",
+        "--format=tar",
+        "f5e9fc49b6abb38e180cc9de16c95fced102ff75"
+      ],
+      "status": 0,
+      "signal": null,
+      "bytes": 2411919360,
+      "sha256": "861579f4bdcb0ee2de01e070b8d789f5181e78c7831c0fcf3372dc88e3174097",
+      "stderr": "",
+      "storedArchive": false
+    },
+    "archiveBindingNegatives": [
+      {
+        "label": "review-archive-digest",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "independent complete-original-archive binding\n+ actual - expected\n\n  {\n    bytes: 2411919360,\n+   sha256: '0000000000000000000000000000000000000000000000000000000000000000'\n-   sha256: '861579f4bdcb0ee2de01e070b8d789f5181e78c7831c0fcf3372dc88e3174097'\n  }\n",
+          "code": "ERR_ASSERTION"
+        }
+      },
+      {
+        "label": "review-archive-size",
+        "expected": "throw/HOLD",
+        "error": {
+          "message": "independent complete-original-archive binding\n+ actual - expected\n\n  {\n+   bytes: 2411919361,\n-   bytes: 2411919360,\n    sha256: '861579f4bdcb0ee2de01e070b8d789f5181e78c7831c0fcf3372dc88e3174097'\n  }\n",
+          "code": "ERR_ASSERTION"
+        }
+      }
+    ],
+    "archiveGuardQualification": "Independent static digest/length predicate on actual full archive streams; frozen extractor itself consumes original Git blobs, not an archive-hash parameter.",
+    "logical": {
+      "entries": 37397,
+      "bytes": 2382440321
+    },
+    "physical": {
+      "entries": 37392,
+      "bytes": 2382392469
+    },
+    "projection": {
+      "format": "unified76-logical-projection-v1",
+      "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "projectionSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb",
+      "entriesSha256": "62cac7ea25b6d6904438d0ebb1d2fca95d677a4ecd7e635c9d3e33fe83df89b8",
+      "logical": {
+        "entries": 37397,
+        "bytes": 2382440321
+      },
+      "physical": {
+        "entries": 37392,
+        "bytes": 2382392469
+      },
+      "metadataOnly": [
+        {
+          "path": "AGENTS.md",
+          "mode": "100644",
+          "blob": "d24f9e50fc271acbedf14c6bf415393572376622",
+          "bytes": 12424,
+          "sha256": "d54a4610a70cb11e81ce06471951c40fd5f96707fd28d802844fa06e977605a8"
+        },
+        {
+          "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+          "mode": "100644",
+          "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+          "bytes": 8857,
+          "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+        },
+        {
+          "path": "tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+          "mode": "100644",
+          "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+          "bytes": 8857,
+          "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+        },
+        {
+          "path": "tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+          "mode": "100644",
+          "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+          "bytes": 8857,
+          "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+        },
+        {
+          "path": "tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+          "mode": "100644",
+          "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+          "bytes": 8857,
+          "sha256": "b36a619e3ba5a1a849d198d8d785857da9a7a9dd7c896cffab4118bfbf35d678"
+        }
+      ]
+    },
+    "transportSha256": "f36ed60f5640b2a86d75497745036735265330fbb6928477ff4a6d5f09cc849b",
+    "physicalSha256": "e126464046fe9e24634787bfecd5c17672d5abf03aeecaa4bb92d71c1dcd77db",
+    "instructionWrites": []
+  },
+  "opaqueHistory": {
+    "transfer": {
+      "bytes": 452196651,
+      "stdout": 46,
+      "lifecycle": [
+        {
+          "status": 0,
+          "signal": null,
+          "closed": true,
+          "stderrBytes": 0,
+          "survivors": []
+        },
+        {
+          "status": 0,
+          "signal": null,
+          "closed": true,
+          "stderrBytes": 0,
+          "survivors": []
+        }
+      ],
+      "instructionPolicy": "Root-approved original opaque Git objects only; historical instruction blobs remain inert provenance. No checkout or plaintext instruction materialization.",
+      "checkoutPerformed": false
+    },
+    "rawCommitSha256": "c97a53f90fa4abac622e5a854138b12cbb5bee09027a8597a1a56a38abd6e30e",
+    "treeMetadataSha256": "ec097b0af363f93bfe59f9a0119493d522c7536efff02406d48f6263938788d6",
+    "noAlternates": true,
+    "noReplaceRefs": true,
+    "checkoutPerformed": false,
+    "originalIdsPreserved": true
+  },
+  "dependencyProjection": [
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules",
+      "logical": {
+        "files": 314,
+        "bytes": 48179371,
+        "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+      },
+      "physical": {
+        "files": 314,
+        "bytes": 48179371,
+        "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+      },
+      "metadataOnly": [],
+      "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+    },
+    {
+      "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+      "logical": {
+        "files": 3497,
+        "bytes": 75292558,
+        "sha256": "101679a28f9b302d6d17553344cbc427807a0510c66246fff3162cb86e033b3e"
+      },
+      "physical": {
+        "files": 3496,
+        "bytes": 75283327,
+        "sha256": "60a11cf540097d742ec2d916414e6b392bf4aa1fa9862919c9ae69138e1e8137"
+      },
+      "metadataOnly": [
+        {
+          "role": "benchmark",
+          "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+          "path": "just-bash/dist/AGENTS.md",
+          "mode": "100644",
+          "bytes": 9231,
+          "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979"
+        }
+      ],
+      "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+    }
+  ],
+  "typing": {
+    "status": "typecheck-passed-not-runtime-acceptance",
+    "productionBuilds": 1,
+    "phases": [
+      {
+        "label": "build",
+        "status": 0
+      },
+      {
+        "label": "source-and-tests",
+        "status": 0
+      },
+      {
+        "label": "historical-build-first-consumer",
+        "status": 0
+      },
+      {
+        "label": "source-consumer-atomic-webdav-profile-source",
+        "status": 0
+      },
+      {
+        "label": "source-consumer-atomic-webdav-independent-source",
+        "status": 0
+      },
+      {
+        "label": "source-consumer-env-split-public-source",
+        "status": 0
+      },
+      {
+        "label": "consumer-du-leaf",
+        "status": 0
+      },
+      {
+        "label": "consumer-grep-aliases-public",
+        "status": 0
+      },
+      {
+        "label": "consumer-column-public",
+        "status": 0
+      },
+      {
+        "label": "consumer-network-zero-caps-public",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex-continuation",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex-followup",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex-production",
+        "status": 0
+      },
+      {
+        "label": "consumer-regex-production-continuation",
+        "status": 0
+      },
+      {
+        "label": "consumer-s3-constructor",
+        "status": 0
+      },
+      {
+        "label": "consumer-s3-http-author",
+        "status": 0
+      },
+      {
+        "label": "consumer-s3-http-independent",
+        "status": 0
+      },
+      {
+        "label": "consumer-s3-rmdir",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-loopback",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-services",
+        "status": 0
+      },
+      {
+        "label": "consumer-stream-inspection",
+        "status": 0
+      },
+      {
+        "label": "consumer-stream-five",
+        "status": 0
+      },
+      {
+        "label": "consumer-time-env-public",
+        "status": 0
+      },
+      {
+        "label": "consumer-time-env-leaf",
+        "status": 0
+      },
+      {
+        "label": "consumer-env-split-public-types",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-atomic",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-atomic-independent",
+        "status": 0
+      },
+      {
+        "label": "consumer-webdav-timestamp-independent",
+        "status": 0
+      },
+      {
+        "label": "negative-env-split-invalid-binding",
+        "status": 2
+      },
+      {
+        "label": "negative-time-env-public-negative",
+        "status": 2
+      },
+      {
+        "label": "negative-time-env-leaf-negative",
+        "status": 2
+      }
+    ],
+    "maintained": [
+      {
+        "name": "du-leaf",
+        "files": [
+          "tests/plugins/qualified-current-release/du-leaf.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "grep-aliases-public",
+        "files": [
+          "tests/commands/grep-aliases/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "column-public",
+        "files": [
+          "tests/plugins/qualified-current-release/current-column.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "network-zero-caps-public",
+        "files": [
+          "tests/commands/network-zero-caps-review/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "regex",
+        "files": [
+          "tests/commands/regex-execution/package-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "regex-continuation",
+        "files": [
+          "tests/commands/regex-execution/continuation/package-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "regex-followup",
+        "files": [
+          "tests/commands/regex-execution/followup/product-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "regex-production",
+        "files": [
+          "tests/stress/regex-execution/production-review/package-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "regex-production-continuation",
+        "files": [
+          "tests/stress/regex-execution/production-continuation-review/package-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "s3-constructor",
+        "files": [
+          "tests/fs/s3/constructor-comparison/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "s3-http-author",
+        "files": [
+          "tests/fs/s3/http/author/public-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "s3-http-independent",
+        "files": [
+          "tests/fs/s3/http-independent/public-workflow.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "s3-rmdir",
+        "files": [
+          "tests/fs/s3/rmdir-independent/public-consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "webdav-loopback",
+        "files": [
+          "tests/fs/webdav/consumer/consumer.test.mts",
+          "tests/fs/webdav/consumer/example.mts",
+          "tests/fs/webdav/consumer/provider.mts",
+          "tests/fs/webdav/consumer/types.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "webdav-services",
+        "files": [
+          "tests/fs/webdav/real-service/consumer.mts",
+          "tests/fs/webdav/real-service/example.mts",
+          "tests/fs/webdav/real-service/https.mts",
+          "tests/fs/webdav/real-service/phase2-consumer.mts",
+          "tests/fs/webdav/real-service-independent/independent.mts",
+          "tests/fs/webdav/real-service-independent/scope-neighbors.mts",
+          "tests/fs/webdav/rmdir-real-service/feasibility.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "stream-inspection",
+        "files": [
+          "tests/integration/stream-inspection-public-author/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "stream-five",
+        "files": [
+          "tests/plugins/stream-five-fixture-migration/public-options.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "time-env-public",
+        "files": [
+          "tests/commands/time-env-stress/fraction-independent/packed/public-positive.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "time-env-leaf",
+        "files": [
+          "tests/commands/time-env-stress/fraction-independent/packed/leaf-positive.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "env-split-public-types",
+        "files": [
+          "tests/shell-stress/env-split-validity/public-types.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "webdav-atomic",
+        "files": [
+          "tests/fs/webdav/atomic-extension/consumer.mts",
+          "tests/fs/webdav/atomic-extension/example.mts",
+          "tests/fs/webdav/atomic-extension/https.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "webdav-atomic-independent",
+        "files": [
+          "tests/fs/webdav/atomic-extension-independent/consumer.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "webdav-timestamp-independent",
+        "files": [
+          "tests/fs/webdav/release-timestamp-independent/independent.test.mts"
+        ],
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      }
+    ],
+    "source": [
+      {
+        "name": "atomic-webdav-profile-source",
+        "files": [
+          "tests/integration/adapter-tools/atomic-webdav-profile/atomic-mock.ts",
+          "tests/integration/adapter-tools/atomic-webdav-profile/controls.ts"
+        ],
+        "qualification": "current public imports use built declarations; explicit source MockDav helper is not a packed-provider proof",
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "atomic-webdav-independent-source",
+        "files": [
+          "tests/integration/adapter-tools/atomic-webdav-profile-independent/hidden.ts"
+        ],
+        "qualification": "current public imports use built declarations; source fixture helpers remain explicit",
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      },
+      {
+        "name": "env-split-public-source",
+        "files": [
+          "tests/shell-stress/env-split-consumer/packed-public-types.ts"
+        ],
+        "qualification": "current public declaration consumer; typing is not env-S runtime acceptance",
+        "status": "pass",
+        "runtime": "not executed: typecheck-only route"
+      }
+    ],
+    "negative": [
+      {
+        "name": "env-split-invalid-binding",
+        "status": "pass",
+        "diagnostics": 1
+      },
+      {
+        "name": "time-env-public-negative",
+        "status": "pass",
+        "diagnostics": 2
+      },
+      {
+        "name": "time-env-leaf-negative",
+        "status": "pass",
+        "diagnostics": 5
+      }
+    ],
+    "runtimeExecutions": 0,
+    "declarations": 208,
+    "metadataSha256": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a",
+    "emittedFiles": 832,
+    "emittedReceiptSha256": "f628eb40fdd27ec3980f98c6b026238b316d345fc0eb759584c0b82d22a675b4",
+    "actualPositiveAudit": [
+      {
+        "nonce": "1a3689de-4e12-40ec-93f0-f5e5614ec859",
+        "pid": 74912,
+        "parent": 74900,
+        "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "compiler": "/private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc",
+        "project": "/private/tmp/unified76-independent-projection-v7-YP7rTB/source/tsconfig.build.json",
+        "cwd": "/private/tmp/unified76-independent-projection-v7-YP7rTB/source",
+        "args": [
+          "-p",
+          "tsconfig.build.json"
+        ],
+        "startedAt": "2026-08-28T05:26:27.565Z"
+      }
+    ]
+  },
+  "duplicate": {
+    "actualCompilerStatus": 0,
+    "events": [
+      {
+        "nonce": "1a3689de-4e12-40ec-93f0-f5e5614ec859",
+        "pid": 74912,
+        "parent": 74900,
+        "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "compiler": "/private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc",
+        "project": "/private/tmp/unified76-independent-projection-v7-YP7rTB/source/tsconfig.build.json",
+        "cwd": "/private/tmp/unified76-independent-projection-v7-YP7rTB/source",
+        "args": [
+          "-p",
+          "tsconfig.build.json"
+        ],
+        "startedAt": "2026-08-28T05:26:27.565Z"
+      },
+      {
+        "nonce": "1a3689de-4e12-40ec-93f0-f5e5614ec859",
+        "pid": 76716,
+        "parent": 72302,
+        "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "compiler": "/private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc",
+        "project": "/private/tmp/unified76-independent-projection-v7-YP7rTB/source/tsconfig.build.json",
+        "cwd": "/private/tmp/unified76-independent-projection-v7-YP7rTB/source",
+        "args": [
+          "-p",
+          "/private/tmp/unified76-independent-projection-v7-YP7rTB/source/tsconfig.build.json"
+        ],
+        "startedAt": "2026-08-28T05:28:31.341Z"
+      }
+    ],
+    "refusal": {
+      "label": "real-duplicate-audit",
+      "expected": "throw/HOLD",
+      "error": {
+        "message": "unexpected duplicate driver production build",
+        "code": "ERR_ASSERTION"
+      }
+    },
+    "meaning": "Second real production compiler finishes0; actual default audit throws, caught by negative control. Not a CLI78 claim."
+  },
+  "observer": {
+    "subcontrols": [
+      {
+        "id": "inner-ps-and-write-fences",
+        "status": "PASS"
+      },
+      {
+        "id": "foreign-pid-registration-refused",
+        "status": "PASS"
+      },
+      {
+        "id": "unknown-handle-refused",
+        "status": "PASS"
+      },
+      {
+        "id": "wrong-channel-token-refused",
+        "status": "PASS"
+      },
+      {
+        "id": "positive-exact-backslash-and-contained-link",
+        "status": "PASS"
+      },
+      {
+        "id": "traversal",
+        "status": "PASS"
+      },
+      {
+        "id": "git-metadata",
+        "status": "PASS"
+      },
+      {
+        "id": "duplicate-entry",
+        "status": "PASS"
+      },
+      {
+        "id": "link-ancestor",
+        "status": "PASS"
+      },
+      {
+        "id": "wrong-platform",
+        "status": "PASS"
+      },
+      {
+        "id": "wrong-size-header",
+        "status": "PASS"
+      },
+      {
+        "id": "missing-object-header",
+        "status": "PASS"
+      },
+      {
+        "id": "escaping-link",
+        "status": "PASS"
+      }
+    ],
+    "groups": [
+      {
+        "pid": 76945,
+        "parent": 76926,
+        "group": 76945,
+        "born": "Fri Aug 28 00:28:57 2026",
+        "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+      },
+      {
+        "pid": 76951,
+        "parent": 76926,
+        "group": 76951,
+        "born": "Fri Aug 28 00:28:57 2026",
+        "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+      },
+      {
+        "pid": 76956,
+        "parent": 76926,
+        "group": 76956,
+        "born": "Fri Aug 28 00:28:58 2026",
+        "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+      },
+      {
+        "pid": 76970,
+        "parent": 76926,
+        "group": 76970,
+        "born": "Fri Aug 28 00:28:58 2026",
+        "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects cat-file --batch"
+      }
+    ],
+    "foreignBefore": {
+      "pid": 76923,
+      "parent": 72302,
+      "group": 76923,
+      "born": "Fri Aug 28 00:28:57 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node -e process.stdout.write(\"READY\\n\");setInterval(()=>{},1000)"
+    },
+    "foreignAfter": {
+      "pid": 76923,
+      "parent": 72302,
+      "group": 76923,
+      "born": "Fri Aug 28 00:28:57 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node -e process.stdout.write(\"READY\\n\");setInterval(()=>{},1000)"
+    },
+    "outerStatus": {
+      "status": 0,
+      "signal": null
+    },
+    "instructionWrites": []
+  },
+  "bounds": {
+    "plan": {
+      "wholeExecutionMs": 2400000,
+      "phaseMs": 360000,
+      "setupChildMs": 600000,
+      "cleanupMs": 5000,
+      "chunkBytes": 65536,
+      "metadataBytes": 16777216,
+      "childCaptureBytes": 67108864,
+      "rawEvidenceBytes": 268435456,
+      "temporaryBytes": 8589934592,
+      "opaqueGitBytes": 4294967296,
+      "archiveBytes": 4294967296,
+      "smallTransportBytes": 1048576
+    },
+    "actualDriver": {
+      "phasePositiveOutputBytes": 268435456,
+      "setupStderrBytes": 1048576,
+      "setupTimeoutMs": 600000,
+      "historyTransferBytes": 8589934592,
+      "chunkBytes": 65536
+    },
+    "reviewEnforcement": {
+      "phaseTimeoutMs": 360000,
+      "duplicateOutputBytes": 67108864,
+      "opaqueStreamBytes": 4294967296,
+      "archiveStreamBytes": 4294967296,
+      "workBytes": 8589934592,
+      "rawBytes": 268435456,
+      "observerEachOutputBytes": 1048576,
+      "observerMs": 60000,
+      "diskSamplingMs": 10000
+    },
+    "measured": {
+      "peakWorkBytes": 2990062273,
+      "peakRawBytes": 55869558,
+      "finalRawBytes": 74821731
+    },
+    "qualification": "The plan64MiB child cap is passed to duplicate supervise, not configurable in frozen positive phaseRunner, whose actual256MiB cap remains. Positive captured output stayed below64MiB. Both are finite; no universal64MiB, hard-RSS/kernel-deadline/fullOS claim. Whole40min watchdog begins after bounded external setup."
+  },
+  "limitations": [
+    "No fullgate/valid --run/native semantics/private engine/runtime consumer suite/new package.",
+    "Literal physical AGENTS-presence negative not materialized; safe metadata negatives and actual benign-extra physical rejection are separate.",
+    "Archive digest negatives use an independent static predicate on two actual full archive streams; frozen extraction API consumes verified Git blobs, not an archive hash argument.",
+    "Complete original history remains a separate isolated store during review; full runner places history in its source .git. That final full14phase composition is unexecuted.",
+    "Fresh final launch must recheck runtime/tool/native/dependency/support/permission/loader/private prerequisites under new root release."
+  ],
+  "sevenNew76Proofs": [
+    {
+      "id": "binding-complete",
+      "status": "HOLD_NEW_ROOT_RELEASE_AND_FULLGATE_UNEXECUTED"
+    },
+    {
+      "id": "binding-pending-template",
+      "status": "NEW_BOUNDED_API_REFUSAL"
+    },
+    {
+      "id": "binding-mutable-head",
+      "status": "PRIOR_BOUNDED_REFUSAL_NOT_RERUN"
+    },
+    {
+      "id": "binding-missing-asset",
+      "status": "PRIOR_BOUNDED_REFUSAL_NOT_RERUN"
+    },
+    {
+      "id": "binding-missing-classification",
+      "status": "PRIOR_BOUNDED_REFUSAL_NOT_RERUN"
+    },
+    {
+      "id": "binding-missing-cleanup-manifest",
+      "status": "PRIOR_BOUNDED_REFUSAL_NOT_RERUN"
+    },
+    {
+      "id": "binding-skipped-case",
+      "status": "PRIOR_BOUNDED_REFUSAL_NOT_RERUN"
+    }
+  ],
+  "publicPrerequisites": "HTML/DU/Expr accepted by root8dd78d7d, not pending; old source release not transferred",
+  "original22Ledger": "Unchanged21 inherited+1 scoped5c32 history; not rerun here",
+  "stoppedFullGateHistory": "a9ec3561/31d354e8 remains0/14 before materialization; no rescore",
+  "package": {
+    "sha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "freshPack": false,
+    "lineage": "Same f5/base44/source tree and exact832 emit receipt; prior independent c109 pack proof carried only as history"
+  },
+  "scopedDriverAcceptance": "QUALIFIED_PROJECTION_SHARED_A10_OUTER_OBSERVER",
+  "rootRelease": "HOLD_NEW_AUTHORIZATION_ABSENT",
+  "fullGateLaunched": false,
+  "cleanup": {
+    "temporaryRemoved": true,
+    "stagedDriverRemoved": true,
+    "prior220Unchanged": true,
+    "recordedSurvivors": 0
+  }
+}

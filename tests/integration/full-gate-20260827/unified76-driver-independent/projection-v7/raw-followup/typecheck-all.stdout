@@ -1,0 +1,37 @@
+
+> virtual-bash@0.0.0 typecheck:all
+> node scripts/typecheck.mjs --build --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/raw-followup/typecheck-all
+
+typecheck: build: exit 0
+typecheck: source-and-tests: exit 0
+typecheck: historical-build-first-consumer: exit 0
+typecheck: source-consumer-atomic-webdav-profile-source: exit 0
+typecheck: source-consumer-atomic-webdav-independent-source: exit 0
+typecheck: source-consumer-env-split-public-source: exit 0
+typecheck: consumer-du-leaf: exit 0
+typecheck: consumer-grep-aliases-public: exit 0
+typecheck: consumer-column-public: exit 0
+typecheck: consumer-network-zero-caps-public: exit 0
+typecheck: consumer-regex: exit 0
+typecheck: consumer-regex-continuation: exit 0
+typecheck: consumer-regex-followup: exit 0
+typecheck: consumer-regex-production: exit 0
+typecheck: consumer-regex-production-continuation: exit 0
+typecheck: consumer-s3-constructor: exit 0
+typecheck: consumer-s3-http-author: exit 0
+typecheck: consumer-s3-http-independent: exit 0
+typecheck: consumer-s3-rmdir: exit 0
+typecheck: consumer-webdav-loopback: exit 0
+typecheck: consumer-webdav-services: exit 0
+typecheck: consumer-stream-inspection: exit 0
+typecheck: consumer-stream-five: exit 0
+typecheck: consumer-time-env-public: exit 0
+typecheck: consumer-time-env-leaf: exit 0
+typecheck: consumer-env-split-public-types: exit 0
+typecheck: consumer-webdav-atomic: exit 0
+typecheck: consumer-webdav-atomic-independent: exit 0
+typecheck: consumer-webdav-timestamp-independent: exit 0
+typecheck: negative-env-split-invalid-binding: exit 2
+typecheck: negative-time-env-public-negative: exit 2
+typecheck: negative-time-env-leaf-negative: exit 2
+{"status":"typecheck-passed-not-runtime-acceptance","builds":1,"currentConsumerGroups":23,"runtimeExecutions":0,"cleaned":true}

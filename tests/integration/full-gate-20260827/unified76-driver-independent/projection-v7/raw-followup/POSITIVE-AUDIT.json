@@ -1,0 +1,16 @@
+[
+  {
+    "nonce": "1a3689de-4e12-40ec-93f0-f5e5614ec859",
+    "pid": 74912,
+    "parent": 74900,
+    "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "compiler": "/private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc",
+    "project": "/private/tmp/unified76-independent-projection-v7-YP7rTB/source/tsconfig.build.json",
+    "cwd": "/private/tmp/unified76-independent-projection-v7-YP7rTB/source",
+    "args": [
+      "-p",
+      "tsconfig.build.json"
+    ],
+    "startedAt": "2026-08-28T05:26:27.565Z"
+  }
+]

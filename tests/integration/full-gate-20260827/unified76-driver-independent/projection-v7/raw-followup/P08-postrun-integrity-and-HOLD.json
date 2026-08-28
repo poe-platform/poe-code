@@ -1,0 +1,23 @@
+{
+  "id": "P08-postrun-integrity-and-HOLD",
+  "startedAt": "2026-08-28T05:29:03.804Z",
+  "evidence": {
+    "sourceGuardPassed": true,
+    "appendProof": true,
+    "instructionFiles": [],
+    "completeLogicalInputCount": 37397,
+    "physicalCandidateFiles": 37392,
+    "rootRefusal": {
+      "label": "no-new-root-release",
+      "expected": "throw/HOLD",
+      "error": {
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'PENDING_ROOT_RELEASE_UNIFIED76'\n- 'ROOT_RELEASE_UNIFIED76'\n",
+        "code": "ERR_ASSERTION"
+      }
+    },
+    "publicPrerequisites": "Root accepted HTML/DU/Expr; not a new release",
+    "fullGateLaunched": false
+  },
+  "status": "PASS",
+  "finishedAt": "2026-08-28T05:29:26.150Z"
+}

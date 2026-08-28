@@ -1,0 +1,305 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+  "args": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+    "run",
+    "typecheck:all",
+    "--",
+    "--report",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/raw-followup/typecheck-all"
+  ],
+  "cwd": "/private/tmp/unified76-independent-projection-v7-YP7rTB/source",
+  "pid": 74879,
+  "status": 0,
+  "signal": null,
+  "timedOut": false,
+  "outputExceeded": false,
+  "closed": true,
+  "elapsedMs": 51688,
+  "timeoutMs": 360000,
+  "outputBytes": 1854,
+  "observed": [
+    {
+      "pid": 74879,
+      "parent": 72302,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:27 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js run typecheck:all -- --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/raw-followup/typecheck-all"
+    },
+    {
+      "pid": 74900,
+      "parent": 74879,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:27 2026",
+      "command": "node scripts/typecheck.mjs --build --report /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/raw-followup/typecheck-all"
+    },
+    {
+      "pid": 74912,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:27 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p tsconfig.build.json"
+    },
+    {
+      "pid": 74972,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:31 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc --noEmit"
+    },
+    {
+      "pid": 75185,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:45 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc --noEmit -p tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json"
+    },
+    {
+      "pid": 75209,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:46 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/atomic-webdav-profile-source.json --traceResolution"
+    },
+    {
+      "pid": 75242,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:47 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/atomic-webdav-independent-source.json --traceResolution"
+    },
+    {
+      "pid": 75260,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:48 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/env-split-public-source.json --traceResolution"
+    },
+    {
+      "pid": 75290,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:50 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/du-leaf/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75304,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:51 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/grep-aliases-public/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75325,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:52 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/column-public/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75339,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:53 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/network-zero-caps-public/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75348,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:54 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/regex/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75380,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:55 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/regex-continuation/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75397,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:56 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/regex-followup/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75412,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:57 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/regex-production/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75435,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:26:59 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/regex-production-continuation/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75453,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:00 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/s3-constructor/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75482,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:01 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/s3-http-author/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75505,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:02 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/s3-http-independent/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75520,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:03 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/s3-rmdir/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75530,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:04 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/webdav-loopback/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75548,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:05 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/webdav-services/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75566,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:06 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/stream-inspection/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75588,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:07 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/stream-five/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75604,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:08 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/time-env-public/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75627,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:10 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/time-env-leaf/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75647,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:11 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/env-split-public-types/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75664,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:12 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/webdav-atomic/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75679,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:13 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/webdav-atomic-independent/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75695,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:14 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/webdav-timestamp-independent/tsconfig.json --traceResolution"
+    },
+    {
+      "pid": 75712,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:15 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/env-split-public-types/negative.json"
+    },
+    {
+      "pid": 75722,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:16 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/time-env-public/negative.json"
+    },
+    {
+      "pid": 75743,
+      "parent": 74900,
+      "group": 74879,
+      "born": "Fri Aug 28 00:27:17 2026",
+      "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-independent-projection-v7-YP7rTB/source/node_modules/typescript/bin/tsc -p /private/tmp/unified76-independent-projection-v7-YP7rTB/tmp/safe-bash-typecheck-kOuTf9/consumer/time-env-leaf/negative.json"
+    }
+  ],
+  "signals": [],
+  "survivors": [],
+  "listeners": [],
+  "cleanupRequired": false,
+  "clean": true,
+  "label": "typecheck-all",
+  "expectedStatus": 0,
+  "loaderPolicy": "outer authenticated source guard and production-build invocation audit; child harnesses with explicit environments retain their separately declared fences",
+  "observedNodeExecutables": [
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+  ]
+}

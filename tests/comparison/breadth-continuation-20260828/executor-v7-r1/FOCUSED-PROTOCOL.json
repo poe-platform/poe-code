@@ -1,0 +1,13 @@
+{
+  "schema": "V7_R1_PRESEALED_FOCUSED_CONTINUATION",
+  "attempts": 1,
+  "runId": "focused-r1-01",
+  "permission": "DATA_AND_SOURCE_READ_ONLY_NO_ENGINE_IMPORT_OR_CHILD_LAUNCH",
+  "cases": [
+    { "id": "G08-r1", "positive": "Authenticate exact existing V6 comparator source projection with source mode 0444 and consumer 0644", "negatives": ["wrong-parent", "missing-parent", "wrong-entry", "wrong-engine", "wrong-mode", "wrong-hash"], "oldG08": "FAIL remains" },
+    { "id": "B16-r1", "positive": "Authenticate archived actual B16 exit1/close1/reaped raw receipt; distinguish integer final-report child count from terminal child array", "negatives": ["integer-count-missing", "integer-count-array", "integer-count-nonzero", "wrong-operation", "wrong-exit", "capture-incomplete"], "timing": "POST_CAPTURE; no new actual CLI run", "oldB16": "FAIL remains" }
+  ],
+  "bounds": { "families": 2, "positive": 2, "negative": 12, "children": 0, "engineImports": 0, "oldSpaceMiB": 256, "recordBytes": 262144, "outputBytes": 8192, "evidenceBytes": 1048576, "archiveInflatedBytes": 67108864 },
+  "noOldCohortRerun": true,
+  "noOldRescore": true
+}

@@ -1,0 +1,133 @@
+{
+  "schema": "V7_R1_EXPLICIT_DELTA",
+  "oldPreseal": "0036d968",
+  "oldEvidence": "d180c3e4",
+  "oldResult": "31/33, two failures, zero unrun; unchanged",
+  "onlySemanticSourceChange": "Comparator source binding 0644 to exact frozen 0444",
+  "newRoot": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r1",
+  "deltas": [
+    {
+      "path": "bootstrap.mjs",
+      "oldSha256": "25bf287ed9739e6928932518f895a0892e5c69c92010742008ea1b13f281fda0",
+      "newSha256": "5104b893860638beb026acac1526f677eb2861a6a2c354e58818cdf51bc04ffd",
+      "bytesIdentical": false,
+      "change": "Exact projected comparator-source mode 0444; consumer remains 0644. No hash/source/capability change."
+    },
+    {
+      "path": "worker.mjs",
+      "oldSha256": "49b94d72285c0e3d60189819d0f718e8efd470ec0837b3ba9d32d9fef37c13a4",
+      "newSha256": "49b94d72285c0e3d60189819d0f718e8efd470ec0837b3ba9d32d9fef37c13a4",
+      "bytesIdentical": true,
+      "change": "Only entrypoint location changes; exact original source bytes."
+    },
+    {
+      "path": "synthetic-worker.mjs",
+      "oldSha256": "51f3830fa149b4b3226d9b1fe2b50d7b73dec20c883af51277211e8711c053af",
+      "newSha256": "51f3830fa149b4b3226d9b1fe2b50d7b73dec20c883af51277211e8711c053af",
+      "bytesIdentical": true,
+      "change": "Only entrypoint location changes; exact original source bytes."
+    },
+    {
+      "path": "coordinator.mjs",
+      "oldSha256": "92a63edc9bfd79daea0e5f3eef82f2e5c133affec8b7a4ea055a5f33cdd86074",
+      "newSha256": "92a63edc9bfd79daea0e5f3eef82f2e5c133affec8b7a4ea055a5f33cdd86074",
+      "bytesIdentical": true,
+      "change": "Only entrypoint location changes; exact original source bytes."
+    },
+    {
+      "path": "launch.mjs",
+      "oldSha256": "928900c9e495763a45ac2a9860aec6b3d3d82a679ea9649eb72a2c1481bf20ed",
+      "newSha256": "928900c9e495763a45ac2a9860aec6b3d3d82a679ea9649eb72a2c1481bf20ed",
+      "bytesIdentical": true,
+      "change": "Only entrypoint location changes; exact original source bytes."
+    },
+    {
+      "path": "authorization.mjs",
+      "oldSha256": "bf0c0d1dc58a634606c16911b7ffd82ef0259ac963463bd1020f9796ecca1bd1",
+      "newSha256": "bf0c0d1dc58a634606c16911b7ffd82ef0259ac963463bd1020f9796ecca1bd1",
+      "bytesIdentical": true,
+      "change": "Only entrypoint location changes; exact original source bytes."
+    },
+    {
+      "path": "production.mjs",
+      "oldSha256": "663cff7f5d4ba5ca4a4c5dc53e9cd4aed9f34aabefcb6d8803fbf4c5ca8c5fc9",
+      "newSha256": "663cff7f5d4ba5ca4a4c5dc53e9cd4aed9f34aabefcb6d8803fbf4c5ca8c5fc9",
+      "bytesIdentical": true,
+      "change": "Only entrypoint location changes; exact original source bytes."
+    },
+    {
+      "path": "OPERATION-PLAN.json",
+      "oldSha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4",
+      "newSha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4",
+      "bytesIdentical": true,
+      "change": "Only entrypoint location changes; exact original source bytes."
+    },
+    {
+      "path": "body.mjs",
+      "change": "Explicit shared immutable harness component; not engine fallback",
+      "origin": "../executor-v7/body.mjs",
+      "originSha256": "4229b7321846720a453340fc9a12d1271ece51588fccbaee7aa44fab4ff2f336"
+    },
+    {
+      "path": "outer.mjs",
+      "change": "Explicit shared immutable harness component; not engine fallback",
+      "origin": "../executor-v7/outer.mjs",
+      "originSha256": "ad29e8d1407a65d6bf11713aa1a4b81a61bdba51b1f75015926c9f809b810eb8"
+    },
+    {
+      "path": "records.mjs",
+      "change": "Explicit shared immutable harness component; not engine fallback",
+      "origin": "../executor-v7/records.mjs",
+      "originSha256": "2770061597fe434980dbf5f4843c6c94e364ecc163f41938f39cfe3530c9dba1"
+    },
+    {
+      "path": "evidence.mjs",
+      "change": "Explicit shared immutable harness component; not engine fallback",
+      "origin": "../executor-v7/evidence.mjs",
+      "originSha256": "1134b9244963e528207dd53ca91c45500783dcdbc6d20a9c932df05eca045bfa"
+    },
+    {
+      "path": "report.mjs",
+      "change": "Explicit shared immutable harness component; not engine fallback",
+      "origin": "../executor-v7/report.mjs",
+      "originSha256": "16407f6f93796ce4b5ed0ec0fc0b217accb3f259e3594f23abef5b3f8452df77"
+    },
+    {
+      "path": "schema.mjs",
+      "change": "Explicit shared immutable harness component; not engine fallback",
+      "origin": "../executor-v7/schema.mjs",
+      "originSha256": "37fc2c5ef2c36157c4e617fb611950018265376ac3d1ef7b4632207a0be3ff3e"
+    },
+    {
+      "path": "projection.mjs",
+      "change": "Explicit shared immutable harness component; not engine fallback",
+      "origin": "../executor-v7/projection.mjs",
+      "originSha256": "2d2a2b6d76a4b6af24320616565213a71f8946bf71bb7ad5a451ed63906aed3e"
+    },
+    {
+      "path": "loader.mjs",
+      "change": "Explicit shared immutable harness component; not engine fallback",
+      "origin": "../executor-v7/loader.mjs",
+      "originSha256": "14ae547b7be6c660fb534f4ade6b4e05dbc42688cc38a7f09653bc9d98b61ba5"
+    },
+    {
+      "path": "transport.mjs",
+      "change": "Explicit shared immutable harness component; not engine fallback",
+      "origin": "../executor-v7/transport.mjs",
+      "originSha256": "a67cb1e335dc7b5f60cecd4c868e714701277b766f8ced0feb499df2202917b7"
+    },
+    {
+      "path": "supervisor.mjs",
+      "change": "Explicit shared immutable harness component; not engine fallback",
+      "origin": "../executor-v7/supervisor.mjs",
+      "originSha256": "3c65a42409bee8ab89237d0ec7841d1caf0248fd29bf52784db76ab90e7428b6"
+    },
+    {
+      "path": "launch-ledger.mjs",
+      "change": "Explicit shared immutable harness component; not engine fallback",
+      "origin": "../executor-v7/launch-ledger.mjs",
+      "originSha256": "9bc354d736ccdbd4bd4df01c7a4e7baf5fc1e8aa1673647f851317bd1761f940"
+    }
+  ],
+  "observerCorrection": "B16 final report children is an integer, while terminal children is an array. Use distinct own-data schemas and post-capture qualification; no old invocation rerun."
+}

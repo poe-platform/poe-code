@@ -1,0 +1,194 @@
+{
+  "schema": 2,
+  "state": "SEALED_CORRECTED_DATA_BOUND_ADMISSION_DENY",
+  "presealCommit": "60773512b1985f6bc631d153b1be87b289342070",
+  "evidenceCommit": "e729a5ab8776ea768d10e6107692149989b2511d",
+  "finalSeal": {
+    "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FINAL-SEAL.json",
+    "sha256": "26d8efbb48aed8e93a54b325e832c5350139da4fe1269b2288fbf5afde707678",
+    "bytes": 6776
+  },
+  "routing": {
+    "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/ROUTING-INDEX.json",
+    "sha256": "4928d5d874b42f41cf625f32355aa6fefe7965b90842183ed744d08ac472b5dd",
+    "bytes": 7945
+  },
+  "receipts": {
+    "sourceAuthority": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-AUTHORITY.proposed.json",
+      "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+      "bytes": 3766
+    },
+    "source": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-RECEIPT.proposed.json",
+      "sha256": "a501a598f6b6245e5faef02e1aa195a2d664e1fc0627e42ac5349237263385f5",
+      "bytes": 1408
+    },
+    "full": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FULL-RECEIPT.proposed.json",
+      "sha256": "4187da231bb328cc2bead131ca67d9527beb0ecf7d8a6cf9b26d4d0b16d34b02",
+      "bytes": 7455
+    },
+    "boundAuthorBuild": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/AUTHOR-ARTIFACT-RECEIPT.json",
+      "sha256": "0bfeeed2c879a882941239506199c07ef6d93bb8d91085c61576af8df3abccb5",
+      "bytes": 1368
+    }
+  },
+  "composition": {
+    "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/COMPOSITION.json",
+    "sha256": "11ed97c58bc06b5bdce88fb6b423d2693742e054cf11df6de49aebd029230b4f",
+    "bytes": 25587
+  },
+  "sourceBase": {
+    "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+    "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/SOURCE-BASE.json",
+    "blob": "fc6aecc13d0a34af94a6388b76ab4fd6baa29694",
+    "sha256": "75acd3804802c92aabf77bab12a27e61a15468341af8022338a1c68d028c4043",
+    "bytes": 63100,
+    "mode": 420
+  },
+  "baselinePackage": {
+    "revision": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+    "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/BASELINE-PACKAGE.json",
+    "blob": "4d22dee58266c336baa90118e85e63cc44f58fb8",
+    "sha256": "8ba0f0aa078a213b96ee54a25db773b68b2795a740d17acb9e3bf5b40b4608d7",
+    "bytes": 116848,
+    "mode": 420
+  },
+  "schemas": {
+    "sourceAuthoritySchema": 2,
+    "sourceReceiptSchema": 1,
+    "sourceReceiptExactKeys": [
+      "acceptedLength",
+      "candidateCommit",
+      "schema",
+      "sourceAdditions",
+      "sourceBase"
+    ],
+    "fullReceiptSchema": 1,
+    "fullReceiptExactKeys": [
+      "acceptedLength",
+      "allowedBuiltins",
+      "buildReceipt",
+      "candidateCommit",
+      "entries",
+      "packageAdditions",
+      "packageDirectories",
+      "schema",
+      "sourceAdditions",
+      "sourceBase"
+    ],
+    "descriptorKeys": [
+      "bytes",
+      "mode",
+      "sha256"
+    ],
+    "apiReview": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/API-BINDING-REVIEW.json",
+      "sha256": "c76d13ee0cd443bbbf1eab292eb46bef9b332e1527a7119e47e7735b5c24c737",
+      "bytes": 4864
+    }
+  },
+  "maps": {
+    "sourceArchive": {
+      "entries": 273,
+      "sha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+      "role": "Full archive; retains two baseline support files outside consumer projection",
+      "packetReference": {
+        "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+        "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/COMPOSITION.json",
+        "sha256": "11ed97c58bc06b5bdce88fb6b423d2693742e054cf11df6de49aebd029230b4f",
+        "bytes": 25587
+      },
+      "pointer": "/archive"
+    },
+    "sourceProjection": {
+      "entries": 271,
+      "mapSha256": "9b0e0d62ea50eea55ef9ff4bff9e4bcef9cba6b73e416793bee6956666171002",
+      "runtimeTreeProfileSha256": "7115663d90bda97b29adf26aaaffb4e7f3861df9e8b1c73f5e2115f8b70cd8d3",
+      "construction": "SOURCE-BASE264 descriptors projected to sha256/bytes/mode plus seven sourceAdditions",
+      "materializedRoot": null
+    },
+    "fullPackage": {
+      "entries": 870,
+      "mapSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321",
+      "runtimeTreeProfileSha256": "ab2cdcb1882596a57a463bff3d62cc292b4363fd3abac44db0621acb17856ea1",
+      "construction": "BASELINE-PACKAGE846 plus24 packageAdditions and exact44 directory mode descriptors",
+      "baselineREADME": {
+        "path": "README.md",
+        "sourceRevision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+        "sourceBlob": "c3df8bd958d07298f5df85e0a81ec73589123742",
+        "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1",
+        "bytes": 36273,
+        "mode": 420,
+        "independentlyCompared": true
+      },
+      "materializedRoot": null
+    },
+    "canonicalHashProfile": "Recursive object-key sort, array order preserved, JSON.stringify with no whitespace; source map hashes files alone, package map hashes {files,directories}. Data schema, not tree materialization proof."
+  },
+  "wholeCandidateGit": {
+    "commit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+    "tree": "7d573d3214404f98f9664c79c16f1d7e9ce5d05e",
+    "productScopeEntries": 301,
+    "extraPathsVersusProjection": 30,
+    "differentSelectedPaths": 8,
+    "sameAsSelectedProjection": false
+  },
+  "tools": {
+    "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/TOOLCHAIN-AND-PROOF-ROLES.json",
+    "sha256": "b5ef3247d489bfc5edcc78f98b597711598e203a1601f56fa431a9fc801c849b",
+    "bytes": 4800
+  },
+  "build": {
+    "classification": "BOUND_AUTHOR_BUILD",
+    "proofRole": "AUTHOR_ARTIFACT_BINDING_ONLY",
+    "independentlyCompiled": false,
+    "rootTrusted": false,
+    "fullReceiptBuildPointer": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/AUTHOR-ARTIFACT-RECEIPT.json",
+      "sha256": "0bfeeed2c879a882941239506199c07ef6d93bb8d91085c61576af8df3abccb5"
+    },
+    "requirement": "Future fresh independent build receipt must be independently bound into a new full execution receipt; do not rewrite this packet or relabel its author receipt."
+  },
+  "historicalModeGate": {
+    "state": "DENY_MODE_AUTHORITY_MISSING",
+    "authority": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/MODE-AUTHORITY.json",
+      "sha256": "b1d05bb9ad80a8bc432742dba561fadead341bb74bdab8940d2ad16e7721aacd",
+      "bytes": 4927
+    },
+    "history": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/HISTORY-PRESERVATION.json",
+      "sha256": "3ed4d53f010eb04165f711b758fd8d5c117887d95db4f207413e0ff1619b9621",
+      "bytes": 15621
+    },
+    "denials": [
+      {
+        "revision": "90a633e89d35085183a1d57716451438335b93f3",
+        "scope": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1",
+        "path": "FINAL-SEAL.json",
+        "reason": "MODE_AUTHORITY_MISSING",
+        "goldenPosixModeVerified": false
+      }
+    ],
+    "qualification": "Prior b8 v1 self-excluded FINAL-SEAL.json has no located committed original POSIX-mode authority. Its raw Git bytes/class and observed full before/after mode/membership are checked, but missing original-mode admission explicitly rejects. Do not infer mode or waive this denial.",
+    "remedy": "Locate authentic committed original POSIX-mode authority for the named prior v1 FINAL-SEAL.json before this gate can admit. Observed live mode, normalized Git100644 and a newly guessed default do not close it.",
+    "waived": false
+  },
+  "actualGuardsInvoked": 0,
+  "actualMaterializations": 0,
+  "RootGO": false
+}

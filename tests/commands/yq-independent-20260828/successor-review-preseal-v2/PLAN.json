@@ -1,0 +1,151 @@
+{
+  "schema": 2,
+  "date": "2026-08-28",
+  "state": "BOUND_CANDIDATE_PROPOSAL_NOT_READY_TO_RUN",
+  "RootGO": false,
+  "executionAuthorized": false,
+  "predecessor": {
+    "source": "5b121e0c5e136a40bc4b277cab686ab0413af527",
+    "evidence": "009c20f812926e4dc7c175b379f85753ff632691",
+    "finalSeal": {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/FINAL-SEAL.json",
+      "sha256": "b29006dedd2d2be64165d6688ed4f451ccb369967a2cac5af97365546128b656",
+      "bytes": 4905
+    },
+    "immutable": true
+  },
+  "inheritance": {
+    "exactData": [
+      {
+        "name": "LEDGER-194.json",
+        "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/LEDGER-194.json",
+        "sha256": "e7cafaa36105dd65501b2c8d35c802729c1da27abc03259eaad5257e1e6590e8",
+        "bytes": 268342
+      },
+      {
+        "name": "OBLIGATIONS.json",
+        "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/OBLIGATIONS.json",
+        "sha256": "03bddefe2f75af7e03345608aab69f47cdfeaeadb7213082d2f8722c15526df3",
+        "bytes": 290553
+      },
+      {
+        "name": "JOBS.json",
+        "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/JOBS.json",
+        "sha256": "ae2969c22e1c3d5d955bf9edf460c9d59db006dd5134bd3b9e50c82a4b741e8f",
+        "bytes": 292256
+      },
+      {
+        "name": "SCHEDULE.json",
+        "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SCHEDULE.json",
+        "sha256": "ff21793f53b42719b9e4bc764b6c00442a49ba75d489699c6dc69835e00a04dc",
+        "bytes": 23015
+      },
+      {
+        "name": "CONTROLS.json",
+        "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/CONTROLS.json",
+        "sha256": "e13b7f31f9809bb61bd966576815d387958d326759973dfcc202413d4705a74f",
+        "bytes": 9247
+      },
+      {
+        "name": "SOURCE-PROOFS.json",
+        "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SOURCE-PROOFS.json",
+        "sha256": "02d27ea317f1f4877279385097e3639892ee6be5d96c48c3b6a03ac5a3a6ca83",
+        "bytes": 13072
+      },
+      {
+        "name": "REQUEST-ROUTING.json",
+        "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+        "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/REQUEST-ROUTING.json",
+        "sha256": "aa33b1e1f8789d9b0067017d82d8a967ab36e02b1da9924316a3dd4aedb7de5e",
+        "bytes": 6008
+      }
+    ],
+    "rule": "Inherit exact v1 ledger/obligations/control/runtime jobs, then apply SCHEDULE-DELTA.json added source-type job, ledger job links and explicit cutoff/tool/resource/document overrides. No frozen runtime expected data or missing obligation changes.",
+    "scheduleDelta": "SCHEDULE-DELTA.json"
+  },
+  "cohort": {
+    "originalIds": 194,
+    "overlappingOverlays": 8,
+    "roles": {
+      "command-semantic-runtime": 111,
+      "admission-error-boundary": 34,
+      "source-static-counterproof": 23,
+      "lifecycle-cooperative": 11,
+      "materialized-package-infrastructure": 4,
+      "type-consumer": 5,
+      "negative-control": 6
+    },
+    "runtimePerEnvironment": 149,
+    "uniqueRuntimeIds": 132,
+    "environments": [
+      "source-built-direct",
+      "installed-moved-direct"
+    ],
+    "semanticEligibility": {
+      "completeProjection": 94,
+      "partial": 17
+    },
+    "gapRecords": 80,
+    "missingBindings": 135,
+    "declaredProjectionObligations": 371,
+    "outerSlots": 336,
+    "maxCompilerDescendants": 18,
+    "globalMonotonicCapMs": 24165000,
+    "retries": 0,
+    "semanticPasses": 0,
+    "directTypeFixturesPerEnvironment": 6,
+    "directTypeCompilerInvocations": 12
+  },
+  "deltas": [
+    {
+      "id": "V2-CANDIDATE",
+      "kind": "expected-identity-binding",
+      "change": "Bind root-routed b8f5 source, evidence, handoff and exact raw archive/package hashes; old35da not reused."
+    },
+    {
+      "id": "V2-POST-CANDIDATE-INSPECTION",
+      "kind": "qualification",
+      "change": "Selected source/compiled bodies inspected after candidate arrival. No unseen/pre-code review claim."
+    },
+    {
+      "id": "V2-MUTANT-BYTES",
+      "kind": "existing-control-binding",
+      "change": "Three exact compiled text transformations bind existing four witness slots; no new policy, predicates or jobs."
+    },
+    {
+      "id": "V2-QUOTE-LABEL",
+      "kind": "static-metadata-defect",
+      "change": "V1 slot names call UTF02 double and UTF03 single, but frozen UTF02 starts0x27(single), UTF03 starts0x22(double). Preserve all legacy job IDs and witness bytes; correct display/proof labels only."
+    },
+    {
+      "id": "V2-SS-F01",
+      "kind": "completed-review-scope-correction",
+      "change": "Add missing source-built direct type worker at existing540000ms allocation: +1 outer/+6 compiler/+540000ms. Effective336/18/24165000ms; no reset/retry/semantic change.",
+      "source": {
+        "revision": "4c65ffc48c999cf4c5ea077f4f2f8f40d6a8c830",
+        "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/schedule-review-v1/FINDING-SS-F01.json",
+        "sha256": "5f09e7606f4038c90769ebc1496adb4084142690db39ca0b9a750decda2112e9",
+        "bytes": 4476
+      }
+    }
+  ],
+  "historical": {
+    "actualReview": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+    "parentAggregate": "FAIL_UNCHANGED",
+    "cmd22RawFailurePreserved": true,
+    "unfulfilledJobs": 31,
+    "unrunOldSlots": 134,
+    "oldGO": "CONSUMED",
+    "oldSourceSemanticInheritance": false,
+    "authorResultsInherited": false
+  },
+  "currentImplementation": "No successor runner implemented by this addendum; exact future writes/API status in RECIPE-COMPOSITION.json",
+  "choices": "Review proposal without GO, then separately assign minimal harness versions and bind missing proofs. No new policy decision or implicit run permission."
+}

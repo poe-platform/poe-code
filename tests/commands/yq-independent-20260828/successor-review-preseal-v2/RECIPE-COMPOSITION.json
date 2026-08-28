@@ -1,0 +1,214 @@
+{
+  "schema": 2,
+  "state": "MINIMUM_FUTURE_VERSION_PROPOSAL_NOT_IMPLEMENTED",
+  "inheritedDelta": {
+    "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+    "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/INTEGRATION-DELTA.json",
+    "sha256": "133091278d985b5c39b0aedf56aadde0d19946cd03dc3bf847d3668b91979ba7",
+    "bytes": 6141
+  },
+  "candidatePin": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "cmd22": {
+    "sourceCommit": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+    "independentStaticReview": {
+      "revision": "36a95bae98185e4db381f0f5b9cfce00f8206208",
+      "verdict": "PARTIAL_STATIC_CMD22_PROFILE_COHERENT_PENDING_PACKET_PLAN_NO_GO",
+      "definitions": 31,
+      "executed": 0,
+      "fullSuccessorRecipeAccepted": false
+    },
+    "adaptation": {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/ADAPTATION.json",
+      "sha256": "5390e1a8efe69786af65b9825331cc22e6698f77d0ca4fde0681dd8c94ba943d",
+      "bytes": 3702
+    },
+    "requiredInputHashes": {
+      "assert-capture.mjs": "d4b58ff54cc6caf93b1628d6c51628f5a3ebbc53d71611c1a5748530cef264bd",
+      "context.mjs": "b4827ee8656e9d2a88a23176c9b61b757bf9d4c79f8c46463c5cb579e42e7821",
+      "integrity.mjs": "fc8387f9c1c64a979ffce9a4058ed3a4f199e56ac7a5d7b289f490da23ebe60a"
+    },
+    "edits": [
+      {
+        "before": "import { atomicWrite } from './integrity.mjs';",
+        "after": "import { atomicWrite } from './integrity.mjs';\nimport { assertCmd22ReadPaths } from './cmd22-read-paths.mjs';\nimport cmd22Binding from './cmd22-binding.json' with { type: 'json' };"
+      },
+      {
+        "before": "  if (job.expected.reads) assert.deepEqual(reads.map((event) => event.path), job.expected.reads);",
+        "after": "  if (job.recordId === 'CMD-22') assertCmd22ReadPaths(reads, job, evidence, cmd22Binding);\n  else if (job.expected.reads) assert.deepEqual(reads.map((event) => event.path), job.expected.reads);"
+      }
+    ],
+    "additions": {
+      "cmd22-read-paths.mjs": "read-path-binding.mjs",
+      "cmd22-binding.json": "CMD22-BINDING.json"
+    },
+    "exactOutputHashes": {
+      "assert-capture.mjs": "d2fcd8245b3d95fc73fabd1d3681f614502fdb0bac487be57d9605d53f55f3d0",
+      "cmd22-read-paths.mjs": "d36de36810f3b347a954ced9384851cf22c84358d09976404ed5c59b5476a647",
+      "cmd22-binding.json": "ce3fafdda9008b13d90f23cc48254e0c7592c806b09711f3fcbdca39831efe71"
+    },
+    "api": "prepareCmd22AssertionAdapter({ assertCaptureSource, contextSource, integritySource })",
+    "apiExistsAsAuthoredSource": true,
+    "calledHere": false,
+    "completeRecipe": false,
+    "ordering": [
+      "Authenticate v2 predecessor assert/context/integrity exact inputs and CMD22 source preseal",
+      "In a separately authorized future recipe-materialization stage only, apply its two declared text edits and two additions",
+      "Require exact CMD22 output hashes; leave all non-CMD22 argv/inputs/expected/effects and path comparison unchanged",
+      "Compose new b8 authorization, bounded host/phase/type/loaded wrappers and separately sealed role-aware loader around that fragment",
+      "Bind complete sorted recipe membership/modes/hash and external RootGO before load; CMD22 fragment alone never relaxes candidate fence"
+    ],
+    "unknownObligations": "CMD22 does not close other unknown assertions; raw31 failures remain historical and135 missing obligations remain UNRUN.",
+    "sourceSeal": {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/SOURCE-PRESEAL.json",
+      "sha256": "f6d4c3fb6d307d9b51d605d4fdae38eb7691b958e2c3a2ad2b604de82115de88",
+      "bytes": 4082
+    },
+    "adapterSource": {
+      "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/adapter.mjs",
+      "sha256": "4c32d0f793079986d2fd2882b4db4bb8d9883349f8858b238fedc44dcfb42cea",
+      "bytes": 1846
+    }
+  },
+  "futureWriteSet": [
+    {
+      "scope": "NEW executor-preparation-v1/successor-executor-v1/{coordinator.mjs,owned-stage.mjs,phase-events.mjs,projections.mjs,type-stage.mjs,loaded-stage.mjs,loader.mjs,RECIPE.json}",
+      "status": "PROPOSED_UNASSIGNED_NOT_CREATED",
+      "purpose": "Minimal owner supervision, one-clock phases, capture/classification, scoped type compiler and actual-loaded control adapters."
+    },
+    {
+      "scope": "NEW narrowly versioned runtime authority/host/child overlay and consumer source/package/type authority recipe under separately assigned owners",
+      "status": "PROPOSED_UNASSIGNED_NOT_CREATED",
+      "purpose": "Replace consumed35da pins with exact b8 source composition and corrected packet schemas; expose enclosing absolute deadlines and owned nested-tool registry without changing product or old helpers."
+    },
+    {
+      "scope": "Existing CMD22 source, old integration/runtime/consumers/v1 plan/actual evidence",
+      "status": "READ_ONLY",
+      "purpose": "Exact selected bytes may compose future recipe; no patching history."
+    }
+  ],
+  "apis": [
+    {
+      "name": "startCohort(immutableBindings, absoluteDeadlinePlan)",
+      "implemented": false,
+      "need": "Root receipt/hash gate, one monotonic t0, one owner/supervisor, no restart/resume/implicit retries."
+    },
+    {
+      "name": "runOwnedStage(job, absoluteDeadlines, toolBudget)",
+      "implemented": false,
+      "need": "Whole-record caps from SCHEDULE, independently enforced supervisor and exact tool/group registration, fixed count ceiling; no global reset."
+    },
+    {
+      "name": "capturePhase(event, monotonicTimestamp, jobBinding)",
+      "implemented": false,
+      "need": "Setup starts before authorization, admission ends before factory/import execution, command start/settlement, drain and reap, guard/capture ends. Trusted wrapper emits ordered events, not candidate hooks. No claimed phase proof before implementation/review."
+    },
+    {
+      "name": "classifyCapturedProjection(raw, frozenRecord, obligationBindings)",
+      "implemented": false,
+      "need": "Preserve original expectation data, evaluate separately bound declared aliases, retain every unresolved obligation as UNRUN; no invented prose predicates or product-failure inheritance."
+    },
+    {
+      "name": "runScopedTypes(binding, fixtureSelection, absoluteDeadlines)",
+      "implemented": false,
+      "need": "Six existing direct fixtures independently in each of two environments, separate conditional five public fixtures, raw capture before exact diagnostics and bounded17 type compiler calls; expected-negative compilers inside zero-exit worker."
+    },
+    {
+      "name": "runLoadedMutant(mutantAuthorization, frozenWitness)",
+      "implemented": false,
+      "need": "Fresh separately bound control-package bytes, actual loaded/invoked mutant and unchanged frozen witness; distinguish killed/survived/unloaded. Never relax pristine-candidate guards."
+    }
+  ],
+  "phaseImplementation": {
+    "status": "NOT_IMPLEMENTED",
+    "current30s": "Old whole-child timer includes metadata/auth/materialization/import/semantic work; not an isolated semantic timer.",
+    "proposal": {
+      "implemented": false,
+      "recordOrder": [
+        "owner:slot-reservation-and-phase-start",
+        "worker:setup-start",
+        "worker:source-recipe-package-authenticated",
+        "worker:runtime-admitted",
+        "worker:setup-end",
+        "worker:compiled-import-start",
+        "worker:compiled-import-end",
+        "worker:command-invocation-start",
+        "worker:command-settlement-or-rejection",
+        "worker:cooperative-drain-settled-or-expired",
+        "worker:raw-capture-published",
+        "worker:projection-classification",
+        "worker:receipt-published",
+        "owner:child-exit-and-known-reap",
+        "owner:post-integrity-complete",
+        "owner:next-admission-gate"
+      ],
+      "clockDomain": "Owner timestamps from one monotonic clock; child phase messages are captured observations, not independent authority. Absolute deadlines sent over authenticated job binding; owner remains responsible for enforcement.",
+      "semanticWindow": "30s includes compiled import, invocation and cooperative settlement; no product instrumentation. Setup/admission is separate only after proposed wrapper exists.",
+      "cleanup": "Reserve within slot. Reap can precede postguard; no continuation until both positive. Always raw byte/status capture before any assertion. Escape or unknown reap stops admissions; no opaque preemption guarantee."
+    },
+    "measurementLabels": [
+      "whole-record elapsed",
+      "setup/auth/materialization elapsed",
+      "compiled-import + invocation + cooperative settlement elapsed",
+      "guard/capture elapsed",
+      "cleanup/reap elapsed",
+      "unattributed or missing phase interval"
+    ],
+    "proofLimit": "Only future trusted owner events and independent supervision can establish proposed phases. Historical16.840–27.231s moved totals are not setup measurements. Missing phase timestamps stay UNKNOWN, never inferred from residue."
+  },
+  "schedule": {
+    "baseReference": {
+      "revision": "009c20f812926e4dc7c175b379f85753ff632691",
+      "path": "tests/commands/yq-independent-20260828/successor-review-preseal-v1/SCHEDULE.json",
+      "sha256": "ff21793f53b42719b9e4bc764b6c00442a49ba75d489699c6dc69835e00a04dc",
+      "bytes": 23015
+    },
+    "delta": "SCHEDULE-DELTA.json",
+    "globalMonotonicCapMs": 24165000,
+    "outerSlots": 336,
+    "maxCompilerDescendants": 18,
+    "directTypeFixturesPerEnvironment": 6,
+    "retryAllowance": 0,
+    "changed": true,
+    "changeAuthority": "Completed SS-F01; explicit additive pre-execution plan correction only",
+    "reset": false,
+    "allWorkCharged": true
+  },
+  "buildClassification": "Author-artifact byte identity bound now; fresh independent scoped compile/serialization and explicit source-map relocation required before runtime. No f75035da inheritance.",
+  "runtimeContinuation": "Ordinary assertion or semantic-timeout failures remain sticky FAIL and may continue only with intact guards AND known reap. Source/runtime admission, provenance, integrity or unknown reap failure stops. All actual parent/worker nonzero fail regardless of receipts.",
+  "sourceMembership": "Full archive/projection/package modes and added entries, old moved-tree prefixes and complete recipe/evidence-root guards retained; no performance optimization enabled.",
+  "RootGO": false,
+  "consumerAuthorityComposition": {
+    "sourceAuthority": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-AUTHORITY.proposed.json",
+      "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+      "bytes": 3766
+    },
+    "sourceReceipt": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-RECEIPT.proposed.json",
+      "sha256": "a501a598f6b6245e5faef02e1aa195a2d664e1fc0627e42ac5349237263385f5",
+      "bytes": 1408
+    },
+    "fullReceipt": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FULL-RECEIPT.proposed.json",
+      "sha256": "4187da231bb328cc2bead131ca67d9527beb0ecf7d8a6cf9b26d4d0b16d34b02",
+      "bytes": 7455
+    },
+    "schemaReview": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/API-BINDING-REVIEW.json",
+      "sha256": "c76d13ee0cd443bbbf1eab292eb46bef9b332e1527a7119e47e7735b5c24c737",
+      "bytes": 4864
+    },
+    "minimalNewRoot": "executor-preparation-v1/consumers-b8f5d60d-v1/",
+    "change": "New exact SOURCE-AUTHORITY.json and selected recipe/location seal. Packet static comparison reports guards.mjs can remain byte-identical in the new root; no current guard was called and no acceptance is implied.",
+    "oldGuard": "Old consumers-v2 sourceAuthority remains35da and must reject b8. Never edit old directory.",
+    "buildGate": "Current FULL receipt points to BOUND_AUTHOR_BUILD/independentlyCompiled:false. Fresh independent build needs a new bound full execution receipt before runtime.",
+    "modeGate": "Historical original POSIX-mode authority gap remains mandatory DENY."
+  }
+}

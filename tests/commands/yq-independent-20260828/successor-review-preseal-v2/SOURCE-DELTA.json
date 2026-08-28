@@ -1,0 +1,128 @@
+{
+  "schema": 2,
+  "state": "POST_CANDIDATE_STATIC_SOURCE_BINDING_NOT_REPAIR_ACCEPTANCE",
+  "sourceCommit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "selectedNewOrigins": [
+    {
+      "mode": "100644",
+      "blob": "fc0e889802b40ad49225ce944521aae9942cce09",
+      "path": "src/commands/structured/query-core.ts",
+      "bytes": 22399,
+      "sha256": "d0582961172c95ce39a4bd999e1c8ee7446761786ecfc374b7d54cfd22f49241",
+      "origin": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "oldSourceSha256": "d2501cff9e74757f9e9bd80e1cf78722d321e19a6fb4a5c3e18a29d0e224cf0a",
+      "changedFrom35da": true,
+      "gitDescriptor": "100644 blob fc0e889802b40ad49225ce944521aae9942cce09\tsrc/commands/structured/query-core.ts"
+    },
+    {
+      "mode": "100644",
+      "blob": "e12c88906f219d82750071e2a01e5baa3f0b982e",
+      "path": "src/commands/yq/accounting.ts",
+      "bytes": 9767,
+      "sha256": "63c68a7c7a7c54fa37276ffbb168faeafeca0ab5b217157557171b689e070509",
+      "origin": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "oldSourceSha256": "efebacfc42d9ef15ee8d5366b57aeda41f9af96104d76519611a70d5643dccd0",
+      "changedFrom35da": true,
+      "gitDescriptor": "100644 blob e12c88906f219d82750071e2a01e5baa3f0b982e\tsrc/commands/yq/accounting.ts"
+    },
+    {
+      "mode": "100644",
+      "blob": "20be87d55d7a93004ba0f68665d6320746eb1928",
+      "path": "src/commands/yq/encoder.ts",
+      "bytes": 8394,
+      "sha256": "9e013ee8aadc590ea8aca8e94fb03079eb820b00a76fd05b9fd85ebb4223303f",
+      "origin": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "oldSourceSha256": "77441f383d339d05d4db92a28dd04cd45eda97ad090b82cba808d322e5a151f5",
+      "changedFrom35da": true,
+      "gitDescriptor": "100644 blob 20be87d55d7a93004ba0f68665d6320746eb1928\tsrc/commands/yq/encoder.ts"
+    },
+    {
+      "mode": "100644",
+      "blob": "a1cd0156f38cc4fa53282e34c8a86d4b161de738",
+      "path": "src/commands/yq/errors.ts",
+      "bytes": 2728,
+      "sha256": "92b24e41a6e83d858f8971975665470e238176053fd3936775e02f843079036b",
+      "origin": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "oldSourceSha256": "92b24e41a6e83d858f8971975665470e238176053fd3936775e02f843079036b",
+      "changedFrom35da": false,
+      "gitDescriptor": "100644 blob a1cd0156f38cc4fa53282e34c8a86d4b161de738\tsrc/commands/yq/errors.ts"
+    },
+    {
+      "mode": "100644",
+      "blob": "eb93b148ba25b95dc2e467f03e44c6c3e7159011",
+      "path": "src/commands/yq/index.ts",
+      "bytes": 24198,
+      "sha256": "212673fa3599fa3a0ead59e781197989cb224939ea19e068a9d8c98c3ab24baf",
+      "origin": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "oldSourceSha256": "ffa76c2b111d915973634ff1238a709a9a90b1a5db000c690649519378afb283",
+      "changedFrom35da": true,
+      "gitDescriptor": "100644 blob eb93b148ba25b95dc2e467f03e44c6c3e7159011\tsrc/commands/yq/index.ts"
+    },
+    {
+      "mode": "100644",
+      "blob": "24593a910b88199d4f68fd12ed18c61b1b7d2e6d",
+      "path": "src/commands/yq/parser.ts",
+      "bytes": 45581,
+      "sha256": "c743319c37aa879a351a3c2caa7f68c3376969ea5fb50a3980635281ced6d008",
+      "origin": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "oldSourceSha256": "ec3c47823eca85730af613f460bf98d28182ea28a68473eb7e596dc780334a79",
+      "changedFrom35da": true,
+      "gitDescriptor": "100644 blob 24593a910b88199d4f68fd12ed18c61b1b7d2e6d\tsrc/commands/yq/parser.ts"
+    },
+    {
+      "mode": "100644",
+      "blob": "461ee1f844aae1069914257aa0f6546ddaa65978",
+      "path": "src/commands/yq/README.md",
+      "bytes": 1153,
+      "sha256": "86ee4384987c729d91d9296cf0e40a7ece59a0689149164affa7b5a8554e8ae6",
+      "origin": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "oldSourceSha256": "86ee4384987c729d91d9296cf0e40a7ece59a0689149164affa7b5a8554e8ae6",
+      "changedFrom35da": false,
+      "gitDescriptor": "100644 blob 461ee1f844aae1069914257aa0f6546ddaa65978\tsrc/commands/yq/README.md"
+    }
+  ],
+  "changedPaths": [
+    "src/commands/structured/query-core.ts",
+    "src/commands/yq/accounting.ts",
+    "src/commands/yq/encoder.ts",
+    "src/commands/yq/index.ts",
+    "src/commands/yq/parser.ts"
+  ],
+  "changedCount": 5,
+  "unchangedNewPaths": [
+    "src/commands/yq/errors.ts",
+    "src/commands/yq/README.md"
+  ],
+  "diff": {
+    "from": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+    "to": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+    "paths": [
+      "src/commands/structured/query-core.ts",
+      "src/commands/yq/accounting.ts",
+      "src/commands/yq/encoder.ts",
+      "src/commands/yq/errors.ts",
+      "src/commands/yq/index.ts",
+      "src/commands/yq/parser.ts",
+      "src/commands/yq/README.md"
+    ],
+    "sha256": "c2cc19b5617b92ae35342e71bf20bcaf55ac4e9996afc5eee83d491b7e552668",
+    "bytes": 36924,
+    "sourceOnly": true
+  },
+  "sourceInspection": "All five repaired bodies read as exact Git data after b8 handoff; no source or compiled module import. Source token/order inspection is not public boundary execution.",
+  "fullCohortReplayRequired": true,
+  "privateRuntimeInstrumentation": false,
+  "correctedPacketSourceAuthority": {
+    "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-AUTHORITY.proposed.json",
+    "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+    "bytes": 3766
+  },
+  "packetFivePathDelta": {
+    "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/COMPOSITION.json",
+    "sha256": "11ed97c58bc06b5bdce88fb6b423d2693742e054cf11df6de49aebd029230b4f",
+    "bytes": 25587,
+    "pointer": "/sourceDelta"
+  }
+}

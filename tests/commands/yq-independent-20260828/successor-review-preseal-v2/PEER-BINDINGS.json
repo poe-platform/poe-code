@@ -1,0 +1,88 @@
+{
+  "schema": 2,
+  "correctedPacket": {
+    "state": "COMPLETED_SEALED_V2_DATA_BOUND_OVERALL_ADMISSION_DENY",
+    "marker": "/tmp/yq-repaired-candidate-preseal-v2-ready.txt",
+    "presealCommit": "60773512b1985f6bc631d153b1be87b289342070",
+    "evidenceCommit": "e729a5ab8776ea768d10e6107692149989b2511d",
+    "finalSeal": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FINAL-SEAL.json",
+      "sha256": "26d8efbb48aed8e93a54b325e832c5350139da4fe1269b2288fbf5afde707678",
+      "bytes": 6776
+    },
+    "binding": "PACKET-BINDING.json",
+    "sourceAuthority": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-AUTHORITY.proposed.json",
+      "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+      "bytes": 3766
+    },
+    "sourceReceipt": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-RECEIPT.proposed.json",
+      "sha256": "a501a598f6b6245e5faef02e1aa195a2d664e1fc0627e42ac5349237263385f5",
+      "bytes": 1408
+    },
+    "fullReceipt": {
+      "revision": "e729a5ab8776ea768d10e6107692149989b2511d",
+      "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FULL-RECEIPT.proposed.json",
+      "sha256": "4187da231bb328cc2bead131ca67d9527beb0ecf7d8a6cf9b26d4d0b16d34b02",
+      "bytes": 7455
+    },
+    "sourceMapSha256": "9b0e0d62ea50eea55ef9ff4bff9e4bcef9cba6b73e416793bee6956666171002",
+    "fullPackageMapSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321",
+    "historicalModeGate": "DENY_MODE_AUTHORITY_MISSING",
+    "independentBuild": false,
+    "grantsGO": false
+  },
+  "failedPacketV1": {
+    "worker": "01a0478c",
+    "packet": "90a633e8",
+    "state": "STOPPED_BEFORE_ARTIFACT_AUTH_NOT_CANDIDATE_FINDING",
+    "reason": "Own Git-mode assumption confused historical COMPOUNDRESULT POSIX0600 with Git100644. Corrected audit must use authentic original seal POSIX modes, never live expectations.",
+    "originalFAILFrozen": true,
+    "reusedAsAuthority": false
+  },
+  "scheduleReview": {
+    "state": "COMPLETED_SEALED_REVIEW_BOUND_SS_F01_ADOPTED_IN_PROPOSAL",
+    "marker": "/tmp/yq-successor-schedule-independent-ready.txt",
+    "revision": "4c65ffc48c999cf4c5ea077f4f2f8f40d6a8c830",
+    "verdict": {
+      "revision": "4c65ffc48c999cf4c5ea077f4f2f8f40d6a8c830",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/schedule-review-v1/VERDICT.json",
+      "sha256": "adc7ca3e024aff97896ab5e1abd3b660351e4784c400bdad1c9410a80bdba234",
+      "bytes": 5923
+    },
+    "finding": {
+      "revision": "4c65ffc48c999cf4c5ea077f4f2f8f40d6a8c830",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/schedule-review-v1/FINDING-SS-F01.json",
+      "sha256": "5f09e7606f4038c90769ebc1496adb4084142690db39ca0b9a750decda2112e9",
+      "bytes": 4476
+    },
+    "findingsIncorporated": [
+      "SS-F01"
+    ],
+    "correction": "SCHEDULE-DELTA.json",
+    "independentPostCorrectionAcceptance": false,
+    "unsealedFilesRead": false
+  },
+  "cmd22Review": {
+    "revision": "36a95bae98185e4db381f0f5b9cfce00f8206208",
+    "verdict": {
+      "revision": "36a95bae98185e4db381f0f5b9cfce00f8206208",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/VERDICT.json",
+      "sha256": "e5e8be2eedd01571c2595e275b5cf78c08056d76b4338a61f1efb0ee9cc01325",
+      "bytes": 2298
+    },
+    "detail": {
+      "revision": "36a95bae98185e4db381f0f5b9cfce00f8206208",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/CMD22-STATIC-REVIEW.json",
+      "sha256": "46c234b930f916e03ff3c7952a1aa3554a8f9f91b5a40b12d85cb8d2030b04a1",
+      "bytes": 2060
+    },
+    "all31DefinitionsUnrun": true,
+    "onlyStaticFragmentCoherence": true
+  },
+  "checkpointRule": "Check completion marker before final seal; bind authenticated completed inputs if available. Otherwise stop with these exact missing proofs, no indefinite wait or READY_TO_RUN claim."
+}

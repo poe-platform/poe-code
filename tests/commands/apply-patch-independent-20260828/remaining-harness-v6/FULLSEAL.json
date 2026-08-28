@@ -1,0 +1,143 @@
+{
+  "schema": "v6-closed-startup-refusal-fullseal",
+  "qualified": false,
+  "sourceCommit": "49500bf8cd961788b1c212c862171306767ac069",
+  "sourceOwnedTree": "4dbb6e6bfd3ad68adb3513323ce7da689900d933",
+  "evidenceCommit": "a3b7ae8ee8ab05cdc5a9562ba0e560cc34f54266",
+  "evidenceOwnedTree": "a857e60e21a62df2dddde9f46fe4f64de14f00f7",
+  "discoveryPresealSha256": "c90081207ac53c9cf0d2f5c1851e7371b842e1d82bffab8aa0854598f623466e",
+  "evidenceSealSha256": "04cd1d057f0f1f3286022c61db0e5d9ea6949ed2e9fb15a8a1468424f6fa9478",
+  "mainPresealSha256": null,
+  "gitInventory": {
+    "format": "ls-tree -rz; byte-exact NUL paths",
+    "base64": "MTAwNjQ0IGJsb2IgYmZjYzZmOWZmYjA2NTQ2ODBjNGIxYjE2Y2U2YTQ3YzYyNDhkODg3Ygl0ZXN0cy9jb21tYW5kcy9hcHBseS1wYXRjaC1pbmRlcGVuZGVudC0yMDI2MDgyOC9yZW1haW5pbmctaGFybmVzcy12Ni9DQUxMR1JBUEgubWQAMTAwNjQ0IGJsb2IgNzA1ZWI2NjE0MTBlMmJhYzQ1NGQ0ZmIwN2FiMWIxOTc2NjI3YWMwMwl0ZXN0cy9jb21tYW5kcy9hcHBseS1wYXRjaC1pbmRlcGVuZGVudC0yMDI2MDgyOC9yZW1haW5pbmctaGFybmVzcy12Ni9ESVNDT1ZFUlktUFJFU0VBTC5qc29uADEwMDY0NCBibG9iIGE5ZDkxMGNkNWZjZjM3MDU1ZTgxYjNhZDEwN2RjYWMwOTk5ZjJkOWIJdGVzdHMvY29tbWFuZHMvYXBwbHktcGF0Y2gtaW5kZXBlbmRlbnQtMjAyNjA4MjgvcmVtYWluaW5nLWhhcm5lc3MtdjYvRVZJREVOQ0UtU0VBTC5qc29uADEwMDY0NCBibG9iIGFjYjIzMjNjZTU2YzJlNzc0ODdiZDgxZDdhMTAzNDg5M2MxZDIyOGYJdGVzdHMvY29tbWFuZHMvYXBwbHktcGF0Y2gtaW5kZXBlbmRlbnQtMjAyNjA4MjgvcmVtYWluaW5nLWhhcm5lc3MtdjYvRklYVFVSRVMtdjYuanNvbgAxMDA2NDQgYmxvYiBkOTdlMzY1NzcyZTJlNDM0MDQ5Zjk1N2ViZjQ0MmYxNDdkMmFhOTM3CXRlc3RzL2NvbW1hbmRzL2FwcGx5LXBhdGNoLWluZGVwZW5kZW50LTIwMjYwODI4L3JlbWFpbmluZy1oYXJuZXNzLXY2L0lOUFVUUy12Ni5qc29uADEwMDY0NCBibG9iIGY2YzVhZTg1N2RhMDhhY2E5ZDc4YjhhNjY4NzhhOTgwMmIzMzJhNmEJdGVzdHMvY29tbWFuZHMvYXBwbHktcGF0Y2gtaW5kZXBlbmRlbnQtMjAyNjA4MjgvcmVtYWluaW5nLWhhcm5lc3MtdjYvUExBTi5tZAAxMDA2NDQgYmxvYiBjZDUzYzU0YzlmZTc1MmRhNzU4YzE0MzNmOGFkNTM4MzA4Y2MxNmE2CXRlc3RzL2NvbW1hbmRzL2FwcGx5LXBhdGNoLWluZGVwZW5kZW50LTIwMjYwODI4L3JlbWFpbmluZy1oYXJuZXNzLXY2L1BPU1RHVUFSRFMuanNvbgAxMDA2NDQgYmxvYiBjYjM4NWQwMzRmNDQ1ZmYyODZmNTJkODBmNTQzZWZiZDFkYWM0ZmQzCXRlc3RzL2NvbW1hbmRzL2FwcGx5LXBhdGNoLWluZGVwZW5kZW50LTIwMjYwODI4L3JlbWFpbmluZy1oYXJuZXNzLXY2L1JFTUFJTklORy12Ni5qc29uADEwMDY0NCBibG9iIDJjMTAyMDE5OTg1ZDljMjMyMzVkZGIwZjAxZThlNmU1OTcyMWFkNGQJdGVzdHMvY29tbWFuZHMvYXBwbHktcGF0Y2gtaW5kZXBlbmRlbnQtMjAyNjA4MjgvcmVtYWluaW5nLWhhcm5lc3MtdjYvUkVQT1JULm1kADEwMDY0NCBibG9iIDFiNDRmMmU5NmVmZmFlYjYyMTM2MjY0OGQxYWY1YmYyNTk1YjQ2ZjkJdGVzdHMvY29tbWFuZHMvYXBwbHktcGF0Y2gtaW5kZXBlbmRlbnQtMjAyNjA4MjgvcmVtYWluaW5nLWhhcm5lc3MtdjYvUkVWSUVXLm1kADEwMDY0NCBibG9iIDUwMjBkZWRlODFiNzU2ZDU1OTVkMGIxMzliYjIxY2I4ZTljOTZlYWUJdGVzdHMvY29tbWFuZHMvYXBwbHktcGF0Y2gtaW5kZXBlbmRlbnQtMjAyNjA4MjgvcmVtYWluaW5nLWhhcm5lc3MtdjYvU1RBUlRVUC1UUkFOU0NSSVBUSU9OLnR4dAAxMDA2NDQgYmxvYiAxZDRhOTEzNDNmMDY3OWUzZjNkMTAwNGYyN2FmMzZiZmRhY2FkYWNmCXRlc3RzL2NvbW1hbmRzL2FwcGx5LXBhdGNoLWluZGVwZW5kZW50LTIwMjYwODI4L3JlbWFpbmluZy1oYXJuZXNzLXY2L2F1dGhvci5tanMAMTAwNjQ0IGJsb2IgOTU1Zjk3YWVlYmRiZWI3MTJhOGZjZjBlODRmYWU4NTYxZjZmNDk4ZQl0ZXN0cy9jb21tYW5kcy9hcHBseS1wYXRjaC1pbmRlcGVuZGVudC0yMDI2MDgyOC9yZW1haW5pbmctaGFybmVzcy12Ni9jaGlsZC5tanMAMTAwNjQ0IGJsb2IgMzY1ZjM0NTE1YzNiOTFkYzNmZDJjNzA5NThiOGM2NTk0ODhlOTUyMwl0ZXN0cy9jb21tYW5kcy9hcHBseS1wYXRjaC1pbmRlcGVuZGVudC0yMDI2MDgyOC9yZW1haW5pbmctaGFybmVzcy12Ni9kYXRhLWNvbnRyb2xzLm1qcwAxMDA2NDQgYmxvYiA0ODJiMmFjOTY2NjhjM2U1NjA2YTU4ZThkZGM2YjQ0ZmU0MTVhYWNhCXRlc3RzL2NvbW1hbmRzL2FwcGx5LXBhdGNoLWluZGVwZW5kZW50LTIwMjYwODI4L3JlbWFpbmluZy1oYXJuZXNzLXY2L2V2aWRlbmNlLWF1dGhvci5tanMAMTAwNjQ0IGJsb2IgYThmNGQxY2E5Nzk5N2ExNTM5Y2I3Y2IxMGI5MDk0YTAzMzg4MTAyOAl0ZXN0cy9jb21tYW5kcy9hcHBseS1wYXRjaC1pbmRlcGVuZGVudC0yMDI2MDgyOC9yZW1haW5pbmctaGFybmVzcy12Ni9maXh0dXJlLWRhdGEubWpzADEwMDY0NCBibG9iIGYxNjEwZDNiOTE3ZGVjZDkzNjFkZTRiNjUyYjI1ZTIwYWMwYWM5NGUJdGVzdHMvY29tbWFuZHMvYXBwbHktcGF0Y2gtaW5kZXBlbmRlbnQtMjAyNjA4MjgvcmVtYWluaW5nLWhhcm5lc3MtdjYvb3duZXIubWpzADEwMDY0NCBibG9iIGQ0YTlmYzRhZjVhOTk0MDY3ZmVlODlkYWNkNTczNDA3YjZjNDQ0Y2UJdGVzdHMvY29tbWFuZHMvYXBwbHktcGF0Y2gtaW5kZXBlbmRlbnQtMjAyNjA4MjgvcmVtYWluaW5nLWhhcm5lc3MtdjYvcHJpbWl0aXZlcy5tanMA",
+    "sha256": "180e223e1f835c724e08c9f76a40293fb2ccc95e595d47ede8d48a45729a370b",
+    "blobAndModeAuthentication": true
+  },
+  "files": {
+    "CALLGRAPH.md": {
+      "bytes": 3354,
+      "mode": 420,
+      "sha256": "d3498a03598ed2a9f0df621a3bc8a22e5621fcc97ee5d0633c134278e37e34e8"
+    },
+    "DISCOVERY-PRESEAL.json": {
+      "bytes": 24502,
+      "mode": 420,
+      "sha256": "c90081207ac53c9cf0d2f5c1851e7371b842e1d82bffab8aa0854598f623466e"
+    },
+    "EVIDENCE-SEAL.json": {
+      "bytes": 911,
+      "mode": 420,
+      "sha256": "04cd1d057f0f1f3286022c61db0e5d9ea6949ed2e9fb15a8a1468424f6fa9478"
+    },
+    "FIXTURES-v6.json": {
+      "bytes": 30950,
+      "mode": 420,
+      "sha256": "ec2f4f1a29c85b65630ffaf4773634d202b62c438111933b18ec259ce80d0837"
+    },
+    "INPUTS-v6.json": {
+      "bytes": 618,
+      "mode": 420,
+      "sha256": "1d9320fc256d076398de3d16ea7c4044ce709bb50b6d5a5e70fde8018a6478bf"
+    },
+    "PLAN.md": {
+      "bytes": 8900,
+      "mode": 420,
+      "sha256": "8b82b8e0dbe14ca9212f13aaca9d0742b10f490acfcc5e387f00260234ec2aab"
+    },
+    "POSTGUARDS.json": {
+      "bytes": 3103,
+      "mode": 420,
+      "sha256": "cf0dbea87cf3832926e30b1b6a9e43cdff0131eec7ccc163dade26bf1a223d83"
+    },
+    "REMAINING-v6.json": {
+      "bytes": 42933,
+      "mode": 420,
+      "sha256": "3e0f68681188adf51bb164f4efeffe47df128153769a0daedb9b816e46cfb8fe"
+    },
+    "REPORT.md": {
+      "bytes": 5357,
+      "mode": 420,
+      "sha256": "f0d105bd46cdb43ecae96387b2bec34f9ac75a51ce246dc1c8b31be66758d0aa"
+    },
+    "REVIEW.md": {
+      "bytes": 3415,
+      "mode": 420,
+      "sha256": "3b9bbfe3313d4109e7f0e4d26cec0d2affafd1a27f0410253ed983947b582907"
+    },
+    "STARTUP-TRANSCRIPTION.txt": {
+      "bytes": 1111,
+      "mode": 420,
+      "sha256": "18908609178c2e229ae9d60017a1e9c533eba0e87818fd53c5f8aa779fa7e796"
+    },
+    "author.mjs": {
+      "bytes": 14408,
+      "mode": 420,
+      "sha256": "f7e121e5750e4645459d6128525c80e4df35dadc8aae45d6a1bbe8051a6ae559"
+    },
+    "child.mjs": {
+      "bytes": 1988,
+      "mode": 420,
+      "sha256": "ec983f2788834fa91111ac06a3b03b389157f52d66b7ab4fe81eb436b52cbbed"
+    },
+    "data-controls.mjs": {
+      "bytes": 7923,
+      "mode": 420,
+      "sha256": "cd879bb07ac734be761fba8c1201d30485e3ffc4ae09444c3147a83b5a9e774f"
+    },
+    "evidence-author.mjs": {
+      "bytes": 11215,
+      "mode": 420,
+      "sha256": "e6ad3c24ac1c207d088934a74fe0b45d43390d1ac40ca4ac72d51a20d6b34e23"
+    },
+    "fixture-data.mjs": {
+      "bytes": 1450,
+      "mode": 420,
+      "sha256": "b70d884f3c30c1fa4ce29c99889bce8ecd55057232d3d51e6362ecad83f7e6dd"
+    },
+    "owner.mjs": {
+      "bytes": 21004,
+      "mode": 420,
+      "sha256": "088abb190147d7f627377604e2ceb5fc94db4b5dfa935b0fdc3f81e6349b2256"
+    },
+    "primitives.mjs": {
+      "bytes": 2593,
+      "mode": 420,
+      "sha256": "27ba09f27460eaddddc241e64dbf98fe55b48fa72216bfa7d68ec635d3feff65"
+    }
+  },
+  "exactOwnedNamesBeforeThisFile": [
+    "CALLGRAPH.md",
+    "DISCOVERY-PRESEAL.json",
+    "EVIDENCE-SEAL.json",
+    "FIXTURES-v6.json",
+    "INPUTS-v6.json",
+    "PLAN.md",
+    "POSTGUARDS.json",
+    "REMAINING-v6.json",
+    "REPORT.md",
+    "REVIEW.md",
+    "STARTUP-TRANSCRIPTION.txt",
+    "author.mjs",
+    "child.mjs",
+    "data-controls.mjs",
+    "evidence-author.mjs",
+    "fixture-data.mjs",
+    "owner.mjs",
+    "primitives.mjs"
+  ],
+  "selfExcluded": "FULLSEAL.json and its commit identity are reported externally; no circular hash",
+  "closedAttempt": {
+    "ownerLaunches": 1,
+    "children": 0,
+    "controls": 0,
+    "dataChecks": 0,
+    "rawBytes": 0,
+    "scratchFileBytes": 0,
+    "rawStartupCaptureAvailable": false,
+    "ownerPidKnown": false,
+    "elapsedMeasured": false,
+    "emptyOutputRemoved": true,
+    "noRetry": true
+  }
+}

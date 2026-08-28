@@ -1,0 +1,15 @@
+{
+  "classification": "SYNTHETIC_ONLY_EXECUTION_RECEIPT",
+  "sealCommit": "88aeebac7b0d948e0335e23acfa9592d831994ac",
+  "started": "2026-08-28T07:02:09.107Z",
+  "ended": "2026-08-28T07:02:10.331Z",
+  "status": 1,
+  "signal": null,
+  "stdout": "",
+  "stderr": "file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/diagnosis-v1/qualify.mjs:105\n    const statement = text.match(/  shell\\.commands\\.register\\(\\{ name: 'review-bridge',[\\s\\S]*?\\n  \\}\\s*\\);/)[0];\n                                                                                                              ^\n\nTypeError: Cannot read properties of null (reading '0')\n    at bridge (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/diagnosis-v1/qualify.mjs:105:111)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/diagnosis-v1/qualify.mjs:113:15\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/diagnosis-v1/qualify.mjs:25:9)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/diagnosis-v1/qualify.mjs:103:7\n\nNode.js v22.22.2\n",
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "b124485816406a6b4e0f3314a63305dcb836863f387a59e63631eb4baf8395d3",
+  "productRuns": 0,
+  "nativeRuns": 0,
+  "ownedChildrenRemaining": 0
+}

@@ -1,0 +1,109 @@
+{
+  "phase": "pure-helper-DATA-SYNTHETIC",
+  "node": {
+    "role": "node",
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "mode": 493,
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "argv": [
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v6-ready/synthetic-controls.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v6-ready/outcome-judge.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v6-ready/receipt-schema.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v6-ready/import-policy.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v6-ready/load-attestation.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v6-ready/wire.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v6-ready/json-size.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v6-ready/CASES.json",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v6-ready/MODULES.json",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v6-ready/CONTROL-PRESEAL.json",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v6-ready/package.json",
+    "--max-old-space-size=64",
+    "--unhandled-rejections=strict",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v6-ready/synthetic-controls.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v6-ready",
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "captures": [
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v6-ready/data-v1/stdout.raw",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v6-ready/data-v1/stderr.raw"
+  ],
+  "sourceInputs": [
+    {
+      "path": "synthetic-controls.mjs",
+      "bytes": 9192,
+      "sha256": "80663f37b0de98a3325a7bcd14ebf59311ed2e19f9ac4dd4f04e678023ed765e"
+    },
+    {
+      "path": "outcome-judge.mjs",
+      "bytes": 6605,
+      "sha256": "437e3422d7e7d370bb05791fcc375397a8ac7a0e6fe283bb94508674016ffd65"
+    },
+    {
+      "path": "receipt-schema.mjs",
+      "bytes": 5035,
+      "sha256": "3f03558f73303727ec54208e04dc81a0b8955425c084ed5438c83b497321e957"
+    },
+    {
+      "path": "import-policy.mjs",
+      "bytes": 2194,
+      "sha256": "b2b2b970748bf841600cc58b487938a557cba43bd78af121466fd0a7f354178a"
+    },
+    {
+      "path": "load-attestation.mjs",
+      "bytes": 962,
+      "sha256": "cacee2a7977eeee21a242fc914aedbc5b1bb65b634ad154cde4654749d90dc67"
+    },
+    {
+      "path": "wire.mjs",
+      "bytes": 10371,
+      "sha256": "7e78ff59f58dfb37e78fea7539e1a1d4e50cd9dfb59488dfa5fffa596f03ae44"
+    },
+    {
+      "path": "json-size.mjs",
+      "bytes": 1709,
+      "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5"
+    },
+    {
+      "path": "CASES.json",
+      "bytes": 6556,
+      "sha256": "b0fbc97d3fd653a3a669528358c6b6603be1581e241d8313730865663ae6859c"
+    },
+    {
+      "path": "MODULES.json",
+      "bytes": 121324,
+      "sha256": "b30716d17f48a731bd60d1cd1b9c7fdae0ba4822b6a91ffca3b0e06e6b7993ad"
+    },
+    {
+      "path": "CONTROL-PRESEAL.json",
+      "bytes": 2025,
+      "sha256": "5d5321938f8b60e66b8c3197b773d20000d2f8b3ffc3d3e41e72197a8d534345"
+    },
+    {
+      "path": "package.json",
+      "bytes": 139,
+      "sha256": "41b71644b77db997946c2c19303bd2533f466301bafa8e80feca3d0a69bd9781"
+    }
+  ],
+  "timeoutMs": 60000,
+  "escalationMs": 2000,
+  "captureBytes": 1048576,
+  "expectedControls": 54,
+  "forbiddenLoads": [
+    "all compiled/**",
+    "Worker",
+    "engine",
+    "compiler",
+    "private source"
+  ],
+  "cleanup": "await child close, close raw descriptors, retain raw evidence; no retries"
+}

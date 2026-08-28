@@ -1,0 +1,26 @@
+{
+  "code": null,
+  "signal": "SIGTERM",
+  "pid": 75531,
+  "reaped": true,
+  "timeout": true,
+  "overflow": false,
+  "spawnError": null,
+  "logs": [
+    {
+      "deliveredBytes": 0,
+      "fullDeliveredSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifactBytes": 0,
+      "artifactSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "truncated": false
+    },
+    {
+      "deliveredBytes": 0,
+      "fullDeliveredSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "artifactBytes": 0,
+      "artifactSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "truncated": false
+    }
+  ],
+  "ended": "2026-08-28T07:25:35.598Z"
+}

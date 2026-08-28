@@ -1,0 +1,31 @@
+{
+  "stage": "DURABLE_RAW_BEFORE_ADMISSION",
+  "rawSha256": "55e658b82c6cd30332c2d7377ce6145fefdb5443d521494cdf7836cde22ea64d",
+  "bytes": 519,
+  "processReceipt": {
+    "code": 0,
+    "signal": null,
+    "pid": 75500,
+    "reaped": true,
+    "timeout": false,
+    "overflow": false,
+    "spawnError": null,
+    "logs": [
+      {
+        "deliveredBytes": 519,
+        "fullDeliveredSha256": "55e658b82c6cd30332c2d7377ce6145fefdb5443d521494cdf7836cde22ea64d",
+        "artifactBytes": 519,
+        "artifactSha256": "55e658b82c6cd30332c2d7377ce6145fefdb5443d521494cdf7836cde22ea64d",
+        "truncated": false
+      },
+      {
+        "deliveredBytes": 0,
+        "fullDeliveredSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "artifactBytes": 0,
+        "artifactSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "truncated": false
+      }
+    ],
+    "ended": "2026-08-28T07:25:33.997Z"
+  }
+}

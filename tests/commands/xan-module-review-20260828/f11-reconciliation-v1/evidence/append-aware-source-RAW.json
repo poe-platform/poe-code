@@ -1,0 +1,25 @@
+{
+  "baseline": [
+    {
+      "path": "original.json",
+      "bytes": 26,
+      "sha256": "546b608e83189cf16288e16be96f04557f5e74e804a9609e199edc1f4051b510",
+      "mode": "644"
+    }
+  ],
+  "after": [
+    {
+      "path": "appended.json",
+      "bytes": 42,
+      "sha256": "e02d228dd9525fd7256e0dfe78abd43584e63db1ba74b6b31382145557a239b7",
+      "mode": "644"
+    },
+    {
+      "path": "original.json",
+      "bytes": 26,
+      "sha256": "546b608e83189cf16288e16be96f04557f5e74e804a9609e199edc1f4051b510",
+      "mode": "644"
+    }
+  ],
+  "actualProductTree": false
+}

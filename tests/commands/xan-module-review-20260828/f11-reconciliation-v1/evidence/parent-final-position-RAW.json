@@ -1,0 +1,15 @@
+{
+  "id": "parent-final-position",
+  "state": "HOLD",
+  "exitCode": 1,
+  "phases": [
+    {
+      "id": "build",
+      "status": "PASS"
+    }
+  ],
+  "error": {
+    "name": "Error",
+    "message": "A01_HOLD_DEPENDENTS: finalization must be final record\n+ actual - expected\n\n+ {}\n- {\n-   closed: true,\n-   complete: true,\n-   completedCount: 2,\n-   failures: 0,\n-   intact: true,\n-   job: 'parent-final-position',\n-   manifest: 'be29dce60f7d3f40ad4db46758333dde738d5d4d390d7340a1d5fa44e7833db5',\n-   nonce: 'e0f2ff33-36f1-496d-9db7-20e8a81502f0',\n-   phase: 'SYNTHETIC_RECEIPT_ONLY',\n-   rawBound: 65536,\n-   requiredCount: 2,\n-   requiredIds: [\n-     'required-a',\n-     'required-b'\n-   ],\n-   stage: 'FINALIZATION'\n- }\n"
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "schema": "timeout-public-continuation-focused-controls/1",
+  "at": "2026-08-28T05:44:50.237Z",
+  "manifestSha256": "9d13a936dab063f7a9c2acb8a658e1e448326a8558be85ac4c3e744a6d585b8d",
+  "requestSha256": "f2346c74f94f2bb8a0902395ed49f7105f61fd9417cce6a87452668471bbc3cb",
+  "results": [
+    {
+      "id": "C01-complete-admission",
+      "status": "PASS"
+    },
+    {
+      "id": "C02-no-marker",
+      "status": "PASS"
+    },
+    {
+      "id": "C03-wrong-registry",
+      "status": "PASS"
+    },
+    {
+      "id": "C04-missing-timeout",
+      "status": "PASS"
+    },
+    {
+      "id": "C05-rejected-setup",
+      "status": "PASS"
+    },
+    {
+      "id": "C06-setup-dispatch",
+      "status": "PASS"
+    },
+    {
+      "id": "C07-setup-output",
+      "status": "PASS"
+    },
+    {
+      "id": "C08-setup-timer",
+      "status": "PASS"
+    },
+    {
+      "id": "C09-raw-no-acquisition",
+      "status": "PASS"
+    },
+    {
+      "id": "C10-raw-acquisition-mutant",
+      "status": "PASS"
+    },
+    {
+      "id": "C11-gated-return",
+      "status": "PASS"
+    },
+    {
+      "id": "C12-next-content-mutant",
+      "status": "PASS"
+    },
+    {
+      "id": "C13-missing-return-mutant",
+      "status": "PASS"
+    },
+    {
+      "id": "C14-early-return-mutant",
+      "status": "PASS"
+    },
+    {
+      "id": "C15-missing-duplicate-acquisition-shell",
+      "status": "PASS"
+    },
+    {
+      "id": "C16-duplicate-return",
+      "status": "PASS"
+    },
+    {
+      "id": "C17-fulfilled-before-return",
+      "status": "PASS"
+    },
+    {
+      "id": "C18-post-bindings",
+      "status": "PASS"
+    }
+  ],
+  "passed": 18,
+  "failed": 0,
+  "productExecutions": 0,
+  "children": 0
+}

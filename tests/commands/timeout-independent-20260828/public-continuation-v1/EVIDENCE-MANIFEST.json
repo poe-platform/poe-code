@@ -1,0 +1,60 @@
+{
+  "schema": "timeout-public-continuation-evidence/1",
+  "at": "2026-08-28T05:50:19.413Z",
+  "recipeCommit": "1540a21d",
+  "manifestHash": "9d13a936dab063f7a9c2acb8a658e1e448326a8558be85ac4c3e744a6d585b8d",
+  "requestHash": "f2346c74f94f2bb8a0902395ed49f7105f61fd9417cce6a87452668471bbc3cb",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "files": [
+    {
+      "path": "FOCUSED-CONTROLS.json",
+      "bytes": 1682,
+      "sha256": "3861c26dbd9aca7799d352ad671d95e5e680f2aa74dfbf9e0b8525e98f2261b1"
+    },
+    {
+      "path": "summarize.mjs",
+      "bytes": 5425,
+      "sha256": "1ae12ff00946482123add9942cf9c809bc7ba8c4a96dbc6abd8f6dfb5dbff1c0"
+    },
+    {
+      "path": "REVIEW.json",
+      "bytes": 89325,
+      "sha256": "809485265aebf087cd637d2f91e72bfab05b3c602108f32a30e35c0549e0e2e1"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 6010,
+      "sha256": "74db3e740064ddbbae29654798eb4270a92ab85c6bdcc68a8194767568275327"
+    },
+    {
+      "path": "runs/continuation-01/CANDIDATE.json",
+      "bytes": 167204,
+      "sha256": "f2346c74f94f2bb8a0902395ed49f7105f61fd9417cce6a87452668471bbc3cb"
+    },
+    {
+      "path": "runs/continuation-01/RESULT.json",
+      "bytes": 521349,
+      "sha256": "4da6451f2fb5b57467cf631643b22bfa49bc3b37a2944554788bf9de18e23f15"
+    },
+    {
+      "path": "runs/continuation-01/CLOSURE.json",
+      "bytes": 1100002,
+      "sha256": "4df6aa744483f0a473da42d2cf50912d8d5727b685a4cfbb68ea6d74b5b34cb1"
+    },
+    {
+      "path": "runs/continuation-01/RESOURCE-CLEANUP.json",
+      "bytes": 222,
+      "sha256": "d1b214b2cbec40865fd12649f4c6d5252e712ab70916f57e1abf47c9ce27e28e"
+    },
+    {
+      "path": "runs/continuation-01/RECEIPTS.json.gz",
+      "bytes": 5586342,
+      "sha256": "c788d9ed351fdc6d10f054c0ca1c17fe1f3da9fdd891aba02eb33a53b67c6d53"
+    }
+  ],
+  "attempts": 1,
+  "retries": 0,
+  "verdict": "PUBLIC_COMPONENTS_QUALIFIED_BOUNDARY_RECEIPT_HOLD",
+  "remainingBlocker": "B01 ACTUAL_BOUNDARY_OBSERVATION after synchronous intended RAW_STDIN_ACQUIRE",
+  "noOldRescore": true
+}

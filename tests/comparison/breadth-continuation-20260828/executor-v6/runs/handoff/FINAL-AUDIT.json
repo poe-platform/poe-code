@@ -1,0 +1,483 @@
+{
+  "kind": "V6_POST_RUN_BINDINGS_CLOSURE_NOT_REPLAY",
+  "at": "2026-08-28T12:25:10.228Z",
+  "recipeCommit": "931b8e07114b8f69fa50f35e798a7a619f578cdb",
+  "recipeSha256": "937f5551b242c5388febd085aa18905095150f846c9e3005e766db7b39c979a0",
+  "tools": [
+    {
+      "role": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "unchanged": true
+    },
+    {
+      "role": "git",
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+      "unchanged": true
+    }
+  ],
+  "capsules": [
+    {
+      "id": "E01",
+      "files": 9,
+      "omittedMetadataOnly": 0,
+      "entries": 14,
+      "complete": true,
+      "oldOriginAbsent": true
+    },
+    {
+      "id": "E02",
+      "files": 10,
+      "omittedMetadataOnly": 0,
+      "entries": 15,
+      "complete": true,
+      "oldOriginAbsent": true
+    },
+    {
+      "id": "E03",
+      "files": 9,
+      "omittedMetadataOnly": 0,
+      "entries": 14,
+      "complete": true,
+      "oldOriginAbsent": true
+    },
+    {
+      "id": "E04",
+      "files": 10,
+      "omittedMetadataOnly": 0,
+      "entries": 15,
+      "complete": true,
+      "oldOriginAbsent": true
+    },
+    {
+      "id": "E05",
+      "files": 9,
+      "omittedMetadataOnly": 0,
+      "entries": 14,
+      "complete": true,
+      "oldOriginAbsent": true
+    },
+    {
+      "id": "E06",
+      "files": 9,
+      "omittedMetadataOnly": 0,
+      "entries": 14,
+      "complete": true,
+      "oldOriginAbsent": true
+    },
+    {
+      "id": "E07",
+      "files": 9,
+      "omittedMetadataOnly": 0,
+      "entries": 14,
+      "complete": true,
+      "oldOriginAbsent": true
+    },
+    {
+      "id": "E08",
+      "files": 9,
+      "omittedMetadataOnly": 0,
+      "entries": 14,
+      "complete": true,
+      "oldOriginAbsent": true
+    },
+    {
+      "id": "E09",
+      "files": 9,
+      "omittedMetadataOnly": 0,
+      "entries": 15,
+      "complete": true,
+      "oldOriginAbsent": true
+    },
+    {
+      "id": "E10",
+      "files": 9,
+      "omittedMetadataOnly": 0,
+      "entries": 14,
+      "complete": true,
+      "oldOriginAbsent": true
+    },
+    {
+      "id": "E11",
+      "files": 10,
+      "omittedMetadataOnly": 0,
+      "entries": 15,
+      "complete": true,
+      "oldOriginAbsent": true
+    },
+    {
+      "id": "E12",
+      "files": 10,
+      "omittedMetadataOnly": 0,
+      "entries": 15,
+      "complete": true,
+      "oldOriginAbsent": true
+    },
+    {
+      "id": "E13",
+      "files": 9,
+      "omittedMetadataOnly": 0,
+      "entries": 14,
+      "complete": true,
+      "oldOriginAbsent": true
+    },
+    {
+      "id": "E14",
+      "files": 9,
+      "omittedMetadataOnly": 0,
+      "entries": 14,
+      "complete": true,
+      "oldOriginAbsent": true
+    }
+  ],
+  "workers": [
+    {
+      "ordinal": 1,
+      "pid": 57679,
+      "group": -57679,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "errors": []
+    },
+    {
+      "ordinal": 2,
+      "pid": 57681,
+      "group": -57681,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "errors": []
+    },
+    {
+      "ordinal": 3,
+      "pid": 57682,
+      "group": -57682,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "errors": []
+    },
+    {
+      "ordinal": 4,
+      "pid": 57694,
+      "group": -57694,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "errors": []
+    },
+    {
+      "ordinal": 5,
+      "pid": 57695,
+      "group": -57695,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "errors": []
+    },
+    {
+      "ordinal": 6,
+      "pid": 57700,
+      "group": -57700,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "errors": []
+    },
+    {
+      "ordinal": 7,
+      "pid": 57709,
+      "group": -57709,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "errors": []
+    },
+    {
+      "ordinal": 8,
+      "pid": 57712,
+      "group": -57712,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "errors": []
+    },
+    {
+      "ordinal": 9,
+      "pid": 57714,
+      "group": -57714,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "errors": []
+    },
+    {
+      "ordinal": 10,
+      "pid": 57717,
+      "group": -57717,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "errors": []
+    },
+    {
+      "ordinal": 11,
+      "pid": 57720,
+      "group": -57720,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "errors": []
+    },
+    {
+      "ordinal": 12,
+      "pid": 57722,
+      "group": -57722,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "errors": []
+    },
+    {
+      "ordinal": 13,
+      "pid": 57723,
+      "group": -57723,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "errors": []
+    },
+    {
+      "ordinal": 14,
+      "pid": 57724,
+      "group": -57724,
+      "pidAbsent": true,
+      "groupAbsent": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "signals": [],
+      "errors": []
+    }
+  ],
+  "syntax": [
+    {
+      "file": "authorization.mjs",
+      "pid": 57591,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "file": "coordinator.mjs",
+      "pid": 57592,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "file": "entry-controls.mjs",
+      "pid": 57593,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "file": "entry-worker.mjs",
+      "pid": 57595,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "file": "loader.mjs",
+      "pid": 57596,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "file": "projection.mjs",
+      "pid": 57597,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "file": "synthetic-worker.mjs",
+      "pid": 57598,
+      "pidAbsent": true,
+      "groupAbsent": true
+    },
+    {
+      "file": "worker.mjs",
+      "pid": 57599,
+      "pidAbsent": true,
+      "groupAbsent": true
+    }
+  ],
+  "coordinator": {
+    "pid": 57678,
+    "pidAbsent": true,
+    "detachedGroupNotClaimed": true
+  },
+  "preserved": [
+    {
+      "path": "../executor-v5/runs/resolution-01/RESULT.json",
+      "sha256": "3f9f5743669c587719a356b0cd96c684eb4b30a62cb2c443cfb4174c8a69b030",
+      "unchanged": true
+    },
+    {
+      "path": "../executor-v4/runs/admission-v4-01/RESULT.json",
+      "sha256": "4847ea6e321a5c6bdfb4140ca8359cdc0102bbe64c5e7a38988ed9c884ef62c4",
+      "unchanged": true
+    },
+    {
+      "path": "../../breadth-continuation-independent-20260828/executor-v5-body-review/capture-01/RESULT.json",
+      "sha256": "d1ffc02d241c340a4aab63c0fc937f75a7f79c1dc46111c9b7f9a33b2b417941",
+      "unchanged": true
+    },
+    {
+      "path": "../../breadth-continuation-independent-20260828/executor-v5-body-review/capture-01/entry-parent-denied.json",
+      "sha256": "9b8626751ff9bbc2302761c6bf75e630e0bfaeb9430ef84e767403d8b143c1fd",
+      "unchanged": true
+    }
+  ],
+  "counts": {
+    "cases": 14,
+    "steps": 17,
+    "positiveStubEvaluations": 4,
+    "expectedRefusals": 13,
+    "actualDynamicImportAttempts": 14,
+    "preImportConstructorRefusals": 3
+  },
+  "realEngineImports": 0,
+  "actualProductStaging": 0,
+  "actualComparatorStaging": 0,
+  "actualC11": 0,
+  "newAdmissionAttempts": 0,
+  "semanticCalls": 0
+}

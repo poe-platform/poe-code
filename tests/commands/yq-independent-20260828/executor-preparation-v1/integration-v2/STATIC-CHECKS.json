@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "sourceCommit": "4fafd93a2a414fe9ce1965f77ab45da1d417d10a",
+  "coreFilesAuthenticated": 13,
+  "coreTreeSha256": "2804eef75ba4dd094deed68b240b92497145f5ae8af68b53e9a06fcad9986f8e",
+  "recipeSha256": "eecdc319fc90ccc89bdae0fbb7900beb33dbd07807c4fa78738280b77e412158",
+  "integrationSealSha256": "47c3874f520efee18062d4b2e687159a52039a86d35945a7f5371e85eb00fdff",
+  "readOnlyScopes": [
+    {
+      "commit": "ab729daa5a4eb891c7f3ac7f40d6ca0dbafbafe6",
+      "name": "integration",
+      "trackedDiffExit": 0
+    },
+    {
+      "commit": "ee9d0c1fd24b33aa918154eb379a92c02cfe5925",
+      "name": "runtime",
+      "trackedDiffExit": 0
+    },
+    {
+      "commit": "409449136ae1adc252ff6e205a6bb5785d113d0f",
+      "name": "consumers",
+      "trackedDiffExit": 0
+    },
+    {
+      "commit": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+      "name": "consumers-v2",
+      "trackedDiffExit": 0
+    },
+    {
+      "commit": "70fa3df66f9c8dc3f972cfa8c0c5862d77d7514e",
+      "name": "runtime-v2",
+      "trackedDiffExit": 0
+    }
+  ],
+  "sourceAndRecipeAuthentication": "PASS",
+  "diffCheck": 0,
+  "productImports": 0,
+  "productExecutions": 0,
+  "builds": 0,
+  "typeCompiles": 0,
+  "activeChildren": []
+}

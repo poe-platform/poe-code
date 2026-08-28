@@ -35,3 +35,17 @@
   Every materialized runtime recipe/candidate/source/package tree still has a
   complete regular membership/hash/mode guard. No symlink allowance was added.
   Raw refusal remains; no synthetic product or actual candidate was admitted.
+- Fourth validation at validation-5WW87XaM: nine syntax checks, protocol and16
+  data controls passed. The materialization CLI correctly refused this author's
+  evidence parent because it was an ancestor of guarded core source. No child
+  was admitted. The next invocation used a fresh disjoint validation directory;
+  no guard or source-code change was made to bypass the refusal.
+- Final validation at validation-UdOTznoL: materialization PASS, child PID/group
+  28573 exited0 without signal/timeout/overflow/spawn error; closed=true,
+  reaped=true, reapProof=true, integrity=true; activeChildren=[]. No kill issued.
+  All25 composition controls passed against the returned exact runtime-v2 recipe.
+  The final16/16 data controls and syntax/protocol results are in5WW87XaM.
+  These overlapping synthetic/data checks are separate from YQ semantics.
+- Final source preseal:4fafd93a2a414fe9ce1965f77ab45da1d417d10a,
+  SEAL-v4.json SHA47c3874f520efee18062d4b2e687159a52039a86d35945a7f5371e85eb00fdff.
+  Product imports/executions/builds/type compiles/native oracles=0 throughout.

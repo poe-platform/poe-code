@@ -1,0 +1,228 @@
+{
+  "started": "2026-08-28T17:54:03.741Z",
+  "controllerPid": 85670,
+  "metadataSha256": "86c3a490f2818d3155d5cc7b7472c705a8bc514253a0b1746a4f1b6c7504a0c1",
+  "sealSha256": "c61d2d547079f4e633aefacd90448f771c2df3aea37f2a55c561300de882a12a",
+  "phases": [],
+  "product": [],
+  "types": [],
+  "controls": [
+    {
+      "id": "T01",
+      "accepted": true,
+      "productDispatches": 0
+    },
+    {
+      "id": "T02",
+      "accepted": true,
+      "productDispatches": 0
+    },
+    {
+      "id": "T03",
+      "accepted": true,
+      "productDispatches": 0
+    },
+    {
+      "id": "T04",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "T05",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "T06",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "T07",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "T08",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "T09",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "T10",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "T11",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "T12",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "T13",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "T14",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "T15",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "T16",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "T17",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "T18",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "T19",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "T20",
+      "accepted": false,
+      "productDispatches": 0
+    },
+    {
+      "id": "reason-identities",
+      "variants": 5,
+      "productDispatches": 0
+    }
+  ],
+  "peakWorkingBytes": 0,
+  "finished": "2026-08-28T17:54:04.868Z",
+  "elapsedMs": 1162.037208,
+  "capturedBytes": 8029711,
+  "persistedCaptureBytesBeforeFinalization": 10750448,
+  "admittedWorkingBytes": 67108864,
+  "processClosure": [
+    {
+      "id": "git-base-tree",
+      "role": "git",
+      "pid": 85679,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    },
+    {
+      "id": "git-authenticated-inputs",
+      "role": "git",
+      "pid": 85682,
+      "closeObserved": true,
+      "groupAbsent": true,
+      "retired": true
+    }
+  ],
+  "stopped": {
+    "name": "AssertionError",
+    "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'tree 189bef24a927241d7c47a662f1ac447b56da1835'\n- 'tree bd69c1a1dd0e65e442017ab27f86ed72a284fa95'\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'tree 189bef24a927241d7c47a662f1ac447b56da1835'\n- 'tree bd69c1a1dd0e65e442017ab27f86ed72a284fa95'\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/actual-v1/controller.mjs:269:10"
+  },
+  "plannedJobs": 70,
+  "executedJobs": 2,
+  "notRunJobs": [
+    "guard-hash",
+    "guard-missing",
+    "guard-mode",
+    "supervisor-binary",
+    "build-source",
+    "git-runtime-seal",
+    "source-originals",
+    "source-supplement-a",
+    "source-supplement-b",
+    "types-source-positive",
+    "types-source-bad-value",
+    "types-source-bad-value-repair",
+    "types-source-root-negative",
+    "types-source-root-repair",
+    "installed-originals",
+    "installed-supplement-a",
+    "installed-supplement-b",
+    "types-installed-positive",
+    "types-installed-bad-value",
+    "types-installed-bad-value-repair",
+    "types-installed-root-negative",
+    "types-installed-root-repair",
+    "moved-originals",
+    "moved-supplement-a",
+    "moved-supplement-b",
+    "types-moved-positive",
+    "types-moved-bad-value",
+    "types-moved-bad-value-repair",
+    "types-moved-root-negative",
+    "types-moved-root-repair",
+    "cap-L01-minus",
+    "cap-L01-at",
+    "cap-L01-over",
+    "cap-L02-minus",
+    "cap-L02-at",
+    "cap-L02-over",
+    "cap-L05-minus",
+    "cap-L05-at",
+    "cap-L05-over",
+    "cap-L06-minus",
+    "cap-L06-at",
+    "cap-L06-over",
+    "cap-L07-minus",
+    "cap-L07-at",
+    "cap-L07-over",
+    "cap-L10-minus",
+    "cap-L10-at",
+    "cap-L10-over",
+    "real-scoped",
+    "mock-s3-scoped",
+    "mutation-M01-before",
+    "mutation-M01-mutant",
+    "mutation-M01-restored",
+    "mutation-M03-before",
+    "mutation-M03-mutant",
+    "mutation-M03-restored",
+    "mutation-M04-before",
+    "mutation-M04-mutant",
+    "mutation-M04-restored",
+    "mutation-M09-before",
+    "mutation-M09-mutant",
+    "mutation-M09-restored",
+    "mutation-M12-before",
+    "mutation-M12-mutant",
+    "mutation-M12-restored",
+    "mutation-M18-before",
+    "mutation-M18-mutant",
+    "mutation-M18-restored"
+  ],
+  "peakOwnedProcesses": 2,
+  "archive": {
+    "path": "evidence/work-archive.json.gz.base64",
+    "compressedBytes": 88,
+    "sha256": "5420e0f08e0995c54719d02e87294994219d4926d709d2452e50b37f2bb7471a",
+    "entries": 2
+  },
+  "cleanup": {
+    "ownedRootRemoved": true,
+    "knownChildrenRetired": true
+  }
+}

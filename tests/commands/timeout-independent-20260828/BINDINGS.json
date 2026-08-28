@@ -1,0 +1,285 @@
+{
+  "schema": "timeout-independent-precode-binding/1",
+  "at": "2026-08-28T02:12:56.730Z",
+  "packetCommit": "257bf6d7fe51b03c224fbca7e91519e692bfadd3",
+  "clarificationCommit": "a0c6adaecad2665ea65eedb7b07dc6ade5f209c0",
+  "references": [
+    {
+      "commit": "257bf6d7fe51b03c224fbca7e91519e692bfadd3",
+      "path": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/README.md",
+      "bytes": 18788,
+      "sha256": "e050a86f9e1ee14f5f842d49ef99cd11b4b9decfcd1223d429b287c82444ecef"
+    },
+    {
+      "commit": "257bf6d7fe51b03c224fbca7e91519e692bfadd3",
+      "path": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/api.json",
+      "bytes": 9074,
+      "sha256": "da0d7dca239420df91a776d3683e44e72a4ce9b5a277be1cab9f2edf98280508"
+    },
+    {
+      "commit": "257bf6d7fe51b03c224fbca7e91519e692bfadd3",
+      "path": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/profile.json",
+      "bytes": 10264,
+      "sha256": "d4101ec53792e2bc7842b8ab6d68d3d50593f561c7829a05d1d4e8d391bde0d5"
+    },
+    {
+      "commit": "257bf6d7fe51b03c224fbca7e91519e692bfadd3",
+      "path": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/diagnostics.data",
+      "bytes": 1330,
+      "sha256": "8ec35ea72e54b3bc0fbfea8295a10ec03834cc9e2a309037fcd613cf91a10d88"
+    },
+    {
+      "commit": "257bf6d7fe51b03c224fbca7e91519e692bfadd3",
+      "path": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/freeze-delta.json",
+      "bytes": 8322,
+      "sha256": "ec6a430923e0abdfcad5e233945c4b3444bfda28515a704fdaf2cab5eb3be1b1"
+    },
+    {
+      "commit": "257bf6d7fe51b03c224fbca7e91519e692bfadd3",
+      "path": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/identity.json",
+      "bytes": 7600,
+      "sha256": "6acd9f4059d7e3bd269f136ad5594a1b8d56f36e363523368fe0e7acf72e02a1"
+    },
+    {
+      "commit": "a0c6adaecad2665ea65eedb7b07dc6ade5f209c0",
+      "path": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/parser-bound-clarification-v1/README.md",
+      "bytes": 12595,
+      "sha256": "4fd27d69604115524d670d2402468e5e657f476481e45fcad2d3b4812fe7c1c1"
+    },
+    {
+      "commit": "a0c6adaecad2665ea65eedb7b07dc6ade5f209c0",
+      "path": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/parser-bound-clarification-v1/parser-bound.json",
+      "bytes": 4700,
+      "sha256": "c63dff8f2276511f4ade5e5b4fe2e604d61ae7a14535894ebecb366697d068ee"
+    },
+    {
+      "commit": "a0c6adaecad2665ea65eedb7b07dc6ade5f209c0",
+      "path": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/parser-bound-clarification-v1/identity.json",
+      "bytes": 4115,
+      "sha256": "2d0892176a5e12f986dfd6e2be59ae367e1e436aa1dbc2b5591de0af102586e5"
+    },
+    {
+      "commit": "7b812873c884a432951e981bfa908d7ca7407494",
+      "path": "tests/commands/timeout-design-independent-20260827/README.md",
+      "bytes": 25998,
+      "sha256": "42ed4a630af5d128f98f4099c437b04e0fa1b82b151597ebc987170a32be947d"
+    },
+    {
+      "commit": "7b812873c884a432951e981bfa908d7ca7407494",
+      "path": "tests/commands/timeout-design-independent-20260827/identity.json",
+      "bytes": 3692,
+      "sha256": "511b5629ffbb9004705fe0ba16f942d9b38025b93e7c3896c12155d9fef894a3"
+    },
+    {
+      "commit": "8036a6c29873c6251d05d73c4b9eec99cf946af9",
+      "path": "tests/commands/timeout-design-independent-20260827/command-precode-v1/README.md",
+      "bytes": 20098,
+      "sha256": "fc3dcdecfbe179999a06119200d499d8b711ec2bf7eb98b840055c6ca6b66f08"
+    },
+    {
+      "commit": "8036a6c29873c6251d05d73c4b9eec99cf946af9",
+      "path": "tests/commands/timeout-design-independent-20260827/command-precode-v1/profile.json",
+      "bytes": 5541,
+      "sha256": "f70c139c5b675bd25691eacfccfac3c20f856a2ca69d14dc08335bd920df2c2d"
+    },
+    {
+      "commit": "8036a6c29873c6251d05d73c4b9eec99cf946af9",
+      "path": "tests/commands/timeout-design-independent-20260827/command-precode-v1/diagnostics.data",
+      "bytes": 1314,
+      "sha256": "3453979b5a0fbe4355684c9ac0527c70c4ca0b8e1f64b0d422fbf1b25a463cec"
+    },
+    {
+      "commit": "8036a6c29873c6251d05d73c4b9eec99cf946af9",
+      "path": "tests/commands/timeout-design-independent-20260827/command-precode-v1/freeze-matrix.json",
+      "bytes": 11985,
+      "sha256": "61af575274ce4c41aafe44ef72fc1763db3e2cbffb0e74b47c7865ccdd084cf0"
+    },
+    {
+      "commit": "8036a6c29873c6251d05d73c4b9eec99cf946af9",
+      "path": "tests/commands/timeout-design-independent-20260827/command-precode-v1/identity.json",
+      "bytes": 7720,
+      "sha256": "2f44c516841c3708575faf4051e660e080cffdcff94fc8b8a5c8bc2a64ab28ee"
+    },
+    {
+      "commit": "7ca45f2decea9faab958b15577a55aac2be1c40c",
+      "path": "tests/shell/cancellation-stage2-independent-20260827/review-fd1/REPORT.md",
+      "bytes": 10446,
+      "sha256": "8b9f633fa798573182ebd5c84ed761a90b2cee3a56c750ea87d7981eab944d94"
+    },
+    {
+      "commit": "7ca45f2decea9faab958b15577a55aac2be1c40c",
+      "path": "tests/shell/cancellation-stage2-independent-20260827/review-fd1/REVIEW.json",
+      "bytes": 10136,
+      "sha256": "07a3bc5a399d05b45d7a373033c0affa343dcc69fdb0e6ee55b7030575bfab27"
+    }
+  ],
+  "sourceDeclarations": [
+    {
+      "commit": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+      "path": "src/contracts/command.ts",
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "scope": "declaration inspection only, not whole-fd1 product acceptance"
+    },
+    {
+      "commit": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+      "path": "src/shell/types.ts",
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "scope": "declaration inspection only, not whole-fd1 product acceptance"
+    }
+  ],
+  "diagnostics": [
+    {
+      "label": "missing-duration",
+      "status": 125,
+      "stream": "stderr",
+      "bytes": 26,
+      "sha256": "4cbb370bd78533713314f91b723a8f6371093206f4e850f41353925d19c8d49a",
+      "source": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/diagnostics.data"
+    },
+    {
+      "label": "invalid-duration",
+      "status": 125,
+      "stream": "stderr",
+      "bytes": 26,
+      "sha256": "f13263aa90cf0a65faebf9cc9f713958e560d7b1c69b05e0ae0151ecd8068e25",
+      "source": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/diagnostics.data"
+    },
+    {
+      "label": "duration-overflow",
+      "status": 125,
+      "stream": "stderr",
+      "bytes": 42,
+      "sha256": "bbdbf47c30a04f6889d9d3fbfe928faeaa293fecaeb0624bfa43c9749f1a573e",
+      "source": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/diagnostics.data"
+    },
+    {
+      "label": "missing-command",
+      "status": 125,
+      "stream": "stderr",
+      "bytes": 25,
+      "sha256": "0560d47e88bdd4a9cbf9f17b90e04e5bffa826f5ac201bfb3208a375cdd1949c",
+      "source": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/diagnostics.data"
+    },
+    {
+      "label": "invalid-option",
+      "status": 125,
+      "stream": "stderr",
+      "bytes": 24,
+      "sha256": "773539b514dbe1449e7975d9ea7916e71bbf9688b794123ff0e72aa502053e74",
+      "source": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/diagnostics.data"
+    },
+    {
+      "label": "unsupported-preserve-status",
+      "status": 125,
+      "stream": "stderr",
+      "bytes": 49,
+      "sha256": "e76efd19e7340e3dea03626e89a9ad809f0f5eb8712595e875908f73ca381d6f",
+      "source": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/diagnostics.data"
+    },
+    {
+      "label": "unsupported-signal",
+      "status": 125,
+      "stream": "stderr",
+      "bytes": 40,
+      "sha256": "96adf0e3c4fa6608da43d2214c2411e8366e4e029a98475ffe6f6428d9ed9e9d",
+      "source": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/diagnostics.data"
+    },
+    {
+      "label": "unsupported-kill-after",
+      "status": 125,
+      "stream": "stderr",
+      "bytes": 44,
+      "sha256": "f7f7a0a7a4ea19095d16e0d2492652215ff7aa483ca4d2f8d8d496929fc73b35",
+      "source": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/diagnostics.data"
+    },
+    {
+      "label": "unsupported-foreground",
+      "status": 125,
+      "stream": "stderr",
+      "bytes": 44,
+      "sha256": "8215b3330aa4bc8d04dc13e1f7a40b4059274be38ffe57004474e2b3be19cbf6",
+      "source": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/diagnostics.data"
+    },
+    {
+      "label": "unsupported-verbose",
+      "status": 125,
+      "stream": "stderr",
+      "bytes": 41,
+      "sha256": "bfc783b491c20da817dc90f7eead788fc695e10144e5ca77c2ecc5bf6a2cf027",
+      "source": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/diagnostics.data"
+    },
+    {
+      "label": "invoke-unavailable",
+      "status": 125,
+      "stream": "stderr",
+      "bytes": 43,
+      "sha256": "93b2be56b74836692f6e27afc542f310b06ceea1243e2498cbc0856585f34f4f",
+      "source": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/diagnostics.data"
+    },
+    {
+      "label": "timer-setup-failed",
+      "status": 125,
+      "stream": "stderr",
+      "bytes": 28,
+      "sha256": "dcb88e2478305a94b165439c70745d8092a714a47c22fed9c1825134bdbde2ff",
+      "source": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/diagnostics.data"
+    },
+    {
+      "label": "help",
+      "status": 0,
+      "stream": "stdout",
+      "bytes": 108,
+      "sha256": "f92c51ec49fec965451ac165ec1f07e9cb298f157ca2530a8e34ce50c2f05bf9",
+      "source": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/diagnostics.data"
+    },
+    {
+      "label": "version",
+      "status": 0,
+      "stream": "stdout",
+      "bytes": 43,
+      "sha256": "bed4c9ff4727a66db7fb9611e7971198a23d88b145ac9762493af68936c68285",
+      "source": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/diagnostics.data"
+    }
+  ],
+  "stage2": {
+    "acceptedByRoot": true,
+    "reviewCommit": "7ca45f2decea9faab958b15577a55aac2be1c40c",
+    "scopedSyntheticNotWholeFd1": true,
+    "actualSafeJsFollowup": "pending in root handoff; not verified by this freeze"
+  },
+  "duCheckpoint": "83645ad032238edb6d0887ae445c3b8c9d7c7f2a",
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "mode": 493,
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "executed": false
+    },
+    {
+      "path": "/usr/bin/git",
+      "realpath": "/usr/bin/git",
+      "mode": 493,
+      "bytes": 118928,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba",
+      "executed": false
+    }
+  ],
+  "originalRows": {
+    "virtual": 33,
+    "native": 12,
+    "modified": 0
+  },
+  "independentFamilies": 32,
+  "implementationCandidate": null,
+  "productExecuted": 0,
+  "nativeExecuted": 0,
+  "authorImplementationRelease": "root required after freeze",
+  "semanticClarificationsRequired": [],
+  "futureExecutionBindings": [
+    "exact candidate and selected module/source paths",
+    "accepted actual Shell reconstruction and supervisor/compiler/loads",
+    "native supervisor release separately"
+  ]
+}

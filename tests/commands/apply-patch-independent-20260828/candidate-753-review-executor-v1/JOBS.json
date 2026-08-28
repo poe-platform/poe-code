@@ -1,0 +1,1393 @@
+[
+  {
+    "id": "source-metadata",
+    "role": "metadata",
+    "timeoutMs": 30000,
+    "maxBytes": 16777216
+  },
+  {
+    "id": "binding-negatives",
+    "role": "guard",
+    "timeoutMs": 30000,
+    "maxBytes": 2097152
+  },
+  {
+    "id": "strict-build",
+    "role": "build",
+    "timeoutMs": 120000,
+    "maxBytes": 2097152
+  },
+  {
+    "id": "type-source-positive",
+    "role": "type",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "variant": "positive",
+    "movedFilenamePolicy": "distinct presealed moved consumer name, no overwrite",
+    "maxBytes": 2097152
+  },
+  {
+    "id": "type-source-bad-value",
+    "role": "type",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "variant": "bad-value",
+    "movedFilenamePolicy": "distinct presealed moved consumer name, no overwrite",
+    "maxBytes": 2097152
+  },
+  {
+    "id": "type-source-bad-value-repair",
+    "role": "type",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "variant": "bad-value-repair",
+    "movedFilenamePolicy": "distinct presealed moved consumer name, no overwrite",
+    "maxBytes": 2097152
+  },
+  {
+    "id": "type-source-root-negative",
+    "role": "type",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "variant": "root-negative",
+    "movedFilenamePolicy": "distinct presealed moved consumer name, no overwrite",
+    "maxBytes": 2097152
+  },
+  {
+    "id": "type-source-root-repair",
+    "role": "type",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "variant": "root-repair",
+    "movedFilenamePolicy": "distinct presealed moved consumer name, no overwrite",
+    "maxBytes": 2097152
+  },
+  {
+    "id": "type-installed-positive",
+    "role": "type",
+    "timeoutMs": 30000,
+    "layout": "installed",
+    "variant": "positive",
+    "movedFilenamePolicy": "distinct presealed moved consumer name, no overwrite",
+    "maxBytes": 2097152
+  },
+  {
+    "id": "type-installed-bad-value",
+    "role": "type",
+    "timeoutMs": 30000,
+    "layout": "installed",
+    "variant": "bad-value",
+    "movedFilenamePolicy": "distinct presealed moved consumer name, no overwrite",
+    "maxBytes": 2097152
+  },
+  {
+    "id": "type-installed-bad-value-repair",
+    "role": "type",
+    "timeoutMs": 30000,
+    "layout": "installed",
+    "variant": "bad-value-repair",
+    "movedFilenamePolicy": "distinct presealed moved consumer name, no overwrite",
+    "maxBytes": 2097152
+  },
+  {
+    "id": "type-installed-root-negative",
+    "role": "type",
+    "timeoutMs": 30000,
+    "layout": "installed",
+    "variant": "root-negative",
+    "movedFilenamePolicy": "distinct presealed moved consumer name, no overwrite",
+    "maxBytes": 2097152
+  },
+  {
+    "id": "type-installed-root-repair",
+    "role": "type",
+    "timeoutMs": 30000,
+    "layout": "installed",
+    "variant": "root-repair",
+    "movedFilenamePolicy": "distinct presealed moved consumer name, no overwrite",
+    "maxBytes": 2097152
+  },
+  {
+    "id": "type-moved-positive",
+    "role": "type",
+    "timeoutMs": 30000,
+    "layout": "moved",
+    "variant": "positive",
+    "movedFilenamePolicy": "distinct presealed moved consumer name, no overwrite",
+    "maxBytes": 2097152
+  },
+  {
+    "id": "type-moved-bad-value",
+    "role": "type",
+    "timeoutMs": 30000,
+    "layout": "moved",
+    "variant": "bad-value",
+    "movedFilenamePolicy": "distinct presealed moved consumer name, no overwrite",
+    "maxBytes": 2097152
+  },
+  {
+    "id": "type-moved-bad-value-repair",
+    "role": "type",
+    "timeoutMs": 30000,
+    "layout": "moved",
+    "variant": "bad-value-repair",
+    "movedFilenamePolicy": "distinct presealed moved consumer name, no overwrite",
+    "maxBytes": 2097152
+  },
+  {
+    "id": "type-moved-root-negative",
+    "role": "type",
+    "timeoutMs": 30000,
+    "layout": "moved",
+    "variant": "root-negative",
+    "movedFilenamePolicy": "distinct presealed moved consumer name, no overwrite",
+    "maxBytes": 2097152
+  },
+  {
+    "id": "type-moved-root-repair",
+    "role": "type",
+    "timeoutMs": 30000,
+    "layout": "moved",
+    "variant": "root-repair",
+    "movedFilenamePolicy": "distinct presealed moved consumer name, no overwrite",
+    "maxBytes": 2097152
+  },
+  {
+    "id": "regression-source",
+    "role": "regression",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "cohorts": [
+      "unchanged independent32",
+      "unchanged independent80 with historical static/unrun distinctions",
+      "separate unchanged author63"
+    ],
+    "oldPassInheritance": false,
+    "maxBytes": 8388608,
+    "ids": [
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P05",
+      "P06",
+      "P07",
+      "P08",
+      "P09",
+      "P10",
+      "P11",
+      "P12",
+      "P13",
+      "P14",
+      "P15",
+      "P16",
+      "P17",
+      "P18",
+      "P19",
+      "P20",
+      "P21",
+      "P22",
+      "P23",
+      "P24",
+      "P25",
+      "P26",
+      "P27",
+      "P28",
+      "P29",
+      "P30",
+      "P31",
+      "P32",
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12",
+      "S13",
+      "S14",
+      "S15",
+      "S16",
+      "S17",
+      "S18",
+      "S19",
+      "S20",
+      "S21",
+      "S22",
+      "S23",
+      "S24",
+      "S25",
+      "S26",
+      "S27",
+      "S28",
+      "S29",
+      "S30",
+      "S31",
+      "S32",
+      "S33",
+      "S34",
+      "S35",
+      "S36",
+      "S37",
+      "S38",
+      "S39",
+      "S40",
+      "S41",
+      "S42",
+      "S43",
+      "S44",
+      "S45",
+      "S46",
+      "S47",
+      "S48",
+      "S49",
+      "S50",
+      "S51",
+      "S52",
+      "S53",
+      "S54",
+      "S55",
+      "S56",
+      "S57",
+      "S58",
+      "S59",
+      "S60",
+      "S61",
+      "S62",
+      "S63",
+      "S64",
+      "S65",
+      "S66",
+      "S67",
+      "S68",
+      "S69",
+      "S70",
+      "S71",
+      "S72",
+      "S73",
+      "S74",
+      "S75",
+      "S76",
+      "S77",
+      "S78",
+      "S79",
+      "S80"
+    ],
+    "authorCases": 63
+  },
+  {
+    "id": "regression-installed",
+    "role": "regression",
+    "timeoutMs": 30000,
+    "layout": "installed",
+    "cohorts": [
+      "unchanged independent32",
+      "unchanged independent80 with historical static/unrun distinctions",
+      "separate unchanged author63"
+    ],
+    "oldPassInheritance": false,
+    "maxBytes": 8388608,
+    "ids": [
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P05",
+      "P06",
+      "P07",
+      "P08",
+      "P09",
+      "P10",
+      "P11",
+      "P12",
+      "P13",
+      "P14",
+      "P15",
+      "P16",
+      "P17",
+      "P18",
+      "P19",
+      "P20",
+      "P21",
+      "P22",
+      "P23",
+      "P24",
+      "P25",
+      "P26",
+      "P27",
+      "P28",
+      "P29",
+      "P30",
+      "P31",
+      "P32",
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12",
+      "S13",
+      "S14",
+      "S15",
+      "S16",
+      "S17",
+      "S18",
+      "S19",
+      "S20",
+      "S21",
+      "S22",
+      "S23",
+      "S24",
+      "S25",
+      "S26",
+      "S27",
+      "S28",
+      "S29",
+      "S30",
+      "S31",
+      "S32",
+      "S33",
+      "S34",
+      "S35",
+      "S36",
+      "S37",
+      "S38",
+      "S39",
+      "S40",
+      "S41",
+      "S42",
+      "S43",
+      "S44",
+      "S45",
+      "S46",
+      "S47",
+      "S48",
+      "S49",
+      "S50",
+      "S51",
+      "S52",
+      "S53",
+      "S54",
+      "S55",
+      "S56",
+      "S57",
+      "S58",
+      "S59",
+      "S60",
+      "S61",
+      "S62",
+      "S63",
+      "S64",
+      "S65",
+      "S66",
+      "S67",
+      "S68",
+      "S69",
+      "S70",
+      "S71",
+      "S72",
+      "S73",
+      "S74",
+      "S75",
+      "S76",
+      "S77",
+      "S78",
+      "S79",
+      "S80"
+    ],
+    "authorCases": 63
+  },
+  {
+    "id": "regression-moved",
+    "role": "regression",
+    "timeoutMs": 30000,
+    "layout": "moved",
+    "cohorts": [
+      "unchanged independent32",
+      "unchanged independent80 with historical static/unrun distinctions",
+      "separate unchanged author63"
+    ],
+    "oldPassInheritance": false,
+    "maxBytes": 8388608,
+    "ids": [
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P05",
+      "P06",
+      "P07",
+      "P08",
+      "P09",
+      "P10",
+      "P11",
+      "P12",
+      "P13",
+      "P14",
+      "P15",
+      "P16",
+      "P17",
+      "P18",
+      "P19",
+      "P20",
+      "P21",
+      "P22",
+      "P23",
+      "P24",
+      "P25",
+      "P26",
+      "P27",
+      "P28",
+      "P29",
+      "P30",
+      "P31",
+      "P32",
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12",
+      "S13",
+      "S14",
+      "S15",
+      "S16",
+      "S17",
+      "S18",
+      "S19",
+      "S20",
+      "S21",
+      "S22",
+      "S23",
+      "S24",
+      "S25",
+      "S26",
+      "S27",
+      "S28",
+      "S29",
+      "S30",
+      "S31",
+      "S32",
+      "S33",
+      "S34",
+      "S35",
+      "S36",
+      "S37",
+      "S38",
+      "S39",
+      "S40",
+      "S41",
+      "S42",
+      "S43",
+      "S44",
+      "S45",
+      "S46",
+      "S47",
+      "S48",
+      "S49",
+      "S50",
+      "S51",
+      "S52",
+      "S53",
+      "S54",
+      "S55",
+      "S56",
+      "S57",
+      "S58",
+      "S59",
+      "S60",
+      "S61",
+      "S62",
+      "S63",
+      "S64",
+      "S65",
+      "S66",
+      "S67",
+      "S68",
+      "S69",
+      "S70",
+      "S71",
+      "S72",
+      "S73",
+      "S74",
+      "S75",
+      "S76",
+      "S77",
+      "S78",
+      "S79",
+      "S80"
+    ],
+    "authorCases": 63
+  },
+  {
+    "id": "versioned-tail-source",
+    "role": "fixture-tail",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "ids": [
+      "V6-S62-CANONICAL",
+      "V6-S64-LITERAL-NOPULL",
+      "V6-S71-ACCESS-MODE",
+      "V6-S74-EXACT-BRANCH-SET"
+    ],
+    "canonicalBytes": 40,
+    "maxBytes": 2097152
+  },
+  {
+    "id": "versioned-tail-installed",
+    "role": "fixture-tail",
+    "timeoutMs": 30000,
+    "layout": "installed",
+    "ids": [
+      "V6-S62-CANONICAL",
+      "V6-S64-LITERAL-NOPULL",
+      "V6-S71-ACCESS-MODE",
+      "V6-S74-EXACT-BRANCH-SET"
+    ],
+    "canonicalBytes": 40,
+    "maxBytes": 2097152
+  },
+  {
+    "id": "versioned-tail-moved",
+    "role": "fixture-tail",
+    "timeoutMs": 30000,
+    "layout": "moved",
+    "ids": [
+      "V6-S62-CANONICAL",
+      "V6-S64-LITERAL-NOPULL",
+      "V6-S71-ACCESS-MODE",
+      "V6-S74-EXACT-BRANCH-SET"
+    ],
+    "canonicalBytes": 40,
+    "maxBytes": 2097152
+  },
+  {
+    "id": "s54-unmodified-source",
+    "role": "independent-s54",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "ids": [
+      "U01",
+      "U02",
+      "U03",
+      "U04",
+      "U05",
+      "U06",
+      "U07",
+      "U08",
+      "U09",
+      "U10",
+      "U11",
+      "U12"
+    ],
+    "casesImplemented": false,
+    "maxBytes": 2097152
+  },
+  {
+    "id": "s54-unmodified-installed",
+    "role": "independent-s54",
+    "timeoutMs": 30000,
+    "layout": "installed",
+    "ids": [
+      "U01",
+      "U02",
+      "U03",
+      "U04",
+      "U05",
+      "U06",
+      "U07",
+      "U08",
+      "U09",
+      "U10",
+      "U11",
+      "U12"
+    ],
+    "casesImplemented": false,
+    "maxBytes": 2097152
+  },
+  {
+    "id": "s54-unmodified-moved",
+    "role": "independent-s54",
+    "timeoutMs": 30000,
+    "layout": "moved",
+    "ids": [
+      "U01",
+      "U02",
+      "U03",
+      "U04",
+      "U05",
+      "U06",
+      "U07",
+      "U08",
+      "U09",
+      "U10",
+      "U11",
+      "U12"
+    ],
+    "casesImplemented": false,
+    "maxBytes": 2097152
+  },
+  {
+    "id": "s54-instrumented",
+    "role": "instrumented-s54",
+    "timeoutMs": 30000,
+    "ids": [
+      "I01",
+      "I02",
+      "I03",
+      "I04"
+    ],
+    "casesImplemented": false,
+    "mutants": [
+      "bulk-copy",
+      "skipped-interval",
+      "bulk-encode",
+      "omitted-stage-admission"
+    ],
+    "eachRequires": [
+      "authenticated original",
+      "actual loaded mutant killed predicate",
+      "authenticated restored positive"
+    ],
+    "maxBytes": 8388608
+  },
+  {
+    "id": "cap-L01-minus",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L01-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L01",
+      "endpoint": "minus"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L01",
+    "endpoint": "minus"
+  },
+  {
+    "id": "cap-L01-at",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L01-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L01",
+      "endpoint": "at"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L01",
+    "endpoint": "at"
+  },
+  {
+    "id": "cap-L01-over",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L01-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L01",
+      "endpoint": "over"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L01",
+    "endpoint": "over"
+  },
+  {
+    "id": "cap-L02-minus",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L02-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L02",
+      "endpoint": "minus"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L02",
+    "endpoint": "minus"
+  },
+  {
+    "id": "cap-L02-at",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L02-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L02",
+      "endpoint": "at"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L02",
+    "endpoint": "at"
+  },
+  {
+    "id": "cap-L02-over",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L02-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L02",
+      "endpoint": "over"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L02",
+    "endpoint": "over"
+  },
+  {
+    "id": "cap-L05-minus",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L05-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L05",
+      "endpoint": "minus"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L05",
+    "endpoint": "minus"
+  },
+  {
+    "id": "cap-L05-at",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L05-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L05",
+      "endpoint": "at"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L05",
+    "endpoint": "at"
+  },
+  {
+    "id": "cap-L05-over",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L05-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L05",
+      "endpoint": "over"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L05",
+    "endpoint": "over"
+  },
+  {
+    "id": "cap-L06-minus",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L06-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L06",
+      "endpoint": "minus"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L06",
+    "endpoint": "minus"
+  },
+  {
+    "id": "cap-L06-at",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L06-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L06",
+      "endpoint": "at"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L06",
+    "endpoint": "at"
+  },
+  {
+    "id": "cap-L06-over",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L06-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L06",
+      "endpoint": "over"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L06",
+    "endpoint": "over"
+  },
+  {
+    "id": "cap-L07-minus",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L07-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L07",
+      "endpoint": "minus"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L07",
+    "endpoint": "minus"
+  },
+  {
+    "id": "cap-L07-at",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L07-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L07",
+      "endpoint": "at"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L07",
+    "endpoint": "at"
+  },
+  {
+    "id": "cap-L07-over",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L07-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L07",
+      "endpoint": "over"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L07",
+    "endpoint": "over"
+  },
+  {
+    "id": "cap-L10-minus",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L10-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L10",
+      "endpoint": "minus"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L10",
+    "endpoint": "minus"
+  },
+  {
+    "id": "cap-L10-at",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L10-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L10",
+      "endpoint": "at"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L10",
+    "endpoint": "at"
+  },
+  {
+    "id": "cap-L10-over",
+    "role": "limit",
+    "timeoutMs": 30000,
+    "layout": "source",
+    "originalJob": {
+      "id": "cap-L10-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L10",
+      "endpoint": "over"
+    },
+    "publicDefaultCaps": true,
+    "maxBytes": 2097152,
+    "cap": "L10",
+    "endpoint": "over"
+  },
+  {
+    "id": "real-scoped",
+    "role": "adapter",
+    "timeoutMs": 30000,
+    "originalJob": {
+      "id": "real-scoped",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "backend": "real",
+      "ids": [
+        "P01",
+        "P06",
+        "P09",
+        "S41"
+      ]
+    },
+    "maxBytes": 2097152,
+    "layout": "source",
+    "backend": "real",
+    "ids": [
+      "P01",
+      "P06",
+      "P09",
+      "S41"
+    ]
+  },
+  {
+    "id": "mock-s3-scoped",
+    "role": "adapter",
+    "timeoutMs": 30000,
+    "originalJob": {
+      "id": "mock-s3-scoped",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "backend": "mock-s3",
+      "ids": [
+        "P01",
+        "P06",
+        "P09",
+        "S41"
+      ]
+    },
+    "maxBytes": 2097152,
+    "layout": "source",
+    "backend": "mock-s3",
+    "ids": [
+      "P01",
+      "P06",
+      "P09",
+      "S41"
+    ]
+  },
+  {
+    "id": "original-M01-triplet",
+    "role": "original-mutant",
+    "timeoutMs": 30000,
+    "mutant": "M01",
+    "observations": [
+      "before",
+      "mutant",
+      "restored"
+    ],
+    "originalJobs": [
+      {
+        "id": "mutation-M01-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M01",
+        "phase": "before",
+        "ids": [
+          "P02"
+        ]
+      },
+      {
+        "id": "mutation-M01-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M01",
+        "phase": "mutant",
+        "ids": [
+          "P02"
+        ]
+      },
+      {
+        "id": "mutation-M01-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M01",
+        "phase": "restored",
+        "ids": [
+          "P02"
+        ]
+      }
+    ],
+    "candidateApplicability": "must source-check exact mutation against753, never force patch application",
+    "maxBytes": 2097152,
+    "ids": [
+      "P02"
+    ]
+  },
+  {
+    "id": "original-M03-triplet",
+    "role": "original-mutant",
+    "timeoutMs": 30000,
+    "mutant": "M03",
+    "observations": [
+      "before",
+      "mutant",
+      "restored"
+    ],
+    "originalJobs": [
+      {
+        "id": "mutation-M03-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M03",
+        "phase": "before",
+        "ids": [
+          "P18"
+        ]
+      },
+      {
+        "id": "mutation-M03-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M03",
+        "phase": "mutant",
+        "ids": [
+          "P18"
+        ]
+      },
+      {
+        "id": "mutation-M03-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M03",
+        "phase": "restored",
+        "ids": [
+          "P18"
+        ]
+      }
+    ],
+    "candidateApplicability": "must source-check exact mutation against753, never force patch application",
+    "maxBytes": 2097152,
+    "ids": [
+      "P18"
+    ]
+  },
+  {
+    "id": "original-M04-triplet",
+    "role": "original-mutant",
+    "timeoutMs": 30000,
+    "mutant": "M04",
+    "observations": [
+      "before",
+      "mutant",
+      "restored"
+    ],
+    "originalJobs": [
+      {
+        "id": "mutation-M04-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M04",
+        "phase": "before",
+        "ids": [
+          "P16"
+        ]
+      },
+      {
+        "id": "mutation-M04-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M04",
+        "phase": "mutant",
+        "ids": [
+          "P16"
+        ]
+      },
+      {
+        "id": "mutation-M04-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M04",
+        "phase": "restored",
+        "ids": [
+          "P16"
+        ]
+      }
+    ],
+    "candidateApplicability": "must source-check exact mutation against753, never force patch application",
+    "maxBytes": 2097152,
+    "ids": [
+      "P16"
+    ]
+  },
+  {
+    "id": "original-M09-triplet",
+    "role": "original-mutant",
+    "timeoutMs": 30000,
+    "mutant": "M09",
+    "observations": [
+      "before",
+      "mutant",
+      "restored"
+    ],
+    "originalJobs": [
+      {
+        "id": "mutation-M09-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M09",
+        "phase": "before",
+        "ids": [
+          "S40"
+        ]
+      },
+      {
+        "id": "mutation-M09-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M09",
+        "phase": "mutant",
+        "ids": [
+          "S40"
+        ]
+      },
+      {
+        "id": "mutation-M09-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M09",
+        "phase": "restored",
+        "ids": [
+          "S40"
+        ]
+      }
+    ],
+    "candidateApplicability": "must source-check exact mutation against753, never force patch application",
+    "maxBytes": 2097152,
+    "ids": [
+      "S40"
+    ]
+  },
+  {
+    "id": "original-M12-triplet",
+    "role": "original-mutant",
+    "timeoutMs": 30000,
+    "mutant": "M12",
+    "observations": [
+      "before",
+      "mutant",
+      "restored"
+    ],
+    "originalJobs": [
+      {
+        "id": "mutation-M12-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M12",
+        "phase": "before",
+        "ids": [
+          "S49"
+        ]
+      },
+      {
+        "id": "mutation-M12-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M12",
+        "phase": "mutant",
+        "ids": [
+          "S49"
+        ]
+      },
+      {
+        "id": "mutation-M12-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M12",
+        "phase": "restored",
+        "ids": [
+          "S49"
+        ]
+      }
+    ],
+    "candidateApplicability": "must source-check exact mutation against753, never force patch application",
+    "maxBytes": 2097152,
+    "ids": [
+      "S49"
+    ]
+  },
+  {
+    "id": "original-M18-triplet",
+    "role": "original-mutant",
+    "timeoutMs": 30000,
+    "mutant": "M18",
+    "observations": [
+      "before",
+      "mutant",
+      "restored"
+    ],
+    "originalJobs": [
+      {
+        "id": "mutation-M18-before",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M18",
+        "phase": "before",
+        "ids": [],
+        "cap": "L10",
+        "endpoint": "over"
+      },
+      {
+        "id": "mutation-M18-mutant",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M18",
+        "phase": "mutant",
+        "ids": [],
+        "cap": "L10",
+        "endpoint": "over"
+      },
+      {
+        "id": "mutation-M18-restored",
+        "role": "product",
+        "timeoutMs": 30000,
+        "maxBytes": 1048576,
+        "layout": "installed",
+        "mutation": "M18",
+        "phase": "restored",
+        "ids": [],
+        "cap": "L10",
+        "endpoint": "over"
+      }
+    ],
+    "candidateApplicability": "must source-check exact mutation against753, never force patch application",
+    "maxBytes": 2097152,
+    "ids": [],
+    "cap": "L10",
+    "endpoint": "over"
+  }
+]

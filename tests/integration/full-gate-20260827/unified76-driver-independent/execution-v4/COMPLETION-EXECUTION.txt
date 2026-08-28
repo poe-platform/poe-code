@@ -1,0 +1,11 @@
+(node:36336) SecurityWarning: The flag --allow-child-process must be used with extreme caution. It could invalidate the permission model.
+(Use `node --trace-warnings ...` to show where the warning was created)
+A06 COMPLETION START
+A06 COMPLETION PASS
+A12 COMPLETION START
+A12 COMPLETION PASS
+A13 COMPLETION START
+A13 COMPLETION PASS
+A20 COMPLETION START
+A20 COMPLETION PASS
+{"PASS":4,"FAIL":0}

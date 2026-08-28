@@ -1,0 +1,90 @@
+diff --git a/tests/integration/priority-command-workflows-20260828/admission.mjs b/tests/integration/priority-command-workflows-20260828/admission.mjs
+index 904f7a40..3fef1fa5 100644
+--- a/tests/integration/priority-command-workflows-20260828/admission.mjs
++++ b/tests/integration/priority-command-workflows-20260828/admission.mjs
+@@ -105,7 +105,27 @@ export function requireCleanSafety(record, childLoads = []) {
+ export function reserveWorkerStarts(remaining, tag) {
+   assert.ok(remaining.workerStarts >= bounds.workerStartsPerChild, 'WORKER_RESERVATION_EXHAUSTED');
+   remaining.workerStarts -= bounds.workerStartsPerChild;
+-  return { tag, reserved: bounds.workerStartsPerChild, charged: bounds.workerStartsPerChild, accounting: 'unknown', attempts: null, starts: null };
++  return { tag, reserved: bounds.workerStartsPerChild, charged: bounds.workerStartsPerChild, accounting: 'unknown', attempts: null, starts: null, observedAttempts: null, observedStarts: null };
++}
++
++export function observeWorkerStarts(reservation, events, pid) {
++  if (events === null) return;
++  for (const row of events) { assert.equal(row.event, 'worker-parent'); assert.equal(row.pid, pid, 'WORKER_OBSERVATION_PID_DRIFT'); }
++  const starts = events.filter(row => row.action === 'start');
++  const attempts = events.filter(row => row.action === 'constructor-attempt');
++  for (const start of starts) { assert.equal(typeof start.token, 'string'); assert.ok(Number.isInteger(start.threadId) && start.threadId > 0); }
++  assert.equal(new Set(starts.map(row => row.token)).size, starts.length, 'DUPLICATE_OBSERVED_WORKER_START');
++  assert.ok(starts.length <= reservation.reserved && attempts.length <= reservation.reserved, 'WORKER_OBSERVATION_BOUND');
++  reservation.observedStarts = starts.length; reservation.observedAttempts = attempts.length;
++}
++
++export function workerStartSummary(reservations) {
++  return {
++    productWorkerStartsKnown: reservations.reduce((sum, row) => sum + (row.observedStarts ?? row.starts ?? 0), 0),
++    productWorkerStarts: reservations.some(row => row.accounting === 'unknown') ? null : reservations.reduce((sum, row) => sum + row.starts, 0),
++    workerStartsWithheld: reservations.filter(row => row.accounting === 'unknown').reduce((sum, row) => sum + row.charged, 0),
++    workerStartObservationsUnavailable: reservations.filter(row => row.observedStarts === null && row.starts === null).length,
++  };
+ }
+ 
+ export function settleWorkerStarts(remaining, reservation, events, rows) {
+diff --git a/tests/integration/priority-command-workflows-20260828/future-supervisor.mjs b/tests/integration/priority-command-workflows-20260828/future-supervisor.mjs
+index 94e2e229..246ecafa 100644
+--- a/tests/integration/priority-command-workflows-20260828/future-supervisor.mjs
++++ b/tests/integration/priority-command-workflows-20260828/future-supervisor.mjs
+@@ -3,10 +3,10 @@ import fs from 'node:fs';
+ import path from 'node:path';
+ import { spawn } from 'node:child_process';
+ import { pathToFileURL } from 'node:url';
+-import { sha, readJson, writeJson, inventory, directory, repository, bounds, requireGrant, runtimeFiles, ids, requireCleanSafety, reserveWorkerStarts, settleWorkerStarts, terminalReceiptBytes, accountTerminal } from './admission.mjs';
++import { sha, readJson, writeJson, inventory, directory, repository, bounds, requireGrant, runtimeFiles, ids, requireCleanSafety, reserveWorkerStarts, settleWorkerStarts, observeWorkerStarts, workerStartSummary, terminalReceiptBytes, accountTerminal } from './admission.mjs';
+ import { authenticateArchive } from './source-auth.mjs';
+ 
+-const sealPath = path.join(directory, 'PREPARATION-SEAL-v3.json');
++const sealPath = path.join(directory, 'PREPARATION-SEAL-v4.json');
+ const arguments_ = process.argv.slice(2);
+ assert.deepEqual(arguments_, ['--grant', path.join(directory, 'GO.json'), '--budget', path.join(directory, 'PARENT-BUDGET.json')], 'EXACT_COMMAND_REQUIRED_NO_SETUP');
+ const sealBytes = fs.readFileSync(sealPath);
+@@ -53,7 +53,7 @@ const writeReceipt = (filename, value) => {
+   assertStorage(); assert.ok(Date.now() < deadline, 'RECEIPT_DEADLINE_STOP');
+ };
+ const logsBytes = logs => logs.reduce((sum, name) => sum + (fs.existsSync(name) ? fs.statSync(name).size : 0), 0);
+-async function command(label, args, cwd, extraEnv = {}, { setup = false, loader = false, logs = [] } = {}) {
++async function command(label, args, cwd, extraEnv = {}, { setup = false, loader = false, logs = [], workerReservation, workerParentLog } = {}) {
+   assert.equal(activeChild, undefined, 'CONCURRENT_CHILD_REFUSED');
+   assert.ok(remaining.children > 0 && evidence.resources.childStarts < bounds.children, 'CHILD_BOUND');
+   assert.ok(Date.now() < deadline, 'WHOLE_TIME_BOUND'); assertStorage();
+@@ -84,6 +84,10 @@ async function command(label, args, cwd, extraEnv = {}, { setup = false, loader
+   row.end = Date.now(); row.stdoutBase64 = Buffer.concat(output).toString('base64'); row.stderrBase64 = Buffer.concat(errors).toString('base64');
+   row.capturedBytes = captured + logsBytes(logs); remaining.captureBytes -= row.capturedBytes; evidence.resources.capturedBytes += row.capturedBytes;
+   row.reaped = row.exitObserved && row.closeObserved;
++  if (workerReservation) {
++    try { observeWorkerStarts(workerReservation, fs.existsSync(workerParentLog) ? jsonLines(workerParentLog) : null, row.pid); }
++    catch (error) { row.errors.push('WORKER_OBSERVATION_STOP:' + String(error)); }
++  }
+   row.loaderThreadDisposition = loader ? 'Node-managed loader thread has no individual lifecycle receipt; reaped OS process establishes no surviving threads in that process, not a separate thread-exit observation' : 'not-requested';
+   evidence.commands.push(row);
+   writeReceipt(path.join(root, 'receipts', `${String(row.number).padStart(3, '0')}.json`), row);
+@@ -199,7 +203,7 @@ try {
+       writeJson(config, { grant: arguments_[1], seal: sealPath, grantSha256: sha(grantBytes), layout: layout.name, id, specifier: layout.specifier, workerLog, workerParentLog, workerStartsRemaining: remaining.workerStarts, workerCaptureBytes: 262144 });
+       const reservation = reserveWorkerStarts(remaining, tag);
+       evidence.workerReservations.push(reservation);
+-      const result = await command(tag, ['--loader', path.join(layout.appParent, 'loader.mjs'), '--import', path.join(layout.appParent, 'guard.mjs'), path.join(layout.appParent, 'runtime-entry.mjs')], outside, { ADMISSION: admitted.filename, LOAD_LOG: log, RUN_CONFIGURATION: config }, { loader: true, logs: [log, workerLog, workerParentLog] });
++      const result = await command(tag, ['--loader', path.join(layout.appParent, 'loader.mjs'), '--import', path.join(layout.appParent, 'guard.mjs'), path.join(layout.appParent, 'runtime-entry.mjs')], outside, { ADMISSION: admitted.filename, LOAD_LOG: log, RUN_CONFIGURATION: config }, { loader: true, logs: [log, workerLog, workerParentLog], workerReservation: reservation, workerParentLog });
+       const parentLoads = jsonLines(log), childLoads = jsonLines(workerLog), workerEvents = jsonLines(workerParentLog);
+       const starts = workerEvents.filter(row => row.action === 'start');
+       assert.ok(starts.length <= bounds.workerStartsPerChild && remaining.workerStarts >= 0);
+@@ -230,9 +234,7 @@ try {
+ finally {
+   if (activeChild !== undefined) evidence.safetyStops.push({ code: 'SUPERVISOR_OWNED_CHILD_UNREAPED' });
+   evidence.remainingParentBudget = remaining;
+-  evidence.resources.productWorkerStartsKnown = evidence.workerReservations.reduce((sum, row) => sum + (row.starts ?? 0), 0);
+-  evidence.resources.productWorkerStarts = evidence.workerReservations.some(row => row.accounting === 'unknown') ? null : evidence.resources.productWorkerStartsKnown;
+-  evidence.resources.workerStartsWithheld = evidence.workerReservations.filter(row => row.accounting === 'unknown').reduce((sum, row) => sum + row.charged, 0);
++  Object.assign(evidence.resources, workerStartSummary(evidence.workerReservations));
+   evidence.allOwnedOsChildrenReaped = evidence.commands.every(row => row.reaped);
+   const filename = path.join(root, 'RESULTS.json');
+   evidence.terminalReceiptBytes = terminalReceiptBytes;

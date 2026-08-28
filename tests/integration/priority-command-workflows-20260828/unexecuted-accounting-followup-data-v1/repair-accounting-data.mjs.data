@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
+import { fileURLToPath } from 'node:url';
+import { sha, readJson, writeJson, reserveWorkerStarts, observeWorkerStarts, settleWorkerStarts, workerStartSummary, requireCleanSafety } from './admission.mjs';
+
+const own = path.dirname(fileURLToPath(import.meta.url));
+const protocol = readJson(path.join(own, 'REPAIR-PROTOCOL-v4.json'));
+assert.deepEqual(process.argv.slice(2), ['--out', protocol.output]); assert.equal(process.execPath, protocol.node);
+for (const row of protocol.files) { const bytes = fs.readFileSync(path.join(own, row.path)); assert.equal(bytes.length, row.bytes); assert.equal(sha(bytes), row.sha256, row.path); }
+assert.equal(fs.existsSync(protocol.output), false); fs.mkdirSync(protocol.output);
+const started = Date.now(), checks = [], failures = [];
+const test = (name, action) => {
+  assert.equal(protocol.checks[checks.length], name);
+  try { action(); checks.push({ name, pass: true }); }
+  catch (error) { checks.push({ name, pass: false }); failures.push({ name, message: String(error), stack: error.stack }); }
+};
+for (const name of protocol.parseFiles) test('parse:' + name, () => { new vm.SourceTextModule(fs.readFileSync(path.join(own, name), 'utf8'), { identifier: name }); });
+const lines = name => fs.readFileSync(path.join(own, 'repair-evidence-v3', name), 'utf8').trim().split('\n').map(line => JSON.parse(line));
+const child = name => JSON.parse(readJson(path.join(own, 'repair-evidence-v3', name + '.child.json')).stdout);
+test('known-caught-load-start-withheld-after-stop', () => {
+  const remaining = { workerStarts: 372 }, reservation = reserveWorkerStarts(remaining, 'caught-load-DATA');
+  const events = lines('caught-load.parent.jsonl'), result = child('caught-load');
+  observeWorkerStarts(reservation, events, events[0].pid);
+  assert.throws(() => requireCleanSafety({ safetyStops: [], workerAdmissionRefusals: result.admissionRefusals, workers: result.rows }, lines('caught-load.worker.jsonl')), /CHILD_LOAD_ADMISSION_STOP/u);
+  assert.equal(remaining.workerStarts, 368); assert.equal(reservation.accounting, 'unknown'); assert.equal(reservation.starts, null);
+  assert.deepEqual(workerStartSummary([reservation]), { productWorkerStartsKnown: 1, productWorkerStarts: null, workerStartsWithheld: 4, workerStartObservationsUnavailable: 0 });
+});
+test('clean-known-start-refund-only-after-reconciliation', () => {
+  const remaining = { workerStarts: 372 }, reservation = reserveWorkerStarts(remaining, 'natural-DATA');
+  const events = lines('natural.parent.jsonl'), result = child('natural');
+  observeWorkerStarts(reservation, events, events[0].pid); assert.equal(remaining.workerStarts, 368);
+  requireCleanSafety({ safetyStops: [], workerAdmissionRefusals: result.admissionRefusals, workers: result.rows }, lines('natural.worker.jsonl'));
+  settleWorkerStarts(remaining, reservation, events, result.rows); assert.equal(remaining.workerStarts, 371);
+  assert.deepEqual(workerStartSummary([reservation]), { productWorkerStartsKnown: 1, productWorkerStarts: 1, workerStartsWithheld: 0, workerStartObservationsUnavailable: 0 });
+});
+test('missing-log-remains-unknown-withheld', () => {
+  const remaining = { workerStarts: 372 }, reservation = reserveWorkerStarts(remaining, 'missing-log-DATA');
+  observeWorkerStarts(reservation, null, 123); assert.equal(reservation.observedStarts, null); assert.equal(remaining.workerStarts, 368);
+  assert.deepEqual(workerStartSummary([reservation]), { productWorkerStartsKnown: 0, productWorkerStarts: null, workerStartsWithheld: 4, workerStartObservationsUnavailable: 1 });
+});
+assert.equal(checks.length, protocol.checks.length);
+for (const row of protocol.files) assert.equal(sha(fs.readFileSync(path.join(own, row.path))), row.sha256, row.path);
+if (Date.now() - started >= protocol.bounds.windowMs) failures.push({ name: 'DATA_WINDOW_STOP' });
+const results = { role: 'DATA_ONLY_EXISTING_BENIGN_RECEIPTS_NOT_NEW_EXECUTION', protocolSha256: sha(fs.readFileSync(path.join(own, 'REPAIR-PROTOCOL-v4.json'))), checks, failures, started, finished: Date.now(), children: 0, workers: 0, productImports: 0, productDispatches: 0, allOwnedChildrenReaped: true, status: failures.length ? 'FAIL' : 'PASS' };
+assert.ok(Buffer.byteLength(JSON.stringify(results, null, 2) + '\n') <= protocol.bounds.storageBytes);
+writeJson(path.join(protocol.output, 'RESULTS.json'), results);
+console.log(JSON.stringify({ status: results.status, checks: checks.length, failures }));
+if (failures.length) process.exitCode = 1;

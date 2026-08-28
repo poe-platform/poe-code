@@ -1,0 +1,637 @@
+{
+  "date": "2026-08-28T10:22:59.227Z",
+  "recipeCommit": "e7f0981b9abfddb27d946c991e5860e30365166c",
+  "recipeSha256": "20e82f8030075adbd2772c54c534c3db5e6eec0fa641a72b0f2fa9d4cf372df8",
+  "protectedFiles": 80,
+  "finalValidation": {
+    "schema": "v3-data-and-syntax-only",
+    "recipe": "20e82f8030075adbd2772c54c534c3db5e6eec0fa641a72b0f2fa9d4cf372df8",
+    "checks": [
+      {
+        "id": "candidate",
+        "pass": true
+      },
+      {
+        "id": "target-pack",
+        "pass": true
+      },
+      {
+        "id": "baseline-3.4.2",
+        "pass": true
+      },
+      {
+        "id": "instruction-projection",
+        "pass": true
+      },
+      {
+        "id": "bound-staging-size",
+        "pass": true
+      },
+      {
+        "id": "unique-closure",
+        "pass": true
+      },
+      {
+        "id": "locks-membership",
+        "pass": true
+      },
+      {
+        "id": "assets-membership",
+        "pass": true
+      },
+      {
+        "id": "23-10-distinct",
+        "pass": true
+      },
+      {
+        "id": "99-executions",
+        "pass": true
+      },
+      {
+        "id": "exact-schedule-bindings",
+        "pass": true
+      },
+      {
+        "id": "66-target-setups",
+        "pass": true
+      },
+      {
+        "id": "three-layouts",
+        "pass": true
+      },
+      {
+        "id": "namespace-profile",
+        "pass": true
+      },
+      {
+        "id": "directories-finite",
+        "pass": true
+      },
+      {
+        "id": "view:target-installed",
+        "pass": true
+      },
+      {
+        "id": "view:target-installed:missing-file",
+        "pass": true
+      },
+      {
+        "id": "view:target-installed:wrong-engine",
+        "pass": true
+      },
+      {
+        "id": "view:target-installed:wrong-consumer",
+        "pass": true
+      },
+      {
+        "id": "view:target-moved",
+        "pass": true
+      },
+      {
+        "id": "view:target-moved:missing-file",
+        "pass": true
+      },
+      {
+        "id": "view:target-moved:wrong-engine",
+        "pass": true
+      },
+      {
+        "id": "view:target-moved:wrong-consumer",
+        "pass": true
+      },
+      {
+        "id": "view:baseline-installed",
+        "pass": true
+      },
+      {
+        "id": "view:baseline-installed:missing-file",
+        "pass": true
+      },
+      {
+        "id": "view:baseline-installed:wrong-engine",
+        "pass": true
+      },
+      {
+        "id": "view:baseline-installed:wrong-consumer",
+        "pass": true
+      },
+      {
+        "id": "stage-hash-positive",
+        "pass": true
+      },
+      {
+        "id": "stage-hash-tamper",
+        "pass": true
+      },
+      {
+        "id": "858-pack-data-members",
+        "pass": true
+      },
+      {
+        "id": "comparator-archive-data-hash",
+        "pass": true
+      },
+      {
+        "id": "syntax:adapter.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:authorization.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:controls.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:coordinator.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:fixtures/forbidden.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:fixtures/loaded.cjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:fixtures/loaded.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:fixtures/require-consumer.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:loader.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:offline.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:predicates.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:projection.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:regular-read.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:safety.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:supervisor.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:synthetic-worker.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:transport.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:validate.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:w07.mjs",
+        "pass": true
+      },
+      {
+        "id": "syntax:worker.mjs",
+        "pass": true
+      }
+    ],
+    "passed": 51,
+    "failed": 0,
+    "productsImported": 0,
+    "comparatorImported": 0,
+    "native": 0,
+    "cohort": 0
+  },
+  "invocations": [
+    {
+      "name": "synthetic-01",
+      "recipe": "f6d8c07d75e11123eb08af6ff07c43200d24a76fb8d515bc5eb98f74b133ed89",
+      "rows": [
+        {
+          "id": "C01",
+          "status": "QUALIFIED",
+          "pass": true,
+          "observation": {
+            "bindingRejects": 2
+          }
+        },
+        {
+          "id": "C02",
+          "status": "QUALIFIED",
+          "pass": true,
+          "observation": {
+            "wrongHash": true
+          }
+        },
+        {
+          "id": "C03",
+          "status": "ORDINARY_ASSERTION_FAILED",
+          "pass": false
+        },
+        {
+          "id": "C04",
+          "status": "QUALIFIED",
+          "pass": true,
+          "observation": {
+            "unboundModule": true,
+            "noNetworkOperation": true,
+            "operationDenials": 7
+          }
+        },
+        {
+          "id": "C05",
+          "status": "ORDINARY_ASSERTION_FAILED",
+          "pass": false
+        },
+        {
+          "id": "C06",
+          "status": "QUALIFIED",
+          "pass": true,
+          "observation": {
+            "exactBytes": true,
+            "unsupportedUnqualified": true
+          }
+        },
+        {
+          "id": "C07",
+          "status": "QUALIFIED",
+          "pass": true,
+          "observation": {
+            "wrongStatus": true,
+            "wrongDiagnostic": true
+          }
+        },
+        {
+          "id": "C08",
+          "status": "QUALIFIED",
+          "pass": true,
+          "observation": {
+            "extraFilesystemEffect": true
+          }
+        },
+        {
+          "id": "C09",
+          "status": "QUALIFIED",
+          "pass": true,
+          "observation": {
+            "intentionalNegativeChildren": 2,
+            "timerRetired": true,
+            "allReaped": true
+          }
+        },
+        {
+          "id": "C10",
+          "status": "QUALIFIED",
+          "pass": true,
+          "observation": {
+            "ordinaryAssertionsContinueOnlyWhenSafe": true
+          }
+        },
+        {
+          "id": "C11",
+          "status": "QUALIFIED",
+          "pass": true,
+          "observation": {
+            "status": "MODEL_ONLY_ACTUAL_HELD",
+            "actualExecCalls": 0
+          }
+        },
+        {
+          "id": "C12",
+          "status": "QUALIFIED",
+          "pass": true,
+          "observation": {
+            "actualNoopLoad": {
+              "evaluated": true,
+              "observation": {
+                "exitCode": 0,
+                "files": {}
+              },
+              "sourceCount": 1
+            },
+            "designatedFilesystemRejection": true
+          }
+        }
+      ],
+      "children": 8,
+      "unsafe": false
+    },
+    {
+      "name": "repair-01",
+      "recipe": "950626b647233848133080f6e2d3446cf27d34d3b0efde2a24ad6841a935793b",
+      "rows": [
+        {
+          "id": "C03",
+          "status": "ORDINARY_ASSERTION_FAILED",
+          "pass": false
+        },
+        {
+          "id": "C04",
+          "status": "QUALIFIED",
+          "pass": true,
+          "observation": {
+            "unboundModule": true,
+            "noNetworkOperation": true,
+            "operationDenials": 7
+          }
+        },
+        {
+          "id": "C05",
+          "status": "QUALIFIED",
+          "pass": true,
+          "observation": {
+            "realFreshTreeNegatives": 3,
+            "instructionPlaintextNeitherCreatedNorRead": true
+          }
+        }
+      ],
+      "children": 5,
+      "unsafe": false
+    },
+    {
+      "name": "load-01",
+      "recipe": "91fb92dcf62b54b3d85004b2c2d7a71f286fcb72b5c2e5493470cbf7dd8c387b",
+      "rows": [
+        {
+          "id": "C03",
+          "status": "QUALIFIED",
+          "pass": true,
+          "observation": {
+            "actualESM": true,
+            "actualCJS": true,
+            "wrongReturnedSourceDenied": true
+          }
+        },
+        {
+          "id": "C04",
+          "status": "QUALIFIED",
+          "pass": true,
+          "observation": {
+            "unboundModule": true,
+            "noNetworkOperation": true,
+            "operationDenials": 7
+          }
+        }
+      ],
+      "children": 6,
+      "unsafe": false
+    }
+  ],
+  "children": [
+    {
+      "run": "synthetic-01",
+      "ordinal": 1,
+      "pid": 75039,
+      "configSha": "0e8f2b2680a0414b5f3916415b5ce429b08619dd7474f2ea2d5b0fc6c647f29e",
+      "receiptSha": "58f4c1cacc00a392c2c98a7624568536f5a934f7d708519b206115bc1bd27611",
+      "reaped": true,
+      "natural": true,
+      "kind": "load",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "synthetic-01",
+      "ordinal": 2,
+      "pid": 75040,
+      "configSha": "9374cb956aa6442f17dc20c53f5eb5fd6a08f4e60ff4fd02827b290cfe69ac45",
+      "receiptSha": "a01d0b96e9363f63c84c0e2d9cfb3dae04a8ed9f802ded25fc163bfcee3947c3",
+      "reaped": true,
+      "natural": true,
+      "kind": "load",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "synthetic-01",
+      "ordinal": 3,
+      "pid": 75041,
+      "configSha": "8e25f3e4e3d9b89141f083befd31a2098eca0d94938d50d53b484f5f3ed078fb",
+      "receiptSha": "4c071a1b642c1c2f4bb730ecba7c2defd1765fbf6d919e2a4e3fcd21697c1d62",
+      "reaped": true,
+      "natural": true,
+      "kind": "require",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "synthetic-01",
+      "ordinal": 4,
+      "pid": 75043,
+      "configSha": "3530f5a9fee49e9ea68452b31b13d96706e51abc15517c0ed33360056ca79ab8",
+      "receiptSha": "b50bd57ee8b40f2bcc9e027515e2f7f0a279cff3358a6416f4f012732c09178c",
+      "reaped": true,
+      "natural": true,
+      "kind": "load",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "synthetic-01",
+      "ordinal": 5,
+      "pid": 75046,
+      "configSha": "3318766bded3348ae6482d05d835d368c234e46eb97b2c8bb3a0ed5830988ae6",
+      "receiptSha": "f8112d6064eb170783a7c3196635c362074178d17138365941ace97197979856",
+      "reaped": true,
+      "natural": true,
+      "kind": "offline",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "synthetic-01",
+      "ordinal": 6,
+      "pid": 75050,
+      "configSha": "50c2b3957420f6738d598fed1e8730f3a9691b4fcdd8891c830140fb0022c88e",
+      "receiptSha": "11cad984af075972a1b398a3b85eaa9dcdcc6a09c5d439235693cecd1ee27ca4",
+      "reaped": true,
+      "natural": false,
+      "kind": "nonzero",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "synthetic-01",
+      "ordinal": 7,
+      "pid": 75055,
+      "configSha": "92855e3a32ca9cdf9828170a5faf75938bcae01afb6f5269693497fc11ce3041",
+      "receiptSha": "2e70a53ad80926f16eb8f6e36e1d64943fddf970423919829804de9f09a31fc8",
+      "reaped": true,
+      "natural": false,
+      "kind": "leak",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "synthetic-01",
+      "ordinal": 8,
+      "pid": 75584,
+      "configSha": "0e8f2b2680a0414b5f3916415b5ce429b08619dd7474f2ea2d5b0fc6c647f29e",
+      "receiptSha": "1892e9f82d220c4fe1b83a61bde76f44cb5c57800b30cf0e16826962b8607837",
+      "reaped": true,
+      "natural": true,
+      "kind": "load",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "repair-01",
+      "ordinal": 1,
+      "pid": 87243,
+      "configSha": "e5f8827159de060ceaa4b8432d3742eadbdb04d273597ec49479231ea93e0ad8",
+      "receiptSha": "f690244b69463a852656d5dc7a98a5b6fc51d00fb8ad21d84abde47382a3c4ab",
+      "reaped": true,
+      "natural": true,
+      "kind": "load",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "repair-01",
+      "ordinal": 2,
+      "pid": 87245,
+      "configSha": "37deef6b4638d95e936cfd073a31106fdd74ae59861cc53a331b03a1c2368d71",
+      "receiptSha": "eef44f8f76a42bbbf1ec0b948573d1ba045c6222bff6a6cbf1c5d6e0cd29c7b4",
+      "reaped": true,
+      "natural": true,
+      "kind": "load",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "repair-01",
+      "ordinal": 3,
+      "pid": 87259,
+      "configSha": "cc1468bdcbc3060387e26aff95006f0c9a3f246ce40c1fe526246335d2772d42",
+      "receiptSha": "2c4da62dc7c7ad71ead9d89c0ee884aa94534c815af95835357e3cf84e54b283",
+      "reaped": true,
+      "natural": true,
+      "kind": "require",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "repair-01",
+      "ordinal": 4,
+      "pid": 87262,
+      "configSha": "870f751cdb650a74a248614066f49110be6ea743e43709e68cac903a7e607d5f",
+      "receiptSha": "85fadc3c86b3c4cdf19e1baedf5800f8dff105e81073e255e206ab0942607e87",
+      "reaped": true,
+      "natural": true,
+      "kind": "load",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "repair-01",
+      "ordinal": 5,
+      "pid": 87263,
+      "configSha": "fb0594a032c3e7886cc5fee39e82034cd2ac40184dfbc400df91bbd37c7892f9",
+      "receiptSha": "b10cf713ae8e29c4201313882d83f73c926bef951cb5758e7c051f429f62c10a",
+      "reaped": true,
+      "natural": true,
+      "kind": "offline",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "load-01",
+      "ordinal": 1,
+      "pid": 88571,
+      "configSha": "ba6d657f6be85eab494db9131ca6a886951dfa48574a092aa25d932d203ff6f5",
+      "receiptSha": "20615a0797812510a459ca811c8962cad62f1eb00e1b16a0fabd9fac8b730084",
+      "reaped": true,
+      "natural": true,
+      "kind": "load",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "load-01",
+      "ordinal": 2,
+      "pid": 88576,
+      "configSha": "4b4c994be16e1fbdc8e5d46f3e6960b2d06854563837e279279c9f20a219159a",
+      "receiptSha": "1aaaa99020a89a2ccc92f961df718d9fee09c2d15df8c60cb219cd00e03d8d22",
+      "reaped": true,
+      "natural": true,
+      "kind": "load",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "load-01",
+      "ordinal": 3,
+      "pid": 88577,
+      "configSha": "db5071e9df5fcda6e9db3b93f0c195cfc5cb5f4c487991b93a4c9507483dbde7",
+      "receiptSha": "addb3cd0a840b25b0c44cb90e67a9705dc1109da2c8aee2d9695a398f200e0bb",
+      "reaped": true,
+      "natural": true,
+      "kind": "require",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "load-01",
+      "ordinal": 4,
+      "pid": 88588,
+      "configSha": "dbaf8e594a619269e3e856479f10d3b97c71c019b34feb8d84cbff1732ad8e30",
+      "receiptSha": "845f0c4e4c466dc787c1e91d5ca9ef00c7c39c4317d45c72a61f1fc9aadcd22a",
+      "reaped": true,
+      "natural": true,
+      "kind": "load",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "load-01",
+      "ordinal": 5,
+      "pid": 88595,
+      "configSha": "b9f89f1008e073d76bcc8af6cae6d6edb48183ddb4ee1b48bd73173d63607e75",
+      "receiptSha": "abcebc44b1daea9c58d1410e449385c5dc26574ae7764302241510b13a8edac3",
+      "reaped": true,
+      "natural": true,
+      "kind": "load",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "run": "load-01",
+      "ordinal": 6,
+      "pid": 88597,
+      "configSha": "6ac74000d6f33fd29382b2092876fb7f2549ab3a3e77983c6bd51e75ab470f31",
+      "receiptSha": "1b0c07a78f10567c78cbb0e9f221b4e407db38f459c865acebd8c41028153346",
+      "reaped": true,
+      "natural": true,
+      "kind": "offline",
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    }
+  ],
+  "childrenCount": 19,
+  "allChildrenReapedAndAbsent": true,
+  "actualProductImports": 0,
+  "actualComparatorImports": 0,
+  "actualC11": "HELD",
+  "semanticExecutions": 0,
+  "native": 0,
+  "privateEngine": 0,
+  "noOldScoresChanged": true,
+  "sourceTreeOrWholeHistoryClaim": false
+}

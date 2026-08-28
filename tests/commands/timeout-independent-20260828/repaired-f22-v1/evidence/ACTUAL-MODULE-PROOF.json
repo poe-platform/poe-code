@@ -1,0 +1,96 @@
+{
+  "schema": "timeout-repaired-actual-load-qualification/1",
+  "sourceAndMovedActualLoads": 432,
+  "proofs": [
+    {
+      "profile": "source",
+      "kind": "actual-module-load",
+      "requiredPath": "src/commands/timeout/index.ts",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/repaired-f22-v1/node_modules/work/source/src/commands/timeout/index.ts",
+      "sha256": "e68bd5177a0c45ebbcff4dbb834e46581c9c51d216897cda261836afa1c8a90b",
+      "transformedSha256": "ffab4db21937d73b2aa9582d343e9946b9f3cf30f920e51c7b8f4da69d733fd5",
+      "transform": "pinned Node22.22.2 stripTypeScriptTypes",
+      "bytes": 10250
+    },
+    {
+      "profile": "source",
+      "kind": "actual-module-load",
+      "requiredPath": "src/commands/timeout/duration.ts",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/repaired-f22-v1/node_modules/work/source/src/commands/timeout/duration.ts",
+      "sha256": "870a3800f9ba46a1d38ed831d0b6e7da804d4d34c6f5d3ebe86ada535d90b835",
+      "transformedSha256": "c598de8363a61d5d21da1f1a348db43ae392f090f9ab3a3df9034f8c0d7f0b47",
+      "transform": "pinned Node22.22.2 stripTypeScriptTypes",
+      "bytes": 2508
+    },
+    {
+      "profile": "source",
+      "kind": "actual-module-load",
+      "requiredPath": "src/commands/timeout/scheduler.ts",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/repaired-f22-v1/node_modules/work/source/src/commands/timeout/scheduler.ts",
+      "sha256": "fa542007183e5f097c105c70b7a9502f2fa26bd801430e899f9f1bddd7962af3",
+      "transformedSha256": "94bd66e8a6319d4b46d9f6b5920c62f7bf02ab691182f725caccb1a039697993",
+      "transform": "pinned Node22.22.2 stripTypeScriptTypes",
+      "bytes": 3480
+    },
+    {
+      "profile": "moved",
+      "kind": "actual-module-load",
+      "requiredPath": "dist/commands/timeout/index.js",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/repaired-f22-v1/node_modules/work/physically-moved/consumer/node_modules/virtual-bash/dist/commands/timeout/index.js",
+      "sha256": "79abde4c819538dbbec2f51f80c287b2af526ecec9c721afccb46f6c0821a60e",
+      "bytes": 9974,
+      "transformedSha256": null
+    },
+    {
+      "profile": "moved",
+      "kind": "actual-module-load",
+      "requiredPath": "dist/commands/timeout/duration.js",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/repaired-f22-v1/node_modules/work/physically-moved/consumer/node_modules/virtual-bash/dist/commands/timeout/duration.js",
+      "sha256": "1bde4d5557928bb796ff1c390e35b50a5272dcc0b2711dba7cf86536cf556429",
+      "bytes": 2777,
+      "transformedSha256": null
+    },
+    {
+      "profile": "moved",
+      "kind": "actual-module-load",
+      "requiredPath": "dist/commands/timeout/scheduler.js",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/repaired-f22-v1/node_modules/work/physically-moved/consumer/node_modules/virtual-bash/dist/commands/timeout/scheduler.js",
+      "sha256": "836d82eb445a9981ea0b68c93903039be917288d186cee17a13cd0794d0c81ca",
+      "bytes": 3256,
+      "transformedSha256": null
+    },
+    {
+      "profile": "M01",
+      "kind": "actual-module-load",
+      "requiredPath": "src/commands/timeout/index.ts",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/repaired-f22-v1/node_modules/work/M01/src/commands/timeout/index.ts",
+      "sha256": "29d23b1cca04d25ffa8758305b335d7b1588519d5ad54ecb23a7d197511f1abe",
+      "transformedSha256": "79de271c7628d68e7dd663730521df69efb10a8b90df55e43917e6fc60140501",
+      "transform": "pinned Node22.22.2 stripTypeScriptTypes",
+      "bytes": 10238
+    },
+    {
+      "profile": "M02",
+      "kind": "actual-module-load",
+      "requiredPath": "src/commands/timeout/index.ts",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/repaired-f22-v1/node_modules/work/M02/src/commands/timeout/index.ts",
+      "sha256": "779a000aaa0e8ca560426fc88602a6ec6d6da5b182e83a10056f2bc8bd3690a0",
+      "transformedSha256": "9e088475828b19fa8f4eeb06e063833f0e8bd0927aaa305a58f592ebd2ca591c",
+      "transform": "pinned Node22.22.2 stripTypeScriptTypes",
+      "bytes": 10299
+    },
+    {
+      "profile": "M03",
+      "kind": "actual-module-load",
+      "requiredPath": "src/commands/timeout/scheduler.ts",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/timeout-independent-20260828/repaired-f22-v1/node_modules/work/M03/src/commands/timeout/scheduler.ts",
+      "sha256": "b6ba0e2bf22051f4032686a58821bddcdb211faa918beac4ec004f4d46ca00e8",
+      "transformedSha256": "7d5ccd56e04730f6de0a9c043927b274d571ad5f59f1ceee5bdfb578a818e182",
+      "transform": "pinned Node22.22.2 stripTypeScriptTypes",
+      "bytes": 3478
+    }
+  ],
+  "allThreeMutatedModulesActuallyLoaded": true,
+  "diskIdentityOnly": false,
+  "productReplaysByThisSealer": 0
+}

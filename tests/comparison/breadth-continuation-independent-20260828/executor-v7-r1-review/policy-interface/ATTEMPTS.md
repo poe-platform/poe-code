@@ -23,3 +23,8 @@
    admission-seeded closure and whether that particular missing edge is active.
    The original failing assertion and BEFORE.json remain untouched. No additional
    runtime or original comparator-source checks are introduced.
+4. Final preseal `ca45652c`; AFTER.json completed with 483/484 assertions, retaining
+   the same historical helper failure. Active 48-file closure has no missing
+   static relative edge. All 322 before/after source hashes/modes and both namespace
+   censuses match. Captures are 172786 and 177118 bytes; filtered tree metadata
+   42843 bytes; requests metadata 41095 bytes. No runtime qualification follows.

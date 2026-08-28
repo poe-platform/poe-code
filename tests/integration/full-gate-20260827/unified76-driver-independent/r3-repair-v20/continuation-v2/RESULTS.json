@@ -1,0 +1,3253 @@
+{
+  "schema": 1,
+  "startedAt": "2026-08-28T16:25:20.932Z",
+  "endedAt": "2026-08-28T16:25:21.090Z",
+  "elapsedMs": 158,
+  "runtime": {
+    "path": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "version": "v24.11.1"
+  },
+  "summary": {
+    "checks": 53,
+    "pass": 47,
+    "fail": 6,
+    "harnessErrors": 0,
+    "skip": 0
+  },
+  "results": [
+    {
+      "id": "D01-committed-seals-and-selected-source",
+      "role": "DATA",
+      "status": "PASS",
+      "observed": {
+        "selected": 15,
+        "authorSealMembers": 7,
+        "toolSealMembers": 8,
+        "protectedOriginalRoots": "committed tree bindings only; no root-content rehash"
+      }
+    },
+    {
+      "id": "D02-five-tools-calls-aliases-OS-pairs",
+      "role": "DATA",
+      "status": "PASS",
+      "observed": {
+        "pairs": 5,
+        "qualification": "ROOT-ratified OS-METADATA ONLY",
+        "missingImageHash": null,
+        "actualImageReads": 0,
+        "future20Actual": "UNRUN",
+        "actualScripts": 0
+      }
+    },
+    {
+      "id": "S01-source-overlay-route-and-cleanup-boundaries",
+      "role": "SOURCE",
+      "status": "PASS",
+      "observed": {
+        "fixtureOverlay": 13,
+        "shippingDriverFiles": 2,
+        "S3": "SOURCE ONLY; top-level acquisition not run",
+        "mount": "SOURCE ONLY; no product callback run",
+        "auxiliaryAndFollowup": "SOURCE callsite preservation only",
+        "historical632": "immutable, not executed"
+      }
+    },
+    {
+      "id": "V01-cross-realm-exact-data",
+      "role": "SYNTHETIC",
+      "status": "PASS",
+      "observed": null
+    },
+    {
+      "id": "V02-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "status": "PASS",
+      "observed": null
+    },
+    {
+      "id": "V03-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "status": "PASS",
+      "observed": null
+    },
+    {
+      "id": "V04-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "status": "PASS",
+      "observed": null
+    },
+    {
+      "id": "V05-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "status": "PASS",
+      "observed": null
+    },
+    {
+      "id": "V06-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "status": "PASS",
+      "observed": null
+    },
+    {
+      "id": "V07-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "status": "PASS",
+      "observed": null
+    },
+    {
+      "id": "V08-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "status": "PASS",
+      "observed": null
+    },
+    {
+      "id": "V09-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "status": "PASS",
+      "observed": null
+    },
+    {
+      "id": "V10-reject-malformed-role",
+      "role": "SYNTHETIC",
+      "status": "PASS",
+      "observed": null
+    },
+    {
+      "id": "T01-table71-call-env-input-owned-cleanup",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "fixtureCount": 71,
+        "stubDispatches": 71,
+        "oracleSemanticPasses": 0,
+        "foreignCanary": "preserved",
+        "fixtureBytes": "unchanged"
+      }
+    },
+    {
+      "id": "T02-write",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "cleanupAttempted": true,
+        "remainingOwned": [],
+        "foreign": "preserved"
+      }
+    },
+    {
+      "id": "T02-spawn",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "cleanupAttempted": true,
+        "remainingOwned": [],
+        "foreign": "preserved"
+      }
+    },
+    {
+      "id": "T02-cleanup-only",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "cleanupAttempted": true,
+        "remainingOwned": [
+          "/gate/tmp/safe-bash-table-native-S1"
+        ],
+        "foreign": "preserved"
+      }
+    },
+    {
+      "id": "T02-primary-plus-cleanup",
+      "role": "STUB",
+      "status": "FAIL",
+      "error": {
+        "name": "Error",
+        "message": "primary thrown identity not preserved"
+      },
+      "observed": {
+        "cleanupAttempted": true,
+        "remainingOwned": [
+          "/gate/tmp/safe-bash-table-native-S1"
+        ],
+        "foreign": "preserved",
+        "actual": {
+          "name": "Error",
+          "message": "CLEANUP-primary-plus-cleanup"
+        },
+        "expected": {
+          "name": "Error",
+          "message": "PRIMARY-primary-plus-cleanup"
+        }
+      }
+    },
+    {
+      "id": "T02-late-cleanup",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "cleanupAttempted": true,
+        "remainingOwned": [],
+        "foreign": "preserved"
+      }
+    },
+    {
+      "id": "T03-shared-success",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "operations": [
+          {
+            "operation": "rm",
+            "path": "/gate/tmp/safe-bash-table-shared-S1/native-S2"
+          },
+          {
+            "operation": "rmdir",
+            "path": "/gate/tmp/safe-bash-table-shared-S1"
+          }
+        ],
+        "foreignRetained": false
+      }
+    },
+    {
+      "id": "T03-shared-foreign-parent",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "operations": [
+          {
+            "operation": "rm",
+            "path": "/gate/tmp/safe-bash-table-shared-S1/native-S2"
+          },
+          {
+            "operation": "rmdir",
+            "path": "/gate/tmp/safe-bash-table-shared-S1"
+          }
+        ],
+        "foreignRetained": true
+      }
+    },
+    {
+      "id": "T03-shared-child-acquisition",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "operations": [
+          {
+            "operation": "rmdir",
+            "path": "/gate/tmp/safe-bash-table-shared-S1"
+          }
+        ],
+        "foreignRetained": false
+      }
+    },
+    {
+      "id": "T03-shared-primary-plus-foreign",
+      "role": "STUB",
+      "status": "FAIL",
+      "error": {
+        "name": "Error",
+        "message": "primary thrown identity not preserved"
+      },
+      "observed": {
+        "operations": [
+          {
+            "operation": "rm",
+            "path": "/gate/tmp/safe-bash-table-shared-S1/native-S2"
+          },
+          {
+            "operation": "rmdir",
+            "path": "/gate/tmp/safe-bash-table-shared-S1"
+          }
+        ],
+        "foreignRetained": true,
+        "actual": {
+          "name": "Error",
+          "message": "nonempty owned parent"
+        },
+        "expected": {
+          "name": "Error",
+          "message": "SHARED-PRIMARY"
+        }
+      }
+    },
+    {
+      "id": "P01-patch-scratch-success",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "invoked": 1,
+        "cleanup": [
+          {
+            "operation": "rm",
+            "path": "/gate/tmp/safe-bash-patch-scratch-S1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "P01-patch-scratch-throw",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "invoked": 1,
+        "cleanup": [
+          {
+            "operation": "rm",
+            "path": "/gate/tmp/safe-bash-patch-scratch-S1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "P01-patch-scratch-outside",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "invoked": 0,
+        "cleanup": []
+      }
+    },
+    {
+      "id": "P01-patch-scratch-primary-plus-cleanup",
+      "role": "STUB",
+      "status": "FAIL",
+      "error": {
+        "name": "Error",
+        "message": "primary thrown identity not preserved"
+      },
+      "observed": {
+        "cleanupAttempts": 1,
+        "actual": {
+          "name": "Error",
+          "message": "PATCH-CLEANUP"
+        },
+        "expected": {
+          "name": "Error",
+          "message": "PATCH-PRIMARY"
+        }
+      }
+    },
+    {
+      "id": "H01-shell-success-canary",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "dispatches": 1,
+        "separateScratch": true,
+        "semanticFilter": false
+      }
+    },
+    {
+      "id": "H01-shell-outside",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "dispatches": 0,
+        "separateScratch": true,
+        "semanticFilter": false
+      }
+    },
+    {
+      "id": "H01-shell-primary-plus-cleanup",
+      "role": "STUB",
+      "status": "FAIL",
+      "error": {
+        "name": "Error",
+        "message": "primary thrown identity not preserved"
+      },
+      "observed": {
+        "removals": [
+          {
+            "operation": "rm",
+            "path": "/gate/tmp/virtual-bash-shell-stress-S1"
+          },
+          {
+            "operation": "rm",
+            "path": "/gate/tmp/safe-bash-shell-scratch-S2"
+          }
+        ],
+        "actual": {
+          "name": "Error",
+          "message": "SHELL-CLEANUP"
+        },
+        "expected": {
+          "name": "Error",
+          "message": "SHELL-PRIMARY"
+        }
+      }
+    },
+    {
+      "id": "H02-stream-success",
+      "role": "STUB",
+      "status": "FAIL",
+      "error": {
+        "name": "AssertionError",
+        "message": "undeclared import ./helpers.js"
+      },
+      "observed": null
+    },
+    {
+      "id": "H02-stream-primary-plus-cleanup",
+      "role": "STUB",
+      "status": "FAIL",
+      "error": {
+        "name": "AssertionError",
+        "message": "undeclared import ./helpers.js"
+      },
+      "observed": null
+    },
+    {
+      "id": "R01-git-positive",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "dispatches": 1,
+        "actualToolReads": 0,
+        "identity": "synthetic only",
+        "nonzeroPreserved": 9
+      }
+    },
+    {
+      "id": "R01-git-wrong-hash",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "dispatches": 0,
+        "actualToolReads": 0,
+        "identity": "synthetic only",
+        "nonzeroPreserved": null
+      }
+    },
+    {
+      "id": "R01-git-wrong-realpath",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "dispatches": 0,
+        "actualToolReads": 0,
+        "identity": "synthetic only",
+        "nonzeroPreserved": null
+      }
+    },
+    {
+      "id": "R01-npm-positive",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "dispatches": 1,
+        "actualToolReads": 0,
+        "identity": "synthetic only",
+        "nonzeroPreserved": 9
+      }
+    },
+    {
+      "id": "R01-npm-wrong-hash",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "dispatches": 0,
+        "actualToolReads": 0,
+        "identity": "synthetic only",
+        "nonzeroPreserved": null
+      }
+    },
+    {
+      "id": "R01-npm-wrong-realpath",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "dispatches": 0,
+        "actualToolReads": 0,
+        "identity": "synthetic only",
+        "nonzeroPreserved": null
+      }
+    },
+    {
+      "id": "C01-root-compiler-positive",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "actualCompilerInvocations": 0,
+        "selection": {
+          "args": [
+            "/candidate/node_modules/typescript/bin/tsc",
+            "--noEmit",
+            "-p",
+            "tsconfig.json"
+          ],
+          "bindings": [
+            {
+              "path": "/candidate/node_modules/typescript/package.json",
+              "sha256": "cbb85036598ebe48b0a082813d820c53f77c695de3f1589297458616c11d0182"
+            },
+            {
+              "path": "/candidate/node_modules/typescript/bin/tsc",
+              "sha256": "fb5722f59bc9b4d417f4f00457fab3a5678a8d7ef3a438b0435b57f033a07854"
+            },
+            {
+              "path": "/candidate/node_modules/typescript/lib/tsc.js",
+              "sha256": "e826286f4b8a3307cdf18f1bc79c3b30d51b6c950f5c85fd42b0978ade488b32"
+            },
+            {
+              "path": "/candidate/node_modules/typescript/lib/_tsc.js",
+              "sha256": "4042c00045223a3c47542ba41600f2be2dfa2577de8489dc08e4027e24d11ea9"
+            }
+          ],
+          "cwd": "/candidate/benchmarks"
+        }
+      }
+    },
+    {
+      "id": "C01-root-compiler-missing",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "actualCompilerInvocations": 0,
+        "selection": "refused"
+      }
+    },
+    {
+      "id": "C01-root-compiler-wrong-hash",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "actualCompilerInvocations": 0,
+        "selection": "refused"
+      }
+    },
+    {
+      "id": "C01-root-compiler-wrong-version",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "actualCompilerInvocations": 0,
+        "selection": "refused"
+      }
+    },
+    {
+      "id": "C02-build-counter-benchmark",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "syntheticAuditWrites": 0,
+        "actualBuilds": 0
+      }
+    },
+    {
+      "id": "C02-build-counter-production",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "syntheticAuditWrites": 1,
+        "actualBuilds": 0
+      }
+    },
+    {
+      "id": "R02-reporter-10-success",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "dispatches": 1,
+        "otherRegisteredTestsRun": 0,
+        "actualChildren": 0
+      }
+    },
+    {
+      "id": "R02-reporter-10-wrong-output",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "dispatches": 1,
+        "otherRegisteredTestsRun": 0,
+        "actualChildren": 0
+      }
+    },
+    {
+      "id": "R02-reporter-10-nonzero-with-pass",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "dispatches": 1,
+        "otherRegisteredTestsRun": 0,
+        "actualChildren": 0
+      }
+    },
+    {
+      "id": "R02-reporter-10-late-pass-timeout",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "dispatches": 1,
+        "otherRegisteredTestsRun": 0,
+        "actualChildren": 0
+      }
+    },
+    {
+      "id": "R02-reporter-6-success",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "dispatches": 1,
+        "otherRegisteredTestsRun": 0,
+        "actualChildren": 0
+      }
+    },
+    {
+      "id": "R02-reporter-6-wrong-output",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "dispatches": 1,
+        "otherRegisteredTestsRun": 0,
+        "actualChildren": 0
+      }
+    },
+    {
+      "id": "R02-reporter-6-nonzero-with-pass",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "dispatches": 1,
+        "otherRegisteredTestsRun": 0,
+        "actualChildren": 0
+      }
+    },
+    {
+      "id": "R02-reporter-6-late-pass-timeout",
+      "role": "STUB",
+      "status": "PASS",
+      "observed": {
+        "dispatches": 1,
+        "otherRegisteredTestsRun": 0,
+        "actualChildren": 0
+      }
+    },
+    {
+      "id": "D03-protected-read-set-postcheck",
+      "role": "DATA",
+      "status": "PASS",
+      "observed": {
+        "originalReadPaths": 38,
+        "newEntryDetection": false,
+        "qualification": "finite read-set comparison only; Git protected-tree checks recorded separately"
+      }
+    }
+  ],
+  "sourceBindings": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/SOURCE-CANDIDATE.json",
+      "bytes": 6245,
+      "mode": 420,
+      "sha256": "47741f284b1593aa96b012d6e2ab9e9f6b64f38d69034b17554dc52544b59e71",
+      "blob": "52ce672369a0b37f515fc37b7c6bd5b6a2933bc4"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/EVIDENCE-SEAL.json",
+      "bytes": 2287,
+      "mode": 420,
+      "sha256": "8d6824c66c92b52fffe7a4f94fd0ce60273482c368d0989fc626b00ff41869fd",
+      "blob": "407f8ef6f96c16b62d15a441fef058eb4d4d350b"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/SEAL.json",
+      "bytes": 2987,
+      "mode": 420,
+      "sha256": "c66488ba05758c58acc858b68865e64523611a634bce08a6e8f7ffb315ab411b",
+      "blob": "458f43129ef2bed20ff396720e805e9c823f6775"
+    },
+    {
+      "path": "tests/commands/table-text-stress/frozen-corpus.json",
+      "bytes": 68660,
+      "mode": 420,
+      "sha256": "65702ba5bb31442e24f4c0b00ce9ec052bf64f37c48d8a428a68c45fed82a166",
+      "blob": "a75ee5c4a12f9c83ffb92841365191a9de34f5b5"
+    },
+    {
+      "path": "tests/commands/search-stress/harness.ts",
+      "bytes": 3916,
+      "mode": 420,
+      "sha256": "4e431d4e46096c75d34c759ff0ba7674cc0067cd93df89a3e480fabe0e0279d1",
+      "blob": "f3d35ec00766263a804fc4b52abfb4ce8c0c45e7"
+    },
+    {
+      "path": "tests/commands/search-stress/pipelines.test.ts",
+      "bytes": 1125,
+      "mode": 420,
+      "sha256": "d28a72f4a1bfb7a6ea600c2698d544ea7e5e375ae99f0d301ed0cde65261f2c6",
+      "blob": "6b949c63f57f0f8596447d099fd5a96a5cd7d9e3"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-audit.mjs",
+      "bytes": 1239,
+      "mode": 420,
+      "sha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+      "blob": "1f7389579d9cb04812b81a05b238387c7736ed66"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-types.mjs",
+      "bytes": 4115,
+      "mode": 420,
+      "sha256": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a",
+      "blob": "f9cf36f20696032c607910df66922a0674ec300d"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/BASELINE.json",
+      "bytes": 3858,
+      "mode": 420,
+      "sha256": "c14f53a633191c2db854f8726f7784ed60f0c9dc5efc231d0efa71a19dc516d9",
+      "blob": "96450b6fd885c71ec76382f76055c17b629c6ef5"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/CONTROL-RECIPE.md",
+      "bytes": 7097,
+      "mode": 420,
+      "sha256": "8e6e57890f16fcf3aaa0cf6374f0425139e6051e6158f132866876536a2e389a",
+      "blob": "65f7047aee23aa0a647d65163e229a972011d7f6"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/controls.mjs",
+      "bytes": 23657,
+      "mode": 420,
+      "sha256": "384d100194ffc51f7356774666051aeb5ca662972c4de33bba6b0914c9638036",
+      "blob": "e2776ccd3552c4058a3392a5bf04d3ee2f2d694c"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/RESULTS-v1.json",
+      "bytes": 8220,
+      "mode": 420,
+      "sha256": "34295f734e91519013a6217b014b878350602c35de8679e89564e849c184e8b5",
+      "blob": "23eef63281ec77a319c535bb0ebdfa55936c30fe"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/HANDOFF.md",
+      "bytes": 9964,
+      "mode": 420,
+      "sha256": "269f5b4224f539ae58f75549afdebefb205b02afe0d7be95dea99ba9c984d4de",
+      "blob": "bb17d28cb0fc9cbf6c65445231c80d7aa9179b08"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/PRESERVATION.json",
+      "bytes": 2356,
+      "mode": 420,
+      "sha256": "48e1b4c9d73a84e50291b772eb92a012dbaf739fe765d6534671760408964fad",
+      "blob": "1e5d56c4c226fadd97db7cfe81eb1ed5b04c44b3"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/inspect.mjs",
+      "bytes": 8924,
+      "mode": 420,
+      "sha256": "19f75326b0a51f9977def75cf01f07bf1429a606e19d0d299afb0d5e6b164d00",
+      "blob": "70855e425ee098ae9141edbcc80541624d0d100d"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/README.md",
+      "bytes": 2334,
+      "mode": 420,
+      "sha256": "b1d3fa1b362cff9cb4ce4a67daa07219d605970d502920d2f9c5ae311c48575a",
+      "blob": "2a9dcf17d119d5a6579fecb4af8b92a4509f7207"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/CALLS.json",
+      "bytes": 4276,
+      "mode": 420,
+      "sha256": "8efa968397a1cc0f7f44e2f0a54c8f1388752517ebdd2004f3645a82bfc533b1",
+      "blob": "aa7830e658d21dcf7a2add0887f8fa189004dc79"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/FUTURE-CONTROLS.md",
+      "bytes": 3092,
+      "mode": 420,
+      "sha256": "14a0a61c03273965b5199ee9d894bcee1ea9450f7e257718aa84ddd9eb450ff1",
+      "blob": "e259a231bdfce958e6c5ab1ba5f6ffbb9d9d249b"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/INSPECTION.json",
+      "bytes": 60545,
+      "mode": 420,
+      "sha256": "02803cbedd0e067624923a6b5cf3986a9f354a5ee806d1f70a13746133193c2d",
+      "blob": "fda3190e61ef8216a0daf969bc1f659151edfaea"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/SUCCESSOR-PROFILE.json",
+      "bytes": 13356,
+      "mode": 420,
+      "sha256": "71ba31dea9594c3eee23c054a40b0fa09de4a78eb129a44018103c21a5dfb36c",
+      "blob": "85ddef9ea9e15a740c083c2aaf9e2a6994e87201"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/CHANGESET.json",
+      "bytes": 6344,
+      "mode": 420,
+      "sha256": "4184b31197b7e1ea47523f8a30505c5c45c59dd783356b1db8e31013d7f80772",
+      "blob": "3d9d463f66b5ffeec46b52531b10535bbf988322"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-tool-closure-v1/HANDOFF.md",
+      "bytes": 5581,
+      "mode": 420,
+      "sha256": "f73f049dcc12e50f357bd34916085e41aa1e72c4b60b9fe0745fa0a76d9a3ded",
+      "blob": "f49b6716b773d91da232636e693fcf44db09da77"
+    },
+    {
+      "path": "tests/commands/table-text-stress/support.ts",
+      "bytes": 6786,
+      "mode": 420,
+      "sha256": "b6e4793cac4c3670de36e6c47de6b0d8126de73cab469b6370257e116e39ea92",
+      "blob": "d7c1ec255b0371bbf2fe25f3cf3705d16c9017b1"
+    },
+    {
+      "path": "tests/commands/table-text-stress/shared-stdin-fix/support.ts",
+      "bytes": 6565,
+      "mode": 420,
+      "sha256": "7aa2fd7b61583a94668b4cd0d2bedf48846087eb623345875eec27c468c69c7b",
+      "blob": "dcdc48f4006f6094ddd8eeb19cbb5a863f328e12"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts",
+      "bytes": 13020,
+      "mode": 420,
+      "sha256": "1f81d9226a09c22221a7faacb5f794e81726626b4ac438ee526a2877aec7b342",
+      "blob": "264df9589e4c9b1cf76b7f70a2b934c168e50bf6"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "bytes": 22844,
+      "mode": 420,
+      "sha256": "e8702db260de5d5117ac86ed48e6e1a5bae0a428e397310b7b404402ed91a55a",
+      "blob": "7f75b66d3446e1b6f4cfd00567051393928cc450"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/editflows/helpers.ts",
+      "bytes": 4595,
+      "mode": 420,
+      "sha256": "d2ba19c9387a60b0e218d676d6f44f388ccf0f759615ac26df5e682098b5ee78",
+      "blob": "b6d1c11c733d204b14d7ff91695817cb98ba920c"
+    },
+    {
+      "path": "tests/integration/s3-http-exports/verify.mjs",
+      "bytes": 11293,
+      "mode": 420,
+      "sha256": "ae9f72b2114076c92901043f0748c5525ea7cad264994c21b04f17ca3e8c72f9",
+      "blob": "8b03c107a001880f0c870fc06e3eeb01bec0edf3"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release-native-data/helpers.ts",
+      "bytes": 2817,
+      "mode": 420,
+      "sha256": "fd55635268b461f69d50bf7403f1ca94f00f27210337303f3352f97ee7b68f05",
+      "blob": "192112e71c099f0463be4f80a910a51cc4d057e1"
+    },
+    {
+      "path": "tests/commands/search-stress/safety.test.ts",
+      "bytes": 2634,
+      "mode": 420,
+      "sha256": "8ae3afb363a07e8905006346ce8cdc6318d8227ce0668443381504d54ec731ce",
+      "blob": "f05ad807bf78bdb0fa185bd7abe383a0c2e86a14"
+    },
+    {
+      "path": "tests/commands/search-stress/streaming.test.ts",
+      "bytes": 685,
+      "mode": 420,
+      "sha256": "8ce5213a4a5cd277628e83dad3390e05c05527f1269001736e64ae9ac7de5f82",
+      "blob": "928c73ce7da9ba19cd383be51bd7f8d35ba03657"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target/oracle.ts",
+      "bytes": 3677,
+      "mode": 420,
+      "sha256": "fa393338c0d4f6f1769a560d40e468ed165f196add6da7e9c55b5592212b4726",
+      "blob": "aa5bff6001dac716be5f50c8fbea8490eebf41fd"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-auxiliary/helpers.ts",
+      "bytes": 8725,
+      "mode": 420,
+      "sha256": "d1c019640fabd954808dcc2f092a6fd80de5fad8674d56e2f37cf7f75f25ad91",
+      "blob": "269d5aa6a8af48cbfb9c8423d3a6ea13fd2feac1"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target-followup/helpers.ts",
+      "bytes": 4452,
+      "mode": 420,
+      "sha256": "3ed6929afc27bda15ecd9732fbd446428be30eb4c4bf24ed99a620312b319e48",
+      "blob": "80653b8e7b3eb91e323756d397f089afc5affbbd"
+    },
+    {
+      "path": "tests/commands/stream-inspection/oracle.ts",
+      "bytes": 4449,
+      "mode": 420,
+      "sha256": "144a0ab22228978c68a4b89d137ff48f27cf20cfb69ec9784f73976ad7fc9ee7",
+      "blob": "6f71cd1303fc6a4f1c6a751e96afd3b1d24263a5"
+    },
+    {
+      "path": "tests/shell-stress/helpers.ts",
+      "bytes": 6282,
+      "mode": 420,
+      "sha256": "a32a59b7ea7efb057837b759fdf30d60c87902f31ed0135d35fcb860f19d1718",
+      "blob": "102489c0e62e2d338bb76ae85fca35c4569d3035"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/DRIVER.json",
+      "bytes": 4689,
+      "mode": 420,
+      "sha256": "b933c447efda4438266f40190eecc00d9e00e195d854eb4a254cfb0e2783306f",
+      "blob": "d40bfeafda550a3a69e630f8368eaff262c6d9dd"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/TOOL-ROUTES.json",
+      "bytes": 2520,
+      "mode": 420,
+      "sha256": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7",
+      "blob": "5836669cb9ef9929977ad2b05c6fb5091c92e293"
+    }
+  ],
+  "modules": [
+    {
+      "path": "tests/commands/table-text-stress/support.ts",
+      "sha256": "b6e4793cac4c3670de36e6c47de6b0d8126de73cab469b6370257e116e39ea92",
+      "transformedSha256": "7622f91c46cbbee93263a745ff188b3862ceddc67811010069d56a34dc7315cf",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:fs/promises",
+        "node:os",
+        "node:path",
+        "../../../src/shell/index.js",
+        "../../../src/commands/index.js",
+        "../../../src/fs/memory/index.js",
+        "../../../src/commands/table-text/index.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/table-text-stress/support.ts",
+      "sha256": "b6e4793cac4c3670de36e6c47de6b0d8126de73cab469b6370257e116e39ea92",
+      "transformedSha256": "7622f91c46cbbee93263a745ff188b3862ceddc67811010069d56a34dc7315cf",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:fs/promises",
+        "node:os",
+        "node:path",
+        "../../../src/shell/index.js",
+        "../../../src/commands/index.js",
+        "../../../src/fs/memory/index.js",
+        "../../../src/commands/table-text/index.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/table-text-stress/support.ts",
+      "sha256": "b6e4793cac4c3670de36e6c47de6b0d8126de73cab469b6370257e116e39ea92",
+      "transformedSha256": "7622f91c46cbbee93263a745ff188b3862ceddc67811010069d56a34dc7315cf",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:fs/promises",
+        "node:os",
+        "node:path",
+        "../../../src/shell/index.js",
+        "../../../src/commands/index.js",
+        "../../../src/fs/memory/index.js",
+        "../../../src/commands/table-text/index.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/table-text-stress/support.ts",
+      "sha256": "b6e4793cac4c3670de36e6c47de6b0d8126de73cab469b6370257e116e39ea92",
+      "transformedSha256": "7622f91c46cbbee93263a745ff188b3862ceddc67811010069d56a34dc7315cf",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:fs/promises",
+        "node:os",
+        "node:path",
+        "../../../src/shell/index.js",
+        "../../../src/commands/index.js",
+        "../../../src/fs/memory/index.js",
+        "../../../src/commands/table-text/index.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/table-text-stress/support.ts",
+      "sha256": "b6e4793cac4c3670de36e6c47de6b0d8126de73cab469b6370257e116e39ea92",
+      "transformedSha256": "7622f91c46cbbee93263a745ff188b3862ceddc67811010069d56a34dc7315cf",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:fs/promises",
+        "node:os",
+        "node:path",
+        "../../../src/shell/index.js",
+        "../../../src/commands/index.js",
+        "../../../src/fs/memory/index.js",
+        "../../../src/commands/table-text/index.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/table-text-stress/support.ts",
+      "sha256": "b6e4793cac4c3670de36e6c47de6b0d8126de73cab469b6370257e116e39ea92",
+      "transformedSha256": "7622f91c46cbbee93263a745ff188b3862ceddc67811010069d56a34dc7315cf",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:fs/promises",
+        "node:os",
+        "node:path",
+        "../../../src/shell/index.js",
+        "../../../src/commands/index.js",
+        "../../../src/fs/memory/index.js",
+        "../../../src/commands/table-text/index.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/table-text-stress/shared-stdin-fix/support.ts",
+      "sha256": "7aa2fd7b61583a94668b4cd0d2bedf48846087eb623345875eec27c468c69c7b",
+      "transformedSha256": "b2abd3704704526d1a595fca9cda16704fa5f149d68042203cbb4c29e5738990",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:fs/promises",
+        "node:os",
+        "node:path",
+        "node:url",
+        "../../table-text/helpers.js",
+        "../support.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/table-text-stress/shared-stdin-fix/support.ts",
+      "sha256": "7aa2fd7b61583a94668b4cd0d2bedf48846087eb623345875eec27c468c69c7b",
+      "transformedSha256": "b2abd3704704526d1a595fca9cda16704fa5f149d68042203cbb4c29e5738990",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:fs/promises",
+        "node:os",
+        "node:path",
+        "node:url",
+        "../../table-text/helpers.js",
+        "../support.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/table-text-stress/shared-stdin-fix/support.ts",
+      "sha256": "7aa2fd7b61583a94668b4cd0d2bedf48846087eb623345875eec27c468c69c7b",
+      "transformedSha256": "b2abd3704704526d1a595fca9cda16704fa5f149d68042203cbb4c29e5738990",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:fs/promises",
+        "node:os",
+        "node:path",
+        "node:url",
+        "../../table-text/helpers.js",
+        "../support.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/table-text-stress/shared-stdin-fix/support.ts",
+      "sha256": "7aa2fd7b61583a94668b4cd0d2bedf48846087eb623345875eec27c468c69c7b",
+      "transformedSha256": "b2abd3704704526d1a595fca9cda16704fa5f149d68042203cbb4c29e5738990",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:fs/promises",
+        "node:os",
+        "node:path",
+        "node:url",
+        "../../table-text/helpers.js",
+        "../support.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target/oracle.ts",
+      "sha256": "fa393338c0d4f6f1769a560d40e468ed165f196add6da7e9c55b5592212b4726",
+      "transformedSha256": "c01bd93b6d9bcd98f8b8f281531fcfbdfa361c8ae4f87f7e3b36a55ddbf6acd9",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:os",
+        "node:path"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target/oracle.ts",
+      "sha256": "fa393338c0d4f6f1769a560d40e468ed165f196add6da7e9c55b5592212b4726",
+      "transformedSha256": "c01bd93b6d9bcd98f8b8f281531fcfbdfa361c8ae4f87f7e3b36a55ddbf6acd9",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:os",
+        "node:path"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target/oracle.ts",
+      "sha256": "fa393338c0d4f6f1769a560d40e468ed165f196add6da7e9c55b5592212b4726",
+      "transformedSha256": "c01bd93b6d9bcd98f8b8f281531fcfbdfa361c8ae4f87f7e3b36a55ddbf6acd9",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:os",
+        "node:path"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target/oracle.ts",
+      "sha256": "fa393338c0d4f6f1769a560d40e468ed165f196add6da7e9c55b5592212b4726",
+      "transformedSha256": "c01bd93b6d9bcd98f8b8f281531fcfbdfa361c8ae4f87f7e3b36a55ddbf6acd9",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:os",
+        "node:path"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/shell-stress/helpers.ts",
+      "sha256": "a32a59b7ea7efb057837b759fdf30d60c87902f31ed0135d35fcb860f19d1718",
+      "transformedSha256": "4e30f369af3d84b46b092def3be0015b96fd69accd0cfe41bc771ff26d1ea8ad",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:os",
+        "node:path",
+        "node:url",
+        "./process.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/shell-stress/helpers.ts",
+      "sha256": "a32a59b7ea7efb057837b759fdf30d60c87902f31ed0135d35fcb860f19d1718",
+      "transformedSha256": "4e30f369af3d84b46b092def3be0015b96fd69accd0cfe41bc771ff26d1ea8ad",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:os",
+        "node:path",
+        "node:url",
+        "./process.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/shell-stress/helpers.ts",
+      "sha256": "a32a59b7ea7efb057837b759fdf30d60c87902f31ed0135d35fcb860f19d1718",
+      "transformedSha256": "4e30f369af3d84b46b092def3be0015b96fd69accd0cfe41bc771ff26d1ea8ad",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:os",
+        "node:path",
+        "node:url",
+        "./process.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/editflows/helpers.ts",
+      "sha256": "d2ba19c9387a60b0e218d676d6f44f388ccf0f759615ac26df5e682098b5ee78",
+      "transformedSha256": "f359659d53e67c4bde454d84120202496d831bbd26bf8d26ded163c1b0e9336c",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:fs/promises",
+        "node:path",
+        "node:url",
+        "../../../../src/contracts/index.js",
+        "../../../../src/commands/diff-patch/index.js",
+        "../../../../src/fs/memory/index.js",
+        "../gnu-target/oracle.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/editflows/helpers.ts",
+      "sha256": "d2ba19c9387a60b0e218d676d6f44f388ccf0f759615ac26df5e682098b5ee78",
+      "transformedSha256": "f359659d53e67c4bde454d84120202496d831bbd26bf8d26ded163c1b0e9336c",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:fs/promises",
+        "node:path",
+        "node:url",
+        "../../../../src/contracts/index.js",
+        "../../../../src/commands/diff-patch/index.js",
+        "../../../../src/fs/memory/index.js",
+        "../gnu-target/oracle.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/editflows/helpers.ts",
+      "sha256": "d2ba19c9387a60b0e218d676d6f44f388ccf0f759615ac26df5e682098b5ee78",
+      "transformedSha256": "f359659d53e67c4bde454d84120202496d831bbd26bf8d26ded163c1b0e9336c",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:fs/promises",
+        "node:path",
+        "node:url",
+        "../../../../src/contracts/index.js",
+        "../../../../src/commands/diff-patch/index.js",
+        "../../../../src/fs/memory/index.js",
+        "../gnu-target/oracle.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release-native-data/helpers.ts",
+      "sha256": "fd55635268b461f69d50bf7403f1ca94f00f27210337303f3352f97ee7b68f05",
+      "transformedSha256": "15c967d7e33d9da37820d2e41fd043c0e6bcff17eb60779e3dc2b3fea33f9c0b",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:path",
+        "node:url"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release-native-data/helpers.ts",
+      "sha256": "fd55635268b461f69d50bf7403f1ca94f00f27210337303f3352f97ee7b68f05",
+      "transformedSha256": "15c967d7e33d9da37820d2e41fd043c0e6bcff17eb60779e3dc2b3fea33f9c0b",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:path",
+        "node:url"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release-native-data/helpers.ts",
+      "sha256": "fd55635268b461f69d50bf7403f1ca94f00f27210337303f3352f97ee7b68f05",
+      "transformedSha256": "15c967d7e33d9da37820d2e41fd043c0e6bcff17eb60779e3dc2b3fea33f9c0b",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:path",
+        "node:url"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "sha256": "e8702db260de5d5117ac86ed48e6e1a5bae0a428e397310b7b404402ed91a55a",
+      "transformedSha256": "e8702db260de5d5117ac86ed48e6e1a5bae0a428e397310b7b404402ed91a55a",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:fs",
+        "node:stream/promises",
+        "node:path",
+        "node:os",
+        "node:url",
+        "./common.mjs",
+        "./profile.mjs",
+        "./admission.mjs",
+        "./inventory.mjs",
+        "./policy.mjs",
+        "./transport.mjs",
+        "./external-admission.mjs",
+        "./tool-routing.mjs",
+        "./external.mjs",
+        "./built-consumers.mjs",
+        "./tap.mjs",
+        "./supervise.mjs",
+        "./consumer-admission.mjs",
+        "./build-types.mjs",
+        "./phase-runner.mjs",
+        "./projection.mjs",
+        "./maintained-prerequisites.mjs"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "sha256": "e8702db260de5d5117ac86ed48e6e1a5bae0a428e397310b7b404402ed91a55a",
+      "transformedSha256": "e8702db260de5d5117ac86ed48e6e1a5bae0a428e397310b7b404402ed91a55a",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:fs",
+        "node:stream/promises",
+        "node:path",
+        "node:os",
+        "node:url",
+        "./common.mjs",
+        "./profile.mjs",
+        "./admission.mjs",
+        "./inventory.mjs",
+        "./policy.mjs",
+        "./transport.mjs",
+        "./external-admission.mjs",
+        "./tool-routing.mjs",
+        "./external.mjs",
+        "./built-consumers.mjs",
+        "./tap.mjs",
+        "./supervise.mjs",
+        "./consumer-admission.mjs",
+        "./build-types.mjs",
+        "./phase-runner.mjs",
+        "./projection.mjs",
+        "./maintained-prerequisites.mjs"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "sha256": "e8702db260de5d5117ac86ed48e6e1a5bae0a428e397310b7b404402ed91a55a",
+      "transformedSha256": "e8702db260de5d5117ac86ed48e6e1a5bae0a428e397310b7b404402ed91a55a",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:fs",
+        "node:stream/promises",
+        "node:path",
+        "node:os",
+        "node:url",
+        "./common.mjs",
+        "./profile.mjs",
+        "./admission.mjs",
+        "./inventory.mjs",
+        "./policy.mjs",
+        "./transport.mjs",
+        "./external-admission.mjs",
+        "./tool-routing.mjs",
+        "./external.mjs",
+        "./built-consumers.mjs",
+        "./tap.mjs",
+        "./supervise.mjs",
+        "./consumer-admission.mjs",
+        "./build-types.mjs",
+        "./phase-runner.mjs",
+        "./projection.mjs",
+        "./maintained-prerequisites.mjs"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "sha256": "e8702db260de5d5117ac86ed48e6e1a5bae0a428e397310b7b404402ed91a55a",
+      "transformedSha256": "e8702db260de5d5117ac86ed48e6e1a5bae0a428e397310b7b404402ed91a55a",
+      "imports": [
+        "node:assert/strict",
+        "node:child_process",
+        "node:fs",
+        "node:stream/promises",
+        "node:path",
+        "node:os",
+        "node:url",
+        "./common.mjs",
+        "./profile.mjs",
+        "./admission.mjs",
+        "./inventory.mjs",
+        "./policy.mjs",
+        "./transport.mjs",
+        "./external-admission.mjs",
+        "./tool-routing.mjs",
+        "./external.mjs",
+        "./built-consumers.mjs",
+        "./tap.mjs",
+        "./supervise.mjs",
+        "./consumer-admission.mjs",
+        "./build-types.mjs",
+        "./phase-runner.mjs",
+        "./projection.mjs",
+        "./maintained-prerequisites.mjs"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-audit.mjs",
+      "sha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+      "transformedSha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+      "imports": [
+        "node:fs",
+        "node:path",
+        "node:crypto"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/build-audit.mjs",
+      "sha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+      "transformedSha256": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+      "imports": [
+        "node:fs",
+        "node:path",
+        "node:crypto"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/search-stress/safety.test.ts",
+      "sha256": "8ae3afb363a07e8905006346ce8cdc6318d8227ce0668443381504d54ec731ce",
+      "transformedSha256": "5c7d3b49e011339fb4f3e1acd4c819abc648774ef4ed062df968960205830caa",
+      "imports": [
+        "node:assert/strict",
+        "node:path",
+        "node:test",
+        "./harness.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/search-stress/safety.test.ts",
+      "sha256": "8ae3afb363a07e8905006346ce8cdc6318d8227ce0668443381504d54ec731ce",
+      "transformedSha256": "5c7d3b49e011339fb4f3e1acd4c819abc648774ef4ed062df968960205830caa",
+      "imports": [
+        "node:assert/strict",
+        "node:path",
+        "node:test",
+        "./harness.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/search-stress/safety.test.ts",
+      "sha256": "8ae3afb363a07e8905006346ce8cdc6318d8227ce0668443381504d54ec731ce",
+      "transformedSha256": "5c7d3b49e011339fb4f3e1acd4c819abc648774ef4ed062df968960205830caa",
+      "imports": [
+        "node:assert/strict",
+        "node:path",
+        "node:test",
+        "./harness.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/search-stress/safety.test.ts",
+      "sha256": "8ae3afb363a07e8905006346ce8cdc6318d8227ce0668443381504d54ec731ce",
+      "transformedSha256": "5c7d3b49e011339fb4f3e1acd4c819abc648774ef4ed062df968960205830caa",
+      "imports": [
+        "node:assert/strict",
+        "node:path",
+        "node:test",
+        "./harness.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/search-stress/streaming.test.ts",
+      "sha256": "8ce5213a4a5cd277628e83dad3390e05c05527f1269001736e64ae9ac7de5f82",
+      "transformedSha256": "8ce5213a4a5cd277628e83dad3390e05c05527f1269001736e64ae9ac7de5f82",
+      "imports": [
+        "node:assert/strict",
+        "node:path",
+        "node:test",
+        "./harness.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/search-stress/streaming.test.ts",
+      "sha256": "8ce5213a4a5cd277628e83dad3390e05c05527f1269001736e64ae9ac7de5f82",
+      "transformedSha256": "8ce5213a4a5cd277628e83dad3390e05c05527f1269001736e64ae9ac7de5f82",
+      "imports": [
+        "node:assert/strict",
+        "node:path",
+        "node:test",
+        "./harness.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/search-stress/streaming.test.ts",
+      "sha256": "8ce5213a4a5cd277628e83dad3390e05c05527f1269001736e64ae9ac7de5f82",
+      "transformedSha256": "8ce5213a4a5cd277628e83dad3390e05c05527f1269001736e64ae9ac7de5f82",
+      "imports": [
+        "node:assert/strict",
+        "node:path",
+        "node:test",
+        "./harness.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    },
+    {
+      "path": "tests/commands/search-stress/streaming.test.ts",
+      "sha256": "8ce5213a4a5cd277628e83dad3390e05c05527f1269001736e64ae9ac7de5f82",
+      "transformedSha256": "8ce5213a4a5cd277628e83dad3390e05c05527f1269001736e64ae9ac7de5f82",
+      "imports": [
+        "node:assert/strict",
+        "node:path",
+        "node:test",
+        "./harness.js"
+      ],
+      "role": "WHOLE_MODULE_STUB"
+    }
+  ],
+  "calls": [
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S1",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "610a610a620a620a630a",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-",
+        "left",
+        "-",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S2",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "0a610a0a6c617374",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-s",
+        "-d",
+        "\\0,\\t",
+        "-",
+        "left",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S3",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "310a320a330a",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-z",
+        "-d",
+        "\\0:",
+        "-",
+        "left",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S4",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "8000610a62007461696c",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-d",
+        "\\r\\n",
+        "left",
+        "right",
+        "left"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S5",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-s",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S6",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "--check-order",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S7",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "--total",
+        "--output-delimiter=::",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S8",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-z",
+        "--output-delimiter=",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S9",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S10",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-a1",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S11",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-a1",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S12",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "--check-order",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S13",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "--check-order",
+        "-a1",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S14",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "--check-order",
+        "-a1",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S15",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "--nocheck-order",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S16",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "--nocheck-order",
+        "-a1",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S17",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "--nocheck-order",
+        "-a1",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S18",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "--header",
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S19",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-z",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S20",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-t",
+        "",
+        "-a1",
+        "-a2",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S21",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S22",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-t:",
+        "-t:",
+        "-o",
+        "1.2,0",
+        "-o",
+        "2.2",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S23",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-d",
+        "",
+        "-",
+        "right",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S24",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "610a620a63",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "--check-order",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S25",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S26",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-z",
+        "-d",
+        ":\\0",
+        "-",
+        "right",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S27",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "610063008000",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-z",
+        "--check-order",
+        "-2",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S28",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-z",
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S29",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-d",
+        ":\\0",
+        "-",
+        "right",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S30",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "610a800a800a",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "--check-order",
+        "-2",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S31",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S32",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-z",
+        "-d",
+        "",
+        "-",
+        "right",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S33",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "61",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-z",
+        "--check-order",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S34",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-z",
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S35",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-d",
+        ":\\0",
+        "-",
+        "right",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S36",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "0a610a630a800a800a800aff0aff0a",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "--check-order",
+        "-2",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S37",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S38",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-z",
+        "-d",
+        ":\\0",
+        "-",
+        "right",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S39",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "00006100610061006200",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-z",
+        "--check-order",
+        "-2",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S40",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-z",
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S41",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-d",
+        "",
+        "-",
+        "right",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S42",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "620a630aff",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "--check-order",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S43",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S44",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-z",
+        "-d",
+        ":\\0",
+        "-",
+        "right",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S45",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "0062006300ff00",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-z",
+        "--check-order",
+        "-2",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S46",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-z",
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S47",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-d",
+        ":\\0",
+        "-",
+        "right",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S48",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "620a620a630a",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "--check-order",
+        "-2",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S49",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S50",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-z",
+        "-d",
+        "",
+        "-",
+        "right",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S51",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "00610062008000ff00ff",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-z",
+        "--check-order",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S52",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-z",
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S53",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-d",
+        ":\\0",
+        "-",
+        "right",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S54",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "0a620a620a630aff0a",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "--check-order",
+        "-2",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S55",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S56",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-z",
+        "-d",
+        ":\\0",
+        "-",
+        "right",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S57",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "00",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-z",
+        "--check-order",
+        "-2",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S58",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-z",
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S59",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-d",
+        "",
+        "-",
+        "right",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S60",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "610a620a800aff",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "--check-order",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S61",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S62",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-z",
+        "-d",
+        ":\\0",
+        "-",
+        "right",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S63",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "00610062006200ff00ff00",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-z",
+        "--check-order",
+        "-2",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S64",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-z",
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S65",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-d",
+        ":\\0",
+        "-",
+        "right",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S66",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "610a620a620a620a630a",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "--check-order",
+        "-2",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S67",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S68",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/paste",
+      "argv": [
+        "-z",
+        "-d",
+        "",
+        "-",
+        "right",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S69",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "6200630080",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-z",
+        "--check-order",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S70",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/join",
+      "argv": [
+        "-z",
+        "-t:",
+        "-a1",
+        "-a2",
+        "-e",
+        "?",
+        "-o",
+        "auto",
+        "left",
+        "right"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S71",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S1",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "610a610a620a620a630a",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S1",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "610a610a620a620a630a",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S1",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "610a610a620a620a630a",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-native-S1",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "610a610a620a620a630a",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/table-text-stress/shared-stdin-fix/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-shared-S1/native-S2",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "610a610a620a620a630a",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm"
+    },
+    {
+      "module": "tests/commands/table-text-stress/shared-stdin-fix/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-shared-S1/native-S2",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "610a610a620a620a630a",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm"
+    },
+    {
+      "module": "tests/commands/table-text-stress/shared-stdin-fix/support.ts",
+      "executable": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/comm",
+      "argv": [
+        "-",
+        "-"
+      ],
+      "cwd": "/gate/tmp/safe-bash-table-shared-S1/native-S2",
+      "env": {
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin"
+      },
+      "inputHex": "610a610a620a620a630a",
+      "timeout": 5000,
+      "maxBuffer": 16777216,
+      "argv0": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-byte-gnu.0SnJMX/coreutils-9.7/src/comm"
+    },
+    {
+      "module": "tests/shell-stress/helpers.ts",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf test",
+        "shell-stress"
+      ],
+      "cwd": "/gate/tmp/virtual-bash-shell-stress-S1",
+      "env": {
+        "HOME": "/gate/tmp/virtual-bash-shell-stress-S1",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin",
+        "TMPDIR": "/gate/tmp/safe-bash-shell-scratch-S2",
+        "TZ": "UTC",
+        "VALUE": "kept"
+      },
+      "inputHex": "696e707574",
+      "timeout": 5000,
+      "maxBuffer": 1048576,
+      "argv0": null
+    },
+    {
+      "module": "tests/shell-stress/helpers.ts",
+      "executable": "/bin/bash",
+      "argv": [
+        "--noprofile",
+        "--norc",
+        "-c",
+        "printf test",
+        "shell-stress"
+      ],
+      "cwd": "/gate/tmp/virtual-bash-shell-stress-S1",
+      "env": {
+        "HOME": "/gate/tmp/virtual-bash-shell-stress-S1",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin",
+        "TMPDIR": "/gate/tmp/safe-bash-shell-scratch-S2",
+        "TZ": "UTC",
+        "VALUE": "kept"
+      },
+      "inputHex": "696e707574",
+      "timeout": 5000,
+      "maxBuffer": 1048576,
+      "argv0": null
+    },
+    {
+      "module": "tests/commands/diff-patch-stress/editflows/helpers.ts",
+      "executable": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "argv": [
+        "apply",
+        "--check",
+        "-"
+      ],
+      "cwd": "/owned/fixture",
+      "env": {
+        "GIT_CEILING_DIRECTORIES": "/owned",
+        "GIT_CONFIG_GLOBAL": "/dev/null",
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_EXEC_PATH": "/Applications/Xcode.app/Contents/Developer/usr/libexec/git-core",
+        "GIT_OPTIONAL_LOCKS": "0",
+        "GIT_TERMINAL_PROMPT": "0",
+        "HOME": "/owned/fixture",
+        "LANG": "C",
+        "LC_ALL": "C",
+        "PATH": "/usr/bin:/bin",
+        "TMPDIR": "/owned/fixture",
+        "XDG_CONFIG_HOME": "/owned/fixture"
+      },
+      "inputHex": "7061746368206279746573",
+      "timeout": 3000,
+      "maxBuffer": 1048576,
+      "argv0": null
+    },
+    {
+      "module": "tests/plugins/qualified-current-release-native-data/helpers.ts",
+      "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/owned/fixture",
+      "env": {
+        "FULL_GATE_ROOT": "/gate",
+        "KEEP": "yes",
+        "PATH": "/gate/native:/gate/tools",
+        "TMPDIR": "/gate/tmp"
+      },
+      "inputHex": "",
+      "timeout": 60000,
+      "maxBuffer": 4194304,
+      "argv0": null
+    }
+  ],
+  "budgets": {
+    "readCount": 77,
+    "totalBytes": 718667,
+    "operations": 727,
+    "evaluations": 39,
+    "recordingDispatches": 82
+  },
+  "execution": {
+    "actualChildProcesses": 0,
+    "actualTools": 0,
+    "actualCompiler": 0,
+    "actualBuild": 0,
+    "actualProduct": 0,
+    "actualGate": 0,
+    "privateAccess": 0,
+    "oldRootCleanup": 0,
+    "authorHarnessRuns": 0,
+    "future20Actual": 0
+  },
+  "closure": {
+    "ownedChildProcesses": 0,
+    "ownedRealScratchRoots": 0,
+    "watchdogCleared": true,
+    "allAwaitedReviewCasesSettled": true
+  },
+  "qualification": "Source/data/whole-module synthetic-stub only. Original R3 19425P132F7skip6of14, 928 captures and 286 additions remain historical. Primary-loss failures are not waived."
+}

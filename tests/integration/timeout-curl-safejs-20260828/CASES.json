@@ -1,0 +1,59 @@
+{
+  "schema": "timeout-curl-actual-safejs-workflows-v1",
+  "layouts": ["installed", "moved"],
+  "distinctWorkflows": 12,
+  "positiveChildren": 24,
+  "controlChildren": 4,
+  "controlPredicates": 4,
+  "childDeadlineMs": 12000,
+  "parentChildDeadlineMs": 16000,
+  "cohortDeadlineMs": 480000,
+  "childOutputMaxBytes": 1048576,
+  "receiptMaxBytes": 2097152,
+  "traceMaxBytes": 2097152,
+  "eventMaxCount": 2048,
+  "shellLimits": { "maxCommands": 16, "maxOutputBytes": 4096, "maxSourceBytes": 16384 },
+  "safeJsLimits": { "maxSourceBytes": 16384, "maxInputBytes": 4096, "maxOutputBytes": 4096, "timeoutMs": 5000, "maxSteps": 20000, "maxCallDepth": 64, "stringLength": 16384, "arrayLength": 4096, "dataSize": 1048576 },
+  "networkLimits": { "maxUploadBytes": 4096, "maxDownloadBytes": 4096, "maxBufferBytes": 4096, "maxHeaderBytes": 4096, "maxRedirects": 1, "maxRetries": 0, "maxUrls": 1, "maxTimeMs": 5000 },
+  "url": "https://workflow.invalid/data",
+  "deniedUrl": "https://denied.invalid/next",
+  "inputs": {
+    "pipe": "import * as stdio from \"stdio\"; const text = await stdio.readText(); await stdio.write(\"guest:\" + text);\n",
+    "status7": "import * as stdio from \"stdio\"; import * as command from \"command\"; await stdio.write(\"seven\\n\"); command.setExitCode(7);\n",
+    "nested": "import * as shell from \"shell\"; import * as command from \"command\"; const result = await shell.exec(\"nested-leaf\"); command.setExitCode(result.exitCode);\n",
+    "curl": "import * as shell from \"shell\"; import * as command from \"command\"; const result = await shell.exec(\"curl\"); command.setExitCode(result.exitCode);\n",
+    "output": "import * as stdio from \"stdio\"; import * as shell from \"shell\"; await stdio.write(\"ab\"); await shell.exec(\"curl\");\n",
+    "error": "throw new Error(\"guest-boom\");\n",
+    "default": "import * as stdio from \"stdio\"; await stdio.write(\"clock\\n\");\n"
+  },
+  "rows": [
+    { "id": "W01", "name": "pipe through zero timeout into actual guest stdin", "input": "pipe", "duration": "0", "prefix": "printf 'pipe\\n' | ", "expected": { "exitCode": 0, "stdout": "guest:pipe\n", "stderr": "" }, "timers": 0 },
+    { "id": "W02", "name": "nonzero timeout preserves guest status seven", "input": "status7", "duration": ".010", "expected": { "exitCode": 7, "stdout": "seven\n", "stderr": "" }, "timers": 1 },
+    { "id": "W03", "name": "zero timeout nested guest invocation waits owned cleanup", "input": "nested", "duration": "0", "expected": { "exitCode": 7, "stdout": "nested\n", "stderr": "" }, "timers": 0 },
+    { "id": "W04", "name": "acquired mock HTTP body deadline waits dispose and registered cleanup", "duration": ".010", "route": "curl", "expected": { "exitCode": 124, "stdout": "", "stderr": "" }, "timers": 1 },
+    { "id": "W05", "name": "denied redirect has no third authorization or second transport", "duration": ".010", "route": "redirect", "expected": { "exitCode": 7, "stdout": "", "stderr": "curl: Network access denied by host policy\n" }, "timers": 1 },
+    { "id": "W06", "name": "actual guest nested curl deadline drains host resources", "input": "curl", "duration": ".010", "expected": { "exitCode": 124, "stdout": "", "stderr": "" }, "timers": 1 },
+    { "id": "W07", "name": "caller-first cancellation of guest nested curl preserves raw host identity", "input": "curl", "duration": ".010", "reject": "HOST_CALLER_IDENTITY", "timers": 1 },
+    { "id": "W08", "name": "deadline then root caller with same observed sentinel wins", "input": "curl", "duration": ".010", "reject": "HOST_CALLER_IDENTITY", "timers": 1 },
+    { "id": "W09", "name": "guest plus nested curl share cumulative output budget", "input": "output", "duration": "0", "baselineLimit": 4, "tightLimit": 3, "limit": "maxOutputBytes", "baseline": { "exitCode": 0, "stdout": "abcd", "stderr": "" }, "reject": "ShellLimitError", "timers": 0 },
+    { "id": "W10", "name": "timeout guest curl share command budget", "input": "curl", "duration": "0", "baselineLimit": 3, "tightLimit": 2, "limit": "maxCommands", "baseline": { "exitCode": 0, "stdout": "cd", "stderr": "" }, "reject": "ShellLimitError", "timers": 0 },
+    { "id": "W11", "name": "actual guest error crosses public diagnostic boundary", "input": "error", "duration": ".010", "expected": { "exitCode": 1, "stdout": "", "stderr": "safejs: guest-boom\n" }, "timers": 1 },
+    { "id": "W12", "name": "bounded default clock actual guest completes and retires", "input": "default", "duration": "60", "defaultClock": true, "expected": { "exitCode": 0, "stdout": "clock\n", "stderr": "" } }
+  ],
+  "controls": [
+    { "id": "C01", "target": "mutant-package.mjs", "expected": "LOAD_HASH" },
+    { "id": "C02", "target": "mutant-engine.mjs", "expected": "LOAD_HASH" },
+    { "id": "C03", "target": "private-source", "expected": "OUTSIDE_IMPORT" },
+    { "id": "C04", "target": "unbound.mjs", "expected": "UNBOUND_IMPORT" }
+  ],
+  "predicateControls": ["request-after-denial", "cleanup-missing", "iterator-return-missing", "pending-settlement-missing"],
+  "qualifications": [
+    "Injected HTTP transport/authorizer/body only; no actual network or credentials.",
+    "Actual copied SafeJS engine, not a mock runtime; engine run/settlement and 63-module closure recorded.",
+    "No S3/DAV repetition: the HTTP lifecycle paths here supply the distinct interactions.",
+    "Default-clock case has only containment bounds, not hard latency/preemption guarantees.",
+    "Raw caller identity is asserted only at host Shell/timeout boundaries; guest errors serialized without identity claims.",
+    "Old S1, dialect/rejection and zero-retry qualifications unchanged; no old25/public34/fullgate/native replay.",
+    "14 measured execs per layout (W09/W10 have baseline+tight), plus 12 separately recorded empty admission executions; counters are never reset."
+  ]
+}

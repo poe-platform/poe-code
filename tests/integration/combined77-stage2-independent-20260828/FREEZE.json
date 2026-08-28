@@ -1,0 +1,18 @@
+{
+  "sealedAt": "2026-08-28T02:25:55.933Z",
+  "candidate": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "candidateInspected": false,
+  "candidateExecuted": false,
+  "runtimeFamilies": 10,
+  "typeFamilies": 4,
+  "files": [
+    {
+      "path": "CASES.json",
+      "sha256": "f0bf59f94d1fd977b2f7dd2980080e6b843f621fc682e10cc2cb4d5f1cc2c366"
+    },
+    {
+      "path": "FREEZE.md",
+      "sha256": "437f6e5c7f8506724e9185628eb259d0da32669fde8e863b654d9974ccb3c86a"
+    }
+  ]
+}

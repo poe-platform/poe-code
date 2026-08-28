@@ -1,0 +1,70 @@
+{
+  "schema": "v3-complete-preexecution-protocol",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+  "entry": "coordinator.mjs",
+  "modes": {
+    "verify": "data/tool authentication only",
+    "synthetic": "owned mechanisms; C11 not actual credit",
+    "admission": "requires external committed different freeze and root admission grant",
+    "cohort": "requires distinct root cohort grant binding accepted actual admission"
+  },
+  "controls": [
+    "C01 identity",
+    "C02 file/hash/tool primitive",
+    "C03 ESM CJS guarded-require source witnesses",
+    "C04 offline/unbound load guards",
+    "C05 newentry/mode/symlink/AGENTS name guard",
+    "C06 exact W03 byte corruption",
+    "C07 status/diagnostic",
+    "C08 filesystem effects",
+    "C09 nonzero and retained timer deadline",
+    "C10 ordinary-safe versus unsafe continuation",
+    "C11 pending/rejected actual plugin admission (held in synthetic)",
+    "C12 actual loaded noop filesystem rejection"
+  ],
+  "extraControls": [
+    "F1 body/dispose-start/dispose/dispose-settled ordered errors",
+    "F2 dispose/supervision/integrity/control unsafe tail",
+    "F3 two-engine empty/partial/malformed five-channel schema",
+    "W07 missing access/execution/mode counterexamples",
+    "report empty/truncated/no-final/wrong-sequence negatives"
+  ],
+  "schedule": "../executor-preparation-v1/SCHEDULE.json",
+  "maxChildren": {
+    "controls": 24,
+    "admissionProbes": 3,
+    "semantics": 99
+  },
+  "execCalls": {
+    "semantic": 99,
+    "targetEmptySetup": 66,
+    "C11EmptySetup": 2,
+    "total": 167
+  },
+  "limits": {
+    "heapMiB": 256,
+    "deadlineMs": 30000,
+    "termGraceMs": 2000,
+    "killGuardMs": 1000,
+    "outerMs": 4500000,
+    "metadataBytes": 262144,
+    "newPerStreamBytes": 65536,
+    "legacyCombinedBytes": 8388608,
+    "snapshotBytes": 131072,
+    "evidenceBytes": 268435456,
+    "viewBytes": 167772160
+  },
+  "qualifications": {
+    "native": 0,
+    "SafeJS": 0,
+    "productTiming": 0,
+    "wholeGate": false,
+    "historyRescored": false
+  },
+  "staticSourceRead": {
+    "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+    "sha256": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+    "purpose": "confirm node:module import; textual source inspection, not metadata-only content or module execution"
+  }
+}

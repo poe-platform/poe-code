@@ -1,0 +1,251 @@
+{
+  "schema": "c18-author-delivery-v3-qualified-hold",
+  "date": "2026-08-28",
+  "disposition": "HOLD: root/reviewer adjudication required; no accepted C18 closure or product admission",
+  "sourceCommit": "33e2b4c7fb14c2ab5ad23be50ac07bcc4bfed848",
+  "correctionSourceCommit": "1d5892457775714fbbaea5673f0adb1f906f7681",
+  "evidenceCommit": "the atomic commit containing this FINAL.json; full identity reported in handoff",
+  "seals": [
+    {
+      "path": "PRESEAL.json",
+      "bytes": 30006,
+      "mode": 420,
+      "sha256": "d7c744499fa6b3124aed52d680a17f469e66e8ced04356d521a6cfe26dac97a0"
+    },
+    {
+      "path": "PRESEAL-V2.json",
+      "bytes": 32892,
+      "mode": 420,
+      "sha256": "3b88fa8dfe3db550418a13bc61b8b0de870609971cd0f8cc9665eb02d44867dd"
+    },
+    {
+      "path": "FUTURE-EXECUTION-SEAL.json",
+      "bytes": 71177,
+      "mode": 420,
+      "sha256": "ec2f19e1825970b662d60a99f2128158ab7ab494b4161ce2a4b0f121f4dcc8e5"
+    },
+    {
+      "path": "FUTURE-COMPOSITION.json",
+      "bytes": 1695,
+      "mode": 420,
+      "sha256": "bf0d9f891628abcf9e0a3e87e9dd43f3d32698632e87d6a54f0eff60e3ad450e"
+    }
+  ],
+  "preserved": {
+    "source": "d8cbb7d76459e14d20f57e19f7c01ce04fa08702",
+    "authorEvidence": "d3817018efd58d7a6e319192ef388aff7c9cc2cd",
+    "verifier": "d50aa32af3d5c7398252d2eed6f4cca530bd2c2b",
+    "candidate": "58be2d6c5706f3e90f01d48e695ecfd9daa52669",
+    "productEvidence": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+    "originalCounts": "197P/1F/1unsupported/7unrun;98/50002;25DATA/68NOTRUN;274selected/882planned;32+80",
+    "replays": 0,
+    "rescores": 0
+  },
+  "attempts": [
+    {
+      "name": "author-01",
+      "sourceCommit": "33e2b4c7fb14c2ab5ad23be50ac07bcc4bfed848",
+      "presealSha256": "d7c744499fa6b3124aed52d680a17f469e66e8ced04356d521a6cfe26dac97a0",
+      "started": "2026-08-28T18:48:37.102Z",
+      "finished": "2026-08-28T18:48:37.301Z",
+      "inclusiveElapsedMs": 199.358917,
+      "children": [
+        {
+          "pid": 21563,
+          "code": 1,
+          "started": "2026-08-28T18:48:37.157Z",
+          "finished": "2026-08-28T18:48:37.248Z",
+          "closeObserved": true,
+          "groupAbsent": true,
+          "retired": true
+        }
+      ],
+      "before": {
+        "files": 97,
+        "cumulativeBytesHashed": 114471506,
+        "entriesSha256": "f6f1a6ae1aeabc94bd903e00e2a4984a8057f0b346870c0f26ee4084957273d5",
+        "manifestsExactNamespace": true,
+        "rootExactAllowlist": true
+      },
+      "after": {
+        "files": 97,
+        "cumulativeBytesHashed": 114471506,
+        "entriesSha256": "f6f1a6ae1aeabc94bd903e00e2a4984a8057f0b346870c0f26ee4084957273d5",
+        "manifestsExactNamespace": true,
+        "rootExactAllowlist": true
+      },
+      "cleanup": {
+        "workAbsent": true,
+        "files": 61,
+        "bytes": 18495,
+        "symlinks": 0,
+        "directories": 13,
+        "childRetired": true,
+        "ownedTimers": "supervise clears timeout, kill and hard-close timers in finally; no controller timers",
+        "persistentResources": 0
+      },
+      "technicalResult": "fixture setup ERR_ACCESS_DENIED, no durable per-control stdout",
+      "creditedForClosure": false
+    },
+    {
+      "name": "author-02",
+      "sourceCommit": "1d5892457775714fbbaea5673f0adb1f906f7681",
+      "presealSha256": "3b88fa8dfe3db550418a13bc61b8b0de870609971cd0f8cc9665eb02d44867dd",
+      "started": "2026-08-28T18:48:37.102Z",
+      "finished": "2026-08-28T18:51:04.177Z",
+      "inclusiveElapsedMs": 147074.57624999998,
+      "children": [
+        {
+          "pid": 23389,
+          "code": 0,
+          "started": "2026-08-28T18:51:03.587Z",
+          "finished": "2026-08-28T18:51:04.049Z",
+          "closeObserved": true,
+          "groupAbsent": true,
+          "retired": true
+        }
+      ],
+      "before": {
+        "files": 103,
+        "cumulativeBytesHashed": 114518721,
+        "entriesSha256": "e265ce52cbacbf85814b5aefa12c496b4346ecf626bbf79bed280955b8983635",
+        "manifestsExactNamespace": true,
+        "rootExactAllowlist": true
+      },
+      "after": {
+        "files": 103,
+        "cumulativeBytesHashed": 114518721,
+        "entriesSha256": "e265ce52cbacbf85814b5aefa12c496b4346ecf626bbf79bed280955b8983635",
+        "manifestsExactNamespace": true,
+        "rootExactAllowlist": true
+      },
+      "cleanup": {
+        "workAbsent": true,
+        "files": 388,
+        "bytes": 114965,
+        "symlinks": 1,
+        "directories": 67,
+        "childRetired": true,
+        "ownedTimers": "supervise clears timeout, kill and hard-close timers in finally; no controller timers",
+        "persistentResources": 0
+      },
+      "technicalResult": "66 helper and 66 composed observations PASS",
+      "creditedForClosure": false
+    }
+  ],
+  "observedCounts": {
+    "initialDurablePerControl": 0,
+    "correctedHelper": {
+      "passed": 66,
+      "total": 66,
+      "positive": 7,
+      "negative": 59
+    },
+    "correctedComposed": {
+      "passed": 66,
+      "total": 66,
+      "positive": 7,
+      "negative": 59
+    },
+    "authorizedClosureCredited": 0,
+    "productActual": 0
+  },
+  "qualification": {
+    "authorError": "Interpreted conditional coordination/user correction budget as permission to supersede own sealed no-retry rule and relocate denied symlink creation to unrestricted parent. Root clarification rejects that interpretation.",
+    "rootClarificationFinalMtime": "2026-08-28T18:50:16-00:00",
+    "correctionCommitTime": "2026-08-28T18:50:56Z",
+    "correctionChildStart": "2026-08-28T18:51:03.587Z",
+    "correctionCleanupFinish": "2026-08-28T18:51:04.177Z",
+    "coordinationRefresh": "Initial text read at18:49:40Z; clarification first read after second run; missed refresh before dispatch.",
+    "noFurtherControls": true,
+    "noIndependentAcceptance": true,
+    "noFreshRootGo": true
+  },
+  "scope": {
+    "onlyOwnedDirectory": "tests/commands/apply-patch-independent-20260828/capture-membership-v3",
+    "sourceBodiesUnchangedByCorrection": [
+      "capture-io.mjs",
+      "controller-admission.mjs",
+      "controller.mjs",
+      "compose-future.mjs",
+      "manifest-bindings.mjs",
+      "manifests/**"
+    ],
+    "actualRoute": "controller.mjs:7 -> controller-admission.mjs:4 -> capture-io.mjs:117 -> original path-bytes parseTree/treeHash",
+    "futureCallsite": "compose-future.mjs:7,9,10 bound derived-only source; not dispatched",
+    "oldC18": "helper-local failure, not proven prior controller bypass"
+  },
+  "resources": {
+    "supervisedDataChildren": 2,
+    "peakOwnedIncludingController": 2,
+    "inclusiveControlWindowMs": 147074.57624999998,
+    "maximumControlWindowMs": 300000,
+    "rawChildBytes": 27403,
+    "retainedRawAndReceiptBytes": 76131,
+    "cumulativeRegularFixtureWrites": 133600,
+    "maximumCaptures": 16777216,
+    "maximumWork": 67108864,
+    "allKnownChildrenRetired": true,
+    "workAbsent": true,
+    "timers": "qualified supervisor finally clears timeout/kill/hard-close timers",
+    "processScope": "two supervised DATA children; source-control and authoring tools not child receipts, no global CLI/RSS claim"
+  },
+  "files": [
+    {
+      "path": "runs/author-01/stdout.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/author-01/stderr.raw",
+      "bytes": 873,
+      "mode": 420,
+      "sha256": "87dfd8cca12a31d1bf98bf1dfbdd43e18aeb65416fb07e799558c878a7a3ceb6"
+    },
+    {
+      "path": "runs/author-01/receipt.json",
+      "bytes": 3323,
+      "mode": 420,
+      "sha256": "f8b2469aa7fbb12d375cd3d79a90b6152f543fed8ac6d70775076d584ebc6e55"
+    },
+    {
+      "path": "runs/author-02/stdout.raw",
+      "bytes": 26530,
+      "mode": 420,
+      "sha256": "f6d1a7f98813dc320ba17122da4e33a4d81e34e20bdca3be9449ff00e345ed61"
+    },
+    {
+      "path": "runs/author-02/stderr.raw",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "runs/author-02/receipt.json",
+      "bytes": 45405,
+      "mode": 420,
+      "sha256": "2078e29effdf5d3799f90f489f8cc770ae6c4be7166209b276c47964e1951313"
+    }
+  ],
+  "report": {
+    "path": "REPORT.md",
+    "bytes": 10398,
+    "mode": 420,
+    "sha256": "e634d2b0b41fa465375c47ec3986e2f935527e06acb04e7bd89ccd6c089ea711"
+  },
+  "rootCoordination": {
+    "path": "ROOT-COORDINATION.md",
+    "bytes": 1445,
+    "mode": 420,
+    "sha256": "1282af9abcae95567b617009f739c1d04e99f5dc323066bc13681bef6117a7b9",
+    "ownership": "root; not changed or included in author commit; metadata only, no plaintext snapshot"
+  },
+  "remaining": [
+    "Authorization adjudication of corrected recipe",
+    "Different verifier, independently authorized finite review",
+    "Future main/lifecycle not dispatched",
+    "Original strict-UTF8/P28 and seven unrun recipes unchanged",
+    "No product/build/provider/independent acceptance"
+  ]
+}

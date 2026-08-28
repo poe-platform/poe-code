@@ -1,0 +1,20 @@
+{
+  "status": "static-only-pass",
+  "at": "2026-08-28T10:06:26.130Z",
+  "commit": "7aa6510e33f7941cfdd0905f431b1ebc2ac8a3fd",
+  "mode": "precleanup",
+  "checks": [
+    "V01-prior143-immutable-append-aware",
+    "V02-sealed-complete27-raw-records",
+    "V03-six-public-contrasts-raw-before-assertion",
+    "V04-authenticated-source-installed-moved-loads",
+    "V05-full846-package-and265-source-identity",
+    "V06-six-pinned-source-proof-spans-not-runtime-proof",
+    "V07-authenticated-enumerated-scratch-custody"
+  ],
+  "groups": 7,
+  "immutablePriorFiles": 143,
+  "rawRecords": 27,
+  "productExecutionByVerifier": 0,
+  "originalC06": "partial; root-versus-mapped-status contrast completed; genuine escaping-control/local selection remains source-only"
+}

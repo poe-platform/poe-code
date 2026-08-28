@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "at": "2026-08-28T10:06:27.063Z",
+  "archiveCommit": "7aa6510e33f7941cfdd0905f431b1ebc2ac8a3fd",
+  "evidenceSha256": "6dbc287123dec7420622434d01639453b27dedca8404ee7a8fd58474442bef1c",
+  "removed": [
+    "raw-v1",
+    "work-v1"
+  ],
+  "method": "full regular file/directory bytes/modes/membership matched immediately before deletion, only explicit owned two paths; complete raw archived first",
+  "noProductExecution": true
+}

@@ -1,0 +1,38 @@
+{
+  "schema": "mapfile-observer-supplement-v2",
+  "timing": "after original28 first run on9418c3cf, before supplemental implementation/execution",
+  "originalControlsUnchanged": 28,
+  "actualChildrenAuthorized": 0,
+  "nativeAuthorized": false,
+  "controls": [
+    "runtime-byte-drift-before-launch",
+    "runtime-version-mismatch-before-launch",
+    "final-runtime-drift",
+    "post-persistence-module-drift",
+    "post-persistence-new-module",
+    "post-persistence-binary-drift",
+    "post-persistence-receipt-drift",
+    "post-persistence-receipt-new-entry",
+    "repeated-faults-timer-bound"
+  ],
+  "expectations": {
+    "runtime-byte-drift-before-launch": "no resource acquisition or child start; exact configured runtime bytes required",
+    "runtime-version-mismatch-before-launch": "no resource acquisition or child start; executing runtime identity must match authorization",
+    "final-runtime-drift": "final full authentication refuses after completed child; retain actual launch and close",
+    "post-persistence-module-drift": "authoritative returned result refuses after final.json write; no second child",
+    "post-persistence-new-module": "exact module closure includes appended entry detection after final.json write",
+    "post-persistence-binary-drift": "native-binary dependency model drift after final.json write refuses",
+    "post-persistence-receipt-drift": "recorded earlier receipt bytes changed during final write refuse; never authoritative success",
+    "post-persistence-receipt-new-entry": "unadmitted records child during final write refuses and is preserved",
+    "repeated-faults-timer-bound": "200 synchronous overflowing chunks produce refusal with <=16 pending model timers and <=4 signals; retained bytes <=65536; no duplicate launch"
+  },
+  "bounds": {
+    "originalEventCeiling": 4096,
+    "originalVirtualMilliseconds": 150001,
+    "originalReportBytes": 2097152,
+    "supplementalSynchronousOutputCallbacks": 200,
+    "runtimeBinaryBytesMaximum": 268435456,
+    "nativeHashScratchBytes": 65536
+  },
+  "qualification": "All dependencies finite in-memory stubs; real-driver hashing/spawn behavior remains unexecuted. No new native/Node child admission. Runtime configuration requires explicit ROOT binding rather than self-authorizing the executing binary. No RSS/kernel deadline or hostile-ancestor guarantee."
+}

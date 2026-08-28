@@ -1,0 +1,12 @@
+{
+  "classification":"post-source publication holdouts, presealed before execution; unchanged old expectations",
+  "cases":[
+    {"id":"P01","kind":"whole-parent-entry","variant":"positive","expected":"unchanged original eight cases through whole driver; final success"},
+    {"id":"P02","kind":"whole-parent-entry","variant":"entry-stall","expected":"unchanged external timeout/TERM/KILL/close failure"},
+    {"id":"P06","kind":"whole-parent-entry","variant":"final-publish-failure","expected":"unchanged nonzero/no final success; bounded original reason evidence"},
+    {"id":"P09","kind":"whole-parent-entry","variant":"late-close-error","expected":"actual mocked stream error queued during post-close release permanently rejects final publication"},
+    {"id":"P10","kind":"whole-parent-entry","variant":"postpublication-owned-mode","expected":"owned authorization mode drift on parent-final descriptor closure rejects after-cleanup publication"}
+  ],
+  "identities":{"reused":["P01","P02","P06"],"new":["P09","P10"]},
+  "execution":"one new frozen run, no wider cohort or automatic retry; original captures immutable"
+}

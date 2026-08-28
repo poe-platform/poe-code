@@ -1,0 +1,22 @@
+import fs from 'node:fs';
+import { createHash } from 'node:crypto';
+const [parentPath, parentSha256, goPath, goSha256] = process.argv.slice(1);
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+function read(filename, expected) {
+  const before = fs.lstatSync(filename);
+  if (!before.isFile() || before.size > 1048576 || (before.mode & 4095) !== 0o644 || fs.realpathSync(filename) !== filename) throw new Error('bootstrap input');
+  const descriptor = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+  try {
+    const bytes = Buffer.alloc(before.size); let offset = 0;
+    while (offset < bytes.length) { const count=fs.readSync(descriptor,bytes,offset,Math.min(65536,bytes.length-offset),null);if(!count)throw new Error('short bootstrap');offset+=count; }
+    if(fs.readSync(descriptor,Buffer.alloc(1),0,1,null))throw new Error('long bootstrap');
+    for(const stat of [fs.fstatSync(descriptor),fs.lstatSync(filename)])for(const key of ['dev','ino','mode','size','mtimeMs','ctimeMs'])if(stat[key]!==before[key])throw new Error('bootstrap changed');
+    if(hash(bytes)!==expected)throw new Error('bootstrap hash'); return bytes;
+  } finally { fs.closeSync(descriptor); }
+}
+if(Object.keys(process.env).length!==0)throw new Error('startup environment not empty');
+const go=JSON.parse(read(goPath,goSha256));
+if(go.kind!=='ROOT_HARMLESS_OBSERVER_SUPERVISOR_GO')throw new Error('NOT_AUTHORIZED');
+process.env={PATH:'',ENV:'',BASH_ENV:'',NODE_OPTIONS:'',NODE_PATH:'',HOME:go.evidenceRoot,TMPDIR:go.evidenceRoot,LANG:'C',LC_ALL:'C',TZ:'UTC'};
+try { const module=await import('data:text/javascript;base64,'+read(parentPath,parentSha256).toString('base64')); await module.main(); }
+catch(reason) { const descriptor=reason&&Object.getOwnPropertyDescriptor(reason,'message'); const message=descriptor&&Object.hasOwn(descriptor,'value')&&typeof descriptor.value==='string'?descriptor.value.slice(0,2048):'opaque host failure'; process.stderr.write('SUPERVISOR_REFUSED: '+message+'\n'); process.exitCode=1; }

@@ -1,0 +1,12 @@
+{
+  "variants": ["positive", "bad-value", "bad-value-repair", "root-negative", "root-repair"],
+  "installedPrefix": "consumer-",
+  "movedPrefix": "consumer-moved-v4-",
+  "suffix": ".mts",
+  "bodyPrefix": "INERT CONTROL TEXT ONLY: ",
+  "packageBody": "inert package data; no executable modules\n",
+  "mode": 420,
+  "gitPaths": ["ordinary.txt", "tab\tnewline\nbackslash\\quote\".txt"],
+  "gitBlob": "harmless metadata fixture\n",
+  "gitCommitTail": "author Control <control@example.invalid> 0 +0000\ncommitter Control <control@example.invalid> 0 +0000\n\nharmless fixed metadata\n"
+}

@@ -1,0 +1,30 @@
+{
+  "schema": "independent-c18-regular-run-v1",
+  "started": "2026-08-28T19:06:28.203Z",
+  "children": [],
+  "failures": [
+    {
+      "phase": "primary",
+      "name": "Error",
+      "code": "ENOENT",
+      "message": "ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/tests/commands/apply-patch-independent-20260828/capture-membership-v3/CONTROLS.json'",
+      "stack": "Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/tests/commands/apply-patch-independent-20260828/capture-membership-v3/CONTROLS.json'\n    at Object.lstatSync (node:fs:1722:25)\n    at authenticate (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/run.mjs:25:19)\n    at guards (file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/run.mjs:35:59)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/run.mjs:66:23\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)"
+    },
+    {
+      "phase": "postguard",
+      "message": "ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/tests/commands/apply-patch-independent-20260828/capture-membership-v3/CONTROLS.json'"
+    }
+  ],
+  "guards": [],
+  "productActual": 0,
+  "symlinkOperations": 0,
+  "cleanup": {
+    "scratchAbsent": true,
+    "allChildrenClosed": true
+  },
+  "finished": "2026-08-28T19:06:28.207Z",
+  "elapsedMs": 4,
+  "writtenBytes": 0,
+  "capturedBytesBeforeReceipt": 0,
+  "passed": false
+}

@@ -1,0 +1,49 @@
+{
+  "schema": "independent-c18-sidecar-review-v1",
+  "disposition": "HOLD_FRESH_DATA_EXECUTION_AND_SYMLINK_DECISION",
+  "sourceReview": "no new C18 admission source defect established; conditional preparation separation only",
+  "authorSource": "33e2b4c7fb14c2ab5ad23be50ac07bcc4bfed848",
+  "disputedRecipe": "1d5892457775714fbbaea5673f0adb1f906f7681",
+  "authorEvidence": "0ed41d4786319d1f703a1b396da8063c4ad5732d",
+  "originalDenial": {
+    "origin": "Node intrinsic fs.symlink Permission Model check",
+    "code": "ERR_ACCESS_DENIED",
+    "stackOrigin": "node:fs:1879",
+    "fixtureCallsite": "run-controls.mjs:44",
+    "stderrBytes": 873,
+    "platformSafetyDenialEstablished": false,
+    "reexecuted": false
+  },
+  "authorSecondRun": "UNAUTHORIZED_66_HELPER_66_COMPOSED_NOT_CREDITED",
+  "independentPresealCommit": "8751ed5b0eb7547f01f0304423db38569e5bde37",
+  "independentAttempt": {
+    "runId": "data-01",
+    "outcome": "PREPARATION_FAILED_REVIEWER_ROOT_DEPTH",
+    "exit": 1,
+    "elapsedMs": 4,
+    "guardsPassed": 0,
+    "observationsExecuted": 0,
+    "observationsPlanned": 52,
+    "bindingCounterchecksExecuted": 0,
+    "bindingCounterchecksPlanned": 3,
+    "children": 0,
+    "loads": 0,
+    "cleanup": {
+      "scratchAbsent": true,
+      "allChildrenClosed": true
+    },
+    "receiptSha256": "49774af4e2dfa7258fcd76bc1ef227025bcdb81fbc0146ba72e397653ae70113"
+  },
+  "successor": {
+    "preseal": "PRESEAL-V2.json",
+    "sha256": "406ab6f12ddc2bb52fd6daf70af40f95a3c4f57ad1aa71b8a3524abed478efd7",
+    "runId": "data-v2-01",
+    "state": "SEALED_NOT_EXECUTED_FRESH_GO_REQUIRED",
+    "staticBindingsMatched": 109
+  },
+  "symlinkFixture": "UNEXECUTED_ROOT_MUST_AUTHORIZE_NEW_SEPARATE_PREPARATION_OR_RETAIN_UNSUPPORTED",
+  "fullFutureController": "SOURCE_ONLY_NOT_EXECUTED",
+  "productActual": 0,
+  "noRetroactiveGo": true,
+  "noRescore": true
+}

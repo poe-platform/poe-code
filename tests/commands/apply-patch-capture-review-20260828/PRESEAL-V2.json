@@ -1,0 +1,108 @@
+{
+  "schema": "independent-c18-preseal-v2",
+  "classification": "new regular-file DATA only; original observations not rescored",
+  "files": [
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/RECIPE.md",
+      "bytes": 5619,
+      "mode": 420,
+      "sha256": "a219dd016d30f6515b74ac294524415785977b1cda1686ae15b215a47b7ba4b0"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/RECIPE-V2.md",
+      "bytes": 1774,
+      "mode": 420,
+      "sha256": "a89116cb03bce80bc7d7d04ed582c549873b25c778638b2197a1b1b1cc14641d"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/INPUTS.json",
+      "bytes": 23065,
+      "mode": 420,
+      "sha256": "893f515b6164f79ac2f89b3e27b15bb8e38ba62600ab94bfeb3de2657b6fe81b"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/PAYLOAD.json",
+      "bytes": 139197,
+      "mode": 420,
+      "sha256": "c92d4ea334188538582387296cd5d7999ed3ebc86a074cc6a87fbcfa5b3abeec"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/observe.mjs",
+      "bytes": 4947,
+      "mode": 420,
+      "sha256": "c0a1f5b2249ffea6f225a90446d6b08d344bd32effcb933fbb167adede88765c"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/run.mjs",
+      "bytes": 9448,
+      "mode": 420,
+      "sha256": "7a67dcd8b9cdd67552cfd0af4503b3fec809d6381b212b2a7dea28e743d73c5e"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/run-v2.mjs",
+      "bytes": 9454,
+      "mode": 420,
+      "sha256": "aef259a8b4364dc0e8f3dbfc9d1f1343282be153608c66bd528979cb983de245"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "5bd4fb86a8a3d5040a5302bdb4cf2a79e8db5becd283f057d11f03542f502009"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/PRESEAL.json",
+      "bytes": 2470,
+      "mode": 420,
+      "sha256": "fa0d5273a384b99f548a27c3ae58b83980b084610c550bcce4f035bf407cbedc"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/STATIC-V2.json",
+      "bytes": 559,
+      "mode": 420,
+      "sha256": "66741dacd993b2add86213c7174372e7062c7564a2c99c9125381e1e0d232494"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/data-01/RECEIPT.json",
+      "bytes": 1697,
+      "mode": 420,
+      "sha256": "49774af4e2dfa7258fcd76bc1ef227025bcdb81fbc0146ba72e397653ae70113"
+    }
+  ],
+  "runId": "data-v2-01",
+  "attempts": 1,
+  "limits": {
+    "aggregateMilliseconds": 300000,
+    "plannedChildren": 1,
+    "maximumAuthorizedChildren": 6,
+    "peakOwnedProcesses": 2,
+    "childTimeoutMilliseconds": 45000,
+    "termGraceMilliseconds": 2000,
+    "childOldSpaceMiB": 128,
+    "combinedChildStreamBytes": 1048576,
+    "captureBytes": 16777216,
+    "workBytes": 67108864
+  },
+  "observations": 52,
+  "bindingCounterchecks": 3,
+  "launch": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=128",
+      "tests/commands/apply-patch-capture-review-20260828/run-v2.mjs",
+      "EXACT_PRESEAL_RAW_SHA256"
+    ],
+    "env": {
+      "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "NODE_DISABLE_COMPILE_CACHE": "1"
+    }
+  },
+  "symlinkPreparation": "NOT_AUTHORIZED_NOT_EXECUTED",
+  "fullFutureController": "STATIC_COMPOSITION_ONLY",
+  "productActual": 0,
+  "authority": "SEALED_NOT_EXECUTED_FRESH_ROOT_GO_REQUIRED",
+  "priorAttempt": "data-01 PREPARATION_FAILED zero children/observations; immutable"
+}

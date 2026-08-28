@@ -1,0 +1,40 @@
+{
+  "profile": "private syntax helper ONLY; integrated foundation blocked on root scope coordination",
+  "date": "2026-08-28",
+  "docsCommit": "3a363f2f",
+  "sourceCommit": "094d2ba1",
+  "baseTree": "37ad3f94f9fa07037e61d2bd27a4a4b7cddb4d5e",
+  "basePackageSha256": "b0544dcb3d0d9b22420932fc86e4d4693377fcc813fde6bde95c8625edc951aa",
+  "captures": [
+    {
+      "path": "syntax-capture-01.json.gz.base64",
+      "originalAttempt": "syntax-attempt-chxw5P",
+      "artifactSha256": "f3099822b55b9b916ae704ebdbff3f10532438d7bb74c7fea710fcc20d5fed84",
+      "jsonSha256": "831488fc2d195f59846040949fa660d381fc7bbb0549928518c26464aabea344",
+      "commands": 3,
+      "committedSource": null,
+      "driverBytesRetained": false
+    },
+    {
+      "path": "syntax-capture-02.json.gz.base64",
+      "originalAttempt": "syntax-attempt-RhCNY4",
+      "artifactSha256": "85734363b357515dc9e64837fb5d9c65cea328880925e4c4285df48800fff4cf",
+      "jsonSha256": "a215088fec419fd7d8763c61ffc0c567da5ccfc8672e5199150fb2f310a8ce37",
+      "commands": 5,
+      "committedSource": null,
+      "driverBytesRetained": false
+    },
+    {
+      "path": "syntax-capture-03.json.gz.base64",
+      "originalAttempt": "syntax-attempt-I1OP2E",
+      "artifactSha256": "0598ec412dd670926010ff632877e4fb6bdb52d9732997be874b51a1958a9c17",
+      "jsonSha256": "80bc619f102eaeb23c3b1026bb554aaaaf1a78609d34334d698b3b42c7d84a38",
+      "commands": 5,
+      "committedSource": "094d2ba1cc021ea4f07dc07a30062b5922bc336e",
+      "driverBytesRetained": true
+    }
+  ],
+  "foundationCandidate": null,
+  "publicShellExecRuns": 0,
+  "nativeGuestExecutions": 0
+}

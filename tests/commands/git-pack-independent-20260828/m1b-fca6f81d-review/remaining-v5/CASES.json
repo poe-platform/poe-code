@@ -1,0 +1,306 @@
+{
+  "schema": "m1b-cases-v1",
+  "cases": [
+    {
+      "id": "P03-body-via-tree-v1",
+      "entry": "remaining-semantic/semantic.mjs",
+      "role": "STOCK",
+      "rows": [
+        "GFP-11"
+      ],
+      "variants": [
+        "P03-body-via-tree-v1"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 524288,
+      "workBytes": 2097152,
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ]
+    },
+    {
+      "id": "P04-body-via-tree-v1",
+      "entry": "remaining-semantic/semantic.mjs",
+      "role": "STOCK",
+      "rows": [
+        "GFP-13"
+      ],
+      "variants": [
+        "P04-body-via-tree-v1"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 524288,
+      "workBytes": 2097152,
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ]
+    },
+    {
+      "id": "P05-body-via-tree-v1",
+      "entry": "remaining-semantic/semantic.mjs",
+      "role": "STOCK",
+      "rows": [
+        "GFP-13",
+        "GFP-24"
+      ],
+      "variants": [
+        "P05-body-via-tree-v1"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 524288,
+      "workBytes": 2097152,
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ]
+    },
+    {
+      "id": "P06-body-via-tree-v1",
+      "entry": "remaining-semantic/semantic.mjs",
+      "role": "STOCK",
+      "rows": [
+        "GFP-16"
+      ],
+      "variants": [
+        "P06-body-via-tree-v1"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 524288,
+      "workBytes": 2097152,
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ]
+    },
+    {
+      "id": "P07-body-via-tree-v1",
+      "entry": "remaining-semantic/semantic.mjs",
+      "role": "STOCK",
+      "rows": [
+        "GFP-17"
+      ],
+      "variants": [
+        "P07-body-via-tree-v1"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 524288,
+      "workBytes": 2097152,
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ]
+    },
+    {
+      "id": "P08-body-via-tree-v1",
+      "entry": "remaining-semantic/semantic.mjs",
+      "role": "STOCK",
+      "rows": [
+        "GFP-18"
+      ],
+      "variants": [
+        "P08-body-via-tree-v1"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 524288,
+      "workBytes": 2097152,
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ]
+    },
+    {
+      "id": "P09-body-via-tree-v1",
+      "entry": "remaining-semantic/semantic.mjs",
+      "role": "STOCK",
+      "rows": [
+        "GFP-19",
+        "GFP-03"
+      ],
+      "variants": [
+        "P09-body-via-tree-v1"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 524288,
+      "workBytes": 2097152,
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ]
+    },
+    {
+      "id": "P11-body-via-tree-v1",
+      "entry": "remaining-semantic/semantic.mjs",
+      "role": "STOCK",
+      "rows": [
+        "GFP-25"
+      ],
+      "variants": [
+        "P11-body-via-tree-v1"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 524288,
+      "workBytes": 2097152,
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ]
+    },
+    {
+      "id": "P12-body-via-tree-v1",
+      "entry": "remaining-semantic/semantic.mjs",
+      "role": "STOCK",
+      "rows": [
+        "GFP-32"
+      ],
+      "variants": [
+        "P12-body-via-tree-v1"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 524288,
+      "workBytes": 2097152,
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ]
+    },
+    {
+      "id": "empty-blob-via-tree-v1",
+      "entry": "remaining-semantic/semantic.mjs",
+      "role": "STOCK",
+      "rows": [
+        "GFP-03"
+      ],
+      "variants": [
+        "empty-blob-via-tree-v1"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 524288,
+      "workBytes": 2097152,
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ]
+    },
+    {
+      "id": "delta-program4-result1-via-tree-v1",
+      "entry": "remaining-semantic/semantic.mjs",
+      "role": "STOCK",
+      "rows": [
+        "GFP-07"
+      ],
+      "variants": [
+        "delta-program4-result1-via-tree-v1"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 524288,
+      "workBytes": 2097152,
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ]
+    },
+    {
+      "id": "delta-zero-result-via-tree-v1",
+      "entry": "remaining-semantic/semantic.mjs",
+      "role": "STOCK",
+      "rows": [
+        "GFP-09"
+      ],
+      "variants": [
+        "delta-zero-result-via-tree-v1"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 524288,
+      "workBytes": 2097152,
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ]
+    },
+    {
+      "id": "shared-DAG-via-tree-v1",
+      "entry": "remaining-semantic/semantic.mjs",
+      "role": "STOCK",
+      "rows": [
+        "GFP-15"
+      ],
+      "variants": [
+        "shared-DAG-via-tree-v1"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 524288,
+      "workBytes": 2097152,
+      "requires": [
+        "SEMANTIC-FROZEN-V1",
+        "SEMANTIC-DESCRIPTORS-V1",
+        "SEMANTIC-ENCODER-V1"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "id": "wrong-compressed-bytes",
+  "accepted": false,
+  "error": "WRAPPER_COMPRESSED_IDENTITY"
+}

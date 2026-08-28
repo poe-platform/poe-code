@@ -5,6 +5,7 @@ import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {candidate,directory,entries,blob,sha,save,verifyAssembly} from './common.mjs';
+import {selectProjection,readProjection} from './projection.mjs';
 
 export const supportPaths=[
   'tests/integration/full-gate-20260827/account.mjs',
@@ -55,6 +56,7 @@ export function readProfile() {
 export function validateProfile(profile) {
   verifyAssembly();assert.equal(profile.candidate,candidate.candidate);assert.equal(profile.tree,candidate.tree);
   assert.equal(profile.sourceTree,candidate.sourceTree);assert.deepEqual(profile.scopeInputs,entries());
+  assert.deepEqual(selectProjection(profile.scopeInputs,profile.candidate),readProjection().candidateEntries);
   assert.equal(profile.packageManifestSha256,sha(blob('package.json')));
   assert.deepEqual(JSON.parse(blob('package.json')).dependencies??{},{});
   const paths=profile.scopeInputs.map(entry=>entry.path);

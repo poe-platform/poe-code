@@ -20,6 +20,7 @@ import {supervise} from './supervise.mjs';
 import {verifyConsumerSelection} from './consumer-admission.mjs';
 import {createBuildAudit,runBuildTypes,readBuildAudit} from './build-types.mjs';
 import {createPhaseRunner} from './phase-runner.mjs';
+import {assertNoInstructionCopyTree} from './projection.mjs';
 
 export async function execute(options){
 let output,report,temporary,source,privateModule,sourceGuard,exitCode=0,totalOutput=0;
@@ -48,14 +49,14 @@ try{
   writeFileSync(environment.npm_config_userconfig,'');writeFileSync(environment.npm_config_globalconfig,'');
   Object.assign(environment,cleanGitEnvironment(environment));
   report.archiveTransport=await extractCommitted({git:'/Applications/Xcode.app/Contents/Developer/usr/bin/git',repository,candidate:candidate.candidate,entries:profile.scopeInputs,destination:source,environment});
-  report.archive=await verifyArchive(source,profile.scopeInputs);assert.equal(report.archive.count,profile.scopeInputs.length);
+  report.archive=await verifyArchive(source,profile.scopeInputs,report.archiveTransport);assert.equal(report.archive.logical.count,profile.scopeInputs.length);
   const consumerSelection=await verifyConsumerSelection(source,profile);report.consumerInventory={counts:consumerSelection.counts,selectedTests:consumerSelection.tests.length,qualification:consumerSelection.qualification};
   execFileSync('/Applications/Xcode.app/Contents/Developer/usr/bin/git',['init','--quiet','--template=',source],{env:environment,timeout:10000,maxBuffer:BOUNDS.setupStderrBytes});
   report.historyTransport=await transferHistory({git:'/Applications/Xcode.app/Contents/Developer/usr/bin/git',repository,candidate:candidate.candidate,destination:source,environment});
   writeFileSync(join(source,'.git/HEAD'),candidate.candidate+'\n');execFileSync('/Applications/Xcode.app/Contents/Developer/usr/bin/git',['read-tree',candidate.candidate],{cwd:source,env:environment,timeout:10000,maxBuffer:BOUNDS.setupStderrBytes});
   assert.equal(execFileSync('/Applications/Xcode.app/Contents/Developer/usr/bin/git',['rev-parse','HEAD'],{cwd:source,env:environment,encoding:'utf8',timeout:10000,maxBuffer:BOUNDS.setupStderrBytes}).trim(),candidate.candidate);
   assert.equal(existsSync(join(source,'.git/objects/info/alternates')),false);
-  copyDependencies(join(source,'node_modules'));copyDependencies(join(source,'benchmarks/node_modules'),join(repository,'benchmarks/node_modules'));
+  report.dependencyProjection=[copyDependencies(join(source,'node_modules')),copyDependencies(join(source,'benchmarks/node_modules'),join(repository,'benchmarks/node_modules'))];
   for(const prefix of ['', 'benchmarks']){
     const lock=JSON.parse(readFileSync(join(source,prefix,'package-lock.json')));
     for(const[path,metadata]of Object.entries(lock.packages).filter(([path])=>path)){
@@ -64,6 +65,7 @@ try{
     }
   }
   report.nativeStaged=stageNative(preflight,{snapshot:source,nativeRoot:join(temporary,'native'),environment});
+  report.privateCopyAdmission=assertNoInstructionCopyTree('/Users/kjopek/Workspace/poe-code/packages/safejs',['node_modules','.git','dist','.cache','.turbo']);
   report.prerequisites=await privateModule.prerequisites({repository,source,temporary,environment,candidate:candidate.candidate});
   report.privateBefore=report.prerequisites.safejs.before;
   const guard=join(temporary,'harness/import-guard.mjs');writeFileSync(guard,blob('tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs'),{flag:'wx'});
@@ -84,7 +86,7 @@ try{
   report.npmCli={path:npm,sha256:sha(readFileSync(npm))};
   const verify=async()=>{await verifyExternal();if(sourceGuard)assert.deepEqual((await sourceGuard.check()).changes,[],'source additions/removals/content/type/mode changed after setup');else for(const entry of protectedInputs)assert.deepEqual((await entry.guard.check()).changes,[],entry.name);verifyNativeStaging(report.nativeStaged);assert.equal(sha(readFileSync(node24)),preflight.runtime.identity.sha256);assert.equal(sha(readFileSync(npm)),report.npmCli.sha256);assert.equal(sha(readFileSync(cleanup)),sha(JSON.stringify(profile.cleanup,null,2)+'\n'));verifyDriverSeal();};
   const artifactGuard=await createTreeGuard(support);const privateGuard=await createTreeGuard(report.prerequisites.safejs.copiedRoot);
-  save(join(output,'SETUP-COMPLETE.json'),{candidate:candidate.candidate,archiveFiles:report.archive.count,external:report.external.sha256});
+  save(join(output,'SETUP-COMPLETE.json'),{candidate:candidate.candidate,archiveFiles:report.archive.count,logicalArchiveFiles:report.archive.logical.count,instructionProjection:report.archive.projection,dependencyProjection:report.dependencyProjection,external:report.external.sha256});
   const audit=createBuildAudit(source,temporary);
   const phase=createPhaseRunner({completed,report,source,output,environment,guard,verify,extraGuards:[artifactGuard,privateGuard],requireOrdered,audit});
   await phase('safejs-availability',['--import','tsx','--input-type=module','-e',"import assert from 'node:assert/strict';import {pathToFileURL}from'node:url';const {run}=await import(pathToFileURL(process.env.SAFEJS_LOCAL_ROOT+'/src/run.ts'));const result=await run('1+2');assert.equal(result.ok,true);console.log(JSON.stringify(result));"]);

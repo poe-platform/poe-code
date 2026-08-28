@@ -5,6 +5,8 @@ import {chmodSync,cpSync,lstatSync,mkdirSync,readFileSync,readdirSync,realpathSy
 import {dirname,join,relative,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {cleanGitEnvironment} from './transport.mjs';
+import {dependencyProjection,hashRegularFile,instructionName,readProjection} from './projection.mjs';
+import {BOUNDS,enforceCharge} from './policy.mjs';
 
 export const directory=dirname(fileURLToPath(import.meta.url));
 export const repository=resolve(directory,'../../../../..');
@@ -24,19 +26,26 @@ export function entries(revision=candidate.candidate) {
 }
 export function copySelection(root,paths,revision=candidate.candidate) {
   const selected=entries(revision).filter(entry=>paths.some(path=>entry.path===path||entry.path.startsWith(path+'/')));
+  const instructionBlobs=new Set(readProjection().candidateEntries.map(entry=>entry.blob));
+  assert.ok(selected.every(entry=>!instructionName(entry.path)&&!instructionBlobs.has(entry.blob)),'selected copy may not materialize instruction paths or aliases');
   for(const entry of selected){assert.ok(['100644','100755'].includes(entry.mode));const target=join(root,entry.path);mkdirSync(dirname(target),{recursive:true});const bytes=blob(entry.path,revision);writeFileSync(target,bytes,{flag:'wx'});chmodSync(target,entry.mode==='100755'?0o755:0o644);entry.sha256=sha(bytes);}
   return selected;
 }
 export function copyDependencies(destination,origin=join(repository,'node_modules')) {
-  const visit=(source,target)=>{
+  assert.equal(realpathSync(origin),origin,'dependency origin must use its exact authenticated path');
+  const original=[],directories=[];let total=0;
+  const inspect=(source,prefix='')=>{
     for(const name of readdirSync(source).sort()){
-      const from=join(source,name),to=join(target,name),stat=lstatSync(from);
+      const from=join(source,name),path=prefix?prefix+'/'+name:name,stat=lstatSync(from);
       if(name==='.bin')continue;
       assert.equal(stat.isSymbolicLink(),false,from);
-      if(stat.isDirectory()){mkdirSync(to,{recursive:true});visit(from,to);}else{assert.ok(stat.isFile());cpSync(from,to);assert.equal(sha(readFileSync(to)),sha(readFileSync(from)));}
+      if(stat.isDirectory()){assert.ok(!instructionName(path),'instruction-named dependency directory');directories.push(path);inspect(from,path);}else{const identity=hashRegularFile(from);total=enforceCharge(total,identity.bytes,BOUNDS.dependencyBytes);original.push({path,...identity});}
     }
   };
-  mkdirSync(destination,{recursive:true});visit(origin,destination);
+  inspect(origin);
+  const metadataOnly=dependencyProjection(original,origin),omitted=new Set(metadataOnly.map(entry=>entry.path)),physical=original.filter(entry=>!omitted.has(entry.path));
+  mkdirSync(destination,{recursive:true});for(const path of directories)mkdirSync(join(destination,path));
+  for(const entry of physical){const from=join(origin,entry.path),to=join(destination,entry.path);cpSync(from,to);const expected={mode:entry.mode,bytes:entry.bytes,sha256:entry.sha256};assert.deepEqual(hashRegularFile(to),expected,'dependency copy identity');assert.deepEqual(hashRegularFile(from),expected,'dependency changed after preflight');}
   mkdirSync(join(destination,'.bin'));
   for(const name of readdirSync(join(origin,'.bin')).sort()){
     const target=realpathSync(join(origin,'.bin',name));assert.ok(target.startsWith(origin+'/'));
@@ -44,6 +53,8 @@ export function copyDependencies(destination,origin=join(repository,'node_module
     const quote=value=>"'"+value.replaceAll("'","'\\''")+"'";
     writeFileSync(join(destination,'.bin',name),'#!/bin/sh\nexec '+quote(installed)+' "$@"\n',{mode:0o755});
   }
+  for(const entry of metadataOnly)assert.deepEqual(hashRegularFile(join(origin,entry.path)),{mode:0o644,bytes:entry.bytes,sha256:entry.sha256},'metadata-only dependency changed after preflight');
+  return{origin,logical:{files:original.length,bytes:total,sha256:sha(JSON.stringify(original))},physical:{files:physical.length,bytes:physical.reduce((sum,entry)=>sum+entry.bytes,0),sha256:sha(JSON.stringify(physical))},metadataOnly,qualification:'Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy'};
 }
 export function verifyAssembly(receipt=candidate) {
   assert.equal(text(['rev-parse',`${receipt.base}:src`]),receipt.sourceTree);

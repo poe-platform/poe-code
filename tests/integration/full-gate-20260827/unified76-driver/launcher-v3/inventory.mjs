@@ -3,6 +3,7 @@ import {createHash} from 'node:crypto';
 import {createReadStream} from 'node:fs';
 import {lstat,readdir,readlink} from 'node:fs/promises';
 import {join,resolve,posix} from 'node:path';
+import {verifyProjectionReceipt,assertLinkProjection} from './projection.mjs';
 
 export async function capture(root){
   const entries=[];
@@ -39,20 +40,21 @@ export function requireBuildDelta(before,after){
   const withoutDist={...after,entries:after.entries.filter(entry=>entry.path!=='dist'&&!entry.path.startsWith('dist/'))};
   assert.deepEqual(compare(before,withoutDist),[],'only new dist outputs are authorized during build; no other new inputs may be blessed');
 }
-export async function verifyArchive(root,expected){
+export async function verifyArchive(root,expected,transport){
+  const metadataOnly=verifyProjectionReceipt(expected,transport),omitted=new Set(metadataOnly.map(entry=>entry.path)),physical=expected.filter(entry=>!omitted.has(entry.path));
   const files=[],directories=[];
   async function visit(prefix){for(const name of(await readdir(join(root,prefix))).sort()){const path=prefix?`${prefix}/${name}`:name,stat=await lstat(join(root,path));if(stat.isDirectory()&&!stat.isSymbolicLink()){directories.push(path);await visit(path);}else files.push(path);}}
-  await visit('');assert.deepEqual(files.sort(),expected.map(entry=>entry.path).sort(),'archive added/missing input');
-  const wantedDirectories=new Set();for(const entry of expected){let parent=posix.dirname(entry.path);while(parent!=='.'){wantedDirectories.add(parent);parent=posix.dirname(parent);}}
+  await visit('');assert.deepEqual(files.sort(),physical.map(entry=>entry.path).sort(),'archive added/missing physical input');
+  const wantedDirectories=new Set();for(const entry of physical){let parent=posix.dirname(entry.path);while(parent!=='.'){wantedDirectories.add(parent);parent=posix.dirname(parent);}}
   assert.deepEqual(directories.sort(),[...wantedDirectories].sort(),'archive added/missing directory');
   const manifest={};
-  for(const entry of expected){
+  for(const entry of physical){
     const file=join(root,entry.path),before=await lstat(file),link=entry.mode==='120000';assert.equal(before.isSymbolicLink(),link);
     const gitHash=createHash('sha1').update(`blob ${entry.bytes}\0`),hash=createHash('sha256');let bytes=0;
-    if(link){const target=await readlink(file),normalized=posix.normalize(posix.join(posix.dirname(entry.path),target));assert.ok(!posix.isAbsolute(target)&&normalized!=='..'&&!normalized.startsWith('../'),'archive symlink escape');const content=Buffer.from(target);gitHash.update(content);hash.update(content);bytes=content.length;}
+    if(link){const target=await readlink(file),normalized=posix.normalize(posix.join(posix.dirname(entry.path),target));assert.ok(!posix.isAbsolute(target)&&normalized!=='..'&&!normalized.startsWith('../'),'archive symlink escape');assertLinkProjection(entry.path,target);const content=Buffer.from(target);gitHash.update(content);hash.update(content);bytes=content.length;}
     else{assert.ok(before.isFile()&&before.nlink===1);assert.equal(before.mode&0o777,Number.parseInt(entry.mode.slice(-3),8));for await(const chunk of createReadStream(file,{highWaterMark:64*1024})){gitHash.update(chunk);hash.update(chunk);bytes+=chunk.length;}}
     const after=await lstat(file);assert.ok(after.ino===before.ino&&after.dev===before.dev&&after.size===before.size&&after.mode===before.mode&&after.mtimeMs===before.mtimeMs,'archive input changed during authentication');
     assert.equal(bytes,entry.bytes);assert.equal(gitHash.digest('hex'),entry.blob,entry.path);manifest[entry.path]={blob:entry.blob,sha256:hash.digest('hex'),bytes,mode:before.mode&0o777,symlink:link};
   }
-  return{files:manifest,count:expected.length,source:'exact committed input and directory sets, streamed Git blob/SHA256/mode/type authentication'};
+  return{files:manifest,count:physical.length,logical:{count:expected.length,bytes:expected.reduce((total,entry)=>total+entry.bytes,0)},metadataOnly,projection:transport?.projection??null,source:'Exact physical input/directory set plus separately verified metadata-only logical entries; streamed Git blob/SHA256/mode/type authentication'};
 }

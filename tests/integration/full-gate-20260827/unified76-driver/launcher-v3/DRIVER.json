@@ -1,6 +1,6 @@
 {
-  "schema": 5,
-  "createdAt": "2026-08-28T03:12:27.451Z",
+  "schema": 6,
+  "createdAt": "2026-08-28T04:24:14.402Z",
   "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
   "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
   "files": {
@@ -10,16 +10,16 @@
     "CLEANUP.json": "0bf253f75c9ef32f37c1bc154e06c055b5db640f09a7db89e98c1bc5ded27fde",
     "EXTERNAL.json.gz.base64": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
     "EXTERNAL-RECEIPT.json": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
-    "common.mjs": "b51eceeb99a99f3387d0ab49afe8e9b86bc83118d81cb63f8e9c50902b0084cb",
-    "profile.mjs": "382c003d5a97652454dc4a5567bc16cf9fba3964b8fb164e33b335033264a28f",
-    "admission.mjs": "3a41490a765978c216d0609375cdd68eb1e9e1e7c6f19d6a7ef347389b5237a3",
-    "inventory.mjs": "075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2",
+    "common.mjs": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4",
+    "profile.mjs": "4746445e74d7a14d7a8f8b29cbd6daee4d5af2488d6627fda268d7b73579de0e",
+    "admission.mjs": "c1b708c1becb5ab6335c6021a5c02ab9394e24ff46c27b1237f7059938b36e65",
+    "inventory.mjs": "4474327377ffdf4d46344e84c8bfb5022664511f94bef53d77bac77253ad88d1",
     "run.mjs": "6b5a31adeaaf76a342ab7965a5c603c37bdb2f78132d03c666db6cbf8755945e",
     "worker.mjs": "2a55672c40ba4fea7824c73aeb4006e22aa2545d972a3edcc9a515d0ce778401",
     "supervise.mjs": "0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55",
-    "execute.mjs": "b43c65b692d24dafccabd8be386eb9298df70a0d5112ebed32b6078626f4b9c7",
+    "execute.mjs": "77c52b1becfb4175a9324f31e95813dd6ab84337bd94eb779f238002bc8a92b7",
     "policy.mjs": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
-    "transport.mjs": "c115efe4a62c850868ddee551f5dca535c971fd0636074b21b359565f6bb6e5d",
+    "transport.mjs": "a4165aaef80bb07bc4a899fe297124e2ecdc6c1454aeef228b52badf75f01e10",
     "external.mjs": "c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da",
     "external-admission.mjs": "7ac803044ae4fcc44c77244de136c1e010feecd5e0b73043f7fe863fad2615e1",
     "built-consumers.mjs": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8",
@@ -32,12 +32,14 @@
     "build-types.mjs": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a",
     "phase-runner.mjs": "efad78d7e558136550de5342a673f77441d8226696ab7fee61166eb1b6aecce3",
     "process-observer.mjs": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
-    "review-build-types.mjs": "4cde75180c22e2655b1dc4232dcc4400925d7207afbcab9c50c11ed57ad5be2f",
-    "review-build-types-worker.mjs": "1575931a035d8dbfdfc9ac334613f2bd262b53bd3bbdeaa07fadeac1961b4497"
+    "review-build-types.mjs": "70569dbc68e9613e8d9b007ad989c6ecfb630146dab8b4049e45404e31d4b749",
+    "review-build-types-worker.mjs": "1575931a035d8dbfdfc9ac334613f2bd262b53bd3bbdeaa07fadeac1961b4497",
+    "projection.mjs": "28ac3a2300c79aadabf98ca46dfbb46d48677c8b413cded8f06b06d3eda8c7f8",
+    "INSTRUCTION-PROJECTION.json": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537"
   },
   "wholeGateLaunched": false,
   "qualification": "Versioned integrated launcher for review only; explicit root release and independent driver acceptance required.",
-  "previousSource": "b0ee7234b915ce1ac45aa6db6d087dc3430ea21f",
-  "previousDriverSha256": "4624ffcbafa470f21c6d122adc3e75a1c20744f8b75d80839f4e69eebcf3d0a1",
-  "scope": "Version5 pinned POSIX literal-backslash filename admission only; candidate/profile/other guards unchanged"
+  "previousSource": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+  "previousDriverSha256": "3d8d2a15214f12c07b64e3223f5e0088989845b8f60a74abb0a521dba32fa018",
+  "scope": "Version6 exact five candidate plus one benchmark instruction metadata projection; original opaque Git provenance explicitly permitted, never checkout; f5/c109/logical profile/14 phases/A10 unchanged; prior root release invalid for this seal"
 }

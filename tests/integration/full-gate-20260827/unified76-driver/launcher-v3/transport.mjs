@@ -7,6 +7,7 @@ import {Transform} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
 import {setTimeout as delay} from 'node:timers/promises';
 import {BOUNDS,enforceCharge} from './policy.mjs';
+import {selectProjection,projectionReceipt,assertLinkProjection} from './projection.mjs';
 
 export const ARCHIVE_PATH_PROFILE=Object.freeze({platform:'darwin',arch:'arm64',syntax:'posix',separator:'/'});
 
@@ -61,23 +62,25 @@ class Reader{
 }
 export async function extractCommitted({git,repository,candidate,entries,destination,environment,bounds=BOUNDS,observer,pathProfile=ARCHIVE_PATH_PROFILE}){
   validateEntries(entries,bounds,pathProfile);
+  const metadataOnly=new Map(selectProjection(entries,candidate).map(entry=>[entry.path,entry]));
   const process=managed(git,['--no-replace-objects','cat-file','--batch'],{cwd:repository,env:cleanGitEnvironment(environment),observer});
   const reader=new Reader(process.child.stdout);const hashes={};let written=0;
   try{
     await process.ready;
     for(const entry of entries){
       process.child.stdin.write(entry.blob+'\n');assert.equal(await reader.line(),`${entry.blob} blob ${entry.bytes}`);
-      const target=join(destination,entry.path);await mkdir(dirname(target),{recursive:true});
+      const omitted=metadataOnly.get(entry.path),target=join(destination,entry.path);if(!omitted)await mkdir(dirname(target),{recursive:true});
       const digest=createHash('sha1').update(`blob ${entry.bytes}\0`),sha256=createHash('sha256');let remaining=entry.bytes;
-      const chunks=[];const file=entry.mode==='120000'?null:await open(target,'wx',Number.parseInt(entry.mode.slice(-3),8));
-      if(!file)assert.ok(entry.bytes<=4096,'bounded symlink target');
-      try{while(remaining){const bytes=await reader.take(remaining);digest.update(bytes);sha256.update(bytes);written=enforceCharge(written,bytes.length,bounds.archiveBytes);remaining-=bytes.length;if(file){let offset=0;while(offset<bytes.length){const result=await file.write(bytes,offset,bytes.length-offset);assert.ok(result.bytesWritten>0);offset+=result.bytesWritten;}}else chunks.push(Buffer.from(bytes));}}
+      const chunks=[];const file=omitted||entry.mode==='120000'?null:await open(target,'wx',Number.parseInt(entry.mode.slice(-3),8));
+      if(!file&&!omitted)assert.ok(entry.bytes<=4096,'bounded symlink target');
+      try{while(remaining){const bytes=await reader.take(remaining);digest.update(bytes);sha256.update(bytes);written=enforceCharge(written,bytes.length,bounds.archiveBytes);remaining-=bytes.length;if(file){let offset=0;while(offset<bytes.length){const result=await file.write(bytes,offset,bytes.length-offset);assert.ok(result.bytesWritten>0);offset+=result.bytesWritten;}}else if(!omitted)chunks.push(Buffer.from(bytes));}}
       finally{await file?.close();}
       assert.equal((await reader.take(1))[0],10);assert.equal(digest.digest('hex'),entry.blob,'Git content/hash mismatch');
-      if(!file){const link=Buffer.concat(chunks).toString(),normalized=posix.normalize(posix.join(posix.dirname(entry.path),link));assert.ok(!posix.isAbsolute(link)&&normalized!=='..'&&!normalized.startsWith('../')&&!link.includes('\0'));await symlink(link,target);}
+      if(!file&&!omitted){const link=Buffer.concat(chunks).toString(),normalized=posix.normalize(posix.join(posix.dirname(entry.path),link));assert.ok(!posix.isAbsolute(link)&&normalized!=='..'&&!normalized.startsWith('../')&&!link.includes('\0'));assertLinkProjection(entry.path,link);await symlink(link,target);}
       hashes[entry.path]=sha256.digest('hex');
+      if(omitted)assert.equal(hashes[entry.path],omitted.sha256,'instruction content SHA256 mismatch');
     }
-    process.child.stdin.end();await reader.end();const lifecycle=await process.finish();return{...lifecycle,entries:entries.length,bytes:written,transferBytes:reader.transferred,hashes,method:'validated declared Git blobs streamed directly; no tar headers or extraction filters'};
+    process.child.stdin.end();await reader.end();const lifecycle=await process.finish();return{...lifecycle,entries:entries.length,bytes:written,transferBytes:reader.transferred,hashes,projection:projectionReceipt(entries,candidate,hashes),method:'All original logical Git blobs streamed and authenticated; exactly pinned instruction bodies hash-discarded without plaintext files; remaining entries extracted without filters'};
   }catch(error){process.kill();process.child.stdin.destroy();process.child.stdout.destroy();await process.finish().catch(()=>{});throw error;}
 }
 export async function transferHistory({git,repository,candidate,destination,environment}){
@@ -85,6 +88,6 @@ export async function transferHistory({git,repository,candidate,destination,envi
   let bytes=0,stdout=0;consumer.child.stdout.on('data',chunk=>{try{stdout=enforceCharge(stdout,chunk.length,BOUNDS.setupStderrBytes);}catch{producer.kill();consumer.kill();}});
   producer.child.stdin.end(candidate+'\n');
   const charge=new Transform({transform(chunk,encoding,callback){try{bytes=enforceCharge(bytes,chunk.length,BOUNDS.historyTransferBytes);callback(null,chunk);}catch(error){callback(error);}}});
-  try{await pipeline(producer.child.stdout,charge,consumer.child.stdin);const lifecycle=await Promise.all([producer.finish(),consumer.finish()]);return{bytes,stdout,lifecycle};}
+  try{await pipeline(producer.child.stdout,charge,consumer.child.stdin);const lifecycle=await Promise.all([producer.finish(),consumer.finish()]);return{bytes,stdout,lifecycle,instructionPolicy:'Root-approved original opaque Git objects only; historical instruction blobs remain inert provenance. No checkout or plaintext instruction materialization.',checkoutPerformed:false};}
   catch(error){producer.kill();consumer.kill();await Promise.allSettled([producer.finish(),consumer.finish()]);throw error;}
 }

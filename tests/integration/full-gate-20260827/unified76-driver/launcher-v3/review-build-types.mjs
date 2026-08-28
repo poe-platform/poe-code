@@ -37,14 +37,14 @@ export async function reviewBuildTypes(options){
       LANG:'C',LC_ALL:'C',TZ:'UTC',NO_COLOR:'1',TSX_DISABLE_CACHE:'1',npm_config_cache:join(temporary,'npm-cache'),npm_config_userconfig:join(temporary,'npmrc'),npm_config_globalconfig:join(temporary,'global-npmrc'),npm_config_offline:'true',npm_config_ignore_scripts:'true',npm_config_audit:'false',npm_config_fund:'false',npm_config_registry:'http://127.0.0.1:1'});
     for(const path of [environment.npm_config_userconfig,environment.npm_config_globalconfig])writeFileSync(path,'',{flag:'wx'});
     report.archiveTransport=await extractCommitted({git:'/Applications/Xcode.app/Contents/Developer/usr/bin/git',repository,candidate:PRODUCT,entries:profile.scopeInputs,destination:source,environment});
-    report.archive=await verifyArchive(source,profile.scopeInputs);
+    report.archive=await verifyArchive(source,profile.scopeInputs,report.archiveTransport);
     const git='/Applications/Xcode.app/Contents/Developer/usr/bin/git';
     execFileSync(git,['init','--quiet','--template=',source],{env:environment,timeout:10000});
     execFileSync(git,['update-index','-z','--index-info'],{cwd:source,env:environment,input:profile.scopeInputs.map(entry=>`${entry.mode} ${entry.blob}\t${entry.path}\0`).join(''),timeout:10000});
     writeFileSync(join(source,'.git/HEAD'),PRODUCT+'\n');
     assert.deepEqual(execFileSync(git,['ls-files','-z'],{cwd:source,env:environment,maxBuffer:8*1024*1024}).toString().split('\0').filter(Boolean).sort(),profile.scopeInputs.map(entry=>entry.path).sort());
     report.indexQualification='Exact candidate path/blob index for typing inventory; no history transport or Git object alternate/source fallback';
-    copyDependencies(join(source,'node_modules'));copyDependencies(join(source,'benchmarks/node_modules'),join(repository,'benchmarks/node_modules'));
+    report.dependencyProjection=[copyDependencies(join(source,'node_modules')),copyDependencies(join(source,'benchmarks/node_modules'),join(repository,'benchmarks/node_modules'))];
     const guard=join(temporary,'harness/import-guard.mjs');writeFileSync(guard,blob('tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs'),{flag:'wx'});
     const expected=join(temporary,'harness/critical.json');save(expected,Object.fromEntries(['src/commands/execution.ts','src/commands/env-split.ts'].map(path=>[path,profile.sourceBindings[path]])));
     Object.assign(environment,{FULL_GATE_ROOT:temporary,FULL_GATE_SOURCE:source,FULL_GATE_EXPECTED:expected,FULL_GATE_TOOL_ROOTS:JSON.stringify([realpathSync(join(dirname(npm),'..'))])});
@@ -60,7 +60,7 @@ export async function reviewBuildTypes(options){
     const requireOrdered=(previous,next)=>{assert.deepEqual(previous,order.slice(0,previous.length));assert.equal(next,order[previous.length]);};
     const phase=createPhaseRunner({completed,report,source,output,environment,guard,verify,extraGuards:[harnessGuard],requireOrdered,audit});
     report.audit={preloadSha256:audit.preloadSha256,nonce:audit.nonce};
-    save(join(output,'SETUP-COMPLETE.json'),{candidate:PRODUCT,reviewOnly:true,archiveFiles:profile.scopeInputs.length});
+    save(join(output,'SETUP-COMPLETE.json'),{candidate:PRODUCT,reviewOnly:true,archiveFiles:report.archive.count,logicalArchiveFiles:report.archive.logical.count,instructionProjection:report.archive.projection,dependencyProjection:report.dependencyProjection});
     await runBuildTypes({phase,source,output,report,beforeAuthorizedBuild,tracked:async()=>{if(sourceGuard)assert.deepEqual((await sourceGuard.check()).changes,[]);},freezeSource:guard=>{sourceGuard=guard;},audit});
     await verify();assert.deepEqual(completed,order);assert.equal(readBuildAudit(audit).length,1);
     report.guardsPassed=true;report.cleanupComplete=report.phases.every(row=>row.clean&&row.closed&&!row.signals.length&&!row.survivors.length);

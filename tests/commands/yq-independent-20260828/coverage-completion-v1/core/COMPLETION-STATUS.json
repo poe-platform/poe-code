@@ -1,0 +1,4029 @@
+{
+  "schema": 1,
+  "status": "BOUNDED_CORE_CHECKPOINT_NOT_TERMINAL_COMPOSITION",
+  "date": "2026-08-28",
+  "authority": {
+    "abiCommit": "96d48ee4d2690c8ce474460d57ce0362656ddd6f",
+    "abi": {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/ABI.json",
+      "sha256": "4d5e2ca14a50965daaf08218ea1ecc26838f9376868d8ab5b929bfef2e7178f1",
+      "bytes": 7621,
+      "mode": 420
+    },
+    "allocation": {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/ALLOCATION.json",
+      "sha256": "2cd020b25855987f9d7af02d9e6e215f867f99d10c402c34d5e80513f92b0545",
+      "bytes": 628572,
+      "mode": 420
+    },
+    "sourceCommit": "85795e5fe40849781723e3b4c7b6a4c56efbc938",
+    "routing": [
+      {
+        "name": "COMPLETION-ROUTING",
+        "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+        "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/COMPLETION-ROUTING.json",
+        "sha256": "e43e2a32247ed5f95ecc7951b26326be36de4fd168caae7180d40a567736783d",
+        "bytes": 14238,
+        "mode": 420
+      },
+      {
+        "name": "COVERAGE-194",
+        "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+        "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/COVERAGE-194.json",
+        "sha256": "76399ff39ec9200720055cfa4212c0a3771f958d74dd2d3b30ec4f9d734e92b7",
+        "bytes": 254120,
+        "mode": 420
+      },
+      {
+        "name": "GAPS-135",
+        "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+        "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/GAPS-135.json",
+        "sha256": "16d048aba51e7beeb4019604a3b7a03e2d8a985cffe1a725365e4cf233d41deb",
+        "bytes": 148841,
+        "mode": 420
+      },
+      {
+        "name": "CRITICAL-REPAIRS",
+        "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+        "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/CRITICAL-REPAIRS.json",
+        "sha256": "fe28ef30e95a8bebfbfb86f83e41758023f9cf4494dd46669ebed95ebd16d77e",
+        "bytes": 18665,
+        "mode": 420
+      },
+      {
+        "name": "FRAGMENTS-371",
+        "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+        "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/FRAGMENTS-371.json",
+        "sha256": "7eb0650ef49a0c7693daaba50fd0a182e8911dfab9c478ee8a89d7cf9abdd6d6",
+        "bytes": 137108,
+        "mode": 420
+      },
+      {
+        "name": "OVERLAYS-8-AND-GUARDS",
+        "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+        "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/OVERLAYS-8-AND-GUARDS.json",
+        "sha256": "855e6dadd23eb30ce15ef4d1f4097d9e1476fc8580abfb889d01bfbd43eea5b4",
+        "bytes": 18124,
+        "mode": 420
+      },
+      {
+        "name": "TYPE-BINDINGS",
+        "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+        "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/TYPE-BINDINGS.json",
+        "sha256": "de7ab09d0081fdf49f0619a255b9db9bff18e8076bc12770895a2716908bcb97",
+        "bytes": 9452,
+        "mode": 420
+      }
+    ],
+    "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+    "wholePackageSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca"
+  },
+  "counts": {
+    "records": 194,
+    "overlays": 8,
+    "missingItems": 135,
+    "executorMissing": 77,
+    "legitimateSourceStaticItems": 45,
+    "publicGapItems": 3,
+    "preservedObservationItems": 10,
+    "unboundFragments": 40,
+    "unboundFragmentJobs": 28,
+    "unassignedRecordIds": 25,
+    "sourcePrimaryRecords": 23,
+    "coreGapItems": 68,
+    "actorsGapItems": 54,
+    "assertionsFragmentItems": 40,
+    "primaryRoles": {
+      "command-semantic-runtime": 111,
+      "admission-error-boundary": 34,
+      "source-static-counterproof": 23,
+      "lifecycle-cooperative": 11,
+      "materialized-package-infrastructure": 4,
+      "type-consumer": 5,
+      "negative-control": 6
+    },
+    "primitiveFragmentsPreserved": 331,
+    "projectionJobsPerEnvironment": 149,
+    "projectedRecordIds": 132,
+    "semanticSelectionEligible": 111,
+    "completeProjectionEligibility": 94,
+    "partialProjectionEligibility": 17,
+    "semanticPasses": 0,
+    "fullRecordPasses": 0,
+    "sourceArgumentsPrepared": 4,
+    "sourceGapIdsWithPreparedArgument": 8,
+    "sourceArgumentsIngestedAgainstCandidate": 0,
+    "sourceArgumentTruthAccepted": 0,
+    "remainingDesignatedSourceArguments": 19,
+    "coreGapItemsWithoutPreparedArguments": 60,
+    "coreExecutorMissingSourceObserverItems": 23,
+    "sourceStaticItemsWithoutPreparedArguments": 37,
+    "syntheticCasesPassed": 18,
+    "syntheticOuterJobs": 1,
+    "syntheticFixtureArguments": 1,
+    "targetExecutions": 0,
+    "targetCompilerCalls": 0,
+    "targetImports": 0,
+    "peerModulesImported": 0
+  },
+  "recordStates": [
+    {
+      "id": "CMD-01",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/0",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-02",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/1",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-03",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/2",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-04",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/3",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-05",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/4",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-06",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/5",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-07",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/6",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-08",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/7",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-09",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/8",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-10",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/9",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-11",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/10",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-12",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/11",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-13",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/12",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-14",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/13",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-15",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/14",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-16",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/15",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-17",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/16",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-18",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/17",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-19",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/18",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-20",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/19",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-21",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/20",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-22",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/21",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-23",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/22",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "CMD-24",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/23",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-01",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/24",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-02",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/25",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-03",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/26",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-04",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/27",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-05",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/28",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-06",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/29",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-07",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/30",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-08",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/31",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-09",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/32",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-10",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/33",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-11",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/34",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-12",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/35",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-13",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/36",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-14",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/37",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-15",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/38",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-16",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/39",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-17",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/40",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-18",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/41",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-19",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/42",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-20",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/43",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-21",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/44",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-22",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/45",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-23",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/46",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-24",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/47",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-25",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/48",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-26",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/49",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-27",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/50",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-28",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/51",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-29",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/52",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-30",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/53",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-31",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/54",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-32",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/55",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-33",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/56",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-34",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/57",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-35",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/58",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "PAR-36",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/59",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NUM-01",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/60",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NUM-02",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/61",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NUM-03",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/62",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NUM-04",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/63",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NUM-05",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/64",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NUM-06",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/65",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NUM-07",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/66",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NUM-08",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/67",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NUM-09",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/68",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NUM-10",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/69",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NUM-11",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/70",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NUM-12",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/71",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NUM-13",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/72",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NUM-14",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/73",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NUM-15",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/74",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NUM-16",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/75",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ENC-01",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/76",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ENC-02",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/77",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ENC-03",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/78",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ENC-04",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/79",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ENC-05",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/80",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ENC-06",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/81",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ENC-07",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/82",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ENC-08",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/83",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ENC-09",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/84",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ENC-10",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/85",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "QUE-01",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/86",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "QUE-02",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/87",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "QUE-03",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/88",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "QUE-04",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/89",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "QUE-05",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/90",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "QUE-06",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/91",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "QUE-07",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/92",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "QUE-08",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/93",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "QUE-09",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/94",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "QUE-10",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/95",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "QUE-11",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/96",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "QUE-12",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/97",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ALS-01",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/98",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ALS-02",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/99",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ALS-03",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/100",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ALS-04",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/101",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ALS-05",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/102",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ALS-06",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/103",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ALS-07",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/104",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ALS-08",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/105",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ALS-09",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/106",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ALS-10",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/107",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ALS-11",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/108",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ALS-12",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/109",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ALS-13",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/110",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ALS-14",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/111",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "ALS-15",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/112",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-01",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/113",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-02",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/114",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-03",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/115",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-04",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/116",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-05",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/117",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-06",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/118",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-07",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/119",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-08",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/120",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-09",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/121",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-10",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/122",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-11",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/123",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-12",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/124",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-13",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/125",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-14",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/126",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-15",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/127",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-16",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/128",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-17",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/129",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-18",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/130",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-19",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/131",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-20",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/132",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-21",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/133",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "UTF-22",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/134",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-01",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/135",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-02",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/136",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-03",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/137",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-04",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/138",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-05",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/139",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-06",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/140",
+      "sourceArgument": "PREPARED_SOURCE_ONLY_UNRUN_TARGET",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-07",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/141",
+      "sourceArgument": "PREPARED_SOURCE_ONLY_UNRUN_TARGET",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-08",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/142",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-09",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/143",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-10",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/144",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-11",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/145",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-12",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/146",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-13",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/147",
+      "sourceArgument": "PREPARED_SOURCE_ONLY_UNRUN_TARGET",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-14",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/148",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-15",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/149",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-16",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/150",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-17",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/151",
+      "sourceArgument": "PREPARED_SOURCE_ONLY_UNRUN_TARGET",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-18",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/152",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-19",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/153",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-20",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/154",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-21",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/155",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-22",
+      "role": "lifecycle-cooperative",
+      "allocationPointer": "/records/156",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-23",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/157",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-24",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/158",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-25",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/159",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "WRK-26",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/160",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-01",
+      "role": "lifecycle-cooperative",
+      "allocationPointer": "/records/161",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-02",
+      "role": "lifecycle-cooperative",
+      "allocationPointer": "/records/162",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-03",
+      "role": "lifecycle-cooperative",
+      "allocationPointer": "/records/163",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-04",
+      "role": "lifecycle-cooperative",
+      "allocationPointer": "/records/164",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-05",
+      "role": "lifecycle-cooperative",
+      "allocationPointer": "/records/165",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-06",
+      "role": "lifecycle-cooperative",
+      "allocationPointer": "/records/166",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-07",
+      "role": "lifecycle-cooperative",
+      "allocationPointer": "/records/167",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-08",
+      "role": "lifecycle-cooperative",
+      "allocationPointer": "/records/168",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-09",
+      "role": "lifecycle-cooperative",
+      "allocationPointer": "/records/169",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "LIF-10",
+      "role": "lifecycle-cooperative",
+      "allocationPointer": "/records/170",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "FS-01",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/171",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "FS-02",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/172",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "FS-03",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/173",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "FS-04",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/174",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "FS-05",
+      "role": "command-semantic-runtime",
+      "allocationPointer": "/records/175",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "FS-06",
+      "role": "materialized-package-infrastructure",
+      "allocationPointer": "/records/176",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "MOV-01",
+      "role": "materialized-package-infrastructure",
+      "allocationPointer": "/records/177",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "MOV-02",
+      "role": "materialized-package-infrastructure",
+      "allocationPointer": "/records/178",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "MOV-03",
+      "role": "materialized-package-infrastructure",
+      "allocationPointer": "/records/179",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "TYP-01",
+      "role": "type-consumer",
+      "allocationPointer": "/records/180",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "TYP-02",
+      "role": "type-consumer",
+      "allocationPointer": "/records/181",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "TYP-03",
+      "role": "type-consumer",
+      "allocationPointer": "/records/182",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "TYP-04",
+      "role": "type-consumer",
+      "allocationPointer": "/records/183",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "TYP-05",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/184",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "TYP-06",
+      "role": "admission-error-boundary",
+      "allocationPointer": "/records/185",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "TYP-07",
+      "role": "type-consumer",
+      "allocationPointer": "/records/186",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "TYP-08",
+      "role": "source-static-counterproof",
+      "allocationPointer": "/records/187",
+      "sourceArgument": "UNRUN_SOURCE_ARGUMENT_MISSING",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NEG-01",
+      "role": "negative-control",
+      "allocationPointer": "/records/188",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NEG-02",
+      "role": "negative-control",
+      "allocationPointer": "/records/189",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NEG-03",
+      "role": "negative-control",
+      "allocationPointer": "/records/190",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NEG-04",
+      "role": "negative-control",
+      "allocationPointer": "/records/191",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NEG-05",
+      "role": "negative-control",
+      "allocationPointer": "/records/192",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    },
+    {
+      "id": "NEG-06",
+      "role": "negative-control",
+      "allocationPointer": "/records/193",
+      "sourceArgument": "NOT_SOURCE_PRIMARY",
+      "targetProof": "UNRUN",
+      "fullRecordPass": false
+    }
+  ],
+  "gapStates": [
+    {
+      "id": "PAR-12::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/0",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "PAR-13::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/1",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "PAR-26::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/2",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "NUM-11::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/3",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "NUM-15::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/4",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "NUM-16::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/5",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "ENC-08::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/6",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "ENC-09::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/7",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "ENC-10::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/8",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "QUE-01::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/9",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "QUE-01::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/10",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "QUE-02::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/11",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "QUE-02::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/12",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "QUE-09::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/13",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "QUE-09::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/14",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "QUE-10::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/15",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "QUE-10::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/16",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "QUE-11::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/17",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "QUE-11::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/18",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "ALS-01::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/19",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "ALS-03::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/20",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "ALS-07::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/21",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "ALS-10::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/22",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "ALS-11::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/23",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "ALS-12::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/24",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "ALS-12::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/25",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "ALS-13::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/26",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "ALS-14::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/27",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "ALS-14::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/28",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "ALS-15::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/29",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "ALS-15::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/30",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-01::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/31",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-01::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/32",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-02::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/33",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-02::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/34",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-03::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/35",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-03::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/36",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-04::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/37",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-04::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/38",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-05::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/39",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-05::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/40",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-06::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/41",
+      "implementation": "SOURCE_ARGUMENT_INGESTOR_AND_EXACT_DATA_PREPARED",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-06::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/42",
+      "implementation": "SOURCE_ARGUMENT_INGESTOR_AND_EXACT_DATA_PREPARED",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-07::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/43",
+      "implementation": "SOURCE_ARGUMENT_INGESTOR_AND_EXACT_DATA_PREPARED",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-07::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/44",
+      "implementation": "SOURCE_ARGUMENT_INGESTOR_AND_EXACT_DATA_PREPARED",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-08::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/45",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-08::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/46",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-09::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/47",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-09::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/48",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-10::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/49",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-10::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/50",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-11::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/51",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-11::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/52",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-12::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/53",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-12::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/54",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-13::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/55",
+      "implementation": "SOURCE_ARGUMENT_INGESTOR_AND_EXACT_DATA_PREPARED",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-13::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/56",
+      "implementation": "SOURCE_ARGUMENT_INGESTOR_AND_EXACT_DATA_PREPARED",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-14::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/57",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-15::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/58",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-15::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/59",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-16::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/60",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-16::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/61",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-17::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/62",
+      "implementation": "SOURCE_ARGUMENT_INGESTOR_AND_EXACT_DATA_PREPARED",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-17::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/63",
+      "implementation": "SOURCE_ARGUMENT_INGESTOR_AND_EXACT_DATA_PREPARED",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-18::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/64",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-18::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/65",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-19::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/66",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-19::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/67",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-20::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/68",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-20::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/69",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-21::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/70",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-21::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/71",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-22::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/72",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-22::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/73",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-23::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/74",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-23::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/75",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-24::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/76",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-24::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/77",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-25::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/78",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-25::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/79",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-26::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/80",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "WRK-26::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/81",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-01::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/82",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-01::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/83",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-02::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/84",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-02::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/85",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-03::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/86",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-03::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/87",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-04::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/88",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-04::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/89",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-05::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/90",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-05::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/91",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-06::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/92",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-06::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/93",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-07::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/94",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-07::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/95",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-08::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/96",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-08::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/97",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-09::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/98",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-09::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/99",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-10::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/100",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "LIF-10::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/101",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "FS-02::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/102",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "FS-02::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/103",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "FS-03::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/104",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "FS-03::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/105",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "FS-04::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/106",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "FS-04::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/107",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "FS-06::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/108",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "FS-06::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/109",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "MOV-01::missing/0",
+      "classification": "D_IMPLEMENTED_OBSERVATION",
+      "primaryOwner": "preserved-v4",
+      "allocationPointer": "/gaps/110",
+      "implementation": "PRESERVED_V4_OBSERVATION_UNRUN",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "MOV-01::missing/1",
+      "classification": "D_IMPLEMENTED_OBSERVATION",
+      "primaryOwner": "preserved-v4",
+      "allocationPointer": "/gaps/111",
+      "implementation": "PRESERVED_V4_OBSERVATION_UNRUN",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "MOV-02::missing/0",
+      "classification": "C_PUBLIC_EXPORT_ABSENCE",
+      "primaryOwner": "root-public-integration-out-of-scope",
+      "allocationPointer": "/gaps/112",
+      "implementation": "PUBLIC_EXPORT_GAP_NO_FAKE_TYPE_NEGATIVE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "MOV-02::missing/1",
+      "classification": "C_PUBLIC_EXPORT_ABSENCE",
+      "primaryOwner": "root-public-integration-out-of-scope",
+      "allocationPointer": "/gaps/113",
+      "implementation": "PUBLIC_EXPORT_GAP_NO_FAKE_TYPE_NEGATIVE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "MOV-03::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/114",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "MOV-03::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/115",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "TYP-01::missing/0",
+      "classification": "D_IMPLEMENTED_OBSERVATION",
+      "primaryOwner": "preserved-v4",
+      "allocationPointer": "/gaps/116",
+      "implementation": "PRESERVED_V4_OBSERVATION_UNRUN",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "TYP-01::missing/1",
+      "classification": "D_IMPLEMENTED_OBSERVATION",
+      "primaryOwner": "preserved-v4",
+      "allocationPointer": "/gaps/117",
+      "implementation": "PRESERVED_V4_OBSERVATION_UNRUN",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "TYP-02::missing/0",
+      "classification": "D_IMPLEMENTED_OBSERVATION",
+      "primaryOwner": "preserved-v4",
+      "allocationPointer": "/gaps/118",
+      "implementation": "PRESERVED_V4_OBSERVATION_UNRUN",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "TYP-03::missing/0",
+      "classification": "D_IMPLEMENTED_OBSERVATION",
+      "primaryOwner": "preserved-v4",
+      "allocationPointer": "/gaps/119",
+      "implementation": "PRESERVED_V4_OBSERVATION_UNRUN",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "TYP-04::missing/0",
+      "classification": "C_PUBLIC_EXPORT_ABSENCE",
+      "primaryOwner": "root-public-integration-out-of-scope",
+      "allocationPointer": "/gaps/120",
+      "implementation": "PUBLIC_EXPORT_GAP_NO_FAKE_TYPE_NEGATIVE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "TYP-05::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/121",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "TYP-05::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/122",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "TYP-06::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/123",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "TYP-06::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/124",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "TYP-07::missing/0",
+      "classification": "D_IMPLEMENTED_OBSERVATION",
+      "primaryOwner": "preserved-v4",
+      "allocationPointer": "/gaps/125",
+      "implementation": "PRESERVED_V4_OBSERVATION_UNRUN",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "TYP-07::missing/1",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/126",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "TYP-08::missing/0",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/127",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "TYP-08::missing/1",
+      "classification": "A_SOURCE_STATIC",
+      "primaryOwner": "core",
+      "allocationPointer": "/gaps/128",
+      "implementation": "MISSING_CONCRETE_SOURCE_ARGUMENT_OR_DECLARED_OBSERVER",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "NEG-01::missing/0",
+      "classification": "D_IMPLEMENTED_OBSERVATION",
+      "primaryOwner": "preserved-v4",
+      "allocationPointer": "/gaps/129",
+      "implementation": "PRESERVED_V4_OBSERVATION_UNRUN",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "NEG-02::missing/0",
+      "classification": "D_IMPLEMENTED_OBSERVATION",
+      "primaryOwner": "preserved-v4",
+      "allocationPointer": "/gaps/130",
+      "implementation": "PRESERVED_V4_OBSERVATION_UNRUN",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "NEG-03::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/131",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "NEG-04::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/132",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "NEG-05::missing/0",
+      "classification": "E_MISSING_EXECUTOR",
+      "primaryOwner": "actors",
+      "allocationPointer": "/gaps/133",
+      "implementation": "PEER_SEAL_AND_ACTOR_BRIDGE_NOT_BOUND_HERE",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    },
+    {
+      "id": "NEG-06::missing/0",
+      "classification": "D_IMPLEMENTED_OBSERVATION",
+      "primaryOwner": "preserved-v4",
+      "allocationPointer": "/gaps/134",
+      "implementation": "PRESERVED_V4_OBSERVATION_UNRUN",
+      "sourceArgumentTruthAccepted": false,
+      "fullObligationSatisfied": false,
+      "targetProof": "UNRUN"
+    }
+  ],
+  "fragmentOverlap": [
+    {
+      "id": "CMD-04--whole::expected/stdoutBinding",
+      "recordId": "CMD-04",
+      "projectionId": "CMD-04--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [],
+      "actorDependency": null,
+      "sourceDependency": null,
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "CMD-05--whole::expected/stdoutBinding",
+      "recordId": "CMD-05",
+      "projectionId": "CMD-05--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [],
+      "actorDependency": null,
+      "sourceDependency": null,
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "CMD-06--whole::expected/stdoutBinding",
+      "recordId": "CMD-06",
+      "projectionId": "CMD-06--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [],
+      "actorDependency": null,
+      "sourceDependency": null,
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "PAR-12--whole::expected/queryRuns",
+      "recordId": "PAR-12",
+      "projectionId": "PAR-12--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "PAR-12::missing/0"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "PAR-13--whole::expected/queryRuns",
+      "recordId": "PAR-13",
+      "projectionId": "PAR-13--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "PAR-13::missing/0"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "PAR-26--whole::expected/assertions/0",
+      "recordId": "PAR-26",
+      "projectionId": "PAR-26--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "PAR-26::missing/0"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "NUM-11--whole::expected/assertions/0",
+      "recordId": "NUM-11",
+      "projectionId": "NUM-11--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "NUM-11::missing/0"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "NUM-14--whole::expected/stdout",
+      "recordId": "NUM-14",
+      "projectionId": "NUM-14--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [],
+      "actorDependency": null,
+      "sourceDependency": null,
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "NUM-14--whole::expected/diagnostic",
+      "recordId": "NUM-14",
+      "projectionId": "NUM-14--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [],
+      "actorDependency": null,
+      "sourceDependency": null,
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "NUM-15--whole::expected/stdout",
+      "recordId": "NUM-15",
+      "projectionId": "NUM-15--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "NUM-15::missing/0"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "NUM-15--whole::expected/stderr",
+      "recordId": "NUM-15",
+      "projectionId": "NUM-15--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "NUM-15::missing/0"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "NUM-15--whole::expected/numeric",
+      "recordId": "NUM-15",
+      "projectionId": "NUM-15--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "NUM-15::missing/0"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "NUM-16--whole::expected/assertions/0",
+      "recordId": "NUM-16",
+      "projectionId": "NUM-16--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "NUM-16::missing/0"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "ENC-07--whole::expected/stdout",
+      "recordId": "ENC-07",
+      "projectionId": "ENC-07--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [],
+      "actorDependency": null,
+      "sourceDependency": null,
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "ENC-07--whole::expected/stderr",
+      "recordId": "ENC-07",
+      "projectionId": "ENC-07--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [],
+      "actorDependency": null,
+      "sourceDependency": null,
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "ENC-07--whole::expected/yamlFrame",
+      "recordId": "ENC-07",
+      "projectionId": "ENC-07--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [],
+      "actorDependency": null,
+      "sourceDependency": null,
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "QUE-01--whole::expected/queryRuns",
+      "recordId": "QUE-01",
+      "projectionId": "QUE-01--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "QUE-01::missing/0",
+        "QUE-01::missing/1"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "QUE-01--whole::expected/compileAttempts",
+      "recordId": "QUE-01",
+      "projectionId": "QUE-01--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "QUE-01::missing/0",
+        "QUE-01::missing/1"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "QUE-02--whole::expected/queryRuns",
+      "recordId": "QUE-02",
+      "projectionId": "QUE-02--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "QUE-02::missing/0",
+        "QUE-02::missing/1"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "QUE-02--whole::expected/compileAttempts",
+      "recordId": "QUE-02",
+      "projectionId": "QUE-02--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "QUE-02::missing/0",
+        "QUE-02::missing/1"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "QUE-07--whole::expected/assertions/0",
+      "recordId": "QUE-07",
+      "projectionId": "QUE-07--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [],
+      "actorDependency": null,
+      "sourceDependency": null,
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "ALS-01--whole::expected/assertions/0",
+      "recordId": "ALS-01",
+      "projectionId": "ALS-01--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "ALS-01::missing/0"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "ALS-03--whole::expected/assertions/0",
+      "recordId": "ALS-03",
+      "projectionId": "ALS-03--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "ALS-03::missing/0"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "ALS-07--whole::expected/assertions/0",
+      "recordId": "ALS-07",
+      "projectionId": "ALS-07--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "ALS-07::missing/0"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "ALS-10--whole::expected/assertions/0",
+      "recordId": "ALS-10",
+      "projectionId": "ALS-10--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "ALS-10::missing/0"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "ALS-11--whole::expected/assertions/0",
+      "recordId": "ALS-11",
+      "projectionId": "ALS-11--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "ALS-11::missing/0"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "ALS-12--whole::expected/queryRuns",
+      "recordId": "ALS-12",
+      "projectionId": "ALS-12--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "ALS-12::missing/0",
+        "ALS-12::missing/1"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "ALS-12--whole::expected/assertions/0",
+      "recordId": "ALS-12",
+      "projectionId": "ALS-12--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "ALS-12::missing/0",
+        "ALS-12::missing/1"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "ALS-13--whole::expected/assertions/0",
+      "recordId": "ALS-13",
+      "projectionId": "ALS-13--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "ALS-13::missing/0"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "ALS-14--whole::expected/queryRuns",
+      "recordId": "ALS-14",
+      "projectionId": "ALS-14--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "ALS-14::missing/0",
+        "ALS-14::missing/1"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "ALS-14--whole::expected/assertions/0",
+      "recordId": "ALS-14",
+      "projectionId": "ALS-14--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "ALS-14::missing/0",
+        "ALS-14::missing/1"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "ALS-15--whole::expected/queryRuns",
+      "recordId": "ALS-15",
+      "projectionId": "ALS-15--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "ALS-15::missing/0",
+        "ALS-15::missing/1"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "ALS-15--whole::expected/assertions/0",
+      "recordId": "ALS-15",
+      "projectionId": "ALS-15--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "ALS-15::missing/0",
+        "ALS-15::missing/1"
+      ],
+      "actorDependency": null,
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "UTF-12--whole::expected/stdout",
+      "recordId": "UTF-12",
+      "projectionId": "UTF-12--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [],
+      "actorDependency": null,
+      "sourceDependency": null,
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "UTF-12--whole::expected/stderr",
+      "recordId": "UTF-12",
+      "projectionId": "UTF-12--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [],
+      "actorDependency": null,
+      "sourceDependency": null,
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "UTF-12--whole::expected/scalar",
+      "recordId": "UTF-12",
+      "projectionId": "UTF-12--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [],
+      "actorDependency": null,
+      "sourceDependency": null,
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "UTF-22--whole::expected/assertions/0",
+      "recordId": "UTF-22",
+      "projectionId": "UTF-22--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [],
+      "actorDependency": "actors",
+      "sourceDependency": null,
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "WRK-14--whole::expected/assertions/0",
+      "recordId": "WRK-14",
+      "projectionId": "WRK-14--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [
+        "WRK-14::missing/0"
+      ],
+      "actorDependency": "actors",
+      "sourceDependency": "core",
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "FS-01--whole::expected/assertions/0",
+      "recordId": "FS-01",
+      "projectionId": "FS-01--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [],
+      "actorDependency": null,
+      "sourceDependency": null,
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    },
+    {
+      "id": "FS-05--whole::expected/assertions/0",
+      "recordId": "FS-05",
+      "projectionId": "FS-05--whole",
+      "primaryOwner": "assertions",
+      "sameRecordGapIds": [],
+      "actorDependency": null,
+      "sourceDependency": null,
+      "state": "PEER_SEALED_CONTRIBUTION_NOT_BOUND_HERE",
+      "counting": "LINK_NOT_ADDITIONAL_CASE_OR_AUTOMATIC_GAP_COMPLETION"
+    }
+  ],
+  "unassignedRecordIds": [
+    "WRK-01",
+    "WRK-02",
+    "WRK-03",
+    "WRK-04",
+    "WRK-09",
+    "WRK-10",
+    "WRK-19",
+    "WRK-25",
+    "LIF-01",
+    "LIF-02",
+    "LIF-03",
+    "LIF-04",
+    "LIF-05",
+    "LIF-06",
+    "LIF-07",
+    "LIF-08",
+    "LIF-09",
+    "LIF-10",
+    "FS-02",
+    "FS-03",
+    "FS-04",
+    "FS-06",
+    "TYP-05",
+    "TYP-06",
+    "NEG-05"
+  ],
+  "sourcePrimary": [
+    {
+      "id": "ENC-08",
+      "missingIds": [
+        "ENC-08::missing/0"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "ENC-09",
+      "missingIds": [
+        "ENC-09::missing/0"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "ENC-10",
+      "missingIds": [
+        "ENC-10::missing/0"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "QUE-09",
+      "missingIds": [
+        "QUE-09::missing/0",
+        "QUE-09::missing/1"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "QUE-10",
+      "missingIds": [
+        "QUE-10::missing/0",
+        "QUE-10::missing/1"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "QUE-11",
+      "missingIds": [
+        "QUE-11::missing/0",
+        "QUE-11::missing/1"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "WRK-05",
+      "missingIds": [
+        "WRK-05::missing/0",
+        "WRK-05::missing/1"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "WRK-06",
+      "missingIds": [
+        "WRK-06::missing/0",
+        "WRK-06::missing/1"
+      ],
+      "argument": "SOURCE-WRK-06",
+      "state": "PREPARED_SOURCE_ONLY_NOT_RUNTIME_OR_TRUTH_ACCEPTANCE"
+    },
+    {
+      "id": "WRK-07",
+      "missingIds": [
+        "WRK-07::missing/0",
+        "WRK-07::missing/1"
+      ],
+      "argument": "SOURCE-WRK-07",
+      "state": "PREPARED_SOURCE_ONLY_NOT_RUNTIME_OR_TRUTH_ACCEPTANCE"
+    },
+    {
+      "id": "WRK-08",
+      "missingIds": [
+        "WRK-08::missing/0",
+        "WRK-08::missing/1"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "WRK-11",
+      "missingIds": [
+        "WRK-11::missing/0",
+        "WRK-11::missing/1"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "WRK-12",
+      "missingIds": [
+        "WRK-12::missing/0",
+        "WRK-12::missing/1"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "WRK-13",
+      "missingIds": [
+        "WRK-13::missing/0",
+        "WRK-13::missing/1"
+      ],
+      "argument": "SOURCE-WRK-13",
+      "state": "PREPARED_SOURCE_ONLY_NOT_RUNTIME_OR_TRUTH_ACCEPTANCE"
+    },
+    {
+      "id": "WRK-15",
+      "missingIds": [
+        "WRK-15::missing/0",
+        "WRK-15::missing/1"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "WRK-16",
+      "missingIds": [
+        "WRK-16::missing/0",
+        "WRK-16::missing/1"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "WRK-17",
+      "missingIds": [
+        "WRK-17::missing/0",
+        "WRK-17::missing/1"
+      ],
+      "argument": "SOURCE-WRK-17",
+      "state": "PREPARED_SOURCE_ONLY_NOT_RUNTIME_OR_TRUTH_ACCEPTANCE"
+    },
+    {
+      "id": "WRK-18",
+      "missingIds": [
+        "WRK-18::missing/0",
+        "WRK-18::missing/1"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "WRK-20",
+      "missingIds": [
+        "WRK-20::missing/0",
+        "WRK-20::missing/1"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "WRK-21",
+      "missingIds": [
+        "WRK-21::missing/0",
+        "WRK-21::missing/1"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "WRK-23",
+      "missingIds": [
+        "WRK-23::missing/0",
+        "WRK-23::missing/1"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "WRK-24",
+      "missingIds": [
+        "WRK-24::missing/0",
+        "WRK-24::missing/1"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "WRK-26",
+      "missingIds": [
+        "WRK-26::missing/0",
+        "WRK-26::missing/1"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    },
+    {
+      "id": "TYP-08",
+      "missingIds": [
+        "TYP-08::missing/0",
+        "TYP-08::missing/1"
+      ],
+      "argument": null,
+      "state": "MISSING_ARGUMENT_UNRUN"
+    }
+  ],
+  "criticalRepairObservations": [
+    {
+      "bindingId": "WRK-06::missing/0",
+      "recordId": "WRK-06",
+      "owner": "actors",
+      "sourceOwner": "core",
+      "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+      "frozenPointer": "freeze-accounting#/cases/5/input",
+      "frozenNeed": "Named private counter projection; no approved runtime observer or executable concrete argv fixture.",
+      "qualification": {
+        "id": "WRK-06",
+        "authorObservation": "Author C+1 raw document rejection: # + (C-2) x bytes + CRLF = C+1=8388609. Not an at-C success result.",
+        "atC": {
+          "state": "UNRUN_GATE_PROOF_REQUIRED",
+          "authorQualification": "Author says its synthetic comment-body at-C construction reaches the independent fixed work cap. No independent at-C proof inherited.",
+          "requirement": "Bind exact fixed-P1 source gate ordering and original input construction, count raw bytes/codepoints/charged steps including comment/document selection, identify which gate masks later admission. Without complete argument do not call at-C reachable or unreachable."
+        },
+        "newRuntimeFixture": false
+      },
+      "plannedRuntimeJobsA": [],
+      "plannedRuntimeJobsB": [],
+      "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+      "fullRecordPass": false
+    },
+    {
+      "bindingId": "WRK-06::missing/1",
+      "recordId": "WRK-06",
+      "owner": "actors",
+      "sourceOwner": "core",
+      "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+      "frozenPointer": "freeze-accounting#/cases/5/expect/assertions/0",
+      "frozenNeed": "Inclusive document admission then refusal before owned copy or decoded append; markers assigned exactly once; reset only at legal boundary.",
+      "qualification": {
+        "id": "WRK-06",
+        "authorObservation": "Author C+1 raw document rejection: # + (C-2) x bytes + CRLF = C+1=8388609. Not an at-C success result.",
+        "atC": {
+          "state": "UNRUN_GATE_PROOF_REQUIRED",
+          "authorQualification": "Author says its synthetic comment-body at-C construction reaches the independent fixed work cap. No independent at-C proof inherited.",
+          "requirement": "Bind exact fixed-P1 source gate ordering and original input construction, count raw bytes/codepoints/charged steps including comment/document selection, identify which gate masks later admission. Without complete argument do not call at-C reachable or unreachable."
+        },
+        "newRuntimeFixture": false
+      },
+      "plannedRuntimeJobsA": [],
+      "plannedRuntimeJobsB": [],
+      "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+      "fullRecordPass": false
+    },
+    {
+      "bindingId": "WRK-07::missing/0",
+      "recordId": "WRK-07",
+      "owner": "actors",
+      "sourceOwner": "core",
+      "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+      "frozenPointer": "freeze-accounting#/cases/6/input",
+      "frozenNeed": "decoded scalar ledger for a four-byte escape result, not source escape-text length",
+      "qualification": {
+        "id": "WRK-07",
+        "authorObservation": "Actual parser plus real YqLedger fixed maxScalarBytes1048576 accepted C and rejected C+1 in author evidence; helper parseOne supplies noopWork. This is not a full public command/Budget proof.",
+        "publicAtC": {
+          "state": "UNRUN_GATE_PROOF_REQUIRED",
+          "conditionalArithmetic": "Author ASCII scalar has C+2 source codepoints including quotes. Parser scans/charges codepoints before Composer parsing;1048578 exceeds fixed maxSteps1000000 under ordinary budget.step, before additional work. A fresh independent gate argument must bind actual session/Budget wiring and relevant branches; do not transplant noopWork or lower caps.",
+          "fullPublicCapSuccess": false
+        },
+        "newRuntimeFixture": false
+      },
+      "plannedRuntimeJobsA": [],
+      "plannedRuntimeJobsB": [],
+      "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+      "fullRecordPass": false
+    },
+    {
+      "bindingId": "WRK-07::missing/1",
+      "recordId": "WRK-07",
+      "owner": "actors",
+      "sourceOwner": "core",
+      "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+      "frozenPointer": "freeze-accounting#/cases/6/expect/assertions/0",
+      "frozenNeed": "Four-byte scalar reaches inclusive cap; next byte fails before retaining fragment; keys follow same cap.",
+      "qualification": {
+        "id": "WRK-07",
+        "authorObservation": "Actual parser plus real YqLedger fixed maxScalarBytes1048576 accepted C and rejected C+1 in author evidence; helper parseOne supplies noopWork. This is not a full public command/Budget proof.",
+        "publicAtC": {
+          "state": "UNRUN_GATE_PROOF_REQUIRED",
+          "conditionalArithmetic": "Author ASCII scalar has C+2 source codepoints including quotes. Parser scans/charges codepoints before Composer parsing;1048578 exceeds fixed maxSteps1000000 under ordinary budget.step, before additional work. A fresh independent gate argument must bind actual session/Budget wiring and relevant branches; do not transplant noopWork or lower caps.",
+          "fullPublicCapSuccess": false
+        },
+        "newRuntimeFixture": false
+      },
+      "plannedRuntimeJobsA": [],
+      "plannedRuntimeJobsB": [],
+      "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+      "fullRecordPass": false
+    },
+    {
+      "bindingId": "WRK-13::missing/0",
+      "recordId": "WRK-13",
+      "owner": "actors",
+      "sourceOwner": "core",
+      "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+      "frozenPointer": "freeze-accounting#/cases/12/input",
+      "frozenNeed": "Named private counter projection; no approved runtime observer or executable concrete argv fixture.",
+      "qualification": {
+        "id": "WRK-13",
+        "authorObservation": "Author ninth control invokes actual parser with subclassed ledger/event work for member-before-child order. Source/control proof, not independent public100000-member boundary.",
+        "required": "Inspect all flow/block collection branches against the existing frozen member-admission obligation; retain source role and any branch gaps.",
+        "newRuntimeFixture": false
+      },
+      "plannedRuntimeJobsA": [],
+      "plannedRuntimeJobsB": [],
+      "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+      "fullRecordPass": false
+    },
+    {
+      "bindingId": "WRK-13::missing/1",
+      "recordId": "WRK-13",
+      "owner": "actors",
+      "sourceOwner": "core",
+      "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+      "frozenPointer": "freeze-accounting#/cases/12/expect/assertions/0",
+      "frozenNeed": "Current collection member 100000 fits; next is refused before input member allocation; this is not a string-code-point limit.",
+      "qualification": {
+        "id": "WRK-13",
+        "authorObservation": "Author ninth control invokes actual parser with subclassed ledger/event work for member-before-child order. Source/control proof, not independent public100000-member boundary.",
+        "required": "Inspect all flow/block collection branches against the existing frozen member-admission obligation; retain source role and any branch gaps.",
+        "newRuntimeFixture": false
+      },
+      "plannedRuntimeJobsA": [],
+      "plannedRuntimeJobsB": [],
+      "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+      "fullRecordPass": false
+    },
+    {
+      "bindingId": "WRK-17::missing/0",
+      "recordId": "WRK-17",
+      "owner": "actors",
+      "sourceOwner": "core",
+      "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+      "frozenPointer": "freeze-accounting#/cases/16/input",
+      "frozenNeed": "four-byte complete next output operation including any separator/newline; encoder fragments/join/buffer observed",
+      "qualification": {
+        "id": "WRK-17",
+        "authorObservation": "Author actual encoder calls use internal maxBytes7/8 for escaped NUL. These are PROOF_CONTROL, not public combined-output cap16777216 or command cap reachability.",
+        "required": "Independent source argument for exact projected-byte reservation before every retained escaped fragment; distinguish append/publish, no double charge. Fixed-cap masked/unreachable claims need explicit gate/path proof, not injected ledger state.",
+        "publicBoundaryState": "UNRUN_GATE_PROOF_REQUIRED",
+        "newRuntimeFixture": false
+      },
+      "plannedRuntimeJobsA": [],
+      "plannedRuntimeJobsB": [],
+      "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+      "fullRecordPass": false
+    },
+    {
+      "bindingId": "WRK-17::missing/1",
+      "recordId": "WRK-17",
+      "owner": "actors",
+      "sourceOwner": "core",
+      "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+      "frozenPointer": "freeze-accounting#/cases/16/expect/assertions/0",
+      "frozenNeed": "Stdout stays <=16773120; reserve 4096 remains unavailable to stdout; oversized document submits zero bytes; every retained encoder allocation is preflighted.",
+      "qualification": {
+        "id": "WRK-17",
+        "authorObservation": "Author actual encoder calls use internal maxBytes7/8 for escaped NUL. These are PROOF_CONTROL, not public combined-output cap16777216 or command cap reachability.",
+        "required": "Independent source argument for exact projected-byte reservation before every retained escaped fragment; distinguish append/publish, no double charge. Fixed-cap masked/unreachable claims need explicit gate/path proof, not injected ledger state.",
+        "publicBoundaryState": "UNRUN_GATE_PROOF_REQUIRED",
+        "newRuntimeFixture": false
+      },
+      "plannedRuntimeJobsA": [],
+      "plannedRuntimeJobsB": [],
+      "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+      "fullRecordPass": false
+    }
+  ],
+  "publicIntegrationGaps": {
+    "ids": [
+      "MOV-02::missing/0",
+      "MOV-02::missing/1",
+      "TYP-04::missing/0"
+    ],
+    "conditionalPublicTypeFixtures": 5,
+    "status": "UNRUN_PUBLIC_EXPORT_GAP",
+    "notCompilerNegativePass": true,
+    "authority": {
+      "name": "TYPE-BINDINGS",
+      "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/TYPE-BINDINGS.json",
+      "sha256": "de7ab09d0081fdf49f0619a255b9db9bff18e8076bc12770895a2716908bcb97",
+      "bytes": 9452,
+      "mode": 420
+    }
+  },
+  "preservedPlan": {
+    "recipeCommit": "0e8ee2900e7810b911f1335b0d3f05f23ce740c5",
+    "recipeSha256": "92b4c7b958b9f07b75c2f55fa719e83093317a506bb41f74526a4df09eed7c90",
+    "profiles": [
+      "source-built-direct",
+      "installed-moved-direct"
+    ],
+    "runtimeJobsPerProfile": 149,
+    "installedUnmovedRole": "ADMISSION_ONLY_NOT_THIRD_COHORT",
+    "outerReservations": 336,
+    "maximumStartsBeforeOtherRefusals": 334,
+    "directTypeFixturesEach": 6,
+    "buildCompiler": 1,
+    "plannedCompilerCalls": 13,
+    "maximumCompilerCalls": 18,
+    "publicFive": "UNRUN",
+    "loadedSlots": 10,
+    "knownLoadedObservationGaps": 4,
+    "phaseBudgetMs": 24165000,
+    "addedActorCosts": "NOT_ADOPTED_PENDING_SEALED_DECLARATION",
+    "oldHistory": "4b219 FAIL/CMD22/31 unfulfilled/134 UNRUN and consumed authorizations remain unchanged",
+    "historicalModePolicy": "ORIGINAL_MODE_UNATTESTED inert references only; no legacy admission authority"
+  },
+  "remainingDependencies": [
+    {
+      "id": "SOURCE-19",
+      "owner": "core-future-root-assignment",
+      "requirement": "Independent concrete arguments/dependencies for the nineteen listed source-primary records; not fabricated runtime hooks.",
+      "state": "MISSING"
+    },
+    {
+      "id": "SOURCE-OBSERVER-23",
+      "owner": "core-future-root-assignment",
+      "requirement": "Twenty-three E gaps need declared source/observer bindings. Current source-primary plan restricts ingestion to its23 IDs; extra record enrollment requires a future explicitly bound plan, no new semantics.",
+      "state": "MISSING"
+    },
+    {
+      "id": "ACTOR-54-AND-REPAIR-8",
+      "owner": "actors",
+      "requirement": "Sealed contribution for54 primary gaps plus secondary applicable observations/gate arguments for8 repair gaps. Additional roles do not double-credit.",
+      "state": "NOT_BOUND_HERE"
+    },
+    {
+      "id": "ASSERTION-40",
+      "owner": "assertions",
+      "requirement": "Sealed exact40 fragment contribution across28 jobs; preserve ordinary primitive evaluation and true in-child identity.",
+      "state": "NOT_BOUND_HERE"
+    },
+    {
+      "id": "LOADER-ACTOR-BRIDGE",
+      "owner": "future-root-integration",
+      "requirement": "New reviewed bridge to provide authenticated compiled direct-module namespace to captureActor. Existing api.captureSemantic cannot supply generic actor namespace; api.captureActor does not exist.",
+      "state": "NOT_IMPLEMENTED_HERE"
+    },
+    {
+      "id": "RECIPE-BINDING",
+      "owner": "future-root-integration",
+      "requirement": "Bind the five new module projections and five source data aliases in a fresh complete recipe; oldv4 unchanged, no GO.",
+      "state": "NOT_ASSEMBLED"
+    },
+    {
+      "id": "COSTS",
+      "owner": "future-root-integration",
+      "requirement": "Account declared actor/assertion operation/storage/process/capture costs against reviewed cohort; no automatic old ceiling adoption.",
+      "state": "NOT_ADOPTED"
+    }
+  ],
+  "peerConsumption": "Only early ABI handed off; no evolving or sealed peer module loaded or incorporated in this packet",
+  "RootGO": false
+}

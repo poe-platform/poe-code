@@ -1,0 +1,190 @@
+{
+  "schema": 1,
+  "sourceCommit": "85795e5fe40849781723e3b4c7b6a4c56efbc938",
+  "evidenceRoot": "/private/tmp/yq-coverage-core-stubs-67b77a29-3a61-46c8-b7d1-2c0a0fb6551f",
+  "original": {
+    "files": {
+      "RESULT.json": {
+        "sha256": "66d31a363e6b0d2d6cc58f7aa1d160aacd08a2f1a30bf785acd622f14ea82c0f",
+        "bytes": 1896,
+        "mode": 384
+      },
+      "process.json": {
+        "sha256": "5d9a075995ef36d886a681117ca4b107468df7296e973053ff718d17d6fbee5d",
+        "bytes": 650,
+        "mode": 384
+      },
+      "scratch/source/SOURCE.txt": {
+        "sha256": "e49c81e2d2f84e259d40e2fb8192f3bcd198b355184845d76d8f58807d0d78ee",
+        "bytes": 11,
+        "mode": 420
+      },
+      "scratch/worker-failure/source-argument-failure.json": {
+        "sha256": "ea187389e94749f47d0b3b4bc2bedf256e5ca940521855f7025c627b36ab32cf",
+        "bytes": 358,
+        "mode": 384
+      },
+      "scratch/worker-failure/source-arguments-raw.json": {
+        "sha256": "c9d3c0b592f871bac325c6c4f6b72a1b10ff9674588328604a291f2465114130",
+        "bytes": 1741,
+        "mode": 384
+      },
+      "scratch/worker-success/source-arguments-raw.json": {
+        "sha256": "ec50794bd5d0a64b19c62811c910e8c5af8a91eb67075140e7b56af4c927ee25",
+        "bytes": 1741,
+        "mode": 384
+      },
+      "scratch/worker-success/source-audit.json": {
+        "sha256": "25abaa449325c10f5245fdf110949c76fca935743ee8c3dca27a96584bda6fed",
+        "bytes": 1825,
+        "mode": 384
+      },
+      "stderr.bin": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "mode": 384
+      },
+      "stdout.bin": {
+        "sha256": "7c7481850db3b7ba8991700831b0ecbb2354fb29f1437acb41dcfaefe72f2f47",
+        "bytes": 917,
+        "mode": 384
+      }
+    },
+    "directories": {
+      "": 493,
+      "scratch": 493,
+      "scratch/source": 493,
+      "scratch/worker-failure": 493,
+      "scratch/worker-success": 493
+    }
+  },
+  "archiveModeRole": "FRESH_0644_DATA_COPY_NOT_ORIGINAL_POSIX_MODE_PROOF",
+  "files": [
+    {
+      "original": {
+        "path": "/private/tmp/yq-coverage-core-stubs-67b77a29-3a61-46c8-b7d1-2c0a0fb6551f/RESULT.json",
+        "sha256": "66d31a363e6b0d2d6cc58f7aa1d160aacd08a2f1a30bf785acd622f14ea82c0f",
+        "bytes": 1896,
+        "mode": 384
+      },
+      "archived": {
+        "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/evidence/stubs-01/captured/RESULT.json",
+        "sha256": "66d31a363e6b0d2d6cc58f7aa1d160aacd08a2f1a30bf785acd622f14ea82c0f",
+        "bytes": 1896,
+        "mode": 420
+      }
+    },
+    {
+      "original": {
+        "path": "/private/tmp/yq-coverage-core-stubs-67b77a29-3a61-46c8-b7d1-2c0a0fb6551f/process.json",
+        "sha256": "5d9a075995ef36d886a681117ca4b107468df7296e973053ff718d17d6fbee5d",
+        "bytes": 650,
+        "mode": 384
+      },
+      "archived": {
+        "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/evidence/stubs-01/captured/process.json",
+        "sha256": "5d9a075995ef36d886a681117ca4b107468df7296e973053ff718d17d6fbee5d",
+        "bytes": 650,
+        "mode": 420
+      }
+    },
+    {
+      "original": {
+        "path": "/private/tmp/yq-coverage-core-stubs-67b77a29-3a61-46c8-b7d1-2c0a0fb6551f/scratch/source/SOURCE.txt",
+        "sha256": "e49c81e2d2f84e259d40e2fb8192f3bcd198b355184845d76d8f58807d0d78ee",
+        "bytes": 11,
+        "mode": 420
+      },
+      "archived": {
+        "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/evidence/stubs-01/captured/scratch/source/SOURCE.txt",
+        "sha256": "e49c81e2d2f84e259d40e2fb8192f3bcd198b355184845d76d8f58807d0d78ee",
+        "bytes": 11,
+        "mode": 420
+      }
+    },
+    {
+      "original": {
+        "path": "/private/tmp/yq-coverage-core-stubs-67b77a29-3a61-46c8-b7d1-2c0a0fb6551f/scratch/worker-failure/source-argument-failure.json",
+        "sha256": "ea187389e94749f47d0b3b4bc2bedf256e5ca940521855f7025c627b36ab32cf",
+        "bytes": 358,
+        "mode": 384
+      },
+      "archived": {
+        "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/evidence/stubs-01/captured/scratch/worker-failure/source-argument-failure.json",
+        "sha256": "ea187389e94749f47d0b3b4bc2bedf256e5ca940521855f7025c627b36ab32cf",
+        "bytes": 358,
+        "mode": 420
+      }
+    },
+    {
+      "original": {
+        "path": "/private/tmp/yq-coverage-core-stubs-67b77a29-3a61-46c8-b7d1-2c0a0fb6551f/scratch/worker-failure/source-arguments-raw.json",
+        "sha256": "c9d3c0b592f871bac325c6c4f6b72a1b10ff9674588328604a291f2465114130",
+        "bytes": 1741,
+        "mode": 384
+      },
+      "archived": {
+        "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/evidence/stubs-01/captured/scratch/worker-failure/source-arguments-raw.json",
+        "sha256": "c9d3c0b592f871bac325c6c4f6b72a1b10ff9674588328604a291f2465114130",
+        "bytes": 1741,
+        "mode": 420
+      }
+    },
+    {
+      "original": {
+        "path": "/private/tmp/yq-coverage-core-stubs-67b77a29-3a61-46c8-b7d1-2c0a0fb6551f/scratch/worker-success/source-arguments-raw.json",
+        "sha256": "ec50794bd5d0a64b19c62811c910e8c5af8a91eb67075140e7b56af4c927ee25",
+        "bytes": 1741,
+        "mode": 384
+      },
+      "archived": {
+        "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/evidence/stubs-01/captured/scratch/worker-success/source-arguments-raw.json",
+        "sha256": "ec50794bd5d0a64b19c62811c910e8c5af8a91eb67075140e7b56af4c927ee25",
+        "bytes": 1741,
+        "mode": 420
+      }
+    },
+    {
+      "original": {
+        "path": "/private/tmp/yq-coverage-core-stubs-67b77a29-3a61-46c8-b7d1-2c0a0fb6551f/scratch/worker-success/source-audit.json",
+        "sha256": "25abaa449325c10f5245fdf110949c76fca935743ee8c3dca27a96584bda6fed",
+        "bytes": 1825,
+        "mode": 384
+      },
+      "archived": {
+        "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/evidence/stubs-01/captured/scratch/worker-success/source-audit.json",
+        "sha256": "25abaa449325c10f5245fdf110949c76fca935743ee8c3dca27a96584bda6fed",
+        "bytes": 1825,
+        "mode": 420
+      }
+    },
+    {
+      "original": {
+        "path": "/private/tmp/yq-coverage-core-stubs-67b77a29-3a61-46c8-b7d1-2c0a0fb6551f/stderr.bin",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "mode": 384
+      },
+      "archived": {
+        "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/evidence/stubs-01/captured/stderr.bin",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "mode": 420
+      }
+    },
+    {
+      "original": {
+        "path": "/private/tmp/yq-coverage-core-stubs-67b77a29-3a61-46c8-b7d1-2c0a0fb6551f/stdout.bin",
+        "sha256": "7c7481850db3b7ba8991700831b0ecbb2354fb29f1437acb41dcfaefe72f2f47",
+        "bytes": 917,
+        "mode": 384
+      },
+      "archived": {
+        "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/evidence/stubs-01/captured/stdout.bin",
+        "sha256": "7c7481850db3b7ba8991700831b0ecbb2354fb29f1437acb41dcfaefe72f2f47",
+        "bytes": 917,
+        "mode": 420
+      }
+    }
+  ]
+}

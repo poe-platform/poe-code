@@ -1,0 +1,289 @@
+{
+  "schema": 1,
+  "sourceCommit": "85795e5fe40849781723e3b4c7b6a4c56efbc938",
+  "abiCommit": "96d48ee4d2690c8ce474460d57ce0362656ddd6f",
+  "authority": "HARNESS_IMPLEMENTATION_WITH_ONE_CONSUMED_SYNTHETIC_ATTEMPT_NOT_TARGET_GO",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "wholePackageSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+  "sourceProjectionFiles": 271,
+  "sourceArchiveFiles": 273,
+  "newProjectionModules": [
+    {
+      "source": {
+        "commit": "85795e5fe40849781723e3b4c7b6a4c56efbc938",
+        "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/own-data.mjs",
+        "sha256": "f46b7494817f6c2003caf4f838d7ac8d53e4c4d8b4bec8f9671ce1a24fc01289",
+        "bytes": 3785,
+        "mode": 420
+      },
+      "assemblyTarget": "core/coverage/own-data.mjs",
+      "preimage": "ABSENT_NEW_ADDITIVE_TARGET",
+      "postimageSha256": "f46b7494817f6c2003caf4f838d7ac8d53e4c4d8b4bec8f9671ce1a24fc01289",
+      "exports": [
+        "requireFact",
+        "ownRecord",
+        "projectData",
+        "canonicalData",
+        "sha256",
+        "dataHash",
+        "safePath"
+      ],
+      "candidateImports": 0
+    },
+    {
+      "source": {
+        "commit": "85795e5fe40849781723e3b4c7b6a4c56efbc938",
+        "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/contributions.mjs",
+        "sha256": "438db4de0a0c2d69d5118ce1cdd8904dbe7a08dd100edfc003689c12792739d3",
+        "bytes": 2902,
+        "mode": 420
+      },
+      "assemblyTarget": "core/coverage/contributions.mjs",
+      "preimage": "ABSENT_NEW_ADDITIVE_TARGET",
+      "postimageSha256": "438db4de0a0c2d69d5118ce1cdd8904dbe7a08dd100edfc003689c12792739d3",
+      "exports": [
+        "validateContribution",
+        "validateObservations"
+      ],
+      "candidateImports": 0
+    },
+    {
+      "source": {
+        "commit": "85795e5fe40849781723e3b4c7b6a4c56efbc938",
+        "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/source-arguments.mjs",
+        "sha256": "25d7affa6814319e25960e9b65f26f79e9b760147bf5b6f51cbbdc8c1b1d5913",
+        "bytes": 7244,
+        "mode": 420
+      },
+      "assemblyTarget": "core/coverage/source-arguments.mjs",
+      "preimage": "ABSENT_NEW_ADDITIVE_TARGET",
+      "postimageSha256": "25d7affa6814319e25960e9b65f26f79e9b760147bf5b6f51cbbdc8c1b1d5913",
+      "exports": [
+        "ingestSourceArguments"
+      ],
+      "candidateImports": 0
+    },
+    {
+      "source": {
+        "commit": "85795e5fe40849781723e3b4c7b6a4c56efbc938",
+        "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/source-files.mjs",
+        "sha256": "ffd0a7ad2a4574ae3287bb0ac0f10567ac85c818dd860556afd4de10a9ec8ab0",
+        "bytes": 1800,
+        "mode": 420
+      },
+      "assemblyTarget": "core/coverage/source-files.mjs",
+      "preimage": "ABSENT_NEW_ADDITIVE_TARGET",
+      "postimageSha256": "ffd0a7ad2a4574ae3287bb0ac0f10567ac85c818dd860556afd4de10a9ec8ab0",
+      "exports": [
+        "readSelectedSources"
+      ],
+      "candidateImports": 0
+    },
+    {
+      "source": {
+        "commit": "85795e5fe40849781723e3b4c7b6a4c56efbc938",
+        "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/source-audit-worker.mjs",
+        "sha256": "4c6726eea229b8e926ff325ce4ee1d05dc5d0061de8475a6fd2882d748f9728c",
+        "bytes": 2265,
+        "mode": 420
+      },
+      "assemblyTarget": "core/coverage/source-audit-worker.mjs",
+      "preimage": "ABSENT_NEW_ADDITIVE_TARGET",
+      "postimageSha256": "4c6726eea229b8e926ff325ce4ee1d05dc5d0061de8475a6fd2882d748f9728c",
+      "exports": [
+        "runWorker"
+      ],
+      "candidateImports": 0
+    }
+  ],
+  "importGraph": [
+    {
+      "path": "prepared/contributions.mjs",
+      "role": "ADDITIVE_HARNESS_SOURCE",
+      "imports": [
+        "./own-data.mjs"
+      ],
+      "sha256": "438db4de0a0c2d69d5118ce1cdd8904dbe7a08dd100edfc003689c12792739d3",
+      "bytes": 2902,
+      "mode": 420
+    },
+    {
+      "path": "prepared/own-data.mjs",
+      "role": "ADDITIVE_HARNESS_SOURCE",
+      "imports": [
+        "node:crypto"
+      ],
+      "sha256": "f46b7494817f6c2003caf4f838d7ac8d53e4c4d8b4bec8f9671ce1a24fc01289",
+      "bytes": 3785,
+      "mode": 420
+    },
+    {
+      "path": "prepared/run-synthetic.mjs",
+      "role": "SYNTHETIC_ONLY_DRIVER",
+      "imports": [
+        "node:child_process",
+        "node:crypto",
+        "node:fs",
+        "node:path",
+        "node:url"
+      ],
+      "sha256": "4a48fd06854f31864d922d30e0ba9fce511f9a392e18560028f3b20cf80dc369",
+      "bytes": 8239,
+      "mode": 420
+    },
+    {
+      "path": "prepared/source-arguments.mjs",
+      "role": "ADDITIVE_HARNESS_SOURCE",
+      "imports": [
+        "./own-data.mjs"
+      ],
+      "sha256": "25d7affa6814319e25960e9b65f26f79e9b760147bf5b6f51cbbdc8c1b1d5913",
+      "bytes": 7244,
+      "mode": 420
+    },
+    {
+      "path": "prepared/source-audit-worker.mjs",
+      "role": "ADDITIVE_HARNESS_SOURCE",
+      "imports": [
+        "./own-data.mjs",
+        "./source-files.mjs",
+        "./source-arguments.mjs"
+      ],
+      "sha256": "4c6726eea229b8e926ff325ce4ee1d05dc5d0061de8475a6fd2882d748f9728c",
+      "bytes": 2265,
+      "mode": 420
+    },
+    {
+      "path": "prepared/source-files.mjs",
+      "role": "ADDITIVE_HARNESS_SOURCE",
+      "imports": [
+        "node:fs",
+        "node:path",
+        "./own-data.mjs"
+      ],
+      "sha256": "ffd0a7ad2a4574ae3287bb0ac0f10567ac85c818dd860556afd4de10a9ec8ab0",
+      "bytes": 1800,
+      "mode": 420
+    },
+    {
+      "path": "prepared/synthetic-child.mjs",
+      "role": "SYNTHETIC_ONLY_DRIVER",
+      "imports": [
+        "node:assert/strict",
+        "node:fs",
+        "node:path",
+        "node:vm",
+        "./own-data.mjs",
+        "./contributions.mjs",
+        "./source-arguments.mjs",
+        "./source-files.mjs",
+        "./source-audit-worker.mjs"
+      ],
+      "sha256": "e91cdd937feb3998e6eb81e264c383a607823bc2051ddc093e819ebd6ce98e6f",
+      "bytes": 8542,
+      "mode": 420
+    }
+  ],
+  "importAudit": "STATIC_LITERAL_IMPORT_INSPECTION_NOT_EXECUTED_LOADER_PROOF",
+  "sourceDataAliases": {
+    "sourceManifest": {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/data/SOURCE-MANIFEST.json",
+      "sha256": "413432105677fcef5454d5f273d2b1dcb72ce014a52bf3e13e172af3a0a31286",
+      "bytes": 47504,
+      "mode": 420
+    },
+    "sourceOrigins": {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/data/SOURCE-ORIGINS.json",
+      "sha256": "be8b2275977c253f3b126ce9ad1a19f9d2de88d86e854c96676a729b9ed937c5",
+      "bytes": 62861,
+      "mode": 420
+    },
+    "sourceProofPlan": {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/data/SOURCE-PROOF-PLAN.json",
+      "sha256": "02d27ea317f1f4877279385097e3639892ee6be5d96c48c3b6a03ac5a3a6ca83",
+      "bytes": 13072,
+      "mode": 420
+    },
+    "coverageAllocation": {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/ALLOCATION.json",
+      "sha256": "2cd020b25855987f9d7af02d9e6e215f867f99d10c402c34d5e80513f92b0545",
+      "bytes": 628572,
+      "mode": 420
+    },
+    "sourceArguments": {
+      "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/data/SOURCE-ARGUMENTS.json",
+      "sha256": "61c2a514c9587712b264feb923e999d23fb000f5e1f6f69475871429253f4c2b",
+      "bytes": 31129,
+      "mode": 420
+    }
+  },
+  "argumentBinding": {
+    "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/SOURCE-BINDING.json",
+    "sha256": "00b18eb4e8c9b47e7b5d6fcc7aa5cbca685187b55560e1c2af051bf2a80b10c6",
+    "bytes": 14921,
+    "mode": 420
+  },
+  "sourceDependencyRead": "DATA_ONLY_BY_EXACT_SELECTED_PATH_ORIGIN_MANIFEST_SPAN_NOT_IMPORT",
+  "dispatch": {
+    "workerRole": "sourceAudit",
+    "module": "core/coverage/source-audit-worker.mjs",
+    "entry": "runWorker",
+    "abi": "yq-b8-core-worker-v1",
+    "implementation": "MODULE_EXISTS_BUT_FRESH_COMPLETE_RECIPE_DISPATCH_NOT_ASSEMBLED",
+    "existingMethodsUnchanged": true
+  },
+  "parentComponents": {
+    "commit": "0e8ee2900e7810b911f1335b0d3f05f23ce740c5",
+    "recipeSha256": "92b4c7b958b9f07b75c2f55fa719e83093317a506bb41f74526a4df09eed7c90",
+    "files": [
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/assembly/workers/type-worker.mjs",
+        "sha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/assembly/workers/loaded-worker.mjs",
+        "sha256": "be03ad51d6ef185093236776bf0b0f7dde17e520be6a4ed8505656dbeef4e26c"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/assembly/core/loader.mjs",
+        "sha256": "9c64aa1d79e065bc54af9f9f63ce985075215c8aae8d423b45c22181557b4065"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/assembly/core/owned-process.mjs",
+        "sha256": "b8fcbc43e1500f058c3dbc1942a438cd6da383135bebe05fcc2f6b175978d7fc"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/assembly/core/supervisor.mjs",
+        "sha256": "49c7c7050769e2c2edf71a27edd26790ac786e05dc6afbc02c93eba372d361a0"
+      }
+    ]
+  },
+  "pinnedTypeInputs": {
+    "name": "TYPE-BINDINGS",
+    "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+    "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/TYPE-BINDINGS.json",
+    "sha256": "de7ab09d0081fdf49f0619a255b9db9bff18e8076bc12770895a2716908bcb97",
+    "bytes": 9452,
+    "mode": 420
+  },
+  "historicalAuthority": {
+    "oldPacketsMutated": false,
+    "legacyModeRole": "ORIGINAL_MODE_UNATTESTED_ONLY_INERT_HISTORY",
+    "activeCodeModePolicy": "FRESH_REGULAR_PATH_KIND_MODE_SIZE_HASH_COMPLETE_MEMBERSHIP_REQUIRED",
+    "oldCandidateAuthorization": "CONSUMED_NOT_REUSED"
+  },
+  "futureCosts": {
+    "outerSlotsAdded": 0,
+    "compilerCallsAdded": 0,
+    "nativeChildrenAdded": 0,
+    "sourceTreeScanPasses": 2,
+    "maximumSourceTreeBytes": 67108864,
+    "maximumSourceEntries": 4096,
+    "metadataEstimateBytes": 524288,
+    "wallAuthority": "Future parent existing SOURCE_AUDIT phase only after reviewed binding; no independent clock reset or automatic adoption",
+    "sourceManifestBytes": 2497322,
+    "metadataEstimateNotExecutionAuthority": true,
+    "actorAssertionAdditionalCosts": "PENDING_SEALED_CONTRIBUTIONS_NO_AUTOMATIC_CEILING_REUSE"
+  },
+  "RootGO": false
+}

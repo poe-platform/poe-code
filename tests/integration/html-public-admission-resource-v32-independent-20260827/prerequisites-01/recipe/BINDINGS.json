@@ -1,0 +1,267 @@
+{
+  "schema": "html-v32-prerequisites-only-bindings/1",
+  "at": "2026-08-28T00:51:42.451Z",
+  "authorFreeze": "e27a62c40a317deae83fc1ef9d41d57f38d7d51d",
+  "authorManifestSha256": "968c52402f4c10507fb7c5410b33086bba33e7209b7030b42e7859b4c85c1980",
+  "authorEvidence": "2bfeb0e12e342c34cd163f2453c9edd8d0190630",
+  "authorEvidenceManifestSha256": "3c46668c88d0f01081020c19a93f761fe4b90e780e30406b75df0e4ccc858d3d",
+  "coreSha256": "446c14f2e12753b8933aa307f7ce8b0dec90dd251bbd613e64a484c26397340d",
+  "tools": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "git": {
+      "path": "/usr/bin/git",
+      "realpath": "/usr/bin/git",
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    "ps": {
+      "path": "/bin/ps",
+      "realpath": "/bin/ps",
+      "sha256": "1e46cdb824858eb32e4c85ca920ba31b4541a814a133980d8b3484f39942276c"
+    },
+    "tar": {
+      "path": "/usr/bin/tar",
+      "realpath": "/usr/bin/bsdtar",
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9",
+      "lstatSymlink": true
+    }
+  },
+  "protectedFiles": {
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/EVIDENCE-MANIFEST-V2.json": {
+      "sha256": "1c31d2411a5be6e3dd0a4f91089cbd73c9800c780d0619c1bd2e342543eec6b2",
+      "bytes": 5265
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/CLEANUP.json": {
+      "sha256": "06c3bbe7f73c12a793e30b83155fd0a59790edda44df053a646ab637ccd68852",
+      "bytes": 631
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/COMPACTION.json": {
+      "sha256": "2c024c6df5b3cb68c883284e4d1e15b355671fcb270c7f5380658730243406b6",
+      "bytes": 6958
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/EVIDENCE-MANIFEST.json": {
+      "sha256": "feb3574dadb2321325813de165222c04b9d4fdedd0c1449aa104257b5332a5b1",
+      "bytes": 3544
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/FINAL-AUTH.json": {
+      "sha256": "af04a9747e2c48d8569fdadad1394e61f39f9a1427f7a0ac3aed789ed932d4dc",
+      "bytes": 21631
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/HANDOFF.md": {
+      "sha256": "bea1a3a53699e0d1cc2fb924866d1eded13099adb53202183eda4b56363a602d",
+      "bytes": 3961
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/INVOCATION-LOCK.json": {
+      "sha256": "14d97cb9b2e40efaabfbb61bc3bd728ed8f1dc3f8114652a85bee37484272b08",
+      "bytes": 133
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/POSTSEAL-VERIFIER-FAILURE.json": {
+      "sha256": "31c6952f48b397a7c13ac976282e01f3e1ff3a50cb96c7c4ac8f13c97d707d57",
+      "bytes": 1687
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/RAW-INVENTORY.json": {
+      "sha256": "386c5998421a130a4532fa15fbfde56a71d6f7388b17346c9e288f0f2f0a1917",
+      "bytes": 16425
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/README.md": {
+      "sha256": "1faaf4ab8bd4c9459b8226dea9e5926cadc2130c8eeaa30213f77e491ca429ab",
+      "bytes": 9416
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/RESULT.json": {
+      "sha256": "c2e4d4ef1db07ace05ded97b6951acba4f235038140b7bdec71016013115ac09",
+      "bytes": 22817
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/ROOT-NOTE-CAPTURE.data": {
+      "sha256": "78ada5e63d1245dca287b2f179db2952663d1cad715cb2d0070074841d52757a",
+      "bytes": 1206
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/captures.tgz": {
+      "sha256": "b7c98a088b835831c23121e794e5bb946264db7ec9eccb6a5aacd78a42975ac3",
+      "bytes": 107288
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/recipe/ADAPTATION.json": {
+      "sha256": "3cc6b61bb0bc5cd98839b2614efabf627239cddb31b85349378d3644f8cf3163",
+      "bytes": 3449
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/recipe/MANIFEST.json": {
+      "sha256": "8970bef9f5b58b1c094fc08f70924b3209c683cc5a8f9e6542af63c218579f8d",
+      "bytes": 1709
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/recipe/PREFLIGHT.json": {
+      "sha256": "1d2d59ecc89948bcb61aeec274f33e98fd1b042339ad45133f0ffcbd99280696",
+      "bytes": 21631
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/recipe/REVIEW.md": {
+      "sha256": "f7993cb30e8b3e4ea07c11f65cde5a466c1d67a0438fd5527d7ed5a37b76813b",
+      "bytes": 9445
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/recipe/adapt.mjs": {
+      "sha256": "65aa0a647cb1f0222be2b388fdf67ebce4a7e70a718fb479004b5eba6c6b68e0",
+      "bytes": 3193
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/recipe/authenticate.mjs": {
+      "sha256": "a97584263a34160df70879803ae53879da0a4f8a28440f0d6096f7b1feb477cd",
+      "bytes": 6475
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/recipe/coordinator.mjs": {
+      "sha256": "dae7a0014e4af0aa2754e3cd0d99ddcd7f0ed0dd094a3e9c1b140aec9c73b74f",
+      "bytes": 21362
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/recipe/launch.mjs": {
+      "sha256": "94ab0fce4164a966efa2b8f3d9a8834fba2b255824447ffcc7c152c9b9d7db37",
+      "bytes": 5595
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/recipe/observe.mjs": {
+      "sha256": "b8ab3d6cfa6ba4a76667b45b7786312fa3a0ef1f3b629d87aa08c5c37f4b3836",
+      "bytes": 3558
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/recipe/postcheck.mjs": {
+      "sha256": "55b734cbaefddd2d785c6afafe4381ba2f2d0aecbf807d523e6729d10f90d69c",
+      "bytes": 11979
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/seal-evidence.mjs": {
+      "sha256": "702fb70e0104c114775827276f90a724594863a5f2c9fc98f45f26280512727c",
+      "bytes": 8774
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-resource-v32-independent-20260827/ROOT-COORDINATION.md": {
+      "sha256": "78ada5e63d1245dca287b2f179db2952663d1cad715cb2d0070074841d52757a",
+      "bytes": 1206
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/EVIDENCE-MANIFEST.json": {
+      "sha256": "80ec9d06bb883dfbac2d59548c615667a66339c84bd1bc7d2873e0e12cf59f82",
+      "bytes": 4360
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/ADAPTERS.json": {
+      "sha256": "0a9f2bbeea3445474a3fb61ecc1a319b1ec8c21c20d7c34eb744b657f314ab9a",
+      "bytes": 3758
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/COMPACT-CHECK-ATTEMPT-1.json": {
+      "sha256": "00dbfada30f4fa72572527662b8bfc6428b299aee89a06dcc3874cde4d6e8905",
+      "bytes": 7096
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/COMPACT-RAW.json": {
+      "sha256": "e349ea4dcea409c7ae2b23810e895dd70fb78b6bd34d9b00989ad78d44696739",
+      "bytes": 5089
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/COMPACT-VERIFIED.json": {
+      "sha256": "e28104a1c9593807712c09695a23ff380d0b4f7af34407c525c3e8da3bd87c45",
+      "bytes": 22734
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/PREPARE-AUTH.json": {
+      "sha256": "0fc697062b0422081a1be55005116cca9e2867d720489ff5523df15acc31ce53",
+      "bytes": 339516
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/README.md": {
+      "sha256": "8d8bdca44faaa893b3d12afacefc4edbfe6fddc1a51a1092a7dab1b56951a999",
+      "bytes": 7039
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/RECIPE-MANIFEST.json": {
+      "sha256": "1544db33f1f03514be7116740ce8692d158cadbdb832579017c4b7a106ddfd79",
+      "bytes": 2556
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/RECIPE.md": {
+      "sha256": "801e950b1f5caf4dabc1b2120c4f306cf87c4e2deab1b1a9484ea111649a728a",
+      "bytes": 6135
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/RESULT.json": {
+      "sha256": "c55b2e28717cefa7c668d756611753ca80a346f4560e949e720689eff6ef0293",
+      "bytes": 31237
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/STATIC-REVIEW.md": {
+      "sha256": "78948fbc19d2b3e0e95d2410922f5fd79e1c7792f5018fe15be429c9b6a45a27",
+      "bytes": 3507
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/adapt.mjs": {
+      "sha256": "9c9807e4aa45beeb2b561c8689d80edeb0ee346b8eef83b8d332c32ba53c9aec",
+      "bytes": 1725
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/captures.tgz": {
+      "sha256": "04fc9fd4c710507299f66b12f1fb9b886ee9cc1eaeb3eabe1889fd3eebd2f7cf",
+      "bytes": 2226016
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/common.mjs": {
+      "sha256": "6c4836dde1eb44c8b2438b55c2ed0b0e57994c616cb355b58bdf206ddbdc3560",
+      "bytes": 11405
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/execute.mjs": {
+      "sha256": "108b2590e7b0f04a7656a3b4aed2eb2a0beed3e340c7d199c72e1cf2ee7f4995",
+      "bytes": 10391
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/freeze.mjs": {
+      "sha256": "f455173e979bbade9ed40ed630f2032cfabe7b3a694833d63f32b121cfc7edbb",
+      "bytes": 1515
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/seal-evidence.mjs": {
+      "sha256": "4e208529e65b85f94032b3924b822a29244d39783fccc5a08d4c1f719155c0a2",
+      "bytes": 5958
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/trace.cjs": {
+      "sha256": "64b9615a9ee3227f8ff5def81c15007d09819536867221dbd129c04656764434",
+      "bytes": 5696
+    },
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-admission-partial-independent-20260827/verify.mjs": {
+      "sha256": "7face2f7c04efbaaea050dca61e6a4a4f729a15b751ab63d12aeb70f8e31379f",
+      "bytes": 6673
+    }
+  },
+  "allowedModules": {
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/synthetic-controls.mjs": "05fc8d5cfd1c781ebdffc1f8fd004289d76ee724363ecbc988167064c7c94202",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/terminal-predicate.mjs": "c18dbe90c7bb0648b35c0a0d9e42c0fa5390657fc03d981b967464598691d5cf",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-controls.mjs": "d4208d79df5eddb3efe452aff0246e46ad33fda10714ff50e6cf5eb22b09f9a9",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/forwarding-worker.mjs": "79f0ef55b5b962ae3d081d25e4d83e3150495bf3ee8da3accb65e82826cc9b1a",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/aggregation.mjs": "1a6dc464baccc9ac854eba8cd1643595dbb36a4d011247d2f9920e578f59b49d",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/authenticate.mjs": "a2db560c38e21c5fe01832c4b1d0385c7bcec659e9569b3e3b9964401476eb7f",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/bindings.mjs": "04ebbcbf54fcbb8eab15233741b818e74c993e17387b634f9b35e980f24199fc",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/recipe/telemetry.mjs": "d592ff13b02db74a5d51a238b4a3c76c7f03b0d460d53819731db856012f0e89",
+    "/Users/kjopek/Workspace/safe-bash/tests/integration/html-public-independent-20260827/admission-v3.2/read-only-verifier.mjs": "69b12ef36c077431a97fbaa4ba49263c11b3b61f549d6eb37c76ef790b1a19cb"
+  },
+  "policy": {
+    "bytes": 1073872896,
+    "producerWrites": 16386,
+    "sha256": "f5b4c8bf0f2f882ef51effdb305a5edf1c8c657d05ba2fd7594c679478fe668f",
+    "rssExclusiveBytes": 268435456,
+    "heapFlag": "--max-old-space-size=96",
+    "controlDeadlineMs": 45000,
+    "cleanupGraceMs": 3000,
+    "timeoutAfterReadyMs": 250,
+    "allocationStepBytes": 8388608,
+    "allocationMaxSteps": 40,
+    "allocationOvershootMaxBytes": 67108864,
+    "controls": [
+      "positive",
+      "producer-exit7",
+      "consumer-failure",
+      "timeout",
+      "allocation-mutant"
+    ]
+  },
+  "authorSourceDeltas": [],
+  "adapter": {
+    "description": "original exports and original readonly program; own output argument and observational --import only",
+    "changedAuthorFiles": 0,
+    "rewrittenFunctions": 0,
+    "replacedAssertions": 0,
+    "realCasesExcluded": [
+      "positive",
+      "producer-exit7",
+      "consumer-failure",
+      "timeout",
+      "allocation-mutant"
+    ]
+  },
+  "preflight": {
+    "authorFiles": 176,
+    "priorFiles": 78,
+    "fullAuthorInventories": true,
+    "actualPrerequisiteExecution": 0
+  },
+  "composition": {
+    "coreEvidence": "7f272e4bdee84d3a40b0e3b9c2577b74b12bc6ef",
+    "resourceEvidence": "49a35b8944728e05f3730a5a79aad91a5c9f8390",
+    "resourceQualification": "3eb9767d5d6e6ec97c5e3c860aceb096d89d6575",
+    "singleOriginalInvocation": false
+  }
+}

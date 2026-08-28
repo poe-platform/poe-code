@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "at": "2026-08-28T10:04:21.130Z",
+  "subcontrols": 2,
+  "layouts": 3,
+  "executions": 6,
+  "pass": 6,
+  "assertionFailures": 0,
+  "runtimeBlocked": 0,
+  "actualProductModules": [
+    {
+      "id": "C06-M",
+      "layout": "source",
+      "modules": 207
+    },
+    {
+      "id": "C06-R",
+      "layout": "source",
+      "modules": 207
+    },
+    {
+      "id": "C06-M",
+      "layout": "installed",
+      "modules": 207
+    },
+    {
+      "id": "C06-R",
+      "layout": "installed",
+      "modules": 207
+    },
+    {
+      "id": "C06-M",
+      "layout": "moved",
+      "modules": 207
+    },
+    {
+      "id": "C06-R",
+      "layout": "moved",
+      "modules": 207
+    }
+  ],
+  "sourceInputs": 265,
+  "packageMembers": 846,
+  "packageSha256": "15aa8d8dd6e78a9b7d12156ea2adaf93bd5f0037f13443e8928268c9d5215a18",
+  "rawRecords": 27,
+  "originalC06": "partial; root-versus-mapped-status contrast completed; genuine escaping-control/local selection remains source-only",
+  "oldCohortsReexecuted": 0,
+  "newBuilds": 0,
+  "newTypeCompiles": 0,
+  "native": 0,
+  "service": 0,
+  "guest": 0,
+  "provenanceRole": "actual root abort rejects; live outer ordinary false rethrow maps1+diagnostic; identity alone not proof",
+  "cleanupRole": "registered cooperative lookup and outer cleanup drained; natural direct children only, no independent descendant census",
+  "directoryModeRole": "full file and directory modes plus append-aware membership guarded before/after each new product execution"
+}

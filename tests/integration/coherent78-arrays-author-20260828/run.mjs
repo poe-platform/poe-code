@@ -13,7 +13,7 @@ assert.deepEqual(manifest, JSON.parse(await fs.readFile(path.join(own, 'SOURCE.j
 assert.equal(process.execPath, seal.tools.nodePath);
 assert.equal(process.version, seal.tools.nodeVersion);
 assert.equal(sha(await fs.readFile(process.execPath)), seal.tools.nodeSha256);
-const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR.json')));
+const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR-v2.json')));
 for (const [name, expected] of Object.entries(executor.files)) assert.equal(sha(await fs.readFile(path.join(own, name))), expected, name);
 const output = await fs.mkdtemp(path.join(os.tmpdir(), 'coherent78-arrays-author-'));
 console.log(JSON.stringify({ output, candidate: manifest.computedTree, sourceSha256: sha(await fs.readFile(path.join(own, 'SOURCE.json'))) }));

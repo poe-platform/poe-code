@@ -84,7 +84,7 @@ export function inputs() {
     baseEvidenceSha256: seal.baseEvidenceSha256, arrayBinding: { path: arrayPath, sha256: sha(arrayBytes) },
     inputs: [...rows.values()].sort((left, right) => Buffer.compare(Buffer.from(left.path), Buffer.from(right.path))),
     overrides, reconstructedTrees: newTrees, acceptedHelpers: helpers,
-    toolBindings: Object.fromEntries(Object.entries(base.tools).map(([name, value]) => [name, { origin: value.origin, version: value.version, sha256: value.sha256, regularInventorySha256: value.originalRows ? sha(Buffer.from(JSON.stringify(value.originalRows))) : undefined, regularFiles: value.originalRows?.length }])),
+    toolBindings: Object.fromEntries(Object.entries(base.tools).map(([name, value]) => [name, { origin: value.origin, version: value.version, ...(value.originalRows ? { regularInventorySha256: sha(Buffer.from(JSON.stringify(value.originalRows))), regularFiles: value.originalRows.length } : { sha256: value.sha256 }) }])),
     productExecutions: 0,
   };
   return { manifest, base, seal };

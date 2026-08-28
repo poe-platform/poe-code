@@ -1,0 +1,52 @@
+{
+  "schema": "R3_ORDERING_WHOLE_WORKER_STUB_HANDOFF",
+  "date": "2026-08-28",
+  "status": "SCOPED_AUTHOR_STUB_PROOF_COMPLETE_STOP_FOR_PRIORITY_PIVOT",
+  "candidateCommit": "f7b9f0d4dd2fc6edd721597ec9d3e7db05267c98",
+  "preparationCorrectionCommit": "fe8037019610a48522a8b1b4fc8987657cfa6d7e",
+  "exactInputsAndLaunchCommit": "d306b837da24fa970ded9ca6a0a99fe7a76ae342",
+  "bindings": {
+    "worker": { "path": "worker.mjs", "bytes": 11608, "sha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f" },
+    "recipe": { "path": "SEAL.json", "bytes": 105131, "sha256": "bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c", "inputs": 396 },
+    "interface": { "path": "INTERFACE.json", "bytes": 10977, "sha256": "f6c3965ad7b31747dad30b3357de8813a28b3c18963a39ad04582358e3f55c18" },
+    "testAdapter": { "path": "runs/control-preparation-v2/SEAL.json", "bytes": 1182, "sha256": "121fbcacbd52607121e04f1a78cad84449519991e63d7df4ffc4bc1a18edaec1" },
+    "preparation": { "path": "runs/ordering-stubs-v2-01/PREPARATION.json", "bytes": 6683, "sha256": "8c801e9cb97ef940b8df1515c04b55f0b4b601218b13c8e00860d75541c6ce71" },
+    "fixtureInputs": { "path": "runs/ordering-stubs-v2-01/FIXTURES.json", "bytes": 238443, "sha256": "b1f2b738f21482114d154e1b94b4d8d29565d7394692b46cea4dbb0586d65413" },
+    "result": { "path": "runs/ordering-stubs-v2-01/receipts/RESULT.json", "bytes": 16989, "sha256": "b428af233f1b28dd056df688d086219a2feb0f24f9e14976831b371826e1ac11" },
+    "launcherOutcome": { "path": "runs/ordering-launch-01/evidence/OUTCOME.json", "bytes": 1073, "sha256": "9c0ecd6c6fe8d8b8cab944eb85d3cb540ff9f3edd68b573a8ef7f45cb2989362" },
+    "archiveManifest": { "path": "runs/ordering-evidence-01/MANIFEST.json", "bytes": 233991, "sha256": "068210ffd9e1876b18e016245ee51a44477a21afc0e1f43bdb09e7f54dc7abc8" }
+  },
+  "actual": {
+    "invocations": 1, "families": 8, "pass": 8, "fail": 0, "unrun": 0, "unsafe": false,
+    "positiveWorkers": 1, "expectedNonzeroWorkers": 7,
+    "workers": 8, "metadataStubProcesses": 16, "runner": 1, "all25ReapedAndAbsent": true,
+    "workerHelperNextLoadWitnesses": 333, "ofWhichHarmlessPackageLoads": 13,
+    "actualOfflineInstallations": 5, "successorOfflineInstallations": 4, "oldReversionOfflineInstallations": 1,
+    "authorityValidationBodiesExecuted": 8, "realGitAuthority": 0,
+    "realTargetOrComparatorEvaluation": 0, "realPackageStaging": 0, "C11": 0, "admission": 0, "semantics": 0,
+    "runnerExit": 0, "runnerClose": 0, "runnerStdoutBytes": 219, "runnerStderrBytes": 0, "runnerFD3Bytes": 245,
+    "supervisorFailures": 0, "signals": 0, "captureLoss": 0
+  },
+  "cases": [
+    { "id": "S01", "outcome": "PASS positive", "exit": 0, "wholeWorker": "successor", "guards": "actual loader/offline before all4 harmless returned-source loads", "queries": "module then worker_threads,undefined,zero delegation,revoked before factory" },
+    { "id": "S02", "outcome": "PASS expected rejection", "exit": 1, "wholeWorker": "exact old r2 reversion", "primary": "OFFLINE_DENIED fs.lstatSync", "stubLoads": 0 },
+    { "id": "S03", "outcome": "PASS expected rejection", "exit": 1, "primary": "LOAD_METADATA after authenticated-source drift", "secondary": ["bootstrap-close BOOTSTRAP_INCOMPLETE_OR_VIOLATION", "post-view FILE_METADATA"], "qualification": "Intentional mutation negative, not generic cleanup-failure acceptance; original metadata bytes retained and only declared suffix/mode restoration allowed." },
+    { "id": "S04", "outcome": "PASS expected rejection", "exit": 1, "primary": "BOOTSTRAP_CONSUMER wrong wrapper", "stubLoads": 0 },
+    { "id": "S05", "outcome": "PASS expected rejection", "exit": 1, "primary": "BOOTSTRAP_CONSUMER wrong mode", "stubLoads": 0 },
+    { "id": "S06", "outcome": "PASS expected rejection", "exit": 1, "primary": "ROOT_GRANT_SCHEMA actual validator rejects stub signed role", "stubLoads": 0 },
+    { "id": "S07", "outcome": "PASS expected rejection", "exit": 1, "primary": "caught actual offline fs.lstatSync violation during first index evaluation still fails worker" },
+    { "id": "S08", "outcome": "PASS expected rejection", "exit": 1, "primary": "caught actual offline fs.lstatSync violation in factory after consumer-evaluated/window revocation still fails worker" }
+  ],
+  "adapterQualifications": [
+    "Entire successor worker and authorization/operation/loader/offline function bodies execute byte-identically in mirrored owned fixtures. S02 is explicitly old full worker.",
+    "Bootstrap profile DATA substitutes exact harmless source identities; all bootstrap function bodies stay byte-identical. Fixture profile construction is not proof of original profile immutability under hostile host mutation.",
+    "Metadata executable is a bound Node stub. Production role strings in its receipts do NOT mean real Git authority; fixture recipes and inert reference commits cannot authorize the real successor.",
+    "333 nextLoad observations cover eight worker/helper graphs, including13 package loads; metadata-provider and runner source/tool bindings are not claimed as observed nextLoad.",
+    "Eight workers and runner use256MiB old-space. Metadata stubs use the unchanged authority adapter's10-second/64KiB capture bound and fixed Node shebang; no explicit256MiB heap flag or RSS measurement is claimed for those16 metadata processes.",
+    "Null final resource reports in expected early failures remain unmeasured. S01/S07/S08 retain pending0/descriptors0; S07/S08 each retain one deliberate violation."
+  ],
+  "preparationFailure": "Original DATA-only createStore call lacked required shared budget: SHARED_EVIDENCE_BUDGET_REQUIRED, zero worker/metadata execution. Original eight partial trees and tool-output failure preserved. Versioned test-only correction supplies existing64MiB budget and fresh output path; same latent driver call fixed before first execution. Original production recipe and all assertions unchanged.",
+  "archive": { "files": 1059, "rawBytes": 4798926, "compressedBytes": 1739899, "parts": 7, "allRawBytesModesHashesRoundTripVerified": true, "includesOriginalPartialPreparation": true },
+  "history": "25cbb03f remains consumed UNSAFE_STOP3/14 with actual target211loads each, comparator0 and numeric countersUNKNOWN. No rescore;34files/915stdout retained. Older30+1/7of8/31of33/F08EPERM/V6lost294045/oversized artifacts/consumed grants/W07unqualified unchanged.",
+  "next": "Stop at handoff under root priority pivot. Archimedes focused whole-worker review may defer until priority command designs. No real admission without a fresh root grant; no other cycle or priority-command work started."
+}

@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "status": "EXACT_EXISTING_TOOL_ROLES_NO_NEW_TOOLS",
+  "workerAbi": "yq-b8-core-worker-v1",
+  "boundary": "worker-api.mjs runTool -> projectToolRequest(call, request.job.phase) -> TOOL rpc -> serialization",
+  "shapes": [
+    {
+      "kind": "compiler",
+      "phase": "BUILD",
+      "ownKeys": [
+        "kind",
+        "configPath",
+        "timeoutMs"
+      ],
+      "values": {
+        "kind": "compiler",
+        "configPath": "primitive string, lexical absolute normalized path; parent proves canonical regular/enrolled scratch file",
+        "timeoutMs": 120000
+      }
+    },
+    {
+      "kind": "compiler",
+      "phase": "TYPES",
+      "ownKeys": [
+        "kind",
+        "configPath",
+        "timeoutMs"
+      ],
+      "values": {
+        "kind": "compiler",
+        "configPath": "primitive string, lexical absolute normalized path; parent proves canonical regular/enrolled scratch file",
+        "timeoutMs": 60000
+      }
+    },
+    {
+      "kind": "git-tree",
+      "phase": "AUTHENTICATION",
+      "ownKeys": [
+        "kind",
+        "revision",
+        "path"
+      ],
+      "values": {
+        "kind": "git-tree",
+        "revision": "primitive lowercase40hex string",
+        "path": "primitive nonempty string; parent requires exact presealed revision/path tuple"
+      }
+    },
+    {
+      "kind": "git-show",
+      "phase": "AUTHENTICATION",
+      "ownKeys": [
+        "kind",
+        "revision",
+        "path"
+      ],
+      "values": {
+        "kind": "git-show",
+        "revision": "primitive lowercase40hex string",
+        "path": "primitive nonempty string; parent requires exact presealed revision/path tuple"
+      }
+    }
+  ],
+  "ownData": {
+    "root": "nonnull object, not Array; no prototype/realm identity comparison",
+    "properties": "exactly3 own string keys; every descriptor must be data; symbols/nonenumerable or undefined extras rejected; inherited required fields cannot satisfy keys",
+    "descriptorFlags": "Required own data may be nonenumerable/nonwritable/nonconfigurable; role schema does not constrain flags. Projection makes required fields enumerable and frozen.",
+    "insertionOrder": "Input record insertion order is not role meaning; existing parent key comparison sorts names. Fresh output uses the declared ownKeys order.",
+    "sequences": "No caller arrays/nested objects accepted in any declared value. Sparse/dense arrays are rejected, not normalized; call admission order is unchanged.",
+    "strings": "Nonempty,noNUL,at most262144UTF16codeunits: a necessary coarse condition for existing262144-byte IPC bound, not a new path budget. Existing exact byte/enrollment/config checks still apply.",
+    "projection": "New frozen null-prototype record; primitive values only; no original alias or inherited toJSON survives",
+    "reasons": "No catch/rethrow wrapping. async runTool retains exact rejection reason from reflection or rpc within child; no new cross-process identity claim."
+  },
+  "parentChecksUnchanged": [
+    "role and exact serialized keys",
+    "config actual path and membership",
+    "fixed tool/argv/environment and copied byte identity",
+    "generated build/type config enrollment",
+    "selected Git revision/path tuple",
+    "one in-flight tool and counters",
+    "absolute slot/phase/global deadline and cleanup/reap",
+    "negative compiler result vs worker exit semantics"
+  ],
+  "callSites": [
+    {
+      "phase": "BUILD",
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/build-worker.mjs",
+      "sha256": "3ad2268b34242f2ae5f58e0be611e77dd43c3387fe19139fc52ab31e85fbfbf4",
+      "bytes": 21275,
+      "line": 79,
+      "exactConstruction": "const compilerRequest = { kind: 'compiler', configPath, timeoutMs: 120000 };"
+    },
+    {
+      "phase": "TYPES",
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/type-worker.mjs",
+      "sha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd",
+      "bytes": 11186,
+      "line": 137,
+      "exactConstruction": "api.runTool({ kind: 'compiler', configPath: prepared.configPath, timeoutMs: 60000 })"
+    },
+    {
+      "phase": "AUTHENTICATION",
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/infrastructure-worker.mjs",
+      "sha256": "51c769446a0d758ab080dcde5c3a0ea31285249c943d10ebdcd7da6c9467077a",
+      "bytes": 9628,
+      "line": 16,
+      "exactConstruction": "api.runTool({ kind: 'git-tree', revision: origin.revision, path: origin.path })"
+    },
+    {
+      "phase": "AUTHENTICATION",
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/infrastructure-worker.mjs",
+      "sha256": "51c769446a0d758ab080dcde5c3a0ea31285249c943d10ebdcd7da6c9467077a",
+      "bytes": 9628,
+      "line": 20,
+      "exactConstruction": "api.runTool({ kind: 'git-show', revision: origin.revision, path: origin.path })"
+    }
+  ],
+  "otherRpcKindsUnchanged": true,
+  "rootGO": false,
+  "targetExecutions": 0
+}

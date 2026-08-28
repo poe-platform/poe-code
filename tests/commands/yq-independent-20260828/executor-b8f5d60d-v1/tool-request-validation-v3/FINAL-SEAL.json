@@ -1,0 +1,146 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "AUTHOR_STATIC_SOURCE_OVERLAY_SEAL_ONLY",
+  "ownedRoot": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/tool-request-validation-v3",
+  "parentComposition": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+  "finding": {
+    "id": "FC-F01",
+    "commit": "2df1dab10c3176a35f4160fa12c460a7abc592fe",
+    "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/FC-F01-STATIC-WITNESS.json",
+    "sha256": "0eb85eb7515432bae8f8118e1016243216a1295d1d60120746bcd957cd2fbf31"
+  },
+  "targetPostimages": [
+    {
+      "source": "worker-api.mjs",
+      "target": "core/worker-api.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 13289,
+      "sha256": "9b9ef9ab1aa83e76678d72dc6a99407623dd16822e220ea427d553dd2545e3ec",
+      "lines": 185
+    },
+    {
+      "source": "tool-request.mjs",
+      "target": "core/tool-request.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2557,
+      "sha256": "bac59cab6cbed385817dc22f616c0fdf407cc490319cd42b6fb9b4e54209a4ad",
+      "lines": 47
+    }
+  ],
+  "root": {
+    "kind": "directory",
+    "mode": 493
+  },
+  "exactMembership": [
+    "DEFERRED-CONTROLS.json",
+    "FINAL-SEAL.json",
+    "INPUTS.json",
+    "OVERLAY.json",
+    "README.md",
+    "ROLE-SHAPES.json",
+    "SPECIFICATION.md",
+    "STATIC-CHECKS.json",
+    "tool-request.mjs",
+    "worker-api.mjs"
+  ],
+  "files": [
+    {
+      "path": "DEFERRED-CONTROLS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 15902,
+      "sha256": "32392a27752762189644975bae88d3c93e919d50c0fe8c110ebd366e2bd1fdaf"
+    },
+    {
+      "path": "INPUTS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3094,
+      "sha256": "8ad1d3329b52e0ce1ac34ee6b5a57dc26012fe1b4f4035edf5b91aa9bdfba92c"
+    },
+    {
+      "path": "OVERLAY.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4271,
+      "sha256": "2d31ea4c244af9c0a036822bd5150984e0a047f20777493bb41b1c05b485c1fe"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1527,
+      "sha256": "deac6b21732cc0172db2f27dbaa04cc8319613d2652dac0cd0688750d488f1fc"
+    },
+    {
+      "path": "ROLE-SHAPES.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5343,
+      "sha256": "b493d1ea84ca558ce5cab7fec9f7d2cd64f22227b62adda6a89e56290e0f0354"
+    },
+    {
+      "path": "SPECIFICATION.md",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6526,
+      "sha256": "095030695041dd6ee581cb3ea3d6ac0ce680471839de9c412825fc493d2bff3a"
+    },
+    {
+      "path": "STATIC-CHECKS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2398,
+      "sha256": "43e1944532b66564ed3e9e95d0713c5a08c9276e20431436e9a246181d3610c4"
+    },
+    {
+      "path": "tool-request.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2557,
+      "sha256": "bac59cab6cbed385817dc22f616c0fdf407cc490319cd42b6fb9b4e54209a4ad"
+    },
+    {
+      "path": "worker-api.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 13289,
+      "sha256": "9b9ef9ab1aa83e76678d72dc6a99407623dd16822e220ea427d553dd2545e3ec"
+    }
+  ],
+  "self": {
+    "path": "FINAL-SEAL.json",
+    "kind": "file",
+    "mode": 420,
+    "sha256": "EXTERNAL_HANDOFF_REQUIRED_SELF_EXCLUDED_TO_AVOID_CIRCULAR_HASH"
+  },
+  "closurePolicy": "Exactly these ten regular files, no additional entries or directories; future active projection requires fresh full path/kind/mode/size/hash admission and new complete assembly/recipe seal. This source overlay is not currently imported or enrolled.",
+  "checks": {
+    "sourceSyntaxOnly": 2,
+    "specificationWarnings": 0,
+    "findingAuthenticated": true,
+    "parentPreimagesAuthenticated": 4,
+    "workerApiInverseEditByteEquality": true,
+    "deferredControlRecords": 24,
+    "deferredControlExecutions": 0,
+    "productExecutions": 0,
+    "authoredModuleImports": 0
+  },
+  "preserved": {
+    "parentChecks": true,
+    "workerMethodAbi": true,
+    "phaseBudgets": true,
+    "candidate": true,
+    "frozenFinding": true
+  },
+  "recipeRecomposed": false,
+  "rootGO": false,
+  "remaining": [
+    "Different reviewer static inspection of this sealed overlay",
+    "Root-selected future fresh composition after frozen b1 review completes",
+    "Separate future authorized deferred controls; no acceptance from this seal"
+  ]
+}

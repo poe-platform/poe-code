@@ -1,0 +1,179 @@
+{
+  "schema": 1,
+  "strict": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": false,
+    "noEmit": true
+  },
+  "fixtures": [
+    {
+      "id": "TYP-01",
+      "name": "positive",
+      "fixture": "fixtures/positive.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "accept",
+      "diagnostic": null,
+      "authority": "final#/publicApi",
+      "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/positive.mts.data",
+      "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "TYP-02",
+      "name": "factory-command-extra",
+      "fixture": "fixtures/factory-command-extra.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2554,
+        "line": 2
+      },
+      "authority": "final#/publicApi",
+      "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/factory-command-extra.mts.data",
+      "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "TYP-02",
+      "name": "factory-array-extra",
+      "fixture": "fixtures/factory-array-extra.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2554,
+        "line": 2
+      },
+      "authority": "final#/publicApi",
+      "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/factory-array-extra.mts.data",
+      "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "TYP-03",
+      "name": "unknown-limits",
+      "fixture": "fixtures/unknown-limits.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2353,
+        "line": 2
+      },
+      "authority": "final#/publicApi",
+      "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/unknown-limits.mts.data",
+      "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "TYP-03",
+      "name": "replace-string",
+      "fixture": "fixtures/replace-string.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2322,
+        "line": 2
+      },
+      "authority": "final#/publicApi",
+      "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/replace-string.mts.data",
+      "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "TYP-07",
+      "name": "replace-undefined",
+      "fixture": "fixtures/replace-undefined.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2379,
+        "line": 2
+      },
+      "authority": "final#/publicApi",
+      "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/replace-undefined.mts.data",
+      "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+      "state": "UNRUN_NO_SUCCESSOR_GO"
+    },
+    {
+      "id": "TYP-04",
+      "name": "hidden-limits",
+      "fixture": "fixtures/hidden-limits.mts.data",
+      "mode": "PUBLIC_ONLY",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      },
+      "authority": "final#/publicApi + final#/privateAdapter",
+      "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-limits.mts.data",
+      "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+      "state": "UNRUN_PUBLIC_EXPORT_GAP"
+    },
+    {
+      "id": "TYP-04",
+      "name": "hidden-defaults",
+      "fixture": "fixtures/hidden-defaults.mts.data",
+      "mode": "PUBLIC_ONLY",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      },
+      "authority": "final#/publicApi + final#/privateAdapter",
+      "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-defaults.mts.data",
+      "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+      "state": "UNRUN_PUBLIC_EXPORT_GAP"
+    },
+    {
+      "id": "TYP-04",
+      "name": "hidden-session",
+      "fixture": "fixtures/hidden-session.mts.data",
+      "mode": "PUBLIC_ONLY",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      },
+      "authority": "final#/publicApi + final#/privateAdapter",
+      "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-session.mts.data",
+      "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+      "state": "UNRUN_PUBLIC_EXPORT_GAP"
+    },
+    {
+      "id": "TYP-04",
+      "name": "hidden-factory",
+      "fixture": "fixtures/hidden-factory.mts.data",
+      "mode": "PUBLIC_ONLY",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      },
+      "authority": "final#/publicApi + final#/privateAdapter",
+      "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-factory.mts.data",
+      "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+      "state": "UNRUN_PUBLIC_EXPORT_GAP"
+    },
+    {
+      "id": "TYP-04",
+      "name": "hidden-parser",
+      "fixture": "fixtures/hidden-parser.mts.data",
+      "mode": "PUBLIC_ONLY",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      },
+      "authority": "final#/publicApi + final#/privateAdapter",
+      "fixtureReference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/fixtures/hidden-parser.mts.data",
+      "lookup": "Inspect actual future declarations and authenticated package map/exports; substitute only existing @@YQ@@/@@CONTRACTS@@ tokens. No workspace/source loader/path alias or invented symbol.",
+      "state": "UNRUN_PUBLIC_EXPORT_GAP"
+    }
+  ],
+  "classification": "Exact declared diagnostic code/line and consumed file list, not any compiler error. Expected compiler exit1/2 only inside zero-exit worker. Worker/parent nonzero always FAIL.",
+  "wholeRepoTypecheck": "NOT_RUN; foreign unclassified.mts is neither waived nor feature-green",
+  "publicAdmission": false
+}

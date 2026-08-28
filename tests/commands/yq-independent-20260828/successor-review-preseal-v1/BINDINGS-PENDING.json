@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "cmd22": {
+    "state": "SEALED_STATIC_HANDOFF_BOUND_NO_EXECUTION_AUTHORITY",
+    "revision": "87dad0c17a425fa1347e01fefe8844679e3761e0",
+    "receipt": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/SOURCE-PRESEAL.json",
+    "expectedHash": "f6d4c3fb6d307d9b51d605d4fdae38eb7691b958e2c3a2ad2b604de82115de88",
+    "adapter": {
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/adapter.mjs",
+      "sha256": "4c32d0f793079986d2fd2882b4db4bb8d9883349f8858b238fedc44dcfb42cea",
+      "export": "prepareCmd22AssertionAdapter({ assertCaptureSource, contextSource, integritySource })",
+      "invoked": false
+    },
+    "adaptation": {
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/ADAPTATION.json",
+      "sha256": "5390e1a8efe69786af65b9825331cc22e6698f77d0ca4fde0681dd8c94ba943d",
+      "expectedOutputHashes": {
+        "assert-capture.mjs": "d2fcd8245b3d95fc73fabd1d3681f614502fdb0bac487be57d9605d53f55f3d0",
+        "cmd22-read-paths.mjs": "d36de36810f3b347a954ced9384851cf22c84358d09976404ed5c59b5476a647",
+        "cmd22-binding.json": "ce3fafdda9008b13d90f23cc48254e0c7592c806b09711f3fcbdca39831efe71"
+      }
+    },
+    "controls": {
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v3-cmd22/DEFERRED-CONTROLS.json",
+      "sha256": "7945be17c3a132cf94382d5bc4b33768fb7a6c2fc93546a0fb7d875054057bb8",
+      "count": 31,
+      "executed": 0,
+      "workerId": "CONTROL-CMD22-31",
+      "expectedFailurePolicy": "Expected assertion rejection stays inside a zero-exit classifier worker; any actual worker nonzero is aggregate FAIL."
+    },
+    "grantsGO": false,
+    "independentReviewReceipt": null,
+    "requirement": "Exact CMD22 operand-to-resolved path domain only. Preserve all original argv/input/files/status/stdout/effects; old raw FAIL immutable. New candidate/complete recipe authorizer still required."
+  },
+  "artifactHandoff": {
+    "state": "SEALED_HISTORICAL_REFERENCE_ONLY",
+    "sourceRevision": "903860c4fc34dd5482a3fc751dab8a25d85851c9",
+    "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+    "receipt": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/FINAL-SEAL.json",
+    "expectedHash": "06869ce7eb6f673795004443b098fdcbeba20d03c67f4f9f210bd639bf3fa23f",
+    "grantsGO": false,
+    "oldAggregate": "FAIL",
+    "newExecutions": 0
+  },
+  "waitPolicy": "No indefinite wait; bind only an authenticated sealed handoff before final freeze."
+}

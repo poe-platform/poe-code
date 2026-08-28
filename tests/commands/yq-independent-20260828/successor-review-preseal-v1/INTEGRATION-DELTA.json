@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "state": "PROPOSED_ONLY_NO_IMPLEMENTATION_OR_EXPORTS",
+  "oldSourcesReadOnly": true,
+  "currentGaps": [
+    {
+      "id": "CLOCK-1",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/host.mjs:18",
+      "fact": "validateBounds caps one entire owned child at30000ms; it does not isolate admission/materialization/import/command/cleanup."
+    },
+    {
+      "id": "CLOCK-2",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/run.mjs",
+      "fact": "600000ms total-admission check wraps sequential jobs; all prior moves are rescanned, and parent guard/capture wall time is outside child elapsed."
+    },
+    {
+      "id": "CLOCK-3",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/integration-v2/core/worker.mjs",
+      "fact": "authorizeCandidate/materializeCandidate/import/createFixtureContext/execute/drain share one worker. No trusted setup-versus-semantic timestamps exist."
+    },
+    {
+      "id": "TYPE-1",
+      "reference": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/type-worker.mjs:105",
+      "fact": "Six synchronous compiler invocations each allow60s, but old outer worker allowed only30s. Public admission always gaps. This is not made runnable by a README budget change."
+    },
+    {
+      "id": "AUTH-1",
+      "fact": "Old integration packet paths, author-artifact-only classification, consumer SOURCE-AUTHORITY and runtime candidate pin bind35da. Repaired candidate cannot use them as current authority."
+    },
+    {
+      "id": "PROJ-1",
+      "fact": "Old unknown-obligation guard throws before full projection; nested declared aliases and missing private observations need separate honest classification, not stripping fields."
+    },
+    {
+      "id": "MUT-1",
+      "fact": "Old loaded-code worker only checks factory exports. Ordinary candidate guard correctly rejects mutations; that is not actual-loaded mutant execution."
+    }
+  ],
+  "proposedWriteSet": [
+    "NEW successor-executor-v1/** under a separately assigned owner",
+    "NEW successor runtime/consumer authority data or narrowly versioned helpers under their separately assigned owners",
+    "NO edits to integration-v2/runtime-v2/consumers-v2/actual review history or product"
+  ],
+  "minimumProposedAPIs": [
+    {
+      "name": "startCohort(immutableBindings, absoluteDeadlinePlan)",
+      "implemented": false,
+      "need": "Root receipt/hash gate, one monotonic t0, one owner/supervisor, no restart/resume/implicit retries."
+    },
+    {
+      "name": "runOwnedStage(job, absoluteDeadlines, toolBudget)",
+      "implemented": false,
+      "need": "Whole-record caps from SCHEDULE, independently enforced supervisor and exact tool/group registration, fixed count ceiling; no global reset."
+    },
+    {
+      "name": "capturePhase(event, monotonicTimestamp, jobBinding)",
+      "implemented": false,
+      "need": "Setup starts before authorization, admission ends before factory/import execution, command start/settlement, drain and reap, guard/capture ends. Trusted wrapper emits ordered events, not candidate hooks. No claimed phase proof before implementation/review."
+    },
+    {
+      "name": "classifyCapturedProjection(raw, frozenRecord, obligationBindings)",
+      "implemented": false,
+      "need": "Preserve original expectation data, evaluate separately bound declared aliases, retain every unresolved obligation as UNRUN; no invented prose predicates or product-failure inheritance."
+    },
+    {
+      "name": "runScopedTypes(binding, fixtureSelection, absoluteDeadlines)",
+      "implemented": false,
+      "need": "Six existing direct fixtures, separate conditional five public fixtures, byte capture before diagnostic parsing and bounded11 compiler calls; reject wrong diagnostics/nonzero worker."
+    },
+    {
+      "name": "runLoadedMutant(mutantAuthorization, frozenWitness)",
+      "implemented": false,
+      "need": "Fresh separately bound control-package bytes, actual loaded/invoked mutant and unchanged frozen witness; distinguish killed/survived/unloaded. Never relax pristine-candidate guards."
+    }
+  ],
+  "cmd22": "Bind sealed different-owner87dad0c adapter and exact output map in BINDINGS-PENDING.json; no call/import here. Preserve old failure and non-CMD22 rules. Different review and fresh complete recipe remain required.",
+  "sourceAudit": "Extraction/static report worker is not an automatic allocation-order prover; fresh line/hash evidence and independently bound reviewer arguments are required for all23 obligations/four repairs.",
+  "phaseEventsProvedNow": false,
+  "codeImplementationRequiredBeforeGO": true,
+  "configAloneSufficient": false,
+  "stageBoundaries": {
+    "implemented": false,
+    "recordOrder": [
+      "owner:slot-reservation-and-phase-start",
+      "worker:setup-start",
+      "worker:source-recipe-package-authenticated",
+      "worker:runtime-admitted",
+      "worker:setup-end",
+      "worker:compiled-import-start",
+      "worker:compiled-import-end",
+      "worker:command-invocation-start",
+      "worker:command-settlement-or-rejection",
+      "worker:cooperative-drain-settled-or-expired",
+      "worker:raw-capture-published",
+      "worker:projection-classification",
+      "worker:receipt-published",
+      "owner:child-exit-and-known-reap",
+      "owner:post-integrity-complete",
+      "owner:next-admission-gate"
+    ],
+    "clockDomain": "Owner timestamps from one monotonic clock; child phase messages are captured observations, not independent authority. Absolute deadlines sent over authenticated job binding; owner remains responsible for enforcement.",
+    "semanticWindow": "30s includes compiled import, invocation and cooperative settlement; no product instrumentation. Setup/admission is separate only after proposed wrapper exists.",
+    "cleanup": "Reserve within slot. Reap can precede postguard; no continuation until both positive. Always raw byte/status capture before any assertion. Escape or unknown reap stops admissions; no opaque preemption guarantee."
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "fixtureVersion": 2,
+  "frozenAt": "2026-08-28",
+  "cases": [
+    {
+      "id": "B01-R01-budget-observed-control",
+      "expected": "an exact observed budget-control failure remains the captured object after outer invoke abort"
+    },
+    {
+      "id": "B01-R02-pipeline-observed-falsy",
+      "expected": "an exact observed pipeline-control false failure remains false after outer invoke abort"
+    },
+    {
+      "id": "B01-R03-budget-descendant-report",
+      "expected": "an authenticated descendant report preserves the exact falsy budget-control failure and origin"
+    },
+    {
+      "id": "B01-R04-pipeline-report-equal-invoke",
+      "expected": "an authenticated pipeline-control report wins as captured execution when its empty-string reason equals outer invoke"
+    },
+    {
+      "id": "B01-R05-actual-root-priority",
+      "expected": "an actual root caller remains higher than authenticated control execution and invoke cancellation"
+    },
+    {
+      "id": "B01-R06-unknown-equal-remains-unrelated",
+      "expected": "an unproven escaping zero remains unrelated despite equality to a visible control reason and does not become invoke cancellation"
+    },
+    {
+      "id": "B01-R07-genuine-invoke-remains-ranked",
+      "expected": "an authenticated inner invoke failure remains eligible for replacement by the higher-ranked outer invoke"
+    },
+    {
+      "id": "B01-R08-close-stability",
+      "expected": "closing the owned child fixes its captured observed-control selection against a later ancestor invoke abort; successful returns remain returns"
+    }
+  ]
+}

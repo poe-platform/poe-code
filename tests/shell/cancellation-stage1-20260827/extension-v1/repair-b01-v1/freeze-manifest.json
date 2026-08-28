@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "fixtureVersion": 2,
+  "frozenAt": "2026-08-28",
+  "headBeforeFreeze": "7f272e4bdee84d3a40b0e3b9c2577b74b12bc6ef",
+  "rejectedHelper": {
+    "sourceCommit": "373437cf84424939e1792470805cdd9e60bd3898",
+    "gitBlob": "3b7b55abc14718c0e23aa0c352af392b967a4905",
+    "sha256": "f628801379acd1c86c247a778e973f4cb89f8bbe2c3089f8192c31f3c5b273a5"
+  },
+  "originalExtensionFreeze": {
+    "commit": "88d91975e4a718fb3c1b55322e44492cf4059391",
+    "evidenceCommit": "efa819f79516b27690e7b2a362cea1231c6b7fef",
+    "literalControls": 38,
+    "runtimeTests": 22
+  },
+  "independentB01": {
+    "freezeCommit": "cbed682564e1e3b1c2ac8062157ece7b8b997f30",
+    "freezeTree": "b577a95e82c1c7b58900faf3c547407cb9e4fab1",
+    "evidenceCommit": "8e62751d4b3b05cb493bed79aa1fd535df251da8",
+    "evidenceTree": "a244dbf013ee53ed4e02710cda5a7c9a9cb1fa4c",
+    "auditCommit": "e41fbc22eb659e565f0a16f908ef8b6dd31c2df0",
+    "auditTree": "d403b78aca9336cda215f27721c189f7ac1b9d7f",
+    "bugsSha256": "561c6fef5cee92bce789f75f8c1eb8784eef425052a289b2f6d02f8f6318a242",
+    "reportSha256": "9e97f27d5e69900e21b7a027630220c10f71183ba5fcbeb07ba9676e42139360"
+  },
+  "baseline": {
+    "commandSha256": "d29c62c8914f7a88d05680884427fa7a10c3d91468b44db0b4e7437180b667b6",
+    "exit": 1,
+    "pass": 4,
+    "fail": 4,
+    "retried": false,
+    "strictCommandSha256": "ab666d806a1d828dea1dbc92cd473d09879de2107331f9832e89b799d1d31b95",
+    "strictExit": 0
+  },
+  "fixtureCorrection": {
+    "from": 0,
+    "to": 2,
+    "attemptExit": 1,
+    "attemptPass": 3,
+    "attemptFail": 5,
+    "helperChangedBetweenAttemptAndBaseline": false,
+    "disclosed": true
+  },
+  "tools": {
+    "node": "v22.22.2",
+    "typescript": "5.9.3"
+  },
+  "files": {
+    "API-UNCHANGED.md": "d0292b2e2f0ea99e4ea3f0c3252f3a8d01f1a395c35ddff96a1da0b48dd63ee4",
+    "POLICY.md": "577b5e4271f77c3a1f0610a238d324a6f04e409e14684bbd5caf2f2c9cc3fe4e",
+    "cases.json": "55f5bb4ebbad47b964cdd3be7bcf1d0ca638c0e5c7493f3fbbc3cffecc086b8a",
+    "cancellation-repair-b01.test.ts": "b93ab6296ad6f637e68d24665a6b732b3206c6644b8d73371c40509a71f2a01d",
+    "tsconfig.strict.json": "114ee470a2e6e59dd3c50a8bd125dfce37387640208c16343550369a7c3c41a5",
+    "PREFREEZE-ATTEMPT-v0.md": "857c86a2bd1b0aaaa55a7a296fcd73b1b5eaa82dbf270839dfc7002cdb5ccdff",
+    "baseline-v1.tap": "1ce39a17b72e9d7125accaadb3a59d4279f104c7bbb6705ba8ea9907fb0eed2b",
+    "BASELINE.md": "1e0de4a115611337b0bd609e910a46d7dfe4304d619542eee49c7c893f622e45"
+  },
+  "historicalIndependent": {
+    "extensionIsolated": "11/12",
+    "extensionMoved": "11/12",
+    "originalStage1Isolated": "12/12",
+    "originalStage1Moved": "12/12",
+    "nearbyRepairIsolated": "4/4",
+    "nearbyRepairMoved": "4/4",
+    "rerun": false,
+    "rescored": false,
+    "edited": false
+  },
+  "claims": {
+    "apiChangeRequired": false,
+    "reasonEqualityInference": false,
+    "runtimeIntegration": false,
+    "timeoutSemantics": false,
+    "stage2Executed": false,
+    "independentCohortExecuted": false
+  }
+}

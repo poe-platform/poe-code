@@ -1,0 +1,14 @@
+{
+  "original": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/evidence/physical-move/original",
+  "moved": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/evidence/physical-move/moved",
+  "originalAbsent": true,
+  "sourceFallback": false,
+  "entries": [
+    {
+      "path": "fixture-module.mjs",
+      "bytes": 2588,
+      "sha256": "a557992271b5c6f178eca5a61efa8f43602582675957c3f95e41af3240462d47",
+      "mode": "644"
+    }
+  ]
+}

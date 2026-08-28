@@ -1,0 +1,19 @@
+{
+  "date": "2026-08-28",
+  "mode": "STATIC_ONLY_NO_EXECUTION",
+  "priorScheduleReview": "4c65ffc48c999cf4c5ea077f4f2f8f40d6a8c830",
+  "candidateDataPreseal": "60773512b1985f6bc631d153b1be87b289342070",
+  "candidateDataEvidence": "e729a5ab8776ea768d10e6107692149989b2511d",
+  "candidateDataRoot": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2",
+  "finalSealSha256": "26d8efbb48aed8e93a54b325e832c5350139da4fe1269b2288fbf5afde707678",
+  "dataPresealSha256": "ffaef9992296c1bfc422f0c71da9b584b458be4e4a12d11e355b322a50ff8f83",
+  "candidateSource": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "candidateEvidence": "644460b932feb6fa87222b7042d705da1219cf0c",
+  "candidateHandoff": "065f824d06e36de3fafaee1b7a5baa278f40407c",
+  "sourceArchiveSha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+  "fullPackageSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+  "source271MapSha256": "9b0e0d62ea50eea55ef9ff4bff9e4bcef9cba6b73e416793bee6956666171002",
+  "package870MapSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321",
+  "boundPlanHandoff": "/tmp/yq-successor-preseal-v2-ready.txt",
+  "freshGO": false
+}

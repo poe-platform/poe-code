@@ -1,0 +1,104 @@
+{
+  "schema": "wrq-diagnostic-publication-control-preseal-v1",
+  "date": "2026-08-28",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "modules": [
+    {
+      "path": "diagnostic-publication.mjs",
+      "bytes": 4164,
+      "sha256": "7fd093905541561d6112b13f7ac224dec43caaaed6bfcb2124294ac3b88baa07",
+      "edges": [
+        {
+          "specifier": "node:util",
+          "target": "node:util"
+        },
+        {
+          "specifier": "./json-size.mjs",
+          "target": "json-size.mjs"
+        }
+      ]
+    },
+    {
+      "path": "json-size.mjs",
+      "bytes": 1709,
+      "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5",
+      "edges": []
+    },
+    {
+      "path": "reservations.mjs",
+      "bytes": 919,
+      "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde",
+      "edges": []
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 7899,
+      "sha256": "661bdc7c128c35d2f3db001535e2945644721e8d049738f1c3f6f511815df56c",
+      "edges": [
+        {
+          "specifier": "./diagnostic-publication.mjs",
+          "target": "diagnostic-publication.mjs"
+        },
+        {
+          "specifier": "./reservations.mjs",
+          "target": "reservations.mjs"
+        }
+      ]
+    },
+    {
+      "path": "control-entry.mjs",
+      "bytes": 2436,
+      "sha256": "7acc2b36fdbbf4efb4804fa6ad12fee10443713f59bb46b0b4c02cf9edf61bf7",
+      "edges": [
+        {
+          "specifier": "./controls.mjs",
+          "target": "controls.mjs"
+        }
+      ]
+    }
+  ],
+  "hostInputs": [
+    {
+      "path": "launch.mjs",
+      "bytes": 3611,
+      "sha256": "7d544cf6168b883a988aa62d9b4375692074b2d07b417938c772385b0caeeb33"
+    },
+    {
+      "path": "../preparation-v7-capture/capture-owner.mjs",
+      "bytes": 3125,
+      "sha256": "1cbec42dfb24de259c515e5686faa3aff8a5cb17171689831fa3b3360a9fe104"
+    }
+  ],
+  "env": {
+    "PATH": "/usr/bin:/bin",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC"
+  },
+  "argv": [
+    "--permission",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/diagnostic-publication.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/json-size.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/reservations.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/controls.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/control-entry.mjs",
+    "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/PRESEAL.json",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/control-entry.mjs"
+  ],
+  "limits": {
+    "wallMs": 600000,
+    "ownedChildren": 12,
+    "peakProcesses": 3,
+    "captureBytes": 33554432,
+    "workBytes": 134217728,
+    "childDeadlineMs": 30000,
+    "killGraceMs": 2000
+  },
+  "cases": 20,
+  "expectation": "20/20 harmless helper publication controls; native Error test instances only, no compiled FsError/public core/Worker/engine/compiler/private/network",
+  "history": "Original probe4d7f8531 separate; original actual345b9851 unchanged; no original23 rescore"
+}

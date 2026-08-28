@@ -1,0 +1,208 @@
+{
+  "schema": "wrq-continuation-v10-cases",
+  "status": "HELD-FRESH-ROOT-GO-REQUIRED",
+  "scheduleAuthority": "7b7a54ef5f1710d78297402a531a1fed63266cca:tests/commands/node-worker-independent-20260828/v2/MINIMUM-EXPERIMENT-PRESEAL.md",
+  "versionDelta": "Exact old9 unrun slots plus separately versioned L02 repeat; L01 excluded. Same guest fixture source; no historic rescore.",
+  "maximumWorkers": 10,
+  "maximumGuestEvaluations": 9,
+  "peakWorkers": 1,
+  "retries": 0,
+  "candidateWorkers": 10,
+  "candidateGuestEvaluations": 9,
+  "admissibleNow": 0,
+  "instances": [
+    {
+      "instance": "WRQ02-L02-repeat-v10",
+      "wrq": "WRQ02",
+      "root": "L02",
+      "fixture": "L02",
+      "reason": "none",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "future actual typed missing-file provider; postcopy reconstruction; trusted witness; guest catch; actual exit and cleanup",
+      "expectedStdout": "FsError:ENOENT:/missing\n",
+      "expectedStderr": "",
+      "expectedStatus": 0,
+      "expectedEffects": {},
+      "unqualified": [
+        "Source branch only; actual compiler/provider/heap observations remain unrun; K1–K4 not accepted."
+      ],
+      "historicalIdentity": "WRQ02-L02-v3",
+      "versionDelta": "Same guest/fixture expectations; one-line stack descriptor repair plus bounded parent diagnostic publication. Separate repeat, no original rescore."
+    },
+    {
+      "instance": "WRQ03-L03-v3",
+      "wrq": "WRQ03",
+      "root": "L03",
+      "fixture": "L03",
+      "reason": "none",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "authorize fs alias twice; authorize JSON miss/read; authorize alias hit; write same VFS path; authorize hit without invalidation; output identity; exit releases roots",
+      "expectedStdout": "true:true:true:7\n",
+      "expectedStderr": "",
+      "expectedStatus": 0,
+      "expectedEffects": {
+        "/data/object.json": "{\"count\":99}"
+      },
+      "unqualified": [
+        "changed namespace, failed JSON install and unknown authority controls deferred; do not claim complete L03"
+      ]
+    },
+    {
+      "instance": "WRQ04-L04-v3",
+      "wrq": "WRQ04",
+      "root": "L04",
+      "fixture": "L04",
+      "reason": "none",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "create permitted discarded pending language Promise; output; entry settlement; retire Worker; no Q/all-settled receipt",
+      "expectedStdout": "entry-return\n",
+      "expectedStderr": "",
+      "expectedStatus": 0,
+      "expectedEffects": {},
+      "unqualified": [
+        "actual public run pending-Promise entry behavior unrun",
+        "original guest exit/Q input unrun"
+      ]
+    },
+    {
+      "instance": "WRQ05-L05-undefined-v3",
+      "wrq": "WRQ05",
+      "root": "L05",
+      "fixture": "L05",
+      "reason": "undefined",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "blocked read admitted; explicit own present:true/value:undefined caller channel; abort cooperative work with separate internal signal reason; wake and request terminate immediately; actual exit plus parent cleanup",
+      "expectedStdout": "",
+      "expectedStderr": "",
+      "expectedStatus": null,
+      "expectedEffects": {},
+      "unqualified": [
+        "not AbortController.abort(undefined) raw delivery",
+        "actual Shell mapping and early-notify/upload/peer-owned variants deferred"
+      ]
+    },
+    {
+      "instance": "WRQ05-L05-false-v3",
+      "wrq": "WRQ05",
+      "root": "L05",
+      "fixture": "L05",
+      "reason": "false",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "same blocked-read barrier; raw false caller value retained in parent; zero grace; actual exit plus parent cleanup",
+      "expectedStdout": "",
+      "expectedStderr": "",
+      "expectedStatus": null,
+      "expectedEffects": {},
+      "unqualified": [
+        "actual Shell mapping and versioned alternate barriers deferred"
+      ]
+    },
+    {
+      "instance": "WRQ05-L05-object-v3",
+      "wrq": "WRQ05",
+      "root": "L05",
+      "fixture": "L05",
+      "reason": "object",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "same blocked-read barrier; exact parent object retained, never cloned; zero grace; actual exit plus parent cleanup",
+      "expectedStdout": "",
+      "expectedStderr": "",
+      "expectedStatus": null,
+      "expectedEffects": {},
+      "unqualified": [
+        "actual Shell mapping and versioned alternate barriers deferred"
+      ]
+    },
+    {
+      "instance": "WRQ06-L06a-v3",
+      "wrq": "WRQ06",
+      "root": "L06",
+      "fixture": "L06a",
+      "reason": "object",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "complete write payload; publish X; hold operation cleanup; cancel caller; immediate termination request; real exit releases cleanup barrier; settle only after cleanup",
+      "expectedStdout": "",
+      "expectedStderr": "",
+      "expectedStatus": null,
+      "expectedEffects": {
+        "/data/effect": "X"
+      },
+      "unqualified": [
+        "secondary cleanup failure subvariant not implemented here",
+        "not original async guest overlap"
+      ]
+    },
+    {
+      "instance": "WRQ06-L06b-v3",
+      "wrq": "WRQ06",
+      "root": "L06",
+      "fixture": "L06b",
+      "reason": "none",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "complete X write and sync return; failed stdout sink; invocation cleanup preenrolled and held; actual exit releases cleanup then distinct cleanup rejection; retain raw sink and cleanup values",
+      "expectedStdout": "",
+      "expectedStderr": "",
+      "expectedStatus": null,
+      "expectedEffects": {
+        "/data/effect": "X"
+      },
+      "unqualified": [
+        "actual parent/Shell priority mapping not implemented",
+        "completed write plus later failed output, NOT simultaneous guest fs/output"
+      ]
+    },
+    {
+      "instance": "WRQ07-L07-v3",
+      "wrq": "WRQ07",
+      "root": "L07",
+      "fixture": "L07",
+      "reason": "none",
+      "workers": 1,
+      "guestEvaluations": 1,
+      "candidateImplemented": true,
+      "schedule": "computed unsupported require caught locally; separately denied complete write request causes no effect; bridge binding shadowed; no process.exit; output and actual exit",
+      "expectedStdout": "ERR_VNODE_UNSUPPORTED\nERR_VNODE_DENIED\nundefined:undefined\n",
+      "expectedStderr": "",
+      "expectedStatus": 0,
+      "expectedEffects": {},
+      "unqualified": [
+        "literal unsupported original remains preflight failure",
+        "protocol controls listed in CONTROL.json are unrun, not additional guest cases"
+      ]
+    },
+    {
+      "instance": "WRQ08-L08-v3",
+      "wrq": "WRQ08",
+      "root": "L08",
+      "fixture": "L08",
+      "reason": "none",
+      "workers": 1,
+      "guestEvaluations": 0,
+      "candidateImplemented": true,
+      "schedule": "only after independently accepted parent containment: at most32 arrays of262144 numeric elements, old32/young8/code8/stack4; no engine; confirmed exit/capture close",
+      "expectedStdout": "",
+      "expectedStderr": "",
+      "expectedStatus": null,
+      "expectedEffects": {},
+      "unqualified": [
+        "Source branch only; actual compiler/provider/heap observations remain unrun; K1–K4 not accepted."
+      ]
+    }
+  ]
+}

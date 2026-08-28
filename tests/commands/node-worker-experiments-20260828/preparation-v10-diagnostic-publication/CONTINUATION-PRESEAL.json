@@ -1,0 +1,80 @@
+{
+  "schema": "wrq-v10-held-actual-preseal",
+  "authority": "NOT GO; different review and fresh ROOT authorization required",
+  "date": "2026-08-28",
+  "runId": "RUN-WRQ-CONTINUATION-V10-01",
+  "ownerSourceSha256": "e944eaac0de22016f61446b32d94654510b3a8c04c47d7a5a42813c976b5c7d2",
+  "compositionSha256": "5e611bd8d1748944ff105ec9837388ccba788ac41cb543bb379e25b433d9a286",
+  "profileSha256": "61d005bfce187fc80aa9f827359d25141269ee2c10ec0066f048ecd65dc856da",
+  "caseSha256": "93ce7b5eb2a8e0eefee4d9d1d80268f7ede54be2855589bef907eb8f20b73c62",
+  "moduleSha256": "8b5b6b83e650b6354fe276b2247ef51e7eefe562405680dc40b5f202fefc9255",
+  "sourceSha256": "1018e37263caa1ceced89021495866a6ac1d0d854754954941f50d2af58a6d45",
+  "toolSha256": "3eebd15cb228cf92930d51152642deacc3b468deafa9f30d330ae90a1fd195ce",
+  "node": {
+    "role": "node",
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "mode": 493,
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "hostInputs": [
+    {
+      "path": "../preparation-v7-capture/capture-owner.mjs",
+      "sha256": "1cbec42dfb24de259c515e5686faa3aff8a5cb17171689831fa3b3360a9fe104"
+    },
+    {
+      "path": "../preparation-v6-ready/import-policy.mjs",
+      "sha256": "b2b2b970748bf841600cc58b487938a557cba43bd78af121466fd0a7f354178a"
+    }
+  ],
+  "selectedInstances": [
+    "WRQ02-L02-repeat-v10",
+    "WRQ03-L03-v3",
+    "WRQ04-L04-v3",
+    "WRQ05-L05-undefined-v3",
+    "WRQ05-L05-false-v3",
+    "WRQ05-L05-object-v3",
+    "WRQ06-L06a-v3",
+    "WRQ06-L06b-v3",
+    "WRQ07-L07-v3",
+    "WRQ08-L08-v3"
+  ],
+  "limits": {
+    "maximumWorkers": 10,
+    "maximumGuests": 9,
+    "peakWorkers": 1,
+    "outerMs": 180000,
+    "TERMtoKILLms": 2000,
+    "totalAdmissionMs": 120000,
+    "caseAdmissionMs": 5000,
+    "sabBytes": 197056,
+    "commandLedgerBytes": 16777216,
+    "captureBytes": 1048576,
+    "caseNativeCaptureBytes": 65536,
+    "capsuleCopyBytes": 16777216,
+    "postCensusBytes": 33554432,
+    "postCensusFiles": 220,
+    "ownedOSChildren": 8,
+    "peakOSProcesses": 3,
+    "rootWallMs": 600000,
+    "rootCaptureBytes": 67108864,
+    "rootScratchBytes": 402653184
+  },
+  "invocation": "Import literal owned future-owner.mjs; runWorkerQualification(SHA256(ROOT-WORKER-GO.json)) only after separate root GO. ROOT-WORKER-GO.json absent now.",
+  "requiredGrantFields": [
+    "authorized:true",
+    "phase:worker",
+    "oneShot:true",
+    "compiler:false",
+    "retries:0",
+    "reviewCommit",
+    "reviewDecision:accept-exact-finite-recipe",
+    "sourceCommit",
+    "exact runId/selectedInstances/profileSha256/caseSha256/moduleSha256/toolSha256/sourceSha256/compositionSha256"
+  ],
+  "newBuiltinEdge": "diagnostic-publication.mjs -> node:util parent role only; native shape inspection, no guest builtin exposure",
+  "claims": "No actual compilation, Worker, engine or guest execution in this preparation; no original124 unchanged claim: new125 composition overlay."
+}

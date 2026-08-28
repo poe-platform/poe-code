@@ -1,0 +1,36 @@
+{
+  "schema": "m1b-runner-static-early-findings-v1",
+  "date": "2026-08-28",
+  "reviewedCommit": "a3021720f22c44b66eab7f0bacbfe1d7955a10ae",
+  "runnerTree": "46a6df2a2ee68d0c84fe56da54c9eeb057e8cfe0",
+  "status": "PREPARATION_SOURCE_FINDINGS_NOT_PRODUCT_FAILURES",
+  "targetExecutions": 0,
+  "findings": [
+    {
+      "id": "RS-F01",
+      "title": "Launch admission precedes any owned durable startup capture",
+      "source": "runner/launch.mjs",
+      "sha256": "783aab840056f6d5a252701f6a3662c010aec58d397d17307b84fdafcd6cd988",
+      "lines": [11, 60],
+      "fact": "Route parsing, route/seal authentication, bootstrap identity, output mkdir, full inventory and coordinator import can throw before coordinate creates Budget and publishes root-route. The committed README launch command has no outer raw wrapper or redirection. No failure receipt is established around this startup path.",
+      "requiredBoundary": "Bind concrete independently owned startup stdout/stderr/status capture before fallible launch/admission; include its child, capture, storage, deadline and retirement costs. This is not a request to accept or run a new root route."
+    },
+    {
+      "id": "RS-F02",
+      "title": "Outgoing phase deadlines are not checked at phase transition",
+      "source": "runner/coordinator.mjs",
+      "sha256": "ead01aec61557f561b2271676aabfbde8cc4c8df132753a8cac9eb5d28f74f77",
+      "lines": [61, 64, 93, 105, 124, 125],
+      "fact": "phase(name) admits only against the incoming phase end. For example, setup can complete after its fixed 600000ms end and phase(build) still admits until 720000ms, without recording setup lateness. Post-child build validation can likewise extend into install's later phase end. These are parent-observed transition conditions, not an observed timed run.",
+      "requiredBoundary": "Check and retain the outgoing parent-observed deadline before replacing phase authority; late setup, validation and cleanup cannot borrow the following phase's allowance."
+    }
+  ],
+  "knownPendingIntegrationNotNewFindings": [
+    "Approved compiler API v2 10186980/33775a17 replaces expected nonzero CLI type protocol.",
+    "Semantic integration c3d8a857/b57b45b7 adds nine mutant witness IDs and fourteen batches.",
+    "Semantic mode-v3 SOURCE_ONLY correction is independently active.",
+    "Sticky ordinary assertions must continue only after raw capture, known cleanup and fresh guards; exceptions and unsafe cleanup remain STOP."
+  ],
+  "notSelfAccepted": ["mechanical", "mechanical-type-api-v2"],
+  "preparationError": "One reviewer metadata loop incorrectly treated candidateCompiledFiles as Git paths under the review root. Git show returned 128 for absent dist/commands/archive/create.js; host metadata command returned 1. The fourteen parent and twenty-two workerProjection bindings had matched first. No candidate artifact was missing or executed; the domains are now kept separate."
+}

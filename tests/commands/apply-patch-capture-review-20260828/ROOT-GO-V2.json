@@ -1,0 +1,21 @@
+{
+  "schema": "independent-c18-root-go-v2",
+  "authority": "current explicit ROOT user message, recorded before dispatch",
+  "date": "2026-08-28",
+  "successorCommit": "7e2ce586e0bd144efc30a003c6141e3aa3bf437b",
+  "presealSha256": "406ab6f12ddc2bb52fd6daf70af40f95a3c4f57ad1aa71b8a3524abed478efd7",
+  "runId": "data-v2-01",
+  "attempts": 1,
+  "regularFileObservations": 52,
+  "bindingCounterchecks": 3,
+  "maximumMilliseconds": 300000,
+  "maximumChildren": 6,
+  "peakOwnedProcesses": 2,
+  "captureBytes": 16777216,
+  "scratchBytes": 67108864,
+  "retry": false,
+  "priorAttempt": "data-01 0/52 ENOENT preserved without rescore",
+  "symlinkDisposition": "Exact preparation steps are not sealed. Per ROOT instruction execute only regular 52+3 now and return proposed preparation; no link creation in this attempt.",
+  "rootInstruction": "If exactprepsteps notyetsealed doonlyregular52+3 andreturnproposedprep; no hiddenbroaderpermission.",
+  "exclusions": ["product", "build", "native oracle", "private", "network", "Node bridge", "comparator", "full future controller execution"]
+}

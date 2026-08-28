@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "at": "2026-08-28T10:02:03.711Z",
+  "timing": "post-source/postmainreview; before these six bounded executions",
+  "files": [
+    {
+      "path": "ATTEMPTS-v1.json",
+      "bytes": 992,
+      "mode": 420,
+      "sha256": "7bc9582dc68a7871e973cd502190d19b9ccef60fe11ce8566e1d6d614b82a841"
+    },
+    {
+      "path": "BINDING-v1.json",
+      "bytes": 44132,
+      "mode": 420,
+      "sha256": "30a7e1308e12b672973d2c5b27c031728122f5456c669f3dace362103db6a67f"
+    },
+    {
+      "path": "PRESEAL-v1.json",
+      "bytes": 3201,
+      "mode": 420,
+      "sha256": "978b98cc4df8b2f391da7b69ecf1252edb271ea5f8617078e4b10b28e4d2a6c8"
+    },
+    {
+      "path": "STATIC-v1.json",
+      "bytes": 512,
+      "mode": 420,
+      "sha256": "c5aa968147427b6bc81c3475d67fd362f029dad497bb563aae1201f925c8ab84"
+    },
+    {
+      "path": "child-process-v1.mjs",
+      "bytes": 1595,
+      "mode": 420,
+      "sha256": "c11e0225d3e1cb8b96e247fb8b1a7914c6057a37c6dbf0e7ef157e533e6aa7e7"
+    },
+    {
+      "path": "integrity-v1.mjs",
+      "bytes": 1142,
+      "mode": 420,
+      "sha256": "d20705194d77cce473f083e7078513fa581ec928c723c5655512ab29b2204953"
+    },
+    {
+      "path": "load-hook-v1.mjs",
+      "bytes": 1696,
+      "mode": 420,
+      "sha256": "3ddea8797c79629120fa6a1c58b700a91d74587d4050020febf4264a52a13c59"
+    },
+    {
+      "path": "run-v1.mjs",
+      "bytes": 10837,
+      "mode": 420,
+      "sha256": "2ab5673d2dfe791601b96ece0b1edf3ec00d6fff31a8128c7a28fa3916b32c06"
+    },
+    {
+      "path": "worker-v1.mjs",
+      "bytes": 7377,
+      "mode": 420,
+      "sha256": "b505d491a16b3d66629d989e4469f03c336511f3899cb55c0eb746b45071b508"
+    }
+  ]
+}

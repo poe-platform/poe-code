@@ -1,0 +1,265 @@
+{
+  "schema": 1,
+  "abiCommit": "96d48ee4d2690c8ce474460d57ce0362656ddd6f",
+  "abiSha256": "4d5e2ca14a50965daaf08218ea1ecc26838f9376868d8ab5b929bfef2e7178f1",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "independentArgumentAuthority": {
+    "name": "CRITICAL-REPAIRS",
+    "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+    "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/CRITICAL-REPAIRS.json",
+    "sha256": "fe28ef30e95a8bebfbfb86f83e41758023f9cf4494dd46669ebed95ebd16d77e",
+    "bytes": 18665,
+    "mode": 420
+  },
+  "arguments": {
+    "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/data/SOURCE-ARGUMENTS.json",
+    "sha256": "61c2a514c9587712b264feb923e999d23fb000f5e1f6f69475871429253f4c2b",
+    "bytes": 31129,
+    "mode": 420
+  },
+  "manifest": {
+    "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/data/SOURCE-MANIFEST.json",
+    "sha256": "413432105677fcef5454d5f273d2b1dcb72ce014a52bf3e13e172af3a0a31286",
+    "bytes": 47504,
+    "mode": 420
+  },
+  "origins": {
+    "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/data/SOURCE-ORIGINS.json",
+    "sha256": "be8b2275977c253f3b126ce9ad1a19f9d2de88d86e854c96676a729b9ed937c5",
+    "bytes": 62861,
+    "mode": 420
+  },
+  "plan": {
+    "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/prepared/data/SOURCE-PROOF-PLAN.json",
+    "sha256": "02d27ea317f1f4877279385097e3639892ee6be5d96c48c3b6a03ac5a3a6ca83",
+    "bytes": 13072,
+    "mode": 420
+  },
+  "canonicalDigest": "UTF8 canonical JSON: recursively sorted own record keys, ordered dense arrays, JSON primitive representation; no toJSON. Raw artifacts separately authenticated by readBoundJson recipe SHA.",
+  "spanDigest": "UTF8 selected source split LF, inclusive1-based lines, join LF plus one final LF. Independent reviewer anchor hashes exclude final LF and were separately checked; new span digests deliberately include LF per ABI.",
+  "projection": "Selected271 source dependencies; original archive273 stays distinct. No whole Git301 or mutable HEAD.",
+  "rawBeforeAssertion": "Source worker writes observed complete source map+origins+plan+argument bundle before ingestor validates bindings. Fulltree before/after and parent guard are required.",
+  "argumentAuthenticity": "Root-bound argument file raw hash plus enrolled independent authority path/commit/hash. The ingestor authenticates argument/source binding, not the truth of prose; no theorem inference or product author acceptance.",
+  "sourceArgumentsPrepared": 4,
+  "sourceBindingIdsPrepared": 8,
+  "targetProofs": 0,
+  "sourceTruthAccepted": false,
+  "remainingDesignatedArguments": 19,
+  "observations": [
+    {
+      "bindingId": "WRK-06::missing/0",
+      "recordId": "WRK-06",
+      "owner": "actors",
+      "sourceOwner": "core",
+      "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+      "frozenPointer": "freeze-accounting#/cases/5/input",
+      "frozenNeed": "Named private counter projection; no approved runtime observer or executable concrete argv fixture.",
+      "qualification": {
+        "id": "WRK-06",
+        "authorObservation": "Author C+1 raw document rejection: # + (C-2) x bytes + CRLF = C+1=8388609. Not an at-C success result.",
+        "atC": {
+          "state": "UNRUN_GATE_PROOF_REQUIRED",
+          "authorQualification": "Author says its synthetic comment-body at-C construction reaches the independent fixed work cap. No independent at-C proof inherited.",
+          "requirement": "Bind exact fixed-P1 source gate ordering and original input construction, count raw bytes/codepoints/charged steps including comment/document selection, identify which gate masks later admission. Without complete argument do not call at-C reachable or unreachable."
+        },
+        "newRuntimeFixture": false
+      },
+      "plannedRuntimeJobsA": [],
+      "plannedRuntimeJobsB": [],
+      "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+      "fullRecordPass": false
+    },
+    {
+      "bindingId": "WRK-06::missing/1",
+      "recordId": "WRK-06",
+      "owner": "actors",
+      "sourceOwner": "core",
+      "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+      "frozenPointer": "freeze-accounting#/cases/5/expect/assertions/0",
+      "frozenNeed": "Inclusive document admission then refusal before owned copy or decoded append; markers assigned exactly once; reset only at legal boundary.",
+      "qualification": {
+        "id": "WRK-06",
+        "authorObservation": "Author C+1 raw document rejection: # + (C-2) x bytes + CRLF = C+1=8388609. Not an at-C success result.",
+        "atC": {
+          "state": "UNRUN_GATE_PROOF_REQUIRED",
+          "authorQualification": "Author says its synthetic comment-body at-C construction reaches the independent fixed work cap. No independent at-C proof inherited.",
+          "requirement": "Bind exact fixed-P1 source gate ordering and original input construction, count raw bytes/codepoints/charged steps including comment/document selection, identify which gate masks later admission. Without complete argument do not call at-C reachable or unreachable."
+        },
+        "newRuntimeFixture": false
+      },
+      "plannedRuntimeJobsA": [],
+      "plannedRuntimeJobsB": [],
+      "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+      "fullRecordPass": false
+    },
+    {
+      "bindingId": "WRK-07::missing/0",
+      "recordId": "WRK-07",
+      "owner": "actors",
+      "sourceOwner": "core",
+      "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+      "frozenPointer": "freeze-accounting#/cases/6/input",
+      "frozenNeed": "decoded scalar ledger for a four-byte escape result, not source escape-text length",
+      "qualification": {
+        "id": "WRK-07",
+        "authorObservation": "Actual parser plus real YqLedger fixed maxScalarBytes1048576 accepted C and rejected C+1 in author evidence; helper parseOne supplies noopWork. This is not a full public command/Budget proof.",
+        "publicAtC": {
+          "state": "UNRUN_GATE_PROOF_REQUIRED",
+          "conditionalArithmetic": "Author ASCII scalar has C+2 source codepoints including quotes. Parser scans/charges codepoints before Composer parsing;1048578 exceeds fixed maxSteps1000000 under ordinary budget.step, before additional work. A fresh independent gate argument must bind actual session/Budget wiring and relevant branches; do not transplant noopWork or lower caps.",
+          "fullPublicCapSuccess": false
+        },
+        "newRuntimeFixture": false
+      },
+      "plannedRuntimeJobsA": [],
+      "plannedRuntimeJobsB": [],
+      "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+      "fullRecordPass": false
+    },
+    {
+      "bindingId": "WRK-07::missing/1",
+      "recordId": "WRK-07",
+      "owner": "actors",
+      "sourceOwner": "core",
+      "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+      "frozenPointer": "freeze-accounting#/cases/6/expect/assertions/0",
+      "frozenNeed": "Four-byte scalar reaches inclusive cap; next byte fails before retaining fragment; keys follow same cap.",
+      "qualification": {
+        "id": "WRK-07",
+        "authorObservation": "Actual parser plus real YqLedger fixed maxScalarBytes1048576 accepted C and rejected C+1 in author evidence; helper parseOne supplies noopWork. This is not a full public command/Budget proof.",
+        "publicAtC": {
+          "state": "UNRUN_GATE_PROOF_REQUIRED",
+          "conditionalArithmetic": "Author ASCII scalar has C+2 source codepoints including quotes. Parser scans/charges codepoints before Composer parsing;1048578 exceeds fixed maxSteps1000000 under ordinary budget.step, before additional work. A fresh independent gate argument must bind actual session/Budget wiring and relevant branches; do not transplant noopWork or lower caps.",
+          "fullPublicCapSuccess": false
+        },
+        "newRuntimeFixture": false
+      },
+      "plannedRuntimeJobsA": [],
+      "plannedRuntimeJobsB": [],
+      "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+      "fullRecordPass": false
+    },
+    {
+      "bindingId": "WRK-13::missing/0",
+      "recordId": "WRK-13",
+      "owner": "actors",
+      "sourceOwner": "core",
+      "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+      "frozenPointer": "freeze-accounting#/cases/12/input",
+      "frozenNeed": "Named private counter projection; no approved runtime observer or executable concrete argv fixture.",
+      "qualification": {
+        "id": "WRK-13",
+        "authorObservation": "Author ninth control invokes actual parser with subclassed ledger/event work for member-before-child order. Source/control proof, not independent public100000-member boundary.",
+        "required": "Inspect all flow/block collection branches against the existing frozen member-admission obligation; retain source role and any branch gaps.",
+        "newRuntimeFixture": false
+      },
+      "plannedRuntimeJobsA": [],
+      "plannedRuntimeJobsB": [],
+      "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+      "fullRecordPass": false
+    },
+    {
+      "bindingId": "WRK-13::missing/1",
+      "recordId": "WRK-13",
+      "owner": "actors",
+      "sourceOwner": "core",
+      "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+      "frozenPointer": "freeze-accounting#/cases/12/expect/assertions/0",
+      "frozenNeed": "Current collection member 100000 fits; next is refused before input member allocation; this is not a string-code-point limit.",
+      "qualification": {
+        "id": "WRK-13",
+        "authorObservation": "Author ninth control invokes actual parser with subclassed ledger/event work for member-before-child order. Source/control proof, not independent public100000-member boundary.",
+        "required": "Inspect all flow/block collection branches against the existing frozen member-admission obligation; retain source role and any branch gaps.",
+        "newRuntimeFixture": false
+      },
+      "plannedRuntimeJobsA": [],
+      "plannedRuntimeJobsB": [],
+      "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+      "fullRecordPass": false
+    },
+    {
+      "bindingId": "WRK-17::missing/0",
+      "recordId": "WRK-17",
+      "owner": "actors",
+      "sourceOwner": "core",
+      "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+      "frozenPointer": "freeze-accounting#/cases/16/input",
+      "frozenNeed": "four-byte complete next output operation including any separator/newline; encoder fragments/join/buffer observed",
+      "qualification": {
+        "id": "WRK-17",
+        "authorObservation": "Author actual encoder calls use internal maxBytes7/8 for escaped NUL. These are PROOF_CONTROL, not public combined-output cap16777216 or command cap reachability.",
+        "required": "Independent source argument for exact projected-byte reservation before every retained escaped fragment; distinguish append/publish, no double charge. Fixed-cap masked/unreachable claims need explicit gate/path proof, not injected ledger state.",
+        "publicBoundaryState": "UNRUN_GATE_PROOF_REQUIRED",
+        "newRuntimeFixture": false
+      },
+      "plannedRuntimeJobsA": [],
+      "plannedRuntimeJobsB": [],
+      "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+      "fullRecordPass": false
+    },
+    {
+      "bindingId": "WRK-17::missing/1",
+      "recordId": "WRK-17",
+      "owner": "actors",
+      "sourceOwner": "core",
+      "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+      "frozenPointer": "freeze-accounting#/cases/16/expect/assertions/0",
+      "frozenNeed": "Stdout stays <=16773120; reserve 4096 remains unavailable to stdout; oversized document submits zero bytes; every retained encoder allocation is preflighted.",
+      "qualification": {
+        "id": "WRK-17",
+        "authorObservation": "Author actual encoder calls use internal maxBytes7/8 for escaped NUL. These are PROOF_CONTROL, not public combined-output cap16777216 or command cap reachability.",
+        "required": "Independent source argument for exact projected-byte reservation before every retained escaped fragment; distinguish append/publish, no double charge. Fixed-cap masked/unreachable claims need explicit gate/path proof, not injected ledger state.",
+        "publicBoundaryState": "UNRUN_GATE_PROOF_REQUIRED",
+        "newRuntimeFixture": false
+      },
+      "plannedRuntimeJobsA": [],
+      "plannedRuntimeJobsB": [],
+      "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+      "fullRecordPass": false
+    }
+  ],
+  "parentPinnedComponents": {
+    "commit": "0e8ee2900e7810b911f1335b0d3f05f23ce740c5",
+    "recipeSha256": "92b4c7b958b9f07b75c2f55fa719e83093317a506bb41f74526a4df09eed7c90",
+    "files": [
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/assembly/workers/type-worker.mjs",
+        "sha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/assembly/workers/loaded-worker.mjs",
+        "sha256": "be03ad51d6ef185093236776bf0b0f7dde17e520be6a4ed8505656dbeef4e26c"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/assembly/core/loader.mjs",
+        "sha256": "9c64aa1d79e065bc54af9f9f63ce985075215c8aae8d423b45c22181557b4065"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/assembly/core/owned-process.mjs",
+        "sha256": "b8fcbc43e1500f058c3dbc1942a438cd6da383135bebe05fcc2f6b175978d7fc"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/assembly/core/supervisor.mjs",
+        "sha256": "49c7c7050769e2c2edf71a27edd26790ac786e05dc6afbc02c93eba372d361a0"
+      }
+    ]
+  },
+  "projectionTargets": [
+    "core/coverage/own-data.mjs",
+    "core/coverage/contributions.mjs",
+    "core/coverage/source-arguments.mjs",
+    "core/coverage/source-files.mjs",
+    "core/coverage/source-audit-worker.mjs"
+  ],
+  "futureDispatch": "sourceAudit -> core/coverage/source-audit-worker.mjs under a new complete recipe, not v4 modification",
+  "costs": {
+    "outerSlotsAdded": 0,
+    "compilerCallsAdded": 0,
+    "nativeChildrenAdded": 0,
+    "sourceTreeScanPasses": 2,
+    "maximumSourceTreeBytes": 67108864,
+    "maximumSourceEntries": 4096,
+    "metadataEstimateBytes": 524288,
+    "wallAuthority": "Future parent existing SOURCE_AUDIT phase only after reviewed binding; no independent clock reset or automatic adoption"
+  },
+  "RootGO": false
+}

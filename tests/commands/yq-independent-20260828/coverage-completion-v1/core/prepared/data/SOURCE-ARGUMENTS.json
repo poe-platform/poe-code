@@ -1,0 +1,706 @@
+{
+  "schema": 1,
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "sourceManifestSha256": "8f9957f8391195428fdae9744d606491c0c50f39c14b3cac38abffb910635d21",
+  "originMapSha256": "20f74b68b559270f41ed4e594269f6f7752572c6416ccad00440a752fdc8dc79",
+  "arguments": [
+    {
+      "id": "SOURCE-WRK-06",
+      "recordId": "WRK-06",
+      "bindingIds": [
+        "WRK-06::missing/0",
+        "WRK-06::missing/1"
+      ],
+      "fragmentIds": [],
+      "role": "source-static-counterproof",
+      "authority": {
+        "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+        "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/CRITICAL-REPAIRS.json",
+        "sha256": "fe28ef30e95a8bebfbfb86f83e41758023f9cf4494dd46669ebed95ebd16d77e",
+        "pointer": "/records/0/newIndependentSourceArguments",
+        "role": "independent-source-inspection"
+      },
+      "dependencies": [
+        {
+          "path": "src/commands/yq/index.ts",
+          "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+          "sha256": "212673fa3599fa3a0ead59e781197989cb224939ea19e068a9d8c98c3ab24baf",
+          "bytes": 24198,
+          "mode": 420,
+          "spans": [
+            {
+              "startLine": 58,
+              "endLine": 86,
+              "sha256": "58bbf12fd972a14611af6de97099205292c69f580e9c5fcb9fcdc7558c3b19ad"
+            },
+            {
+              "startLine": 329,
+              "endLine": 343,
+              "sha256": "07c5089f8193d78d76664cbe4c27775329174e47bb263eaa7d9a3597d1dcbeb0"
+            },
+            {
+              "startLine": 453,
+              "endLine": 463,
+              "sha256": "9efb3c31fdd724df3074cd48110a9a3fcb0f5985e6bd69d906a1a4932a144148"
+            },
+            {
+              "startLine": 60,
+              "endLine": 86,
+              "sha256": "e3dec88619538b69c5b71b858c5474cbdc83aa832ee3ace5144abd0ef3a8aa14"
+            },
+            {
+              "startLine": 102,
+              "endLine": 128,
+              "sha256": "25bbdaa48282dde0fa368d508d8fb744374bf50defe1d16a588af817b73523fe"
+            },
+            {
+              "startLine": 378,
+              "endLine": 385,
+              "sha256": "a007d15e1f4b79374bb75fdd3a5588581a2a3af9cf5ea0e30c28572eab965f09"
+            }
+          ]
+        },
+        {
+          "path": "src/commands/yq/accounting.ts",
+          "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+          "sha256": "63c68a7c7a7c54fa37276ffbb168faeafeca0ab5b217157557171b689e070509",
+          "bytes": 9767,
+          "mode": 420,
+          "spans": [
+            {
+              "startLine": 45,
+              "endLine": 54,
+              "sha256": "7ae4d10672c22db56603da2b738b7eb4776fb250e5aca2e0f8c4a694ec693e4d"
+            }
+          ]
+        },
+        {
+          "path": "src/commands/yq/parser.ts",
+          "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+          "sha256": "c743319c37aa879a351a3c2caa7f68c3376969ea5fb50a3980635281ced6d008",
+          "bytes": 45581,
+          "mode": 420,
+          "spans": [
+            {
+              "startLine": 1061,
+              "endLine": 1110,
+              "sha256": "0b6ab232f3895beab21702c256f4034397d1b63eff79e691ac6d5952904a5eaa"
+            }
+          ]
+        }
+      ],
+      "claims": [
+        {
+          "path": "src/commands/yq/index.ts",
+          "lines": [
+            60,
+            86,
+            102,
+            128,
+            329,
+            343,
+            378,
+            385,
+            453,
+            463
+          ],
+          "argument": "Raw framer admission precedes retained chunk/fallback owned copy; raw frame byte admission precedes decode. Per-line/frame accounting and legal marker ranges bind source ordering, not observed allocation events."
+        },
+        {
+          "path": "src/commands/yq/accounting.ts",
+          "lines": [
+            45,
+            54
+          ],
+          "argument": "Raw-document admission uses > maxDocumentBytes refusal, with document counter reset only in beginDocument."
+        }
+      ],
+      "qualification": {
+        "classification": "A_SOURCE_STATIC; AT_C_NOT_ESTABLISHED",
+        "authorActualConstruction": "# + x.repeat(C-2) + CRLF: 1+(C-2)+2=C+1=8388609",
+        "authorLines": [
+          107,
+          114
+        ],
+        "independentQualification": "Only C+1 rejection is in the author fixture. The sealed qualification does not provide an exact at-C construction to prove a work-cap mask. For comment-only text, parser.documents:1061-1064 and1075-1109 can return no document, so one cannot blanket-assert comment bytes reach the charged document scanner. At-C and markers/CRLF runtime allocation observations remain absent."
+      },
+      "observationRequirements": [
+        {
+          "bindingId": "WRK-06::missing/0",
+          "recordId": "WRK-06",
+          "owner": "actors",
+          "sourceOwner": "core",
+          "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+          "frozenPointer": "freeze-accounting#/cases/5/input",
+          "frozenNeed": "Named private counter projection; no approved runtime observer or executable concrete argv fixture.",
+          "qualification": {
+            "id": "WRK-06",
+            "authorObservation": "Author C+1 raw document rejection: # + (C-2) x bytes + CRLF = C+1=8388609. Not an at-C success result.",
+            "atC": {
+              "state": "UNRUN_GATE_PROOF_REQUIRED",
+              "authorQualification": "Author says its synthetic comment-body at-C construction reaches the independent fixed work cap. No independent at-C proof inherited.",
+              "requirement": "Bind exact fixed-P1 source gate ordering and original input construction, count raw bytes/codepoints/charged steps including comment/document selection, identify which gate masks later admission. Without complete argument do not call at-C reachable or unreachable."
+            },
+            "newRuntimeFixture": false
+          },
+          "plannedRuntimeJobsA": [],
+          "plannedRuntimeJobsB": [],
+          "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+          "fullRecordPass": false
+        },
+        {
+          "bindingId": "WRK-06::missing/1",
+          "recordId": "WRK-06",
+          "owner": "actors",
+          "sourceOwner": "core",
+          "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+          "frozenPointer": "freeze-accounting#/cases/5/expect/assertions/0",
+          "frozenNeed": "Inclusive document admission then refusal before owned copy or decoded append; markers assigned exactly once; reset only at legal boundary.",
+          "qualification": {
+            "id": "WRK-06",
+            "authorObservation": "Author C+1 raw document rejection: # + (C-2) x bytes + CRLF = C+1=8388609. Not an at-C success result.",
+            "atC": {
+              "state": "UNRUN_GATE_PROOF_REQUIRED",
+              "authorQualification": "Author says its synthetic comment-body at-C construction reaches the independent fixed work cap. No independent at-C proof inherited.",
+              "requirement": "Bind exact fixed-P1 source gate ordering and original input construction, count raw bytes/codepoints/charged steps including comment/document selection, identify which gate masks later admission. Without complete argument do not call at-C reachable or unreachable."
+            },
+            "newRuntimeFixture": false
+          },
+          "plannedRuntimeJobsA": [],
+          "plannedRuntimeJobsB": [],
+          "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+          "fullRecordPass": false
+        }
+      ]
+    },
+    {
+      "id": "SOURCE-WRK-07",
+      "recordId": "WRK-07",
+      "bindingIds": [
+        "WRK-07::missing/0",
+        "WRK-07::missing/1"
+      ],
+      "fragmentIds": [],
+      "role": "source-static-counterproof",
+      "authority": {
+        "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+        "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/CRITICAL-REPAIRS.json",
+        "sha256": "fe28ef30e95a8bebfbfb86f83e41758023f9cf4494dd46669ebed95ebd16d77e",
+        "pointer": "/records/1/newIndependentSourceArguments",
+        "role": "independent-source-inspection"
+      },
+      "dependencies": [
+        {
+          "path": "src/commands/yq/parser.ts",
+          "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+          "sha256": "c743319c37aa879a351a3c2caa7f68c3376969ea5fb50a3980635281ced6d008",
+          "bytes": 45581,
+          "mode": 420,
+          "spans": [
+            {
+              "startLine": 656,
+              "endLine": 670,
+              "sha256": "965f52d34769c84274d4a8a7c785b5b15998feca25c4dafffc17fc7875082475"
+            },
+            {
+              "startLine": 686,
+              "endLine": 698,
+              "sha256": "9b8ad160ec34f0eb85d990a9c745803cdcf2447b51ef2911beee14cdbd06a25b"
+            },
+            {
+              "startLine": 659,
+              "endLine": 665,
+              "sha256": "5b0da73b372ba4a6a0f64ae90c0f8d6cd117c9d7c7bb426e0d7df5be7f05faf6"
+            },
+            {
+              "startLine": 690,
+              "endLine": 695,
+              "sha256": "f546ea78f22fd1304002a03c746932a167982440e76ebd700518a5aaea0f534f"
+            },
+            {
+              "startLine": 974,
+              "endLine": 980,
+              "sha256": "51108ec899d19a34b9dfac9bad319ab73b198cad0d1d1348b98211e2d22feebd"
+            },
+            {
+              "startLine": 1123,
+              "endLine": 1165,
+              "sha256": "daa080de4640c8ff1a110bad3017c326bc7d17d51a58d3b070de2fc2e70d9a57"
+            }
+          ]
+        },
+        {
+          "path": "src/commands/yq/accounting.ts",
+          "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+          "sha256": "63c68a7c7a7c54fa37276ffbb168faeafeca0ab5b217157557171b689e070509",
+          "bytes": 9767,
+          "mode": 420,
+          "spans": [
+            {
+              "startLine": 66,
+              "endLine": 70,
+              "sha256": "0ad270ef083336bc1ad52097837942b0dbed49414149f7094dc50c879c348282"
+            },
+            {
+              "startLine": 66,
+              "endLine": 68,
+              "sha256": "afed9ef7164eca3de11d5ab0d93c3eb36dbc5d2f39e136e641d340f91177c39b"
+            }
+          ]
+        },
+        {
+          "path": "src/commands/yq/index.ts",
+          "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+          "sha256": "212673fa3599fa3a0ead59e781197989cb224939ea19e068a9d8c98c3ab24baf",
+          "bytes": 24198,
+          "mode": 420,
+          "spans": [
+            {
+              "startLine": 442,
+              "endLine": 463,
+              "sha256": "69dd030eb8dffad18e0a96e27f782bfe77f96f18b8df81ec0c0470bfe68707cf"
+            }
+          ]
+        },
+        {
+          "path": "src/commands/structured/query-core.ts",
+          "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+          "sha256": "d0582961172c95ce39a4bd999e1c8ee7446761786ecfc374b7d54cfd22f49241",
+          "bytes": 22399,
+          "mode": 420,
+          "spans": [
+            {
+              "startLine": 142,
+              "endLine": 163,
+              "sha256": "44d640d4cec7fc461bf686578810fecd89f16a5211c3663482bb14a69f071ce1"
+            },
+            {
+              "startLine": 505,
+              "endLine": 507,
+              "sha256": "1b5ad292b40be25b83867838d495fb5cf594df9ecfa58f5c9e9c9942d07f0e10"
+            }
+          ]
+        },
+        {
+          "path": "src/commands/structured/limits.ts",
+          "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+          "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+          "bytes": 6675,
+          "mode": 420,
+          "spans": [
+            {
+              "startLine": 1,
+              "endLine": 70,
+              "sha256": "b5d3aaa1c21a0a66cd6d85602e015d15f1a7b4bd7fbe564ee755f123185446bb"
+            }
+          ]
+        }
+      ],
+      "claims": [
+        {
+          "path": "src/commands/yq/parser.ts",
+          "lines": [
+            659,
+            665,
+            690,
+            695,
+            974,
+            980
+          ],
+          "argument": "Project decoded scalar bytes, admit projectedBytes, then slice/decode/build scalar and charge; relevant branch-specific order, not live allocation trace."
+        },
+        {
+          "path": "src/commands/yq/accounting.ts",
+          "lines": [
+            66,
+            68
+          ],
+          "argument": "Reject only bytes>1048576 in this scalar ledger."
+        }
+      ],
+      "qualification": {
+        "classification": "B_FIXED_PROFILE_MASKED_FOR_AUTHOR_ASCII_CONSTRUCTION_ONLY",
+        "construction": "Double quote + a repeated1048576 + double quote",
+        "lowerBoundOwnedUnits": 1048578,
+        "maxSteps": 1000000,
+        "proof": "index.ts:442-463 supplies real session. query-core.ts:505-507 constructs fixed Budget/OwnedWork; parser.ts:1123-1165 charges every scanned ASCII point before Composer. OwnedWork.#charge:142-163 calls Budget.step and adds checkpoints; limits.ts:53-59 refuses >1000000. Even ignoring compiler/checkpoint/additional work,1048578>1000000, so that ordinary public invocation cannot reach scalar composition at C. This does NOT prove all four-byte/escaped frozen constructions masked.",
+        "authorQualification": "repair.test.ts:36-50 parseOne uses noopWork with actual parser/YqLedger;116-124 tests fixed scalar C/C+1. Internal fixed-scalar helper proof, not public command/Budget success."
+      },
+      "observationRequirements": [
+        {
+          "bindingId": "WRK-07::missing/0",
+          "recordId": "WRK-07",
+          "owner": "actors",
+          "sourceOwner": "core",
+          "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+          "frozenPointer": "freeze-accounting#/cases/6/input",
+          "frozenNeed": "decoded scalar ledger for a four-byte escape result, not source escape-text length",
+          "qualification": {
+            "id": "WRK-07",
+            "authorObservation": "Actual parser plus real YqLedger fixed maxScalarBytes1048576 accepted C and rejected C+1 in author evidence; helper parseOne supplies noopWork. This is not a full public command/Budget proof.",
+            "publicAtC": {
+              "state": "UNRUN_GATE_PROOF_REQUIRED",
+              "conditionalArithmetic": "Author ASCII scalar has C+2 source codepoints including quotes. Parser scans/charges codepoints before Composer parsing;1048578 exceeds fixed maxSteps1000000 under ordinary budget.step, before additional work. A fresh independent gate argument must bind actual session/Budget wiring and relevant branches; do not transplant noopWork or lower caps.",
+              "fullPublicCapSuccess": false
+            },
+            "newRuntimeFixture": false
+          },
+          "plannedRuntimeJobsA": [],
+          "plannedRuntimeJobsB": [],
+          "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+          "fullRecordPass": false
+        },
+        {
+          "bindingId": "WRK-07::missing/1",
+          "recordId": "WRK-07",
+          "owner": "actors",
+          "sourceOwner": "core",
+          "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+          "frozenPointer": "freeze-accounting#/cases/6/expect/assertions/0",
+          "frozenNeed": "Four-byte scalar reaches inclusive cap; next byte fails before retaining fragment; keys follow same cap.",
+          "qualification": {
+            "id": "WRK-07",
+            "authorObservation": "Actual parser plus real YqLedger fixed maxScalarBytes1048576 accepted C and rejected C+1 in author evidence; helper parseOne supplies noopWork. This is not a full public command/Budget proof.",
+            "publicAtC": {
+              "state": "UNRUN_GATE_PROOF_REQUIRED",
+              "conditionalArithmetic": "Author ASCII scalar has C+2 source codepoints including quotes. Parser scans/charges codepoints before Composer parsing;1048578 exceeds fixed maxSteps1000000 under ordinary budget.step, before additional work. A fresh independent gate argument must bind actual session/Budget wiring and relevant branches; do not transplant noopWork or lower caps.",
+              "fullPublicCapSuccess": false
+            },
+            "newRuntimeFixture": false
+          },
+          "plannedRuntimeJobsA": [],
+          "plannedRuntimeJobsB": [],
+          "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+          "fullRecordPass": false
+        }
+      ]
+    },
+    {
+      "id": "SOURCE-WRK-13",
+      "recordId": "WRK-13",
+      "bindingIds": [
+        "WRK-13::missing/0",
+        "WRK-13::missing/1"
+      ],
+      "fragmentIds": [],
+      "role": "source-static-counterproof",
+      "authority": {
+        "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+        "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/CRITICAL-REPAIRS.json",
+        "sha256": "fe28ef30e95a8bebfbfb86f83e41758023f9cf4494dd46669ebed95ebd16d77e",
+        "pointer": "/records/2/newIndependentSourceArguments",
+        "role": "independent-source-inspection"
+      },
+      "dependencies": [
+        {
+          "path": "src/commands/yq/parser.ts",
+          "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+          "sha256": "c743319c37aa879a351a3c2caa7f68c3376969ea5fb50a3980635281ced6d008",
+          "bytes": 45581,
+          "mode": 420,
+          "spans": [
+            {
+              "startLine": 574,
+              "endLine": 588,
+              "sha256": "e32f89678ddb5f85787b117be12bb182f35c7c0f5627fb65424a6a4d441707e6"
+            },
+            {
+              "startLine": 619,
+              "endLine": 632,
+              "sha256": "c6c96d2337314d30853ea5097a3008babaf396e0c14db61e5a4ae81ba8d3c976"
+            },
+            {
+              "startLine": 843,
+              "endLine": 855,
+              "sha256": "342c4738eafe56833bc63e9fefe1cfeced34ea381909a52954b3b5ee0f969518"
+            },
+            {
+              "startLine": 569,
+              "endLine": 595,
+              "sha256": "e509efeac0a5832e93cbbd90aa6a6b4f308054d874fed4b0dfc0f5d46a28641d"
+            },
+            {
+              "startLine": 611,
+              "endLine": 629,
+              "sha256": "24b0aa631d6ce0410b523c9091f543ef39f1fc55a41fa0609c9fb531841ebb55"
+            },
+            {
+              "startLine": 716,
+              "endLine": 729,
+              "sha256": "76252f6ba0f0296ea06c094469bcec497ac14f75fe8792601f776cc847a55277"
+            },
+            {
+              "startLine": 837,
+              "endLine": 859,
+              "sha256": "6894b75e134c2104c5cf69a3e7eb7e482db492f5c20e4e4c3aa1c744bcf6f0ca"
+            },
+            {
+              "startLine": 864,
+              "endLine": 879,
+              "sha256": "93278c1f1d895c5b30f04b1fa1515656abd03147096b95a0315dc591bbb70933"
+            },
+            {
+              "startLine": 884,
+              "endLine": 923,
+              "sha256": "c656e4c70693f591e023c9fded997629a42a32b968012fd1f90003e8bdca2d5c"
+            }
+          ]
+        },
+        {
+          "path": "src/commands/yq/accounting.ts",
+          "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+          "sha256": "63c68a7c7a7c54fa37276ffbb168faeafeca0ab5b217157557171b689e070509",
+          "bytes": 9767,
+          "mode": 420,
+          "spans": [
+            {
+              "startLine": 54,
+              "endLine": 66,
+              "sha256": "63bd945d91ae11a06795758ad11091f1c45657fee08adf07a95626216eb05d4d"
+            }
+          ]
+        }
+      ],
+      "claims": [
+        {
+          "path": "src/commands/yq/parser.ts",
+          "lines": [
+            569,
+            595,
+            611,
+            629,
+            716,
+            729,
+            837,
+            859,
+            864,
+            879,
+            884,
+            923
+          ],
+          "argument": "Prospective collection member admission precedes child parsing in flow sequence/mapping, block sequence, inline mapping item and explicit/implicit block mapping. Root node is admitted before collection construction. The source supports ordering; it is not an independently observed100000-member trace."
+        }
+      ],
+      "qualification": {
+        "classification": "B_FIXED_PROFILE_MASKED_FOR_FLAT_SCALAR_SEQUENCE_ONLY",
+        "construction": "Ordinary single sequence with100000 scalar members",
+        "requiredNodesAtCollectionC": 100001,
+        "maxDocumentNodes": 100000,
+        "proof": "parser.ts:571 admits root node; each scalar calls Composer.scalar:727 then node:719; accounting.ts:58-59 increments fixed100000 node ledger. Root+100000 children needs100001, so this exact public input cannot finish at collection C. A different construction needs its own gate proof; no state injection/lowered caps."
+      },
+      "observationRequirements": [
+        {
+          "bindingId": "WRK-13::missing/0",
+          "recordId": "WRK-13",
+          "owner": "actors",
+          "sourceOwner": "core",
+          "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+          "frozenPointer": "freeze-accounting#/cases/12/input",
+          "frozenNeed": "Named private counter projection; no approved runtime observer or executable concrete argv fixture.",
+          "qualification": {
+            "id": "WRK-13",
+            "authorObservation": "Author ninth control invokes actual parser with subclassed ledger/event work for member-before-child order. Source/control proof, not independent public100000-member boundary.",
+            "required": "Inspect all flow/block collection branches against the existing frozen member-admission obligation; retain source role and any branch gaps.",
+            "newRuntimeFixture": false
+          },
+          "plannedRuntimeJobsA": [],
+          "plannedRuntimeJobsB": [],
+          "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+          "fullRecordPass": false
+        },
+        {
+          "bindingId": "WRK-13::missing/1",
+          "recordId": "WRK-13",
+          "owner": "actors",
+          "sourceOwner": "core",
+          "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+          "frozenPointer": "freeze-accounting#/cases/12/expect/assertions/0",
+          "frozenNeed": "Current collection member 100000 fits; next is refused before input member allocation; this is not a string-code-point limit.",
+          "qualification": {
+            "id": "WRK-13",
+            "authorObservation": "Author ninth control invokes actual parser with subclassed ledger/event work for member-before-child order. Source/control proof, not independent public100000-member boundary.",
+            "required": "Inspect all flow/block collection branches against the existing frozen member-admission obligation; retain source role and any branch gaps.",
+            "newRuntimeFixture": false
+          },
+          "plannedRuntimeJobsA": [],
+          "plannedRuntimeJobsB": [],
+          "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+          "fullRecordPass": false
+        }
+      ]
+    },
+    {
+      "id": "SOURCE-WRK-17",
+      "recordId": "WRK-17",
+      "bindingIds": [
+        "WRK-17::missing/0",
+        "WRK-17::missing/1"
+      ],
+      "fragmentIds": [],
+      "role": "source-static-counterproof",
+      "authority": {
+        "commit": "3bd3612ecbcd8626ec21b362c88d1ebf53e7a532",
+        "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/launch-coverage-interface-v1/CRITICAL-REPAIRS.json",
+        "sha256": "fe28ef30e95a8bebfbfb86f83e41758023f9cf4494dd46669ebed95ebd16d77e",
+        "pointer": "/records/3/newIndependentSourceArguments",
+        "role": "independent-source-inspection"
+      },
+      "dependencies": [
+        {
+          "path": "src/commands/yq/encoder.ts",
+          "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+          "sha256": "9e013ee8aadc590ea8aca8e94fb03079eb820b00a76fd05b9fd85ebb4223303f",
+          "bytes": 8394,
+          "mode": 420,
+          "spans": [
+            {
+              "startLine": 75,
+              "endLine": 104,
+              "sha256": "53e6b778168033dedf5f76fa6ec811ef3c35008e665e38bfa4c466303ab67636"
+            },
+            {
+              "startLine": 24,
+              "endLine": 35,
+              "sha256": "77a580d30d6636a762e2f5bcf85cc3204bc9e3a9a1d6d0b3aa5c69fbbcf491d3"
+            },
+            {
+              "startLine": 47,
+              "endLine": 49,
+              "sha256": "20a0d8311abdcd8be6c7349ff1bf2453a660340c6e08bd7f62ed9567ba93f01f"
+            },
+            {
+              "startLine": 78,
+              "endLine": 105,
+              "sha256": "f32eba27358efbd96fdc4d18c553ab77c926b30a43cb99bcc83b564e4a0aff23"
+            }
+          ]
+        },
+        {
+          "path": "src/commands/structured/query-core.ts",
+          "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+          "sha256": "d0582961172c95ce39a4bd999e1c8ee7446761786ecfc374b7d54cfd22f49241",
+          "bytes": 22399,
+          "mode": 420,
+          "spans": [
+            {
+              "startLine": 279,
+              "endLine": 306,
+              "sha256": "ff99ea9596fed07a554cd958507f8fa4ffdb5d9bc249300e76c6bbc3e0a4aa42"
+            }
+          ]
+        },
+        {
+          "path": "src/commands/yq/index.ts",
+          "revision": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+          "sha256": "212673fa3599fa3a0ead59e781197989cb224939ea19e068a9d8c98c3ab24baf",
+          "bytes": 24198,
+          "mode": 420,
+          "spans": [
+            {
+              "startLine": 497,
+              "endLine": 521,
+              "sha256": "8fcecee9dc9fa6a183bd0a3813b69863165b0cad0a7fdfb3e6bf9cf4aafbb7c5"
+            }
+          ]
+        },
+        {
+          "path": "src/commands/structured/limits.ts",
+          "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+          "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe",
+          "bytes": 6675,
+          "mode": 420,
+          "spans": [
+            {
+              "startLine": 1,
+              "endLine": 70,
+              "sha256": "b5d3aaa1c21a0a66cd6d85602e015d15f1a7b4bd7fbe564ee755f123185446bb"
+            }
+          ]
+        }
+      ],
+      "claims": [
+        {
+          "path": "src/commands/yq/encoder.ts",
+          "lines": [
+            24,
+            35,
+            47,
+            49,
+            78,
+            105
+          ],
+          "argument": "Exact escaped-byte projection is reserved before escaped fragment construction; appendReserved verifies byte length and retains without incrementing reserved bytes again; final join follows guards."
+        },
+        {
+          "path": "src/commands/structured/query-core.ts",
+          "lines": [
+            279,
+            306
+          ],
+          "argument": "JSON reserveFragment(projectedBytes) precedes fragment concatenation; later charge/guard and appendReserved retain it."
+        },
+        {
+          "path": "src/commands/yq/index.ts",
+          "lines": [
+            497,
+            521
+          ],
+          "argument": "Remaining stdout allowance excludes separator/newline; whole operation ledger admission precedes submit. Source role only."
+        }
+      ],
+      "qualification": {
+        "classification": "A_SOURCE_STATIC_PLUS_HOST_CAPTURE_MASKED_PUBLIC_BOUNDARY",
+        "authorQualification": "repair.test.ts:126-132 supplies internal maxBytes7/8 for escaped NUL. This is PROOFCONTROL, not public combined16777216/stdout16773120 cap.",
+        "hostCapture": {
+          "fixtureCombinedBytes": 2097152,
+          "productStdoutCapBytes": 16773120,
+          "productCombinedBytes": 16777216,
+          "code": "assembly/core/frozen/context.mjs:81-86; assembly/core/worker-api.mjs:92-99,157-159"
+        },
+        "proof": "The unchanged host fixture rejects attempted accumulated command output above2097152, below the public output boundary. A saturated public write cannot be fully observed with this capture profile; overflow is harness failure, not a product cap proof. No blanket product gate unreachable claim is made."
+      },
+      "observationRequirements": [
+        {
+          "bindingId": "WRK-17::missing/0",
+          "recordId": "WRK-17",
+          "owner": "actors",
+          "sourceOwner": "core",
+          "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+          "frozenPointer": "freeze-accounting#/cases/16/input",
+          "frozenNeed": "four-byte complete next output operation including any separator/newline; encoder fragments/join/buffer observed",
+          "qualification": {
+            "id": "WRK-17",
+            "authorObservation": "Author actual encoder calls use internal maxBytes7/8 for escaped NUL. These are PROOF_CONTROL, not public combined-output cap16777216 or command cap reachability.",
+            "required": "Independent source argument for exact projected-byte reservation before every retained escaped fragment; distinguish append/publish, no double charge. Fixed-cap masked/unreachable claims need explicit gate/path proof, not injected ledger state.",
+            "publicBoundaryState": "UNRUN_GATE_PROOF_REQUIRED",
+            "newRuntimeFixture": false
+          },
+          "plannedRuntimeJobsA": [],
+          "plannedRuntimeJobsB": [],
+          "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+          "fullRecordPass": false
+        },
+        {
+          "bindingId": "WRK-17::missing/1",
+          "recordId": "WRK-17",
+          "owner": "actors",
+          "sourceOwner": "core",
+          "role": "APPLICABLE_RUNTIME_OBSERVATION_OR_CONSTRUCTION_SCOPED_GATE_ARGUMENT",
+          "frozenPointer": "freeze-accounting#/cases/16/expect/assertions/0",
+          "frozenNeed": "Stdout stays <=16773120; reserve 4096 remains unavailable to stdout; oversized document submits zero bytes; every retained encoder allocation is preflighted.",
+          "qualification": {
+            "id": "WRK-17",
+            "authorObservation": "Author actual encoder calls use internal maxBytes7/8 for escaped NUL. These are PROOF_CONTROL, not public combined-output cap16777216 or command cap reachability.",
+            "required": "Independent source argument for exact projected-byte reservation before every retained escaped fragment; distinguish append/publish, no double charge. Fixed-cap masked/unreachable claims need explicit gate/path proof, not injected ledger state.",
+            "publicBoundaryState": "UNRUN_GATE_PROOF_REQUIRED",
+            "newRuntimeFixture": false
+          },
+          "plannedRuntimeJobsA": [],
+          "plannedRuntimeJobsB": [],
+          "state": "UNRUN_ACTOR_AND_FUTURE_RECIPE_NOT_INTEGRATED",
+          "fullRecordPass": false
+        }
+      ]
+    }
+  ]
+}

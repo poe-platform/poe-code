@@ -1,0 +1,50 @@
+{
+  "schema": "v7-pinned-normal-cli-root-approval-required",
+  "authorization": "NOT RUN; requires explicit root approval and complete route/budget admission",
+  "sourceCommit": "90311c10a0a95f8de7c889b2bd8395d4e95a1d37",
+  "discoveryPresealSha256": "f83d5102f3ac3c8d3d2a3645cb81b4c9291ccab5cf8a0da7c7ba4363d0fa5530",
+  "tool": "functions.exec_command",
+  "parameters": {
+    "cmd": "exec -c '/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node' '--no-warnings' '/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/owner.mjs' '90311c10a0a95f8de7c889b2bd8395d4e95a1d37' 'f83d5102f3ac3c8d3d2a3645cb81b4c9291ccab5cf8a0da7c7ba4363d0fa5530'",
+    "workdir": "/Users/kjopek/Workspace/safe-bash",
+    "login": false,
+    "tty": false,
+    "yield_time_ms": 1000,
+    "max_output_tokens": 1200
+  },
+  "polling": "Only existing tool handle while owner active; no concurrent admin/tools. Wait terminal status before any Git/evidence action.",
+  "expectedChildStarts": 6,
+  "qualificationCeilings": {
+    "totalMs": 600000,
+    "admissionCutoffMs": 540000,
+    "maximumChildren": 12,
+    "fixedChildren": 6,
+    "peakAllOwnedProcesses": 2,
+    "captureBytes": 33554432,
+    "persistedBytes": 2097152,
+    "scratchBytes": 134217728,
+    "tightenedScratchBytes": 1048576,
+    "scratchEntries": 128,
+    "childTimeoutMs": 15000,
+    "retirementGraceMs": 2500,
+    "perChildRawBytes": 65536
+  },
+  "runRoot": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v7/recipe/attempt-01",
+  "existingRoot": false,
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "binding": {
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    }
+  },
+  "git": {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/git",
+    "binding": {
+      "bytes": 7604272,
+      "mode": 493,
+      "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae"
+    }
+  }
+}

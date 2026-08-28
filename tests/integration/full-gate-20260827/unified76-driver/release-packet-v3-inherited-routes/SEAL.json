@@ -1,0 +1,37 @@
+{
+  "schema": "unified76-packet-seal/3",
+  "createdAt": "2026-08-28T10:46:56.453Z",
+  "status": "AWAITING_INDEPENDENT_METADATA_REVIEW_AND_FRESH_ROOT_RELEASE",
+  "normalizedPacketSha256": "6cc921ca044fed1b84546bb824f1ab7fc545119c7a5f8ecefd272b23dcd61195",
+  "files": [
+    {
+      "path": "PACKET.json",
+      "bytes": 100535,
+      "sha256": "ece6ddcb0756c7aba1a5ca32ce81ee5644228ec5b67d3c2524acfa7595cca032"
+    },
+    {
+      "path": "ROOT-RECEIPT.template.json",
+      "bytes": 7463,
+      "sha256": "7b517678a66d9218d42aa1c1ff7ddd5d426b5fd8bbfaaabebd0b46f84760a33f"
+    },
+    {
+      "path": "VALIDATION.json",
+      "bytes": 774,
+      "sha256": "0db3ab3fc7d7389a18651c06ceb5e73f6c74771a04d610cd04531182fcfc7bf0"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 11864,
+      "sha256": "fd05ad0f66e36055000c5904c4b44273722ad80de7478feab6573e526587eef1"
+    },
+    {
+      "path": "LAUNCH.md",
+      "bytes": 9226,
+      "sha256": "3662b1755f3f9ff82359b34b15b95b5d5cffc24165c7d5be4f9c664ac1ce5301"
+    }
+  ],
+  "shippingSource": "96daebc077381fb63ab6447a26ab707ce790ff25",
+  "shippingFiles": 38,
+  "review": "5bec6231de149d00ae707bfc0ca914d6ee6e1e0a",
+  "qualification": "Metadata-only preparation. No new gate admission/run, materialization, private access, build, pack or native oracle. No prior authorization transfers."
+}

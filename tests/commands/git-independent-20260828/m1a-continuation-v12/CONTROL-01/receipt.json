@@ -1,0 +1,163 @@
+{
+  "status": "PASS",
+  "mode": "controls",
+  "pid": 45410,
+  "children": [
+    {
+      "id": "C01",
+      "args": [
+        "--input-type=module",
+        "-e",
+        "await import('./ABSENT-CONTROL.mjs')"
+      ],
+      "closed": true,
+      "signals": [],
+      "stdoutBytes": 0,
+      "stderrBytes": 1283,
+      "enrollment": "known.add immediately after spawn before listeners/helpers",
+      "pid": 45411,
+      "stderrClosed": true,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "stdoutClosed": true,
+      "cleanupAttempted": true,
+      "cleanupSettled": true
+    },
+    {
+      "id": "C02",
+      "args": [
+        "--input-type=module",
+        "-e",
+        "const ="
+      ],
+      "closed": true,
+      "signals": [],
+      "stdoutBytes": 0,
+      "stderrBytes": 715,
+      "enrollment": "known.add immediately after spawn before listeners/helpers",
+      "pid": 45412,
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true
+    },
+    {
+      "id": "C03",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/control-startup.mjs"
+      ],
+      "closed": true,
+      "signals": [],
+      "stdoutBytes": 0,
+      "stderrBytes": 833,
+      "enrollment": "known.add immediately after spawn before listeners/helpers",
+      "pid": 45413,
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true
+    },
+    {
+      "id": "C04",
+      "args": [
+        "-e",
+        "console.log('ALL_PASS');process.exitCode=7"
+      ],
+      "closed": true,
+      "signals": [],
+      "stdoutBytes": 9,
+      "stderrBytes": 0,
+      "enrollment": "known.add immediately after spawn before listeners/helpers",
+      "pid": 45414,
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 7,
+        "signal": null
+      },
+      "close": {
+        "code": 7,
+        "signal": null
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true
+    },
+    {
+      "id": "C05",
+      "args": [
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/run.mjs"
+      ],
+      "closed": true,
+      "signals": [],
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "enrollment": "known.add immediately after spawn before listeners/helpers",
+      "pid": 45415,
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true
+    },
+    {
+      "id": "C06",
+      "args": [
+        "-e",
+        "console.log('OWNED_STDOUT');console.error('OWNED_STDERR')"
+      ],
+      "closed": true,
+      "signals": [],
+      "stdoutBytes": 13,
+      "stderrBytes": 13,
+      "enrollment": "known.add immediately after spawn before listeners/helpers",
+      "pid": 45416,
+      "stdoutClosed": true,
+      "stderrClosed": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "cleanupAttempted": true,
+      "cleanupSettled": true
+    }
+  ],
+  "rawBytes": 2866,
+  "eventBytes": 4978,
+  "elapsedBeforeFinalPublicationMs": 1011.02025,
+  "finalWriteTailMeasured": false,
+  "unknownOwned": false
+}

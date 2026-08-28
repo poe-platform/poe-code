@@ -1,0 +1,14 @@
+{
+  "label": "stored-object-data",
+  "executable": "/usr/bin/git",
+  "args": [
+    "cat-file",
+    "--batch"
+  ],
+  "pid": 56182,
+  "status": 0,
+  "signal": null,
+  "reaped": true,
+  "stdoutSha256": "ecb4f7033a4ee8eae4ad678f445f4498987d3159553917673bff2cdbc6b6f9ca",
+  "stderrBase64": ""
+}

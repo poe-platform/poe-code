@@ -1,0 +1,819 @@
+{
+  "role": "DATA_SYNTHETIC_BENIGN_STUB_ONLY",
+  "protocolSha256": "e093f1fdef530675f3273291c6624249640656983857a25ffe039ba2e4a22b4d",
+  "started": 1787937840662,
+  "host": {
+    "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "qualification": "stub host only; not accepted-tool qualification"
+  },
+  "synthetic": [
+    {
+      "name": "parse-only:admission.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse-only:source-auth.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse-only:future-supervisor.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse-only:future-adapter.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse-only:runtime-entry.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse-only:worker-observer.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse-only:worker-preload.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse-only:stub-controls.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse-only:stub-child.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse-only:stub-entry.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse-only:stub-dependency.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse-only:stub-guard.mjs",
+      "pass": true
+    },
+    {
+      "name": "parse-only:verify.mjs",
+      "pass": true
+    },
+    {
+      "name": "missing-entry",
+      "pass": true
+    },
+    {
+      "name": "wrong-digest",
+      "pass": true
+    },
+    {
+      "name": "outside-file",
+      "pass": true
+    },
+    {
+      "name": "sourcefallback",
+      "pass": true
+    },
+    {
+      "name": "missing-go",
+      "pass": true
+    },
+    {
+      "name": "grant-drift:decision",
+      "pass": true
+    },
+    {
+      "name": "grant-drift:packet",
+      "pass": true
+    },
+    {
+      "name": "grant-drift:root",
+      "pass": true
+    },
+    {
+      "name": "grant-drift:composition",
+      "pass": true
+    },
+    {
+      "name": "grant-drift:preparationSealSha256",
+      "pass": true
+    },
+    {
+      "name": "grant-command-drift",
+      "pass": true
+    },
+    {
+      "name": "grant-app-parent-drift",
+      "pass": true
+    },
+    {
+      "name": "synthetic-unreaped-stop",
+      "pass": true
+    },
+    {
+      "name": "synthetic-terminate-pending-stop",
+      "pass": true
+    },
+    {
+      "name": "synthetic-terminate-error-stop",
+      "pass": true
+    },
+    {
+      "name": "synthetic-unknown-exit-stop",
+      "pass": true
+    },
+    {
+      "name": "synthetic-emergency-stop",
+      "pass": true
+    },
+    {
+      "name": "worker-url-drift-before-start",
+      "pass": true
+    },
+    {
+      "name": "worker-options-drift-before-start",
+      "pass": true
+    },
+    {
+      "name": "worker-preload-digest-drift-before-start",
+      "pass": true
+    },
+    {
+      "name": "actual-stub:natural",
+      "pass": true
+    },
+    {
+      "name": "actual-stub:product-forced",
+      "pass": true
+    },
+    {
+      "name": "actual-stub:emergency",
+      "pass": true
+    },
+    {
+      "name": "actual-stub:error",
+      "pass": true
+    },
+    {
+      "name": "actual-stub:loader-drift",
+      "pass": true
+    },
+    {
+      "name": "actual-stub:late-acquisition",
+      "pass": true
+    },
+    {
+      "name": "actual-stub:concurrent-bound",
+      "pass": true
+    },
+    {
+      "name": "actual-stub:cumulative-bound",
+      "pass": true
+    }
+  ],
+  "children": [
+    {
+      "label": "stored-object-data",
+      "executable": "/usr/bin/git",
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "pid": 56182,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "stdoutSha256": "ecb4f7033a4ee8eae4ad678f445f4498987d3159553917673bff2cdbc6b6f9ca",
+      "stderrBase64": ""
+    },
+    {
+      "label": "no-go-no-setup",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/future-supervisor.mjs"
+      ],
+      "pid": 56185,
+      "status": 1,
+      "signal": null,
+      "reaped": true,
+      "stdoutBase64": "",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBase64": "bm9kZTppbnRlcm5hbC9tb2R1bGVzL3J1bl9tYWluOjEyMwogICAgdHJpZ2dlclVuY2F1Z2h0RXhjZXB0aW9uKAogICAgXgoKQXNzZXJ0aW9uRXJyb3IgW0VSUl9BU1NFUlRJT05dOiBFWEFDVF9DT01NQU5EX1JFUVVJUkVEX05PX1NFVFVQCisgYWN0dWFsIC0gZXhwZWN0ZWQKCisgW10KLSBbCi0gICAnLS1ncmFudCcsCi0gICAnL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2ludGVncmF0aW9uL3ByaW9yaXR5LWNvbW1hbmQtd29ya2Zsb3dzLTIwMjYwODI4L0dPLmpzb24nLAotICAgJy0tYnVkZ2V0JywKLSAgICcvVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvaW50ZWdyYXRpb24vcHJpb3JpdHktY29tbWFuZC13b3JrZmxvd3MtMjAyNjA4MjgvUEFSRU5ULUJVREdFVC5qc29uJwotIF0KCiAgICBhdCBmaWxlOi8vL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2ludGVncmF0aW9uL3ByaW9yaXR5LWNvbW1hbmQtd29ya2Zsb3dzLTIwMjYwODI4L2Z1dHVyZS1zdXBlcnZpc29yLm1qczoxMTo4CiAgICBhdCBNb2R1bGVKb2IucnVuIChub2RlOmludGVybmFsL21vZHVsZXMvZXNtL21vZHVsZV9qb2I6MzQzOjI1KQogICAgYXQgYXN5bmMgb25JbXBvcnQudHJhY2VQcm9taXNlLl9fcHJvdG9fXyAobm9kZTppbnRlcm5hbC9tb2R1bGVzL2VzbS9sb2FkZXI6NjY1OjI2KQogICAgYXQgYXN5bmMgYXN5bmNSdW5FbnRyeVBvaW50V2l0aEVTTUxvYWRlciAobm9kZTppbnRlcm5hbC9tb2R1bGVzL3J1bl9tYWluOjExNzo1KSB7CiAgZ2VuZXJhdGVkTWVzc2FnZTogZmFsc2UsCiAgY29kZTogJ0VSUl9BU1NFUlRJT04nLAogIGFjdHVhbDogW10sCiAgZXhwZWN0ZWQ6IFsKICAgICctLWdyYW50JywKICAgICcvVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvaW50ZWdyYXRpb24vcHJpb3JpdHktY29tbWFuZC13b3JrZmxvd3MtMjAyNjA4MjgvR08uanNvbicsCiAgICAnLS1idWRnZXQnLAogICAgJy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9pbnRlZ3JhdGlvbi9wcmlvcml0eS1jb21tYW5kLXdvcmtmbG93cy0yMDI2MDgyOC9QQVJFTlQtQlVER0VULmpzb24nCiAgXSwKICBvcGVyYXRvcjogJ2RlZXBTdHJpY3RFcXVhbCcsCiAgZGlmZjogJ3NpbXBsZScKfQoKTm9kZS5qcyB2MjIuMjIuMgo="
+    },
+    {
+      "label": "natural",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+        "natural",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1"
+      ],
+      "pid": 56186,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "stdoutBase64": "eyJyb2xlIjoiQkVOSUdOX1NUVUJfT05MWV9OT1RfUFJPRFVDVF9QUk9PRiIsIm1vZGUiOiJuYXR1cmFsIiwicGFzcyI6dHJ1ZSwicm93cyI6W3sidG9rZW4iOiJuYXR1cmFsOjEiLCJlbnRyeSI6ImZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvaW50ZWdyYXRpb24vcHJpb3JpdHktY29tbWFuZC13b3JrZmxvd3MtMjAyNjA4Mjgvc3R1Yi1lbnRyeS5tanMiLCJyZXF1ZXN0ZWQiOnsiZXhlY0FyZ3YiOltdLCJyZXNvdXJjZUxpbWl0cyI6eyJtYXhPbGRHZW5lcmF0aW9uU2l6ZU1iIjoxMjgsInN0YWNrU2l6ZU1iIjo0fX0sImVmZmVjdGl2ZSI6eyJleGVjQXJndiI6WyItLWltcG9ydCIsImZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvaW50ZWdyYXRpb24vcHJpb3JpdHktY29tbWFuZC13b3JrZmxvd3MtMjAyNjA4Mjgvd29ya2VyLXByZWxvYWQubWpzIl0sInJlc291cmNlTGltaXRzIjp7Im1heE9sZEdlbmVyYXRpb25TaXplTWIiOjEyOCwic3RhY2tTaXplTWIiOjR9fSwiZXhpdGVkIjp0cnVlLCJleGl0Q29kZSI6MCwidGVybWluYXRlUGVuZGluZyI6MCwidGVybWluYXRlRXJyb3JzIjpbXSwiZW1lcmdlbmN5IjpmYWxzZSwicHJvZHVjdFRlcm1pbmF0ZUNhbGxzIjowLCJlcnJvcnMiOltdLCJ0aHJlYWRJZCI6MSwicmVzb3VyY2VMaW1pdHMiOnsibWF4WW91bmdHZW5lcmF0aW9uU2l6ZU1iIjotMSwibWF4T2xkR2VuZXJhdGlvblNpemVNYiI6MTI4LCJjb2RlUmFuZ2VTaXplTWIiOi0xLCJzdGFja1NpemVNYiI6NH0sIm9ubGluZSI6dHJ1ZX1dLCJwcm9kdWN0SW1wb3J0cyI6MCwicHJvZHVjdERpc3BhdGNoZXMiOjB9Cg==",
+      "stdoutSha256": "018f509fe4c45cd3bb881e769553c08c5e213a97f8266b4aad353085e1424087",
+      "stderrBase64": "",
+      "observation": {
+        "role": "BENIGN_STUB_ONLY_NOT_PRODUCT_PROOF",
+        "mode": "natural",
+        "pass": true,
+        "rows": [
+          {
+            "token": "natural:1",
+            "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+            "requested": {
+              "execArgv": [],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "effective": {
+              "execArgv": [
+                "--import",
+                "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs"
+              ],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "exited": true,
+            "exitCode": 0,
+            "terminatePending": 0,
+            "terminateErrors": [],
+            "emergency": false,
+            "productTerminateCalls": 0,
+            "errors": [],
+            "threadId": 1,
+            "resourceLimits": {
+              "maxYoungGenerationSizeMb": -1,
+              "maxOldGenerationSizeMb": 128,
+              "codeRangeSizeMb": -1,
+              "stackSizeMb": 4
+            },
+            "online": true
+          }
+        ],
+        "productImports": 0,
+        "productDispatches": 0
+      }
+    },
+    {
+      "label": "product-forced",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+        "product-forced",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1"
+      ],
+      "pid": 56187,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "stdoutBase64": "eyJyb2xlIjoiQkVOSUdOX1NUVUJfT05MWV9OT1RfUFJPRFVDVF9QUk9PRiIsIm1vZGUiOiJwcm9kdWN0LWZvcmNlZCIsInBhc3MiOnRydWUsInJvd3MiOlt7InRva2VuIjoicHJvZHVjdC1mb3JjZWQ6MSIsImVudHJ5IjoiZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9pbnRlZ3JhdGlvbi9wcmlvcml0eS1jb21tYW5kLXdvcmtmbG93cy0yMDI2MDgyOC9zdHViLWVudHJ5Lm1qcyIsInJlcXVlc3RlZCI6eyJleGVjQXJndiI6W10sInJlc291cmNlTGltaXRzIjp7Im1heE9sZEdlbmVyYXRpb25TaXplTWIiOjEyOCwic3RhY2tTaXplTWIiOjR9fSwiZWZmZWN0aXZlIjp7ImV4ZWNBcmd2IjpbIi0taW1wb3J0IiwiZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9pbnRlZ3JhdGlvbi9wcmlvcml0eS1jb21tYW5kLXdvcmtmbG93cy0yMDI2MDgyOC93b3JrZXItcHJlbG9hZC5tanMiXSwicmVzb3VyY2VMaW1pdHMiOnsibWF4T2xkR2VuZXJhdGlvblNpemVNYiI6MTI4LCJzdGFja1NpemVNYiI6NH19LCJleGl0ZWQiOnRydWUsImV4aXRDb2RlIjoxLCJ0ZXJtaW5hdGVQZW5kaW5nIjowLCJ0ZXJtaW5hdGVFcnJvcnMiOltdLCJlbWVyZ2VuY3kiOmZhbHNlLCJwcm9kdWN0VGVybWluYXRlQ2FsbHMiOjEsImVycm9ycyI6W10sInRocmVhZElkIjoxLCJyZXNvdXJjZUxpbWl0cyI6eyJtYXhZb3VuZ0dlbmVyYXRpb25TaXplTWIiOi0xLCJtYXhPbGRHZW5lcmF0aW9uU2l6ZU1iIjoxMjgsImNvZGVSYW5nZVNpemVNYiI6LTEsInN0YWNrU2l6ZU1iIjo0fSwib25saW5lIjp0cnVlfV0sInByb2R1Y3RJbXBvcnRzIjowLCJwcm9kdWN0RGlzcGF0Y2hlcyI6MH0K",
+      "stdoutSha256": "5e76bb5f66b333365d07f57e7691e9b50ef7cfc8e5ca500553f2086bc5524c94",
+      "stderrBase64": "",
+      "observation": {
+        "role": "BENIGN_STUB_ONLY_NOT_PRODUCT_PROOF",
+        "mode": "product-forced",
+        "pass": true,
+        "rows": [
+          {
+            "token": "product-forced:1",
+            "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+            "requested": {
+              "execArgv": [],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "effective": {
+              "execArgv": [
+                "--import",
+                "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs"
+              ],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "exited": true,
+            "exitCode": 1,
+            "terminatePending": 0,
+            "terminateErrors": [],
+            "emergency": false,
+            "productTerminateCalls": 1,
+            "errors": [],
+            "threadId": 1,
+            "resourceLimits": {
+              "maxYoungGenerationSizeMb": -1,
+              "maxOldGenerationSizeMb": 128,
+              "codeRangeSizeMb": -1,
+              "stackSizeMb": 4
+            },
+            "online": true
+          }
+        ],
+        "productImports": 0,
+        "productDispatches": 0
+      }
+    },
+    {
+      "label": "emergency",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+        "emergency",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1"
+      ],
+      "pid": 56188,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "stdoutBase64": "eyJyb2xlIjoiQkVOSUdOX1NUVUJfT05MWV9OT1RfUFJPRFVDVF9QUk9PRiIsIm1vZGUiOiJlbWVyZ2VuY3kiLCJwYXNzIjp0cnVlLCJleHBlY3RlZFJlZnVzYWwiOiJFTUVSR0VOQ1lfUkVUSVJFTUVOVF9TVE9QIiwicm93cyI6W3sidG9rZW4iOiJlbWVyZ2VuY3k6MSIsImVudHJ5IjoiZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9pbnRlZ3JhdGlvbi9wcmlvcml0eS1jb21tYW5kLXdvcmtmbG93cy0yMDI2MDgyOC9zdHViLWVudHJ5Lm1qcyIsInJlcXVlc3RlZCI6eyJleGVjQXJndiI6W10sInJlc291cmNlTGltaXRzIjp7Im1heE9sZEdlbmVyYXRpb25TaXplTWIiOjEyOCwic3RhY2tTaXplTWIiOjR9fSwiZWZmZWN0aXZlIjp7ImV4ZWNBcmd2IjpbIi0taW1wb3J0IiwiZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9pbnRlZ3JhdGlvbi9wcmlvcml0eS1jb21tYW5kLXdvcmtmbG93cy0yMDI2MDgyOC93b3JrZXItcHJlbG9hZC5tanMiXSwicmVzb3VyY2VMaW1pdHMiOnsibWF4T2xkR2VuZXJhdGlvblNpemVNYiI6MTI4LCJzdGFja1NpemVNYiI6NH19LCJleGl0ZWQiOnRydWUsImV4aXRDb2RlIjoxLCJ0ZXJtaW5hdGVQZW5kaW5nIjowLCJ0ZXJtaW5hdGVFcnJvcnMiOltdLCJlbWVyZ2VuY3kiOnRydWUsInByb2R1Y3RUZXJtaW5hdGVDYWxscyI6MCwiZXJyb3JzIjpbXSwidGhyZWFkSWQiOjEsInJlc291cmNlTGltaXRzIjp7Im1heFlvdW5nR2VuZXJhdGlvblNpemVNYiI6LTEsIm1heE9sZEdlbmVyYXRpb25TaXplTWIiOjEyOCwiY29kZVJhbmdlU2l6ZU1iIjotMSwic3RhY2tTaXplTWIiOjR9LCJvbmxpbmUiOnRydWV9XSwicHJvZHVjdEltcG9ydHMiOjAsInByb2R1Y3REaXNwYXRjaGVzIjowfQo=",
+      "stdoutSha256": "ac28e2e9996c90f0d9318bf02effe713e3f567b878acf4c538519db4449a85c0",
+      "stderrBase64": "",
+      "observation": {
+        "role": "BENIGN_STUB_ONLY_NOT_PRODUCT_PROOF",
+        "mode": "emergency",
+        "pass": true,
+        "expectedRefusal": "EMERGENCY_RETIREMENT_STOP",
+        "rows": [
+          {
+            "token": "emergency:1",
+            "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+            "requested": {
+              "execArgv": [],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "effective": {
+              "execArgv": [
+                "--import",
+                "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs"
+              ],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "exited": true,
+            "exitCode": 1,
+            "terminatePending": 0,
+            "terminateErrors": [],
+            "emergency": true,
+            "productTerminateCalls": 0,
+            "errors": [],
+            "threadId": 1,
+            "resourceLimits": {
+              "maxYoungGenerationSizeMb": -1,
+              "maxOldGenerationSizeMb": 128,
+              "codeRangeSizeMb": -1,
+              "stackSizeMb": 4
+            },
+            "online": true
+          }
+        ],
+        "productImports": 0,
+        "productDispatches": 0
+      }
+    },
+    {
+      "label": "error",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+        "error",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1"
+      ],
+      "pid": 56189,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "stdoutBase64": "eyJyb2xlIjoiQkVOSUdOX1NUVUJfT05MWV9OT1RfUFJPRFVDVF9QUk9PRiIsIm1vZGUiOiJlcnJvciIsInBhc3MiOnRydWUsInJvd3MiOlt7InRva2VuIjoiZXJyb3I6MSIsImVudHJ5IjoiZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9pbnRlZ3JhdGlvbi9wcmlvcml0eS1jb21tYW5kLXdvcmtmbG93cy0yMDI2MDgyOC9zdHViLWVudHJ5Lm1qcyIsInJlcXVlc3RlZCI6eyJleGVjQXJndiI6W10sInJlc291cmNlTGltaXRzIjp7Im1heE9sZEdlbmVyYXRpb25TaXplTWIiOjEyOCwic3RhY2tTaXplTWIiOjR9fSwiZWZmZWN0aXZlIjp7ImV4ZWNBcmd2IjpbIi0taW1wb3J0IiwiZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9pbnRlZ3JhdGlvbi9wcmlvcml0eS1jb21tYW5kLXdvcmtmbG93cy0yMDI2MDgyOC93b3JrZXItcHJlbG9hZC5tanMiXSwicmVzb3VyY2VMaW1pdHMiOnsibWF4T2xkR2VuZXJhdGlvblNpemVNYiI6MTI4LCJzdGFja1NpemVNYiI6NH19LCJleGl0ZWQiOnRydWUsImV4aXRDb2RlIjoxLCJ0ZXJtaW5hdGVQZW5kaW5nIjowLCJ0ZXJtaW5hdGVFcnJvcnMiOltdLCJlbWVyZ2VuY3kiOmZhbHNlLCJwcm9kdWN0VGVybWluYXRlQ2FsbHMiOjAsImVycm9ycyI6WyJFcnJvcjogSU5URU5USU9OQUxfQkVOSUdOX1NUVUJfRVJST1IiXSwidGhyZWFkSWQiOjEsInJlc291cmNlTGltaXRzIjp7Im1heFlvdW5nR2VuZXJhdGlvblNpemVNYiI6LTEsIm1heE9sZEdlbmVyYXRpb25TaXplTWIiOjEyOCwiY29kZVJhbmdlU2l6ZU1iIjotMSwic3RhY2tTaXplTWIiOjR9LCJvbmxpbmUiOnRydWV9XSwicHJvZHVjdEltcG9ydHMiOjAsInByb2R1Y3REaXNwYXRjaGVzIjowfQo=",
+      "stdoutSha256": "43c0860e611c015664c2a5f4b90b7bde77b2f00ca5fb5db6bedc22dfa69fde85",
+      "stderrBase64": "",
+      "observation": {
+        "role": "BENIGN_STUB_ONLY_NOT_PRODUCT_PROOF",
+        "mode": "error",
+        "pass": true,
+        "rows": [
+          {
+            "token": "error:1",
+            "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+            "requested": {
+              "execArgv": [],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "effective": {
+              "execArgv": [
+                "--import",
+                "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs"
+              ],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "exited": true,
+            "exitCode": 1,
+            "terminatePending": 0,
+            "terminateErrors": [],
+            "emergency": false,
+            "productTerminateCalls": 0,
+            "errors": [
+              "Error: INTENTIONAL_BENIGN_STUB_ERROR"
+            ],
+            "threadId": 1,
+            "resourceLimits": {
+              "maxYoungGenerationSizeMb": -1,
+              "maxOldGenerationSizeMb": 128,
+              "codeRangeSizeMb": -1,
+              "stackSizeMb": 4
+            },
+            "online": true
+          }
+        ],
+        "productImports": 0,
+        "productDispatches": 0
+      }
+    },
+    {
+      "label": "loader-drift",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+        "loader-drift",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1"
+      ],
+      "pid": 56191,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "stdoutBase64": "eyJyb2xlIjoiQkVOSUdOX1NUVUJfT05MWV9OT1RfUFJPRFVDVF9QUk9PRiIsIm1vZGUiOiJsb2FkZXItZHJpZnQiLCJwYXNzIjp0cnVlLCJyb3dzIjpbeyJ0b2tlbiI6ImxvYWRlci1kcmlmdDoxIiwiZW50cnkiOiJmaWxlOi8vL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2ludGVncmF0aW9uL3ByaW9yaXR5LWNvbW1hbmQtd29ya2Zsb3dzLTIwMjYwODI4L3N0dWItZW50cnkubWpzIiwicmVxdWVzdGVkIjp7ImV4ZWNBcmd2IjpbXSwicmVzb3VyY2VMaW1pdHMiOnsibWF4T2xkR2VuZXJhdGlvblNpemVNYiI6MTI4LCJzdGFja1NpemVNYiI6NH19LCJlZmZlY3RpdmUiOnsiZXhlY0FyZ3YiOlsiLS1pbXBvcnQiLCJmaWxlOi8vL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2ludGVncmF0aW9uL3ByaW9yaXR5LWNvbW1hbmQtd29ya2Zsb3dzLTIwMjYwODI4L3dvcmtlci1wcmVsb2FkLm1qcyJdLCJyZXNvdXJjZUxpbWl0cyI6eyJtYXhPbGRHZW5lcmF0aW9uU2l6ZU1iIjoxMjgsInN0YWNrU2l6ZU1iIjo0fX0sImV4aXRlZCI6dHJ1ZSwiZXhpdENvZGUiOjEsInRlcm1pbmF0ZVBlbmRpbmciOjAsInRlcm1pbmF0ZUVycm9ycyI6W10sImVtZXJnZW5jeSI6ZmFsc2UsInByb2R1Y3RUZXJtaW5hdGVDYWxscyI6MCwiZXJyb3JzIjpbIkFzc2VydGlvbkVycm9yOiBMT0FEX0hBU0hfUkVGVVNFRDovVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvaW50ZWdyYXRpb24vcHJpb3JpdHktY29tbWFuZC13b3JrZmxvd3MtMjAyNjA4Mjgvc3R1Yi1kZXBlbmRlbmN5Lm1qc1xuKyBhY3R1YWwgLSBleHBlY3RlZFxuXG4rICcxOThlNDYyZjAzNjc1ZmVhNDIzNjEwYzAwOGYxNmRlNDk2NzRiYTYzNzk2ZGIwODI0MmRkZTZhMWIyMjRkYTg0J1xuLSAnMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCdcbiJdLCJ0aHJlYWRJZCI6MSwicmVzb3VyY2VMaW1pdHMiOnsibWF4WW91bmdHZW5lcmF0aW9uU2l6ZU1iIjotMSwibWF4T2xkR2VuZXJhdGlvblNpemVNYiI6MTI4LCJjb2RlUmFuZ2VTaXplTWIiOi0xLCJzdGFja1NpemVNYiI6NH0sIm9ubGluZSI6dHJ1ZX1dLCJwcm9kdWN0SW1wb3J0cyI6MCwicHJvZHVjdERpc3BhdGNoZXMiOjB9Cg==",
+      "stdoutSha256": "92e4062c0505e898aa6435781c0283d52a962c77b184469d82399b659927a435",
+      "stderrBase64": "",
+      "observation": {
+        "role": "BENIGN_STUB_ONLY_NOT_PRODUCT_PROOF",
+        "mode": "loader-drift",
+        "pass": true,
+        "rows": [
+          {
+            "token": "loader-drift:1",
+            "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+            "requested": {
+              "execArgv": [],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "effective": {
+              "execArgv": [
+                "--import",
+                "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs"
+              ],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "exited": true,
+            "exitCode": 1,
+            "terminatePending": 0,
+            "terminateErrors": [],
+            "emergency": false,
+            "productTerminateCalls": 0,
+            "errors": [
+              "AssertionError: LOAD_HASH_REFUSED:/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-dependency.mjs\n+ actual - expected\n\n+ '198e462f03675fea423610c008f16de49674ba63796db08242dde6a1b224da84'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n"
+            ],
+            "threadId": 1,
+            "resourceLimits": {
+              "maxYoungGenerationSizeMb": -1,
+              "maxOldGenerationSizeMb": 128,
+              "codeRangeSizeMb": -1,
+              "stackSizeMb": 4
+            },
+            "online": true
+          }
+        ],
+        "productImports": 0,
+        "productDispatches": 0
+      }
+    },
+    {
+      "label": "late-acquisition",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+        "late-acquisition",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1"
+      ],
+      "pid": 56192,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "stdoutBase64": "eyJyb2xlIjoiQkVOSUdOX1NUVUJfT05MWV9OT1RfUFJPRFVDVF9QUk9PRiIsIm1vZGUiOiJsYXRlLWFjcXVpc2l0aW9uIiwicGFzcyI6dHJ1ZSwiZXhwZWN0ZWRSZWZ1c2FsIjoiTEFURV9XT1JLRVJfQUNRVUlTSVRJT05fU1RPUCIsInJvd3MiOltdLCJwcm9kdWN0SW1wb3J0cyI6MCwicHJvZHVjdERpc3BhdGNoZXMiOjB9Cg==",
+      "stdoutSha256": "a37e22eec81725ea801b344be16dadbaf7549b3b8bad60c136aabdb8a1eb9813",
+      "stderrBase64": "",
+      "observation": {
+        "role": "BENIGN_STUB_ONLY_NOT_PRODUCT_PROOF",
+        "mode": "late-acquisition",
+        "pass": true,
+        "expectedRefusal": "LATE_WORKER_ACQUISITION_STOP",
+        "rows": [],
+        "productImports": 0,
+        "productDispatches": 0
+      }
+    },
+    {
+      "label": "concurrent-bound",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+        "concurrent-bound",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1"
+      ],
+      "pid": 56194,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "stdoutBase64": "eyJyb2xlIjoiQkVOSUdOX1NUVUJfT05MWV9OT1RfUFJPRFVDVF9QUk9PRiIsIm1vZGUiOiJjb25jdXJyZW50LWJvdW5kIiwicGFzcyI6dHJ1ZSwiZXhwZWN0ZWRSZWZ1c2FsIjoiV09SS0VSX1NUQVJUX0JPVU5EIiwicm93cyI6W3sidG9rZW4iOiJjb25jdXJyZW50LWJvdW5kOjEiLCJlbnRyeSI6ImZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvaW50ZWdyYXRpb24vcHJpb3JpdHktY29tbWFuZC13b3JrZmxvd3MtMjAyNjA4Mjgvc3R1Yi1lbnRyeS5tanMiLCJyZXF1ZXN0ZWQiOnsiZXhlY0FyZ3YiOltdLCJyZXNvdXJjZUxpbWl0cyI6eyJtYXhPbGRHZW5lcmF0aW9uU2l6ZU1iIjoxMjgsInN0YWNrU2l6ZU1iIjo0fX0sImVmZmVjdGl2ZSI6eyJleGVjQXJndiI6WyItLWltcG9ydCIsImZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvaW50ZWdyYXRpb24vcHJpb3JpdHktY29tbWFuZC13b3JrZmxvd3MtMjAyNjA4Mjgvd29ya2VyLXByZWxvYWQubWpzIl0sInJlc291cmNlTGltaXRzIjp7Im1heE9sZEdlbmVyYXRpb25TaXplTWIiOjEyOCwic3RhY2tTaXplTWIiOjR9fSwiZXhpdGVkIjp0cnVlLCJleGl0Q29kZSI6MSwidGVybWluYXRlUGVuZGluZyI6MCwidGVybWluYXRlRXJyb3JzIjpbXSwiZW1lcmdlbmN5IjpmYWxzZSwicHJvZHVjdFRlcm1pbmF0ZUNhbGxzIjoxLCJlcnJvcnMiOltdLCJ0aHJlYWRJZCI6MSwicmVzb3VyY2VMaW1pdHMiOnsibWF4WW91bmdHZW5lcmF0aW9uU2l6ZU1iIjotMSwibWF4T2xkR2VuZXJhdGlvblNpemVNYiI6MTI4LCJjb2RlUmFuZ2VTaXplTWIiOi0xLCJzdGFja1NpemVNYiI6NH0sIm9ubGluZSI6dHJ1ZX0seyJ0b2tlbiI6ImNvbmN1cnJlbnQtYm91bmQ6MiIsImVudHJ5IjoiZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9pbnRlZ3JhdGlvbi9wcmlvcml0eS1jb21tYW5kLXdvcmtmbG93cy0yMDI2MDgyOC9zdHViLWVudHJ5Lm1qcyIsInJlcXVlc3RlZCI6eyJleGVjQXJndiI6W10sInJlc291cmNlTGltaXRzIjp7Im1heE9sZEdlbmVyYXRpb25TaXplTWIiOjEyOCwic3RhY2tTaXplTWIiOjR9fSwiZWZmZWN0aXZlIjp7ImV4ZWNBcmd2IjpbIi0taW1wb3J0IiwiZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9pbnRlZ3JhdGlvbi9wcmlvcml0eS1jb21tYW5kLXdvcmtmbG93cy0yMDI2MDgyOC93b3JrZXItcHJlbG9hZC5tanMiXSwicmVzb3VyY2VMaW1pdHMiOnsibWF4T2xkR2VuZXJhdGlvblNpemVNYiI6MTI4LCJzdGFja1NpemVNYiI6NH19LCJleGl0ZWQiOnRydWUsImV4aXRDb2RlIjoxLCJ0ZXJtaW5hdGVQZW5kaW5nIjowLCJ0ZXJtaW5hdGVFcnJvcnMiOltdLCJlbWVyZ2VuY3kiOmZhbHNlLCJwcm9kdWN0VGVybWluYXRlQ2FsbHMiOjEsImVycm9ycyI6W10sInRocmVhZElkIjoyLCJyZXNvdXJjZUxpbWl0cyI6eyJtYXhZb3VuZ0dlbmVyYXRpb25TaXplTWIiOi0xLCJtYXhPbGRHZW5lcmF0aW9uU2l6ZU1iIjoxMjgsImNvZGVSYW5nZVNpemVNYiI6LTEsInN0YWNrU2l6ZU1iIjo0fSwib25saW5lIjp0cnVlfV0sInByb2R1Y3RJbXBvcnRzIjowLCJwcm9kdWN0RGlzcGF0Y2hlcyI6MH0K",
+      "stdoutSha256": "53fa0024de6fa6540bbde78e0f66e62379210ce8a0ea7d009f2fcf6308f1f8c9",
+      "stderrBase64": "",
+      "observation": {
+        "role": "BENIGN_STUB_ONLY_NOT_PRODUCT_PROOF",
+        "mode": "concurrent-bound",
+        "pass": true,
+        "expectedRefusal": "WORKER_START_BOUND",
+        "rows": [
+          {
+            "token": "concurrent-bound:1",
+            "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+            "requested": {
+              "execArgv": [],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "effective": {
+              "execArgv": [
+                "--import",
+                "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs"
+              ],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "exited": true,
+            "exitCode": 1,
+            "terminatePending": 0,
+            "terminateErrors": [],
+            "emergency": false,
+            "productTerminateCalls": 1,
+            "errors": [],
+            "threadId": 1,
+            "resourceLimits": {
+              "maxYoungGenerationSizeMb": -1,
+              "maxOldGenerationSizeMb": 128,
+              "codeRangeSizeMb": -1,
+              "stackSizeMb": 4
+            },
+            "online": true
+          },
+          {
+            "token": "concurrent-bound:2",
+            "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+            "requested": {
+              "execArgv": [],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "effective": {
+              "execArgv": [
+                "--import",
+                "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs"
+              ],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "exited": true,
+            "exitCode": 1,
+            "terminatePending": 0,
+            "terminateErrors": [],
+            "emergency": false,
+            "productTerminateCalls": 1,
+            "errors": [],
+            "threadId": 2,
+            "resourceLimits": {
+              "maxYoungGenerationSizeMb": -1,
+              "maxOldGenerationSizeMb": 128,
+              "codeRangeSizeMb": -1,
+              "stackSizeMb": 4
+            },
+            "online": true
+          }
+        ],
+        "productImports": 0,
+        "productDispatches": 0
+      }
+    },
+    {
+      "label": "cumulative-bound",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-child.mjs",
+        "cumulative-bound",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-evidence-v1"
+      ],
+      "pid": 56199,
+      "status": 0,
+      "signal": null,
+      "reaped": true,
+      "stdoutBase64": "eyJyb2xlIjoiQkVOSUdOX1NUVUJfT05MWV9OT1RfUFJPRFVDVF9QUk9PRiIsIm1vZGUiOiJjdW11bGF0aXZlLWJvdW5kIiwicGFzcyI6dHJ1ZSwiZXhwZWN0ZWRSZWZ1c2FsIjoiV09SS0VSX1NUQVJUX0JPVU5EIiwicm93cyI6W3sidG9rZW4iOiJjdW11bGF0aXZlLWJvdW5kOjEiLCJlbnRyeSI6ImZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvaW50ZWdyYXRpb24vcHJpb3JpdHktY29tbWFuZC13b3JrZmxvd3MtMjAyNjA4Mjgvc3R1Yi1lbnRyeS5tanMiLCJyZXF1ZXN0ZWQiOnsiZXhlY0FyZ3YiOltdLCJyZXNvdXJjZUxpbWl0cyI6eyJtYXhPbGRHZW5lcmF0aW9uU2l6ZU1iIjoxMjgsInN0YWNrU2l6ZU1iIjo0fX0sImVmZmVjdGl2ZSI6eyJleGVjQXJndiI6WyItLWltcG9ydCIsImZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvaW50ZWdyYXRpb24vcHJpb3JpdHktY29tbWFuZC13b3JrZmxvd3MtMjAyNjA4Mjgvd29ya2VyLXByZWxvYWQubWpzIl0sInJlc291cmNlTGltaXRzIjp7Im1heE9sZEdlbmVyYXRpb25TaXplTWIiOjEyOCwic3RhY2tTaXplTWIiOjR9fSwiZXhpdGVkIjp0cnVlLCJleGl0Q29kZSI6MCwidGVybWluYXRlUGVuZGluZyI6MCwidGVybWluYXRlRXJyb3JzIjpbXSwiZW1lcmdlbmN5IjpmYWxzZSwicHJvZHVjdFRlcm1pbmF0ZUNhbGxzIjowLCJlcnJvcnMiOltdLCJ0aHJlYWRJZCI6MSwicmVzb3VyY2VMaW1pdHMiOnsibWF4WW91bmdHZW5lcmF0aW9uU2l6ZU1iIjotMSwibWF4T2xkR2VuZXJhdGlvblNpemVNYiI6MTI4LCJjb2RlUmFuZ2VTaXplTWIiOi0xLCJzdGFja1NpemVNYiI6NH0sIm9ubGluZSI6dHJ1ZX0seyJ0b2tlbiI6ImN1bXVsYXRpdmUtYm91bmQ6MiIsImVudHJ5IjoiZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9pbnRlZ3JhdGlvbi9wcmlvcml0eS1jb21tYW5kLXdvcmtmbG93cy0yMDI2MDgyOC9zdHViLWVudHJ5Lm1qcyIsInJlcXVlc3RlZCI6eyJleGVjQXJndiI6W10sInJlc291cmNlTGltaXRzIjp7Im1heE9sZEdlbmVyYXRpb25TaXplTWIiOjEyOCwic3RhY2tTaXplTWIiOjR9fSwiZWZmZWN0aXZlIjp7ImV4ZWNBcmd2IjpbIi0taW1wb3J0IiwiZmlsZTovLy9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC90ZXN0cy9pbnRlZ3JhdGlvbi9wcmlvcml0eS1jb21tYW5kLXdvcmtmbG93cy0yMDI2MDgyOC93b3JrZXItcHJlbG9hZC5tanMiXSwicmVzb3VyY2VMaW1pdHMiOnsibWF4T2xkR2VuZXJhdGlvblNpemVNYiI6MTI4LCJzdGFja1NpemVNYiI6NH19LCJleGl0ZWQiOnRydWUsImV4aXRDb2RlIjowLCJ0ZXJtaW5hdGVQZW5kaW5nIjowLCJ0ZXJtaW5hdGVFcnJvcnMiOltdLCJlbWVyZ2VuY3kiOmZhbHNlLCJwcm9kdWN0VGVybWluYXRlQ2FsbHMiOjAsImVycm9ycyI6W10sInRocmVhZElkIjoyLCJyZXNvdXJjZUxpbWl0cyI6eyJtYXhZb3VuZ0dlbmVyYXRpb25TaXplTWIiOi0xLCJtYXhPbGRHZW5lcmF0aW9uU2l6ZU1iIjoxMjgsImNvZGVSYW5nZVNpemVNYiI6LTEsInN0YWNrU2l6ZU1iIjo0fSwib25saW5lIjp0cnVlfSx7InRva2VuIjoiY3VtdWxhdGl2ZS1ib3VuZDozIiwiZW50cnkiOiJmaWxlOi8vL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2ludGVncmF0aW9uL3ByaW9yaXR5LWNvbW1hbmQtd29ya2Zsb3dzLTIwMjYwODI4L3N0dWItZW50cnkubWpzIiwicmVxdWVzdGVkIjp7ImV4ZWNBcmd2IjpbXSwicmVzb3VyY2VMaW1pdHMiOnsibWF4T2xkR2VuZXJhdGlvblNpemVNYiI6MTI4LCJzdGFja1NpemVNYiI6NH19LCJlZmZlY3RpdmUiOnsiZXhlY0FyZ3YiOlsiLS1pbXBvcnQiLCJmaWxlOi8vL1VzZXJzL2tqb3Blay9Xb3Jrc3BhY2Uvc2FmZS1iYXNoL3Rlc3RzL2ludGVncmF0aW9uL3ByaW9yaXR5LWNvbW1hbmQtd29ya2Zsb3dzLTIwMjYwODI4L3dvcmtlci1wcmVsb2FkLm1qcyJdLCJyZXNvdXJjZUxpbWl0cyI6eyJtYXhPbGRHZW5lcmF0aW9uU2l6ZU1iIjoxMjgsInN0YWNrU2l6ZU1iIjo0fX0sImV4aXRlZCI6dHJ1ZSwiZXhpdENvZGUiOjAsInRlcm1pbmF0ZVBlbmRpbmciOjAsInRlcm1pbmF0ZUVycm9ycyI6W10sImVtZXJnZW5jeSI6ZmFsc2UsInByb2R1Y3RUZXJtaW5hdGVDYWxscyI6MCwiZXJyb3JzIjpbXSwidGhyZWFkSWQiOjMsInJlc291cmNlTGltaXRzIjp7Im1heFlvdW5nR2VuZXJhdGlvblNpemVNYiI6LTEsIm1heE9sZEdlbmVyYXRpb25TaXplTWIiOjEyOCwiY29kZVJhbmdlU2l6ZU1iIjotMSwic3RhY2tTaXplTWIiOjR9LCJvbmxpbmUiOnRydWV9LHsidG9rZW4iOiJjdW11bGF0aXZlLWJvdW5kOjQiLCJlbnRyeSI6ImZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvaW50ZWdyYXRpb24vcHJpb3JpdHktY29tbWFuZC13b3JrZmxvd3MtMjAyNjA4Mjgvc3R1Yi1lbnRyeS5tanMiLCJyZXF1ZXN0ZWQiOnsiZXhlY0FyZ3YiOltdLCJyZXNvdXJjZUxpbWl0cyI6eyJtYXhPbGRHZW5lcmF0aW9uU2l6ZU1iIjoxMjgsInN0YWNrU2l6ZU1iIjo0fX0sImVmZmVjdGl2ZSI6eyJleGVjQXJndiI6WyItLWltcG9ydCIsImZpbGU6Ly8vVXNlcnMva2pvcGVrL1dvcmtzcGFjZS9zYWZlLWJhc2gvdGVzdHMvaW50ZWdyYXRpb24vcHJpb3JpdHktY29tbWFuZC13b3JrZmxvd3MtMjAyNjA4Mjgvd29ya2VyLXByZWxvYWQubWpzIl0sInJlc291cmNlTGltaXRzIjp7Im1heE9sZEdlbmVyYXRpb25TaXplTWIiOjEyOCwic3RhY2tTaXplTWIiOjR9fSwiZXhpdGVkIjp0cnVlLCJleGl0Q29kZSI6MCwidGVybWluYXRlUGVuZGluZyI6MCwidGVybWluYXRlRXJyb3JzIjpbXSwiZW1lcmdlbmN5IjpmYWxzZSwicHJvZHVjdFRlcm1pbmF0ZUNhbGxzIjowLCJlcnJvcnMiOltdLCJ0aHJlYWRJZCI6NCwicmVzb3VyY2VMaW1pdHMiOnsibWF4WW91bmdHZW5lcmF0aW9uU2l6ZU1iIjotMSwibWF4T2xkR2VuZXJhdGlvblNpemVNYiI6MTI4LCJjb2RlUmFuZ2VTaXplTWIiOi0xLCJzdGFja1NpemVNYiI6NH0sIm9ubGluZSI6dHJ1ZX1dLCJwcm9kdWN0SW1wb3J0cyI6MCwicHJvZHVjdERpc3BhdGNoZXMiOjB9Cg==",
+      "stdoutSha256": "78784bbbc6d7acf7dec6004bb6811c869ddc7099f735c4b6565be593374899b4",
+      "stderrBase64": "",
+      "observation": {
+        "role": "BENIGN_STUB_ONLY_NOT_PRODUCT_PROOF",
+        "mode": "cumulative-bound",
+        "pass": true,
+        "expectedRefusal": "WORKER_START_BOUND",
+        "rows": [
+          {
+            "token": "cumulative-bound:1",
+            "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+            "requested": {
+              "execArgv": [],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "effective": {
+              "execArgv": [
+                "--import",
+                "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs"
+              ],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "exited": true,
+            "exitCode": 0,
+            "terminatePending": 0,
+            "terminateErrors": [],
+            "emergency": false,
+            "productTerminateCalls": 0,
+            "errors": [],
+            "threadId": 1,
+            "resourceLimits": {
+              "maxYoungGenerationSizeMb": -1,
+              "maxOldGenerationSizeMb": 128,
+              "codeRangeSizeMb": -1,
+              "stackSizeMb": 4
+            },
+            "online": true
+          },
+          {
+            "token": "cumulative-bound:2",
+            "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+            "requested": {
+              "execArgv": [],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "effective": {
+              "execArgv": [
+                "--import",
+                "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs"
+              ],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "exited": true,
+            "exitCode": 0,
+            "terminatePending": 0,
+            "terminateErrors": [],
+            "emergency": false,
+            "productTerminateCalls": 0,
+            "errors": [],
+            "threadId": 2,
+            "resourceLimits": {
+              "maxYoungGenerationSizeMb": -1,
+              "maxOldGenerationSizeMb": 128,
+              "codeRangeSizeMb": -1,
+              "stackSizeMb": 4
+            },
+            "online": true
+          },
+          {
+            "token": "cumulative-bound:3",
+            "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+            "requested": {
+              "execArgv": [],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "effective": {
+              "execArgv": [
+                "--import",
+                "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs"
+              ],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "exited": true,
+            "exitCode": 0,
+            "terminatePending": 0,
+            "terminateErrors": [],
+            "emergency": false,
+            "productTerminateCalls": 0,
+            "errors": [],
+            "threadId": 3,
+            "resourceLimits": {
+              "maxYoungGenerationSizeMb": -1,
+              "maxOldGenerationSizeMb": 128,
+              "codeRangeSizeMb": -1,
+              "stackSizeMb": 4
+            },
+            "online": true
+          },
+          {
+            "token": "cumulative-bound:4",
+            "entry": "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/stub-entry.mjs",
+            "requested": {
+              "execArgv": [],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "effective": {
+              "execArgv": [
+                "--import",
+                "file:///Users/kjopek/Workspace/safe-bash/tests/integration/priority-command-workflows-20260828/worker-preload.mjs"
+              ],
+              "resourceLimits": {
+                "maxOldGenerationSizeMb": 128,
+                "stackSizeMb": 4
+              }
+            },
+            "exited": true,
+            "exitCode": 0,
+            "terminatePending": 0,
+            "terminateErrors": [],
+            "emergency": false,
+            "productTerminateCalls": 0,
+            "errors": [],
+            "threadId": 4,
+            "resourceLimits": {
+              "maxYoungGenerationSizeMb": -1,
+              "maxOldGenerationSizeMb": 128,
+              "codeRangeSizeMb": -1,
+              "stackSizeMb": 4
+            },
+            "online": true
+          }
+        ],
+        "productImports": 0,
+        "productDispatches": 0
+      }
+    }
+  ],
+  "failures": [],
+  "productImports": 0,
+  "productExecutions": 0,
+  "nativeOracleExecutions": 0,
+  "originalMalformedDataControls": 8,
+  "finished": 1787937841937,
+  "allOwnedOsChildrenReaped": true,
+  "workerStarts": 11,
+  "allOwnedWorkersReaped": true,
+  "pass": true
+}

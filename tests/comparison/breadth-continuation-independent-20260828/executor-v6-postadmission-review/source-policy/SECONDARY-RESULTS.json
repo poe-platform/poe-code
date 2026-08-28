@@ -1,0 +1,1816 @@
+{
+  "schema": "INDEPENDENT_SUPPLEMENTAL_SOURCE_CLASSIFICATION_V1",
+  "date": "2026-08-28",
+  "originalResultsCommit": "ef136fa811ebe3165612b3f237be4038745211b4",
+  "originalResultsSha256": "9a274d0a5d222da3cc6d8dd1281ea8a6ebe0be1f1d9ae5e1b4b97420ac93f913",
+  "presealSha256": "c75f196e7d7142b58bdf0abf380e2debfdae50d15fe172626b7e82f2fbb32ed9",
+  "checkerSha256": "76a770cb6fa057d2b4da0d16f937f180291b0fd8bfeaebce6501e9f1238a9e1a",
+  "originalSummaryUnchanged": {
+    "checks": 26,
+    "passed": 25,
+    "failed": 1,
+    "authenticatedSources": 21
+  },
+  "scope": {
+    "comparatorImports": 0,
+    "productImports": 0,
+    "engineExecutions": 0,
+    "builtinProbes": 0,
+    "archiveReads": 0,
+    "guardImplementation": false
+  },
+  "beforeAfter": [
+    {
+      "path": "benchmarks/consumer-v5/consumer.mjs",
+      "sha256Before": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1",
+      "sha256After": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "sha256Before": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c",
+      "sha256After": "70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-WNH3HOQA.js",
+      "sha256Before": "d67fdae1502578f0496faa1a24bb7c110fb198f3afe103b51354fbed07785ae6",
+      "sha256After": "d67fdae1502578f0496faa1a24bb7c110fb198f3afe103b51354fbed07785ae6"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-BRJERIF4.js",
+      "sha256Before": "d3bc5891e4add91bbde6fbd3b6d3871df4b6813db51fc617e9a9a533848f9286",
+      "sha256After": "d3bc5891e4add91bbde6fbd3b6d3871df4b6813db51fc617e9a9a533848f9286"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-KIGPB52X.js",
+      "sha256Before": "1373074a82cfcffe84e6b0834a77c9d962f0720d8488279ee92e898655b114c2",
+      "sha256After": "1373074a82cfcffe84e6b0834a77c9d962f0720d8488279ee92e898655b114c2"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-WXPNKIIH.js",
+      "sha256Before": "18c806ccbfc476277f24d3a7a4327521ebb06659f76b217731632bac22be36b4",
+      "sha256After": "18c806ccbfc476277f24d3a7a4327521ebb06659f76b217731632bac22be36b4"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-J2OBOJ64.js",
+      "sha256Before": "b62747dc35ddaba6076217d2081378133085eb37566d5004f41f7eb0c0207d6c",
+      "sha256After": "b62747dc35ddaba6076217d2081378133085eb37566d5004f41f7eb0c0207d6c"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-L2UW7DWF.js",
+      "sha256Before": "8e99a628dbf990431e09974dfe5d44b1a963f834c542ebe34a86ac4c6c84a1a8",
+      "sha256After": "8e99a628dbf990431e09974dfe5d44b1a963f834c542ebe34a86ac4c6c84a1a8"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-DLL7UR66.js",
+      "sha256Before": "ac036932142d587b7188b00b5276f98394777bd0eaf0a298f1f0171df8436dde",
+      "sha256After": "ac036932142d587b7188b00b5276f98394777bd0eaf0a298f1f0171df8436dde"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-BKUWXPEM.js",
+      "sha256Before": "9fe4590aa23131e8a8a2b0fd4c31d39fc427b73749616f8ae8af24d224616b7f",
+      "sha256After": "9fe4590aa23131e8a8a2b0fd4c31d39fc427b73749616f8ae8af24d224616b7f"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-KVG5FR5F.js",
+      "sha256Before": "d62791ae792082a337660bfe8e0abbf4aeb40c159b369dfe25c2e863650e943a",
+      "sha256After": "d62791ae792082a337660bfe8e0abbf4aeb40c159b369dfe25c2e863650e943a"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "sha256Before": "d9edb8f7a5e67c1b64a69e9b2614fe786deec2caeda3fec68f377b6e4c93dcc0",
+      "sha256After": "d9edb8f7a5e67c1b64a69e9b2614fe786deec2caeda3fec68f377b6e4c93dcc0"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-6D3WD6YU.js",
+      "sha256Before": "efa3a4bff3026db9d13f7bb33f7ca474511fce7f02523a172adc7718dd22fca9",
+      "sha256After": "efa3a4bff3026db9d13f7bb33f7ca474511fce7f02523a172adc7718dd22fca9"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-AH7VTVWU.js",
+      "sha256Before": "af1315b60ffafafa6ec6e9f72c024826f78e7bb8acc41709622d8c5df0ca23cf",
+      "sha256After": "af1315b60ffafafa6ec6e9f72c024826f78e7bb8acc41709622d8c5df0ca23cf"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-STHBFACM.js",
+      "sha256Before": "a4ec084819a8f751dcef21036eea2adf92f8b161d35e6c81e7e47673a956ab29",
+      "sha256After": "a4ec084819a8f751dcef21036eea2adf92f8b161d35e6c81e7e47673a956ab29"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-YUSFCOM7.js",
+      "sha256Before": "1f00b49cf5a44929f02af974fbc9f14f9cccc39df309bd86b040b89d4d7a4c33",
+      "sha256After": "1f00b49cf5a44929f02af974fbc9f14f9cccc39df309bd86b040b89d4d7a4c33"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-EFORKKSH.js",
+      "sha256Before": "cb672598615f6f4cf5fbb99e83fe7c90298e8715193883714f7e1d827b8c0be2",
+      "sha256After": "cb672598615f6f4cf5fbb99e83fe7c90298e8715193883714f7e1d827b8c0be2"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-GN6CQ3J4.js",
+      "sha256Before": "b87766dab2a645753e635c4e0d728443c601b737fb7feb034244d2fa242185ec",
+      "sha256After": "b87766dab2a645753e635c4e0d728443c601b737fb7feb034244d2fa242185ec"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-FOCWZZDE.js",
+      "sha256Before": "3a3047587efa3b70633d3ffab3202ae039d9890539ffd567e248efe0d14caf9e",
+      "sha256After": "3a3047587efa3b70633d3ffab3202ae039d9890539ffd567e248efe0d14caf9e"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-W5DWRFSU.js",
+      "sha256Before": "1814b49ec6cf08d85a64259cc9ae5a681e71208121a0bcc8103e1647f24377d8",
+      "sha256After": "1814b49ec6cf08d85a64259cc9ae5a681e71208121a0bcc8103e1647f24377d8"
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js",
+      "sha256Before": "fae9347ddabceda17cfed0562a36d8dd570134e42a0d631122a6f85d7c6975f0",
+      "sha256After": "fae9347ddabceda17cfed0562a36d8dd570134e42a0d631122a6f85d7c6975f0"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/builtin-bootstrap-diagnosis-v1/README.md",
+      "sha256Before": "1c44999fc1cbdaa977211a137cc6054c3b05a92e11020fd6069ffb957a2038ab",
+      "sha256After": "1c44999fc1cbdaa977211a137cc6054c3b05a92e11020fd6069ffb957a2038ab"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/builtin-bootstrap-diagnosis-v1/REFERENCES.json",
+      "sha256Before": "099290919fc32e90fe492b3e59ff89fc471801f2ca2b98f8cedba7c7ed51472f",
+      "sha256After": "099290919fc32e90fe492b3e59ff89fc471801f2ca2b98f8cedba7c7ed51472f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/builtin-bootstrap-diagnosis-v1/inspect.mjs",
+      "sha256Before": "f3dd7b007d819c9d038cc3c633252453d659d35a30d24be1e112e459072af62d",
+      "sha256After": "f3dd7b007d819c9d038cc3c633252453d659d35a30d24be1e112e459072af62d"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/builtin-bootstrap-diagnosis-v1/OBSERVATIONS.json",
+      "sha256Before": "9edee03f7b259a951ee49d4cd255f18bbf4ac95066a7e059da1554259620fb8f",
+      "sha256After": "9edee03f7b259a951ee49d4cd255f18bbf4ac95066a7e059da1554259620fb8f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/EVIDENCE-MANIFEST.json",
+      "sha256Before": "168e7422b0d969ddb8e5e7e7db3003abfdce0497e41217918c293c24ac22fcca",
+      "sha256After": "168e7422b0d969ddb8e5e7e7db3003abfdce0497e41217918c293c24ac22fcca"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/HANDOFF.md",
+      "sha256Before": "729b896e1a0ca37dfeb1c36e579df5fa796468ef1497576e5bafe2abf74a1f9a",
+      "sha256After": "729b896e1a0ca37dfeb1c36e579df5fa796468ef1497576e5bafe2abf74a1f9a"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/worker.mjs",
+      "sha256Before": "aa18dd6294fab08bd1f74132f0ca292f0dc0227138cf5956f25ba8c4084e568f",
+      "sha256After": "aa18dd6294fab08bd1f74132f0ca292f0dc0227138cf5956f25ba8c4084e568f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/loader.mjs",
+      "sha256Before": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97",
+      "sha256After": "0878dfd6ec02b7c232495e44e4e702216586ce0b5e7eb42aad73abb817683a97"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/projection.mjs",
+      "sha256Before": "bae12ed78c57f801ae5f036a0a56ef0bae516192edc7a817e20d75922e42d031",
+      "sha256After": "bae12ed78c57f801ae5f036a0a56ef0bae516192edc7a817e20d75922e42d031"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/authorization.mjs",
+      "sha256Before": "0ddc0a6acce5bdff205d3b85d2f4ae5211b72a9eb7c09c69663a50c05423a5ca",
+      "sha256After": "0ddc0a6acce5bdff205d3b85d2f4ae5211b72a9eb7c09c69663a50c05423a5ca"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+      "sha256Before": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3",
+      "sha256After": "a0cea0eb858b4d545fa124a1bae063e33ca170a87f91fcedbe6d950422584cd3"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/projection.mjs",
+      "sha256Before": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1",
+      "sha256After": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+      "sha256Before": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb",
+      "sha256After": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/child-003.json",
+      "sha256Before": "c7b52b2a586a1b8baa7d3a8d4a3c9b14f065563d7f59a553cae555ec7d966c12",
+      "sha256After": "c7b52b2a586a1b8baa7d3a8d4a3c9b14f065563d7f59a553cae555ec7d966c12"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/child-003.receipt.json",
+      "sha256Before": "78bbe43ff593aebc98e603b69c14ac0fc51e330a1863d95761aa90285a1d0dd6",
+      "sha256After": "78bbe43ff593aebc98e603b69c14ac0fc51e330a1863d95761aa90285a1d0dd6"
+    }
+  ],
+  "results": [
+    {
+      "name": "AST token classification, not three executable property queries",
+      "pass": true,
+      "detail": [
+        {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+          "kind": "Identifier",
+          "parentKind": "PropertyAccessExpression",
+          "byteStart": 503554,
+          "byteEndExclusive": 503570,
+          "line": 808,
+          "text": "getBuiltinModule",
+          "parent": {
+            "kind": "PropertyAccessExpression",
+            "parentKind": "VariableDeclaration",
+            "byteStart": 503546,
+            "byteEndExclusive": 503570,
+            "line": 808,
+            "text": "process.getBuiltinModule"
+          }
+        },
+        {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+          "kind": "StringLiteral",
+          "parentKind": "PropertyAssignment",
+          "byteStart": 1750,
+          "byteEndExclusive": 1768,
+          "line": 2,
+          "text": "\"getBuiltinModule\"",
+          "parent": {
+            "kind": "PropertyAssignment",
+            "parentKind": "ObjectLiteralExpression",
+            "byteStart": 1745,
+            "byteEndExclusive": 1768,
+            "line": 2,
+            "text": "prop:\"getBuiltinModule\""
+          }
+        },
+        {
+          "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+          "kind": "StringLiteral",
+          "parentKind": "PropertyAssignment",
+          "byteStart": 1851,
+          "byteEndExclusive": 1939,
+          "line": 2,
+          "text": "\"process.getBuiltinModule allows loading native Node.js modules (fs, child_process, vm)\"",
+          "parent": {
+            "kind": "PropertyAssignment",
+            "parentKind": "ObjectLiteralExpression",
+            "byteStart": 1844,
+            "byteEndExclusive": 1939,
+            "line": 2,
+            "text": "reason:\"process.getBuiltinModule allows loading native Node.js modules (fs, child_process, vm)\""
+          }
+        }
+      ]
+    },
+    {
+      "name": "complete-source e/t/Ks binding inventories",
+      "pass": true,
+      "detail": {
+        "e": 6,
+        "t": 3,
+        "Ks": 3
+      }
+    },
+    {
+      "name": "fallback export a is local m",
+      "pass": true,
+      "detail": {
+        "kind": "ExportDeclaration",
+        "parentKind": "SourceFile",
+        "byteStart": 856,
+        "byteEndExclusive": 885,
+        "line": 2,
+        "text": "export{m as a,n as b,o as c};"
+      }
+    }
+  ],
+  "mentions": [
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/index.js",
+      "kind": "Identifier",
+      "parentKind": "PropertyAccessExpression",
+      "byteStart": 503554,
+      "byteEndExclusive": 503570,
+      "line": 808,
+      "text": "getBuiltinModule",
+      "parent": {
+        "kind": "PropertyAccessExpression",
+        "parentKind": "VariableDeclaration",
+        "byteStart": 503546,
+        "byteEndExclusive": 503570,
+        "line": 808,
+        "text": "process.getBuiltinModule"
+      }
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "kind": "StringLiteral",
+      "parentKind": "PropertyAssignment",
+      "byteStart": 1750,
+      "byteEndExclusive": 1768,
+      "line": 2,
+      "text": "\"getBuiltinModule\"",
+      "parent": {
+        "kind": "PropertyAssignment",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 1745,
+        "byteEndExclusive": 1768,
+        "line": 2,
+        "text": "prop:\"getBuiltinModule\""
+      }
+    },
+    {
+      "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+      "kind": "StringLiteral",
+      "parentKind": "PropertyAssignment",
+      "byteStart": 1851,
+      "byteEndExclusive": 1939,
+      "line": 2,
+      "text": "\"process.getBuiltinModule allows loading native Node.js modules (fs, child_process, vm)\"",
+      "parent": {
+        "kind": "PropertyAssignment",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 1844,
+        "byteEndExclusive": 1939,
+        "line": 2,
+        "text": "reason:\"process.getBuiltinModule allows loading native Node.js modules (fs, child_process, vm)\""
+      }
+    }
+  ],
+  "additionalGuardContext": {
+    "path": "benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-ZBUZKIPX.js",
+    "object": {
+      "kind": "ObjectLiteralExpression",
+      "parentKind": "ArrayLiteralExpression",
+      "byteStart": 1744,
+      "byteEndExclusive": 1940,
+      "line": 2,
+      "text": "{prop:\"getBuiltinModule\",target:process,violationType:\"process_get_builtin_module\",strategy:\"throw\",reason:\"process.getBuiltinModule allows loading native Node.js modules (fs, child_process, vm)\"}"
+    },
+    "binding": "a",
+    "bindingMentionsBySpellingNotSymbolProof": [
+      {
+        "kind": "Identifier",
+        "parentKind": "VariableDeclaration",
+        "byteStart": 203,
+        "byteEndExclusive": 204,
+        "line": 2,
+        "text": "a",
+        "parent": {
+          "kind": "VariableDeclaration",
+          "parentKind": "VariableDeclarationList",
+          "byteStart": 203,
+          "byteEndExclusive": 7805,
+          "line": 2,
+          "text": "a=[{prop:\"Function\",target:globalThis,violationType:\"function_constructor\",strategy:\"throw\",reason:\"Function constructor allows arbitrary code execution\"},{prop:\"eval\",target:globalThis,violationType:\"eval\",strategy:\"throw\",reason:\"eval() allows arbitrary code execution\"},{prop:\"setTimeout\",target:globalThis,violationType:\"setTimeout\",strategy:\"throw\",reason:\"setTimeout with string argument allows code execution\"},{prop:\"setInterval\",target:globalThis,violationType:\"setInterval\",strategy:\"throw\",reason:\"setInterval with string argument allows code execution\"},{prop:\"setImmediate\",target:globalThis,violationType:\"setImmediate\",strategy:\"throw\",reason:\"setImmediate could be used to escape sandbox context\"},{prop:\"env\",target:process,violationType:\"process_env\",strategy:\"throw\",reason:\"process.env could leak sensitive environment variables\",allowedKeys:new Set([\"NODE_V8_COVERAGE\",\"NODE_DEBUG\",\"NODE_DEBUG_NATIVE\",\"NODE_COMPILE_CACHE\",\"NODE_ENV\",\"WATCH_REPORT_DEPENDENCIES\",\"FORCE_COLOR\",\"DEBUG\",\"UNDICI_NO_FG\",\"JEST_WORKER_ID\",\"__MINIMATCH_TESTING_PLATFORM__\",\"LOG_TOKENS\",\"LOG_STREAM\"])},{prop:\"binding\",target:process,violationType:\"process_binding\",strategy:\"throw\",reason:\"process.binding provides access to native Node.js modules\"},{prop:\"_linkedBinding\",target:process,violationType:\"process_binding\",strategy:\"throw\",reason:\"process._linkedBinding provides access to native Node.js modules\"},{prop:\"dlopen\",target:process,violationType:\"process_dlopen\",strategy:\"throw\",reason:\"process.dlopen allows loading native addons\"},{prop:\"getBuiltinModule\",target:process,violationType:\"process_get_builtin_module\",strategy:\"throw\",reason:\"process.getBuiltinModule allows loading native Node.js modules (fs, child_process, vm)\"},{prop:\"exit\",target:process,violationType:\"process_exit\",strat"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 7880,
+        "byteEndExclusive": 7881,
+        "line": 2,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "CallExpression",
+          "byteStart": 7880,
+          "byteEndExclusive": 7886,
+          "line": 2,
+          "text": "a.push"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 8167,
+        "byteEndExclusive": 8168,
+        "line": 2,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "CallExpression",
+          "byteStart": 8167,
+          "byteEndExclusive": 8173,
+          "line": 2,
+          "text": "a.push"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 8526,
+        "byteEndExclusive": 8527,
+        "line": 2,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "CallExpression",
+          "byteStart": 8526,
+          "byteEndExclusive": 8532,
+          "line": 2,
+          "text": "a.push"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 8780,
+        "byteEndExclusive": 8781,
+        "line": 2,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "CallExpression",
+          "byteStart": 8780,
+          "byteEndExclusive": 8788,
+          "line": 2,
+          "text": "a.filter"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "Parameter",
+        "byteStart": 9155,
+        "byteEndExclusive": 9156,
+        "line": 2,
+        "text": "a",
+        "parent": {
+          "kind": "Parameter",
+          "parentKind": "FunctionDeclaration",
+          "byteStart": 9155,
+          "byteEndExclusive": 9156,
+          "line": 2,
+          "text": "a"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 9164,
+        "byteEndExclusive": 9165,
+        "line": 2,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "CallExpression",
+          "byteStart": 9164,
+          "byteEndExclusive": 9171,
+          "line": 2,
+          "text": "a?.find"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "Parameter",
+        "byteStart": 9435,
+        "byteEndExclusive": 9436,
+        "line": 4,
+        "text": "a",
+        "parent": {
+          "kind": "Parameter",
+          "parentKind": "FunctionDeclaration",
+          "byteStart": 9435,
+          "byteEndExclusive": 9436,
+          "line": 4,
+          "text": "a"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "BinaryExpression",
+        "byteStart": 9584,
+        "byteEndExclusive": 9585,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "BinaryExpression",
+          "parentKind": "BinaryExpression",
+          "byteStart": 9584,
+          "byteEndExclusive": 9587,
+          "line": 6,
+          "text": "a+R"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "Parameter",
+        "byteStart": 9764,
+        "byteEndExclusive": 9765,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "Parameter",
+          "parentKind": "ArrowFunction",
+          "byteStart": 9764,
+          "byteEndExclusive": 9765,
+          "line": 6,
+          "text": "a"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "BinaryExpression",
+        "byteStart": 9800,
+        "byteEndExclusive": 9801,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "BinaryExpression",
+          "parentKind": "ConditionalExpression",
+          "byteStart": 9800,
+          "byteEndExclusive": 9807,
+          "line": 6,
+          "text": "a===\"x\""
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "Parameter",
+        "byteStart": 10144,
+        "byteEndExclusive": 10145,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "Parameter",
+          "parentKind": "FunctionDeclaration",
+          "byteStart": 10144,
+          "byteEndExclusive": 10145,
+          "line": 6,
+          "text": "a"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "CallExpression",
+        "byteStart": 10167,
+        "byteEndExclusive": 10168,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "CallExpression",
+          "parentKind": "ReturnStatement",
+          "byteStart": 10161,
+          "byteEndExclusive": 10181,
+          "line": 6,
+          "text": "p.run(a,()=>e(...t))"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "Parameter",
+        "byteStart": 10321,
+        "byteEndExclusive": 10322,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "Parameter",
+          "parentKind": "FunctionDeclaration",
+          "byteStart": 10321,
+          "byteEndExclusive": 10322,
+          "line": 6,
+          "text": "a"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "TypeOfExpression",
+        "byteStart": 10337,
+        "byteEndExclusive": 10338,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "TypeOfExpression",
+          "parentKind": "BinaryExpression",
+          "byteStart": 10330,
+          "byteEndExclusive": 10338,
+          "line": 6,
+          "text": "typeof a"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAssignment",
+        "byteStart": 10359,
+        "byteEndExclusive": 10360,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAssignment",
+          "parentKind": "ObjectLiteralExpression",
+          "byteStart": 10351,
+          "byteEndExclusive": 10360,
+          "line": 6,
+          "text": "enabled:a"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "BinaryExpression",
+        "byteStart": 10362,
+        "byteEndExclusive": 10363,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "BinaryExpression",
+          "parentKind": "ConditionalExpression",
+          "byteStart": 10362,
+          "byteEndExclusive": 10367,
+          "line": 6,
+          "text": "a??{}"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "Parameter",
+        "byteStart": 10784,
+        "byteEndExclusive": 10785,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "Parameter",
+          "parentKind": "FunctionDeclaration",
+          "byteStart": 10784,
+          "byteEndExclusive": 10785,
+          "line": 6,
+          "text": "a"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 10792,
+        "byteEndExclusive": 10793,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "BinaryExpression",
+          "byteStart": 10792,
+          "byteEndExclusive": 10801,
+          "line": 6,
+          "text": "a.enabled"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 10815,
+        "byteEndExclusive": 10816,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "BinaryExpression",
+          "byteStart": 10815,
+          "byteEndExclusive": 10826,
+          "line": 6,
+          "text": "a.auditMode"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 10842,
+        "byteEndExclusive": 10843,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "BinaryExpression",
+          "byteStart": 10842,
+          "byteEndExclusive": 10877,
+          "line": 6,
+          "text": "a.processLifetimeIntrinsicHardening"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 10917,
+        "byteEndExclusive": 10918,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "BinaryExpression",
+          "byteStart": 10917,
+          "byteEndExclusive": 10930,
+          "line": 6,
+          "text": "a.onViolation"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 10962,
+        "byteEndExclusive": 10963,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "BinaryExpression",
+          "byteStart": 10962,
+          "byteEndExclusive": 10985,
+          "line": 6,
+          "text": "a.excludeViolationTypes"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "ClassExpression",
+        "byteStart": 11085,
+        "byteEndExclusive": 11086,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "ClassExpression",
+          "parentKind": "VariableDeclaration",
+          "byteStart": 11079,
+          "byteEndExclusive": 35453,
+          "line": 6,
+          "text": "class a{static instance=null;static importHooksRegistered=!1;static trustedExecutionDepth=new Map;config;refCount=0;patchFailures=[];activeExecutionIds=new Set;contextCache=new Map;originalDescriptors=[];temporaryIntrinsicDescriptors=[];violations=[];activationTime=0;totalActiveTimeMs=0;constructor(e){this.config=e}static getInstance(e){let t=C(e);if(!a.instance)a.instance=new a(t);else{let i=a.instance.config;if(!H(t,i))throw new Error(\"DefenseInDepthBox config conflict: all resolved defense options, including exclusions and the violation callback, must match across Bash instances. Call DefenseInDepthBox.resetInstance() between incompatible configurations.\")}return a.instance}static resetInstance(){a.instance&&(a.instance.forceDeactivate(),a.instance=null),a.trustedExecutionDepth.clear()}static isInSandboxedContext(){return p?p?.getStore()?.sandboxActive===!0:!1}static getCurrentExecutionId(){if(p)return p?.getStore()?.executionId}static enterTrustedScope(e){let t=a.trustedExecutionDepth.get(e)??0;a.trustedExecutionDepth.set(e,t+1)}static leaveTrustedScope(e){let t=a.trustedExecutionDepth.get(e);if(t){if(t===1){a.trustedExecutionDepth.delete(e);return}a.trustedExecutionDepth.set(e,t-1)}}static isTrustedScopeActive(e){return e?(a.trustedExecutionDepth.get(e)??0)>0:!1}static isTrustedContext(e){return!e||e.forceUntrusted?!1:e.trusted===!0||a.isTrustedScopeActive(e.executionId)}isExecutionIdActive(e){return this.activeExecutionIds.has(e)}getCachedContext(e){let t=this.contextCache.get(e);return t||(t={sandboxActive:!0,executionId:e},this.contextCache.set(e,t)),t}static bindCurrentContext(e){if(!p)return e;let t=p.getStore(),i=t?.sandboxActive===!0?t.executionId:void 0;if(!i)return e;let o=a.instance?.getCachedContext(i)??{sandboxActive:!0,executionId:i},n=t?.forceUntruste"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 11433,
+        "byteEndExclusive": 11434,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "PrefixUnaryExpression",
+          "byteStart": 11433,
+          "byteEndExclusive": 11443,
+          "line": 6,
+          "text": "a.instance"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 11444,
+        "byteEndExclusive": 11445,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "BinaryExpression",
+          "byteStart": 11444,
+          "byteEndExclusive": 11454,
+          "line": 6,
+          "text": "a.instance"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "NewExpression",
+        "byteStart": 11459,
+        "byteEndExclusive": 11460,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "NewExpression",
+          "parentKind": "BinaryExpression",
+          "byteStart": 11455,
+          "byteEndExclusive": 11463,
+          "line": 6,
+          "text": "new a(t)"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 11475,
+        "byteEndExclusive": 11476,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "PropertyAccessExpression",
+          "byteStart": 11475,
+          "byteEndExclusive": 11485,
+          "line": 6,
+          "text": "a.instance"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 11754,
+        "byteEndExclusive": 11755,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "ReturnStatement",
+          "byteStart": 11754,
+          "byteEndExclusive": 11764,
+          "line": 6,
+          "text": "a.instance"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 11788,
+        "byteEndExclusive": 11789,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "BinaryExpression",
+          "byteStart": 11788,
+          "byteEndExclusive": 11798,
+          "line": 6,
+          "text": "a.instance"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 11801,
+        "byteEndExclusive": 11802,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "PropertyAccessExpression",
+          "byteStart": 11801,
+          "byteEndExclusive": 11811,
+          "line": 6,
+          "text": "a.instance"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 11830,
+        "byteEndExclusive": 11831,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "BinaryExpression",
+          "byteStart": 11830,
+          "byteEndExclusive": 11840,
+          "line": 6,
+          "text": "a.instance"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 11847,
+        "byteEndExclusive": 11848,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "PropertyAccessExpression",
+          "byteStart": 11847,
+          "byteEndExclusive": 11870,
+          "line": 6,
+          "text": "a.trustedExecutionDepth"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 12059,
+        "byteEndExclusive": 12060,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "PropertyAccessExpression",
+          "byteStart": 12059,
+          "byteEndExclusive": 12082,
+          "line": 6,
+          "text": "a.trustedExecutionDepth"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 12093,
+        "byteEndExclusive": 12094,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "PropertyAccessExpression",
+          "byteStart": 12093,
+          "byteEndExclusive": 12116,
+          "line": 6,
+          "text": "a.trustedExecutionDepth"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 12162,
+        "byteEndExclusive": 12163,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "PropertyAccessExpression",
+          "byteStart": 12162,
+          "byteEndExclusive": 12185,
+          "line": 6,
+          "text": "a.trustedExecutionDepth"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 12209,
+        "byteEndExclusive": 12210,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "PropertyAccessExpression",
+          "byteStart": 12209,
+          "byteEndExclusive": 12232,
+          "line": 6,
+          "text": "a.trustedExecutionDepth"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 12250,
+        "byteEndExclusive": 12251,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "PropertyAccessExpression",
+          "byteStart": 12250,
+          "byteEndExclusive": 12273,
+          "line": 6,
+          "text": "a.trustedExecutionDepth"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 12327,
+        "byteEndExclusive": 12328,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "PropertyAccessExpression",
+          "byteStart": 12327,
+          "byteEndExclusive": 12350,
+          "line": 6,
+          "text": "a.trustedExecutionDepth"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 12440,
+        "byteEndExclusive": 12441,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "CallExpression",
+          "byteStart": 12440,
+          "byteEndExclusive": 12462,
+          "line": 6,
+          "text": "a.isTrustedScopeActive"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 12795,
+        "byteEndExclusive": 12796,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "PropertyAccessExpression",
+          "byteStart": 12795,
+          "byteEndExclusive": 12805,
+          "line": 6,
+          "text": "a.instance"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 12930,
+        "byteEndExclusive": 12931,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "VariableDeclaration",
+          "byteStart": 12930,
+          "byteEndExclusive": 12940,
+          "line": 6,
+          "text": "a.instance"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 16481,
+        "byteEndExclusive": 16482,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "CallExpression",
+          "byteStart": 16481,
+          "byteEndExclusive": 16500,
+          "line": 6,
+          "text": "a.enterTrustedScope"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 16614,
+        "byteEndExclusive": 16615,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "CallExpression",
+          "byteStart": 16614,
+          "byteEndExclusive": 16633,
+          "line": 6,
+          "text": "a.leaveTrustedScope"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 16640,
+        "byteEndExclusive": 16641,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "CallExpression",
+          "byteStart": 16640,
+          "byteEndExclusive": 16659,
+          "line": 6,
+          "text": "a.leaveTrustedScope"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 16681,
+        "byteEndExclusive": 16682,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "CallExpression",
+          "byteStart": 16681,
+          "byteEndExclusive": 16700,
+          "line": 6,
+          "text": "a.leaveTrustedScope"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 16874,
+        "byteEndExclusive": 16875,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "CallExpression",
+          "byteStart": 16874,
+          "byteEndExclusive": 16893,
+          "line": 6,
+          "text": "a.enterTrustedScope"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 16926,
+        "byteEndExclusive": 16927,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "CallExpression",
+          "byteStart": 16926,
+          "byteEndExclusive": 16945,
+          "line": 6,
+          "text": "a.leaveTrustedScope"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 17186,
+        "byteEndExclusive": 17187,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "CallExpression",
+          "byteStart": 17186,
+          "byteEndExclusive": 17204,
+          "line": 6,
+          "text": "a.isTrustedContext"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 17312,
+        "byteEndExclusive": 17313,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "CallExpression",
+          "byteStart": 17312,
+          "byteEndExclusive": 17330,
+          "line": 6,
+          "text": "a.isTrustedContext"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 31435,
+        "byteEndExclusive": 31436,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "BinaryExpression",
+          "byteStart": 31435,
+          "byteEndExclusive": 31458,
+          "line": 6,
+          "text": "a.importHooksRegistered"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 32127,
+        "byteEndExclusive": 32128,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "CallExpression",
+          "byteStart": 32127,
+          "byteEndExclusive": 32145,
+          "line": 6,
+          "text": "a.isTrustedContext"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 32227,
+        "byteEndExclusive": 32228,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "VariableDeclaration",
+          "byteStart": 32227,
+          "byteEndExclusive": 32237,
+          "line": 6,
+          "text": "a.instance"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "PropertyAccessExpression",
+        "byteStart": 32882,
+        "byteEndExclusive": 32883,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "PropertyAccessExpression",
+          "parentKind": "BinaryExpression",
+          "byteStart": 32882,
+          "byteEndExclusive": 32905,
+          "line": 6,
+          "text": "a.importHooksRegistered"
+        }
+      },
+      {
+        "kind": "Identifier",
+        "parentKind": "ExportSpecifier",
+        "byteStart": 35466,
+        "byteEndExclusive": 35467,
+        "line": 6,
+        "text": "a",
+        "parent": {
+          "kind": "ExportSpecifier",
+          "parentKind": "NamedExports",
+          "byteStart": 35461,
+          "byteEndExclusive": 35467,
+          "line": 6,
+          "text": "d as a"
+        }
+      }
+    ],
+    "enclosingMethods": [
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 11396,
+        "byteEndExclusive": 11765,
+        "line": 6,
+        "text": "static getInstance(e){let t=C(e);if(!a.instance)a.instance=new a(t);else{let i=a.instance.config;if(!H(t,i))throw new Error(\"DefenseInDepthBox config conflict: all resolved defense options, including exclusions and the violation callback, must match across Bash instances. Call DefenseInDepthBox.resetInstance() between incompatible configurations.\")}return a.instance}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 11765,
+        "byteEndExclusive": 11879,
+        "line": 6,
+        "text": "static resetInstance(){a.instance&&(a.instance.forceDeactivate(),a.instance=null),a.trustedExecutionDepth.clear()}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 11879,
+        "byteEndExclusive": 11955,
+        "line": 6,
+        "text": "static isInSandboxedContext(){return p?p?.getStore()?.sandboxActive===!0:!1}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 11955,
+        "byteEndExclusive": 12025,
+        "line": 6,
+        "text": "static getCurrentExecutionId(){if(p)return p?.getStore()?.executionId}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 12025,
+        "byteEndExclusive": 12128,
+        "line": 6,
+        "text": "static enterTrustedScope(e){let t=a.trustedExecutionDepth.get(e)??0;a.trustedExecutionDepth.set(e,t+1)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 12128,
+        "byteEndExclusive": 12286,
+        "line": 6,
+        "text": "static leaveTrustedScope(e){let t=a.trustedExecutionDepth.get(e);if(t){if(t===1){a.trustedExecutionDepth.delete(e);return}a.trustedExecutionDepth.set(e,t-1)}}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 12286,
+        "byteEndExclusive": 12367,
+        "line": 6,
+        "text": "static isTrustedScopeActive(e){return e?(a.trustedExecutionDepth.get(e)??0)>0:!1}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 12367,
+        "byteEndExclusive": 12478,
+        "line": 6,
+        "text": "static isTrustedContext(e){return!e||e.forceUntrusted?!1:e.trusted===!0||a.isTrustedScopeActive(e.executionId)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 12478,
+        "byteEndExclusive": 12539,
+        "line": 6,
+        "text": "isExecutionIdActive(e){return this.activeExecutionIds.has(e)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 12539,
+        "byteEndExclusive": 12666,
+        "line": 6,
+        "text": "getCachedContext(e){let t=this.contextCache.get(e);return t||(t={sandboxActive:!0,executionId:e},this.contextCache.set(e,t)),t}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 12666,
+        "byteEndExclusive": 13159,
+        "line": 6,
+        "text": "static bindCurrentContext(e){if(!p)return e;let t=p.getStore(),i=t?.sandboxActive===!0?t.executionId:void 0;if(!i)return e;let o=a.instance?.getCachedContext(i)??{sandboxActive:!0,executionId:i},n=t?.forceUntrusted?{...o,forceUntrusted:!0}:o;return((...s)=>{let c=a.instance;if(!(c&&!c.isExecutionIdActive(i)&&(c.recordViolation(\"bound_callback_after_deactivate\",\"bound callback\",\"Bound callback blocked after originating execution was deactivated\"),!c.config.auditMode)))return G(n,e,...s)})}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 13159,
+        "byteEndExclusive": 13213,
+        "line": 6,
+        "text": "isEnabled(){return this.getStatus().state===\"enabled\"}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 13213,
+        "byteEndExclusive": 14444,
+        "line": 6,
+        "text": "getStatus(){let e=I();return this.config.requested===\"disabled\"?{requested:\"disabled\",state:\"disabled\",level:\"none\",contextualDynamicImportProtection:e,processLifetimeIntrinsicHardening:this.config.processLifetimeIntrinsicHardening===!0,intrinsicProtection:this.config.processLifetimeIntrinsicHardening?\"process-lifetime\":\"scoped-best-effort\"}:!p||f?{requested:this.config.requested,state:\"unsupported\",level:\"none\",contextualDynamicImportProtection:!1,processLifetimeIntrinsicHardening:this.config.processLifetimeIntrinsicHardening===!0,intrinsicProtection:this.config.processLifetimeIntrinsicHardening?\"process-lifetime\":\"scoped-best-effort\",reason:\"context-aware ESM loader hooks (node:module.registerHooks) are unavailable\"}:{requested:this.config.requested,state:\"enabled\",level:this.config.auditMode?\"none\":e?\"full\":\"best-effort\",contextualDynamicImportProtection:e,processLifetimeIntrinsicHardening:this.config.processLifetimeIntrinsicHardening===!0,intrinsicProtection:this.config.processLifetimeIntrinsicHardening?\"process-lifetime\":\"scoped-best-effort\",reason:this.config.auditMode?\"audit mode records violations but does not block them\":e?void 0:\"best-effort protection; context-aware ESM loader hooks are unavailable\"}}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 14444,
+        "byteEndExclusive": 14608,
+        "line": 6,
+        "text": "updateConfig(e){if(this.refCount>0)throw new Error(\"DefenseInDepthBox configuration cannot change while protection is active\");this.config=C({...this.config,...e})}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 14608,
+        "byteEndExclusive": 15600,
+        "line": 6,
+        "text": "activate(){if(!f&&this.config.enabled&&!p)throw new Error(\"DefenseInDepthBox: enabled protection requires node:async_hooks and node:module\");if(f||!this.config.enabled){let i=S(),r=!1;return{run:o=>r?Promise.reject(new Error(\"DefenseInDepthBox handle is deactivated and cannot run new work\")):o(),deactivate:()=>{r=!0},executionId:i}}if(this.refCount++,this.refCount===1){try{this.applyPatches()}catch(i){throw this.restorePatches(),this.activeExecutionIds.clear(),this.contextCache.clear(),this.refCount=0,i}this.activationTime=Date.now()}let e=S(),t=!1;return{run:i=>t?Promise.reject(new Error(\"DefenseInDepthBox handle is deactivated and cannot run new work\")):(this.activeExecutionIds.add(e),p.run({sandboxActive:!0,executionId:e},i)),deactivate:()=>{t||(t=!0,this.activeExecutionIds.delete(e),this.contextCache.delete(e),this.refCount--,this.refCount===0&&(this.restorePatches(),this.totalActiveTimeMs+=Date.now()-this.activationTime),this.refCount<0&&(this.refCount=0))},executionId:e}}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 15600,
+        "byteEndExclusive": 15788,
+        "line": 6,
+        "text": "forceDeactivate(){this.refCount>0&&(this.restorePatches(),this.totalActiveTimeMs+=Date.now()-this.activationTime),this.activeExecutionIds.clear(),this.contextCache.clear(),this.refCount=0}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 15822,
+        "byteEndExclusive": 16024,
+        "line": 6,
+        "text": "getStats(){return{violationsBlocked:this.violations.length,violations:[...this.violations],activeTimeMs:this.totalActiveTimeMs+(this.refCount>0?Date.now()-this.activationTime:0),refCount:this.refCount}}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 16024,
+        "byteEndExclusive": 16073,
+        "line": 6,
+        "text": "getPatchFailures(){return[...this.patchFailures]}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 16073,
+        "byteEndExclusive": 16110,
+        "line": 6,
+        "text": "clearViolations(){this.violations=[]}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 16110,
+        "byteEndExclusive": 16332,
+        "line": 6,
+        "text": "getPathForTarget(e,t){return e===globalThis?`globalThis.${t}`:e===process?`process.${t}`:e===Error?`Error.${t}`:e===Function.prototype?`Function.prototype.${t}`:e===Object.prototype?`Object.prototype.${t}`:`<object>.${t}`}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 16332,
+        "byteEndExclusive": 16709,
+        "line": 6,
+        "text": "static runTrusted(e){if(!p)return e();let t=p.getStore();if(!t)return e();let{executionId:i}=t;return p.run({...t,trusted:!0,forceUntrusted:!1},()=>{a.enterTrustedScope(i);try{let r=e();return typeof r==\"object\"&&r!==null&&\"finally\"in r&&typeof r.finally==\"function\"?r.finally(()=>{a.leaveTrustedScope(i)}):(a.leaveTrustedScope(i),r)}catch(r){throw a.leaveTrustedScope(i),r}})}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 16709,
+        "byteEndExclusive": 16952,
+        "line": 6,
+        "text": "static async runTrustedAsync(e){if(!p)return e();let t=p.getStore();if(!t)return e();let{executionId:i}=t;return p.run({...t,trusted:!0,forceUntrusted:!1},async()=>{a.enterTrustedScope(i);try{return await e()}finally{a.leaveTrustedScope(i)}})}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 16952,
+        "byteEndExclusive": 17080,
+        "line": 6,
+        "text": "static async runUntrustedAsync(e){if(!p)return e();let t=p.getStore();return t?p.run({...t,trusted:!1,forceUntrusted:!0},e):e()}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 17080,
+        "byteEndExclusive": 17209,
+        "line": 6,
+        "text": "shouldBlock(){if(f||this.config.auditMode||!p)return!1;let e=p?.getStore();return!(e?.sandboxActive!==!0||a.isTrustedContext(e))}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 17209,
+        "byteEndExclusive": 17334,
+        "line": 6,
+        "text": "shouldAudit(){if(!this.config.auditMode||!p)return!1;let e=p.getStore();return e?.sandboxActive===!0&&!a.isTrustedContext(e)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 17334,
+        "byteEndExclusive": 17688,
+        "line": 6,
+        "text": "recordViolation(e,t,i){let r={timestamp:k(),type:e,message:i,path:t,stack:new Error().stack,executionId:p?.getStore()?.executionId};if(this.violations.length<L&&this.violations.push(r),this.config.onViolation)try{this.config.onViolation(r)}catch(o){console.debug(\"[DefenseInDepthBox] onViolation callback threw:\",o instanceof Error?o.message:o)}return r}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 17688,
+        "byteEndExclusive": 18222,
+        "line": 6,
+        "text": "createBlockingProxy(e,t,i){let r=this;return new Proxy(e,{apply(o,n,s){if(r.shouldBlock()){let c=`${t} is blocked during script execution`,l=r.recordViolation(i,t,c);throw new d(c,l)}return r.shouldAudit()&&r.recordViolation(i,t,`${t} called (audit mode)`),Reflect.apply(o,n,s)},construct(o,n,s){if(r.shouldBlock()){let c=`${t} constructor is blocked during script execution`,l=r.recordViolation(i,t,c);throw new d(c,l)}return r.shouldAudit()&&r.recordViolation(i,t,`${t} constructor called (audit mode)`),Reflect.construct(o,n,s)}})}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 17746,
+        "byteEndExclusive": 17966,
+        "line": 6,
+        "text": "apply(o,n,s){if(r.shouldBlock()){let c=`${t} is blocked during script execution`,l=r.recordViolation(i,t,c);throw new d(c,l)}return r.shouldAudit()&&r.recordViolation(i,t,`${t} called (audit mode)`),Reflect.apply(o,n,s)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 17967,
+        "byteEndExclusive": 18219,
+        "line": 6,
+        "text": "construct(o,n,s){if(r.shouldBlock()){let c=`${t} constructor is blocked during script execution`,l=r.recordViolation(i,t,c);throw new d(c,l)}return r.shouldAudit()&&r.recordViolation(i,t,`${t} constructor called (audit mode)`),Reflect.construct(o,n,s)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 18222,
+        "byteEndExclusive": 20025,
+        "line": 6,
+        "text": "createBlockingObjectProxy(e,t,i,r){let o=this;return new Proxy(e,{get(n,s,c){if(o.shouldBlock()){if(r&&typeof s==\"string\"&&r.has(s))return Reflect.get(n,s,c);let l=`${t}.${String(s)}`,u=`${l} is blocked during script execution`,h=o.recordViolation(i,l,u);throw new d(u,h)}if(o.shouldAudit()){let l=`${t}.${String(s)}`;o.recordViolation(i,l,`${l} accessed (audit mode)`)}return Reflect.get(n,s,c)},set(n,s,c,l){if(o.shouldBlock()){let u=`${t}.${String(s)}`,h=`${u} modification is blocked during script execution`,y=o.recordViolation(i,u,h);throw new d(h,y)}return t===\"process.env\"&&s===\"DEBUG\"?Reflect.set(n,s,c):Reflect.set(n,s,c,l)},ownKeys(n){if(o.shouldBlock()){let s=`${t} enumeration is blocked during script execution`,c=o.recordViolation(i,t,s);throw new d(s,c)}return Reflect.ownKeys(n)},getOwnPropertyDescriptor(n,s){if(o.shouldBlock()){let c=`${t}.${String(s)}`,l=`${c} descriptor access is blocked during script execution`,u=o.recordViolation(i,c,l);throw new d(l,u)}return Reflect.getOwnPropertyDescriptor(n,s)},has(n,s){if(o.shouldBlock()){let c=`${t}.${String(s)}`,l=`${c} existence check is blocked during script execution`,u=o.recordViolation(i,c,l);throw new d(l,u)}return Reflect.has(n,s)},deleteProperty(n,s){if(o.shouldBlock()){let c=`${t}.${String(s)}`,l=`${c} deletion is blocked during script execution`,u=o.recordViolation(i,c,l);throw new d(l,u)}return Reflect.deleteProperty(n,s)},setPrototypeOf(n,s){if(o.shouldBlock()){let c=`${t} setPrototypeOf is blocked during script execution`,l=o.recordViolation(i,t,c);throw new d(c,l)}return Reflect.setPrototypeOf(n,s)},defineProperty(n,s,c){if(o.shouldBlock()){let l=`${t}.${String(s)}`,u=`${l} defineProperty is blocked during script execution`,h=o.recordViolation(i,l,u);throw new d(u,h)}return Reflect.defineProperty(n,s,c)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 18288,
+        "byteEndExclusive": 18618,
+        "line": 6,
+        "text": "get(n,s,c){if(o.shouldBlock()){if(r&&typeof s==\"string\"&&r.has(s))return Reflect.get(n,s,c);let l=`${t}.${String(s)}`,u=`${l} is blocked during script execution`,h=o.recordViolation(i,l,u);throw new d(u,h)}if(o.shouldAudit()){let l=`${t}.${String(s)}`;o.recordViolation(i,l,`${l} accessed (audit mode)`)}return Reflect.get(n,s,c)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 18619,
+        "byteEndExclusive": 18857,
+        "line": 6,
+        "text": "set(n,s,c,l){if(o.shouldBlock()){let u=`${t}.${String(s)}`,h=`${u} modification is blocked during script execution`,y=o.recordViolation(i,u,h);throw new d(h,y)}return t===\"process.env\"&&s===\"DEBUG\"?Reflect.set(n,s,c):Reflect.set(n,s,c,l)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 18858,
+        "byteEndExclusive": 19019,
+        "line": 6,
+        "text": "ownKeys(n){if(o.shouldBlock()){let s=`${t} enumeration is blocked during script execution`,c=o.recordViolation(i,t,s);throw new d(s,c)}return Reflect.ownKeys(n)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 19020,
+        "byteEndExclusive": 19247,
+        "line": 6,
+        "text": "getOwnPropertyDescriptor(n,s){if(o.shouldBlock()){let c=`${t}.${String(s)}`,l=`${c} descriptor access is blocked during script execution`,u=o.recordViolation(i,c,l);throw new d(l,u)}return Reflect.getOwnPropertyDescriptor(n,s)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 19248,
+        "byteEndExclusive": 19431,
+        "line": 6,
+        "text": "has(n,s){if(o.shouldBlock()){let c=`${t}.${String(s)}`,l=`${c} existence check is blocked during script execution`,u=o.recordViolation(i,c,l);throw new d(l,u)}return Reflect.has(n,s)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 19432,
+        "byteEndExclusive": 19630,
+        "line": 6,
+        "text": "deleteProperty(n,s){if(o.shouldBlock()){let c=`${t}.${String(s)}`,l=`${c} deletion is blocked during script execution`,u=o.recordViolation(i,c,l);throw new d(l,u)}return Reflect.deleteProperty(n,s)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 19631,
+        "byteEndExclusive": 19813,
+        "line": 6,
+        "text": "setPrototypeOf(n,s){if(o.shouldBlock()){let c=`${t} setPrototypeOf is blocked during script execution`,l=o.recordViolation(i,t,c);throw new d(c,l)}return Reflect.setPrototypeOf(n,s)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 19814,
+        "byteEndExclusive": 20022,
+        "line": 6,
+        "text": "defineProperty(n,s,c){if(o.shouldBlock()){let l=`${t}.${String(s)}`,u=`${l} defineProperty is blocked during script execution`,h=o.recordViolation(i,l,u);throw new d(u,h)}return Reflect.defineProperty(n,s,c)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 20025,
+        "byteEndExclusive": 20647,
+        "line": 6,
+        "text": "createReadonlyObjectProxy(e,t,i){let r=this,o=n=>{let s=`${t} ${n} is blocked during script execution`,c=r.recordViolation(i,t,s);throw new d(s,c)};return new Proxy(e,{set(n,s,c,l){return r.shouldBlock()&&o(\"modification\"),Reflect.set(n,s,c,l)},defineProperty(n,s,c){return r.shouldBlock()&&o(\"defineProperty\"),Reflect.defineProperty(n,s,c)},deleteProperty(n,s){return r.shouldBlock()&&o(\"deletion\"),Reflect.deleteProperty(n,s)},setPrototypeOf(n,s){return r.shouldBlock()&&o(\"setPrototypeOf\"),Reflect.setPrototypeOf(n,s)},preventExtensions(n){return r.shouldBlock()&&o(\"preventExtensions\"),Reflect.preventExtensions(n)}})}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 20193,
+        "byteEndExclusive": 20269,
+        "line": 6,
+        "text": "set(n,s,c,l){return r.shouldBlock()&&o(\"modification\"),Reflect.set(n,s,c,l)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 20647,
+        "byteEndExclusive": 21761,
+        "line": 6,
+        "text": "applyPatches(){this.patchFailures=[];let e=w(),t=new Set(this.config.excludeViolationTypes??[]),i=new Set([\"process_send\",\"process_channel\",\"process_stdout\",\"process_stderr\"]),r=[];for(let s of e)if(!t.has(s.violationType)&&!i.has(s.violationType)){if(s.strategy===\"freeze\"){r.push(s);continue}this.applyPatch(s)}this.protectConstructorChain(),t.has(\"error_prepare_stack_trace\")||this.protectErrorPrepareStackTrace(),this.protectPromiseThen(),I()&&this.protectDynamicImport(),this.protectModuleLoad(),this.protectModuleResolveFilename(),this.protectProcessMainModule(),this.protectProcessExecPath(),this.protectProxyRevocable();let o=[\"Function.prototype.constructor\",\"Module._load\",\"Module._resolveFilename\"],n=this.patchFailures.filter(s=>o.includes(s));if(n.length>0)throw this.restorePatches(),new Error(`DefenseInDepthBox: critical patches failed: ${n.join(\", \")}`);this.config.processLifetimeIntrinsicHardening||this.protectReversibleIntrinsics(r);for(let s of r)this.applyPatch(s,this.config.processLifetimeIntrinsicHardening===!0);this.config.processLifetimeIntrinsicHardening&&this.lockWellKnownSymbols()}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 21761,
+        "byteEndExclusive": 23567,
+        "line": 6,
+        "text": "protectReversibleIntrinsics(e){let t=new Set,i=(n,s)=>{let c=Object.getOwnPropertyDescriptor(n,s);!c||!(\"value\"in c)||c.writable!==!0||c.configurable!==!0||(this.temporaryIntrinsicDescriptors.push({target:n,prop:s,descriptor:c}),Object.defineProperty(n,s,{...c,writable:!1}))};for(let{target:n,prop:s}of e){let c=n[s];if(!(typeof c!=\"object\"||c===null)){t.add(c);for(let l of Reflect.ownKeys(c))i(c,l)}}let r=[];for(let n of[Array,Map,Set,RegExp,Promise])r.push([n,Symbol.species]);for(let n of[Array.prototype,String.prototype,Map.prototype,Set.prototype])r.push([n,Symbol.iterator]);r.push([Symbol.prototype,Symbol.toPrimitive],[Date.prototype,Symbol.toPrimitive],[Function.prototype,Symbol.hasInstance],[Array.prototype,Symbol.unscopables]);for(let n of[Symbol.match,Symbol.matchAll,Symbol.replace,Symbol.search,Symbol.split])r.push([RegExp.prototype,n]);for(let n of[Map.prototype,Set.prototype,Promise.prototype,ArrayBuffer.prototype])r.push([n,Symbol.toStringTag]);for(let[n,s]of r)t.add(n),i(n,s);let o=(n,s,c)=>{let l=Object.getOwnPropertyDescriptor(n,s);if(!l||!(\"value\"in l)||typeof l.value!=\"function\"||l.configurable!==!0)return;let u=l.value,h=this,y=function(...b){let g=b[0];if(h.shouldBlock()&&typeof g==\"object\"&&g!==null&&t.has(g)){let x=`${c}.${s}`,_=`${x} is blocked for protected intrinsics during script execution`,F=h.recordViolation(\"prototype_mutation\",x,_);throw new d(_,F)}return Reflect.apply(u,this,b)};this.temporaryIntrinsicDescriptors.push({target:n,prop:s,descriptor:l}),Object.defineProperty(n,s,{...l,value:y,writable:!1})};for(let n of[\"assign\",\"defineProperties\",\"defineProperty\",\"freeze\",\"preventExtensions\",\"seal\",\"setPrototypeOf\"])o(Object,n,\"Object\");for(let n of[\"defineProperty\",\"deleteProperty\",\"preventExtensions\",\"set\",\"setPrototypeOf\"])o(Reflect,n,\"Refl"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 23567,
+        "byteEndExclusive": 24954,
+        "line": 6,
+        "text": "protectConstructorChain(){this.patchPrototypeConstructor(Function.prototype,\"Function.prototype.constructor\",\"function_constructor\");try{let e=Object.getPrototypeOf(async()=>{}).constructor;e&&e!==Function&&this.patchPrototypeConstructor(e.prototype,\"AsyncFunction.prototype.constructor\",\"async_function_constructor\")}catch(e){this.patchFailures.push(\"AsyncFunction.prototype.constructor\"),console.debug(\"[DefenseInDepthBox] Could not patch AsyncFunction.prototype.constructor:\",e instanceof Error?e.message:e)}try{let e=Object.getPrototypeOf(function*(){}).constructor;e&&e!==Function&&this.patchPrototypeConstructor(e.prototype,\"GeneratorFunction.prototype.constructor\",\"generator_function_constructor\")}catch(e){this.patchFailures.push(\"GeneratorFunction.prototype.constructor\"),console.debug(\"[DefenseInDepthBox] Could not patch GeneratorFunction.prototype.constructor:\",e instanceof Error?e.message:e)}try{let e=Object.getPrototypeOf(async function*(){}).constructor,t=Object.getPrototypeOf(async()=>{}).constructor;e&&e!==Function&&e!==t&&this.patchPrototypeConstructor(e.prototype,\"AsyncGeneratorFunction.prototype.constructor\",\"async_generator_function_constructor\")}catch(e){this.patchFailures.push(\"AsyncGeneratorFunction.prototype.constructor\"),console.debug(\"[DefenseInDepthBox] Could not patch AsyncGeneratorFunction.prototype.constructor:\",e instanceof Error?e.message:e)}}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 24954,
+        "byteEndExclusive": 25759,
+        "line": 6,
+        "text": "protectErrorPrepareStackTrace(){let e=this;try{let t=Object.getOwnPropertyDescriptor(Error,\"prepareStackTrace\");this.originalDescriptors.push({target:Error,prop:\"prepareStackTrace\",descriptor:t});let i=t?.value;Object.defineProperty(Error,\"prepareStackTrace\",{get(){return i},set(r){if(e.shouldBlock()){let o=\"Error.prepareStackTrace modification is blocked during script execution\",n=e.recordViolation(\"error_prepare_stack_trace\",\"Error.prepareStackTrace\",o);throw new d(o,n)}e.shouldAudit()&&e.recordViolation(\"error_prepare_stack_trace\",\"Error.prepareStackTrace\",\"Error.prepareStackTrace set (audit mode)\"),i=r},configurable:!0})}catch(t){this.patchFailures.push(\"Error.prepareStackTrace\"),console.debug(\"[DefenseInDepthBox] Could not protect Error.prepareStackTrace:\",t instanceof Error?t.message:t)}}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 25230,
+        "byteEndExclusive": 25568,
+        "line": 6,
+        "text": "set(r){if(e.shouldBlock()){let o=\"Error.prepareStackTrace modification is blocked during script execution\",n=e.recordViolation(\"error_prepare_stack_trace\",\"Error.prepareStackTrace\",o);throw new d(o,n)}e.shouldAudit()&&e.recordViolation(\"error_prepare_stack_trace\",\"Error.prepareStackTrace\",\"Error.prepareStackTrace set (audit mode)\"),i=r}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 25759,
+        "byteEndExclusive": 27051,
+        "line": 6,
+        "text": "protectPromiseThen(){let e=this;try{let o=function(...n){return p.run(this.captured,()=>{if(!this.box.isExecutionIdActive(this.executionId)){if(this.box.recordViolation(\"promise_then_after_deactivate\",\"Promise.then\",\"Promise.then callback is blocked after defense deactivation\"),this.box.config.auditMode)return Reflect.apply(this.cb,void 0,n);if(this.kind===\"fulfilled\")return n[0];throw n[0]}return Reflect.apply(this.cb,void 0,n)})};var t=o;let i=Object.getOwnPropertyDescriptor(Promise.prototype,\"then\");this.originalDescriptors.push({target:Promise.prototype,prop:\"then\",descriptor:i});let r=i?.value;if(typeof r!=\"function\")return;Object.defineProperty(Promise.prototype,\"then\",{value:function(s,c){if(!p)return Reflect.apply(r,this,[s,c]);let l=p.getStore(),u=l?.sandboxActive===!0&&l.trusted!==!0?l.executionId:void 0;if(!u)return Reflect.apply(r,this,[s,c]);let h=e.getCachedContext(u),y=l?.forceUntrusted?{...h,forceUntrusted:!0}:h,b=(g,x)=>typeof g!=\"function\"?g:o.bind({box:e,executionId:u,captured:y,cb:g,kind:x});return Reflect.apply(r,this,[b(s,\"fulfilled\"),b(c,\"rejected\")])},writable:!0,configurable:!0})}catch(i){this.patchFailures.push(\"Promise.prototype.then\"),console.debug(\"[DefenseInDepthBox] Could not protect Promise.prototype.then:\",i instanceof Error?i.message:i)}}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 27051,
+        "byteEndExclusive": 27844,
+        "line": 6,
+        "text": "patchPrototypeConstructor(e,t,i){let r=this;try{let o=Object.getOwnPropertyDescriptor(e,\"constructor\");this.originalDescriptors.push({target:e,prop:\"constructor\",descriptor:o});let n=o?.value;Object.defineProperty(e,\"constructor\",{get(){if(r.shouldBlock()){let s=`${t} access is blocked during script execution`,c=r.recordViolation(i,t,s);throw new d(s,c)}return r.shouldAudit()&&r.recordViolation(i,t,`${t} accessed (audit mode)`),n},set(s){if(r.shouldBlock()){let c=`${t} modification is blocked during script execution`,l=r.recordViolation(i,t,c);throw new d(c,l)}Object.defineProperty(this,\"constructor\",{value:s,writable:!0,configurable:!0})},configurable:!0})}catch(o){this.patchFailures.push(t),console.debug(`[DefenseInDepthBox] Could not patch ${t}:`,o instanceof Error?o.message:o)}}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 27282,
+        "byteEndExclusive": 27485,
+        "line": 6,
+        "text": "get(){if(r.shouldBlock()){let s=`${t} access is blocked during script execution`,c=r.recordViolation(i,t,s);throw new d(s,c)}return r.shouldAudit()&&r.recordViolation(i,t,`${t} accessed (audit mode)`),n}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 27486,
+        "byteEndExclusive": 27698,
+        "line": 6,
+        "text": "set(s){if(r.shouldBlock()){let c=`${t} modification is blocked during script execution`,l=r.recordViolation(i,t,c);throw new d(c,l)}Object.defineProperty(this,\"constructor\",{value:s,writable:!0,configurable:!0})}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 27844,
+        "byteEndExclusive": 28883,
+        "line": 6,
+        "text": "protectProcessMainModule(){if(typeof process>\"u\")return;let e=this;try{let t=Object.getOwnPropertyDescriptor(process,\"mainModule\");this.originalDescriptors.push({target:process,prop:\"mainModule\",descriptor:t});let i=t?.value;i!==void 0&&Object.defineProperty(process,\"mainModule\",{get(){if(e.shouldBlock()){let r=\"process.mainModule access is blocked during script execution\",o=e.recordViolation(\"process_main_module\",\"process.mainModule\",r);throw new d(r,o)}return e.shouldAudit()&&e.recordViolation(\"process_main_module\",\"process.mainModule\",\"process.mainModule accessed (audit mode)\"),i},set(r){if(e.shouldBlock()){let o=\"process.mainModule modification is blocked during script execution\",n=e.recordViolation(\"process_main_module\",\"process.mainModule\",o);throw new d(o,n)}Object.defineProperty(process,\"mainModule\",{value:r,writable:!0,configurable:!0})},configurable:!0})}catch(t){this.patchFailures.push(\"process.mainModule\"),console.debug(\"[DefenseInDepthBox] Could not protect process.mainModule:\",t instanceof Error?t.message:t)}}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 28125,
+        "byteEndExclusive": 28434,
+        "line": 6,
+        "text": "get(){if(e.shouldBlock()){let r=\"process.mainModule access is blocked during script execution\",o=e.recordViolation(\"process_main_module\",\"process.mainModule\",r);throw new d(r,o)}return e.shouldAudit()&&e.recordViolation(\"process_main_module\",\"process.mainModule\",\"process.mainModule accessed (audit mode)\"),i}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 28435,
+        "byteEndExclusive": 28702,
+        "line": 6,
+        "text": "set(r){if(e.shouldBlock()){let o=\"process.mainModule modification is blocked during script execution\",n=e.recordViolation(\"process_main_module\",\"process.mainModule\",o);throw new d(o,n)}Object.defineProperty(process,\"mainModule\",{value:r,writable:!0,configurable:!0})}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 28883,
+        "byteEndExclusive": 29896,
+        "line": 6,
+        "text": "protectProcessExecPath(){if(typeof process>\"u\")return;let e=this;try{let t=Object.getOwnPropertyDescriptor(process,\"execPath\");this.originalDescriptors.push({target:process,prop:\"execPath\",descriptor:t});let i=t?.value??process.execPath;Object.defineProperty(process,\"execPath\",{get(){if(e.shouldBlock()){let r=\"process.execPath access is blocked during script execution\",o=e.recordViolation(\"process_exec_path\",\"process.execPath\",r);throw new d(r,o)}return e.shouldAudit()&&e.recordViolation(\"process_exec_path\",\"process.execPath\",\"process.execPath accessed (audit mode)\"),i},set(r){if(e.shouldBlock()){let o=\"process.execPath modification is blocked during script execution\",n=e.recordViolation(\"process_exec_path\",\"process.execPath\",o);throw new d(o,n)}Object.defineProperty(process,\"execPath\",{value:r,writable:!0,configurable:!0})},configurable:!0})}catch(t){this.patchFailures.push(\"process.execPath\"),console.debug(\"[DefenseInDepthBox] Could not protect process.execPath:\",t instanceof Error?t.message:t)}}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 29162,
+        "byteEndExclusive": 29459,
+        "line": 6,
+        "text": "get(){if(e.shouldBlock()){let r=\"process.execPath access is blocked during script execution\",o=e.recordViolation(\"process_exec_path\",\"process.execPath\",r);throw new d(r,o)}return e.shouldAudit()&&e.recordViolation(\"process_exec_path\",\"process.execPath\",\"process.execPath accessed (audit mode)\"),i}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 29460,
+        "byteEndExclusive": 29719,
+        "line": 6,
+        "text": "set(r){if(e.shouldBlock()){let o=\"process.execPath modification is blocked during script execution\",n=e.recordViolation(\"process_exec_path\",\"process.execPath\",o);throw new d(o,n)}Object.defineProperty(process,\"execPath\",{value:r,writable:!0,configurable:!0})}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 29896,
+        "byteEndExclusive": 30672,
+        "line": 6,
+        "text": "lockWellKnownSymbols(){let e=(t,i)=>{try{let r=Object.getOwnPropertyDescriptor(t,i);if(r?.configurable){if(\"value\"in r){Object.defineProperty(t,i,{...r,configurable:!1,writable:!1});return}Object.defineProperty(t,i,{...r,configurable:!1})}}catch{}};for(let t of[Array,Map,Set,RegExp,Promise])e(t,Symbol.species);for(let t of[Array.prototype,String.prototype,Map.prototype,Set.prototype])e(t,Symbol.iterator);e(Symbol.prototype,Symbol.toPrimitive),e(Date.prototype,Symbol.toPrimitive);for(let t of[Symbol.match,Symbol.matchAll,Symbol.replace,Symbol.search,Symbol.split])e(RegExp.prototype,t);e(Function.prototype,Symbol.hasInstance),e(Array.prototype,Symbol.unscopables);for(let t of[Map.prototype,Set.prototype,Promise.prototype,ArrayBuffer.prototype])e(t,Symbol.toStringTag)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 30672,
+        "byteEndExclusive": 31404,
+        "line": 6,
+        "text": "protectProxyRevocable(){let e=this;try{let t=Proxy.revocable;if(typeof t!=\"function\")return;let i=Object.getOwnPropertyDescriptor(Proxy,\"revocable\");this.originalDescriptors.push({target:Proxy,prop:\"revocable\",descriptor:i}),Object.defineProperty(Proxy,\"revocable\",{value:function(o,n){if(e.shouldBlock()){let s=\"Proxy.revocable is blocked during script execution\",c=e.recordViolation(\"proxy\",\"Proxy.revocable\",s);throw new d(s,c)}return e.shouldAudit()&&e.recordViolation(\"proxy\",\"Proxy.revocable\",\"Proxy.revocable called (audit mode)\"),t(o,n)},writable:!1,configurable:!0})}catch(t){this.patchFailures.push(\"Proxy.revocable\"),console.debug(\"[DefenseInDepthBox] Could not protect Proxy.revocable:\",t instanceof Error?t.message:t)}}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 31404,
+        "byteEndExclusive": 33151,
+        "line": 6,
+        "text": "protectDynamicImport(){if(!(f||a.importHooksRegistered))try{let e=m;if(!e)throw new Error(\"node:module is unavailable\");let t=new Set;for(let o of e.builtinModules??[]){let n=o.startsWith(\"node:\")?o.slice(5):o;t.add(n);let s=n.indexOf(\"/\");s>0&&t.add(n.slice(0,s))}let i=o=>{if(o.startsWith(\"./\")||o.startsWith(\"../\")||o.startsWith(\"/\")||o.startsWith(\"file:\")||o.startsWith(\"data:\")||o.startsWith(\"blob:\")||o.startsWith(\"http:\")||o.startsWith(\"https:\"))return!1;let n=o.startsWith(\"node:\")?o.slice(5):o;if(!n)return!1;if(typeof e.isBuiltin==\"function\"&&e.isBuiltin(n)||t.has(n))return!0;let s=n.indexOf(\"/\");return s>0&&t.has(n.slice(0,s))},r=o=>{let n=p?.getStore();return o.config.auditMode===!0&&n?.sandboxActive===!0&&!a.isTrustedContext(n)};if(typeof e.registerHooks==\"function\"){e.registerHooks({resolve(o,n,s){let c=a.instance;if(!c)return s(o,n);if((o.startsWith(\"data:\")||o.startsWith(\"blob:\"))&&c.shouldBlock()){let l=`import(${o.startsWith(\"data:\")?\"data:\":\"blob:\"})`,u=`dynamic import of ${o.startsWith(\"data:\")?\"data:\":\"blob:\"} URLs is blocked by defense-in-depth`,h=c.recordViolation(\"dynamic_import_builtin\",l,u);throw new d(u,h)}if(i(o)){let l=`import(${o})`,u=`dynamic import of Node.js builtin '${o}' is blocked during script execution`;if(c.shouldBlock()){let h=c.recordViolation(\"dynamic_import_builtin\",l,u);throw new d(u,h)}r(c)&&c.recordViolation(\"dynamic_import_builtin\",l,`dynamic import of Node.js builtin '${o}' called (audit mode)`)}return s(o,n)}}),a.importHooksRegistered=!0;return}throw new Error(\"context-aware ESM loader hooks (node:module.registerHooks) are unavailable\")}catch(e){throw new Error(`DefenseInDepthBox: could not register dynamic-import hooks: ${e instanceof Error?e.message:String(e)}`,{cause:e})}}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ObjectLiteralExpression",
+        "byteStart": 32206,
+        "byteEndExclusive": 32879,
+        "line": 6,
+        "text": "resolve(o,n,s){let c=a.instance;if(!c)return s(o,n);if((o.startsWith(\"data:\")||o.startsWith(\"blob:\"))&&c.shouldBlock()){let l=`import(${o.startsWith(\"data:\")?\"data:\":\"blob:\"})`,u=`dynamic import of ${o.startsWith(\"data:\")?\"data:\":\"blob:\"} URLs is blocked by defense-in-depth`,h=c.recordViolation(\"dynamic_import_builtin\",l,u);throw new d(u,h)}if(i(o)){let l=`import(${o})`,u=`dynamic import of Node.js builtin '${o}' is blocked during script execution`;if(c.shouldBlock()){let h=c.recordViolation(\"dynamic_import_builtin\",l,u);throw new d(u,h)}r(c)&&c.recordViolation(\"dynamic_import_builtin\",l,`dynamic import of Node.js builtin '${o}' called (audit mode)`)}return s(o,n)}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 33151,
+        "byteEndExclusive": 33219,
+        "line": 6,
+        "text": "protectModuleLoad(){this.protectModuleMethod(\"_load\",\"module_load\")}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 33219,
+        "byteEndExclusive": 33321,
+        "line": 6,
+        "text": "protectModuleResolveFilename(){this.protectModuleMethod(\"_resolveFilename\",\"module_resolve_filename\")}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 33321,
+        "byteEndExclusive": 34005,
+        "line": 6,
+        "text": "protectModuleMethod(e,t){if(f)return;let i=`Module.${e}`;try{let r=A,o=r?.[e];if(!r||typeof o!=\"function\")throw new Error(\"node:module Module class or method is unavailable\");let n=Object.getOwnPropertyDescriptor(r,e);if(!n)throw new Error(\"method has no own property descriptor\");if(n.configurable===!1&&n.writable===!1)throw new Error(\"method is non-configurable and non-writable\");let s=this.createBlockingProxy(o,i,t);this.originalDescriptors.push({target:r,prop:e,descriptor:n}),Object.defineProperty(r,e,{...n,value:s});let c=Object.getOwnPropertyDescriptor(r,e);if(r[e]!==s||c?.value!==s)throw new Error(\"installed patch failed verification\")}catch{this.patchFailures.push(i)}}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 34005,
+        "byteEndExclusive": 34772,
+        "line": 6,
+        "text": "applyPatch(e,t=!1){let{target:i,prop:r,violationType:o,strategy:n}=e;try{let s=i[r];if(s===void 0)return;let c=Object.getOwnPropertyDescriptor(i,r);if(this.originalDescriptors.push({target:i,prop:r,descriptor:c}),n===\"freeze\"){if(typeof s==\"object\"&&s!==null){t&&Object.freeze(s);let l=this.getPathForTarget(i,r),u=this.createReadonlyObjectProxy(s,l,o);Object.defineProperty(i,r,{...c,value:u})}}else{let l=this.getPathForTarget(i,r),u=typeof s==\"function\"?this.createBlockingProxy(s,l,o):this.createBlockingObjectProxy(s,l,o,e.allowedKeys);Object.defineProperty(i,r,{value:u,writable:!0,configurable:!0})}}catch(s){let c=this.getPathForTarget(i,r);this.patchFailures.push(c),console.debug(`[DefenseInDepthBox] Could not patch ${c}:`,s instanceof Error?s.message:s)}}"
+      },
+      {
+        "kind": "MethodDeclaration",
+        "parentKind": "ClassExpression",
+        "byteStart": 34772,
+        "byteEndExclusive": 35452,
+        "line": 6,
+        "text": "restorePatches(){for(let e=this.temporaryIntrinsicDescriptors.length-1;e>=0;e--){let{target:t,prop:i,descriptor:r}=this.temporaryIntrinsicDescriptors[e];try{Object.defineProperty(t,i,r)}catch(o){console.debug(`[DefenseInDepthBox] Could not restore temporary intrinsic ${String(i)}:`,o instanceof Error?o.message:o)}}this.temporaryIntrinsicDescriptors=[];for(let e=this.originalDescriptors.length-1;e>=0;e--){let{target:t,prop:i,descriptor:r}=this.originalDescriptors[e];try{r?Object.defineProperty(t,i,r):delete t[i]}catch(o){let n=this.getPathForTarget(t,i);console.debug(`[DefenseInDepthBox] Could not restore ${n}:`,o instanceof Error?o.message:o)}}this.originalDescriptors=[]}"
+      }
+    ]
+  },
+  "shimExport": {
+    "kind": "ExportDeclaration",
+    "parentKind": "SourceFile",
+    "byteStart": 856,
+    "byteEndExclusive": 885,
+    "line": 2,
+    "text": "export{m as a,n as b,o as c};"
+  },
+  "guardCoordinates": [
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/worker.mjs",
+      "lineStart": 36,
+      "lineEnd": 55,
+      "byteStart": 2352,
+      "byteEndExclusive": 4325,
+      "text": "  fs.writeFileSync(path.join(permission.context.outputRoot, `operation-${operation.id}.claim`), JSON.stringify({ operation, recipe: permission.recipe }), { flag: 'wx', mode: 0o444 });\n  authenticateView(projection, config.view);\n  inspectTree(config.view.root, config.view.files);\n  if (config.view.oldOrigin) requireThat(!fs.existsSync(config.view.oldOrigin), 'OLD_LAYOUT_PRESENT', config.view.oldOrigin);\n  const bindings = readJson(path.join(root, '../BINDINGS.json'));\n  const namespaces = readJson(path.join(root, '../executor-overlay-v2/NAMESPACES.json'));\n  loader = installLoader(config.view, value => writer.emit(value), { entryParentURL: import.meta.url });\n  offline = installOffline(config.view, value => writer.emit(value));\n  const imported = await import(pathToFileURL(path.join(config.view.root, config.view.consumerPath)).href);\n  requireThat(loader.entryResolutions.length === 1 && loader.entryResolutions[0].accepted === true, 'CONSUMER_ENTRY_REQUIRED', loader.entryResolutions);\n  requireThat(loader.consumerResolutions.length === 1 && loader.consumerResolutions[0].accepted === true, 'CONSUMER_RESOLUTION_REQUIRED', loader.consumerResolutions);\n  const library = imported.library;\n  requireThat(library && (config.view.engine === 'virtual-bash' ? typeof library.Shell === 'function' && typeof library.agentCommands === 'function' : typeof library.Bash === 'function' && typeof library.stdoutAsBytes === 'function'), 'EXPORT_SHAPE', config.view.engine);\n  writer.emit({ kind: 'consumer-evaluated', engine: config.view.engine });\n  if (config.kind === 'probe') {\n    const events = [];\n    const filesystem = instrumentFilesystem(config.view.engine === 'virtual-bash' ? library.createMemoryFileSystem() : new library.InMemoryFs(), events, () => 'semantic');\n    await filesystem.mkdir('/fixture/bin', { recursive: true });\n    await filesystem.writeFile('/fixture/bin/tool', new Uint8Array([120]));\n    await filesystem.chmod('/fixture/bin/tool', 0o755);"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/worker.mjs",
+      "lineStart": 102,
+      "lineEnd": 116,
+      "byteStart": 8095,
+      "byteEndExclusive": 9010,
+      "text": "  report.loads = { count: loader.loaded.length, evaluated: true, denied: loader.denied, entryResolutions: loader.entryResolutions, consumerResolutions: loader.consumerResolutions };\n  report.resources = offline.receipt();\n  offline.close(); offline = null;\n  loader.close(); loader = null;\n  inspectTree(config.view.root, config.view.files);\n  report.postGuard = true;\n  report.late = late;\n  if (late.length || report.resources.pending || report.resources.violations.length || report.loads.denied.length || report.safety?.safe === false) process.exitCode = 1;\n  writer.emit({ kind: 'final', report });\n} catch (error) {\n  offline?.close(); loader?.close();\n  process.exitCode = 1;\n  try { writer.emit({ kind: 'final', report: report ?? null, fatal: errorRecord(error), late }); }\n  catch (transportError) { write(2, `${JSON.stringify({ error: errorRecord(error), transport: errorRecord(transportError) })}\\n`); }\n}"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/loader.mjs",
+      "lineStart": 19,
+      "lineEnd": 36,
+      "byteStart": 665,
+      "byteEndExclusive": 1709,
+      "text": "export function installLoader(view, emit, options = {}) {\n  const scope = view.engine ? authenticateConsumerScope(view) : null;\n  const entryParentURL = options.entryParentURL;\n  if (scope) requireThat(typeof entryParentURL === 'string' && canonicalFileURL(entryParentURL) === entryParentURL, 'CONSUMER_ENTRY_BINDING', entryParentURL ?? null);\n  const entryResolutions = [];\n  const consumerResolutions = [];\n  const files = new Map(view.files.map(file => [pathToFileURL(path.join(view.root, file.path)).href, file]));\n  const loaded = [];\n  const denied = [];\n  function check(url) {\n    requireThat(files.has(url), 'UNBOUND_MODULE', url);\n    const filename = fileURLToPath(url);\n    const entry = files.get(url);\n    const info = stat(filename);\n    requireThat(info.isFile() && !info.isSymbolicLink() && info.size === entry.bytes && (info.mode & 0o7777) === entry.mode, 'LOAD_METADATA', url);\n    const bytes = readRegular(filename, entry.bytes);\n    requireThat(hash(bytes) === entry.sha256, 'LOAD_HASH', url);\n    return { bytes, entry };"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v6/loader.mjs",
+      "lineStart": 38,
+      "lineEnd": 85,
+      "byteStart": 1714,
+      "byteEndExclusive": 5314,
+      "text": "  const hooks = registerHooks({\n    resolve(specifier, context, nextResolve) {\n      try {\n        if (isBuiltin(specifier)) {\n          requireThat(!['inspector', 'inspector/promises', 'vm'].includes(specifier.replace(/^node:/, '')), 'BUILTIN_DENIED', specifier);\n          return nextResolve(specifier, context);\n        }\n        const entryAttempt = scope && canonicalFileURL(specifier) === scope.parentURL;\n        if (entryAttempt) {\n          const observed = { kind: 'consumer-entry-attempt', stage: 'before-nextResolve', specifier, parentURL: context.parentURL ?? null, parentPresent: Object.hasOwn(context, 'parentURL'), expectedParentURL: entryParentURL, expectedURL: scope.parentURL };\n          emit(observed);\n          requireThat(context.parentURL === entryParentURL, 'CONSUMER_ENTRY_PARENT', observed);\n          requireThat(specifier === scope.parentURL, 'CONSUMER_ENTRY_URL', observed);\n        }\n        const result = nextResolve(specifier, context);\n        let entryResolution;\n        if (scope && canonicalFileURL(result.url) === scope.parentURL) {\n          entryResolution = { kind: 'consumer-entry-resolution', specifier, parentURL: context.parentURL ?? null, url: result.url, expectedParentURL: entryParentURL, expectedURL: scope.parentURL, accepted: false };\n          entryResolutions.push(entryResolution);\n          emit({ ...entryResolution, kind: 'consumer-entry-observed' });\n          requireThat(context.parentURL === entryParentURL, 'CONSUMER_ENTRY_PARENT', entryResolution);\n          requireThat(specifier === scope.parentURL && result.url === scope.parentURL, 'CONSUMER_ENTRY_URL', entryResolution);\n        }\n        let resolution;\n        if (scope && specifier === view.engine) {\n          resolution = { kind: 'consumer-resolution', specifier, parentURL: context.parentURL, url: result.url, expectedParentURL: scope.parentURL, accepted: false };\n          consumerResolutions.push(resolution);\n          emit({ ...resolution, kind: 'consumer-resolution-observed' });\n          requireThat(context.parentURL === scope.parentURL, 'CONSUMER_PARENT', resolution);\n        }\n        requireThat(files.has(result.url), 'UNBOUND_MODULE', { specifier, parent: context.parentURL, url: result.url });\n        if (entryResolution) { entryResolution.accepted = true; emit({ ...entryResolution }); }\n        if (resolution) { resolution.accepted = true; emit({ ...resolution }); }\n        return result;\n      } catch (error) { denied.push({ code: error.code, specifier }); emit({ kind: 'load-denied', code: error.code, specifier }); throw error; }\n    },\n    load(url, context, nextLoad) {\n      if (isBuiltin(url)) return nextLoad(url, context);\n      try {\n        const { bytes, entry } = check(url);\n        const result = nextLoad(url, context);\n        requireThat(['module', 'commonjs', 'json'].includes(result.format), 'LOAD_FORMAT', { url, format: result.format });\n        const source = result.source == null && result.format === 'commonjs' ? bytes : result.source;\n        requireThat(source != null && hash(Buffer.from(source)) === entry.sha256, 'RETURNED_SOURCE_HASH', url);\n        const witness = { kind: 'nextLoad', path: entry.path, format: result.format, bytes: entry.bytes, sha256: entry.sha256, evaluationProven: false, origin: result.source == null ? 'authenticated-CJS-source-supplied-to-runtime' : 'actual-nextLoad-source' };\n        loaded.push(witness); emit(witness);\n        return { ...result, source };\n      } catch (error) { denied.push({ code: error.code, url }); emit({ kind: 'load-denied', code: error.code, url }); throw error; }"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+      "lineStart": 29,
+      "lineEnd": 65,
+      "byteStart": 1196,
+      "byteEndExclusive": 3695,
+      "text": "  const createRequire = moduleAPI.createRequire;\n  function replace(object, name, value) {\n    const previous = object[name];\n    if (typeof previous === 'function') { object[name] = value; restores.push(() => { object[name] = previous; }); }\n  }\n  const deny = operation => function (...args) {\n    const value = { operation, argument: typeof args[0] === 'string' ? args[0].slice(0, 512) : typeof args[0] };\n    violations.push(value); emit({ kind: 'offline-denied', ...value });\n    throw Object.assign(new Error(`OFFLINE_DENIED:${operation}`), { code: 'OFFLINE_DENIED' });\n  };\n  function asset(filename) {\n    try {\n    const absolute = filename instanceof URL ? fileURLToPath(filename) : typeof filename === 'string' ? path.resolve(filename) : '';\n    const entry = files.get(absolute);\n    requireThat(entry && !entry.path.split('/').some(name => name.toUpperCase() === 'AGENTS.MD'), 'UNBOUND_ASSET', absolute);\n    const info = stat(absolute);\n    requireThat(info.isFile() && !info.isSymbolicLink() && info.size === entry.bytes && (info.mode & 0o7777) === entry.mode, 'ASSET_METADATA', absolute);\n    const bytes = readRegular(absolute, entry.bytes);\n    requireThat(hash(bytes) === entry.sha256, 'ASSET_HASH', absolute);\n    const witness = { path: entry.path, bytes: bytes.length, sha256: entry.sha256 };\n    assets.push(witness); emit({ kind: 'asset-read', ...witness });\n    return bytes;\n    } catch (error) { const value = { operation: 'asset-read', code: error.code }; violations.push(value); emit({ kind: 'offline-denied', ...value }); throw error; }\n  }\n  replace(moduleAPI, 'createRequire', filename => {\n    const absolute = filename instanceof URL || (typeof filename === 'string' && filename.startsWith('file:')) ? fileURLToPath(filename) : filename;\n    if (!files.has(absolute)) return deny('REQUIRE_BASE')(absolute);\n    const underlying = createRequire(filename);\n    const checked = specifier => {\n      const resolved = underlying.resolve(specifier);\n      if (!(isBuiltin(resolved) || files.has(resolved))) return deny('UNBOUND_REQUIRE')(resolved);\n      return underlying(specifier);\n    };\n    checked.resolve = specifier => { const resolved = underlying.resolve(specifier); if (!(isBuiltin(resolved) || files.has(resolved))) return deny('UNBOUND_REQUIRE')(resolved); return resolved; };\n    return checked;\n  });\n  for (const name of ['register', 'registerHooks', 'enableCompileCache', 'flushCompileCache', 'runMain']) replace(moduleAPI, name, deny(`module.${name}`));"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/offline.mjs",
+      "lineStart": 98,
+      "lineEnd": 117,
+      "byteStart": 6080,
+      "byteEndExclusive": 8587,
+      "text": "  for (const [object, names] of [[http, ['request', 'get', 'createServer']], [https, ['request', 'get', 'createServer']], [net, ['connect', 'createConnection', 'createServer', 'Socket', 'Server']], [tls, ['connect', 'createServer', 'TLSSocket']], [dns, Object.keys(dns)], [dns.promises, Object.keys(dns.promises)], [dgram, ['createSocket']], [childProcess, Object.keys(childProcess)], [workers, ['Worker']]]) for (const name of names) replace(object, name, deny(name === 'Worker' ? 'UNSUPPORTED_WORKER_ASSET_ADMISSION' : name));\n  replace(globalThis, 'fetch', deny('fetch'));\n  replace(globalThis, 'WebSocket', deny('WebSocket'));\n  for (const name of ['exit', 'kill', 'chdir', 'dlopen', 'binding', '_linkedBinding', 'getBuiltinModule']) replace(process, name, deny(`process.${name}`));\n  const set = timers.setTimeout, clear = timers.clearTimeout, interval = timers.setInterval, clearInterval = timers.clearInterval;\n  function start(callback, duration, ...args) {\n    let handle;\n    handle = set(() => { pending.delete(handle); callback(...args); }, duration);\n    pending.add(handle); return handle;\n  }\n  function stop(handle) { pending.delete(handle); return clear(handle); }\n  for (const object of [timers, globalThis]) { replace(object, 'setTimeout', start); replace(object, 'clearTimeout', stop); replace(object, 'setInterval', (callback, duration, ...args) => { const handle = interval(callback, duration, ...args); pending.add(handle); return handle; }); replace(object, 'clearInterval', handle => { pending.delete(handle); return clearInterval(handle); }); }\n  for (const name of ['setTimeout', 'setImmediate']) {\n    const original = timerPromises[name];\n    replace(timerPromises, name, (...args) => { const token = {}; pending.add(token); return original(...args).finally(() => { pending.delete(token); }); });\n  }\n  replace(timerPromises, 'setInterval', deny('unsupported-timers-promises.setInterval'));\n  for (const name of ['compile', 'instantiate', 'compileStreaming', 'instantiateStreaming', 'Module']) replace(WebAssembly, name, deny(`UNSUPPORTED_WASM_ADMISSION.${name}`));\n  syncBuiltinESMExports();\n  return { receipt: () => ({ pending: pending.size + descriptors.size, descriptors: descriptors.size, violations, assets, scope: 'trusted dependency operation guard; not adversarial JavaScript isolation', workerWasmPolicy: 'refuse before creation/compilation; unsupported never qualifies' }), close() { for (const restore of restores.reverse()) restore(); syncBuiltinESMExports(); } };"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+      "lineStart": 9,
+      "lineEnd": 24,
+      "byteStart": 256,
+      "byteEndExclusive": 998,
+      "text": "export function readRegular(filename, maximum = 64 * 1024 * 1024) {\n  const descriptor = open(filename, fs.constants.O_RDONLY | noFollow);\n  try {\n    const info = stat(descriptor);\n    requireThat(info.isFile() && Number.isSafeInteger(info.size) && info.size >= 0 && info.size <= maximum, 'REGULAR_READ_BOUND', filename);\n    const bytes = Buffer.alloc(info.size);\n    let offset = 0;\n    while (offset < bytes.length) {\n      const amount = read(descriptor, bytes, offset, bytes.length - offset, offset);\n      requireThat(amount > 0, 'REGULAR_SHORT_READ', filename);\n      offset += amount;\n    }\n    requireThat(stat(descriptor).size === info.size, 'REGULAR_SIZE_CHANGED', filename);\n    return bytes;\n  } finally { close(descriptor); }\n}"
+    }
+  ],
+  "summary": {
+    "checks": 3,
+    "passed": 3,
+    "failed": 0
+  }
+}

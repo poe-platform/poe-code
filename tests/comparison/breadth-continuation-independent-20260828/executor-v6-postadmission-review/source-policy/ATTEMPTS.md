@@ -19,3 +19,24 @@ unchanged. Add the existing offline guard's `regular-read.mjs` helper to immutab
 Git authentication for the already-presealed asset-guard source review.
 The original checker is preserved by commit `35d39a23`; this correction is
 committed before attempt 2. No prior artifact is rewritten.
+
+## Attempt 2 — completed original check, 25/26 pass
+
+Corrected checker commit: `0be1a18a`. The same command exited 1 and exclusively
+created CHECK-RESULTS.json (30525 bytes). All 21 sources parsed and retained their
+before/after hashes. The one failed expectation was the raw token total: 3, not
+1. The main executable property access remains at byte 503554. Two additional
+string-literal mentions had already been recorded in Raman's diagnosis.
+This is an independent preseal error, not an error in that prior token inventory.
+
+## Supplemental classification — 3/3 pass
+
+Preseal/checker commit: `ef136fa811ebe3165612b3f237be4038745211b4`.
+Command: `node tests/comparison/breadth-continuation-independent-20260828/executor-v6-postadmission-review/source-policy/check-secondary.mjs ef136fa811ebe3165612b3f237be4038745211b4`
+
+Exit 0; SECONDARY-RESULTS.json exclusively created (100864 bytes). Exactly one
+Identifier/property access and two StringLiterals classified, complete e/t/Ks
+reference counts confirmed, fallback export a→m confirmed. The original 25/26
+result remains unchanged, not retroactively passing. Supplemental contextual
+spelling/substring lists are explicitly not symbol or reachability proof; the
+final extraction preseal narrows the human-reviewed context to named methods.

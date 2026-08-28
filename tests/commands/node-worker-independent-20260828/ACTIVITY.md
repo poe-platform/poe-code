@@ -40,3 +40,9 @@ The development shell also encountered an unmatched source-inspection glob for
 `PROFILE*` and a nonexistent design README; corrected by listing actual files and
 reading np1-cjs-v1/CONTRACT.md. No subject execution or source failure follows from
 that navigation error. These navigation failures are not runtime observations.
+
+At evidence commit fa456e5a, `git diff --cached --check` reported trailing spaces
+on numbered empty source-excerpt lines (`123: ` form). The shell continued to the
+explicit-owned commit. These are preserved captured formatting bytes, not a
+product or DATA assertion failure; the diff check is **not claimed clean**. The
+capture was not trimmed or its recorded SHA256 rewritten to hide the warning.

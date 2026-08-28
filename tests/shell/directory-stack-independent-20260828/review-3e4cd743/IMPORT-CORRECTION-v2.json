@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "time": "2026-08-28T09:33:35.405Z",
+  "original": "import-controls-v1.mjs",
+  "outcome": "pre-control assertion failure; source positive actual import passed; Q01 never imported",
+  "error": {
+    "name": "AssertionError",
+    "line": 56,
+    "operator": "notStrictEqual",
+    "actual": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419",
+    "expected": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419"
+  },
+  "cause": "apply_patch normalized extra trailing blank line; target hash did not change",
+  "correction": "version2 adds a parsed empty statement before first source line; checks changed bytes before import; Q03 removes root using apply_patch",
+  "scope": "only generated negative copies; no production mutation; original v1 raw/work preserved",
+  "sessionRecovery": "session93278 handle absent after completion; 16 natural result records and RESULTS.json authenticate completed mechanism run; not a product failure"
+}

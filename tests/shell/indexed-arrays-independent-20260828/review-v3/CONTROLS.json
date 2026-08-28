@@ -1,0 +1,29 @@
+{
+  "schema": "indexed-array-v3-independent-mechanical-obligations",
+  "status": "Presealed synthetic-data obligations; no product/native execution; none claimed passed or mutant-killed",
+  "bounds": { "maxObjects": 64, "maxEdges": 128, "maxTraceSteps": 256, "maxLiteralBytes": 4096, "largeNumbers": "exact integer scalars only, never allocation sizes" },
+  "controls": [
+    { "id": "M01", "input": { "ticketsRemaining": 2, "request": ["generation","version","epoch"] }, "expect": "epoch refusal; zero issued tickets/counter or state changes", "badControl": "independent remaining>=1 tests admit triple" },
+    { "id": "M02", "input": { "ticketsRemaining": 3, "request": ["generation","version","epoch"] }, "expect": "three distinct tickets; no MAX_SAFE+1 Number sentinel", "badControl": "rounded/wrapped ticket reuse" },
+    { "id": "M03", "input": { "savedRestoreTickets": [4,5,6], "currentTickets": [10,11,12] }, "expect": "restore uses 4,5,6 by equality identities; later allocation never reuses them", "badControl": "numeric older-than comparison rejects restore" },
+    { "id": "M04", "input": { "watchTableEdges": 1, "externalObserversBefore": 1, "externalObserversAfter": 0 }, "expect": "detach table slot; release name/watch; no persistent tombstone", "badControl": "wait total refcount zero while table owns watch" },
+    { "id": "M05", "input": { "steps": ["watch absent a","write a=x","unset a","write a=x"] }, "expect": "initial watch stale even with same final string; no retry", "badControl": "value equality or recycled ticket accepts ABA" },
+    { "id": "M06", "input": { "refs": 2, "payload": 7, "releaseOrder": ["first","last"] }, "expect": "2-to-1 refunds zero payload; last refunds live7 once; cumulative unchanged", "badControl": "early refund or double refund" },
+    { "id": "M07", "input": { "headers": 27, "overlappingCloseCalls": 3 }, "expect": "one published completion object/drainer; at most27 enqueues; same final live0", "badControl": "one new queue node or completion per close/slot" },
+    { "id": "M08", "input": { "frames": ["outer","inner"], "closeRequestOrder": ["outer","inner"] }, "expect": "dependency-enforced inner restore then outer; no Set growth/allocation/admission", "badControl": "callback order controls restoration" },
+    { "id": "M09", "input": { "localInnerReadonly": true, "localInnerValueChanged": true, "overlaySameValueNewVersion": true }, "expect": "local restores saved typed outer; superseded overlay does not restore", "badControl": "one value-equality rule handles both" },
+    { "id": "M10", "input": { "B": 0, "F": 64, "name": "a" }, "expect": "private payload refusal before owned-name retention; scalar-only path remains lazy", "badControl": "free name token or blanket exec rejection" },
+    { "id": "M11", "input": { "B": 4096, "F": 0 }, "expect": "first applicable admitted wrapper/slot/header cap refuses before allocation; no queue created for failed acquisition", "badControl": "allocate then account" },
+    { "id": "M12", "input": { "B": 4096, "F": 1, "minimalWrapperMapNameMetadata": 160 }, "expect": "metadata128 cannot admit even this incomplete minimum; never promise one usable member", "badControl": "treat F as capacity guarantee" },
+    { "id": "M13", "input": { "B": "9007199254740991", "F": 0 }, "expect": "lazy exact derived cumulative-byte overflow before allocation; no saturation", "badControl": "Number multiplication then clamp" },
+    { "id": "M14", "input": { "mapSlotCap": 4, "valueSlots": 4, "watchTableSlots": 1 }, "expect": "Map-slot refusal under proposed widened category; vectors separately charged", "badControl": "ignore watch slot" },
+    { "id": "M15", "input": { "failingCategories": ["metadata","work"], "priorReservationsSpent": 10 }, "expect": "metadata diagnostic; failing reservation atomic; prior10 remain spent", "badControl": "refund prior reservations or choose arbitrary error" },
+    { "id": "M16", "input": { "operation": "delete maximum", "members": [0,2147483647], "workBeforeScan": 0 }, "expect": "failure before deletion/cache publication; finite present-slot scan only", "badControl": "delete first or numeric-range scan" },
+    { "id": "M17", "input": { "copy": ["chunk1","await","chunk2"], "duringAwait": "shopt changes dotglob" }, "expect": "whole-state epoch invalidates copy; release partial clone; no retry", "badControl": "variable-only epoch accepts mixed flags" },
+    { "id": "M18", "input": { "publicExecCount": 2, "firstInternalDescendants": 3 }, "expect": "fresh ledger per public exec; first root and three internal descendants share cumulative counters", "badControl": "new ledger per invoke or persistent cross-exec cap" },
+    { "id": "M19", "input": { "utf16": ["a","😀","\ud800"], "expectedScanUnits": [1,2,1], "expectedUTF8Bytes": [1,4,3] }, "expect": "each independent token owns its bytes; repeated equal materializations charge again", "badControl": "code-unit byte estimate or content dedup" },
+    { "id": "M20", "input": { "liveMetadata": 2560, "livePayload": 50, "cumulativeBytes": 2610, "cumulativeSlots": 21, "reservedWork": 445 }, "expect": "after complete declared release live0; cumulative2610/21/445 retained", "badControl": "cleanup credits spent twice or cumulative refunded" },
+    { "id": "M21", "input": { "cleanupGraph": { "parentOwnsChild": true, "childOwnsParent": true } }, "expect": "reject unbroken owning cycle; borrowed alternative needs lifetime proof", "badControl": "claim refcount release terminates on cycle" },
+    { "id": "M22", "input": { "publicationGuards": ["caller abort","escaping rejection","readonly","stale"], "selectedAlternateEffects": 1 }, "expect": "retain existing caller/escaping precedence; otherwise readonly before stale; never undo alternate", "badControl": "cleanup or stale replaces primary reason" }
+  ]
+}

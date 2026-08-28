@@ -1,0 +1,42 @@
+{
+  "schema": "indexed-array-v3-independent-proposed-vectors",
+  "status": "Unexecuted proposed project semantics; not GNU observations or product passes; G8 awaits root choice",
+  "notation": "Bindings are index:string pairs in numeric order; [] is indexed-empty. Words are shell source, not executed. expectedArgv is the one-word expansion under ordinary splitting; no matching files are present. Each row starts fresh.",
+  "splice": [
+    { "id": "S01", "a": [[0,"A"],[1,"B"]], "b": [[0,"C"],[1,"D"]], "word": "\"${a[@]}:${b[@]}\"", "expectedArgv": ["A","B:C","D"] },
+    { "id": "S02", "a": [[0,"A"],[1,"B"]], "b": [[0,"C"],[1,"D"]], "word": "\"${a[@]}${b[@]}\"", "expectedArgv": ["A","BC","D"] },
+    { "id": "S03", "a": [[0,"A"],[1,"B"]], "b": [[0,"C"],[1,"D"]], "word": "\"p${a[@]}:${b[@]}z\"", "expectedArgv": ["pA","B:C","Dz"] },
+    { "id": "S04", "a": [], "b": [[0,"C"],[1,"D"]], "word": "\"${a[@]}${b[@]}\"", "expectedArgv": ["C","D"] },
+    { "id": "S05", "a": [[0,"A"],[1,"B"]], "b": [], "word": "\"${a[@]}:${b[@]}\"", "expectedArgv": ["A","B:"] },
+    { "id": "S06", "a": [], "b": [], "word": "\"${a[@]}${b[@]}\"", "expectedArgv": [] },
+    { "id": "S07", "a": [], "b": [], "word": "\"${a[@]}:${b[@]}\"", "expectedArgv": [":"] },
+    { "id": "S08", "a": [], "word": "\"\"\"${a[@]}\"", "expectedArgv": [""] },
+    { "id": "S09", "a": [[0,""],[1,"B"]], "b": [[0,"C"],[1,""]], "word": "\"${a[@]}:${b[@]}\"", "expectedArgv": ["","B:C",""] },
+    { "id": "S10", "a": [[0,"A"],[1,"B"]], "word": "\"${a[@]}${a[@]}\"", "expectedArgv": ["A","BA","B"] },
+    { "id": "S11", "a": [[0,"A"],[2147483647,"B"]], "word": "\"${a[@]}\"", "expectedArgv": ["A","B"] },
+    { "id": "S12", "a": [[0,"A"],[1,"B"]], "b": [[0,"C"],[1,"D"]], "ifs": null, "word": "\"${a[*]}:${b[*]}\"", "expectedArgv": ["A B:C D"] },
+    { "id": "S13", "a": [[0,"A"],[1,"B"]], "b": [[0,"C"],[1,"D"]], "ifs": "", "word": "\"${a[*]}${b[*]}\"", "expectedArgv": ["ABCD"] },
+    { "id": "S14", "a": [[0,"A"],[1,"B"]], "b": [[0,"C"],[1,"D"]], "ifs": "💠:", "word": "\"${a[*]}:${b[*]}\"", "expectedArgv": ["A💠B:C💠D"] },
+    { "id": "S15", "a": [], "word": "\"${a[*]}\"", "expectedArgv": [""] },
+    { "id": "S16", "a": [[0,"A B"],[1,"C"]], "b": [[0,"D E"],[1,"F"]], "ifs": null, "word": "${a[@]}:${b[@]}", "expectedArgv": ["A","B","C:D","E","F"] },
+    { "id": "S17", "a": [[0,""],[1,"B"]], "b": [], "ifs": null, "word": "${a[@]}${b[@]}", "expectedArgv": ["B"] }
+  ],
+  "zeroView": [
+    { "id": "O01", "a": [[7,"tail"]], "expression": "${a-word}", "value": "word", "after": [[7,"tail"]] },
+    { "id": "O02", "a": [[0,""],[7,"tail"]], "expression": "${a-word}", "value": "", "after": [[0,""],[7,"tail"]] },
+    { "id": "O03", "a": [[0,""],[7,"tail"]], "expression": "${a:-word}", "value": "word", "after": [[0,""],[7,"tail"]] },
+    { "id": "O04", "a": [[0,""],[7,"tail"]], "expression": "${a+yes}", "value": "yes", "after": [[0,""],[7,"tail"]] },
+    { "id": "O05", "a": [[0,""],[7,"tail"]], "expression": "${a:+yes}", "value": "", "after": [[0,""],[7,"tail"]] },
+    { "id": "O06", "a": [[7,"tail"]], "expression": "${a:=}", "value": "", "after": [[0,""],[7,"tail"]], "publication": "one zero write" },
+    { "id": "O07", "a": [[0,""],[7,"tail"]], "expression": "${a=word}", "value": "", "after": [[0,""],[7,"tail"]], "publication": "none" },
+    { "id": "O08", "a": [[0,"ready"]], "readonly": true, "expression": "${a:=${side:=effect}}", "value": "ready", "side": "unset", "publication": "none; no selected-write readonly failure" },
+    { "id": "O09", "a": [], "readonly": true, "expression": "${a:=${side:=effect}}", "failure": "readonly via existing checked-write/expansion path after alternate once", "side": "effect", "after": [] },
+    { "id": "O10", "a": [], "expression": "${a:=${a:=inner}}", "failure": "outer stale command-failure1", "after": [[0,"inner"]], "qualification": "proposed project conflict policy, not native" },
+    { "id": "O11", "a": [[7,"tail"]], "expression": "${a?missing}", "failure": "existing ParameterExpansionFailure a: missing", "after": [[7,"tail"]] },
+    { "id": "O12", "a": [[7,"tail"]], "expression": "${a:${side:=1}}", "value": "", "side": "unset", "qualification": "missing substring skips offset per current scalar helper" },
+    { "id": "O13", "a": [[0,"A😀é"]], "expression": "${#a}", "value": "4", "qualification": "code-point count, not grapheme count or array size" },
+    { "id": "O14", "a": [[0,"ready"]], "expression": "${a[0]:-fallback}", "failure": "whole-unit unsupported explicit indexed operator syntax2", "qualification": "no arbitrary native substitution support" },
+    { "id": "O15", "a": [[7,"tail"]], "positional": ["left","right"], "word": "\"${a:-$@}\"", "expectedArgv": ["left","right"], "qualification": "retain word fast-path alternate field splicing; do not flatten into part()" },
+    { "id": "O16", "a": [[2,"old2"]], "assignment": "a=([1]=\"${a:=rhs-write}\")", "failure": "outer stale command-failure1", "after": [[0,"rhs-write"],[2,"old2"]], "qualification": "future proposed project vector; historical N13 native assignment0/index1 remains different" }
+  ]
+}

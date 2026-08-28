@@ -1,0 +1,13 @@
+{
+  "kind": "PRESEALED_INDEPENDENT_FORWARDING_CORRECTION_NOT_CANDIDATE_REPAIR",
+  "originalPreseal": "d36449e8ac4ea35bf19c26adc7923b8629ca1014",
+  "originalCapture": "capture-01/parent-absent.json",
+  "diagnosis": "Deleting parentURL on a spread copy supplied to nextResolve did not remove the original context property. Actual candidate events show the unchanged authentic worker parent, so the target evaluation is NOT evidence of a missing-parent guard bypass. Preserve the failed assertion and its one actual stub evaluation. Never mark it passed.",
+  "expectationsUnchanged": "Missing/undefined parent must reach the actual candidate guard and refuse with zero source/evaluation. Both actual event parent presence and forwarded presence are now bound.",
+  "cases": [
+    {"id":"missing-in-place","method":"Delete parentURL from the actual supplied hook context, forwarding that same object","parentPresent":false,"expectedCode":"CONSUMER_ENTRY_PARENT"},
+    {"id":"explicit-undefined","method":"Set parentURL to explicit undefined on the actual supplied hook context, forwarding that same object","parentPresent":true,"expectedCode":"CONSUMER_ENTRY_PARENT"}
+  ],
+  "limits": {"children":2,"concurrent":1,"heapMiB":64,"deadlineMs":10000,"graceMs":2000,"killMs":1000,"stdoutBytes":65536,"stderrBytes":65536,"recordsBytes":262144},
+  "scope": "Actual V6 loader and inherited offline/supervisor helpers, own STUB modules only. Synthetic context forwarding is not a production authority grant or hostile-host isolation. No original source/expectation/capture changed. No original cohort rerun."
+}

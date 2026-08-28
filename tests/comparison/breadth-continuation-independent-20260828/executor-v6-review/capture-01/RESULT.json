@@ -1,0 +1,662 @@
+{
+  "kind": "INDEPENDENT_ACTUAL_V6_BODY_PREEXECUTION_ONLY",
+  "sourceCommit": "d36449e8ac4ea35bf19c26adc7923b8629ca1014",
+  "presealSha256": "6d3aa08e99a12dfda6189112b6e0820dbd386e1203c1050453f1956095c8ae1a",
+  "sourceStable": true,
+  "candidateInputs": 266,
+  "node": {
+    "role": "node",
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "supervisorPid": 69546,
+  "rows": [
+    {
+      "id": "bareexports-target",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70305,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [
+        "target"
+      ],
+      "expectedCode": null,
+      "actualCode": null,
+      "helpers": null
+    },
+    {
+      "id": "bareexports-baseline",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70307,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [
+        "baseline"
+      ],
+      "expectedCode": null,
+      "actualCode": null,
+      "helpers": null
+    },
+    {
+      "id": "cwd-independent-target",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70309,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [
+        "target"
+      ],
+      "expectedCode": null,
+      "actualCode": null,
+      "helpers": null
+    },
+    {
+      "id": "selfref-trap",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70311,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [],
+      "expectedCode": "UNBOUND_MODULE",
+      "actualCode": "UNBOUND_MODULE",
+      "helpers": null
+    },
+    {
+      "id": "missingboundary-resolver",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70317,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [],
+      "expectedCode": "UNBOUND_MODULE",
+      "actualCode": "UNBOUND_MODULE",
+      "helpers": null
+    },
+    {
+      "id": "missingboundary-preflight",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70318,
+      "reaped": true,
+      "importAttempted": false,
+      "evaluations": [],
+      "expectedCode": "CONSUMER_BOUNDARY_MISSING",
+      "actualCode": "CONSUMER_BOUNDARY_MISSING",
+      "helpers": null
+    },
+    {
+      "id": "wrongname-target",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70319,
+      "reaped": true,
+      "importAttempted": false,
+      "evaluations": [],
+      "expectedCode": "FILE_HASH",
+      "actualCode": "FILE_HASH",
+      "helpers": null
+    },
+    {
+      "id": "wrongname-baseline",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70321,
+      "reaped": true,
+      "importAttempted": false,
+      "evaluations": [],
+      "expectedCode": "FILE_HASH",
+      "actualCode": "FILE_HASH",
+      "helpers": null
+    },
+    {
+      "id": "unboundtarget",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70322,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [],
+      "expectedCode": "UNBOUND_MODULE",
+      "actualCode": "UNBOUND_MODULE",
+      "helpers": null
+    },
+    {
+      "id": "movedoriginabsence",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70323,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [
+        "target"
+      ],
+      "expectedCode": null,
+      "actualCode": null,
+      "helpers": null
+    },
+    {
+      "id": "hash-beforeload",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70324,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [],
+      "expectedCode": "LOAD_HASH",
+      "actualCode": "LOAD_HASH",
+      "helpers": null
+    },
+    {
+      "id": "mode-beforeload",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70325,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [],
+      "expectedCode": "LOAD_METADATA",
+      "actualCode": "LOAD_METADATA",
+      "helpers": null
+    },
+    {
+      "id": "wrapper-hash-beforeload",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70326,
+      "reaped": true,
+      "importAttempted": false,
+      "evaluations": [],
+      "expectedCode": "FILE_HASH",
+      "actualCode": "FILE_HASH",
+      "helpers": null
+    },
+    {
+      "id": "wrapper-mode-beforeload",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70327,
+      "reaped": true,
+      "importAttempted": false,
+      "evaluations": [],
+      "expectedCode": "FILE_METADATA",
+      "actualCode": "FILE_METADATA",
+      "helpers": null
+    },
+    {
+      "id": "entry-parent-denied",
+      "cohort": "original15",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70329,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [],
+      "expectedCode": "CONSUMER_ENTRY_PARENT",
+      "actualCode": "CONSUMER_ENTRY_PARENT",
+      "helpers": null
+    },
+    {
+      "id": "missing-binding",
+      "cohort": "supplementalImports",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70332,
+      "reaped": true,
+      "importAttempted": false,
+      "evaluations": [],
+      "expectedCode": "CONSUMER_ENTRY_BINDING",
+      "actualCode": "CONSUMER_ENTRY_BINDING",
+      "helpers": null
+    },
+    {
+      "id": "binding-query",
+      "cohort": "supplementalImports",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70333,
+      "reaped": true,
+      "importAttempted": false,
+      "evaluations": [],
+      "expectedCode": "CONSUMER_ENTRY_BINDING",
+      "actualCode": "CONSUMER_ENTRY_BINDING",
+      "helpers": null
+    },
+    {
+      "id": "parent-absent",
+      "cohort": "supplementalImports",
+      "status": "FINDING",
+      "pass": false,
+      "pid": 70334,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [
+        "target"
+      ],
+      "expectedCode": "CONSUMER_ENTRY_PARENT",
+      "actualCode": null,
+      "helpers": null
+    },
+    {
+      "id": "parent-percent",
+      "cohort": "supplementalImports",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70335,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [],
+      "expectedCode": "CONSUMER_ENTRY_PARENT",
+      "actualCode": "CONSUMER_ENTRY_PARENT",
+      "helpers": null
+    },
+    {
+      "id": "parent-fragment",
+      "cohort": "supplementalImports",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70339,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [],
+      "expectedCode": "CONSUMER_ENTRY_PARENT",
+      "actualCode": "CONSUMER_ENTRY_PARENT",
+      "helpers": null
+    },
+    {
+      "id": "consumer-percent",
+      "cohort": "supplementalImports",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70342,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [],
+      "expectedCode": "CONSUMER_ENTRY_URL",
+      "actualCode": "CONSUMER_ENTRY_URL",
+      "helpers": null
+    },
+    {
+      "id": "consumer-query",
+      "cohort": "supplementalImports",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70347,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [],
+      "expectedCode": "CONSUMER_ENTRY_URL",
+      "actualCode": "CONSUMER_ENTRY_URL",
+      "helpers": null
+    },
+    {
+      "id": "consumer-fragment",
+      "cohort": "supplementalImports",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70349,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [],
+      "expectedCode": "CONSUMER_ENTRY_URL",
+      "actualCode": "CONSUMER_ENTRY_URL",
+      "helpers": null
+    },
+    {
+      "id": "consumer-relative",
+      "cohort": "supplementalImports",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70350,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [],
+      "expectedCode": "CONSUMER_ENTRY_URL",
+      "actualCode": "CONSUMER_ENTRY_URL",
+      "helpers": null
+    },
+    {
+      "id": "bare-parent-denied",
+      "cohort": "supplementalImports",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70351,
+      "reaped": true,
+      "importAttempted": true,
+      "evaluations": [],
+      "expectedCode": "CONSUMER_PARENT",
+      "actualCode": "CONSUMER_PARENT",
+      "helpers": null
+    },
+    {
+      "id": "data",
+      "cohort": "helperChild",
+      "status": "PASS",
+      "pass": true,
+      "pid": 70353,
+      "reaped": true,
+      "importAttempted": false,
+      "evaluations": [],
+      "expectedCode": null,
+      "actualCode": null,
+      "helpers": [
+        {
+          "id": "candidate-packet-authentication",
+          "pass": true,
+          "observation": {
+            "actual": "937f5551b242c5388febd085aa18905095150f846c9e3005e766db7b39c979a0",
+            "appendDetection": "candidate and inherited recipe namespaces; designated runs excluded by candidate policy"
+          }
+        },
+        {
+          "id": "metadata-projection-closure",
+          "pass": true,
+          "observation": {
+            "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+            "targetPack": {
+              "origin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+              "physical": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/timeout78-public-author-v3-WzysEq/pack/virtual-bash-0.0.0.tgz",
+              "bytes": 749907,
+              "mode": 420,
+              "sha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06"
+            },
+            "baselineArchive": {
+              "root": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts",
+              "path": "just-bash-3.4.2.tgz",
+              "bytes": 9879070,
+              "sha256": "f3a90ecffb1150e786201d9bd408ae30bcc1f64f3b10b7de22353f7e1373841d",
+              "physical": "/private/tmp/safe-bash-measurement-freeze-XAFOrN/artifacts/just-bash-3.4.2.tgz"
+            },
+            "baselineOriginalCount": 3844,
+            "comparatorRetained": 3843,
+            "excludedMetadata": [
+              {
+                "path": "benchmarks/node_modules/just-bash/dist/AGENTS.md",
+                "bytes": 9231,
+                "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979",
+                "mode": 292
+              }
+            ],
+            "views": [
+              {
+                "name": "target-installed",
+                "engine": "virtual-bash",
+                "consumerPath": "consumer-v5/consumer.mjs",
+                "count": 860,
+                "sha256": "85fbf845470134ed43036df92b810bbe2d9186a9f195b03505f257722c5e64fe"
+              },
+              {
+                "name": "target-moved",
+                "engine": "virtual-bash",
+                "consumerPath": "consumer-v5/consumer.mjs",
+                "count": 860,
+                "sha256": "85fbf845470134ed43036df92b810bbe2d9186a9f195b03505f257722c5e64fe"
+              },
+              {
+                "name": "baseline-installed",
+                "engine": "just-bash",
+                "consumerPath": "benchmarks/consumer-v5/consumer.mjs",
+                "count": 3845,
+                "sha256": "c15fbd5c26cc131f3c4ede940ebc352c78f3ea328891079bb68b9e3e2d7e5c2d"
+              }
+            ],
+            "actualArchiveRead": false
+          }
+        },
+        {
+          "id": "unchanged-inherited-identities",
+          "pass": true,
+          "observation": [
+            {
+              "name": "safety.mjs",
+              "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+            },
+            {
+              "name": "operations.mjs",
+              "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+            },
+            {
+              "name": "launch-ledger.mjs",
+              "sha256": "32d8cc5976165527349498de56d41c2dcec9cbcc1f855954cbf9e083c390ec09"
+            },
+            {
+              "name": "loaded-outcome.mjs",
+              "sha256": "50afab5299e9ae8726b1fc3f4b8063dcff5993bc3368e0675226ab1c161e8de7"
+            },
+            {
+              "name": "supervisor.mjs",
+              "sha256": "42d220fd43f165c0d100a61ef55d29bddd87577f7cafe929c832f33cd80dc069"
+            },
+            {
+              "name": "controls.mjs",
+              "sha256": "94ff2119c17f4076c2811005a0c9fe7cd98863ca8cbdedc7c827c2b8ff0c7583"
+            },
+            {
+              "name": "adapter.mjs",
+              "sha256": "01ef4678b13c355685ddc6babf29d1e1395f916c7924c0f0104455aa2faf17a3"
+            },
+            {
+              "name": "predicates.mjs",
+              "sha256": "ad53b12de5c7084470dffd066a90b681423643a9875a8866c6d4636ce4e080ce"
+            }
+          ]
+        },
+        {
+          "id": "phase-plan-positive",
+          "pass": true,
+          "observation": {
+            "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+            "limits": {
+              "admissionChildren": 27,
+              "admissionPlanned": 14,
+              "cohortChildren": 99,
+              "admissionSetup": 2,
+              "admissionSemantics": 0,
+              "deadlineMs": 30000,
+              "graceMs": 2000,
+              "killMs": 1000,
+              "outerMs": 4500000,
+              "metadataBytes": 262144,
+              "newPerStreamBytes": 65536,
+              "legacyCombinedBytes": 8388608,
+              "evidenceBytes": 268435456
+            }
+          }
+        },
+        {
+          "id": "old-output-root-denied",
+          "pass": true,
+          "observation": {
+            "code": "GRANT_RUN_BINDING"
+          }
+        },
+        {
+          "id": "wrong-run-denied",
+          "pass": true,
+          "observation": {
+            "code": "GRANT_RUN_BINDING"
+          }
+        },
+        {
+          "id": "wrong-plan-denied",
+          "pass": true,
+          "observation": {
+            "code": "GRANT_PLAN_BINDING"
+          }
+        },
+        {
+          "id": "wrong-command-denied",
+          "pass": true,
+          "observation": {
+            "code": "GRANT_COMMAND_BINDING"
+          }
+        },
+        {
+          "id": "case-in-admission-denied",
+          "pass": true,
+          "observation": {
+            "engineWork": 0
+          }
+        },
+        {
+          "id": "probe-in-cohort-denied",
+          "pass": true,
+          "observation": {
+            "engineWork": 0
+          }
+        },
+        {
+          "id": "null-primary-retained",
+          "pass": true,
+          "observation": {
+            "hasPrimary": true,
+            "primaryType": "null",
+            "disposals": 1,
+            "phases": [
+              "body",
+              "emit:dispose-start",
+              "dispose",
+              "emit:dispose-settled"
+            ],
+            "safe": false
+          }
+        },
+        {
+          "id": "undefined-primary-retained",
+          "pass": true,
+          "observation": {
+            "hasPrimary": true,
+            "primaryType": "undefined",
+            "disposals": 1,
+            "phases": [
+              "body",
+              "emit:dispose-start",
+              "dispose",
+              "emit:dispose-settled"
+            ],
+            "safe": false
+          }
+        },
+        {
+          "id": "enrollment-before-EEXIST",
+          "pass": true,
+          "observation": {
+            "summary": {
+              "enrolled": 1,
+              "attempted": 0,
+              "launched": 0,
+              "closed": 0,
+              "unknownAcquisitions": 0,
+              "allChildrenReaped": null,
+              "unsafe": true
+            },
+            "entries": [
+              {
+                "ordinal": 1,
+                "kind": "DATA",
+                "state": "UNSAFE_STOP",
+                "launchAttempted": false,
+                "pid": null,
+                "group": null,
+                "exit": null,
+                "close": null,
+                "reaped": false,
+                "persisted": false,
+                "errors": [
+                  {
+                    "phase": "prepare",
+                    "error": {
+                      "name": "Error",
+                      "code": "EEXIST",
+                      "message": "EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/capture-01/collision.json'",
+                      "stack": "Error: EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/capture-01/collision.json'\n    at Object.openSync (node:fs:560:18)\n    at Object.writeFileSync (node:fs:2444:35)\n    at prepare (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/data.mjs:80:128)\n    at launchTracked (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/launch-ledger.mjs:66:28)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/data.mjs:80:24\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/data.mjs:19:56)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/data.mjs:75:7",
+                      "original": null
+                    }
+                  }
+                ]
+              }
+            ],
+            "actualChildren": 0,
+            "boundary": "prepare-time persistence collision; post-child persist collision remains historical independently authenticated coverage"
+          }
+        },
+        {
+          "id": "unsafe-tail-preserved",
+          "pass": true,
+          "observation": {
+            "rows": [
+              {
+                "id": "first",
+                "status": "UNSAFE_STOP",
+                "error": {
+                  "name": "Error",
+                  "code": null,
+                  "message": "owned failure",
+                  "stack": "Error: owned failure\n    at result (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/data.mjs:87:95)\n    at serial (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:48:22)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/data.mjs:87:18\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/data.mjs:19:50)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v6-review/data.mjs:85:1",
+                  "original": null
+                },
+                "result": null
+              },
+              {
+                "id": "tail",
+                "status": "UNRUN_UNSAFE_TAIL"
+              }
+            ],
+            "unsafe": true
+          }
+        }
+      ]
+    }
+  ],
+  "counts": {
+    "original15": {
+      "passed": 15,
+      "findings": 0,
+      "unsafe": 0,
+      "unrun": 0
+    },
+    "supplementalImports": {
+      "passed": 9,
+      "findings": 1,
+      "unsafe": 0,
+      "unrun": 0
+    },
+    "helperChild": {
+      "passed": 1,
+      "findings": 0,
+      "unsafe": 0,
+      "unrun": 0
+    }
+  },
+  "childrenPlanned": 26,
+  "childrenReaped": 26,
+  "actualImportAttempts": 18,
+  "actualEvaluations": 5,
+  "refusals": 20,
+  "unsafe": false,
+  "productImports": 0,
+  "comparatorImports": 0,
+  "C11": 0,
+  "archiveStaging": 0,
+  "grantsGenerated": 0
+}

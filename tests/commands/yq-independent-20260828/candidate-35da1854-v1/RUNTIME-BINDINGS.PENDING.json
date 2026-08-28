@@ -1,0 +1,108 @@
+{
+  "status": "NOT_EXECUTION_AUTHORIZATION",
+  "rootAcceptedComposition": false,
+  "candidateCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+  "baselineCommit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "acceptedLengthCommit": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+  "source": {
+    "root": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/source-271-moved",
+    "fileCount": 271,
+    "sourceTreeSha256": "62784dcec8eeb324e3260cc9f1962e31bbf22c1d0ff23d771b5206ee1eb2b0a0",
+    "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284"
+  },
+  "sourceArchive": {
+    "root": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/source-archive-273",
+    "fileCount": 273,
+    "treeSha256": "809157350930cce765ef3897e44875b387b50c3ecb1c17e087188c450ec898f5",
+    "extraPaths": [
+      "package-lock.json",
+      "scripts/typecheck.mjs"
+    ]
+  },
+  "compiled": {
+    "root": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/package-870-moved",
+    "compiledTreeSha256": "782b3b4e92d66339c2f2d037f16b6f55ac281550fd99c440bac5828a04c13742",
+    "entry": {
+      "path": "dist/commands/yq/index.js",
+      "sha256": "c2527c7472fb7889a0583f49c5e0f2556471936489b8becd60b5682a07b86630",
+      "exportName": "createYqCommand",
+      "proofRole": "direct-compiled-factory-handler-not-public-package"
+    }
+  },
+  "consumers": {
+    "fullReceipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/FULL-RECEIPT.json",
+      "sha256": "acd5644c6f148bd25d16af8c12a3e01b9319f682b3830ec5f8b19a23e6ae4a56",
+      "bytes": 7441,
+      "mode": 420
+    },
+    "sourceReceipt": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-35da1854-v1/SOURCE-RECEIPT.json",
+      "sha256": "cd0e2b94ea15e8199399d2cb589aee61a6c014785146dfec6b664ac0967130c9",
+      "bytes": 1408,
+      "mode": 420
+    },
+    "entries": {
+      "dist/commands/yq/index.js": {
+        "sha256": "c2527c7472fb7889a0583f49c5e0f2556471936489b8becd60b5682a07b86630",
+        "bytes": 22115,
+        "mode": 420
+      },
+      "dist/commands/yq/index.d.ts": {
+        "sha256": "2d37623cb7dceb666e2e705f0cf5b32f11a24c8d766ac021e53951b65cf6f98e",
+        "bytes": 419,
+        "mode": 420
+      },
+      "dist/contracts/index.js": {
+        "sha256": "f63fcc728dd4e62d6d60408f114c901ad52a9499e46a6f89b2ce97fff3fc680c",
+        "bytes": 235,
+        "mode": 420
+      },
+      "dist/contracts/index.d.ts": {
+        "sha256": "a65d1e367ad65158b11e440e1f4d113659da4afc060a8e9355d0bb7859acbc0c",
+        "bytes": 237,
+        "mode": 420
+      }
+    },
+    "proofRole": "DIRECT_MATERIALIZED_MODULE_NOT_PUBLIC_PACKAGE",
+    "admitted": false
+  },
+  "buildReceiptSha256": "ef268ccd6e0e9edd1851f3acdc406ac89e939f167beb3124e82c3af106d70a2d",
+  "newPaths": [
+    "src/commands/structured/query-core.ts",
+    "src/commands/yq/README.md",
+    "src/commands/yq/accounting.ts",
+    "src/commands/yq/encoder.ts",
+    "src/commands/yq/errors.ts",
+    "src/commands/yq/index.ts",
+    "src/commands/yq/parser.ts"
+  ],
+  "builtinGaps": [
+    "node:timers/promises"
+  ],
+  "rootExportsUnchanged": true,
+  "publicIntegration": "ABSENT_EXPECTED",
+  "tools": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "typescript": {
+      "path": "node_modules/typescript",
+      "version": "5.9.3",
+      "sha256": "11b47d397f587bd61bda8ebad9e87ed9f11cc95a2503309c88aaceadc3c39410",
+      "entries": 147
+    },
+    "nodeTypes": {
+      "path": "node_modules/@types/node",
+      "sha256": "6eeb16f926819ced24c5dc85a8f6c6c7b03254d56848d2a11113b923469706a9",
+      "entries": 83
+    },
+    "undiciTypes": {
+      "path": "node_modules/undici-types",
+      "sha256": "b54bcdc8b6540ae264924c04ed48eaa7a2ff3c3d6805f978a91232ff3d9331eb",
+      "entries": 41
+    }
+  }
+}

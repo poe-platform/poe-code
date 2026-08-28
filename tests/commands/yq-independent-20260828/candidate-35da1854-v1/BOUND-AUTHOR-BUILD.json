@@ -1,0 +1,26 @@
+{
+  "candidateCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+  "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+  "packageMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088",
+  "classification": "BOUND_AUTHOR_BUILD",
+  "independentlyCompiled": false,
+  "rootTrustedBuildReceipt": false,
+  "evidenceCommit": "ef6032b210feb5cf19e6f6f94c40413740bef335",
+  "sourceArchive": {
+    "bytes": 2713600,
+    "sha256": "e4e6880a3622952b153a8261fec007908e1495584abf705ba2b150e95badcedc",
+    "mode": 420
+  },
+  "packageArtifact": {
+    "bytes": 782141,
+    "sha256": "2942ba1f6982a2e217350bbbad420e93d43e9336324b6db8a3d1d88b5a7aee4d",
+    "mode": 420
+  },
+  "report": {
+    "path": "tests/commands/yq-author-20260828/evidence-v4/REPORT.json",
+    "sha256": "f71f5ca77193fcbc53b895fdd4d96ce7d9c35e2c1f2ba20eaae825b7bfff9daf",
+    "bytes": 17276,
+    "mode": 420
+  },
+  "scope": "Author source/output attestation plus independent entry binding; not independent build proof or root acceptance"
+}

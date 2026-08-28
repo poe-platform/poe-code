@@ -24,6 +24,25 @@ and its linked reports for original failures, later source fixes, fixture/profil
 changes and scoped acceptance. Original reports are preserved; no selected suite
 or command count establishes the full product goal.
 
+**Scoped coherent78 + indexed-array acceptance (August 28, 2026):** ROOT accepts
+fixed composition `d111e5bf1f53aff16c5d4112e9ead2e025d6464f`, with the exact full
+874-member package bound in the
+[independent continuation report](tests/integration/coherent78-arrays-independent-20260828/f11-v2/REPORT.md).
+Its 272 selected inputs contain only six accepted array overrides; `shell.ts`,
+root APIs, package configuration and the 78 defaults remain unchanged. This is
+acceptance of that composition, not the moving HEAD or a whole-product gate.
+
+Evidence across existing-source-build, installed and physically moved layouts
+retains 93 author-case outcomes and covers 72 corrected novel outcomes
+(69 original passes plus three versioned F11 passes), alongside 30 type outcomes,
+seven refusal controls, two loaded/activated mutant kills and four restored
+positives. These proof categories must not be naively added. The original three
+F11 failures from the missing virtual `/dev` parent remain preserved, with a
+separate exact negative reproduction; the correction changes only that fixture.
+Array SOURCE ONLY/MIXED and AST metadata cloning/serialization/cross-package
+limitations remain, with no combined-memory/RSS, global-resource or universal
+preemption guarantee. This acceptance makes no actual SafeJS or global-gate claim.
+
 The [independently reviewed comparison](benchmarks/reports/current-comparison-20260827/measurement-review/FINAL_REVIEW.md),
 sealed in `8670ebe8`, measured source `e33974b8` against pinned just-bash 3.4.2
 (not a claim about the latest release):

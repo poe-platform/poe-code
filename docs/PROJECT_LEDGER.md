@@ -3577,3 +3577,59 @@ that any implementation, command, fixture, or test currently exists.
   AGENTS already contains the applicable durable scope/evidence rules and is
   unchanged. Docs-only checkpoint: no product/native/compiler/build/private/gate
   execution, source/export/default changes, retained-root cleanup or new gate GO.
+
+## 2026-08-28 — ROOT-qualified coherent78 + accepted-arrays composition
+
+- ROOT accepts exact composition `d111e5bf1f53aff16c5d4112e9ead2e025d6464f`,
+  full874-member/795138-byte tar SHA256
+  `f5152eaeaaeb78aff350a86d55f67905c2caab900ba2f45b1869da6498e1e956`.
+  Basis: author `b9039b80ebf4c7f454a0614871d7b03b1aeaaf1d`, independent original
+  `560394bb2df7ca2504ff9de965fc78f360da3746`, and versioned F11-v2
+  `4c8aa40747e05409e4afd49062285a47525c430b` after preseal
+  `b6a8ee3b76ba4aafb8a5abe981aa041906f38ceb`. Evidence:
+  `tests/integration/coherent78-arrays-independent-20260828/REPORT.md` and
+  `tests/integration/coherent78-arrays-independent-20260828/f11-v2/REPORT.md`.
+- This composes accepted coherent78 base
+  `8437e4eda904e1248c25eeef0d9d455b1d251495` with accepted array source
+  `c0adae539c736db0e4023d401562ce958d9ebb00`, selected
+  `30f88590b66b88dc9694a56c85f1ee690f02218b`. All272 selected inputs are bound;
+  ONLY `src/shell/parser.ts`, `src/shell/runtime.ts` and
+  `src/shell/arrays/{bindings,ledger,state,syntax}.ts` override the base.
+  `shell.ts`, root APIs/exports, package configuration and defaults78 stay
+  unchanged. This is neither whole-HEAD acceptance nor a full repository gate.
+- Across source-build emissions, actual installed and physically moved layouts:
+  93 retained author outcomes (including three refusal controls),72 corrected
+  novel outcomes comprising69 original novel passes plus3 F11-v2 passes,
+  30 strict type outcomes,7 admission/fallback refusals,2 actually loaded and
+  activated mutant kills, and4 restored positives. The original two passing
+  mutant companions remain separate; these categories are not a new summed
+  denominator or a replay of the underlying array mechanical proof.
+- Original560394bb remains exit1/HOLD with69/72 novel outcomes and three F11
+  failures. Its fixture omitted the virtual `/dev` parent, so redirects failed
+  before cd/pushd/popd; expected stdout was not changed. F11-v2 adds ONLY that
+  virtual directory and passes3/3 with exact `/search/project|stable\n`, empty
+  stderr/status0. A separate original-worker negative reproduces `/w|stable\n`,
+  three exact missing-/dev/null diagnostics, product status0 and failing worker
+  status1. It is not a fourth novel positive or a rescore of the original failures.
+  `/dev/null` here is an ordinary VFS output path, not new special-device support.
+- Original independent review freshly reproduced the exact full package;
+  F11-v2 reused and reauthenticated it without build/compiler/install. The tail
+  closed4/4 children in11.395 seconds at terminal publication, with263243 captured
+  bytes and15989049 bytes of new retained work. All109 original archives/raw
+  receipts remain unchanged;13 additional receipts were losslessly archived.
+  Old and new owned staging remain retained/untracked. This docs-only record
+  performs no new runtime execution or cleanup and does not claim a fresh census.
+- Retained array qualifications: M21 SOURCE ONLY; M03/M07/M14/M15/M20 MIXED;
+  M22 BRIDGE_CAPTURE with public fulfillment0, not global escaping-rejection
+  proof; P04 aliases M22. Existing four-input AST/211 declaration comparison was
+  against old-c7 only. Metadata serialization, cloning and cross-package/duplicate
+  module sharing remain unproved. E/input and post-transfer command formatting
+  remain outside the private array ledger; no combined-memory/RSS, global-resource
+  or hard/universal-preemption guarantee. STACK136-qualified/C06-partial/
+  S13-unsupported and other accepted first-profile exclusions remain unchanged.
+- Command priorities are not promoted by this composition: Git and apply_patch
+  module candidates remain pending independent review/public integration; Node
+  remains provider/contract design, not qualified Node compatibility. Curl stays
+  opt-in, SafeJS is not a substitute for Node, and npm/npx product commands remain
+  excluded. No actual SafeJS/private-engine, native-oracle, external-service,
+  superiority or global-gate claim follows from this acceptance.

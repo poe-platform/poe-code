@@ -1,0 +1,12 @@
+{
+  "args": [
+    "ls-tree",
+    "-z",
+    "5b7290ff14dec6af96bcdbde25d6c73ec8da8500",
+    "--",
+    "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/decoder-v3/check-data.mjs"
+  ],
+  "status": 0,
+  "signal": null,
+  "error": null
+}

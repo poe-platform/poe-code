@@ -46,6 +46,7 @@ const guards = [
   `${base}/executor-v6/worker.mjs`, `${base}/executor-v6/loader.mjs`,
   `${base}/executor-v6/projection.mjs`, `${base}/executor-v6/authorization.mjs`,
   `${base}/executor-v3/offline.mjs`, `${base}/executor-v3/projection.mjs`,
+  `${base}/executor-v3/regular-read.mjs`,
 ];
 for (const relative of guards) authenticateGit(relative, admissionCommit);
 const authenticateMember = name => {
@@ -96,7 +97,7 @@ for (const load of loads) {
   sources.push({ ...entry, sha256Before: digest(bytes), getBuiltinModuleTokens: tokens });
 }
 const mainPath = 'benchmarks/node_modules/just-bash/dist/bundle/index.js';
-const shimPath = 'benchmarks/node_modules/just-bash/dist/bundle/chunk-NCUTH6QL.js';
+const shimPath = 'benchmarks/node_modules/just-bash/dist/bundle/chunks/chunk-NCUTH6QL.js';
 assert.equal(digest(sourceBuffers.get(mainPath)), '70dd1320d921b736e965b1545e50ab57af2b2807a26de7fa624d4f519a953b7c');
 assert.equal(digest(sourceBuffers.get(shimPath)), 'fae9347ddabceda17cfed0562a36d8dd570134e42a0d631122a6f85d7c6975f0');
 check('one token, expected exact location', () => {

@@ -1,0 +1,82 @@
+{
+  "schema": "c18-symlink-preseal-v1",
+  "authority": "current explicit ROOT GO: commit exact finite preseal then execute ONE harmless qualification",
+  "date": "2026-08-28",
+  "runId": "symlink-v1-01",
+  "attempts": 1,
+  "files": [
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/SYMLINK-RECIPE.md",
+      "bytes": 3857,
+      "mode": 420,
+      "sha256": "8f09f17c2a0d712598466d21e80bd1c22076a4ac791e9477c990b8138e578591"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/SYMLINK-PROPOSAL.md",
+      "bytes": 5543,
+      "mode": 420,
+      "sha256": "03218341c6ed9c4eb791f55f9d040d13f634df9242857e87347d974f4c9bab05"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/SYMLINK-PAYLOAD.json",
+      "bytes": 57544,
+      "mode": 420,
+      "sha256": "a34e476bd924e395401e62acbe0f32c2379110ea9047b7d382e67047618522b5"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/symlink-observer.mjs",
+      "bytes": 6229,
+      "mode": 420,
+      "sha256": "ec1f1a7bbf9d21d60f4e3246ee99744c645f363342792016409adbb05cd630df"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/symlink-run.mjs",
+      "bytes": 12929,
+      "mode": 420,
+      "sha256": "08ec6d168ab550fba3cbbb534a94f9b2fb2ab07cd5383db082d23a97c35d7ea1"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/INPUTS.json",
+      "bytes": 23065,
+      "mode": 420,
+      "sha256": "893f515b6164f79ac2f89b3e27b15bb8e38ba62600ab94bfeb3de2657b6fe81b"
+    },
+    {
+      "path": "tests/commands/apply-patch-capture-review-20260828/package.json",
+      "bytes": 73,
+      "mode": 420,
+      "sha256": "5bd4fb86a8a3d5040a5302bdb4cf2a79e8db5becd283f057d11f03542f502009"
+    }
+  ],
+  "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-capture-review-20260828/symlink-v1-01",
+  "linkRelativeToScratch": "capture-membership-v3/runs/author-01/work/file-symlink/synthetic-stdout-0.json",
+  "linkText": "synthetic.json",
+  "linkCreations": 1,
+  "observations": 6,
+  "countercontrols": 4,
+  "plannedChildren": 2,
+  "maximumChildren": 6,
+  "peakOwnedProcesses": 2,
+  "maximumMilliseconds": 300000,
+  "captureBytes": 16777216,
+  "workBytes": 67108864,
+  "childMilliseconds": 45000,
+  "termGraceMilliseconds": 2000,
+  "childOldSpaceMiB": 128,
+  "childStreamBytes": 1048576,
+  "futureSealSha256": "ec2f19e1825970b662d60a99f2128158ab7ab494b4161ce2a4b0f121f4dcc8e5",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "--unhandled-rejections=strict",
+    "--max-old-space-size=128",
+    "tests/commands/apply-patch-capture-review-20260828/symlink-run.mjs",
+    "EXACT_SYMLINK_PRESEAL_SHA256"
+  ],
+  "environment": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin:/usr/bin:/bin",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "NODE_DISABLE_COMPILE_CACHE": "1"
+  },
+  "productActual": 0
+}

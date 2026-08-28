@@ -1,0 +1,137 @@
+{
+  "schema": "m1b-direct-types-deferred-v1",
+  "status": "UNRUN",
+  "targetProfiles": [
+    "S",
+    "M"
+  ],
+  "workers": 10,
+  "compilerCalls": 10,
+  "publicExportState": "PUBLIC_EXPORT_GAP; no missing-module public test counted PASS",
+  "authority": "candidate src/commands/git/limits.ts:1-4 and index.ts:8,19,44,48; RC01; no public limit/spawn option",
+  "materialization": "Replace only the two literal quoted tokens. __GIT_ENTRY__ becomes the absolute admitted dist/commands/git/index.js specifier, which must resolve to its exact hash-bound adjacent index.d.ts; __CONTRACTS_ENTRY__ likewise uses dist/contracts/index.js and its paired declaration. Never use a runtime import specifier ending .d.ts, or permit .ts/live/source fallback. Project to fresh regular .mts outside workspace and guarded candidate. Preserve all other bytes/lines.",
+  "argv": [
+    "__COPIED_NODE__",
+    "__COPIED_TS_ROOT__/lib/tsc.js",
+    "--strict",
+    "--noEmit",
+    "--module",
+    "NodeNext",
+    "--moduleResolution",
+    "NodeNext",
+    "--target",
+    "ES2022",
+    "--types",
+    "node",
+    "--typeRoots",
+    "__EXPLICIT_TYPE_ROOTS__",
+    "--pretty",
+    "false",
+    "--noErrorTruncation",
+    "__ONE_PROJECTED_FIXTURE__"
+  ],
+  "cwd": "__EMPTY_OWNED_CONSUMER_ROOT__",
+  "environment": "allowlisted PATH to copied node only; NODE_PATH/NODE_OPTIONS unset; HOME/TMPDIR owned; UV_THREADPOOL_SIZE=1; no ambient tsconfig/node_modules discovery; selected compiler closure includes explicit admitted @types/node and undici-types.",
+  "fixtures": [
+    {
+      "id": "T01",
+      "path": "types/T01-positive.mts.data",
+      "mode": 420,
+      "bytes": 460,
+      "sha256": "c31d31f589ea3c923be1e4b70630cb8c94a86320d2a288fdbbfa94bf0af26cd5",
+      "expected": {
+        "compilerExit": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "status": "UNRUN"
+    },
+    {
+      "id": "T02",
+      "path": "types/T02-limits.mts.data",
+      "mode": 420,
+      "bytes": 84,
+      "sha256": "74db8bee8a71490437b8857041423fba674cdd23211f938e12681b36d696d058",
+      "expected": {
+        "compilerExit": 2,
+        "stderr": "",
+        "diagnostics": [
+          {
+            "file": "__ONE_PROJECTED_FIXTURE__",
+            "line": 2,
+            "column": 20,
+            "code": 2353
+          }
+        ],
+        "stdoutGrammar": "Exactly one standard pretty=false TypeScript diagnostic line plus final newline; path bound to this fixture; exact property/type message must be sealed before execution. Unknown output, warnings, continuations, extra diagnostics or missing diagnostics FAIL."
+      },
+      "status": "UNRUN"
+    },
+    {
+      "id": "T03",
+      "path": "types/T03-spawn.mts.data",
+      "mode": 420,
+      "bytes": 86,
+      "sha256": "3c7b02c308b1a99cf8a8874ce67a71fe059c35a19ec49f6a3c9d6ebc0535c668",
+      "expected": {
+        "compilerExit": 2,
+        "stderr": "",
+        "diagnostics": [
+          {
+            "file": "__ONE_PROJECTED_FIXTURE__",
+            "line": 2,
+            "column": 15,
+            "code": 2353
+          }
+        ],
+        "stdoutGrammar": "Exactly one standard pretty=false TypeScript diagnostic line plus final newline; path bound to this fixture; exact property/type message must be sealed before execution. Unknown output, warnings, continuations, extra diagnostics or missing diagnostics FAIL."
+      },
+      "status": "UNRUN"
+    },
+    {
+      "id": "T04",
+      "path": "types/T04-boundary.mts.data",
+      "mode": 420,
+      "bytes": 96,
+      "sha256": "9d90ba44f8598b763c8ff0e03d2f36ee2335cdc2a2991a27365dfd8e832a8aff",
+      "expected": {
+        "compilerExit": 2,
+        "stderr": "",
+        "diagnostics": [
+          {
+            "file": "__ONE_PROJECTED_FIXTURE__",
+            "line": 2,
+            "column": 21,
+            "code": 2322
+          }
+        ],
+        "stdoutGrammar": "Exactly one standard pretty=false TypeScript diagnostic line plus final newline; path bound to this fixture; exact property/type message must be sealed before execution. Unknown output, warnings, continuations, extra diagnostics or missing diagnostics FAIL."
+      },
+      "status": "UNRUN"
+    },
+    {
+      "id": "T05",
+      "path": "types/T05-replace.mts.data",
+      "mode": 420,
+      "bytes": 78,
+      "sha256": "ba3ddb82b49dc2676d151cfbd55381f772bde481f20016290abe401272d56fc7",
+      "expected": {
+        "compilerExit": 2,
+        "stderr": "",
+        "diagnostics": [
+          {
+            "file": "__ONE_PROJECTED_FIXTURE__",
+            "line": 2,
+            "column": 15,
+            "code": 2322
+          }
+        ],
+        "stdoutGrammar": "Exactly one standard pretty=false TypeScript diagnostic line plus final newline; path bound to this fixture; exact property/type message must be sealed before execution. Unknown output, warnings, continuations, extra diagnostics or missing diagnostics FAIL."
+      },
+      "status": "UNRUN"
+    }
+  ],
+  "capture": "Record exact argv/cwd/environment/tool/declaration/fixture identity,start/end,stdout,stderr,status,signal,timeout,overflow,known reap BEFORE assertions. Worker returns0 only after declared positive/negative result matches; compiler expected-negative2 is an explicit nested-tool outcome, never a parent waiver. Any actual nonzero outer worker/parent or unexpected tool status fails aggregate, even with PASS receipt.",
+  "classification": "Fixture/path/ambient/declaration-auth defect is harness FAIL, not product type contradiction; correctly admitted declarations contradicting expected API are product-d.ts contradiction. No compiler result is a semantic runtime pass.",
+  "unsealed": "Exact output message grammar plus worker/compiler file-read guard and aggregate protocol bodies still need independent reviewed preseal; no worker executed."
+}

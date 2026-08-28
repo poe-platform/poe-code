@@ -1,0 +1,2135 @@
+{
+  "schema": "m1b-09029163-independent-finite-case-proposal-v1",
+  "status": "UNRUN_PROPOSAL_NOT_LAUNCHABLE",
+  "originalRowHashEncoding": "SHA256 of JSON.stringify(parsed original row), preserving its recorded key order; full original file bytes are separately bound in SOURCE-AUTH.json",
+  "authority": "No changes to C01-C08,24 limits,B01-B12 or original fixtures. ROOT execution GO absent.",
+  "counts": {
+    "frozenFormatRows": 38,
+    "proposedFormatVariants": 116,
+    "frozenResourceRows": 32,
+    "frozenResourceVariants": 108,
+    "sourceOnlyResourceRows": 4,
+    "runtimeResourceGroupSlotsPerProfile": 28,
+    "formatGroupSlotsPerProfile": 38,
+    "profiles": 2,
+    "runtimeGroupSlots": 132,
+    "workflowInvocations": 24,
+    "typeWorkers": 10,
+    "compilerDescendants": 11,
+    "loadedSlots": 10,
+    "admissionGuardSlots": 12,
+    "totalOuterSlots": 168,
+    "maxOwnedProcessCreationsExcludingCoordinator": 179,
+    "maxSimultaneouslyOwnedProcessesIncludingCoordinator": 3
+  },
+  "profiles": [
+    {
+      "id": "S",
+      "role": "source-built-direct",
+      "source": "Fresh regular projection of282 selected inputs; independent single tsc build; no live source.",
+      "fullSemanticProfile": true
+    },
+    {
+      "id": "I",
+      "role": "full910-installed-unmoved",
+      "source": "Authenticate exact frozen tgz; bounded regular-file unpack/materialization, no npm/install scripts.",
+      "fullSemanticProfile": false,
+      "allowed": "Admission and physical-movement-origin evidence only; no third semantic/type cohort."
+    },
+    {
+      "id": "M",
+      "role": "full910-physically-moved-direct",
+      "source": "Rename admitted I tree to fresh outside-workspace root, record old absent/new complete map; no symlink relocation.",
+      "fullSemanticProfile": true
+    }
+  ],
+  "format": [
+    {
+      "id": "GFP-01",
+      "family": "B01",
+      "originalPointer": "CASE-COVERAGE.json#/rows/0",
+      "originalRowSha256": "86942616877e12139804c1891feca4d1412c074f95947fc2858e9c611ae0f3c8",
+      "variants": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:53",
+        "pack.ts:153",
+        "repository.ts:81"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-02",
+      "family": "B01",
+      "originalPointer": "CASE-COVERAGE.json#/rows/1",
+      "originalRowSha256": "f2969aaa77165588015a873414b1bf8f5d9726b51d56d96b64cb630a875fa8a4",
+      "variants": [
+        "W01",
+        "W02",
+        "W03",
+        "W04",
+        "W05",
+        "W06"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:53",
+        "pack.ts:153",
+        "repository.ts:81"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-03",
+      "family": "B07",
+      "originalPointer": "CASE-COVERAGE.json#/rows/2",
+      "originalRowSha256": "a313bc0bfe04aefdad4d9a8050774040d6b79050d298a5bced7448e4bc1cce74",
+      "variants": [
+        "empty_pack",
+        "empty_blob",
+        "empty_tree"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:110",
+        "pack.ts:174"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-04",
+      "family": "B01",
+      "originalPointer": "CASE-COVERAGE.json#/rows/3",
+      "originalRowSha256": "84f7ab9ad8e77e62d224b8d802f28ee24681ecf59989388de1c4d306cdc7ad61",
+      "variants": [
+        "short_header",
+        "bad_signature",
+        "version1",
+        "version4",
+        "count_mismatch"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:53",
+        "pack.ts:153",
+        "repository.ts:81"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-05",
+      "family": "B08",
+      "originalPointer": "CASE-COVERAGE.json#/rows/4",
+      "originalRowSha256": "149df6f2b4e62206bbf19b9394c6cd5925485ff7ee954df2f3da31cd15c2f32b",
+      "variants": [
+        "type0",
+        "type5",
+        "truncated_header",
+        "valid_size_groups"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:105",
+        "pack.ts:183",
+        "codec.ts:57"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-06",
+      "family": "B04",
+      "originalPointer": "CASE-COVERAGE.json#/rows/5",
+      "originalRowSha256": "21bd20d97d51134b3203844b72f1a3013d067c0c0f7e529a03ad1557fdd61663",
+      "variants": [
+        "declared_short",
+        "declared_long"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "codec.ts:7",
+        "delta.ts:6"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-07",
+      "family": "B04",
+      "originalPointer": "CASE-COVERAGE.json#/rows/6",
+      "originalRowSha256": "ac520b4e2ae52bf41132a8c6992e82ee99cf421d1422399b06d9e496bb9bc808",
+      "variants": [
+        "program4_result1"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "codec.ts:7",
+        "delta.ts:6"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-08",
+      "family": "B04",
+      "originalPointer": "CASE-COVERAGE.json#/rows/7",
+      "originalRowSha256": "0ebc18ff05149bba889287ce1f66c29944e7f296f5eabe8e88504b107094366f",
+      "variants": [
+        "empty_program",
+        "one_byte",
+        "two_byte",
+        "three_byte"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "codec.ts:7",
+        "delta.ts:6"
+      ],
+      "status": "UNRUN",
+      "resolution": "C05_F01_MIN4",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-09",
+      "family": "B04",
+      "originalPointer": "CASE-COVERAGE.json#/rows/8",
+      "originalRowSha256": "8a29c303e3917342fed7804fe1746a295fa0d519509d1dfbc12639a6bb4ea0de",
+      "variants": [
+        "zero_result_program81008000",
+        "short0100",
+        "empty_direct"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "codec.ts:7",
+        "delta.ts:6"
+      ],
+      "status": "UNRUN",
+      "resolution": "C05_F01_MIN4",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-10",
+      "family": "B04",
+      "originalPointer": "CASE-COVERAGE.json#/rows/9",
+      "originalRowSha256": "559749c96259bb063a06cb3b3d643ee017cfff4b11decc23bea2023d341d97fb",
+      "variants": [
+        "truncated_varint",
+        "wrong_base_size",
+        "unsafe_size"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "codec.ts:7",
+        "delta.ts:6"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-11",
+      "family": "B02",
+      "originalPointer": "CASE-COVERAGE.json#/rows/10",
+      "originalRowSha256": "a98c8c453c24e1574016b3e663bfc872b346960d1a69075f00fda29f7151e5e5",
+      "variants": [
+        "ofs8000_distance128"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:196"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-12",
+      "family": "B02",
+      "originalPointer": "CASE-COVERAGE.json#/rows/11",
+      "originalRowSha256": "0c691324e0fe5813289b98e24e4ba8a735b0ff06a8fba6bb41c92fa94ffafc51",
+      "variants": [
+        "distance0",
+        "truncated80",
+        "before_header",
+        "interior_base"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:196"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-13",
+      "family": "B03",
+      "originalPointer": "CASE-COVERAGE.json#/rows/12",
+      "originalRowSha256": "e028560bb29f04de20e52b8e08c2f0987f20aba6eafcbede211bb89f10137515",
+      "variants": [
+        "backward_REF",
+        "forward_REF",
+        "prefix19"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:205",
+        "pack.ts:225"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-14",
+      "family": "B09",
+      "originalPointer": "CASE-COVERAGE.json#/rows/13",
+      "originalRowSha256": "2a5464498c1269c2d8bcc56685fc1cf7a2d56d66032af55adc6f5fca71e971f9",
+      "variants": [
+        "missing_local",
+        "zero_oid_missing",
+        "external_loose",
+        "external_pack"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:205",
+        "pack.ts:211"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-15",
+      "family": "B09",
+      "originalPointer": "CASE-COVERAGE.json#/rows/14",
+      "originalRowSha256": "f896dbff33a844408f3686a887a0527245aba61fef3b7f1e2c726e8f8f74cde4",
+      "variants": [
+        "self_cycle",
+        "two_cycle",
+        "shared_DAG"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:205",
+        "pack.ts:211"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-16",
+      "family": "B03",
+      "originalPointer": "CASE-COVERAGE.json#/rows/15",
+      "originalRowSha256": "078bdef730cc96b51c2e0d0a90a1123e8f4e5ce89e66ca7b4b38d93772f7b61d",
+      "variants": [
+        "commit",
+        "tree",
+        "blob",
+        "tag"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:205",
+        "pack.ts:225"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-17",
+      "family": "B05",
+      "originalPointer": "CASE-COVERAGE.json#/rows/16",
+      "originalRowSha256": "1d0dd612670edb126586d496f3a8eb96cd9a50fb765e258602348ba49f6f9dbf",
+      "variants": [
+        "copy_zero_means65536"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "delta.ts:25"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-18",
+      "family": "B05",
+      "originalPointer": "CASE-COVERAGE.json#/rows/17",
+      "originalRowSha256": "718e3322ca43178942565d9a360c7bd02f65d2589b1edbbc6a5bc3a4b80707a8",
+      "variants": [
+        "opcode85_offset65537"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "delta.ts:25"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-19",
+      "family": "B05",
+      "originalPointer": "CASE-COVERAGE.json#/rows/18",
+      "originalRowSha256": "7219451e088e64afc31823621aca728a4826e1a1f8d08d2ba7de5aaae9c6404d",
+      "variants": [
+        "literal1",
+        "literal127",
+        "opcode0"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "delta.ts:25"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-20",
+      "family": "B05",
+      "originalPointer": "CASE-COVERAGE.json#/rows/19",
+      "originalRowSha256": "6737a21b900837047f3f2758d97869606a4ae0471eca1eb24c4f6c96bfcb8d8e",
+      "variants": [
+        "short_copy",
+        "short_literal",
+        "source_overrun",
+        "result_overrun",
+        "trailing_operation"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "delta.ts:25"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-21",
+      "family": "B06",
+      "originalPointer": "CASE-COVERAGE.json#/rows/20",
+      "originalRowSha256": "25e4bef123285be99365889aef372d86acd4d0581ffaa6a50dfdd413d90c3a6d",
+      "variants": [
+        "pack_SHA",
+        "idx_pack_copy",
+        "idx_SHA"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:107",
+        "pack.ts:158",
+        "pack.ts:182",
+        "pack.ts:235"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-22",
+      "family": "B06",
+      "originalPointer": "CASE-COVERAGE.json#/rows/21",
+      "originalRowSha256": "1721281a8004eb301ac7e2dc4f8389508f880a8545c3f6829d7c0336dccdbb76",
+      "variants": [
+        "header_crc",
+        "base_prefix_crc",
+        "zlib_crc"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:107",
+        "pack.ts:158",
+        "pack.ts:182",
+        "pack.ts:235"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-23",
+      "family": "B07",
+      "originalPointer": "CASE-COVERAGE.json#/rows/22",
+      "originalRowSha256": "1c4156b4725c3da1d927fafb87c5f9275b6a9058d92f5ae653a77315044ca29f",
+      "variants": [
+        "wrong_fanout",
+        "count_mismatch",
+        "duplicate_oid",
+        "unordered_oid"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:110",
+        "pack.ts:174"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-24",
+      "family": "B08",
+      "originalPointer": "CASE-COVERAGE.json#/rows/23",
+      "originalRowSha256": "e4a0ce67e955da81008e1799aab5a55e197f7b334cb2e4e063fa0d1449ff89f4",
+      "variants": [
+        "reverse_orders",
+        "duplicate_offset",
+        "interior_offset",
+        "first_not12"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:105",
+        "pack.ts:183",
+        "codec.ts:57"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-25",
+      "family": "B08",
+      "originalPointer": "CASE-COVERAGE.json#/rows/24",
+      "originalRowSha256": "f746b341f7c66c37e1e14b9b8711451af49334bbd5f6e1f86b92679b718da727",
+      "variants": [
+        "P11_N2_L1"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:105",
+        "pack.ts:183",
+        "codec.ts:57"
+      ],
+      "status": "UNRUN",
+      "resolution": "C06_F02_IDX_EXTENT",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-26",
+      "family": "B08",
+      "originalPointer": "CASE-COVERAGE.json#/rows/25",
+      "originalRowSha256": "7d1b86b5621d0421adf892814a20b4d66600de55ebebf23816b17ec051642791",
+      "variants": [
+        "N1_L1_refused"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:105",
+        "pack.ts:183",
+        "codec.ts:57"
+      ],
+      "status": "UNRUN",
+      "resolution": "C06_F02_IDX_EXTENT",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-27",
+      "family": "B08",
+      "originalPointer": "CASE-COVERAGE.json#/rows/26",
+      "originalRowSha256": "d5d9a753070fd003014641ca1fa423eb3b2577fd231c5b35cc84b5536b4f9e73",
+      "variants": [
+        "slot_outside",
+        "slot_truncated",
+        "slot_duplicate",
+        "slot_unused",
+        "N0_L1"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:105",
+        "pack.ts:183",
+        "codec.ts:57"
+      ],
+      "status": "UNRUN",
+      "resolution": "C06_F02_IDX_EXTENT",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-28",
+      "family": "B08",
+      "originalPointer": "CASE-COVERAGE.json#/rows/27",
+      "originalRowSha256": "73a7175474bae6a6d8c18099e5582406b04a3f443f71077cc7dca50e4282b30e",
+      "variants": [
+        "uint64_max",
+        "unsafe_number",
+        "outside_pack",
+        "valid_large_profile_source_only"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:105",
+        "pack.ts:183",
+        "codec.ts:57"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-29",
+      "family": "B08",
+      "originalPointer": "CASE-COVERAGE.json#/rows/28",
+      "originalRowSha256": "a9bfa7191b5ca7fe848c7f59749ca5aa1647162b665d1e5f317bf0e8b45128ce",
+      "variants": [
+        "short_zlib_header",
+        "short_deflate",
+        "short_Adler",
+        "dictionary"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:105",
+        "pack.ts:183",
+        "codec.ts:57"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-30",
+      "family": "B08",
+      "originalPointer": "CASE-COVERAGE.json#/rows/29",
+      "originalRowSha256": "ed6c1b7b7ab7e7d8acc73c98d02b12efa1b8f5ec31b4a9c301d11ef6889055a9",
+      "variants": [
+        "appended_byte",
+        "second_member"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:105",
+        "pack.ts:183",
+        "codec.ts:57"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-31",
+      "family": "B06",
+      "originalPointer": "CASE-COVERAGE.json#/rows/30",
+      "originalRowSha256": "1941348c7d83856432d069c92cfc8664d798e177f09ea290582fbfb48184dea5",
+      "variants": [
+        "wrong_final_oid"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:107",
+        "pack.ts:158",
+        "pack.ts:182",
+        "pack.ts:235"
+      ],
+      "status": "UNRUN",
+      "resolution": "C01_D1_EAGER",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-32",
+      "family": "B10",
+      "originalPointer": "CASE-COVERAGE.json#/rows/31",
+      "originalRowSha256": "0b26f716fc2fee0fb08c5fd4fedb134e6bb16eb220b2b78a6b5e84d62e501761",
+      "variants": [
+        "depth32",
+        "depth33",
+        "cached_depth33"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:35",
+        "pack.ts:224",
+        "index.ts:32"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-33",
+      "family": "B09",
+      "originalPointer": "CASE-COVERAGE.json#/rows/32",
+      "originalRowSha256": "53496afbc88d6e313f99a215d7b1530c98c6024290b0268d8791e12c28c3a77a",
+      "variants": [
+        "unselected_bad_program"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:205",
+        "pack.ts:211"
+      ],
+      "status": "UNRUN",
+      "resolution": "C01_D1_EAGER",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-34",
+      "family": "B06",
+      "originalPointer": "CASE-COVERAGE.json#/rows/33",
+      "originalRowSha256": "b6d9c6317af858153db39cf57492ef8f015bf48fde7ce67f26968cae3a460eef",
+      "variants": [
+        "unselected_wrong_oid"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:107",
+        "pack.ts:158",
+        "pack.ts:182",
+        "pack.ts:235"
+      ],
+      "status": "UNRUN",
+      "resolution": "C01_D1_EAGER",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-35",
+      "family": "B11",
+      "originalPointer": "CASE-COVERAGE.json#/rows/34",
+      "originalRowSha256": "56904ba4aa7dae2b46e457c303c1bd31a6d9cee8012858991cf1e28403aaa548",
+      "variants": [
+        "loose_shadows_bad_pack"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:53",
+        "pack.ts:89",
+        "io.ts:283"
+      ],
+      "status": "UNRUN",
+      "resolution": "C01_D1_EAGER",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-36",
+      "family": "B11",
+      "originalPointer": "CASE-COVERAGE.json#/rows/35",
+      "originalRowSha256": "585075a3f74a342f258e54aa8052fc7f4d0c258d13ede211ffada34bd41ec829",
+      "variants": [
+        "duplicate_equal",
+        "duplicate_bad_location",
+        "multiple_pairs"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:53",
+        "pack.ts:89",
+        "io.ts:283"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-37",
+      "family": "B11",
+      "originalPointer": "CASE-COVERAGE.json#/rows/36",
+      "originalRowSha256": "171f9457da549f4061fb04ce5adcd19bd27eabd7acfe2aa81f45a8e18e06c7d6",
+      "variants": [
+        "orphan_pack",
+        "orphan_idx",
+        "inert_allowlist",
+        "promisor",
+        "unknown"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_STOCK_PRODUCT"
+      ],
+      "sites": [
+        "pack.ts:53",
+        "pack.ts:89",
+        "io.ts:283"
+      ],
+      "status": "UNRUN",
+      "resolution": "C02_D2_INERT_EXACT",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    },
+    {
+      "id": "GFP-38",
+      "family": "B12",
+      "originalPointer": "CASE-COVERAGE.json#/rows/37",
+      "originalRowSha256": "1b14c74d9561254adb616612d443887e979de295464d6ac6a8ca004d48ff662f",
+      "variants": [
+        "borrowed_view",
+        "truncated_source",
+        "late_acquisition",
+        "falsy_reason"
+      ],
+      "proofRoles": [
+        "SOURCE",
+        "FUTURE_LIFECYCLE_OBSERVER"
+      ],
+      "sites": [
+        "codec.ts:15",
+        "codec.ts:31",
+        "io.ts:224",
+        "index.ts:32"
+      ],
+      "status": "UNRUN",
+      "resolution": "UNCHANGED",
+      "fixtureState": "Frozen P/W data reused only by authenticated projection; additional named neighbor bytes/repair transforms need independent executor preseal."
+    }
+  ],
+  "resource": [
+    {
+      "id": "RC01",
+      "families": [
+        "B01"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/0",
+      "originalRowSha256": "9ef7636f49492547399466b3904cd0fb3f223c43fc314195bf7b81cb136deb26",
+      "obligation": "Exact literals and public option shape; no public budget knob or new lease API.",
+      "groupRole": "SOURCE_ONLY_NO_RUNTIME_SLOT",
+      "variants": [
+        {
+          "id": "RC01:24_literal_limits",
+          "role": "QUALIFIED_SOURCE_NOT_PUBLIC_LIMIT_SUCCESS",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC01:options_replace_and_discoveryBoundary_only",
+          "role": "QUALIFIED_SOURCE_NOT_PUBLIC_LIMIT_SUCCESS",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC01:argument_and_path_boundaries",
+          "role": "QUALIFIED_SOURCE_NOT_PUBLIC_LIMIT_SUCCESS",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC02",
+      "families": [
+        "B02",
+        "B07",
+        "B08"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/1",
+      "originalRowSha256": "f2089c47412c2dd1d4168d4af9939f1f6accfa8debadb7f5fede2a0cb7ac12ab",
+      "obligation": "Refuse before allocation/unsafe conversion; no coercion or wrapped integer admission.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC02:negative_fraction_NaN_Infinity_stat",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC02:unsafe_integer_extent",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC02:checked_add_subtract_multiply",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC03",
+      "families": [
+        "B10",
+        "B11"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/2",
+      "originalRowSha256": "203741187447ec91269cce6924490539b78b9948675864fbf800c8e96ca641ec",
+      "obligation": "Read budget shared with metadata/queries; no reset/refund. Source-only mask for infeasible exact-cap success.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC03:two_pack_cumulative_reads",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC03:prepublication_reread",
+          "role": "QUALIFIED_SOURCE_NOT_PUBLIC_LIMIT_SUCCESS",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC03:query_after_admission",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC04",
+      "families": [
+        "B04",
+        "B10"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/3",
+      "originalRowSha256": "a66cf25fb9c4a57eae9e1008f75e7bc78313f27a4e1f24acc0a51bebb32fbb6f",
+      "obligation": "Every produced/reconstructed byte counted without refund; distinguish unreachable public edges.",
+      "groupRole": "SOURCE_ONLY_NO_RUNTIME_SLOT",
+      "variants": [
+        {
+          "id": "RC04:program_plus_reconstructed_result",
+          "role": "QUALIFIED_SOURCE_NOT_PUBLIC_LIMIT_SUCCESS",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC04:discarded_duplicate_output",
+          "role": "QUALIFIED_SOURCE_NOT_PUBLIC_LIMIT_SUCCESS",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC04:inflated_ceiling_work_mask",
+          "role": "QUALIFIED_SOURCE_NOT_PUBLIC_LIMIT_SUCCESS",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC05",
+      "families": [
+        "B10"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/4",
+      "originalRowSha256": "1ef3140ba86cb95641965b9a073d0088f042d62dcfb4f117f29a0ca9caa2a9a7",
+      "obligation": "Reserve all simultaneously live owners; distinguish logical occupancy from RSS.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC05:base_program_result_coexist",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC05:pack_idx_tables_cache_coexist",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC05:duplicate_before_dedup",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC06",
+      "families": [
+        "B10",
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/5",
+      "originalRowSha256": "41b95675256ef0f19dc3cfbd1a43a052524b146a5da92d2971b4ac00fbbdd8fe",
+      "obligation": "Unwind acquired reservations and preserve original thrown value; no double release.",
+      "groupRole": "SOURCE_ONLY_NO_RUNTIME_SLOT",
+      "variants": [
+        {
+          "id": "RC06:reservation_before_allocation",
+          "role": "QUALIFIED_SOURCE_NOT_PUBLIC_LIMIT_SUCCESS",
+          "status": "SOURCE_EXCEPTION_PATH_BLOCKER_S01"
+        },
+        {
+          "id": "RC06:allocation_throw_unwind",
+          "role": "QUALIFIED_SOURCE_NOT_PUBLIC_LIMIT_SUCCESS",
+          "status": "SOURCE_EXCEPTION_PATH_BLOCKER_S01"
+        },
+        {
+          "id": "RC06:one_owner_one_release",
+          "role": "QUALIFIED_SOURCE_NOT_PUBLIC_LIMIT_SUCCESS",
+          "status": "SOURCE_EXCEPTION_PATH_BLOCKER_S01"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC07",
+      "families": [
+        "B05",
+        "B10",
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/6",
+      "originalRowSha256": "d0ceefe8d8408ad9713edccc12224cd21a70f3c1950838eadd99ea3f79faae77",
+      "obligation": "Charge and interleave checks within4096 explicit units; no huge post-yield block presented as preemptible.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC07:copy_checkpoint_interleaving",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC07:CRC_hash_checkpoint_interleaving",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC07:delta_replay_checkpoint_interleaving",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC08",
+      "families": [
+        "B07",
+        "B11"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/7",
+      "originalRowSha256": "41575223804f894081be1ec9e43044dc898894b35ac324b2f43eec9480608705",
+      "obligation": "Dedup name count only; charge physical entries and preserve every location verification.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC08:duplicate_OID_in_two_packs",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC08:same_OID_loose_plus_pack",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC08:repeated_directory_observation",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC09",
+      "families": [
+        "B07",
+        "B08"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/8",
+      "originalRowSha256": "82eaf5dbd3844dbf510ee048c603c6605e0e5b9b15752e1396fb2e777f50be62",
+      "obligation": "Early size guard and checked layout; 16MiB pack-idx success not fabricated past entry/slot mask.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC09:count_before_table_allocation",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC09:idx_16MiB_stat_plus_one",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC09:idx_count_layout_mask",
+          "role": "QUALIFIED_SOURCE_NOT_PUBLIC_LIMIT_SUCCESS",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC10",
+      "families": [
+        "B11"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/9",
+      "originalRowSha256": "fa95190524e8678d788c2457ad153866ca9a44bc2049102fbae2a5f81fe825bd",
+      "obligation": "8/9 census independently testable with tiny packs; C/+1 size and earlier masks remain separate.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC10:eight_tiny_complete_pairs",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC10:ninth_pair",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC10:pack_size_C_mask",
+          "role": "QUALIFIED_SOURCE_NOT_PUBLIC_LIMIT_SUCCESS",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC10:pack_size_C_plus_one",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC11",
+      "families": [
+        "B10",
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/10",
+      "originalRowSha256": "fec60653b42fb2be8fc5ac0ece65eeabe4ed26b881c49f1964fce1e290237715",
+      "obligation": "Pinned owner covers actual consumers; source map accounts aliases and release ordering.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC11:body_header_message_views",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC11:query_finishes_before_release",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC11:catalogue_repository_shared_owner",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC12",
+      "families": [
+        "B09",
+        "B10",
+        "B11"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/11",
+      "originalRowSha256": "d257704d98af6c9f3292d29576fd57a2ce736ac6531db911f3e70aa272a222b0",
+      "obligation": "Global OID cache cannot bypass location depth/type/OID checks; dedup only after verification.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC12:global_direct_cache_then_deep_location",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC12:verified_duplicate_equal_body",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC12:duplicate_corrupt_physical_location",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC13",
+      "families": [
+        "B03",
+        "B10"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/12",
+      "originalRowSha256": "9dc3282abf2eff374b8e343f63242151e3aa164f96beeae7bf21b9af7ae614de",
+      "obligation": "Intrinsic depth is base depth+1 even if cached; no cache-miss-depth loophole.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC13:depth0",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC13:depth32",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC13:depth33",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC13:cached_deep_base",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC14",
+      "families": [
+        "B03",
+        "B09"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/13",
+      "originalRowSha256": "b55ddb4b6a51bf3224f412d23069f975cc6c095eb25fe57b2b2efe72fb9a0336",
+      "obligation": "Iterative location graph allows DAG reuse and rejects visiting cycles without uncontrolled recursion.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC14:same_pack_forward_REF",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC14:shared_DAG",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC14:self_cycle",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC14:two_location_cycle",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC15",
+      "families": [
+        "B09",
+        "B11"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/14",
+      "originalRowSha256": "6c7eea134c11dd7815d6526247e1ac410af96db81f7398f3064bad000e6fcca2",
+      "obligation": "Missing same-pack base refuses; never borrow a global cached OID, fetch or create cross-pack resolver.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC15:base_only_other_pack",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC15:base_only_loose",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC15:cross_pack_cycle",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC16",
+      "families": [
+        "B01",
+        "B03",
+        "B04"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/15",
+      "originalRowSha256": "6450d8fa6855cd89658653db31bd3a8644a9276e4855855ca0a1d715e714852a",
+      "obligation": "Type comes from verified base; exact body/OID before publication for all four types.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC16:blob_inheritance",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC16:tree_inheritance",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC16:commit_inheritance",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC16:tag_inheritance",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC17",
+      "families": [
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/16",
+      "originalRowSha256": "1ccabb1a9b11fd541094faa7c2c949c5a18d3a71ef810a4cce652e179838a1cb",
+      "obligation": "Copy retained borrowed bytes before producer advance; reject oversized source/codec chunks before retention.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC17:reused_chunk_view",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC17:header_split",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC17:maxChunk_plus_one",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC18",
+      "families": [
+        "B10",
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/17",
+      "originalRowSha256": "6a756794e9ddb36b931ad2cf593c241afa2481e2b50b56517ab8b9de4b205ce6",
+      "obligation": "Mandatory fallback stays bounded and owned copy qualified; current maxChunks counts VFS rows.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC18:readFile_only_provider",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC18:returned_size_mismatch",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC18:empty_chunk_count",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC18:shared_chunk_count",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC19",
+      "families": [
+        "B08",
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/18",
+      "originalRowSha256": "470b220e900f0787f26f79007c0807ec183ca360fe89e6f1dbc23892b5fe150d",
+      "obligation": "Successful consumed count equals exact frame span after real completion, not submitted input count.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC19:one_complete_member",
+          "role": "CODEC_OBSERVER_BINDING_PENDING",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC19:trailing_byte_same_feed",
+          "role": "CODEC_OBSERVER_BINDING_PENDING",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC19:second_member_same_feed",
+          "role": "CODEC_OBSERVER_BINDING_PENDING",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC19:trailer_next_feed",
+          "role": "CODEC_OBSERVER_BINDING_PENDING",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC20",
+      "families": [
+        "B08",
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/19",
+      "originalRowSha256": "7739cd80dbb7cbe40ed81f813ea64ff6d9133166a7010c35de303813b0e73d54",
+      "obligation": "Local format rejection does not erase external error provenance or abandon the owned codec.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC20:truncated_footer",
+          "role": "CODEC_OBSERVER_BINDING_PENDING",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC20:dictionary_required",
+          "role": "CODEC_OBSERVER_BINDING_PENDING",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC20:malformed_member",
+          "role": "CODEC_OBSERVER_BINDING_PENDING",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC21",
+      "families": [
+        "B04",
+        "B05",
+        "B10",
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/20",
+      "originalRowSha256": "f69cf0fdb09e05e71237deaf36c04cd972229009f39421ce1e15e3fff12f35ea",
+      "obligation": "Independent8MiB size checks and preallocation; bounded stream sink, not convenience maxOutputLength alone.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC21:declared_direct_size",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC21:declared_program_size",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC21:reconstructed_size",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC21:actual_output_overrun",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC22",
+      "families": [
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/21",
+      "originalRowSha256": "9660ca50b1b1fe32aa7ee00fd0e625083ef1fe5b42eec9b0e659a266d88c6cad",
+      "obligation": "No new resource/read admission; actual caller reason preserved.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC22:abort_before_acquisition",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC23",
+      "families": [
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/22",
+      "originalRowSha256": "e566497fd3d2c545b1a6d73c341cfd1d1e9e10879c9b2a78f8c08e18ab5200ad",
+      "obligation": "Registered cleanup covers late resources; public settlement awaits owned closure; no late first read.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC23:abort_during_read",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC23:late_acquired_reader",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC23:late_acquisition_rejects",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC24",
+      "families": [
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/23",
+      "originalRowSha256": "f079137e9ddca3aabfe74f0f728c481b713ecaa5842d9e10530d071b6c6a5942",
+      "obligation": "Join actual admitted work, not only close notification; observe late rejection and retain pack view until done.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC24:abort_inflight_write",
+          "role": "CODEC_OBSERVER_BINDING_PENDING",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC24:close_before_native_write_settles",
+          "role": "CODEC_OBSERVER_BINDING_PENDING",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC24:late_writer_rejection",
+          "role": "CODEC_OBSERVER_BINDING_PENDING",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC25",
+      "families": [
+        "B10",
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/24",
+      "originalRowSha256": "c174c2e4d61f4acabbd529ba50ecd5acc0c49311f9b96e2147cf90b2ac133a1e",
+      "obligation": "Cancellation checks interleave with work; no new work after closed admission.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC25:abort_during_CRC",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC25:abort_during_hash",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC25:abort_during_replay",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC26",
+      "families": [
+        "B01",
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/25",
+      "originalRowSha256": "8ec20268cb62e121886e0c210b329f9f26261cecffb1fe6bd2b694e0dd5c4a57",
+      "obligation": "Destination closure does not cancel root/sibling contexts; awaited writes and owned cleanup remain.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC26:stdout_consumer_close",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC26:stdout_quota_refusal",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC26:sibling_scope_and_stderr_alive",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC27",
+      "families": [
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/26",
+      "originalRowSha256": "83291cb21bc9989db4922968c3eaf0c05d5ad7e928b6ca7bf9885a5268d23a67",
+      "obligation": "Track failure presence separately; actual identity/status/precedence follows accepted contract, cleanup never silently wins.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC27:caller_abort_plus_sink_error",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC27:sink_false_plus_cleanup_error",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC27:host_zero_throw",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC27:host_undefined_throw",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC27:local_format_failure_plus_cleanup_error",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC28",
+      "families": [
+        "B06",
+        "B07",
+        "B11",
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/27",
+      "originalRowSha256": "f8bc4724c314cc643a8b3d354e78273525c76acb7f8cf5793bff2878eb1daf45",
+      "obligation": "Before first stdout, repeat bounded observed content/membership guards; same-stat content changes caught where hashes are required.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC28:pack_bytes_changed",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC28:idx_bytes_changed",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC28:added_pair",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC28:type_or_size_changed",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC29",
+      "families": [
+        "B01",
+        "B06",
+        "B09"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/28",
+      "originalRowSha256": "a7c6ae7a5873bc51b272cb2ebabe8fc466b964f7c54e46722dd27bc7ac77aeb6",
+      "obligation": "Eager branch refuses all known packed corruption before success; selected-scope branch expectations require explicit ROOT definition.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC29:metadata_only_valid",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC29:loose_selected_bad_unselected_pack",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC29:bad_selected_dependency",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC29:bad_unselected_payload",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC30",
+      "families": [
+        "B11",
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/29",
+      "originalRowSha256": "1627863a3cd373b2c9c4c002e91d9926d843b9dcc2c3c98570a58400fee63507",
+      "obligation": "Exact finite allowlist or refusal. Under recommended inert branch, no body authority or unsupported byte-change-detection claim.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC30:exact_allowlisted_names",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC30:symlink_or_nonregular",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC30:promisor_or_unknown_name",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC30:size_C_plus_one",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC30:observed_metadata_change",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC30:same_observed_stat_body_change",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC31",
+      "families": [
+        "B10"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/30",
+      "originalRowSha256": "f357d59c63c2ee647671023b45fa90475417f1e5a8e35b740976375fffebe4e1",
+      "obligation": "No eviction operation means no eviction-success score; demanding eviction requires separate private design.",
+      "groupRole": "SOURCE_ONLY_NO_RUNTIME_SLOT",
+      "variants": [
+        {
+          "id": "RC31:pinned_no_eviction",
+          "role": "QUALIFIED_SOURCE_NOT_PUBLIC_LIMIT_SUCCESS",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC31:original_eviction_obligation_retained",
+          "role": "QUALIFIED_SOURCE_NOT_PUBLIC_LIMIT_SUCCESS",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    },
+    {
+      "id": "RC32",
+      "families": [
+        "B01",
+        "B10",
+        "B12"
+      ],
+      "originalPointer": "CASE-MATRIX.json#/cases/31",
+      "originalRowSha256": "dd0b13080aea26077e714bd3a495c280acf479583d2cd8854336883adac9c23d",
+      "obligation": "Preserve original outputs and limits; structural repeated cost not benchmark; no cross-invocation mutable cache.",
+      "groupRole": "FUTURE_RUNTIME_GROUP_WITH_SEPARATE_SOURCE_OBLIGATION",
+      "variants": [
+        {
+          "id": "RC32:six_original_workflows",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC32:separate_invocations_repeat_admission",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC32:query_shares_admission_budget",
+          "role": "STOCK_PUBLIC_OBSERVATION_PLUS_SOURCE",
+          "status": "UNRUN"
+        },
+        {
+          "id": "RC32:unchanged_M1A_metadata_working_diff_limits",
+          "role": "QUALIFIED_SOURCE_NOT_PUBLIC_LIMIT_SUCCESS",
+          "status": "UNRUN"
+        }
+      ],
+      "observer": "Counts/ownership/internal depth/accounting require source proof; no private counters/cap lowering. Actual H09-linked resource claims require new M1B qualification."
+    }
+  ],
+  "workflowBindings": [
+    {
+      "id": "W01",
+      "location": "NEUTRAL-PACKS.json#/unchangedProposedOutputs/0",
+      "sha256": "6b8eb0960ccb099c7b866321547f406e3eb38194dc8881e49f6e2d5b61d4b276",
+      "packs": [
+        "P01",
+        "P02"
+      ],
+      "profiles": [
+        "S",
+        "M"
+      ],
+      "status": "UNRUN",
+      "newGolden": false
+    },
+    {
+      "id": "W02",
+      "location": "NEUTRAL-PACKS.json#/unchangedProposedOutputs/1",
+      "sha256": "bff3bc86c6635a1fb46cdf9a09cdcacbc1c0e21992b6e7597f956e972aa82c85",
+      "packs": [
+        "P01",
+        "P02"
+      ],
+      "profiles": [
+        "S",
+        "M"
+      ],
+      "status": "UNRUN",
+      "newGolden": false
+    },
+    {
+      "id": "W03",
+      "location": "NEUTRAL-PACKS.json#/unchangedProposedOutputs/2",
+      "sha256": "16d148699312ad00a261d3e9a52ea407070f5f02513858498721eb71d121181f",
+      "packs": [
+        "P01",
+        "P02"
+      ],
+      "profiles": [
+        "S",
+        "M"
+      ],
+      "status": "UNRUN",
+      "newGolden": false
+    },
+    {
+      "id": "W04",
+      "location": "NEUTRAL-PACKS.json#/unchangedProposedOutputs/3",
+      "sha256": "055b460570c979e1c6007352ea30d8cd2c6b5ea43f8b4e1c2896fbed09c563d9",
+      "packs": [
+        "P01",
+        "P02"
+      ],
+      "profiles": [
+        "S",
+        "M"
+      ],
+      "status": "UNRUN",
+      "newGolden": false
+    },
+    {
+      "id": "W05",
+      "location": "NEUTRAL-PACKS.json#/unchangedProposedOutputs/4",
+      "sha256": "81d0f6da272e49718a6ec23c572e851844d01e3ad0cc252859faf089260e8dea",
+      "packs": [
+        "P01",
+        "P02"
+      ],
+      "profiles": [
+        "S",
+        "M"
+      ],
+      "status": "UNRUN",
+      "newGolden": false
+    },
+    {
+      "id": "W06",
+      "location": "NEUTRAL-PACKS.json#/unchangedProposedOutputs/5",
+      "sha256": "bd733c5535813d9454567cbcd43d229b960e0fd1b6bd437241040025e310c874",
+      "packs": [
+        "P01",
+        "P02"
+      ],
+      "profiles": [
+        "S",
+        "M"
+      ],
+      "status": "UNRUN",
+      "newGolden": false
+    }
+  ],
+  "admissionGuards": [
+    {
+      "id": "G01-wrong-source-origin",
+      "role": "AUTHENTICATION_NOT_PRODUCT_OR_LOADED_KILL",
+      "status": "UNRUN",
+      "prerequisite": "Exact fault bytes/paths and guard executor body still require preseal; normal hash refusal has no semantic mutation credit."
+    },
+    {
+      "id": "G02-missing-source-path",
+      "role": "AUTHENTICATION_NOT_PRODUCT_OR_LOADED_KILL",
+      "status": "UNRUN",
+      "prerequisite": "Exact fault bytes/paths and guard executor body still require preseal; normal hash refusal has no semantic mutation credit."
+    },
+    {
+      "id": "G03-extra-source-path",
+      "role": "AUTHENTICATION_NOT_PRODUCT_OR_LOADED_KILL",
+      "status": "UNRUN",
+      "prerequisite": "Exact fault bytes/paths and guard executor body still require preseal; normal hash refusal has no semantic mutation credit."
+    },
+    {
+      "id": "G04-package-hash",
+      "role": "AUTHENTICATION_NOT_PRODUCT_OR_LOADED_KILL",
+      "status": "UNRUN",
+      "prerequisite": "Exact fault bytes/paths and guard executor body still require preseal; normal hash refusal has no semantic mutation credit."
+    },
+    {
+      "id": "G05-README-absent",
+      "role": "AUTHENTICATION_NOT_PRODUCT_OR_LOADED_KILL",
+      "status": "UNRUN",
+      "prerequisite": "Exact fault bytes/paths and guard executor body still require preseal; normal hash refusal has no semantic mutation credit."
+    },
+    {
+      "id": "G06-README-bytes",
+      "role": "AUTHENTICATION_NOT_PRODUCT_OR_LOADED_KILL",
+      "status": "UNRUN",
+      "prerequisite": "Exact fault bytes/paths and guard executor body still require preseal; normal hash refusal has no semantic mutation credit."
+    },
+    {
+      "id": "G07-mode-or-symlink",
+      "role": "AUTHENTICATION_NOT_PRODUCT_OR_LOADED_KILL",
+      "status": "UNRUN",
+      "prerequisite": "Exact fault bytes/paths and guard executor body still require preseal; normal hash refusal has no semantic mutation credit."
+    },
+    {
+      "id": "G08-declaration-tamper",
+      "role": "AUTHENTICATION_NOT_PRODUCT_OR_LOADED_KILL",
+      "status": "UNRUN",
+      "prerequisite": "Exact fault bytes/paths and guard executor body still require preseal; normal hash refusal has no semantic mutation credit."
+    },
+    {
+      "id": "G09-import-outside-closure",
+      "role": "AUTHENTICATION_NOT_PRODUCT_OR_LOADED_KILL",
+      "status": "UNRUN",
+      "prerequisite": "Exact fault bytes/paths and guard executor body still require preseal; normal hash refusal has no semantic mutation credit."
+    },
+    {
+      "id": "G10-installed-not-moved",
+      "role": "AUTHENTICATION_NOT_PRODUCT_OR_LOADED_KILL",
+      "status": "UNRUN",
+      "prerequisite": "Exact fault bytes/paths and guard executor body still require preseal; normal hash refusal has no semantic mutation credit."
+    },
+    {
+      "id": "G11-mutant-in-ordinary-root",
+      "role": "AUTHENTICATION_NOT_PRODUCT_OR_LOADED_KILL",
+      "status": "UNRUN",
+      "prerequisite": "Exact fault bytes/paths and guard executor body still require preseal; normal hash refusal has no semantic mutation credit."
+    },
+    {
+      "id": "G12-postrun-new-entry",
+      "role": "AUTHENTICATION_NOT_PRODUCT_OR_LOADED_KILL",
+      "status": "UNRUN",
+      "prerequisite": "Exact fault bytes/paths and guard executor body still require preseal; normal hash refusal has no semantic mutation credit."
+    }
+  ],
+  "negativeControls": "Format refusal variants and TYPE expected diagnostics remain separately classified. Guard12 are authentication-only; loaded6 are semantic-mutant slots, not guards.",
+  "proposedBounds": {
+    "status": "ROOT_ALLOCATION_PENDING_NOT_CURRENT_RESERVATION",
+    "singleOriginWallSeconds": 6840,
+    "phases": [
+      [
+        "auth",
+        1,
+        120
+      ],
+      [
+        "setup",
+        1,
+        240
+      ],
+      [
+        "build",
+        1,
+        180
+      ],
+      [
+        "format",
+        76,
+        30
+      ],
+      [
+        "resource",
+        56,
+        45
+      ],
+      [
+        "types",
+        10,
+        60
+      ],
+      [
+        "loaded",
+        10,
+        60
+      ],
+      [
+        "guards",
+        12,
+        15
+      ],
+      [
+        "final",
+        1,
+        120
+      ]
+    ],
+    "eachPhaseRow": "name,outerSlots,secondsPerSlot; sums168 outer slots/6840 seconds; cleanup included, no resets/retries",
+    "capturePerStreamBytes": 1048576,
+    "capturePerOuterJobBytes": 4194304,
+    "captureGlobalBytes": 268435456,
+    "scratchCumulativeWrittenBytes": 1073741824,
+    "scratchLiveBytes": 536870912,
+    "scratchFileLimit": 24000,
+    "cleanupTailSecondsInsideEachSlot": 5,
+    "noHardRSSGuarantee": true
+  },
+  "launchBlockers": [
+    "fresh explicit scope/budget/RootGO",
+    "S01 author disposition/source revision if needed",
+    "exact M1B H09 observer criterion/source correspondence/different review",
+    "finite nonoriginal fixture byte maps and output/error predicates",
+    "supervisor/worker/materializer/guard/capture/reap bodies and their mode/hash/import seals",
+    "source-built emitted manifest and full imported closure agreement",
+    "fresh regular tool/type/declaration projections",
+    "dedicated mutant purpose authorization plus exact witness input bytes",
+    "12-failure attribution addendum pending; no borrowed author scores"
+  ],
+  "sourceSiteBase": "candidate090291636fba5b4003e5ad9771e83ad9da9e0c03:src/commands/git/"
+}

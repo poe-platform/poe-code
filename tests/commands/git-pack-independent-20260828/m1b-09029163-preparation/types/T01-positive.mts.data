@@ -1,0 +1,6 @@
+import { createGitCommand, createGitCommands, gitCommands } from "__GIT_ENTRY__";
+import type { CommandDefinition, VirtualShellPlugin } from "__CONTRACTS_ENTRY__";
+const command: CommandDefinition = createGitCommand({ discoveryBoundary: "/repo" });
+const commands: readonly CommandDefinition[] = createGitCommands({ replace: false });
+const plugin: VirtualShellPlugin = gitCommands({ replace: true, discoveryBoundary: "/" });
+void [command, commands, plugin];

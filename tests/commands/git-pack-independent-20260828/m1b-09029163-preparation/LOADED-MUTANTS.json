@@ -1,0 +1,110 @@
+{
+  "schema": "m1b-loaded-mutant-proposal-v1",
+  "status": "UNRUN_NO_MUTANT_APPLICATION_OR_IMPORT",
+  "slots": [
+    "S-positive",
+    "M-positive",
+    "S-L-OID",
+    "M-L-OID",
+    "S-L-CRC",
+    "M-L-CRC",
+    "S-L-DEPTH",
+    "M-L-DEPTH",
+    "S-restored-positive",
+    "M-restored-positive"
+  ],
+  "slotCount": 10,
+  "uniqueTransforms": 3,
+  "mutantInvocations": 6,
+  "profiles": [
+    {
+      "id": "L-OID",
+      "before": "demand(await session.hash(inflated, type) === row.oid, \"Git packed object hash mismatch\");",
+      "after": "demand(await session.hash(inflated, type) === row.oid || true, \"Git packed object hash mismatch\");",
+      "witness": "Checksum/CRC-correct direct blob whose indexed OID mismatches canonical type+size+body; choose valid sorted OID/fanout and exact SHA layers. Pristine128 with specific packed-object-hash diagnostic; mutant must produce expected exact benign blob bytes/status0, not merely crash/refuse differently.",
+      "path": "dist/commands/git/pack.js",
+      "profile": "DEDICATED_AUTHORIZED_MUTANT_ONLY_NOT_ORDINARY_CANDIDATE",
+      "mode": 420,
+      "offsetBytes": 13257,
+      "occurrences": 1,
+      "preimage": {
+        "bytes": 14274,
+        "sha256": "70215ca9b5ce757cfac1e86dd6fba9ac8c76b7ad4c681554ecb37c3222bc3232"
+      },
+      "postimage": {
+        "bytes": 14282,
+        "sha256": "330bb8102e11ebaf355bfb51a600e2278ee1da10b4fd75bd198d87048f9fb4c0"
+      },
+      "fullPackage": {
+        "members": 910,
+        "ordinaryMapSha256": "0a13e6ae2a118b720fcf0d9d53cc674b94674ce5d0a80bb2cbb41a15e9c42867",
+        "postimageMapSha256": "1fc706a0ff43e38a7c6733f01283e01f852c98da01171991e7642db48382c7d0",
+        "onlyChangedPath": "dist/commands/git/pack.js",
+        "readmeUnchanged": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1"
+      },
+      "status": "UNRUN",
+      "witnessBytes": "NOT_YET_SEALED; finite benign fixture construction required before any load"
+    },
+    {
+      "id": "L-CRC",
+      "before": "demand(await crc32(session, pack.subarray(row.offset, row.end)) === row.crc, \"Git pack entry CRC mismatch\");",
+      "after": "demand(await crc32(session, pack.subarray(row.offset, row.end)) === row.crc || true, \"Git pack entry CRC mismatch\");",
+      "witness": "Only idx CRC field differs; repair idx own checksum, leave valid pack/raw body/OID. Pristine128 exact CRC diagnostic; mutant must emit exact benign bytes/status0.",
+      "path": "dist/commands/git/pack.js",
+      "profile": "DEDICATED_AUTHORIZED_MUTANT_ONLY_NOT_ORDINARY_CANDIDATE",
+      "mode": 420,
+      "offsetBytes": 9758,
+      "occurrences": 1,
+      "preimage": {
+        "bytes": 14274,
+        "sha256": "70215ca9b5ce757cfac1e86dd6fba9ac8c76b7ad4c681554ecb37c3222bc3232"
+      },
+      "postimage": {
+        "bytes": 14282,
+        "sha256": "f1245a656d6895c337626ad3c176ef446b9149c33b4a7946a1fecb91d209f66d"
+      },
+      "fullPackage": {
+        "members": 910,
+        "ordinaryMapSha256": "0a13e6ae2a118b720fcf0d9d53cc674b94674ce5d0a80bb2cbb41a15e9c42867",
+        "postimageMapSha256": "86d3ef12fb413cee2082f273f9f44892057852cae70e8c4a52101ed320ea325f",
+        "onlyChangedPath": "dist/commands/git/pack.js",
+        "readmeUnchanged": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1"
+      },
+      "status": "UNRUN",
+      "witnessBytes": "NOT_YET_SEALED; finite benign fixture construction required before any load"
+    },
+    {
+      "id": "L-DEPTH",
+      "before": "demand(row.depth <= GIT_LIMITS.maxDeltaDepth, \"Git delta intrinsic depth exceeded\");",
+      "after": "demand(row.depth <= GIT_LIMITS.maxDeltaDepth || row.depth === 33, \"Git delta intrinsic depth exceeded\");",
+      "witness": "Same-pack cached intrinsic-depth32 base with one additional delta; arrange earlier physical/OID iteration verifies base, so pending-stack length is not the refusal. Pristine128 exact intrinsic-depth diagnostic; mutant exact benign result/status0. Fixed GIT_LIMITS stays unchanged.",
+      "path": "dist/commands/git/pack.js",
+      "profile": "DEDICATED_AUTHORIZED_MUTANT_ONLY_NOT_ORDINARY_CANDIDATE",
+      "mode": 420,
+      "offsetBytes": 12520,
+      "occurrences": 1,
+      "preimage": {
+        "bytes": 14274,
+        "sha256": "70215ca9b5ce757cfac1e86dd6fba9ac8c76b7ad4c681554ecb37c3222bc3232"
+      },
+      "postimage": {
+        "bytes": 14294,
+        "sha256": "dcfb0aed0dc8b87b01390a8fb22dd254d819b5a286b55bf8a451dc8d6eb21715"
+      },
+      "fullPackage": {
+        "members": 910,
+        "ordinaryMapSha256": "0a13e6ae2a118b720fcf0d9d53cc674b94674ce5d0a80bb2cbb41a15e9c42867",
+        "postimageMapSha256": "66af86af74d9b9de99e769d491038cb11eb20a86d16922493176f8a9c5aaff49",
+        "onlyChangedPath": "dist/commands/git/pack.js",
+        "readmeUnchanged": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1"
+      },
+      "status": "UNRUN",
+      "witnessBytes": "NOT_YET_SEALED; finite benign fixture construction required before any load"
+    }
+  ],
+  "positiveWitness": "Frozen P01/W01-W06 exact outputs, all primitive status/stdout/stderr assertions; earlier same-environment pristine rejection witness required independently for each mutant.",
+  "sourceBuiltBinding": "If independent emitted pack.js differs from this frozen preimage, STOP; no live fallback or automatic alternate transform seal.",
+  "materialization": "Fresh regular full910 control tree for EVERY slot; import from unique physically outside-workspace control root/cache namespace; no mutation of base/source/old tar. Seal complete postimage map and exact entry+resolved-module paths before import. Ordinary jobs reject all postimages.",
+  "credit": "Require actual import of transformed pack.js and actual witness command invocation, prior pristine witness correctness, and predicted semantic fact change. Hash admission denial/generic crash/timeout/unknown error/unfulfilled assertion is FAIL or UNRUN, never loaded kill credit.",
+  "importProof": "Exact full227-JS package allowlist is a bounded maximum, not evidence227 modules executed. Record actual resolved imports and before/after hashes; direct git entry plus declared root/contracts/MemoryFS/Shell bindings only, no workspace/private/source/module fallbacks. Loader body and graph validation remain unsealed."
+}

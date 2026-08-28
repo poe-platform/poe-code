@@ -1,0 +1,91 @@
+{
+  "schema": "indexed-arrays-independent-closure-data-authentication",
+  "date": "2026-08-28",
+  "preseal": "2a9d59c77c9a4d94fa56d61962c5d6dfd01c189f",
+  "result": "authenticated unchanged33 semantic rows and22 mechanical rows, original order,7 preserved review files and2 immutable source bindings",
+  "seal": [
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/closure-v1/DECISION-TABLE.md",
+      "bytes": 17807,
+      "sha256": "5e640291e5c3482475c8b9a814a7696a107b215690074e05c8c479d8e0fd18e8"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/closure-v1/ACCEPTANCE.json",
+      "bytes": 19378,
+      "sha256": "eb16211f9b2053887f3010c706deaf5290b91995e9bc6dbab683c697600ec2be"
+    }
+  ],
+  "frozenFiles": [
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/review-v3/VECTORS.json",
+      "bytes": 5113,
+      "sha256": "7d9c591a044fa1fc609c1c6e72a06146ec9e0c26d7c45304d516418f425e5095"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/review-v3/CONTROLS.json",
+      "bytes": 5806,
+      "sha256": "8c9c0604e4f855fd5bd9fdf7b5d4f09cee11b2b1a631bf99bc26217777d16951"
+    }
+  ],
+  "history": [
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/review-v3/README.md",
+      "sha256": "62f9cc7b13cc6d7a6e7155f2780535473a58585fa0dd9ce67204d7251333c812"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/review-v3/DECISIONS.md",
+      "sha256": "74b9388603a3ebc1ecbefd47f79b6da258cd521624d9b4bcbceeb05e29ee7adb"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/review-v3/VECTORS.json",
+      "sha256": "7d9c591a044fa1fc609c1c6e72a06146ec9e0c26d7c45304d516418f425e5095"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/review-v3/CONTROLS.json",
+      "sha256": "8c9c0604e4f855fd5bd9fdf7b5d4f09cee11b2b1a631bf99bc26217777d16951"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/review-v3/audit-static.mjs",
+      "sha256": "8187f02b74a64ac936984cbd38d85b468b779b8a09f5c970ffe8c4894cae5f51"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/review-v3/HANDOFF.md",
+      "sha256": "1dfb84b1f4d5a5d491dca61029ebca5f3de113f664626b9273f0870231b3f6e1"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/review-v3/STATIC-RESULT.json",
+      "sha256": "05d26f738f0220e02a8dc195483437cc074c479dab166af620b47c725f668e02"
+    }
+  ],
+  "sources": [
+    {
+      "revision": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+      "path": "src/shell/runtime.ts",
+      "sha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+      "bytes": 139761,
+      "valueEqualityGuardLine": 1479
+    },
+    {
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "path": "src/shell/runtime.ts",
+      "sha256": "100361256ee71d7a263c92fa607de31ec1d3be9b1fb5c601b337c19e700ac4b3",
+      "bytes": 154603,
+      "valueEqualityGuardLine": 1611
+    }
+  ],
+  "counts": {
+    "semanticMapped": 33,
+    "mechanicalMapped": 22,
+    "semanticModelExecutions": 0,
+    "mechanicalModelExecutions": 0,
+    "productExecutions": 0,
+    "nativeExecutions": 0,
+    "mutantKills": 0
+  },
+  "node": {
+    "version": "v22.22.2",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"
+  },
+  "qualification": "Metadata/data authentication only; not55 behavior passes or implementation proof.",
+  "initialInspectionNote": "Initial zsh metadata-read command exited127 after a loop used the special path variable; subsequent fresh-shell read used instruction_file. No product/model/native evaluation occurred."
+}

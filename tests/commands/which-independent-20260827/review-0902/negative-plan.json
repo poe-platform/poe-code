@@ -1,0 +1,19 @@
+{
+  "timing": "Declared after source review but before first candidate execution; original 28-family freeze remains unchanged",
+  "productMutations": [
+    { "id": "M01", "name": "permission capability gate", "target": "B17", "old": "if (stat.type !== \"file\")", "new": "if (stat.type !== \"file\" || this.context.fs.capabilities.permissions !== true)" },
+    { "id": "M02", "name": "omit delegated access", "target": "B11|B17", "old": "await this.context.fs.access(lookup, ACCESS_MODES.X_OK, { signal: this.context.signal });", "new": "void lookup;" },
+    { "id": "M03", "name": "unsupported access swallowed", "target": "B12|B17", "old": "misses.has(error.code)", "new": "(misses.has(error.code) || error.code === \"ENOTSUP\")" },
+    { "id": "M04", "name": "absent PATH searches cwd", "target": "B07", "old": "const path = this.context.env.PATH;", "new": "const path = this.context.env.PATH ?? \"\";" },
+    { "id": "M05", "name": "double charge provider pair as probes", "target": "L02", "old": "this.add(this.probes, 1, this.limits.maxProbes, \"maxProbes\")", "new": "this.add(this.probes, 2, this.limits.maxProbes, \"maxProbes\")" },
+    { "id": "M06", "name": "quiet bypasses probe accounting", "target": "L02", "old": "this.probes = this.add(this.probes, 1, this.limits.maxProbes, \"maxProbes\");", "new": "if (!this.quiet) this.probes = this.add(this.probes, 1, this.limits.maxProbes, \"maxProbes\");" },
+    { "id": "M07", "name": "UTF-16 operand output accounting", "target": "L04", "old": "const nameBytes = this.bytes(name, this.limits.maxArgumentBytes, \"maxArgumentBytes\");", "new": "const nameBytes = name.length;" },
+    { "id": "M08", "name": "acquire borrowed stdin", "target": "B16", "old": "const { args } = this.context;", "new": "void this.context.stdin; const { args } = this.context;" }
+  ],
+  "typeMutation": { "id": "TM01", "target": "T03", "file": "dist/commands/which/options.d.ts", "old": "readonly maxProbes: number;", "new": "readonly maxProbes: any;", "expected": "TS2578 unused expect-error, not unrelated resolution failure" },
+  "guardControls": [
+    { "id": "G01", "operation": "alter emitted which module after manifest", "expected": "WHICH_GUARD_HASH" },
+    { "id": "G02", "operation": "request live checkout module", "expected": "WHICH_GUARD_UNLISTED before product execution" },
+    { "id": "G03", "operation": "request new unlisted JS inside scratch", "expected": "WHICH_GUARD_UNLISTED" }
+  ]
+}

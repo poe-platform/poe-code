@@ -1,0 +1,105 @@
+{
+  "classification": "Independent WHICH module review; unchanged original freeze remains 25/26 runtime groups per layout",
+  "sealedAt": "2026-08-28T00:28:18.197Z",
+  "candidate": "0902f3c541c8e9a79771f55cb5c9b78c6b6eb09b",
+  "authorEvidence": "0a8a77b674e22cdac69778e0d4acddf626a297c9",
+  "fixtureFreeze": "c5cf2abb49cf7fc0e7ac990ea913617a501cf3ba",
+  "sourceHashes": {
+    "src/commands/which/index.ts": "30286503e52a17e8d2f3e7e6bb590dc8d0307c3fb6e696ace00fc9a996ec7d9a",
+    "src/commands/which/options.ts": "c27af0cdf354a5eb39dc7f21eace39e96f9949ee3aed5f1b9c7cf67e4ddbef15",
+    "src/commands/which/which.ts": "98ace870f4721aa3061893ce5a26b47641e672ce1f5f544cb0d4416f48498a40",
+    "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e"
+  },
+  "evidenceHashes": {
+    "initial-01.json.gz.base64": "3937f471aa260d9204a9355eba369abf03cc961fc9c9e965a888926203f663e2",
+    "diagnostic-02.json.gz.base64": "b751b98e425222d308a2d2145da1afd82aaca96e8f57eb3a09d4903dfdcd97f8",
+    "initial-harness.json.gz.base64": "80069418efda4479a7943c89a94a0d21657b5f27e2bd74855216b5f0a91dc0fc"
+  },
+  "harnessHashes": {
+    "run.mjs": "4a31474d310cc5cd54966150d6e5b1a911d4c1571a9feae0b5bee8b03253bc6f",
+    "guard.mjs": "1ca56256b49c7a8af644af1813746b895b8ebb597834dbcb837fe64c3c11c178",
+    "negative-plan.json": "875e5443d55ca175b3e3c2c5115b23d5a35fc8f0d9e83dd1832a9e0f6b3be40b",
+    "controls.mjs": "b12f82e1aaced213f285b7265fe465c6273adaf19c2c6df4207d61b2cc9728ed",
+    "seal.mjs": "36fa2d1529cd8542927a00c1c0751e0afc933b51c32ba433d723610b58c40e00",
+    "verify.mjs": "db14529db51082a386a5981a44b8d51a768e3f7e956e583970f3fcb574b9a386",
+    "REPORT.md": "6bf2c34aded0ca92c83e5fbfb346b402028e80c125796f657b40d5d7b32754a6"
+  },
+  "results": {
+    "originalSource": {
+      "passed": 25,
+      "failed": 1,
+      "skipped": 0,
+      "failure": "B18"
+    },
+    "originalMoved": {
+      "passed": 25,
+      "failed": 1,
+      "skipped": 0,
+      "failure": "B18"
+    },
+    "distinctFrozenFamilies": 28,
+    "sourceTypeFamiliesPassed": 4,
+    "movedTypeFamiliesPassed": 4,
+    "typeRuntimeOverlap": [
+      "T02",
+      "T03"
+    ],
+    "supplementarySource": {
+      "passed": 6,
+      "failed": 0
+    },
+    "supplementaryMoved": {
+      "passed": 6,
+      "failed": 0
+    },
+    "runtimeMutantsRejected": {
+      "assertionFailures": 7,
+      "forbiddenOperationTrap": 1
+    },
+    "typeMutationRejected": "TM01 TS2578 only",
+    "loaderViolationsRejected": 3,
+    "scopedBuildStatus": 0,
+    "authenticatedProductModulesPerFrozenLayout": 170,
+    "emittedEntries": 684,
+    "nativeRuns": 0,
+    "whichProductDefectsFound": 0,
+    "originalFreezeFullyPassing": false
+  },
+  "B18": {
+    "originalScript": "function-only() { true; }; which true registered-only function-only tool",
+    "actualExitCode": 2,
+    "actualStdout": "",
+    "actualStderr": "shell: Invalid function name at offset 13\n",
+    "whichDispatches": 0,
+    "frozenExpected": {
+      "exitCode": 1,
+      "stdout": "/a/tool\n",
+      "stderr": ""
+    },
+    "parserUnchangedSinceFreeze": true,
+    "separateValidIdentifierControl": {
+      "exitCode": 1,
+      "stdout": "/a/tool\n",
+      "stderr": "",
+      "whichDispatches": 1
+    },
+    "amendmentApplied": false
+  },
+  "cleanup": {
+    "removedRoots": [
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/which-independent-0902-TIWJ6R",
+      "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/which-independent-0902-SxU6wS"
+    ],
+    "allAbsent": true,
+    "activeOwnedProcesses": []
+  },
+  "recommendation": "Approve scoped module semantics if root accepts qualification; do not rescore original B18. A separate two-token function_only fixture amendment requires root approval.",
+  "limitations": [
+    "no FreeBSD or Darwin which binary qualification",
+    "no public/root/default wiring",
+    "no full project gate",
+    "no deployed remote-provider proof",
+    "no host execution or atomic identity/access lease",
+    "no opaque cancellation preemption or RSS guarantee"
+  ]
+}

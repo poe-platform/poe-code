@@ -1,0 +1,200 @@
+{
+  "schema": "dotglob-final-validation-v1",
+  "created": "2026-08-28T08:15:57.284Z",
+  "protocolCommit": "f01b393b32cf624f6a832c591a6a84f1c5e7a407",
+  "observationsCommit": "47b1bc5c5e36ffa3e682cfbf08560976a77bf8a4",
+  "mixedHeadAtCheck": "08b0553148afdfdb95edd722a2cdd7f63935d470",
+  "reportWords": 423,
+  "sealedManifestUnchanged": true,
+  "sourceChecks": [
+    {
+      "path": "src/shell/runtime.ts",
+      "expected": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+      "current": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "expected": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24",
+      "current": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "expected": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+      "current": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e"
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "expected": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "current": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "expected": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "current": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "expected": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "current": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6"
+    },
+    {
+      "path": "src/contracts/filesystem.md",
+      "expected": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "current": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a"
+    },
+    {
+      "path": "package.json",
+      "expected": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12",
+      "current": "b8475443860bfb0513a87cf6970ce2953e1858f27911ad3854e55f69ff22aa12"
+    },
+    {
+      "path": "tests/shell/alias-feasibility-20260828/REPORT.md",
+      "expected": "289f4e58a8d1ef29a1ccde961d1b8af06826948c80b0bdc7a21e9071caf93fe0",
+      "current": "289f4e58a8d1ef29a1ccde961d1b8af06826948c80b0bdc7a21e9071caf93fe0"
+    },
+    {
+      "path": "tests/shell/alias-feasibility-20260828/SOURCE-BINDING.json",
+      "expected": "39f867180c2e1de24d55bf0fbf5800527fe5314eeecba0b831d74951cf4294bb",
+      "current": "39f867180c2e1de24d55bf0fbf5800527fe5314eeecba0b831d74951cf4294bb"
+    },
+    {
+      "path": "tests/shell/let-design-20260828/BINDINGS.json",
+      "expected": "1d548b490fb4312de0e7036edcb518b1d944b3911acdd53e9eaa9296505638b5",
+      "current": "1d548b490fb4312de0e7036edcb518b1d944b3911acdd53e9eaa9296505638b5"
+    },
+    {
+      "path": "tests/shell/cd-prerequisite-20260828/HANDOFF.md",
+      "expected": "01fc0cb31422a6069235ed86acd096c64684363c092aebcc3627a4753c7d03f8",
+      "current": "01fc0cb31422a6069235ed86acd096c64684363c092aebcc3627a4753c7d03f8"
+    }
+  ],
+  "toolChecks": [
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+      "matches": true
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+      "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5",
+      "matches": true
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "matches": true
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9",
+      "matches": true
+    }
+  ],
+  "historicalGap": {
+    "path": "tests/comparison/next-gap-inventory-20260828/BREADTH.json",
+    "sha256": "1fa3d5c30a1c4aa3106d5b794b9dcca7b17eba95510aedfad26093406a99d7bd",
+    "unchanged": true
+  },
+  "artifacts": [
+    {
+      "name": "BINDINGS-v1.json",
+      "sha256": "9949ccde5852fa5cf7fb08034f7cca90b5dce8c9984457cf43929da5905ead34",
+      "bytes": 6253
+    },
+    {
+      "name": "DECISIONS.md",
+      "sha256": "4696e6fec7fbf7cd0510a251d297140bcaf7fb32394256d244ac5c9f8df406a5",
+      "bytes": 13627
+    },
+    {
+      "name": "EXACT-NATIVE-TUPLES.json",
+      "sha256": "41e84ba303a2adc79820a09da71ad73cc29e2a861f3d82ffb0975e9c573617f6",
+      "bytes": 21860
+    },
+    {
+      "name": "EXECUTION-RECEIPTS.json",
+      "sha256": "d19a4e4d8ebd3b07a05b57ee60511f14f6c90486843e4dee148bf4a4cb5aab4e",
+      "bytes": 3026
+    },
+    {
+      "name": "FUTURE-CASES.md",
+      "sha256": "65de0159bab64af17c8af92f64e6001f0ac277331bb1f5400dc6a972470de013",
+      "bytes": 2920
+    },
+    {
+      "name": "MANIFEST-v1.json",
+      "sha256": "bcb72368ffe1c3c818e2c35c7337da4581a6dd55002d94237293603dd2f32070",
+      "bytes": 419
+    },
+    {
+      "name": "PROFILE.md",
+      "sha256": "61596a7defd6644f581f549dbb4e801f2ed360fa7269640d1a9bc1f9232a206b",
+      "bytes": 7282
+    },
+    {
+      "name": "PROTOCOL-v1.md",
+      "sha256": "1ec6c2674c16e5a9beecab5fc2804efd8bd513a53eeebcea0e2c0aa278a3e983",
+      "bytes": 4193
+    },
+    {
+      "name": "REPORT.md",
+      "sha256": "2266f62302f5e7e0fff32fe14ee3d009d39ae5f247278ccdb26f5b414e1a7c90",
+      "bytes": 3673
+    },
+    {
+      "name": "RESULTS.json",
+      "sha256": "8b9643bc3fd901abc3455dc3fed7d885b43cbc7e999ddfdae5eb158748661c9c",
+      "bytes": 53838
+    },
+    {
+      "name": "ROWS-v1.json",
+      "sha256": "9687fbbf75753802635f439ca08b4af6be5ca0b3dbcccb2b9d10fdb248354f7d",
+      "bytes": 3092
+    },
+    {
+      "name": "runner.mjs",
+      "sha256": "5023651286203e590a16ed7619d6260cee329b60c33f6a339d84d9484ad1f742",
+      "bytes": 8526
+    }
+  ],
+  "summary": {
+    "nativeCalls": 24,
+    "probeObservations": 72,
+    "probeStatusCounts": {
+      "0": 43,
+      "1": 27,
+      "2": 2
+    },
+    "processStatusCounts": {
+      "0": 24
+    },
+    "fixtureChanges": [],
+    "maxCapturedBytes": 3076,
+    "groupAbsenceConfirmed": true,
+    "started": "2026-08-28T08:11:03.063Z",
+    "ended": "2026-08-28T08:11:03.440Z",
+    "passCount": null,
+    "qualification": "Observations, including expected positive/error cases, not product passes or parity."
+  },
+  "checks": [
+    "node --check runner.mjs",
+    "git diff --check (owned paths)",
+    "preseal manifest hashes",
+    "qualified tool/manual hashes before and after",
+    "72 parsed exact tuples, 24 calls, no faults",
+    "alias and pinned gap receipts unchanged",
+    "owned-path inventory and git status"
+  ],
+  "notRun": [
+    "product tests",
+    "product imports",
+    "build",
+    "typecheck",
+    "benchmarks",
+    "comparators",
+    "resource/accounting probes"
+  ],
+  "limits": "Specific inspected source/evidence paths hashed; no append-proof whole-product certification. Row-directory recursive census detects new entries. Artifact inventory excludes this self-referential validation file. Foreign untracked artifacts preserved.",
+  "gitStatus": "?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/xan-module-review-20260828/actual-review-v2/build-continuation/\n?? tests/commands/xan-module-review-20260828/actual-review-v2/evidence-continuation/\n?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/\n?? tests/integration/html-public-admission-resource-v32-independent-20260827/ROOT-COORDINATION.md\n?? tests/shell/directory-stack-independent-20260828/executor-preparation-v1/\n?? tests/shell/dotglob-precode-20260828/DECISIONS.md\n?? tests/shell/dotglob-precode-20260828/FUTURE-CASES.md\n?? tests/shell/dotglob-precode-20260828/PROFILE.md\n?? tests/shell/dotglob-precode-20260828/REPORT.md",
+  "candidateReady": "Ready for root design review only; preserve-off/dotdot conflict and later implementation freeze/window unresolved"
+}

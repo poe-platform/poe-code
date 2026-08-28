@@ -1,0 +1,127 @@
+{
+  "schema": "node-independent-static-validation-v1",
+  "date": "2026-08-28",
+  "classification": "DATA_HASH_CHECKS_ONLY_NOT_SEMANTIC_RESULTS",
+  "checks": [
+    {
+      "name": "holdout-count-and-identity",
+      "passed": true,
+      "detail": "18 distinct ordered design identities, not executed rows"
+    },
+    {
+      "name": "execution-remains-held",
+      "passed": true,
+      "detail": "No source string evaluated"
+    },
+    {
+      "name": "unresolved-expectations-explicit",
+      "passed": true,
+      "detail": "Nulls cannot be treated as wildcard passes"
+    },
+    {
+      "name": "declared-reference-counts",
+      "passed": true,
+      "detail": "Eight pinned artifact bindings and ten official reference records"
+    },
+    {
+      "name": "pinned-artifact-mode-blob-bytes-hash",
+      "passed": true,
+      "detail": [
+        {
+          "id": "A1",
+          "matches": true
+        },
+        {
+          "id": "A2",
+          "matches": true
+        },
+        {
+          "id": "A3",
+          "matches": true
+        },
+        {
+          "id": "A4",
+          "matches": true
+        },
+        {
+          "id": "A5",
+          "matches": true
+        },
+        {
+          "id": "A6",
+          "matches": true
+        },
+        {
+          "id": "A7",
+          "matches": true
+        },
+        {
+          "id": "A8",
+          "matches": true
+        }
+      ]
+    },
+    {
+      "name": "author-original-counts-preserved",
+      "passed": true,
+      "detail": {
+        "cases": 36,
+        "sources": 33,
+        "executedHere": 0
+      }
+    },
+    {
+      "name": "followup-counts-not-promoted",
+      "passed": true,
+      "detail": {
+        "sourceMetadata": 18,
+        "priorMatches": 15,
+        "additional": 3,
+        "unrunExperiments": 7
+      }
+    },
+    {
+      "name": "original-three-author-files-unchanged",
+      "passed": true,
+      "detail": [
+        {
+          "id": "A1",
+          "regular": true,
+          "matchesPinnedBytes": true
+        },
+        {
+          "id": "A2",
+          "regular": true,
+          "matchesPinnedBytes": true
+        },
+        {
+          "id": "A3",
+          "regular": true,
+          "matchesPinnedBytes": true
+        }
+      ]
+    },
+    {
+      "name": "only-owned-document-data-files",
+      "passed": true,
+      "detail": "No source, TS, engine, instruction copy or executable artifact added"
+    },
+    {
+      "name": "whitespace-and-final-newline",
+      "passed": true,
+      "detail": "Checked new untracked files directly; git diff --check also follows staging"
+    }
+  ],
+  "checkCount": 10,
+  "failedChecks": 0,
+  "holdoutBindingCounts": {
+    "INHERITED_PROFILE": 7,
+    "NEEDS_PROFILE_BINDING": 11
+  },
+  "actualProductProviderNativeCompilerPackageRuns": 0,
+  "notes": [
+    "Git object reads, JSON parsing and owned-file hashes only; no guest/runtime execution.",
+    "Seven inherited-profile identities and eleven needing profile binding are all unexecuted; neither group is an execution-ready freeze.",
+    "Historical author cases/results remain unchanged."
+  ]
+}

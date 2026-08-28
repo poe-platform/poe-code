@@ -136,3 +136,16 @@ The independent trace exposed unbound pre-execution `xcodebuild` and unresolved
 diagnosis, exact proposed direct routes and a narrow new tool/reference approval
 request. Current shipping driver/profile bytes have not been rebound; no full
 gate is authorized by either the scoped review or this qualification.
+
+## Later approved route implementation — author evidence only
+
+Root subsequently approved the exact direct inspector and its two absent
+system-reference pairs, plus finite routing to the already admitted Git/core.
+Source `fe15f1e406fa1039accddec25c696ae7187f6135` retains this resolved-write
+profile and adds pre-execution tool bindings/selector denials. Evidence
+`cdf2803e` and `../tool-routes-v1/HANDOFF-v2.md` record final author12/12, the
+separate intermediate-source outer9 controls, and preserved5/12 and11/12
+attempts. Exactly36 receipt-bound temporary roots were removed without signals;
+the raw evidence remains. No new build/A10/package/full gate ran. Different
+Dirac review and fresh root release remain required; earlier unbound trace
+observations are not retrospectively authenticated.

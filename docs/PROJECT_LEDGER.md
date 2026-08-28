@@ -2976,3 +2976,45 @@ that any implementation, command, fixture, or test currently exists.
   remain held by the platform safety check: no retry, rephrasing or executor/
   agent bypass, and no inferred OS-denial/cyber-vulnerability/semantic-pass claim.
   Static gap inventory17735a5e does not change any historical score or f5 input.
+
+### 2026-08-28T08:30Z — Direct developer-tool route author packet, review pending
+
+- Root approved the exact otool-classic path/hash recorded in TOOL-ROUTES.json,
+  solely for existing Mach-O inspection, and its exact libc++/libSystem ENOENT
+  pairs as pinned macOS metadata, not file hashes/full OS attestation. No other
+  DeveloperTools/unknown-library exception was added. Shipping source
+  fe15f1e406fa1039accddec25c696ae7187f6135 replaces the selector route with
+  prebound direct execution, finite18-alias PATH/existing197-entry Git core,
+  native-stage extra-entry refusal and six inherited selector-exec denials.
+- Evidence cdf2803e, detailed at
+  `tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tool-routes-v1/HANDOFF-v2.md`,
+  records final author12/12 with all original expected groups retained. Earlier
+  5/12 (volatile receipt identity) and11/12 (missing exact helper dependency) are
+  preserved separately. The unchanged outer9 controls passed on intermediate
+  source8b095f99, not freshly on final fe15. Actual unchanged frozen typing-helper
+  execution uses300 staged files and direct Git, not a production build.
+- Driver25ee4ded79df9c4fe0a9c8031721887dd7c8e22cb56f10d42b3d415eb30c0527
+  retains all35 prior closure entries plus two explicit route files. f5/c109,
+  exact-six projection, product profile and14-phase contract stay fixed. This
+  turn ran0 production builds/A10/package rebuilds/full-gate phases. Raw230
+  files are hash-preserved;36 exact protocol roots removed after identity checks,
+  no signals/foreign-process/private-checkout changes by this worker. Independent
+  Dirac closure/policy review and fresh root release remain mandatory. Historical
+  xcodebuild/unknown-basename HOLDs and tar's partial extraction stay unchanged.
+
+### 2026-08-28T08:30Z — Root-accepted LET scope, separate from fixed76
+
+- Root accepts LET c26892c3a1a419311c9cf46a6c2976e696e00624 through independent
+  08b0553148afdfdb95edd722a2cdd7f63935d470, reported in
+  `tests/shell/let-independent-20260828/final-review/HANDOFF.md`. Original81/84
+  source+moved remains; three versioned checks cover the remaining rows with
+  all22 families. P39 uses explicit argument forwarding. P58's original set-u
+  case is still unsupported; the new let-absent case tests default zero only.
+  S26 preserves childInvocation-is-closed rejection and cleanup before root
+  success. No original failure is rescored.
+- Evidence includes167 regressions,5 type checks per layout,7 guards and7
+  qualified mutant groups; original ineffective M3 survivor remains. Full846
+  pack21c4858e6e4b857cd5e0d526159667621bcd206b4f1fd1ce1f84b54ad7abbace removes
+  LET to recover464 byte-exact. This is scoped acceptance, not a default-count
+  change or global gate. Root releases the runtime window to Poincare's stack
+  work; fixed76 f5 and this worker's driver-only scope remain unchanged.

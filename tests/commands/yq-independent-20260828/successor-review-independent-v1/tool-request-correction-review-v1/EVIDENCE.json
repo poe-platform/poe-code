@@ -1,0 +1,832 @@
+{
+  "schema": 1,
+  "role": "STATIC_DATA_AND_SYNTAX_NOT_BEHAVIOR",
+  "criteriaCommit": "952d404f558cced17b3afc8de4f51cec9a90109d",
+  "sourceCommit": "3b55c4afb81e32d719c14995a6e38620b4fabe2c",
+  "parentCommit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+  "sourceScope": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/tool-request-validation-v3",
+  "startedUnixNs": 1787926590595849000,
+  "endedUnixNs": 1787926591576658000,
+  "sealSha256": "9f8cacde18c46e9d7d7c82c3665ab0ba0e6406b9b42e6e939c2fe826164daa54",
+  "overlaySha256": "2d31ea4c244af9c0a036822bd5150984e0a047f20777493bb41b1c05b485c1fe",
+  "scopedDiffSha256": "85975b619f7dda9b56b9dbf5b1abcba5d0ee9a313b0e7d1ea0a30c60d2e42394",
+  "sourceFiles": [
+    {
+      "path": "DEFERRED-CONTROLS.json",
+      "gitMode": "100644",
+      "gitKind": "blob",
+      "gitBlob": "4d6e03c0e3ff7c05e9200d7c3fc5356cd777b62c",
+      "kind": "file",
+      "modeOctal": "0644",
+      "bytes": 15902,
+      "sha256": "32392a27752762189644975bae88d3c93e919d50c0fe8c110ebd366e2bd1fdaf"
+    },
+    {
+      "path": "FINAL-SEAL.json",
+      "gitMode": "100644",
+      "gitKind": "blob",
+      "gitBlob": "18cb6c0a8cfc8bca8543cf2b1a238659b8007a4d",
+      "kind": "file",
+      "modeOctal": "0644",
+      "bytes": 4383,
+      "sha256": "9f8cacde18c46e9d7d7c82c3665ab0ba0e6406b9b42e6e939c2fe826164daa54"
+    },
+    {
+      "path": "INPUTS.json",
+      "gitMode": "100644",
+      "gitKind": "blob",
+      "gitBlob": "7b390a1afb92cac1b48c2d6e564c44e5aca9e4fd",
+      "kind": "file",
+      "modeOctal": "0644",
+      "bytes": 3094,
+      "sha256": "8ad1d3329b52e0ce1ac34ee6b5a57dc26012fe1b4f4035edf5b91aa9bdfba92c"
+    },
+    {
+      "path": "OVERLAY.json",
+      "gitMode": "100644",
+      "gitKind": "blob",
+      "gitBlob": "da48419091de982583f5f0903c9caa35686051a5",
+      "kind": "file",
+      "modeOctal": "0644",
+      "bytes": 4271,
+      "sha256": "2d31ea4c244af9c0a036822bd5150984e0a047f20777493bb41b1c05b485c1fe"
+    },
+    {
+      "path": "README.md",
+      "gitMode": "100644",
+      "gitKind": "blob",
+      "gitBlob": "fa3177eee8ff186e50c50e1a754ae7dd337509a8",
+      "kind": "file",
+      "modeOctal": "0644",
+      "bytes": 1527,
+      "sha256": "deac6b21732cc0172db2f27dbaa04cc8319613d2652dac0cd0688750d488f1fc"
+    },
+    {
+      "path": "ROLE-SHAPES.json",
+      "gitMode": "100644",
+      "gitKind": "blob",
+      "gitBlob": "6984ff467c324df3520811ea044d5e73c34f194f",
+      "kind": "file",
+      "modeOctal": "0644",
+      "bytes": 5343,
+      "sha256": "b493d1ea84ca558ce5cab7fec9f7d2cd64f22227b62adda6a89e56290e0f0354"
+    },
+    {
+      "path": "SPECIFICATION.md",
+      "gitMode": "100644",
+      "gitKind": "blob",
+      "gitBlob": "06119120219829ebb906434951c026a2a1ec2693",
+      "kind": "file",
+      "modeOctal": "0644",
+      "bytes": 6526,
+      "sha256": "095030695041dd6ee581cb3ea3d6ac0ce680471839de9c412825fc493d2bff3a"
+    },
+    {
+      "path": "STATIC-CHECKS.json",
+      "gitMode": "100644",
+      "gitKind": "blob",
+      "gitBlob": "54c9999f8c738a673318987a959f7994d6e59fd9",
+      "kind": "file",
+      "modeOctal": "0644",
+      "bytes": 2398,
+      "sha256": "43e1944532b66564ed3e9e95d0713c5a08c9276e20431436e9a246181d3610c4"
+    },
+    {
+      "path": "tool-request.mjs",
+      "gitMode": "100644",
+      "gitKind": "blob",
+      "gitBlob": "733fcb69cdbd32ef1b99624e7385f273f0a15b3d",
+      "kind": "file",
+      "modeOctal": "0644",
+      "bytes": 2557,
+      "sha256": "bac59cab6cbed385817dc22f616c0fdf407cc490319cd42b6fb9b4e54209a4ad"
+    },
+    {
+      "path": "worker-api.mjs",
+      "gitMode": "100644",
+      "gitKind": "blob",
+      "gitBlob": "85494ad416b07bea1ffc266fe8714ce8403edc54",
+      "kind": "file",
+      "modeOctal": "0644",
+      "bytes": 13289,
+      "sha256": "9b9ef9ab1aa83e76678d72dc6a99407623dd16822e220ea427d553dd2545e3ec"
+    }
+  ],
+  "parentAndAbiReferences": [
+    {
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/worker-host.mjs",
+      "bytes": 3038,
+      "sha256": "62fdb743912b058200fcaf745aac894a3878a067082b6aa2e0a0a953544b45e3",
+      "gitTreeRow": "100644 blob c6a17d176448c07e6a9972dfa6dfd6f57c7a8edb\ttests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/worker-host.mjs",
+      "modeAuthority": "Git regular/nonexecutable only; no reconstructed historical full POSIX mode"
+    },
+    {
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/tool-bridge.mjs",
+      "bytes": 8640,
+      "sha256": "5837e2f3f36fafdd9c5f935610a9b23601b4353a5302b11cde4983a67308477d",
+      "gitTreeRow": "100644 blob 6645b0abe35093b996e5773e862d3a356b945efb\ttests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/tool-bridge.mjs",
+      "modeAuthority": "Git regular/nonexecutable only; no reconstructed historical full POSIX mode"
+    },
+    {
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/primitives.mjs",
+      "bytes": 8044,
+      "sha256": "a8b62e46f4256765810c5ec30010fb618239b7193f83e9151e06ce25a76db506",
+      "gitTreeRow": "100644 blob 214ccc308f7b425c7fabc7bf1d629240206a94a4\ttests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/primitives.mjs",
+      "modeAuthority": "Git regular/nonexecutable only; no reconstructed historical full POSIX mode"
+    },
+    {
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/build-worker.mjs",
+      "bytes": 21275,
+      "sha256": "3ad2268b34242f2ae5f58e0be611e77dd43c3387fe19139fc52ab31e85fbfbf4",
+      "gitTreeRow": "100644 blob 2a97fb2b559e85653f211ae03dba509b350900b5\ttests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/build-worker.mjs",
+      "modeAuthority": "Git regular/nonexecutable only; no reconstructed historical full POSIX mode"
+    },
+    {
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/type-worker.mjs",
+      "bytes": 11186,
+      "sha256": "f1d7b464a7018807289080a563ea4735a3902565ecdf16a32d0deab5200571fd",
+      "gitTreeRow": "100644 blob 02c75cbffd8bc813cc485156345b78317f73b277\ttests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/type-worker.mjs",
+      "modeAuthority": "Git regular/nonexecutable only; no reconstructed historical full POSIX mode"
+    },
+    {
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/infrastructure-worker.mjs",
+      "bytes": 9628,
+      "sha256": "51c769446a0d758ab080dcde5c3a0ea31285249c943d10ebdcd7da6c9467077a",
+      "gitTreeRow": "100644 blob 56e44b588d0ad2cbf376811bd75de4dffe996e60\ttests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/infrastructure-worker.mjs",
+      "modeAuthority": "Git regular/nonexecutable only; no reconstructed historical full POSIX mode"
+    },
+    {
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/infrastructure-worker.mjs",
+      "bytes": 9628,
+      "sha256": "51c769446a0d758ab080dcde5c3a0ea31285249c943d10ebdcd7da6c9467077a",
+      "gitTreeRow": "100644 blob 56e44b588d0ad2cbf376811bd75de4dffe996e60\ttests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/infrastructure-worker.mjs",
+      "modeAuthority": "Git regular/nonexecutable only; no reconstructed historical full POSIX mode"
+    },
+    {
+      "commit": "2df1dab10c3176a35f4160fa12c460a7abc592fe",
+      "path": "tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/FC-F01-STATIC-WITNESS.json",
+      "bytes": 6096,
+      "sha256": "0eb85eb7515432bae8f8118e1016243216a1295d1d60120746bcd957cd2fbf31",
+      "gitTreeRow": "100644 blob 9f41f431d6eef8caf6ca69f93e7c12a313ffd4f2\ttests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/FC-F01-STATIC-WITNESS.json",
+      "modeAuthority": "Git regular/nonexecutable only; no reconstructed historical full POSIX mode"
+    },
+    {
+      "commit": "9d582d791336fd66d865f6592b830c39a359d344",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/CORE-INTERFACE.json",
+      "bytes": 8164,
+      "sha256": "c5e36798741667981f21f002755be3f420fbd6103b8a4b3f8783531a9f6fc412",
+      "gitTreeRow": "100644 blob 822163b35046c81bddda3d92a540292101153af7\ttests/commands/yq-independent-20260828/executor-b8f5d60d-v1/CORE-INTERFACE.json",
+      "modeAuthority": "Git regular/nonexecutable only; no reconstructed historical full POSIX mode"
+    },
+    {
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/worker-api.mjs",
+      "bytes": 13187,
+      "sha256": "e6548d6d4d7d8c6433f11953a0f62638e8f699a91dc31617cfc2dea2740fc876",
+      "gitTreeRow": "100644 blob 4b939b34d081c6939df7bfcc47c5de4463b32952\ttests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/worker-api.mjs",
+      "modeAuthority": "Git regular/nonexecutable only; no reconstructed historical full POSIX mode"
+    }
+  ],
+  "targetMapping": [
+    {
+      "source": "worker-api.mjs",
+      "target": "core/worker-api.mjs",
+      "action": "replace-exact-preimage",
+      "preimage": {
+        "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/worker-api.mjs",
+        "blob": "4b939b34d081c6939df7bfcc47c5de4463b32952",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 13187,
+        "sha256": "e6548d6d4d7d8c6433f11953a0f62638e8f699a91dc31617cfc2dea2740fc876",
+        "lines": 184
+      },
+      "postimage": {
+        "kind": "file",
+        "mode": 420,
+        "bytes": 13289,
+        "sha256": "9b9ef9ab1aa83e76678d72dc6a99407623dd16822e220ea427d553dd2545e3ec",
+        "lines": 185
+      },
+      "changes": [
+        {
+          "kind": "insert-import",
+          "beforeAnchorLine": 7,
+          "postLine": 8,
+          "text": "import { projectToolRequest } from './tool-request.mjs';"
+        },
+        {
+          "kind": "replace-runTool-expression",
+          "preLine": 179,
+          "postLine": 180,
+          "before": "runTool: call => rpc('TOOL', call),",
+          "after": "runTool: async call => rpc('TOOL', projectToolRequest(call, request.job.phase)),"
+        }
+      ],
+      "inverseEditRestoresExactParentBytes": true
+    },
+    {
+      "source": "tool-request.mjs",
+      "target": "core/tool-request.mjs",
+      "action": "add-only-if-absent",
+      "preimage": null,
+      "postimage": {
+        "kind": "file",
+        "mode": 420,
+        "bytes": 2557,
+        "sha256": "bac59cab6cbed385817dc22f616c0fdf407cc490319cd42b6fb9b4e54209a4ad",
+        "lines": 47
+      },
+      "exports": [
+        {
+          "name": "projectToolRequest",
+          "line": 26
+        }
+      ],
+      "dependencies": [
+        "node:path"
+      ]
+    }
+  ],
+  "sourceDirectoryCurrentMode": "0755",
+  "modeQualification": "Source overlay fresh current full modes checked against sealed declarations; parent historical Git modes mean regular/nonexec, not old full POSIX authority. Future assembled targets require their own fresh mode/hash/size/path authentication. Before/after is not change-restore detection.",
+  "currentBeforeAfterEqual": true,
+  "dataChecks": [
+    {
+      "name": "regular source entry DEFERRED-CONTROLS.json",
+      "observed": true
+    },
+    {
+      "name": "regular source entry FINAL-SEAL.json",
+      "observed": true
+    },
+    {
+      "name": "regular source entry INPUTS.json",
+      "observed": true
+    },
+    {
+      "name": "regular source entry OVERLAY.json",
+      "observed": true
+    },
+    {
+      "name": "regular source entry README.md",
+      "observed": true
+    },
+    {
+      "name": "regular source entry ROLE-SHAPES.json",
+      "observed": true
+    },
+    {
+      "name": "regular source entry SPECIFICATION.md",
+      "observed": true
+    },
+    {
+      "name": "regular source entry STATIC-CHECKS.json",
+      "observed": true
+    },
+    {
+      "name": "regular source entry tool-request.mjs",
+      "observed": true
+    },
+    {
+      "name": "regular source entry worker-api.mjs",
+      "observed": true
+    },
+    {
+      "name": "root-routed FINAL hash before parse",
+      "observed": true
+    },
+    {
+      "name": "root-routed OVERLAY hash before parse",
+      "observed": true
+    },
+    {
+      "name": "exact committed and current membership",
+      "observed": true
+    },
+    {
+      "name": "root current full mode",
+      "observed": true
+    },
+    {
+      "name": "committed regular nonexec DEFERRED-CONTROLS.json",
+      "observed": true
+    },
+    {
+      "name": "current bytes/hash/mode DEFERRED-CONTROLS.json",
+      "observed": true
+    },
+    {
+      "name": "sealed descriptor DEFERRED-CONTROLS.json",
+      "observed": true
+    },
+    {
+      "name": "committed regular nonexec FINAL-SEAL.json",
+      "observed": true
+    },
+    {
+      "name": "current bytes/hash/mode FINAL-SEAL.json",
+      "observed": true
+    },
+    {
+      "name": "only external-root-bound self excluded",
+      "observed": true
+    },
+    {
+      "name": "committed regular nonexec INPUTS.json",
+      "observed": true
+    },
+    {
+      "name": "current bytes/hash/mode INPUTS.json",
+      "observed": true
+    },
+    {
+      "name": "sealed descriptor INPUTS.json",
+      "observed": true
+    },
+    {
+      "name": "committed regular nonexec OVERLAY.json",
+      "observed": true
+    },
+    {
+      "name": "current bytes/hash/mode OVERLAY.json",
+      "observed": true
+    },
+    {
+      "name": "sealed descriptor OVERLAY.json",
+      "observed": true
+    },
+    {
+      "name": "committed regular nonexec README.md",
+      "observed": true
+    },
+    {
+      "name": "current bytes/hash/mode README.md",
+      "observed": true
+    },
+    {
+      "name": "sealed descriptor README.md",
+      "observed": true
+    },
+    {
+      "name": "committed regular nonexec ROLE-SHAPES.json",
+      "observed": true
+    },
+    {
+      "name": "current bytes/hash/mode ROLE-SHAPES.json",
+      "observed": true
+    },
+    {
+      "name": "sealed descriptor ROLE-SHAPES.json",
+      "observed": true
+    },
+    {
+      "name": "committed regular nonexec SPECIFICATION.md",
+      "observed": true
+    },
+    {
+      "name": "current bytes/hash/mode SPECIFICATION.md",
+      "observed": true
+    },
+    {
+      "name": "sealed descriptor SPECIFICATION.md",
+      "observed": true
+    },
+    {
+      "name": "committed regular nonexec STATIC-CHECKS.json",
+      "observed": true
+    },
+    {
+      "name": "current bytes/hash/mode STATIC-CHECKS.json",
+      "observed": true
+    },
+    {
+      "name": "sealed descriptor STATIC-CHECKS.json",
+      "observed": true
+    },
+    {
+      "name": "committed regular nonexec tool-request.mjs",
+      "observed": true
+    },
+    {
+      "name": "current bytes/hash/mode tool-request.mjs",
+      "observed": true
+    },
+    {
+      "name": "sealed descriptor tool-request.mjs",
+      "observed": true
+    },
+    {
+      "name": "committed regular nonexec worker-api.mjs",
+      "observed": true
+    },
+    {
+      "name": "current bytes/hash/mode worker-api.mjs",
+      "observed": true
+    },
+    {
+      "name": "sealed descriptor worker-api.mjs",
+      "observed": true
+    },
+    {
+      "name": "source commit only ten new scoped paths",
+      "observed": true
+    },
+    {
+      "name": "routed exact scoped diff",
+      "observed": true
+    },
+    {
+      "name": "reference bytes tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/worker-host.mjs",
+      "observed": true
+    },
+    {
+      "name": "reference git regular tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/worker-host.mjs",
+      "observed": true
+    },
+    {
+      "name": "reference bytes tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/tool-bridge.mjs",
+      "observed": true
+    },
+    {
+      "name": "reference git regular tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/tool-bridge.mjs",
+      "observed": true
+    },
+    {
+      "name": "reference bytes tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/primitives.mjs",
+      "observed": true
+    },
+    {
+      "name": "reference git regular tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/primitives.mjs",
+      "observed": true
+    },
+    {
+      "name": "reference bytes tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/build-worker.mjs",
+      "observed": true
+    },
+    {
+      "name": "reference git regular tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/build-worker.mjs",
+      "observed": true
+    },
+    {
+      "name": "exact callsite line BUILD 79",
+      "observed": true
+    },
+    {
+      "name": "reference bytes tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/type-worker.mjs",
+      "observed": true
+    },
+    {
+      "name": "reference git regular tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/workers/type-worker.mjs",
+      "observed": true
+    },
+    {
+      "name": "exact callsite line TYPES 137",
+      "observed": true
+    },
+    {
+      "name": "reference bytes tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/infrastructure-worker.mjs",
+      "observed": true
+    },
+    {
+      "name": "reference git regular tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/infrastructure-worker.mjs",
+      "observed": true
+    },
+    {
+      "name": "exact callsite line AUTHENTICATION 16",
+      "observed": true
+    },
+    {
+      "name": "reference bytes tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/infrastructure-worker.mjs",
+      "observed": true
+    },
+    {
+      "name": "reference git regular tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/infrastructure-worker.mjs",
+      "observed": true
+    },
+    {
+      "name": "exact callsite line AUTHENTICATION 20",
+      "observed": true
+    },
+    {
+      "name": "reference bytes tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/FC-F01-STATIC-WITNESS.json",
+      "observed": true
+    },
+    {
+      "name": "reference git regular tests/commands/yq-independent-20260828/successor-review-independent-v1/final-composition-review-v1/FC-F01-STATIC-WITNESS.json",
+      "observed": true
+    },
+    {
+      "name": "reference bytes tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/CORE-INTERFACE.json",
+      "observed": true
+    },
+    {
+      "name": "reference git regular tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/CORE-INTERFACE.json",
+      "observed": true
+    },
+    {
+      "name": "reference bytes tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/worker-api.mjs",
+      "observed": true
+    },
+    {
+      "name": "reference git regular tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/worker-api.mjs",
+      "observed": true
+    },
+    {
+      "name": "exact one import and one expression",
+      "observed": true
+    },
+    {
+      "name": "new target absent in frozen parent",
+      "observed": true
+    },
+    {
+      "name": "exact postimage core/worker-api.mjs",
+      "observed": true
+    },
+    {
+      "name": "exact postimage core/tool-request.mjs",
+      "observed": true
+    },
+    {
+      "name": "24 distinct deferred definitions",
+      "observed": true
+    },
+    {
+      "name": "every author control remains unrun",
+      "observed": true
+    },
+    {
+      "name": "four existing role profiles",
+      "observed": true
+    },
+    {
+      "name": "trusted host syntax parser exact hash",
+      "observed": true
+    },
+    {
+      "name": "syntax only tool-request.mjs",
+      "observed": true
+    },
+    {
+      "name": "syntax only worker-api.mjs",
+      "observed": true
+    },
+    {
+      "name": "regular source entry DEFERRED-CONTROLS.json",
+      "observed": true
+    },
+    {
+      "name": "regular source entry FINAL-SEAL.json",
+      "observed": true
+    },
+    {
+      "name": "regular source entry INPUTS.json",
+      "observed": true
+    },
+    {
+      "name": "regular source entry OVERLAY.json",
+      "observed": true
+    },
+    {
+      "name": "regular source entry README.md",
+      "observed": true
+    },
+    {
+      "name": "regular source entry ROLE-SHAPES.json",
+      "observed": true
+    },
+    {
+      "name": "regular source entry SPECIFICATION.md",
+      "observed": true
+    },
+    {
+      "name": "regular source entry STATIC-CHECKS.json",
+      "observed": true
+    },
+    {
+      "name": "regular source entry tool-request.mjs",
+      "observed": true
+    },
+    {
+      "name": "regular source entry worker-api.mjs",
+      "observed": true
+    },
+    {
+      "name": "current before after membership bytes full modes unchanged",
+      "observed": true
+    },
+    {
+      "name": "live AGENTS expected authority",
+      "observed": true
+    }
+  ],
+  "hostSyntaxParser": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "bytes": 112989184,
+    "modeOctal": "0755"
+  },
+  "syntaxCapturesBeforeAssessment": [
+    {
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/tool-request-validation-v3/tool-request.mjs",
+      "sourceSha256": "bac59cab6cbed385817dc22f616c0fdf407cc490319cd42b6fb9b4e54209a4ad",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--input-type=module",
+        "--check"
+      ],
+      "sourceProvidedVia": "stdin, never imported or evaluated",
+      "pid": 86578,
+      "startedUnixNs": 1787926591488773000,
+      "endedUnixNs": 1787926591511976000,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "returnCode": 0,
+      "signal": null,
+      "knownOwnedReaped": true
+    },
+    {
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/tool-request-validation-v3/worker-api.mjs",
+      "sourceSha256": "9b9ef9ab1aa83e76678d72dc6a99407623dd16822e220ea427d553dd2545e3ec",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--input-type=module",
+        "--check"
+      ],
+      "sourceProvidedVia": "stdin, never imported or evaluated",
+      "pid": 86580,
+      "startedUnixNs": 1787926591532666000,
+      "endedUnixNs": 1787926591556682000,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "returnCode": 0,
+      "signal": null,
+      "knownOwnedReaped": true
+    }
+  ],
+  "deferredControls": [
+    {
+      "id": "TRV3-01",
+      "name": "FC-F01 own enumerable getter",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-02",
+      "name": "FC-F01 extra undefined own key",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-03",
+      "name": "Extra nonenumerable undefined key",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-04",
+      "name": "Extra own symbol",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-05",
+      "name": "Required own accessor set-only or nonenumerable",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-06",
+      "name": "Required key inherited rather than own",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-07",
+      "name": "Sparse request array",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-08",
+      "name": "Sparse nested value array",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-09",
+      "name": "Coercible boxed config value",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-10",
+      "name": "Wrong timeout type or exact role value",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-11",
+      "name": "Wrong role or unknown kind",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-12",
+      "name": "Git revision/path primitive requirements",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-13",
+      "name": "Unknown replacement key with exactly three keys",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-14",
+      "name": "Cross-realm BUILD and TYPES own data",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-15",
+      "name": "Cross-realm Git own data",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-16",
+      "name": "Null/custom prototype and nonenumerable required data",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-17",
+      "name": "Permuted record insertion order",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-18",
+      "name": "Inherited toJSON not forwarded",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-19",
+      "name": "Own toJSON extra rejected",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-20",
+      "name": "Postvalidation caller mutation cannot alter payload",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-21",
+      "name": "Async RPC rejection preserves actual reason",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-22",
+      "name": "Inspection failure preserves actual reason",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-23",
+      "name": "Tool call sequence and refusal do not reset counters",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    },
+    {
+      "id": "TRV3-24",
+      "name": "Existing IPC bound remains authoritative",
+      "state": "UNRUN_DEFERRED_DATA_ONLY"
+    }
+  ],
+  "authorPreparationFailuresPreserved": [
+    {
+      "stage": "FINAL_DATA_MEMBERSHIP_CHECK",
+      "operation": "node:assert strict deepEqual on fs.readdirSync array versus node_repl-authored array",
+      "observed": "Equal string entries rejected because cross-realm array prototypes differ",
+      "scope": "Author static data checker only; no target/control execution and no staging occurred",
+      "correction": "Compare finite array lengths and each primitive string entry without prototype identity",
+      "targetCodeChanged": false
+    }
+  ],
+  "reviewPreparationFailures": [],
+  "counts": {
+    "sourceFilesAuthenticated": 10,
+    "targetBodiesInspected": 2,
+    "existingCallsiteProfiles": 4,
+    "syntaxParses": 2,
+    "deferredDefinitions": 24,
+    "deferredControlsExecuted": 0,
+    "controlPasses": 0,
+    "productExecutions": 0,
+    "candidateExecutions": 0,
+    "compilerExecutions": 0,
+    "copiedToolExecutions": 0,
+    "authoredModuleImports": 0,
+    "authoredHelperInvocations": 0,
+    "gettersOrProxyControlsExecuted": 0,
+    "activeOwnedExecutionChildren": 0
+  },
+  "rootGO": false,
+  "parentFindingsStillOpen": [
+    "FC-F02",
+    "FC-F03"
+  ],
+  "newCompoundRecipe": false
+}

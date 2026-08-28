@@ -1,0 +1,34 @@
+{
+  "strings": [
+    { "id": "empty", "input": "", "expected": 0 },
+    { "id": "ascii", "input": "Ab09", "expected": 4 },
+    { "id": "nul-newline", "input": "a\u0000\n", "expected": 3 },
+    { "id": "astral-middle", "input": "x😀y", "expected": 3 },
+    { "id": "two-astral", "input": "😀𝄞", "expected": 2 },
+    { "id": "combining", "input": "é", "expected": 2 },
+    { "id": "composed", "input": "é", "expected": 1 },
+    { "id": "zwj", "input": "👩‍💻", "expected": 3 },
+    { "id": "family-zwj", "input": "👨‍👩‍👧‍👦", "expected": 7 },
+    { "id": "flag-and-tone", "input": "🇵🇱👍🏽", "expected": 4 },
+    { "id": "variation-selector", "input": "✈️", "expected": 2 },
+    { "id": "high-surrogate", "input": "\ud800", "expected": 1, "internalOnly": true },
+    { "id": "low-surrogate", "input": "\udfff", "expected": 1, "internalOnly": true },
+    { "id": "reversed-surrogates", "input": "\udc00\ud800", "expected": 2, "internalOnly": true },
+    { "id": "high-then-pair", "input": "\ud800\ud83d\ude00", "expected": 2, "internalOnly": true },
+    { "id": "separated-surrogates", "input": "\ud800x\udc00", "expected": 3, "internalOnly": true },
+    { "id": "bmp-and-astral-boundaries", "input": "\ud7ff\ue000\ud800\udc00\udbff\udfff", "expected": 4 }
+  ],
+  "public": [
+    { "id": "array", "input": "[null,false,\"😀\"]", "expected": "3\n" },
+    { "id": "object", "input": "{\"__proto__\":1,\"constructor\":2}", "expected": "2\n" },
+    { "id": "null", "input": "null", "expected": "0\n" },
+    { "id": "negative-number", "input": "-3.5", "expected": "3.5\n" },
+    { "id": "negative-zero", "input": "-0", "expected": "0\n" },
+    { "id": "mixed-stream", "input": "\"A😀B\"\n[1,2]\n{}", "expected": "3\n2\n0\n" }
+  ],
+  "sentinel": "L😀é",
+  "sentinelExpected": 4,
+  "trustedIteratorSentinel": "Q😀",
+  "trustedIteratorExpected": 3,
+  "maximumLiteralStringCodeUnits": 11
+}

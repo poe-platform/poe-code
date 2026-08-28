@@ -1,0 +1,12 @@
+{
+  "schema": "exclusive-parent-reservation-v1",
+  "id": "priority-command-workflows-20260828/future-run-02",
+  "deadlineEpochMs": 1788026556000,
+  "remaining": {
+    "children": 85,
+    "workerStarts": 312,
+    "loaderThreads": 82,
+    "captureBytes": 356515840,
+    "scratchBytes": 536870912
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "index": 3,
+  "argv": [
+    "--no-optional-locks",
+    "-c",
+    "core.hooksPath=/dev/null",
+    "-c",
+    "commit.gpgSign=false",
+    "-c",
+    "core.fsmonitor=false",
+    "-c",
+    "core.pager=cat",
+    "cat-file",
+    "--batch"
+  ],
+  "pid": 45803,
+  "status": 0,
+  "signal": null,
+  "error": null,
+  "elapsedMs": 447.4334169999929,
+  "parentElapsedMs": 45129.76966599998,
+  "stdoutBytes": 11743089,
+  "stderrBytes": 0,
+  "stdoutSha256": "89fa314561b0303ac43b1cb03fe27d3b7f0aa8682f92213e0ddd0d3b6b1b0903",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

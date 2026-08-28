@@ -1,0 +1,16 @@
+{
+  "id": "REVIEW-PREP-01",
+  "classification": "INDEPENDENT_REVIEW_PREPARATION_FAILURE_NOT_AUTHOR_FINDING",
+  "operation": "third metadata child / literal Git batch query construction",
+  "cause": "Reviewer mapped every artifactMap replacement to commit:path without first restricting stored-identity rows; a historical reference with null commit became null:tests/integration/priority-command-workflows-20260828/stub-controls.mjs.",
+  "observation": "Git cat-file returned a missing-object record for the invalid reviewer-generated expression. The parser set unsafe stop and threw. No packet code was imported or executed.",
+  "raw": "raw/03.stdout",
+  "status": "FAIL_STOP_NO_RETRY",
+  "authorConclusion": "No author defect inferred; full rebinding verdict withheld.",
+  "elapsedMs": 72387.79370799998,
+  "childExit": 0,
+  "knownReaped": true,
+  "subsequentReviewAdmissions": 0,
+  "finalCaptureBytes": 12077471,
+  "scalarAccountingNote": "After the REPL exception the scalar was stale; persisted child receipts are authoritative. No cap was raised and FAIL is retained."
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "npm-pin-independent-administrative-failure-v1",
+  "id": "REVIEW-PREP-02",
+  "verdict": "FAIL_RETAINED_NO_RETRY",
+  "classification": "administrative diff-check applied to literal raw capture; not an author or product finding",
+  "status": 2,
+  "knownPid": 46982,
+  "signal": null,
+  "error": null,
+  "stdout": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/raw/02.stdout:7411: new blank line at EOF.\ntests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/raw/03.stdout:43604: trailing whitespace.\n+ \ntests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/raw/03.stdout:43617: trailing whitespace.\n+ \ntests/integration/priority-command-workflows-20260828/npm-pin-rebinding-independent/raw/03.stdout:112603: new blank line at EOF.\n",
+  "stderr": "",
+  "parentElapsedMs": 258846.60049999997,
+  "integrityRecheckedBeforeFinalCommit": true,
+  "rawBytesPreserved": true,
+  "retry": false,
+  "exclusionsAdded": false,
+  "action": "Commit the original raw capture and this failed check without changing captured whitespace or rerunning the check.",
+  "originalReceipt": "/tmp/npm-pin-independent-final.txt"
+}

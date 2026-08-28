@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "commit": "ab729daa5a4eb891c7f3ac7f40d6ca0dbafbafe6",
+  "files": {
+    "tests/commands/yq-independent-20260828/executor-preparation-v1/integration/core/components.mjs": {
+      "sha256": "90e38e5b3858170f468e61c49c9f6b194611d9728a43f5d6c6b8030464b6b519",
+      "bytes": 3939
+    },
+    "tests/commands/yq-independent-20260828/executor-preparation-v1/integration/core/translation.mjs": {
+      "sha256": "066ce3104757e56d3a4bf6f773f19d0058dcb5c4b1bf939f653822138176a6a2",
+      "bytes": 6774
+    },
+    "tests/commands/yq-independent-20260828/executor-preparation-v1/integration/core/binding.mjs": {
+      "sha256": "4b18b9ce40d2c4fa7f47a2c30e28cfd52699c0527e3360855af6965f97dbd20e",
+      "bytes": 7596
+    },
+    "tests/commands/yq-independent-20260828/executor-preparation-v1/integration/core/worker.mjs": {
+      "sha256": "a6bc93827644010add919af2796831f0596d19804efe0c5668b3e09a3616bdb1",
+      "bytes": 4556
+    },
+    "tests/commands/yq-independent-20260828/executor-preparation-v1/integration/core/run.mjs": {
+      "sha256": "0a618311ac439d2771b2eb4ee361fb2763bb1f0f43fcf3b4acde181e69ed6253",
+      "bytes": 9659
+    },
+    "tests/commands/yq-independent-20260828/executor-preparation-v1/integration/core/check.mjs": {
+      "sha256": "d2cbdafc50770065adcc2ea27dacf8e9ba3da9d40bcae9953a3006c42130f098",
+      "bytes": 9914
+    },
+    "tests/commands/yq-independent-20260828/executor-preparation-v1/integration/core/COMPONENTS.json": {
+      "sha256": "a66ef318a69a53bf4701a16eaae35c2adfbd38575cb9a0ef8d86d01cf9bd86ee",
+      "bytes": 4087
+    },
+    "tests/commands/yq-independent-20260828/executor-preparation-v1/integration/core/RECIPE.json": {
+      "sha256": "7f74efa65ec25ea0868f03ba7e791737aae2a8b13d4c85d6d78b5a83f30dafcd",
+      "bytes": 48363
+    },
+    "tests/commands/yq-independent-20260828/executor-preparation-v1/integration/core/SYNTHETIC.json": {
+      "sha256": "4eec170813fbf805a58fd1829c74340592e927c5de80a5f967f5d07eb0c29f3a",
+      "bytes": 792
+    }
+  }
+}

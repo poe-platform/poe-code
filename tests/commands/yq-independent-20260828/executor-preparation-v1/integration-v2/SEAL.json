@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "kind": "YQ_COMPOUND_INTEGRATION_V2_PRESEAL",
+  "date": "2026-08-28",
+  "sourceCommitBinding": "Exact source commit is routed independently in handoff; no self-referential commit",
+  "state": "PRESEALED_SYNTHETIC_ONLY_NO_GO",
+  "coreTreeSha256": "34fc556a58cf1b72243ffbdd89f60ddb8e321f75c05e4337809c285ee7507759",
+  "entries": [
+    {
+      "path": ".",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": "COMPONENTS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7680,
+      "sha256": "2001ba8cd34ee5f57b0edef41188977c8587fcb08a498e2def108ee3d58227b0"
+    },
+    {
+      "path": "DATA-CONTROLS.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 891,
+      "sha256": "59a6022fe77648ee09fa55bba7b2da587c10dd1fa700b91410f98664e44cf4a9"
+    },
+    {
+      "path": "RECIPE.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 48754,
+      "sha256": "eecdc319fc90ccc89bdae0fbb7900beb33dbd07807c4fa78738280b77e412158"
+    },
+    {
+      "path": "SYNTHETIC.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 949,
+      "sha256": "55195098d059ce21b7bc60872ad757b4a61df6913f9181d7be13bc6747f876a6"
+    },
+    {
+      "path": "binding.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8420,
+      "sha256": "4bb6646705098ced394a68779c21f11fe2e513517f15bd29158c93abd453d001"
+    },
+    {
+      "path": "check.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12620,
+      "sha256": "254bbcbf2a060f3455d56bdaf0585910df771f36d49e047ca8b464a354b670ed"
+    },
+    {
+      "path": "components.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4982,
+      "sha256": "6d57aa635d75bb80937e1c9bbe7823c176d9f823bc621bf5cd8e543ec9e69236"
+    },
+    {
+      "path": "data-check.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12089,
+      "sha256": "b67ae18d6c1e73b64100400ca53d8683b10885fce99830fc36c15cb3f51f4907"
+    },
+    {
+      "path": "materialize-runtime.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1095,
+      "sha256": "b0e665f5f6d455e33dcfbba99c9feba06773f46264e30514a9f6726e0205a25c"
+    },
+    {
+      "path": "prepare-runtime.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3402,
+      "sha256": "900e0546b732179d993147edd3f9b002164cf8354166680b9c01ec206e0e7bc4"
+    },
+    {
+      "path": "run.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9665,
+      "sha256": "46f5a026659e99bd3c54c3d9bcc189622d141adba035fb0b79e9ed9e72ec5346"
+    },
+    {
+      "path": "translation.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6681,
+      "sha256": "61188fffbd45445e4ad199f80e531637a0b16d50e97a1e5e0703bad10981b8f6"
+    },
+    {
+      "path": "worker.mjs",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4556,
+      "sha256": "a6bc93827644010add919af2796831f0596d19804efe0c5668b3e09a3616bdb1"
+    }
+  ],
+  "documentation": [
+    {
+      "path": "PROTOCOL.md",
+      "sha256": "0332029a758d2c1c2f47a8fbbe8da025d5549a24d7d6ca67d0dd0c400b8d5a08"
+    },
+    {
+      "path": "README.md",
+      "sha256": "882c79dd567ee58d11a51abc6395c62effcead0083455e22b6c539dc5406801a"
+    },
+    {
+      "path": "V1-INPUTS.json",
+      "sha256": "714c59023c5ad1939d2afbd1180acea4f25d84a153f87eeb54dadef4c3598496"
+    }
+  ],
+  "recipeSha256": "eecdc319fc90ccc89bdae0fbb7900beb33dbd07807c4fa78738280b77e412158",
+  "runtimeRecipeSealSha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15",
+  "consumerRecipeSealSha256": "69dfaf2aa833590312d80515a62d1dcc544952e55f9844aea73a3a8c2d90330b",
+  "candidateExecutionAuthorized": false,
+  "productImports": 0,
+  "independentAcceptance": false
+}

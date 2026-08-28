@@ -1,0 +1,10 @@
+{
+  "phase": "compiler-only",
+  "sourceCommit": "15635afb09c07c99b1f2c1df569205c9567e6fd0",
+  "presealSha256": "1e8a6953f79499b9d1f76f5736def2a50ccb406f509bf6c23ccd93bfb2d177a4",
+  "elapsedBeforeMs": 397470,
+  "remainingChildAllowance": 1,
+  "transport": "literal local ESM trusted supervisor in existing NodeREPL; child raw capture opened before spawn",
+  "workers": 0,
+  "engines": 0
+}

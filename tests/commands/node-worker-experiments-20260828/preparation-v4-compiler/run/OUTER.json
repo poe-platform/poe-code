@@ -1,0 +1,32 @@
+{
+  "phase": "compiler-only",
+  "started": 1787956134661,
+  "elapsedMs": 1205,
+  "code": 0,
+  "signal": null,
+  "primary": null,
+  "childAcquired": true,
+  "childClosed": true,
+  "rawCaptureClosed": true,
+  "captured": 64,
+  "events": [
+    {
+      "kind": "raw-capture-owned",
+      "at": 0
+    },
+    {
+      "kind": "compiler-spawn",
+      "pid": 72557,
+      "at": 3
+    },
+    {
+      "kind": "compiler-close",
+      "code": 0,
+      "signal": null,
+      "at": 1205
+    }
+  ],
+  "workers": 0,
+  "engineEvaluations": 0,
+  "cleanup": "child close awaited; raw descriptors closed; regular artifacts retained; no scratch deletion"
+}

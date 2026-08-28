@@ -1,0 +1,1091 @@
+{
+  "schema": "xan-owned-streamed-evidence-v1",
+  "classification": "SYNTHETIC_CONTROLS_ONLY",
+  "captured": "2026-08-28T06:04:11.416Z",
+  "root": "a01-evidence",
+  "appendAware": true,
+  "entries": [
+    {
+      "path": "PRE-RUN.json",
+      "bytes": 1647,
+      "sha256": "c7421eaf4d14b6a53410106336a044635570c824357eaae5767c78419ad3efce",
+      "mode": "644"
+    },
+    {
+      "path": "SUMMARY.json",
+      "bytes": 4448,
+      "sha256": "27ea79a6183ce3629070c63b7d32c2f68d851749f6d6633ea1750b670fe0edf7",
+      "mode": "644"
+    },
+    {
+      "path": "control-0/",
+      "directory": true
+    },
+    {
+      "path": "control-0/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "6fd79bbba88003c880ca01010ca37e7c62fa62c63baa6427edcb8e7a581c09cc",
+      "mode": "644"
+    },
+    {
+      "path": "control-0/START.json",
+      "bytes": 652,
+      "sha256": "d774f5f498318a0d95ff0388ef6a9a964d119320b6dca87b58a587bc02d5ed70",
+      "mode": "644"
+    },
+    {
+      "path": "control-0/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-0/stdout.raw",
+      "bytes": 432,
+      "sha256": "8865199aef168ccc14aa875a08f29a8ce817c06423c2155bca0cd06fd77a1d73",
+      "mode": "644"
+    },
+    {
+      "path": "control-0-event-1.json",
+      "bytes": 988,
+      "sha256": "6bc02ac0c8214e04e9bd08019fcb3db9812b63b2d0bae23deb24bab38d476da7",
+      "mode": "644"
+    },
+    {
+      "path": "control-0-event-2.json",
+      "bytes": 577,
+      "sha256": "1684c0b849df6fede5d4cdcd55120f963b4cf38a64d46e12cf41d8580e662236",
+      "mode": "644"
+    },
+    {
+      "path": "control-0-event-3.json",
+      "bytes": 48,
+      "sha256": "86f56d01cca0be344bb7a15617ec4e77d49143a808cd2b4d4b670294df1d9d09",
+      "mode": "644"
+    },
+    {
+      "path": "control-0-result.json",
+      "bytes": 106,
+      "sha256": "15e515c4efc195911845ebb744be65a8edde6cce9f5086491e50bef3831ab29b",
+      "mode": "644"
+    },
+    {
+      "path": "control-1/",
+      "directory": true
+    },
+    {
+      "path": "control-1/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "d8630de75b98dd361821c886d6f9141a126fa5d1cc0fbe4e294adbcc14fa9ae6",
+      "mode": "644"
+    },
+    {
+      "path": "control-1/START.json",
+      "bytes": 660,
+      "sha256": "7901e730d2f5aad487e4272499b4faab9bef13c03d4de66eb52cb5639b4ad3be",
+      "mode": "644"
+    },
+    {
+      "path": "control-1/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-1/stdout.raw",
+      "bytes": 413,
+      "sha256": "51c8109a8ee4080e9a09efd7c569a8fd934c55770207ba31115c5a9081bff2f6",
+      "mode": "644"
+    },
+    {
+      "path": "control-1-event-1.json",
+      "bytes": 988,
+      "sha256": "a17d2aa7ac95696f92eac25b28b18918e456b2a28d470891415a9cb5c0c01a29",
+      "mode": "644"
+    },
+    {
+      "path": "control-1-result.json",
+      "bytes": 114,
+      "sha256": "cea3960c9a59ebad83abea165683fc4d48438684a5d2f73a355a85e267e755ff",
+      "mode": "644"
+    },
+    {
+      "path": "control-10/",
+      "directory": true
+    },
+    {
+      "path": "control-10/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "876ef5cb324ec92e8ea7e64d54da9accba7b7f89515de9fc7ed3964349aa3edc",
+      "mode": "644"
+    },
+    {
+      "path": "control-10/START.json",
+      "bytes": 661,
+      "sha256": "369d8e5ba31229460610f9a273efb9a2b48ddb1551597fc0c10e204a5f81c340",
+      "mode": "644"
+    },
+    {
+      "path": "control-10/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-10/stdout.raw",
+      "bytes": 431,
+      "sha256": "9a8a0bbee09f0f98d3bf3049c4b491c2ad8c45b547dac3b0e1f76bb97a5af39b",
+      "mode": "644"
+    },
+    {
+      "path": "control-10-event-1.json",
+      "bytes": 989,
+      "sha256": "b5382806a2258bb2e7261774fa67e7cf7a344201d9299284c649718d9f20ed98",
+      "mode": "644"
+    },
+    {
+      "path": "control-10-result.json",
+      "bytes": 113,
+      "sha256": "bc4b1d45241e720a3d68f1e45c5e40411f00d43f5c2da68a4203c5d28f7a986a",
+      "mode": "644"
+    },
+    {
+      "path": "control-11/",
+      "directory": true
+    },
+    {
+      "path": "control-11/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "4a59f94c6433bba565b35de01472ec0aab25d437cf13c71d4f5b9186542f5409",
+      "mode": "644"
+    },
+    {
+      "path": "control-11/START.json",
+      "bytes": 664,
+      "sha256": "bfe8764293cc353916007915f66eab4768502ca0cdabc3cae693a5743e120f43",
+      "mode": "644"
+    },
+    {
+      "path": "control-11/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-11/stdout.raw",
+      "bytes": 719,
+      "sha256": "ba00ed878f2356e2e0d81eb7d1c58d02cf163663146da85a0e16afd6ba6100e7",
+      "mode": "644"
+    },
+    {
+      "path": "control-11-event-1.json",
+      "bytes": 989,
+      "sha256": "fd958cd4310cbdd8db0ebd1f06f9beb4b93894aee52695c250c72df21869bbab",
+      "mode": "644"
+    },
+    {
+      "path": "control-11-result.json",
+      "bytes": 116,
+      "sha256": "eb0889fc54daf1e9e010179fb226aaba39e3f16d306658828db196ca33ad5577",
+      "mode": "644"
+    },
+    {
+      "path": "control-12/",
+      "directory": true
+    },
+    {
+      "path": "control-12/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "ce81fc42a9e07e4dfa66461293e39dd0ff3027a5902b92350d0fd9ef3bb3beb8",
+      "mode": "644"
+    },
+    {
+      "path": "control-12/START.json",
+      "bytes": 657,
+      "sha256": "a636f8cf7a496588d74eac1a29c14407a99e1e40422ae51a1168a1f6c0cbd394",
+      "mode": "644"
+    },
+    {
+      "path": "control-12/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-12/stdout.raw",
+      "bytes": 149,
+      "sha256": "8840da1acbbf8356e8a60cb48d9972691f09c66d033df3108ee7ceb19369e09b",
+      "mode": "644"
+    },
+    {
+      "path": "control-12-event-1.json",
+      "bytes": 989,
+      "sha256": "54fa5bf6ca2c0cb5463879c5aab80a3f7ba665246346f4cc0359b82081f38515",
+      "mode": "644"
+    },
+    {
+      "path": "control-12-result.json",
+      "bytes": 109,
+      "sha256": "7e90fe3f9dc8dfb1c60fea83bb713d3ce8020a8d42f82b48a12a222f8a3972c9",
+      "mode": "644"
+    },
+    {
+      "path": "control-13/",
+      "directory": true
+    },
+    {
+      "path": "control-13/RECEIPT.json",
+      "bytes": 746,
+      "sha256": "e1bf625cae3ad329e26b026a63cc98ad110baad9d6661a8ccce9de3b3e6a8cdd",
+      "mode": "644"
+    },
+    {
+      "path": "control-13/START.json",
+      "bytes": 672,
+      "sha256": "af5d4dcea53639441b56c32edd107b442a18b0c2f78eb4cdbbcaf71ad983600c",
+      "mode": "644"
+    },
+    {
+      "path": "control-13/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-13/stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-13-event-1.json",
+      "bytes": 983,
+      "sha256": "5b461baea01e8070f6613e95d89cbf8497032582fd1f6c6fffb9933c889d0f0e",
+      "mode": "644"
+    },
+    {
+      "path": "control-13-result.json",
+      "bytes": 124,
+      "sha256": "f1f9b7eb46543dc04483d01bf037385c220d32d0d6625d2fb4065eea96aef8ba",
+      "mode": "644"
+    },
+    {
+      "path": "control-14/",
+      "directory": true
+    },
+    {
+      "path": "control-14/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "1af24819c677a7ea92d83e511a9713bd69309442b45141fa708fff16935b079f",
+      "mode": "644"
+    },
+    {
+      "path": "control-14/START.json",
+      "bytes": 665,
+      "sha256": "43daa9c05ef79fca332efc73b7239d54de04f949a4feb773cfdd04f52197f42a",
+      "mode": "644"
+    },
+    {
+      "path": "control-14/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-14/stdout.raw",
+      "bytes": 434,
+      "sha256": "dcd4d026b76eb82d9c3dc3da0c021ca2ba006b26d581c274485afc264c4fa572",
+      "mode": "644"
+    },
+    {
+      "path": "control-14-event-1.json",
+      "bytes": 989,
+      "sha256": "3014998ec9139cebfdd53cd9589909a56d6ac3e051448793a08813f756978d9a",
+      "mode": "644"
+    },
+    {
+      "path": "control-14-result.json",
+      "bytes": 117,
+      "sha256": "95a277c89b52ee1d8a91a3566511da54fe31964db3da326ffb960788a0189fa0",
+      "mode": "644"
+    },
+    {
+      "path": "control-15/",
+      "directory": true
+    },
+    {
+      "path": "control-15/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "82484b9fe01a9be452b381d880fbaf1c3689f36f77cae44054e087b02b0d8285",
+      "mode": "644"
+    },
+    {
+      "path": "control-15/START.json",
+      "bytes": 669,
+      "sha256": "46052795582dec7fca5037796039e3603c646e56f440a7c5fb4a1a256ea90ea2",
+      "mode": "644"
+    },
+    {
+      "path": "control-15/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-15/stdout.raw",
+      "bytes": 434,
+      "sha256": "10424b68b21737fcff6b02eb067bc6a3f9b28e3c8698a402501e7e74b9593ef9",
+      "mode": "644"
+    },
+    {
+      "path": "control-15-event-1.json",
+      "bytes": 989,
+      "sha256": "b34e76ee3a10a70dbe24620b72c570ca88dd16970c564ac2d500fd5ef011df4f",
+      "mode": "644"
+    },
+    {
+      "path": "control-15-event-2.json",
+      "bytes": 580,
+      "sha256": "e4677908686c4d3359bd2670c8624885cdad3817269a236e55d71f2ebff64528",
+      "mode": "644"
+    },
+    {
+      "path": "control-15-event-3.json",
+      "bytes": 122,
+      "sha256": "7b74b1f88a9815c4489342dc3967393acc4198bf225fb0491fee3d4c6484a2e0",
+      "mode": "644"
+    },
+    {
+      "path": "control-15-result.json",
+      "bytes": 120,
+      "sha256": "22fa1c45673d7848408b232fe2964ab1aa39c4b9b0daf592bb777e3b0a323bbe",
+      "mode": "644"
+    },
+    {
+      "path": "control-16/",
+      "directory": true
+    },
+    {
+      "path": "control-16/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "bf907f2c639e4b6334afde4f182b75eae43de1737f8007dffb70f7bcb99d8310",
+      "mode": "644"
+    },
+    {
+      "path": "control-16/START.json",
+      "bytes": 672,
+      "sha256": "c6a248203edfa628ab773b834d82364f0967c273b6319e7099117a40f5bea4cc",
+      "mode": "644"
+    },
+    {
+      "path": "control-16/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-16/stdout.raw",
+      "bytes": 434,
+      "sha256": "3caa222a21b07ce0c43bb00e7453c469e8a0f26b6676e95f67c49a98fe8b97b3",
+      "mode": "644"
+    },
+    {
+      "path": "control-16-event-1.json",
+      "bytes": 989,
+      "sha256": "ae2ac373eec4fe7ab0544711a60d4c294520c5edde3842967bd559dcb93444a9",
+      "mode": "644"
+    },
+    {
+      "path": "control-16-event-2.json",
+      "bytes": 580,
+      "sha256": "e796944d2886612d55d6615dc79516c1ff25eea63449c904f26329d4a386e73f",
+      "mode": "644"
+    },
+    {
+      "path": "control-16-event-3.json",
+      "bytes": 122,
+      "sha256": "fae8a2ba0e4d057e4dc2d1d3410a8d9a1ac02af5b9ca29b18d168218b2f119b3",
+      "mode": "644"
+    },
+    {
+      "path": "control-16-result.json",
+      "bytes": 123,
+      "sha256": "d3674a5fecc3dc3e51f225bb856c4b8e347a23df1e1444768b482c8078e1827f",
+      "mode": "644"
+    },
+    {
+      "path": "control-17/",
+      "directory": true
+    },
+    {
+      "path": "control-17/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "903607b5be538b1e6e6dfcdafef76f4fd6e1ea37919e85ee4a6e4b0b13b3d8bc",
+      "mode": "644"
+    },
+    {
+      "path": "control-17/START.json",
+      "bytes": 670,
+      "sha256": "47f3a1524d0e90591a7f77f9a6c0f06e6ce86bdb2a3ade07b5db43db98d37e37",
+      "mode": "644"
+    },
+    {
+      "path": "control-17/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-17/stdout.raw",
+      "bytes": 434,
+      "sha256": "6f795912f4035e7215d1a0f205677ff22b2555d7d034fed7dae6e085985382f7",
+      "mode": "644"
+    },
+    {
+      "path": "control-17-event-1.json",
+      "bytes": 989,
+      "sha256": "e512a077b872e40f1064f75d15b356f3f95f7aa02e625c2162df82837c3fc4c4",
+      "mode": "644"
+    },
+    {
+      "path": "control-17-event-2.json",
+      "bytes": 580,
+      "sha256": "2fb10ad645e93b5bafdf41bda9375f494cf778bfbc4845ebce6a39f76c79c652",
+      "mode": "644"
+    },
+    {
+      "path": "control-17-event-3.json",
+      "bytes": 113,
+      "sha256": "666231ff1ede3469d8794c98c845651711e957c323cfd6cdeb3f828138437c13",
+      "mode": "644"
+    },
+    {
+      "path": "control-17-result.json",
+      "bytes": 121,
+      "sha256": "804af9583a4eb13ada168e38a20a182ab4fa7b8b00cd10c652231b64a0265c0c",
+      "mode": "644"
+    },
+    {
+      "path": "control-18/",
+      "directory": true
+    },
+    {
+      "path": "control-18/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "110c48ab6237b34bf4375f564977917effd767e8f301bea3e25fe10477eac0d3",
+      "mode": "644"
+    },
+    {
+      "path": "control-18/START.json",
+      "bytes": 662,
+      "sha256": "8dda637278621d345131003ea9e0d8ab91b406044bd004c35cdcaaefca58c0c6",
+      "mode": "644"
+    },
+    {
+      "path": "control-18/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-18/stdout.raw",
+      "bytes": 434,
+      "sha256": "c6d24b9d546f9f648a3939afe0849a4347558e16afff6ada7588f9dad27b5f40",
+      "mode": "644"
+    },
+    {
+      "path": "control-18-event-1.json",
+      "bytes": 989,
+      "sha256": "b4867d4b7f0d2f0c75edded35ccfc8acea193a8807618ce51560bf8863fd6878",
+      "mode": "644"
+    },
+    {
+      "path": "control-18-event-2.json",
+      "bytes": 580,
+      "sha256": "a232c2c7d028793db0c440fe50e33001bd2ca46587ab1b66ee2779ac2dcd21c2",
+      "mode": "644"
+    },
+    {
+      "path": "control-18-event-3.json",
+      "bytes": 122,
+      "sha256": "ed1fd466dddb8563e4b6f4b6db88d3d9c2227cfb816bfab07b3b93989c0e5e03",
+      "mode": "644"
+    },
+    {
+      "path": "control-18-result.json",
+      "bytes": 113,
+      "sha256": "d17d5e16d5091b35f7a8027d80510ae47ad49755262c9526490fc61aef0569e2",
+      "mode": "644"
+    },
+    {
+      "path": "control-19/",
+      "directory": true
+    },
+    {
+      "path": "control-19/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "030b43276bb95cc6e01c83da58eda65084f1f64e3c0636486367cb73e5332115",
+      "mode": "644"
+    },
+    {
+      "path": "control-19/START.json",
+      "bytes": 668,
+      "sha256": "ed86e85d971fedde580ad9951acce57c2ffbaef4d2e42b3061994a74b3248020",
+      "mode": "644"
+    },
+    {
+      "path": "control-19/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-19/stdout.raw",
+      "bytes": 434,
+      "sha256": "d64d38b2a30922fc09346c7381823bb2498ef78303835c69df3e4d9824872517",
+      "mode": "644"
+    },
+    {
+      "path": "control-19-event-1.json",
+      "bytes": 989,
+      "sha256": "75a94ae5848462d83f66edf219311e257947fe6c0187cae510d06dcb8e0c9b89",
+      "mode": "644"
+    },
+    {
+      "path": "control-19-result.json",
+      "bytes": 120,
+      "sha256": "0128b8e452357d8c34146be873bef93caec6d57112977415e25e515f1110cfa1",
+      "mode": "644"
+    },
+    {
+      "path": "control-2/",
+      "directory": true
+    },
+    {
+      "path": "control-2/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "e93db77e87b896170ca3869d64c125a50801331d40adea0014cab2fda884d656",
+      "mode": "644"
+    },
+    {
+      "path": "control-2/START.json",
+      "bytes": 658,
+      "sha256": "08eebc9bb8c9be4d3fea4b90913158e8b4e116022a69d0fc608ea715a10a21c8",
+      "mode": "644"
+    },
+    {
+      "path": "control-2/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-2/stdout.raw",
+      "bytes": 429,
+      "sha256": "b66fa989b928ee69ef04826010b616225f1408703ae4df151f70842f4471c418",
+      "mode": "644"
+    },
+    {
+      "path": "control-2-event-1.json",
+      "bytes": 988,
+      "sha256": "17512a5926a0dfa41a3f4116241c4941355862665a514cb4d9d94fff582eaa43",
+      "mode": "644"
+    },
+    {
+      "path": "control-2-result.json",
+      "bytes": 112,
+      "sha256": "83653fb105b002081546a55d81c8ea382805cb8a53b04f5f3563d448a8e8b396",
+      "mode": "644"
+    },
+    {
+      "path": "control-20/",
+      "directory": true
+    },
+    {
+      "path": "control-20/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "a4c48de37f0abca8a3dfe3a0ff9d0c50a66ec66287c9983a36368c79b6431c5b",
+      "mode": "644"
+    },
+    {
+      "path": "control-20/START.json",
+      "bytes": 664,
+      "sha256": "1debc4b769be63eb9ff84bb7965450d5a39cf176d51aa1969d613e7f4e1861b1",
+      "mode": "644"
+    },
+    {
+      "path": "control-20/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-20/stdout.raw",
+      "bytes": 435,
+      "sha256": "084cc34436c4c51a214ba0f8924002c8a9de493b791853f607b394a10174c0d7",
+      "mode": "644"
+    },
+    {
+      "path": "control-20-event-1.json",
+      "bytes": 989,
+      "sha256": "932e849c035ac4ed6c24d86dd2922ab06458a36b21e734c01e34fd8f07a0f1fc",
+      "mode": "644"
+    },
+    {
+      "path": "control-20-result.json",
+      "bytes": 116,
+      "sha256": "2247dabee45f865975f7850233f1a14fa8aa421ee8d81f541870b18eb3d7cdae",
+      "mode": "644"
+    },
+    {
+      "path": "control-21/",
+      "directory": true
+    },
+    {
+      "path": "control-21/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "dbb9ca2a9f4d8baa04e144674cdaea4806bdf8361fdc40d747f1c790eac499a0",
+      "mode": "644"
+    },
+    {
+      "path": "control-21/START.json",
+      "bytes": 662,
+      "sha256": "c8ab872d5b39b21f61c88fd50a712bf26d100d5430881280b9d0c3b73585c847",
+      "mode": "644"
+    },
+    {
+      "path": "control-21/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-21/stdout.raw",
+      "bytes": 435,
+      "sha256": "91e8f5b75741ff48d2bb552ae00d7204554f10f5a2db88e1170a463ad71fb0dd",
+      "mode": "644"
+    },
+    {
+      "path": "control-21-event-1.json",
+      "bytes": 989,
+      "sha256": "43bafc1f6005700eb9ed150c04e80ee4dc10475ba616cd683607809c5a3c5bfe",
+      "mode": "644"
+    },
+    {
+      "path": "control-21-result.json",
+      "bytes": 114,
+      "sha256": "b86a35b34a38400a3746fdb51fef13712a7dbc300f0bc2e239b700da3f2af136",
+      "mode": "644"
+    },
+    {
+      "path": "control-22/",
+      "directory": true
+    },
+    {
+      "path": "control-22/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "4cd8053746cd921982a617e373da8ed95d95569b83da605e2611677531db9884",
+      "mode": "644"
+    },
+    {
+      "path": "control-22/START.json",
+      "bytes": 665,
+      "sha256": "dab07b2c39998f9d5c5ccf2a8db3a69b1c21fdc4cc79ddd217c194f4ffb00001",
+      "mode": "644"
+    },
+    {
+      "path": "control-22/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-22/stdout.raw",
+      "bytes": 434,
+      "sha256": "a8df90474dbc6fe3a0ebab87b5f6c0e90351e409ba8c40361a23130b10e2607c",
+      "mode": "644"
+    },
+    {
+      "path": "control-22-event-1.json",
+      "bytes": 990,
+      "sha256": "05c161b56b2cf38607fc1c4c2b8915483e3b3b095d9cd32cbe01c38c1a8b873e",
+      "mode": "644"
+    },
+    {
+      "path": "control-22-result.json",
+      "bytes": 117,
+      "sha256": "03249d17773e89d132977cadbb83b7849a58f7d762555ab7d421e2e67bc71c81",
+      "mode": "644"
+    },
+    {
+      "path": "control-23/",
+      "directory": true
+    },
+    {
+      "path": "control-23/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "c447f4c63e51ee30b234a2aa9961bcede4dad8ffc52f1d6fba3f3ffc11b54f18",
+      "mode": "644"
+    },
+    {
+      "path": "control-23/START.json",
+      "bytes": 666,
+      "sha256": "5cfa592891097d9cc2357dcef38a16f476fbc121246c290dc479f807dd7c1efd",
+      "mode": "644"
+    },
+    {
+      "path": "control-23/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-23/stdout.raw",
+      "bytes": 434,
+      "sha256": "1ddc18fa7da8a0009b5655efa07f55925ce7694708f4003ec27ce9a37dd5aacb",
+      "mode": "644"
+    },
+    {
+      "path": "control-23-event-1.json",
+      "bytes": 636,
+      "sha256": "8c22ef1632d1507eec969c063635291e946361aa9608c6930343044d994a3d1c",
+      "mode": "644"
+    },
+    {
+      "path": "control-23-result.json",
+      "bytes": 118,
+      "sha256": "384f708e4127ebbe9e47f7f5157757913d753cf49419a17829095141764d9bd4",
+      "mode": "644"
+    },
+    {
+      "path": "control-24/",
+      "directory": true
+    },
+    {
+      "path": "control-24/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "2e32b20945fcc7c62a0faa41b24744ed19bd9002b2910efaf11d2a1c648119c1",
+      "mode": "644"
+    },
+    {
+      "path": "control-24/START.json",
+      "bytes": 671,
+      "sha256": "c115bf10cde43c38ffa4612f70e72271786760f6ff77e6df10fbb461a560fd22",
+      "mode": "644"
+    },
+    {
+      "path": "control-24/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-24/stdout.raw",
+      "bytes": 434,
+      "sha256": "bc8c516fe0fea8fe1e6c230f99ee6455085107072404d16c25c54a3b42d4b2d5",
+      "mode": "644"
+    },
+    {
+      "path": "control-24-event-1.json",
+      "bytes": 989,
+      "sha256": "bf561e0ec5b3ee0f88d56fb50dee72f35bb482745f65f0fc1191b18c6fb669e3",
+      "mode": "644"
+    },
+    {
+      "path": "control-24-result.json",
+      "bytes": 123,
+      "sha256": "a0374bf80c25172e6db29bc112b10535ac1a7c571e3617cb24f84e7cbefd8a60",
+      "mode": "644"
+    },
+    {
+      "path": "control-3/",
+      "directory": true
+    },
+    {
+      "path": "control-3/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "b98e8af31803a67c3bc5806c24a0f892f1f8ac7e6c70d904b8f250a2711bd4f9",
+      "mode": "644"
+    },
+    {
+      "path": "control-3/START.json",
+      "bytes": 657,
+      "sha256": "296be6748b8b2842046f509e113d8fadd043889cc68f16bcebbc4a1ad87ea7b5",
+      "mode": "644"
+    },
+    {
+      "path": "control-3/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-3/stdout.raw",
+      "bytes": 433,
+      "sha256": "79d9f0c9ed486d0dcd215d77eeea415591c7382f1ebe76e0aa6980c4602bd7ee",
+      "mode": "644"
+    },
+    {
+      "path": "control-3-event-1.json",
+      "bytes": 988,
+      "sha256": "43c8d77951d6e6279ee9fd343345bc361145a256c82e94947ef98e59156985ce",
+      "mode": "644"
+    },
+    {
+      "path": "control-3-result.json",
+      "bytes": 111,
+      "sha256": "dc8a178cf72f54e6eb90ed53fa84330045f09af1aaf05f7f8a0641f92ac61a85",
+      "mode": "644"
+    },
+    {
+      "path": "control-4/",
+      "directory": true
+    },
+    {
+      "path": "control-4/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "726909a4edcf0352e53c37f4a6b5930d6aa9af9b23caaebced6a4ad1ba3dc2d9",
+      "mode": "644"
+    },
+    {
+      "path": "control-4/START.json",
+      "bytes": 659,
+      "sha256": "01c7a3a50441b605c620c91d9d1dd7b0aba4331d5ba4b5821653ee4ad9ed2295",
+      "mode": "644"
+    },
+    {
+      "path": "control-4/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-4/stdout.raw",
+      "bytes": 433,
+      "sha256": "fd6bd235513f00d4fc9444ff79a001ac474690a0c4d34ed76c89199da6c6944b",
+      "mode": "644"
+    },
+    {
+      "path": "control-4-event-1.json",
+      "bytes": 988,
+      "sha256": "74298eb5e9ea46bc3d62d4e1c0420a7627594fe0242a239975985ee77c4d4adb",
+      "mode": "644"
+    },
+    {
+      "path": "control-4-result.json",
+      "bytes": 113,
+      "sha256": "38269c8993db382e6d20d2963cf1e9b04fe8b911fa2b91621cf52dd602b170f0",
+      "mode": "644"
+    },
+    {
+      "path": "control-5/",
+      "directory": true
+    },
+    {
+      "path": "control-5/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "992931091cb7b63b11d6cf545cf8c87dedf93f51a41041c2f3c38048567c1a27",
+      "mode": "644"
+    },
+    {
+      "path": "control-5/START.json",
+      "bytes": 656,
+      "sha256": "35b62989227f48326a8cd43e5fe8d0bf6d134e9babda66b7ba101bd62e050aa1",
+      "mode": "644"
+    },
+    {
+      "path": "control-5/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-5/stdout.raw",
+      "bytes": 436,
+      "sha256": "a1bb2d3ff0169c5d649dd6d36ba9549977a3f74c44439b8d7ab2de4b0d070967",
+      "mode": "644"
+    },
+    {
+      "path": "control-5-event-1.json",
+      "bytes": 988,
+      "sha256": "07b0d9d4df591810f082ae185cbd8aecc1bd90d3d56154243b55c0bd161084b7",
+      "mode": "644"
+    },
+    {
+      "path": "control-5-result.json",
+      "bytes": 110,
+      "sha256": "351646aa3c71b42b6018cef5129e41cadb73cdb7a6338f6b46a52ac3c0f63c06",
+      "mode": "644"
+    },
+    {
+      "path": "control-6/",
+      "directory": true
+    },
+    {
+      "path": "control-6/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "d35b9ad0c0097d644b932fe0990cfaad890914b96d9b4f31ef1bedae02b9cd3e",
+      "mode": "644"
+    },
+    {
+      "path": "control-6/START.json",
+      "bytes": 661,
+      "sha256": "85b36ede4cdde3264cea32630ff09b65ddfbed0c3a51565978aec82cfc2f01e8",
+      "mode": "644"
+    },
+    {
+      "path": "control-6/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-6/stdout.raw",
+      "bytes": 386,
+      "sha256": "66c7ae177fbb9ea9d03b4deb7a17b170c017944507d32cafa407881d61fd7632",
+      "mode": "644"
+    },
+    {
+      "path": "control-6-event-1.json",
+      "bytes": 988,
+      "sha256": "0a4900ada37f213fe6e6d868746ecac63eb9d2375922b023575609cfd22536b7",
+      "mode": "644"
+    },
+    {
+      "path": "control-6-result.json",
+      "bytes": 115,
+      "sha256": "0dc3a39396095aa44d936406a5ac1385c9208f28d0904788a45a983f916e5611",
+      "mode": "644"
+    },
+    {
+      "path": "control-7/",
+      "directory": true
+    },
+    {
+      "path": "control-7/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "1d7517f8f92e00eeec8f7a66f1b067599b0a4c34070bcb4d93306dfca3d52a02",
+      "mode": "644"
+    },
+    {
+      "path": "control-7/START.json",
+      "bytes": 658,
+      "sha256": "36a4ef99f788f1c718292b7ab3d335e0aea56e496524997de777752b40ed6c9c",
+      "mode": "644"
+    },
+    {
+      "path": "control-7/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-7/stdout.raw",
+      "bytes": 432,
+      "sha256": "116c805b64c2a48a74fe39246175e91c4c86a7cb2d355e69e0244e717e558618",
+      "mode": "644"
+    },
+    {
+      "path": "control-7-event-1.json",
+      "bytes": 988,
+      "sha256": "0cfa3714b6999ceca8d8e9a9d8b5db6641322ad9441db231979eee551e52bd61",
+      "mode": "644"
+    },
+    {
+      "path": "control-7-result.json",
+      "bytes": 112,
+      "sha256": "4b874e70174ef06dfb05462e243121079b18f2638d62401f9450d743c033b7ea",
+      "mode": "644"
+    },
+    {
+      "path": "control-8/",
+      "directory": true
+    },
+    {
+      "path": "control-8/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "96e6a8d7bb601a8052261657e30831e372b3be4bea8a8f0d3bfc25c4da244f63",
+      "mode": "644"
+    },
+    {
+      "path": "control-8/START.json",
+      "bytes": 658,
+      "sha256": "c3ac9e20275ea01da501e6cb823ec8aa1d2d4909832ea3f4160442283601d678",
+      "mode": "644"
+    },
+    {
+      "path": "control-8/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-8/stdout.raw",
+      "bytes": 432,
+      "sha256": "6566589487245a585b6ffad0bc446ea5ff083c3781847bd93b48a94425ee1b47",
+      "mode": "644"
+    },
+    {
+      "path": "control-8-event-1.json",
+      "bytes": 988,
+      "sha256": "2b795c302d21ece7aeb3f93e07dd88b049868a05e72397f58b560d50e735b833",
+      "mode": "644"
+    },
+    {
+      "path": "control-8-result.json",
+      "bytes": 112,
+      "sha256": "e93638eb324d61c7a6a8996709d8659ce25f8b5ff85cf251ba1ec50079041a17",
+      "mode": "644"
+    },
+    {
+      "path": "control-9/",
+      "directory": true
+    },
+    {
+      "path": "control-9/RECEIPT.json",
+      "bytes": 750,
+      "sha256": "468696824da4ffb7041dadfd6899d68043eb774c8388b9d8801733cb37347e9e",
+      "mode": "644"
+    },
+    {
+      "path": "control-9/START.json",
+      "bytes": 657,
+      "sha256": "18a655fc9f0e24b11b144e4503ab3f533fc061be53705ec0de4698fc3043a6f2",
+      "mode": "644"
+    },
+    {
+      "path": "control-9/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "644"
+    },
+    {
+      "path": "control-9/stdout.raw",
+      "bytes": 356,
+      "sha256": "f8c08ea821ec52ab8f4be26f101ccc2221e3ca40a1fe09a6a2f4660495bf992c",
+      "mode": "644"
+    },
+    {
+      "path": "control-9-event-1.json",
+      "bytes": 988,
+      "sha256": "4b32043e0ef1c287987c02ee58abd6c9e9296742eb365106e46b05aaa193194a",
+      "mode": "644"
+    },
+    {
+      "path": "control-9-result.json",
+      "bytes": 111,
+      "sha256": "8b1763f13c3800c903ec8a9ffa06f5c237375a49390a249f1b9925b8e91f434b",
+      "mode": "644"
+    }
+  ],
+  "archive": {
+    "path": "A01-EVIDENCE.jsonl.gz",
+    "bytes": 19766,
+    "sha256": "cfa0240e44026cb1f3fc30838bd3f1427d21e3b65a83b82f8fb12b999d36dd77",
+    "mode": "644"
+  },
+  "transportChunkBytes": 65536,
+  "maximumRecordBytes": 131072,
+  "originalRawRetainedLocally": true,
+  "committedTransport": "streamed JSONL gzip; no extraction needed to verify; no AGENTS copies"
+}

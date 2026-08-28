@@ -1,0 +1,37 @@
+{
+  "schema": "xan-independent-actual-admission-attempt-v1",
+  "classification": "ADMISSION_ONLY_PRODUCT_HELD_NOT_AN_ACTUAL_COHORT_RECIPE",
+  "source": "0ec84fc38c3fafd75776d80148d4f3c2d77e6247",
+  "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "evidence": "01f8826628b6ba070498e6b833f9a1597d2db375",
+  "freeze": "55810d4aea70fadf151c2fbf746a17f96bfeb599",
+  "sourceCompositionSha256": "4ec398bc4ae2bbbc15eb0a63b796192619087e9d0e25b8c87524ac7dff9f7df0",
+  "packageSha256": "324268096450f0133265b7003140139fc5118e9e4a39d43ca856ce214918bac7",
+  "a01Recipe": "0f4d6cc0e5944a12cc719d036c4e6567ea5ac991",
+  "boundaryCommit": "0b0b8876",
+  "steps": [
+    "Verify this recipe against its immutable commit and preparation-v2 committed seal",
+    "Verify the separately preserved A01 25-control qualification, without replay",
+    "Authenticate exact pinned receipt and full baseline/overlay Git selection, modes, blobs, byte sizes and SHA256s",
+    "Independently materialize 215 baseline inputs plus exactly 10 XAN source files; no other source commit contents",
+    "Authenticate 313 original tool files and copy selected closure into new owned work directory; preserve and check modes",
+    "Authenticate retained exact 760439-byte author package; stream regular-only 885-member extraction against every content hash, then physically move and append-aware verify",
+    "Check actual executor readiness. Incomplete bridges HOLD all product/build/type execution, even if artifact authentication passes",
+    "Durably capture admission outcome, child receipts, complete obligation matrix and exact non-execution accounting before nonzero exit"
+  ],
+  "actualReadiness": {
+    "directFactorySignatureInspected": true,
+    "actualFsErrorSignatureInspected": true,
+    "actualApiAndLayoutBridgeQualified": false,
+    "fullLifecycleAndAliasDriverImplemented": false,
+    "sourceSpecificWorkCapacityLedgerBound": false,
+    "sourceAndMovedStrictConsumersPresealed": false,
+    "actualLoaderAndTrustedCompilerBoundaryQualified": false
+  },
+  "heldExplanation": "The independent reviewer has not completed the required actual bridges. worker.mjs/extra.mjs/loader.mjs are unqualified drafts; extra.mjs contains an explicit blocked scenario branch. Running direct cases alone would silently reduce the root-authorized cohort. Do not run them as candidate evidence.",
+  "attempts": { "admission": 1, "product": 0, "native": 0, "build": 0, "typecompile": 0 },
+  "execution": "Node 22.22.2 admission.mjs FULL_RECIPE_COMMIT; expected exit 2 HOLD, no automatic retry",
+  "preservedAuthorization": "The one actual product cohort is NOT consumed by an admission-only hold. No assertion that a second admission or revised execution recipe is already authorized.",
+  "archiveLimits": "Selected Git/tool content verification does not authenticate historical baseline.tar.gz/tools.tar.gz serialization; the retained author npm package is authenticated, not independently rebuilt or reserialized.",
+  "nonClaims": ["No product pass", "No actual module load proof", "No source TSX execution", "No build/type proof", "No full gate", "No public XAN/default/provider/runtime integration", "No native parity", "No completion or superiority"]
+}

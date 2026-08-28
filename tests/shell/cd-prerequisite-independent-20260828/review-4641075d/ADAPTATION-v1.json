@@ -1,0 +1,135 @@
+{
+  "stage": "post-candidate binding, before product execution",
+  "originalPreparation": "a9cae01073dc5c73f806b5ba38fdfa56fb502d0c",
+  "unchanged": [
+    "fixtures.mjs",
+    "mapping.mjs",
+    "series.mjs",
+    "entry.mjs",
+    "workspace.mjs",
+    "run.mjs"
+  ],
+  "changes": [
+    "common: authenticate all41 prior files plus author/native/provider historical files; authorize only new review-owned output subdirectory",
+    "types: explicitly use baseline lib.es2023.d.ts; no DOM library, no fixture or expected diagnostic change"
+  ],
+  "sourceProjectionFiles": 265,
+  "sourceArchiveSha256": "e9838bcac52a9447a439a5bcb1f3e09fb45ea5ea26447458469d6954ce762a4a",
+  "scriptInventory": {
+    "BINDING.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 928,
+      "sha256": "2e9a2d91397b5379513ce03d4b867657dc31ee46d2b09c0e15a6ad2bf1c45ec2"
+    },
+    "CONTROL-IDENTITY.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 107623,
+      "sha256": "240c313fa722ff516ec9872865682e5f7b66fa51f11763735dbb592f6ebfd034"
+    },
+    "PRESEAL.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1698,
+      "sha256": "7b62e1be49492949d6da9a574092d6e57b5f3610d25402e00165751f21f34b50"
+    },
+    "ROOT-ROUTE.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 967,
+      "sha256": "eaf5befdb7cc8c73de806a39d42768b65a625dccd4ec9e3df4692dde9d1831cf"
+    },
+    "SOURCE-REVIEW.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 18842,
+      "sha256": "8992325bdf7674b7e4610d0af7e8940bb8cb14835760c6cb01d271c7d7cda07e"
+    },
+    "TOOL-ORIGINS.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 527110,
+      "sha256": "a720f25803059bdd4963ff238f6d436eab13b4ce062eec67b8b3dafbb47d0b58"
+    },
+    "TOOLS.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 574882,
+      "sha256": "edf0654923642f065f07dfc43fbbedab28343edf32bbda889969f889b9561d35"
+    },
+    "TREE-PROOF.json": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9664,
+      "sha256": "90166b3238c9e51d2a31ae98ca9fdb8e8659f3270b5c6b4b4bd3baabc55e4a92"
+    },
+    "bind.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7781,
+      "sha256": "276379f23066e9e89768aed373d52abfe710b51659ab61590f96d7db173f7eed"
+    },
+    "common.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6324,
+      "sha256": "becffd50ad2f050c0a3704abd73bf7588e0b326be5343508a04bdecfe8bb0dd0"
+    },
+    "composition.json.gz": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1030591,
+      "sha256": "e9838bcac52a9447a439a5bcb1f3e09fb45ea5ea26447458469d6954ce762a4a"
+    },
+    "entry.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5216,
+      "sha256": "0647c7bef888901ec8addaa03d4675366ac1ef884a4121e1cb3887a5a051700c"
+    },
+    "fixtures.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 20055,
+      "sha256": "abb1b6c30715b2e516e36b56e77286a69b1dc5e585741cf4e8d828e1108076fb"
+    },
+    "mapping.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6550,
+      "sha256": "609ee45f74551b39fbb527f37f826be8d6a2340daecc23db40f5b29e31ed38f4"
+    },
+    "run.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11435,
+      "sha256": "7483ab5245c6b854a3193baf4c48db01f809e39039b4dc8d6fdeafebb329c2f2"
+    },
+    "series.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3446,
+      "sha256": "bcc5185b281ac496251301661f66b03cc293a3a0d0945b088e823b01cb9265dc"
+    },
+    "setup.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7573,
+      "sha256": "6c8b92bb067ae73f4a88697eea09b23d036a471cd577eac1200d64cc4b3ad304"
+    },
+    "types.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4321,
+      "sha256": "fffd42508c4361dcee7e5545e88eaf85ecc27f33ddd07d7f6ed2a04f4615f3a5"
+    },
+    "workspace.mjs": {
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5973,
+      "sha256": "8e1a9954e708e0c42a91a3acce86f5b3aefb6fccaceaa3afeb992e30b12e9c8a"
+    }
+  },
+  "runtimeExecution": 0
+}

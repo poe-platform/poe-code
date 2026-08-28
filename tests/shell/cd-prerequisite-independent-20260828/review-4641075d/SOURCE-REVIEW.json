@@ -1,0 +1,402 @@
+{
+  "stage": "after binding preseal3d817486; static candidate AST/byte review, not runtime pass",
+  "compiler": {
+    "version": "5.9.3",
+    "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+  },
+  "runtime": {
+    "commit": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+    "path": "src/shell/runtime.ts",
+    "blob": "d32239c31e5b4cdf11fd7863a407283119a209ec",
+    "sha256": "93c06908aec9d5d61d801657f99ab75122cadb6688f038e1941c587b4a8d4ed3",
+    "bytes": 137389
+  },
+  "baselineRuntime": {
+    "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "path": "src/shell/runtime.ts",
+    "blob": "bf41b4a97de4c20a0206abfd7b235cefd0aee1db",
+    "sha256": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169",
+    "bytes": 132362
+  },
+  "otherMembers": [
+    {
+      "name": "constructor",
+      "sha256": "456f810945ffb42ce36d363aebf2fb35e864ff5aee0cd32c9e7ebb6970b6fa31",
+      "baselineLine": 530,
+      "candidateLine": 647
+    },
+    {
+      "name": "rootCancellationAdmission",
+      "sha256": "ce76654998bdb95ccb910179d5bca39625476cb1033f88119385e83c5ab3a351",
+      "baselineLine": 547,
+      "candidateLine": 664
+    },
+    {
+      "name": "cancellationResourceLimit",
+      "sha256": "df32ef149700b390c5489c76ed72a9c8b8a501558b07a35a858c6bdb2571c93b",
+      "baselineLine": 556,
+      "candidateLine": 673
+    },
+    {
+      "name": "cancellationAdmission",
+      "sha256": "77fbb9f76ff8e14433d0e021846b9857ee34f79ab4b3ebb9b62094a665a0fb3b",
+      "baselineLine": 562,
+      "candidateLine": 679
+    },
+    {
+      "name": "observeRuntimeReturn",
+      "sha256": "2d1ee49ad5427483eeda8aa0b5ce617ca9e135a783dead8eb11664c17f1528ac",
+      "baselineLine": 570,
+      "candidateLine": 687
+    },
+    {
+      "name": "invokeChild",
+      "sha256": "c2bc89f5dde05996cc5da1bc40707470782e9a266e31a552313e5baf7ccc4bf9",
+      "baselineLine": 590,
+      "candidateLine": 707
+    },
+    {
+      "name": "clearOutcomeReport",
+      "sha256": "f552d83d7064085a3406e2af5fde92b2ceab08e3ee3a374e8846de6d61b98ba4",
+      "baselineLine": 669,
+      "candidateLine": 786
+    },
+    {
+      "name": "diagnostic",
+      "sha256": "6612c58d4901bbd6649f5eaf778efa716d224a67960753878b58261cd1a68be0",
+      "baselineLine": 673,
+      "candidateLine": 790
+    },
+    {
+      "name": "writeVariable",
+      "sha256": "9075de4b101e83595010fb26649a5e6a69c7ec8ed8cb6873ac5e1c06d8e91a51",
+      "baselineLine": 677,
+      "candidateLine": 794
+    },
+    {
+      "name": "syncGetopts",
+      "sha256": "1c30a7e0bba05b8efdab4123bf7f9962eac9d557c172157a64e485316d161bf8",
+      "baselineLine": 687,
+      "candidateLine": 804
+    },
+    {
+      "name": "reconcileGetopts",
+      "sha256": "79893e7b5050c39d2ccf66747a7ffcd584b80792039c24ff94731cc2f33bca75",
+      "baselineLine": 696,
+      "candidateLine": 813
+    },
+    {
+      "name": "unsetVariable",
+      "sha256": "1bd7d276ff22a2b703f93f43496872761d8f10c6f2a1abe58a37ba5e55202644",
+      "baselineLine": 700,
+      "candidateLine": 817
+    },
+    {
+      "name": "arithmeticVariables",
+      "sha256": "75469dca8723e22ef76faf90e91ba1e1d80bf6eaf17137da294efe5813d7d74b",
+      "baselineLine": 707,
+      "candidateLine": 824
+    },
+    {
+      "name": "run",
+      "sha256": "29f6e213d1157e8400cb942c117e267af6f38eddd864a323d49afe71376557e1",
+      "baselineLine": 711,
+      "candidateLine": 828
+    },
+    {
+      "name": "runUnit",
+      "sha256": "18c0eb245c4d3ea32d45cad1d5bbdf5c9d2880cc6eb77dadcd2fc5c27d445e46",
+      "baselineLine": 715,
+      "candidateLine": 832
+    },
+    {
+      "name": "script",
+      "sha256": "37514a1b5144855865c65e6acfc1ba15a85084ce4038527727e661b9674f9f73",
+      "baselineLine": 723,
+      "candidateLine": 840
+    },
+    {
+      "name": "pipeline",
+      "sha256": "5da7e8a38d4a894f3b211cc7dce4ceff8f6cb50173e093f41fdeae2cf2852772",
+      "baselineLine": 736,
+      "candidateLine": 853
+    },
+    {
+      "name": "runCommandIsolated",
+      "sha256": "c34cd5caeaae8690d475c1338eade88472d081d3d738aa1c1e14fa83ddaa29a1",
+      "baselineLine": 842,
+      "candidateLine": 959
+    },
+    {
+      "name": "errexit",
+      "sha256": "dd6b14a2c73ad9e8f5c4fc70d21a6d4478615e2750123fd5be70f9fe7430489b",
+      "baselineLine": 850,
+      "candidateLine": 967
+    },
+    {
+      "name": "command",
+      "sha256": "ad33db6d484e94e4c02312a055b9e4122405ec49797aa8b73ba34a640a1c470c",
+      "baselineLine": 855,
+      "candidateLine": 972
+    },
+    {
+      "name": "executeCommand",
+      "sha256": "831863bbac9e33465cf3cb84af6559ea874d3d1d0dd7524d3ba55890e9f64c41",
+      "baselineLine": 862,
+      "candidateLine": 979
+    },
+    {
+      "name": "loopBody",
+      "sha256": "5c3c50f95dd02876bfbaee8003d6c04fd53a97dde57483dea73cdbc298393bc6",
+      "baselineLine": 975,
+      "candidateLine": 1092
+    },
+    {
+      "name": "document",
+      "sha256": "f039fa5950ab11550c1acee8137a99402a52fbce3d2134c0d28ad185a5f7a3ff",
+      "baselineLine": 984,
+      "candidateLine": 1101
+    },
+    {
+      "name": "redirect",
+      "sha256": "f77ed553dbadb43c40a6757f16aa8d83969a04d8db274d3f009ca8a9c534181d",
+      "baselineLine": 1006,
+      "candidateLine": 1123
+    },
+    {
+      "name": "fileOperation",
+      "sha256": "cabc041309c2db6f17689717bcff0ff926183c49f74e6c1a5fb9971502d30d01",
+      "baselineLine": 1145,
+      "candidateLine": 1262
+    },
+    {
+      "name": "assignment",
+      "sha256": "e9ea5fbd9e0ec8ba702bb675698462fcda805184bd9f4f811f91e450f9adacdb",
+      "baselineLine": 1153,
+      "candidateLine": 1270
+    },
+    {
+      "name": "simple",
+      "sha256": "45b2e71ff1866e5a1365771afffba785d29cdc5eab1c25141244272a8fe1d5af",
+      "baselineLine": 1161,
+      "candidateLine": 1278
+    },
+    {
+      "name": "dispatch",
+      "sha256": "af608853c65f3af463d6245bcd5a311ba9596ff1d3d590586c1237899e4211a5",
+      "baselineLine": 1247,
+      "candidateLine": 1364
+    },
+    {
+      "name": "dispatchScoped",
+      "sha256": "02468a8c413bf42fced0e557b472fbde53c72e9e486b4a725e7b35eab1dc4789",
+      "baselineLine": 1259,
+      "candidateLine": 1376
+    },
+    {
+      "name": "internalDiscovery",
+      "sha256": "a33789739f4eaef6c5606674fb3348cd37cafa5e3ad907672e6f5e0da7aff9b7",
+      "baselineLine": 1377,
+      "candidateLine": 1494
+    },
+    {
+      "name": "discoveryBuiltin",
+      "sha256": "2067da0fcca005f863eeb2e9c5ab0a47f751c9bd9e04c7a75f7e4bfdf3ed36c1",
+      "baselineLine": 1387,
+      "candidateLine": 1504
+    },
+    {
+      "name": "searchPath",
+      "sha256": "ea5204a4a633c276c59183b6a782f439b917f6492b85894c277cf38aafdc6161",
+      "baselineLine": 1456,
+      "candidateLine": 1573
+    },
+    {
+      "name": "searchPaths",
+      "sha256": "a2d9f2d27eccfeb1eb1317261eb43f2b4b51fbd6e5d3c6a68d7acec8f65efe24",
+      "baselineLine": 1460,
+      "candidateLine": 1577
+    },
+    {
+      "name": "processState",
+      "sha256": "399e85224fb8a3afab7767046c071ab0fcd29cf9364f314ba611ee631f32c853",
+      "baselineLine": 1492,
+      "candidateLine": 1609
+    },
+    {
+      "name": "interpreter",
+      "sha256": "1d3e5b0d622dcb0241d300d36d8283f9bbab2fd33211572624081cbf06ff4050",
+      "baselineLine": 1506,
+      "candidateLine": 1623
+    },
+    {
+      "name": "syntaxFailure",
+      "sha256": "e5da4d30996d68474dece7b1cf76bfa8b6fe0b837ace5bca0f365fcc98d5e283",
+      "baselineLine": 1540,
+      "candidateLine": 1657
+    },
+    {
+      "name": "runCommandString",
+      "sha256": "c3e02252dd357bde24adfda2cf4b6bbc282217e4859a6bfb85ce6c5e2c30c8d3",
+      "baselineLine": 1555,
+      "candidateLine": 1672
+    },
+    {
+      "name": "sourceText",
+      "sha256": "d25ea1d9b95129679f0931c87f15acc7121950dc0c5e49cb8595f688ca2a3b64",
+      "baselineLine": 1577,
+      "candidateLine": 1694
+    },
+    {
+      "name": "runStandardInput",
+      "sha256": "ce084e2acb4208d3b108378ee6401fff894061d60164dc8fa5af0a97e2c386cc",
+      "baselineLine": 1583,
+      "candidateLine": 1700
+    },
+    {
+      "name": "envShebangCommand",
+      "sha256": "7263dec629cc7c3e09230942c35376e9f70bc5e6df5343adefd6cd9aea314ae4",
+      "baselineLine": 1615,
+      "candidateLine": 1732
+    },
+    {
+      "name": "shebangState",
+      "sha256": "504daa0be3ca79e9ce217fa7424a1f04c651ab4a68c2a1a4321fcf06c9a0a711",
+      "baselineLine": 1617,
+      "candidateLine": 1734
+    },
+    {
+      "name": "shebangStage",
+      "sha256": "37cda9f47941539ddc20ba881ce2a814aeb7f26cf61f319a0511a2b80d6d2e06",
+      "baselineLine": 1630,
+      "candidateLine": 1747
+    },
+    {
+      "name": "shebangTarget",
+      "sha256": "958f70212b8414fa70d4045b63114a1d445820d3662b11740e9121985710a412",
+      "baselineLine": 1697,
+      "candidateLine": 1814
+    },
+    {
+      "name": "shebangTargetScoped",
+      "sha256": "cde55fb821e8c71970b979bd1e92f86a26f1b111cc3913fd8fd9434e1aa8743a",
+      "baselineLine": 1713,
+      "candidateLine": 1830
+    },
+    {
+      "name": "envShebang",
+      "sha256": "a7130a4e2f889f876aade3bcfb1fe5e712dc45fecd7146da1edbc1d08d2c8eed",
+      "baselineLine": 1751,
+      "candidateLine": 1868
+    },
+    {
+      "name": "scriptFile",
+      "sha256": "3adc20c2e721753171dfe60c0587e3c3daa87f7819c5f0331543127ea0f852b0",
+      "baselineLine": 1782,
+      "candidateLine": 1899
+    },
+    {
+      "name": "runCurrentText",
+      "sha256": "abc9f4bcc76bba179a88a24fed7935206471fed668724c857106e3a8f8a919e4",
+      "baselineLine": 1848,
+      "candidateLine": 1965
+    },
+    {
+      "name": "evalBuiltin",
+      "sha256": "82cc599f9d911a62e8d774f35a2a1a90d424e6af87789c19962f7cdde407bd16",
+      "baselineLine": 1872,
+      "candidateLine": 1989
+    },
+    {
+      "name": "sourceBuiltin",
+      "sha256": "60460163cfbffc88cc559e6e12818918be9668fe77e547d2dba11fecfc98f26f",
+      "baselineLine": 1892,
+      "candidateLine": 2009
+    },
+    {
+      "name": "invoke",
+      "sha256": "faac77b328124d0149d54bc6624316af8a22e24908f6dbe4ee208938b92fc462",
+      "baselineLine": 1973,
+      "candidateLine": 2090
+    },
+    {
+      "name": "invokeScoped",
+      "sha256": "f7220bb73d15ba4ffa21bc0cd7ed265836639f59e6237a1474ea153fa72645f8",
+      "baselineLine": 1983,
+      "candidateLine": 2100
+    },
+    {
+      "name": "getoptsBuiltin",
+      "sha256": "42675a31e92958d84be1b6ccb198742bb21e80942d1f6808e64c0bf09dfd5a53",
+      "baselineLine": 2018,
+      "candidateLine": 2135
+    },
+    {
+      "name": "words",
+      "sha256": "88ae8f1ea247d4de761e82a83763e472847a18a1800470249e40afe862934320",
+      "baselineLine": 2298,
+      "candidateLine": 2419
+    },
+    {
+      "name": "part",
+      "sha256": "595b1c00029cd6a812ad4aeff3aa0e7a66277a8c1d09139fed6ced974c8fe7d4",
+      "baselineLine": 2307,
+      "candidateLine": 2428
+    },
+    {
+      "name": "substring",
+      "sha256": "341d8484feb70b116194a3e0ff0ead6b29f71c481c34e2cf52d6056e9bc36a6a",
+      "baselineLine": 2370,
+      "candidateLine": 2491
+    },
+    {
+      "name": "parameterPattern",
+      "sha256": "24bfc9ca64983bd298e855269dd8cb4caab2c879f3a9996c450ca326f5508e51",
+      "baselineLine": 2420,
+      "candidateLine": 2541
+    },
+    {
+      "name": "word",
+      "sha256": "87819ec37d6472fd493bf8859ed9789465c65f9106af90938d43d3625e452342",
+      "baselineLine": 2491,
+      "candidateLine": 2612
+    },
+    {
+      "name": "glob",
+      "sha256": "83f2382d43ee53579697fea4f0671ebca31bedf90d7c07a34417608c5cd5c794",
+      "baselineLine": 2564,
+      "candidateLine": 2685
+    }
+  ],
+  "nonCdBuiltinStatements": 13,
+  "nonCdBuiltinStatementsByteIdentical": true,
+  "otherTopLevelStatementsIdenticalExceptFsErrorImport": true,
+  "helpers": [
+    {
+      "name": "cdUtf8Width",
+      "sha256": "6303058583704ace5f4c6d65fc0111abc35926a5979d0d24f2fdf720c14b5ca7",
+      "line": 343,
+      "text": "function cdUtf8Width(codePoint: number): number {\n  return codePoint <= 0x7f ? 1 : codePoint <= 0x7ff ? 2 : codePoint <= 0xffff ? 3 : 4;\n}"
+    },
+    {
+      "name": "cdDiagnostic",
+      "sha256": "cf9a10bbf9968488844145f54a02f11378584530048dadc8d5ce5392b180539b",
+      "line": 347,
+      "text": "function cdDiagnostic(fragments: readonly string[]): string {\n  const chunks: string[] = [];\n  let bytes = 0;\n  let suffixBoundary = 0;\n  let units = 0;\n  for (const fragment of fragments) {\n    let index = 0;\n    while (index < fragment.length) {\n      const codePoint = fragment.codePointAt(index)!;\n      const width = cdUtf8Width(codePoint);\n      if (bytes + width > 65_792) {\n        chunks.push(fragment.slice(0, index));\n        return `${chunks.join(\"\").slice(0, suffixBoundary)} [truncated]`;\n      }\n      bytes += width;\n      const length = codePoint > 0xffff ? 2 : 1;\n      index += length;\n      units += length;\n      if (bytes <= 65_780) suffixBoundary = units;\n    }\n    chunks.push(fragment);\n  }\n  return chunks.join(\"\");\n}"
+    },
+    {
+      "name": "CdLookup",
+      "sha256": "004de03121be35ecbd2384bb26904684b813d6b69f06f452dbbf2871103717b0",
+      "line": 372,
+      "text": "class CdLookup {\n  private spent = 0;\n  private probes = 0;\n\n  constructor(private readonly signal: AbortSignal) {}\n\n  private async charge(amount: number): Promise<void> {\n    this.signal.throwIfAborted();\n    if (amount > 8_388_608 - this.spent) throw new Error(\"cd: helper work limit exceeded\");\n    while (amount > 0) {\n      const step = Math.min(amount, 128 - this.spent % 128);\n      this.spent += step;\n      amount -= step;\n      if (this.spent % 128 === 0) {\n        this.signal.throwIfAborted();\n        await interruptible(new Promise<void>(resolve => setImmediate(resolve)), this.signal);\n        this.signal.throwIfAborted();\n      }\n    }\n  }\n\n  private async scan(value: string, search = false): Promise<{\n    bytes: number; components: { start: number; end: number; bytes: number }[];\n  }> {\n    let bytes = 0;\n    let start = 0;\n    let startBytes = 0;\n    let slots = 1;\n    const components: { start: number; end: number; bytes: number }[] = [];\n    for (let index = 0; index < value.length;) {\n      const codePoint = value.codePointAt(index)!;\n      const width = cdUtf8Width(codePoint);\n      if (bytes + width > 65_536) throw new Error(search ? \"cd: CDPATH exceeds 65536 UTF-8 bytes\" : \"cd: path exceeds 65536 UTF-8 bytes\");\n      if (search && codePoint === 58 && ++slots > 4096) throw new Error(\"cd: CDPATH exceeds 4096 components\");\n      await this.charge(width);\n      if (search && codePoint === 58) {\n        components.push({ start, end: index, bytes: bytes - startBytes });\n        start = index + 1;\n        startBytes = bytes + width;\n      }\n      bytes += width;\n      index += codePoint > 0xffff ? 2 : 1;\n    }\n    if (search) components.push({ start, end: value.length, bytes: bytes - startBytes });\n    return { bytes, components };\n  }\n\n  async find(fs: FileSystem, cwd: string, target: string, cdpath: string | undefined): Promise<{ path: string; print: boolean }> {\n    const targetBytes = (await this.scan(target)).bytes;\n    const absolute = target.startsWith(\"/\");\n    const cwdBytes = absolute ? 0 : (await this.scan(cwd)).bytes;\n    const eligible = !absolute && target !== \".\" && target !== \"..\" && !target.startsWith(\"./\") && !target.startsWith(\"../\");\n    const search = eligible && cdpath ? await this.scan(cdpath, true) : undefined;\n    const probe = async (component: string, componentBytes: number): Promise<string> => {\n      const rawBytes = absolute ? targetBytes : component.startsWith(\"/\") ? componentBytes + 1 + targetBytes\n        : cwdBytes + 1 + (component ? componentBytes + 1 : 0) + targetBytes;\n      if (rawBytes > 65_536) throw new Error(\"cd: path exceeds 65536 UTF-8 bytes\");\n      await this.charge(2 * rawBytes);\n      const raw = absolute ? target : component.startsWith(\"/\") ? `${component}/${target}`\n        : component ? `${cwd}/${component}/${target}` : `${cwd}/${target}`;\n      const path = resolvePath(cwd, raw);\n      await this.scan(path);\n      this.signal.throwIfAborted();\n      if (++this.probes > 4097) throw new Error(\"cd: probe limit exceeded\");\n      await this.charge(1);\n      this.signal.throwIfAborted();\n      const stat = await fs.stat(path, { signal: this.signal });\n      this.signal.throwIfAborted();\n      if (stat.type !== \"directory\") throw new FsError(\"ENOTDIR\", { path });\n      await this.charge(1);\n      this.signal.throwIfAborted();\n      await fs.access(path, ACCESS_MODES.X_OK, { signal: this.signal });\n      this.signal.throwIfAborted();\n      return path;\n    };\n    for (const component of search?.components ?? []) {\n      try {\n        const path = await probe(cdpath!.slice(component.start, component.end), component.bytes);\n        return { path, print: component.start !== component.end };\n      } catch (error) {\n        this.signal.throwIfAborted();\n        if (!(error instanceof FsError) || ![\"ENOENT\", \"ENOTDIR\", \"EACCES\"].includes(error.code)) throw error;\n      }\n    }\n    return { path: await probe(\"\", 0), print: false };\n  }\n}"
+    }
+  ],
+  "cdBranch": "if (command === \"cd\") {\n      this.signal.throwIfAborted();\n      if (args.length > 1) { await writeText(stderr, \"cd: too many arguments\\n\"); return 1; }\n      const target = args[0] === \"-\" ? state.variables.OLDPWD : (args[0] ?? state.variables.HOME);\n      if (target === undefined) { await writeText(stderr, `cd: ${args[0] === \"-\" ? \"OLDPWD\" : \"HOME\"} not set\\n`); return 1; }\n      let selected: { path: string; print: boolean };\n      try {\n        selected = await new CdLookup(this.signal).find(this.fs, state.cwd, target || \".\", state.variables.CDPATH);\n      } catch (error) {\n        this.signal.throwIfAborted();\n        const description = filesystemDiagnostic(error, \"\");\n        diagnose?.(error, cdDiagnostic(description ? [\"cd: \", target, description] : [message(error)]));\n        throw error;\n      }\n      this.signal.throwIfAborted();\n      const { path } = selected;\n      this.writeVariable(state, \"OLDPWD\", state.cwd);\n      state.cwd = path;\n      this.writeVariable(state, \"PWD\", path);\n      state.exported.add(\"PWD\");\n      state.exported.add(\"OLDPWD\");\n      if (selected.print || args[0] === \"-\") await writeText(stdout, `${path}\\n`);\n      return 0;\n    }",
+  "facts": [
+    "No Budget/state initializer/clone/writeVariable/prefix/error/caller-cancellation/cleanup member change",
+    "OLDPWD checked write precedes cwd; PWD checked write follows cwd; exports precede awaited print",
+    "Typed continuation only FsError ENOENT/ENOTDIR/EACCES; fresh unconditional final fallback",
+    "Raw reservation2R before join; normalized scanN then stat/access charges; subtraction-first quota check and every128 boundary yields",
+    "cdDiagnostic is reached by injected EIO.message payload through actual cd catch, not a helper simulation"
+  ]
+}

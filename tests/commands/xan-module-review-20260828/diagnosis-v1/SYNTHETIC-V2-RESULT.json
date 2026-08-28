@@ -1,0 +1,15 @@
+{
+  "classification": "SYNTHETIC_ONLY_EXECUTION_RECEIPT_V2",
+  "sealCommit": "cfa3f0457f20474c5f58d2744f64cee2e0f71ed7",
+  "started": "2026-08-28T07:02:58.001Z",
+  "ended": "2026-08-28T07:03:00.449Z",
+  "status": 0,
+  "signal": null,
+  "stdout": "{\n  \"classification\": \"SEALED_SYNTHETIC_MECHANICAL_QUALIFICATION_ONLY\",\n  \"sealCommit\": \"cfa3f0457f20474c5f58d2744f64cee2e0f71ed7\",\n  \"checks\": [\n    {\n      \"name\": \"filephase-all-15-frozen-rejections-retain-selector-tokens\",\n      \"status\": \"PASS\",\n      \"credit\": \"SYNTHETIC_VERIFIER_ONLY\"\n    },\n    {\n      \"name\": \"filephase-negative-missing-or-duplicate-double-dash\",\n      \"status\": \"PASS\",\n      \"credit\": \"SYNTHETIC_VERIFIER_ONLY\"\n    },\n    {\n      \"name\": \"all-existing-runtime-assertion-lines-unchanged\",\n      \"status\": \"PASS\",\n      \"credit\": \"SYNTHETIC_VERIFIER_ONLY\"\n    },\n    {\n      \"name\": \"middleware-result-loss-reproduced-and-fixed-synthetic-workflow\",\n      \"status\": \"PASS\",\n      \"credit\": \"SYNTHETIC_VERIFIER_ONLY\"\n    },\n    {\n      \"name\": \"origin-parent-env-middleware-return-same-promise\",\n      \"status\": \"PASS\",\n      \"credit\": \"SYNTHETIC_VERIFIER_ONLY\"\n    },\n    {\n      \"name\": \"provenance-lifecycle-middleware-preserves-route-and-registers-first\",\n      \"status\": \"PASS\",\n      \"credit\": \"SYNTHETIC_VERIFIER_ONLY\"\n    },\n    {\n      \"name\": \"provenance-bridge-native-promise-identity-not-reason-equality\",\n      \"status\": \"PASS\",\n      \"credit\": \"SYNTHETIC_VERIFIER_ONLY\"\n    },\n    {\n      \"name\": \"eight-equivalent-contexts-old-rejects-new-accepts-no-raw-replay\",\n      \"status\": \"PASS\",\n      \"credit\": \"SYNTHETIC_VERIFIER_ONLY\"\n    },\n    {\n      \"name\": \"matcher-negatives-empty-oversize-invalid-utf8-wrong-command-argv\",\n      \"status\": \"PASS\",\n      \"credit\": \"SYNTHETIC_VERIFIER_ONLY\"\n    },\n    {\n      \"name\": \"matcher-negatives-wrong-condition-unrelated-lines-singular-option\",\n      \"status\": \"PASS\",\n      \"credit\": \"SYNTHETIC_VERIFIER_ONLY\"\n    },\n    {\n      \"name\": \"held-predicates-and-inherited-family-guard-unchanged\",\n      \"status\": \"PASS\",\n      \"credit\": \"SYNTHETIC_VERIFIER_ONLY\"\n    },\n    {\n      \"name\": \"transform-negative-foreign-path-drift-and-repeat-application\",\n      \"status\": \"PASS\",\n      \"credit\": \"SYNTHETIC_VERIFIER_ONLY\"\n    },\n    {\n      \"name\": \"static-f11-byte-and-arithmetic-controls-not-product-allocation\",\n      \"status\": \"PASS\",\n      \"credit\": \"SYNTHETIC_VERIFIER_ONLY\"\n    }\n  ],\n  \"productChildrenStarted\": 0,\n  \"ownedChildrenRemaining\": 0,\n  \"candidateRuns\": 0,\n  \"nativeRuns\": 0,\n  \"actualCaseRescores\": 0,\n  \"admissionGuardChanges\": 0,\n  \"appendAwareInputCheck\": true\n}\n",
+  "stderr": "",
+  "stdoutSha256": "27243173efdaca957c1ad7f83d1a293823a6fe600124f6d101ae8146ceb3bd85",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "productRuns": 0,
+  "nativeRuns": 0,
+  "ownedChildrenRemaining": 0
+}

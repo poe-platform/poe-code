@@ -1,0 +1,25 @@
+{
+  "role": "READ_ONLY_TEXT_DIFF_NOT_PRODUCT_EXECUTION",
+  "reports": [
+    {
+      "file": "guards.mjs",
+      "status": 1,
+      "stderr": ""
+    },
+    {
+      "file": "type-worker.mjs",
+      "status": 1,
+      "stderr": ""
+    },
+    {
+      "file": "synthetic-check.mjs",
+      "status": 1,
+      "stderr": ""
+    },
+    {
+      "file": "verify-recipe.mjs",
+      "status": 0,
+      "stderr": ""
+    }
+  ]
+}

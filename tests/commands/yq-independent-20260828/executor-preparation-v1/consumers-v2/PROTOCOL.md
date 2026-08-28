@@ -6,6 +6,10 @@ Implemented Through: `409449136ae1adc252ff6e205a6bb5785d113d0f`
 
 Purpose: Correct the consumer harness source-origin check without changing product policy or the other frozen guards.
 
+## Normative Language
+
+MUST and MUST NOT identify required harness behavior. MAY identifies an allowed data-only operation. The original preseal commit retains the pre-reproduction document; this heading clarifies notation without changing any control or source policy.
+
 ## Problem Statement
 
 The immutable v1 guard at `consumers/guards.mjs:200` enumerates the entire candidate commit's `src`, README, package and two configuration paths, then compares their content at line 208 to a separately composed baseline-plus-length-plus-new-files map. Static Git inspection finds eight changed baseline paths and thirty unselected paths in the authorized candidate's global tree. This is an implementation hypothesis pending the presealed raw v1 refusal capture, not a product failure claim.

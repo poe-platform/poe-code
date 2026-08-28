@@ -1,0 +1,92 @@
+{
+  "schema": 2,
+  "role": "READ_ONLY_GIT_TREE_METADATA_BOUNDARY_NOT_ACCEPTANCE_OF_UNSELECTED_CONTENT",
+  "candidateCommit": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+  "selectedBaseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+  "wholeCandidateScopedEntries": 301,
+  "selectedCompositionEntries": 271,
+  "baselineMismatches": [
+    {
+      "path": "README.md",
+      "selectedOrigin": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "selectedBlob": "c3df8bd958d07298f5df85e0a81ec73589123742",
+      "unselectedCandidateBlob": "534c7add8cd27e24472ef6ef8622f594f0eba255"
+    },
+    {
+      "path": "package.json",
+      "selectedOrigin": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "selectedBlob": "161191ea9e8e56bbea0e74b48af54ee57b646015",
+      "unselectedCandidateBlob": "c4a95d039e69a7c437b559f28a8e14204c0ecda3"
+    },
+    {
+      "path": "src/fs/webdav/README.md",
+      "selectedOrigin": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "selectedBlob": "fe3bb3ae555fa9e221cb64076a1410af8702b1c2",
+      "unselectedCandidateBlob": "94f6f2e6d83d76cbf5f0bd8b38994ca3f4e81e78"
+    },
+    {
+      "path": "src/fs/webdav/webdav.ts",
+      "selectedOrigin": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "selectedBlob": "a9c2fa23e94bf058340028a4aa0eda27771163c9",
+      "unselectedCandidateBlob": "cb5454597ff3ee2d87f55b18c467d947020ed677"
+    },
+    {
+      "path": "src/index.ts",
+      "selectedOrigin": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "selectedBlob": "ff7ab9b4e4a2f2a25eb0fae8db1d3149c514ad16",
+      "unselectedCandidateBlob": "f54199ce30c02eaa15a6956434df3ff0163d17c4"
+    },
+    {
+      "path": "src/plugins/index.ts",
+      "selectedOrigin": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "selectedBlob": "f84f2acb218c9d6227abe9dd21dedaf5e6c96c85",
+      "unselectedCandidateBlob": "1741b55650062b6ae282d410d20969cac283fa8e"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "selectedOrigin": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "selectedBlob": "bf41b4a97de4c20a0206abfd7b235cefd0aee1db",
+      "unselectedCandidateBlob": "9ff4aa32354f15901ed18e7e57aa30f812d34b14"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "selectedOrigin": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "selectedBlob": "0b96a82f4ec29da4dbdd447806cca6a2f514311a",
+      "unselectedCandidateBlob": "0ebf7efa77df77707d594fa55c89af4db891ee87"
+    }
+  ],
+  "unselectedCandidatePaths": [
+    "src/commands/timeout/README.md",
+    "src/commands/timeout/duration.ts",
+    "src/commands/timeout/index.ts",
+    "src/commands/timeout/scheduler.ts",
+    "src/commands/xan/DESIGN.md",
+    "src/commands/xan/README.md",
+    "src/commands/xan/argv.ts",
+    "src/commands/xan/budget.ts",
+    "src/commands/xan/commands.ts",
+    "src/commands/xan/csv.ts",
+    "src/commands/xan/design-evidence/BYTE-TABLE-V2.md",
+    "src/commands/xan/design-evidence/BYTE-TABLE-V3.md",
+    "src/commands/xan/design-evidence/FINAL-BINDING-V3.json",
+    "src/commands/xan/design-evidence/HANDOFF-V2.md",
+    "src/commands/xan/design-evidence/HANDOFF-V3.md",
+    "src/commands/xan/design-evidence/LOCAL-BINDING.json",
+    "src/commands/xan/design-evidence/PROFILE-V2.md",
+    "src/commands/xan/design-evidence/PROFILE-V3.md",
+    "src/commands/xan/design-evidence/RECEIPT.md",
+    "src/commands/xan/design-evidence/REVIEW-BINDING-V2.json",
+    "src/commands/xan/design-evidence/SELECTOR-BINDING-V4.json",
+    "src/commands/xan/design-evidence/SELECTOR-POLICY-V4.md",
+    "src/commands/xan/design-evidence/SOURCE-MAP.md",
+    "src/commands/xan/index.ts",
+    "src/commands/xan/io.ts",
+    "src/commands/xan/options.ts",
+    "src/commands/xan/selector.ts",
+    "src/commands/xan/sort.ts",
+    "src/commands/xan/writer.ts",
+    "src/commands/yq/DESIGN.md"
+  ],
+  "qualification": "Only Git tree metadata for unselected paths is recorded here. V2 composition never consumes their content or treats this global tree as admitted."
+}

@@ -1,0 +1,162 @@
+diff --git a/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/guards.mjs b/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs
+index 2a563884..ba1f682d 100644
+--- a/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/guards.mjs
++++ b/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs
+@@ -5,6 +5,9 @@ import { chmodSync, copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync,
+ import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+ import { fileURLToPath, pathToFileURL } from 'node:url';
+ 
++import { fixtureRoot, verifyFrozenV1 } from './frozen-v1.mjs';
++export { fixtureRoot } from './frozen-v1.mjs';
++
+ export const preparationRoot = dirname(fileURLToPath(import.meta.url));
+ export const workspaceRoot = resolve(preparationRoot, '../../../../..');
+ const authorized = new WeakSet();
+@@ -119,12 +122,13 @@ export function readHashedJson(path, expectedHash) {
+ }
+ 
+ function readLocal(name) {
+-  return JSON.parse(readFileSync(join(preparationRoot, name), 'utf8'));
++  return JSON.parse(readFileSync(join(fixtureRoot, name), 'utf8'));
+ }
+ 
+ export function verifyPreseal() {
++  verifyFrozenV1();
+   const seal = readLocal('PRESEAL.json');
+-  for (const [path, hash] of Object.entries(seal.files)) requireFact(sha256(readFileSync(join(preparationRoot, safePath(path)))) === hash, 'PRESEAL_HASH', path);
++  for (const [path, hash] of Object.entries(seal.files)) requireFact(sha256(readFileSync(join(fixtureRoot, safePath(path)))) === hash, 'PRESEAL_HASH', path);
+   return seal;
+ }
+ 
+@@ -196,14 +200,38 @@ export function authorizeSources(receiptPath, receiptHash) {
+   for (const path of Object.keys(receipt.sourceAdditions)) requireFact(!Object.hasOwn(baseline, path), 'SOURCE_BINDING', path);
+   const expected = Object.fromEntries(Object.entries(baseline).map(([path, value]) => [path, { sha256: value.sha256, bytes: value.bytes, mode: value.mode }]));
+   Object.assign(expected, receipt.sourceAdditions);
++  const rootAuthority = JSON.parse(readFileSync(join(preparationRoot, 'SOURCE-AUTHORITY.json'), 'utf8'));
++  requireFact(rootAuthority.baseline === selected.sourceBase && rootAuthority.acceptedLength === selected.acceptedLength && receipt.candidateCommit === rootAuthority.candidateCommit, 'SOURCE_BINDING', 'selected origin');
++  const manifestBytes = git('show', `${rootAuthority.evidenceCommit}:${rootAuthority.manifest.path}`);
++  requireFact(sha256(manifestBytes) === rootAuthority.manifest.sha256, 'SOURCE_BINDING', 'root manifest');
++  const sourceManifest = JSON.parse(manifestBytes);
++  requireFact(sourceManifest.baseline === selected.sourceBase && sourceManifest.acceptedLength === selected.acceptedLength && sourceManifest.sourceCommit === receipt.candidateCommit, 'SOURCE_BINDING', 'manifest origin');
++  const newSources = sourceManifest.files.filter(source => source.path.startsWith('src/commands/yq/') || source.path === 'src/commands/structured/query-core.ts');
++  requireFact(canonical(newSources) === canonical(rootAuthority.newSources), 'SOURCE_BINDING', 'root write-set');
++  const newDescriptors = Object.fromEntries(newSources.map(source => [source.path, { sha256: source.sha256, bytes: source.bytes, mode: parseInt(source.mode, 8) & 4095 }]));
++  assertSourceMap(receipt.sourceAdditions, newDescriptors);
+   const actual = {};
+-  const rows = git('ls-tree', '-r', '-z', receipt.candidateCommit, '--', 'src', 'package.json', 'README.md', 'tsconfig.json', 'tsconfig.build.json').toString().split('\0').filter(Boolean);
++  const rows = git('ls-tree', '-r', '-z', selected.sourceBase, '--', 'src', 'package.json', 'README.md', 'tsconfig.json', 'tsconfig.build.json').toString().split('\0').filter(Boolean);
++  requireFact(canonical(rows.map(row => row.split('\t')[1]).sort()) === canonical(Object.keys(baseline).sort()), 'SOURCE_BINDING', 'baseline selection membership');
+   for (const row of rows) {
+     const [metadata, path] = row.split('\t');
+-    const [mode, type, blob] = metadata.split(' ');
+-    requireFact(mode === '100644' && type === 'blob', 'SOURCE_BINDING', path);
++    const origin = path === rootAuthority.interpreter.path ? selected.acceptedLength : selected.sourceBase;
++    const selectedRow = path === rootAuthority.interpreter.path ? git('ls-tree', '-z', origin, '--', path).toString().split('\0').filter(Boolean) : [row];
++    requireFact(selectedRow.length === 1 && selectedRow[0].split('\t')[1] === path, 'SOURCE_BINDING', path);
++    const [mode, type, blob] = (path === rootAuthority.interpreter.path ? selectedRow[0].split('\t')[0] : metadata).split(' ');
++    requireFact(mode === '100644' && type === 'blob' && baseline[path].revision === origin && baseline[path].blob === blob, 'SOURCE_BINDING', path);
+     const bytes = git('cat-file', 'blob', blob);
+     actual[path] = { sha256: sha256(bytes), bytes: bytes.length, mode: 420 };
++    if (path === rootAuthority.interpreter.path) requireFact(blob === rootAuthority.interpreter.blob && actual[path].sha256 === rootAuthority.interpreter.sha256, 'SOURCE_BINDING', 'accepted length blob');
++  }
++  for (const source of newSources) {
++    const selectedRows = git('ls-tree', '-z', receipt.candidateCommit, '--', source.path).toString().split('\0').filter(Boolean);
++    requireFact(selectedRows.length === 1 && selectedRows[0].split('\t')[1] === source.path, 'SOURCE_BINDING', source.path);
++    const [mode, type, blob] = selectedRows[0].split('\t')[0].split(' ');
++    requireFact(mode === '100644' && type === 'blob' && blob === source.blob && mode === source.mode && !Object.hasOwn(baseline, source.path), 'SOURCE_BINDING', source.path);
++    const bytes = git('cat-file', 'blob', blob);
++    actual[source.path] = { sha256: sha256(bytes), bytes: bytes.length, mode: 420 };
++    requireFact(canonical(actual[source.path]) === canonical(newDescriptors[source.path]), 'SOURCE_BINDING', source.path);
+   }
+   assertSourceMap(actual, expected);
+   const expectedTree = sourceOnly ? null : expectedPackage(receipt, readLocal('BASELINE-PACKAGE.json'), selected.readme);
+diff --git a/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/type-worker.mjs b/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/type-worker.mjs
+index fc1da911..73a7701f 100644
+--- a/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/type-worker.mjs
++++ b/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/type-worker.mjs
+@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
+ import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+ import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
+ import { pathToFileURL } from 'node:url';
+-import { assertBound, assertPublicAdmission, authorizeCandidate, canonical, copyRegularTree, inspectTree, materializeCandidate, preparationRoot, regularRoot, requireFact, sha256, verifyPreseal, within, workspaceRoot } from './guards.mjs';
++import { assertBound, assertPublicAdmission, authorizeCandidate, canonical, copyRegularTree, fixtureRoot, inspectTree, materializeCandidate, preparationRoot, regularRoot, requireFact, sha256, verifyPreseal, within, workspaceRoot } from './guards.mjs';
+ 
+ export function compilerTreeIdentity(root) {
+   const tree = inspectTree(root);
+@@ -71,7 +71,7 @@ export function runDeclarationConsumers(binding, evidenceRoot, mode = 'direct')
+   regularRoot(dirname(evidenceRoot));
+   requireFact(!existsSync(evidenceRoot), 'EVIDENCE_EXISTS');
+   mkdirSync(evidenceRoot, { mode: 493 });
+-  const selected = JSON.parse(readFileSync(join(preparationRoot, 'SELECTED.json')));
++  const selected = JSON.parse(readFileSync(join(fixtureRoot, 'SELECTED.json')));
+   const assertNode = () => requireFact(process.execPath === selected.tools.node.path && process.version === selected.tools.node.version && sha256(readFileSync(process.execPath)) === selected.tools.node.sha256, 'COMPILER_TOOL');
+   assertNode();
+   const toolRoot = join(evidenceRoot, 'tools');
+@@ -87,7 +87,7 @@ export function runDeclarationConsumers(binding, evidenceRoot, mode = 'direct')
+     requireFact(canonical(compilerTreeIdentity(destination)) === canonical({ sha256: pin.sha256, entries: pin.entries }), 'COMPILER_TOOL', name);
+     copied[name] = destination;
+   }
+-  const jobs = JSON.parse(readFileSync(join(preparationRoot, 'JOBS.json'))).jobs;
++  const jobs = JSON.parse(readFileSync(join(fixtureRoot, 'JOBS.json'))).jobs;
+   const facts = [];
+   const yqDeclaration = join(binding.root, authority.receipt.entries.yq.replace(/\.js$/u, '.d.ts'));
+   const contractsDeclaration = join(binding.root, authority.receipt.entries.contracts.replace(/\.js$/u, '.d.ts'));
+@@ -100,7 +100,7 @@ export function runDeclarationConsumers(binding, evidenceRoot, mode = 'direct')
+       const fixture = join(evidenceRoot, `${job.name}.mts`);
+       const bindings = { YQ: relative(evidenceRoot, yqDeclaration).replace(/\.d\.ts$/u, '.js'), CONTRACTS: relative(evidenceRoot, contractsDeclaration).replace(/\.d\.ts$/u, '.js') };
+       for (const key of Object.keys(bindings)) if (!bindings[key].startsWith('.')) bindings[key] = './' + bindings[key];
+-      writeFileSync(fixture, renderFixture(readFileSync(join(preparationRoot, job.fixture), 'utf8'), bindings), { flag: 'wx', mode: 420 });
++      writeFileSync(fixture, renderFixture(readFileSync(join(fixtureRoot, job.fixture), 'utf8'), bindings), { flag: 'wx', mode: 420 });
+       const args = [join(copied.typescript, 'lib/tsc.js'), '--target', 'ES2023', '--lib', 'ES2023', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--strict', '--exactOptionalPropertyTypes', '--noUncheckedIndexedAccess', '--verbatimModuleSyntax', '--forceConsistentCasingInFileNames', '--skipLibCheck', 'false', '--noEmit', '--types', 'node', '--typeRoots', typeRoots, '--pretty', 'false', '--listFiles', fixture];
+       const result = spawnSync(process.execPath, args, { cwd: evidenceRoot, encoding: 'utf8', timeout: 60_000, maxBuffer: 8 * 1024 * 1024, env: { LANG: 'C', LC_ALL: 'C', TZ: 'UTC', HOME: evidenceRoot, TMPDIR: evidenceRoot } });
+       const raw = { job: job.name, args, cwd: evidenceRoot, status: result.status, signal: result.signal, error: result.error ? { code: result.error.code ?? null, message: result.error.message } : null, stdout: result.stdout ?? '', stderr: result.stderr ?? '' };
+diff --git a/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/synthetic-check.mjs b/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/synthetic-check.mjs
+index f0a9563b..fcd89967 100644
+--- a/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers/synthetic-check.mjs
++++ b/tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/synthetic-check.mjs
+@@ -2,13 +2,13 @@ import { strict as assert } from 'node:assert';
+ import { chmodSync, existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+ import { dirname, join, resolve } from 'node:path';
+ import { pathToFileURL } from 'node:url';
+-import { assertBound, assertMoveLocations, assertPackageTree, assertPublicAdmission, assertSourceMap, canonical, copyAndMoveRegularTree, expectedPackage, preparationRoot, readHashedJson, requireFact, resolveImportPath, sha256, validateReceiptShape, verifyPreseal, verifySelected } from './guards.mjs';
++import { assertBound, assertMoveLocations, assertPackageTree, assertPublicAdmission, assertSourceMap, canonical, copyAndMoveRegularTree, expectedPackage, fixtureRoot, preparationRoot, readHashedJson, requireFact, resolveImportPath, sha256, validateReceiptShape, verifyPreseal, verifySelected } from './guards.mjs';
+ import { assertWorkerExit, classifyCompilerOutcome, compilerTreeIdentity, renderFixture } from './type-worker.mjs';
+ 
+ verifyPreseal();
+ const selected = verifySelected();
+-const controls = JSON.parse(readFileSync(join(preparationRoot, 'NEGATIVE-CASES.json'))).cases;
+-const jobs = JSON.parse(readFileSync(join(preparationRoot, 'JOBS.json'))).jobs;
++const controls = JSON.parse(readFileSync(join(fixtureRoot, 'NEGATIVE-CASES.json'))).cases;
++const jobs = JSON.parse(readFileSync(join(fixtureRoot, 'JOBS.json'))).jobs;
+ const started = new Date().toISOString();
+ const scratch = mkdtempSync(join(preparationRoot, '.synthetic-'));
+ const evidenceParent = join(preparationRoot, 'evidence');
+@@ -63,7 +63,7 @@ const operations = {
+     assert.equal(resolveImportPath('./synthetic.js', policy.entries.synthetic, policy), policy.entries.synthetic);
+     assert.equal(renderFixture('import "@@YQ@@";\n', { YQ: './synthetic.js' }), 'import "./synthetic.js";\n');
+     for (const job of jobs) {
+-      const text = readFileSync(join(preparationRoot, job.fixture), 'utf8');
++      const text = readFileSync(join(fixtureRoot, job.fixture), 'utf8');
+       assert(!renderFixture(text, { YQ: './fake-yq.js', CONTRACTS: './fake-contracts.js', ROOT: './fake-root.js' }).includes('@@'));
+     }
+     const identity = expected.files['dist/synthetic.js'];
+@@ -160,7 +160,7 @@ try {
+     assert.equal(localTools[name].sha256, pin.sha256);
+     assert.equal(localTools[name].entries, pin.entries);
+   }
+-  const coverage = JSON.parse(readFileSync(join(preparationRoot, 'COVERAGE.json')));
++  const coverage = JSON.parse(readFileSync(join(fixtureRoot, 'COVERAGE.json')));
+   assert.deepEqual(coverage.cases.map(row => row.id), ['MOV-01', 'MOV-02', 'MOV-03', 'TYP-01', 'TYP-02', 'TYP-03', 'TYP-04', 'TYP-05', 'TYP-06', 'TYP-07', 'TYP-08']);
+   verifyPreseal();
+   verifySelected();
+@@ -168,8 +168,8 @@ try {
+   failure = error;
+ } finally {
+   rmSync(scratch, { recursive: true });
+-  const hashes = Object.fromEntries(['guards.mjs', 'type-worker.mjs', 'synthetic-check.mjs', 'PRESEAL.json', 'PRETEST-CLARIFICATIONS.md'].map(path => [path, sha256(readFileSync(join(preparationRoot, path)))]));
+-  const result = { schema: 1, started, finished: new Date().toISOString(), presealCommit: '21ad8c589d7f138064616e8f37e748e6a2e7c200', declaredChecks: controls.length, completedChecks: observations.length, matchedChecks: observations.filter(row => row.matched).length, observations, hashes, selectedManifestSha256: sha256(readFileSync(join(preparationRoot, 'SELECTED.json'))), scope: 'Fake regular files, copied/moved only within this owned subtree with a synthetic workspace boundary; not actual relocated product evidence.', productExecutions: 0, productImports: 0, builds: 0, typeCompiles: 0, packReplays: 0, nativeOracles: 0, semanticResults: [], actualCandidate: 'PENDING', publicAdmission: 'PUBLIC_EXPORT_GAP', failure: failure ? { code: failure.code ?? null, message: failure.message } : null };
++  const hashes = Object.fromEntries(['guards.mjs', 'type-worker.mjs', 'synthetic-check.mjs', 'PRESEAL.json', 'PRETEST-CLARIFICATIONS.md'].map(path => [path, sha256(readFileSync(join(['PRESEAL.json', 'PRETEST-CLARIFICATIONS.md'].includes(path) ? fixtureRoot : preparationRoot, path)))]));
++  const result = { schema: 1, started, finished: new Date().toISOString(), presealCommit: '61cec1d71bf1121234de8ee727da990ff29c54e8', originalV1Commit: '409449136ae1adc252ff6e205a6bb5785d113d0f', fixtureRoot, declaredChecks: controls.length, completedChecks: observations.length, matchedChecks: observations.filter(row => row.matched).length, observations, hashes, selectedManifestSha256: sha256(readFileSync(join(fixtureRoot, 'SELECTED.json'))), scope: 'Fake regular files, copied/moved only within this owned subtree with a synthetic workspace boundary; not actual relocated product evidence.', productExecutions: 0, productImports: 0, builds: 0, typeCompiles: 0, packReplays: 0, nativeOracles: 0, semanticResults: [], actualCandidate: 'PENDING', publicAdmission: 'PUBLIC_EXPORT_GAP', failure: failure ? { code: failure.code ?? null, message: failure.message } : null };
+   writeFileSync(join(evidence, 'RESULTS.json'), JSON.stringify(result, null, 2) + '\n', { flag: 'wx', mode: 420 });
+   console.log(JSON.stringify({ evidence, declared: controls.length, matched: result.matchedChecks, productExecutions: 0, failure: result.failure }));
+ }

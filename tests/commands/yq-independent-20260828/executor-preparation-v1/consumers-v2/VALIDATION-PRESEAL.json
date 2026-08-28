@@ -1,0 +1,21 @@
+{
+  "schema": 2,
+  "phase": "BEFORE_V2_VALIDATION",
+  "presealCommit": "61cec1d71bf1121234de8ee727da990ff29c54e8",
+  "reproduction": "raw-v1/REFUSAL.json",
+  "protocolFormattingCorrection": "Added missing Normative Language heading after raw reproduction; original protocol bytes remain at preseal commit. No source policy or controls changed.",
+  "files": {
+    "PROTOCOL.md": "31c92fcf00ff57aa84bc65081d22d54e4e25ce70ed405880f53eb10163c423b9",
+    "SOURCE-AUTHORITY.json": "718253db9c04fdcd459283362d00d80766c9b5ad3264b931ac127cb9aaa5db5d",
+    "SOURCE-RECEIPT.json": "0b2a4bb3f6e7ff878f6c17f2237363811376edc1fbcdd5aa7499759705ecd170",
+    "CONTROLS.json": "2146780878299d22d2328a70820f242046099cdd098c5d2012dd53bdac06b52c",
+    "raw-v1/REFUSAL.json": "fa67294ee35da2ae61ed0607d702c4dc6a81eac8feb59de1be50ceb7c9289eb9",
+    "frozen-v1.mjs": "b62e446129ed8936edf381548465bc8cd89660658e5a720cd52a5bd7cc7d2576",
+    "guards.mjs": "7185edea6beeb17282feb773a49476b76da216b228cc8b2f0f710346e18bda4a",
+    "type-worker.mjs": "5570bd8a754880a7aef0da8f2c48b6524869b46d08f28478f89be296aa53152f",
+    "synthetic-check.mjs": "fdf8310e09557ebedebfa0808d2aa0b563d20509831950792ce63c162406bd0d",
+    "verify-recipe.mjs": "a4f2bb661d91505a22fa414b83cbba26dd6d4f63fcd5bc08d648e0368b97bba1",
+    "validate.mjs": "058622619690642f842281b04eeafa64d305ab659fc4ce653923ea27b5c09096"
+  },
+  "productExecution": 0
+}

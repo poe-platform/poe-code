@@ -31,7 +31,7 @@ test("root family exports preserve four inspection definitions in the 78-command
   assert.equal(definitions.length, 78);
   assert.equal(new Set(definitions).size, 78);
   assert.deepEqual(definitions.slice(56, 60), names);
-  assert.deepEqual(definitions.slice(60), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which"]);
+  assert.deepEqual(definitions.slice(60), ["seq", "nl", "rev", "unexpand", "split", "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout"]);
   const target = host();
   await agentCommands(aggregate).setup(target);
   assert.deepEqual(target.commands.list().map(command => command.name), definitions);

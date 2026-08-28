@@ -1,0 +1,1523 @@
+{
+  "classification": "SOURCE_DATA_ONLY_ROOT_ADJUDICATION_NO_NEW_EXECUTION",
+  "source": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+  "derivedBase": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "packageSha256": "68541722217fb3f88f7317750c8f1a66042ea090f2c769564b9afc14372dfe68",
+  "packageMembers": 898,
+  "compiler": {
+    "version": "5.9.3",
+    "entry": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/typescript.js",
+    "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+    "originalEntry": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
+    "originalEntrySha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983"
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "consumer": {
+    "id": "negative-public-root",
+    "args": [
+      "--noEmit",
+      "--strict",
+      "--exactOptionalPropertyTypes",
+      "--skipLibCheck",
+      "false",
+      "--target",
+      "ES2023",
+      "--module",
+      "NodeNext",
+      "--moduleResolution",
+      "NodeNext",
+      "--types",
+      "node",
+      "--typeRoots",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/source/node_modules/@types",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-public-root.ts",
+      "--pretty",
+      "false"
+    ],
+    "consumer": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-public-root.ts",
+    "consumerSha256": "ed9ef7fc39f5d9d2c926d21fabd850fdeb8393a47b9ef37b48876b30b38f1b55",
+    "exitCode": 2,
+    "diagnostics": [
+      {
+        "code": 2724,
+        "category": 1,
+        "file": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-public-root.ts",
+        "start": 8,
+        "length": 16,
+        "line": 1,
+        "column": 9,
+        "message": "'\"/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/physically moved app/node_modules/virtual-bash/dist/index.js\"' has no exported member named 'createGitCommand'. Did you mean 'createTarCommand'?",
+        "related": [
+          {
+            "code": 2728,
+            "category": 3,
+            "file": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/physically moved app/node_modules/virtual-bash/dist/commands/archive/index.d.ts",
+            "start": 309,
+            "length": 16,
+            "line": 5,
+            "column": 25,
+            "message": "'createTarCommand' is declared here.",
+            "related": []
+          }
+        ]
+      }
+    ],
+    "formatted": "../../../types/negative-public-root.ts(1,9): error TS2724: '\"/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/physically moved app/node_modules/virtual-bash/dist/index.js\"' has no exported member named 'createGitCommand'. Did you mean 'createTarCommand'?\n"
+  },
+  "rawNegative": {
+    "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/RUN-01/negative-public-root.stdout.raw",
+    "sha256": "eae2b77fc0d8aec5aad8fb90eafb5ecf90d935e1530e07d2f0f82f25c95640c3",
+    "exactExpectedDiagnostic": true,
+    "unexpectedDiagnostics": 0,
+    "actualProcessExit": 1,
+    "historicalExpectedExit": 2
+  },
+  "wrapper": {
+    "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/compiler.mjs",
+    "sha256": "1c6a550d82f7801d0eacf9002125b523d6eda8faf82fc2b35f9cc694c613e502",
+    "literal": "const code = nativeDiagnostics.length ? ts.ExitStatus.DiagnosticsPresent_OutputsSkipped : ts.ExitStatus.Success;",
+    "line": 90,
+    "qualification": "nativeExitCode is an API-wrapper mapping, not an observed CLI exit"
+  },
+  "priorFsIntegrity": {
+    "authenticatedRecordedGuards": [
+      {
+        "phase": "before",
+        "rows": [
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5",
+            "entries": 25,
+            "canonicalSha256": "61e0fe8598d48ac6e7c52936f687ed3f23be137c42f88bad4dfe11fbbb50ecd6",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v11",
+            "entries": 36,
+            "canonicalSha256": "423b3b5cdcd978690ba7de35649281e59a8c0268461601d896017d0642c12c43",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12",
+            "entries": 126,
+            "canonicalSha256": "093b31a70e4487891d2ba9cf831eedb72c98e005a7613605878c48028d212be4",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+            "entries": 147,
+            "canonicalSha256": "e521421da6cbe23781c35c25d1833843ec06fbf75b5cae2fd925a72481aefe47",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+            "entries": 83,
+            "canonicalSha256": "82d024bea4571af26854ecc2d3268901b20f97b05e7bfeb1fb515bb2782f97f9",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+            "entries": 41,
+            "canonicalSha256": "27aa5665adb343143404983442507e84dace4a8aabcd3b2a98e380fae933ddf5",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v14/work",
+            "entries": 1069,
+            "canonicalSha256": "909029be6206d31df2ab49a45d6dc71e076a9f88d2076819446617d55989e159",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13",
+            "entries": 22,
+            "canonicalSha256": "77e726a9449ad35fd7c548ecd4b77701bf1e0f4e08c8de0953a4153cda87149e",
+            "newEntryCheck": true
+          }
+        ]
+      },
+      {
+        "phase": "after-positive",
+        "rows": [
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5",
+            "entries": 25,
+            "canonicalSha256": "61e0fe8598d48ac6e7c52936f687ed3f23be137c42f88bad4dfe11fbbb50ecd6",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v11",
+            "entries": 36,
+            "canonicalSha256": "423b3b5cdcd978690ba7de35649281e59a8c0268461601d896017d0642c12c43",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12",
+            "entries": 126,
+            "canonicalSha256": "093b31a70e4487891d2ba9cf831eedb72c98e005a7613605878c48028d212be4",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+            "entries": 147,
+            "canonicalSha256": "e521421da6cbe23781c35c25d1833843ec06fbf75b5cae2fd925a72481aefe47",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+            "entries": 83,
+            "canonicalSha256": "82d024bea4571af26854ecc2d3268901b20f97b05e7bfeb1fb515bb2782f97f9",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+            "entries": 41,
+            "canonicalSha256": "27aa5665adb343143404983442507e84dace4a8aabcd3b2a98e380fae933ddf5",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v14/work",
+            "entries": 1069,
+            "canonicalSha256": "909029be6206d31df2ab49a45d6dc71e076a9f88d2076819446617d55989e159",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13",
+            "entries": 22,
+            "canonicalSha256": "77e726a9449ad35fd7c548ecd4b77701bf1e0f4e08c8de0953a4153cda87149e",
+            "newEntryCheck": true
+          }
+        ]
+      },
+      {
+        "phase": "after-negative-public-root",
+        "rows": [
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5",
+            "entries": 25,
+            "canonicalSha256": "61e0fe8598d48ac6e7c52936f687ed3f23be137c42f88bad4dfe11fbbb50ecd6",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v11",
+            "entries": 36,
+            "canonicalSha256": "423b3b5cdcd978690ba7de35649281e59a8c0268461601d896017d0642c12c43",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12",
+            "entries": 126,
+            "canonicalSha256": "093b31a70e4487891d2ba9cf831eedb72c98e005a7613605878c48028d212be4",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+            "entries": 147,
+            "canonicalSha256": "e521421da6cbe23781c35c25d1833843ec06fbf75b5cae2fd925a72481aefe47",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+            "entries": 83,
+            "canonicalSha256": "82d024bea4571af26854ecc2d3268901b20f97b05e7bfeb1fb515bb2782f97f9",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+            "entries": 41,
+            "canonicalSha256": "27aa5665adb343143404983442507e84dace4a8aabcd3b2a98e380fae933ddf5",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v14/work",
+            "entries": 1069,
+            "canonicalSha256": "909029be6206d31df2ab49a45d6dc71e076a9f88d2076819446617d55989e159",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13",
+            "entries": 22,
+            "canonicalSha256": "77e726a9449ad35fd7c548ecd4b77701bf1e0f4e08c8de0953a4153cda87149e",
+            "newEntryCheck": true
+          }
+        ]
+      },
+      {
+        "phase": "before-cleanup",
+        "rows": [
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5",
+            "entries": 25,
+            "canonicalSha256": "61e0fe8598d48ac6e7c52936f687ed3f23be137c42f88bad4dfe11fbbb50ecd6",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v11",
+            "entries": 36,
+            "canonicalSha256": "423b3b5cdcd978690ba7de35649281e59a8c0268461601d896017d0642c12c43",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12",
+            "entries": 126,
+            "canonicalSha256": "093b31a70e4487891d2ba9cf831eedb72c98e005a7613605878c48028d212be4",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+            "entries": 147,
+            "canonicalSha256": "e521421da6cbe23781c35c25d1833843ec06fbf75b5cae2fd925a72481aefe47",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+            "entries": 83,
+            "canonicalSha256": "82d024bea4571af26854ecc2d3268901b20f97b05e7bfeb1fb515bb2782f97f9",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+            "entries": 41,
+            "canonicalSha256": "27aa5665adb343143404983442507e84dace4a8aabcd3b2a98e380fae933ddf5",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v14/work",
+            "entries": 1069,
+            "canonicalSha256": "909029be6206d31df2ab49a45d6dc71e076a9f88d2076819446617d55989e159",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13",
+            "entries": 22,
+            "canonicalSha256": "77e726a9449ad35fd7c548ecd4b77701bf1e0f4e08c8de0953a4153cda87149e",
+            "newEntryCheck": true
+          }
+        ]
+      },
+      {
+        "phase": "after-cleanup",
+        "rows": [
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5",
+            "entries": 25,
+            "canonicalSha256": "61e0fe8598d48ac6e7c52936f687ed3f23be137c42f88bad4dfe11fbbb50ecd6",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v11",
+            "entries": 36,
+            "canonicalSha256": "423b3b5cdcd978690ba7de35649281e59a8c0268461601d896017d0642c12c43",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12",
+            "entries": 126,
+            "canonicalSha256": "093b31a70e4487891d2ba9cf831eedb72c98e005a7613605878c48028d212be4",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+            "entries": 147,
+            "canonicalSha256": "e521421da6cbe23781c35c25d1833843ec06fbf75b5cae2fd925a72481aefe47",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+            "entries": 83,
+            "canonicalSha256": "82d024bea4571af26854ecc2d3268901b20f97b05e7bfeb1fb515bb2782f97f9",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+            "entries": 41,
+            "canonicalSha256": "27aa5665adb343143404983442507e84dace4a8aabcd3b2a98e380fae933ddf5",
+            "newEntryCheck": true
+          },
+          {
+            "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13",
+            "entries": 22,
+            "canonicalSha256": "77e726a9449ad35fd7c548ecd4b77701bf1e0f4e08c8de0953a4153cda87149e",
+            "newEntryCheck": true
+          }
+        ]
+      }
+    ],
+    "newFsCompilerRun": false,
+    "workCurrentlyAbsent": true
+  },
+  "preservedResults": {
+    "v12Overall": "HOLD/exit1",
+    "v12Semantic284": true,
+    "v12Types": "four original passes; original fifth expectation mismatch remains",
+    "v13": "positive wrapper failure; negative UNRUN",
+    "v14": "positive PASS; negative raw FAIL due exit1 versus2; overall SCOPED_FAILURES/exit1"
+  },
+  "rootDecision": "Actual nonzero1 plus exact sealed missing-export diagnostic establishes intended negative property; no historical result or exit rewritten and no aggregate5/5 claim.",
+  "authenticated": [
+    {
+      "commit": "b94bd13b156320d713d692c11f85f655cda68690",
+      "root": "tests/commands/git-independent-20260828/m1a-continuation-v12",
+      "files": [
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/AUDIT.json",
+          "blob": "c8f89b7022e46e57056a7951949564fd4b5001e5",
+          "mode": "100644",
+          "bytes": 60424,
+          "sha256": "25ef5bc9df8e84d4e2ccebf04c512a03dd4343d91a3f44a5238bc9bb284fff40"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/CANONICAL.json",
+          "blob": "80e22bd10dedb905d08589a6225034bb3b61e378",
+          "mode": "100644",
+          "bytes": 476912,
+          "sha256": "2f7ff9e145b177d10e69937f101de827805a11b54ad4002a0bd2c7c93918234f"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/CONTROL-01/events.jsonl",
+          "blob": "cf74eeac4de9c1fbe02ca725f7e25979f3069a3e",
+          "mode": "100644",
+          "bytes": 4978,
+          "sha256": "1fc74b7163b72b01aa9a0626b2576c0c69c6805cb4ee71b116df45ac9cb730af"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/CONTROL-01/receipt.json",
+          "blob": "fe958e11a6381b0fdc32486753d41cdb143e4f84",
+          "mode": "100644",
+          "bytes": 3814,
+          "sha256": "aaa5b1a95aed28a967e5d8c96e34edce9c69df34a7af759d9650f1a77231e354"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/CONTROL-01/stderr.raw",
+          "blob": "80642770487c79a9068cc430ef2028e36f5e63cc",
+          "mode": "100644",
+          "bytes": 2844,
+          "sha256": "74f0ec96b0e2d262657d4fa182e3811bf7073d697d8c7c30b9950626d899ffd8"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/CONTROL-01/stdout.raw",
+          "blob": "507a83db51a0a4b4be8eafeb6d5be5b5d5036a25",
+          "mode": "100644",
+          "bytes": 22,
+          "sha256": "cb1d2a9c9795c49b96874d2941962e31e27614e7ef6c1cf5e1cec8d5b8540e18"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/CONTROL-PRESEAL.json",
+          "blob": "a13ffff7ebf767eed3989e5443c4557a4bdf597a",
+          "mode": "100644",
+          "bytes": 5840,
+          "sha256": "03d94188509b00dece20e891abd3e417ff7a293d32dbf3b05be74ef98db36311"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/EVIDENCE-MANIFEST.json",
+          "blob": "3f5ea4c0c5b1d2fffb023a9a09b7b51a4795f354",
+          "mode": "100644",
+          "bytes": 15878,
+          "sha256": "7ed77250623fc83afb103194b08dd3e74a066b31e2204be6e10e1bdecc225aa7"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/FINAL-RECEIPT.json",
+          "blob": "114ccb7561c82a4706c33fc365cacbccbce42524",
+          "mode": "100644",
+          "bytes": 5970,
+          "sha256": "75635e08dc2a26cb25d0646a992ac333485bd3f8d850b06431ef1fa2868c4141"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/HANDOFF.md",
+          "blob": "a997910fac25e18b3627208222d20655056a889f",
+          "mode": "100644",
+          "bytes": 8018,
+          "sha256": "d35ff96b36a1b27731ae1e473408097efaeb41a7a4d7fa2648ea5b86349d6829"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/OLD-V11-MEMBERSHIP.json",
+          "blob": "7a2af8525eac7294042845b09bb7f0dde0ceab8b",
+          "mode": "100644",
+          "bytes": 8414,
+          "sha256": "1824d4e22eecfb35df7d111580322faa743b79c23af91273aa3d45bbf5599bce"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/PREPARATION-LEDGER.json",
+          "blob": "538159926c7965fc67eda9068390a8b99ba49ae6",
+          "mode": "100644",
+          "bytes": 2450,
+          "sha256": "44ebcc325c2bd46d9dc6e4f4da5d71341b541ea206f9a47079259c04839f2db7"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/PRESEAL.json",
+          "blob": "1cb021b3931139817b8e6915f70c4bc3b7b191ba",
+          "mode": "100644",
+          "bytes": 254272,
+          "sha256": "4bf1f7a8a4f635e3a352bcef06f68a7c6a318618a54d2889a6244b43ac56686f"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/1-build.packet.json",
+          "blob": "7b4c84fb9fe220b6d763d0698c6af29e5e30d2ae",
+          "mode": "100644",
+          "bytes": 719,
+          "sha256": "92d700ff3e13aa2e92684467cd7b8c3227a077fc907aa413a346818ac70ef592"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/1-build.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/1-build.stdout.jsonl",
+          "blob": "9ef0986f2eb122f1c7660c08083b9e3f1faf0fea",
+          "mode": "100644",
+          "bytes": 57,
+          "sha256": "ab76c3a03c277364704fd860c046e88e32d224998337785440c868d244ac2f53"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/10-types-negative-boundary.packet.json",
+          "blob": "a02360d128f79b0aaf1711a99ed9f4200f5947cd",
+          "mode": "100644",
+          "bytes": 1127,
+          "sha256": "4ac096fec13ab1dbf15c83d74881915c0f6c5795e735f7deaf4f529d63af2041"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/10-types-negative-boundary.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/10-types-negative-boundary.stdout.jsonl",
+          "blob": "0479ad82f974d4270a6f1c73b1e4fb0e58933999",
+          "mode": "100644",
+          "bytes": 183,
+          "sha256": "4bc8ca2c5614d5c8708b42bdb21cb8549adf17dacae76a225b72ca7b39f614a8"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/11-types-negative-public-root.packet.json",
+          "blob": "a03d386a792e2df96dc3aa7beb1cae64d271dde9",
+          "mode": "100644",
+          "bytes": 1136,
+          "sha256": "cd2d879693b2a6eb6a57ae935c158094ee1b01558877390de9e0277c4d624821"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/11-types-negative-public-root.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/11-types-negative-public-root.stdout.jsonl",
+          "blob": "0b0f14428b5ea9589e901fb0a612eef0d6c949d1",
+          "mode": "100644",
+          "bytes": 391,
+          "sha256": "06f6f4eeeaa84b811e7f3fc6dc5660dd505ab71edc48a5cbd73a22dd124eb261"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/12-mutant-wrong-raw.packet.json",
+          "blob": "492a0aaa5d9bd27612c968350873da572e6fd7c4",
+          "mode": "100644",
+          "bytes": 73497,
+          "sha256": "ad50172f8acba2f28bed4783aee0fa97fbf850b802b3708fdeafb31929c03525"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/12-mutant-wrong-raw.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/12-mutant-wrong-raw.stdout.jsonl",
+          "blob": "f185949b118d1f6bcfb7e6a0d6f222e7cf321609",
+          "mode": "100644",
+          "bytes": 26180,
+          "sha256": "0f6084ad57e810d3d136d9c2f74de6c0ad6b701df219504a6b6265b86fde838d"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/13-restore-wrong-raw.packet.json",
+          "blob": "c02af50c621d81c75b0dd6a659ca522191deaf3c",
+          "mode": "100644",
+          "bytes": 73477,
+          "sha256": "ebd71c32765fafad5009e4b3e913375f6617cf43bbb77cecc772250b3d0ba6db"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/13-restore-wrong-raw.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/13-restore-wrong-raw.stdout.jsonl",
+          "blob": "9afe0852faa49fca5ef831b4115653da64ae1c7f",
+          "mode": "100644",
+          "bytes": 24666,
+          "sha256": "ff8891547612f886cfde5e0006b7dc047d5879965fc23c9b2745ec94b57d3da3"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/14-mutant-guessed-mode.packet.json",
+          "blob": "a331d71131ed49574713162c046fda5fd270b556",
+          "mode": "100644",
+          "bytes": 74190,
+          "sha256": "a8a6692b6b3c3e5166e287a95b5276de43d8303e2d1167edd18ed164a1b1e87e"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/14-mutant-guessed-mode.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/14-mutant-guessed-mode.stdout.jsonl",
+          "blob": "898454fe97145b22c12fdec3ace2f93fa35245b5",
+          "mode": "100644",
+          "bytes": 17368,
+          "sha256": "be72f3ec2f085a26501b78f1fca904160586b4767868a4ed1703925b893148fa"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/15-restore-guessed-mode.packet.json",
+          "blob": "5ab893b13c02133808f57193aee950f8d0dd4767",
+          "mode": "100644",
+          "bytes": 74167,
+          "sha256": "44b16e35fdbb4ad1894798af33ba3101d6ad0224e08ffe4cbd93bdf5735a0824"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/15-restore-guessed-mode.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/15-restore-guessed-mode.stdout.jsonl",
+          "blob": "503ff72b65874bedb15afc7e5e19075824560559",
+          "mode": "100644",
+          "bytes": 14269,
+          "sha256": "243c37f7a16d2a0ab1f1b4a0910e6b1a3bbe577bef358604b72e736778e78cc1"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/16-mutant-unmerged-diff.packet.json",
+          "blob": "e6410d82c5de62a997871e8a32ea0311c2301d89",
+          "mode": "100644",
+          "bytes": 74421,
+          "sha256": "69e60dfee4c425957cc8eb3275a2c7f74fdec58b0b7b5f6c137a35c7adfe1191"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/16-mutant-unmerged-diff.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/16-mutant-unmerged-diff.stdout.jsonl",
+          "blob": "430339d32e8202a629bfd0badb32ee5f4f04edac",
+          "mode": "100644",
+          "bytes": 30699,
+          "sha256": "899d3615c453d07bf787ca0106c70b504ebfe5e595cb8cc866c2cd74f3e7560f"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/17-restore-unmerged-diff.packet.json",
+          "blob": "58d8f5de3c2e9efe02849382020292ebacbb1c2b",
+          "mode": "100644",
+          "bytes": 74397,
+          "sha256": "8c2f6ad570e2cee845e3760d92913ae745ae085950e47efd3f53ff7b7935a448"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/17-restore-unmerged-diff.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/17-restore-unmerged-diff.stdout.jsonl",
+          "blob": "f15fc6d96f407c3631c4012c0845ee9758e63986",
+          "mode": "100644",
+          "bytes": 164123,
+          "sha256": "ea4f2846ed3c788a7eca202c872eafd8a7f6bc8d3d7c0b2c75c0aac734d365cb"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/18-binding-entry.packet.json",
+          "blob": "e162e05826c3748850da596e25a4375c10815c45",
+          "mode": "100644",
+          "bytes": 79338,
+          "sha256": "4f2321b8cb41e35d38003f58ec61e655bd639a3e534e88354d5beebeeecf767f"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/18-binding-entry.stderr.txt",
+          "blob": "8eeb47a7b266565c6261e669723efff23bb62c5c",
+          "mode": "100644",
+          "bytes": 472,
+          "sha256": "7d7fc3673baf35d895f082d5aa077af167a63c9d723ac02b52b7e9fe6a594da3"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/18-binding-entry.stdout.jsonl",
+          "blob": "5670ab01f4e797fd6718007f651d74d01017e42d",
+          "mode": "100644",
+          "bytes": 209,
+          "sha256": "360c9bbe459129662512f070f6a74a060c6d3aa3842025cd0b3610eca9a8e542"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/19-binding-hash.packet.json",
+          "blob": "07c6775307c95c838d56a9aa568e3b018336e338",
+          "mode": "100644",
+          "bytes": 79336,
+          "sha256": "d28b3cdfb6c8e621c31377a438370fe322cdb7a844ff22120e791b18db71d825"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/19-binding-hash.stderr.txt",
+          "blob": "b788436a0c184627de1a1563efde63bd4018b577",
+          "mode": "100644",
+          "bytes": 472,
+          "sha256": "89ea095b054b6b9b82845f2c32605ef5340ae5880b6272c082c2cf5e2b71af32"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/19-binding-hash.stdout.jsonl",
+          "blob": "680072fecff424cde03fefa93719e00e4fdfd459",
+          "mode": "100644",
+          "bytes": 209,
+          "sha256": "e3154e12ff4ef2a0bafaefcc9d50c4e507dd77335388247ade45b8bbc023a649"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/2-offline-install.packet.json",
+          "blob": "bc01fc02b777761a2d584b92425d3a3eaa3e21e7",
+          "mode": "100644",
+          "bytes": 727,
+          "sha256": "7031a2159a8e75d50b5b0c19f3ab442984a7ebb7f4f5e14d48de34a8e6f0ffaa"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/2-offline-install.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/2-offline-install.stdout.jsonl",
+          "blob": "7389a954825045bd829dfb4362f4d624810fcd06",
+          "mode": "100644",
+          "bytes": 90,
+          "sha256": "bd9ec6b633a21d3d5b43beb631f02b5f99de77598cbdfa1788d0a95bb979746c"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/20-binding-import.packet.json",
+          "blob": "64ee8df0648a4173f09c6a17f7dbdf552a88808b",
+          "mode": "100644",
+          "bytes": 79406,
+          "sha256": "ba28911635d2782b8dac60c426ce1f478e79136bbfca7d3345427a1b37adcdd8"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/20-binding-import.stderr.txt",
+          "blob": "0a2aa427d17a94aa01513249c735666acd153714",
+          "mode": "100644",
+          "bytes": 616,
+          "sha256": "00f70bf636660ff9f8560d57444a4b86efc0d5975545ff040de4fc807ff8de3a"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/20-binding-import.stdout.jsonl",
+          "blob": "2ff843a7abbb3b7429be9a49e2e22e935431dd16",
+          "mode": "100644",
+          "bytes": 209,
+          "sha256": "8557c5951d9560dc540ce6781c486ab16ce9f019dd772c57853e4db793988c74"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/3-source.packet.json",
+          "blob": "7e93ce8305e77d3fb48757d2db60e6690452123f",
+          "mode": "100644",
+          "bytes": 72166,
+          "sha256": "7d04d632bedb64d4e6b3796e653f0950ef49e41b586d0fa04e3bfe594df3677f"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/3-source.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/3-source.stdout.jsonl",
+          "blob": "8ccef36fdfd37d1a702456272bb54b442d206ec1",
+          "mode": "100644",
+          "bytes": 2617481,
+          "sha256": "0b18b16b0246c709a0f883c64235ab80eab2d5d55fd94b66de7b7275743cc618"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/4-compiled.packet.json",
+          "blob": "1499daf5595866463bc59889997877cf9e17345b",
+          "mode": "100644",
+          "bytes": 71951,
+          "sha256": "fea4946aa8da3c9681b15dc59dbafcf9a6bbb18c0a46f40d7bebb25ff552e5a0"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/4-compiled.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/4-compiled.stdout.jsonl",
+          "blob": "fbb75af8d55cf534698737d9832137c97f6d7ab4",
+          "mode": "100644",
+          "bytes": 2617610,
+          "sha256": "eb15edeac4b3cf3cb4a11362846cd74acda6125bc3a94b2843650090cdb599a7"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/5-installed.packet.json",
+          "blob": "d1cfd7bfde1210e50f1f245172f77c4a7dd8f216",
+          "mode": "100644",
+          "bytes": 79445,
+          "sha256": "ca1e064f2c41d39e0696a5413c33d4e846ed17fde065d48afc4a44eed9378cd6"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/5-installed.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/5-installed.stdout.jsonl",
+          "blob": "f3736891bd7e20945681e99b4040a341f1d54d84",
+          "mode": "100644",
+          "bytes": 2617730,
+          "sha256": "617f77584b073f5886483e98bc350ab6bfd4388cb1aad55ae31314ee0af4ad6c"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/6-moved.packet.json",
+          "blob": "6a3dc7a27e8baa310c0623f05163b1f444e93903",
+          "mode": "100644",
+          "bytes": 81022,
+          "sha256": "e968733a18b6bd2007b697ea5c9d54f7f63b5beff47968f726927459e7942aef"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/6-moved.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/6-moved.stdout.jsonl",
+          "blob": "c5b1771f380da94a3284fb264a37b848df6ea1ed",
+          "mode": "100644",
+          "bytes": 2617457,
+          "sha256": "38db586998999516a7ef3af59e5d33be2bc2e3189a02409fa30c639017e8d404"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/7-types-positive.packet.json",
+          "blob": "b3e58f9b2f947ced02c17ce9f64ebe42376f5f41",
+          "mode": "100644",
+          "bytes": 1100,
+          "sha256": "e458e67e6fb220ab1703727f00fc29104fad67011b3dd62434157cd617a1d962"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/7-types-positive.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/7-types-positive.stdout.jsonl",
+          "blob": "f77b46e42abfb9e8044a49e7f638bb3482227221",
+          "mode": "100644",
+          "bytes": 66,
+          "sha256": "0dea18f5f11011ad7729b19dc7363189d7309f8abbe7f1645c00145077d71390"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/8-types-negative-limits.packet.json",
+          "blob": "0716fb5f53fafeef7146bfcf30a3ab4d2c56adb9",
+          "mode": "100644",
+          "bytes": 1121,
+          "sha256": "1ec7c6725b5d873aa646adaaa9048f919345c1b7d99b28a589d70a6864310afb"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/8-types-negative-limits.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/8-types-negative-limits.stdout.jsonl",
+          "blob": "ba0f76b6e45a9ba51f510e41846d9777e33b0828",
+          "mode": "100644",
+          "bytes": 237,
+          "sha256": "fd3e535d3d32a8c759096a4a71e27f1005ff9e8490a995dfc2310eb80aa6d3c3"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/9-types-negative-native.packet.json",
+          "blob": "83cc79ece18fd0329d7e10ac866b57d401272320",
+          "mode": "100644",
+          "bytes": 1121,
+          "sha256": "208b6602507048a2b31a3b2e073ee986367c0b5ed573ebda60ddfc30bcd51aaf"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/9-types-negative-native.stderr.txt",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/9-types-negative-native.stdout.jsonl",
+          "blob": "dc29cb89672c555bd725be7c6e0197c0583527ad",
+          "mode": "100644",
+          "bytes": 236,
+          "sha256": "4d96d185f19359db59c2a0b5208d5803b64258daf7997141dd024a2eeb969268"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/PUBLICATION-CLOCK.json",
+          "blob": "c5ec3dd0c7fd65c11b26f799078b0575cb7df156",
+          "mode": "100644",
+          "bytes": 98,
+          "sha256": "f5ad8e12b17a8ee8be5b9d405b55fc0051fafcc61e27a7f29d6ca2d31313d073"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/RESULT.json",
+          "blob": "739cdeff181703af72d20dec2d2348ea5d3c3111",
+          "mode": "100644",
+          "bytes": 94867,
+          "sha256": "bc63bb20d4cd5f1e2c4c659ccf5f974f5816f21fdf5ad35371b215b0ee7029e2"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/binding-import-loads.jsonl",
+          "blob": "d3f89d60df702af8ade57f0aa4c9608440a12759",
+          "mode": "100644",
+          "bytes": 230,
+          "sha256": "e15e9b450f8e1db40dac0908227271a7b685f371aac715420956acba0efa3899"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/build-tool.json",
+          "blob": "9303f92b87ad9d3c2b701b75b53d7ee6d2cd922b",
+          "mode": "100644",
+          "bytes": 275,
+          "sha256": "7cd56f73bf91e0a589ece216bed4e7142a57172ef04b7729f9c87d3d93a13e3b"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/compiled-loads.jsonl",
+          "blob": "0fb6fd92cb24e3e6a6c023bea3a439fb69fca22c",
+          "mode": "100644",
+          "bytes": 90912,
+          "sha256": "f5281a1b05749472827e17a5b538d3b8b169e44655a1b5fb46f91ea3372314ab"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/installed-loads.jsonl",
+          "blob": "6b6d2ca904171044d3c13989b8900a6897b33a9a",
+          "mode": "100644",
+          "bytes": 98612,
+          "sha256": "0b8f753ab51b054a3d61aaa1551032847d0279b987a697ceaff5e9bf042fbcb3"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/moved-loads.jsonl",
+          "blob": "79e053a510283c87afaa0dc9c3590a82fd6b492b",
+          "mode": "100644",
+          "bytes": 100592,
+          "sha256": "7d03e75ba3cf43b789ad5ce73dc511a53e6f8942f157f60a7de3c189fcbc2ae8"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/mutant-guessed-mode-loads.jsonl",
+          "blob": "3dabe6f3bdeb45b1051aa73d6b813037fa7098fb",
+          "mode": "100644",
+          "bytes": 93770,
+          "sha256": "816f715db797e327171f1e588907e7945179ca6aa41beee954c7b64a6a809528"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/mutant-unmerged-diff-loads.jsonl",
+          "blob": "7bd708871abcf13e126e1b908e3475f6c5192367",
+          "mode": "100644",
+          "bytes": 93990,
+          "sha256": "e39ee13d8a3c02ab98bd5c28c1816d25937f08b82b778785c6d8614dcc0317da"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/mutant-wrong-raw-loads.jsonl",
+          "blob": "88c081ccc53fa1aca0398c79c2acbf3ccae08b3c",
+          "mode": "100644",
+          "bytes": 93110,
+          "sha256": "89f00ccdb41ff733b67fec7ed2763726acce9ddf93d4fdcfd3fcbb38890c808d"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/offline-install-tool.json",
+          "blob": "d9d1e06dddb63ced436716c9b8ec77048113e677",
+          "mode": "100644",
+          "bytes": 284,
+          "sha256": "0b752e130c6d8846523c0c2e7f066a121c1bfc2cfe0fe21393dedfa44aadcbc8"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/restore-guessed-mode-loads.jsonl",
+          "blob": "769db0be7fe8360a04be4745a7f908062ca6eb68",
+          "mode": "100644",
+          "bytes": 93772,
+          "sha256": "061fa23ab7f811ae4bc6dab0ca709fae880b8c8463e697410b84a8fb66230350"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/restore-unmerged-diff-loads.jsonl",
+          "blob": "67d41233960da215f98615cee92fcec4b541b166",
+          "mode": "100644",
+          "bytes": 93992,
+          "sha256": "08aebeb0a2b978665d74fb885a9f1ab2872c53ba3735313cdb89c0b27959e666"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/restore-wrong-raw-loads.jsonl",
+          "blob": "05a646b154520bdbf0011bb3eee3e1c9c284d997",
+          "mode": "100644",
+          "bytes": 93112,
+          "sha256": "048cce366809c7b45dd77302ec369ab10076005f8d26190f1d32b0904a61f874"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/source-loads.jsonl",
+          "blob": "0a960bf2e167e8bb6b2b950c2fed834f092de33f",
+          "mode": "100644",
+          "bytes": 91132,
+          "sha256": "5875c086c72d0c439723431e9d2f852bf4bba2ffb2f1b76daf056b3cbfea3280"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/types-negative-boundary-tool.json",
+          "blob": "4d7b749778c13356271de8564d11103a317f058b",
+          "mode": "100644",
+          "bytes": 275,
+          "sha256": "45a2600496e667a402a7555d2a6705974f5256627c3b9ffae63410b31217f0df"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/types-negative-limits-tool.json",
+          "blob": "891defd5e97c482f9a1ba3d7f6ad833c05e63e0d",
+          "mode": "100644",
+          "bytes": 275,
+          "sha256": "456a011a2934e8475cb8cc05628c95e36e8c0cafc7ba40965ad7ad65f7352e46"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/types-negative-native-tool.json",
+          "blob": "5f14f0bef2f97bf2eca22fed1d9a8335cf4e44ea",
+          "mode": "100644",
+          "bytes": 275,
+          "sha256": "b09b1500524951cae08d88022f1c10fdf51380ad2c63b4b9e35b62ee259f094b"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/types-negative-public-root-tool.json",
+          "blob": "53ac250a02e8d59f05c0477b902fe671ff77e784",
+          "mode": "100644",
+          "bytes": 275,
+          "sha256": "69c48108e6a5f5a8b7b753af5092891bd3f097114b98863484c0b6bb091d5c26"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/capture/types-positive-tool.json",
+          "blob": "126791d0d4b7a485f2add70d548b9744a0c75e11",
+          "mode": "100644",
+          "bytes": 275,
+          "sha256": "10e1db2bf3712439415522463542ee866c5a6bac52d5e398888e3093cbdfa5ef"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/SCOPE.md",
+          "blob": "28cf76b9fb61202166b5a0f6863e668bc4c02e0c",
+          "mode": "100644",
+          "bytes": 2963,
+          "sha256": "3b4061bf85dc4e8aa5cf19d0b63632a811a359f5601c5d3afc1003412f7ede27"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/SOURCE-DIFF.patch",
+          "blob": "a5e112b4eb8c6e4d771721b46b0f941b66c8d8ff",
+          "mode": "100644",
+          "bytes": 4752,
+          "sha256": "911fb67b475693c37dc59646c0a23bcf1e96121fccb513c4cf0a1b056834df71"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/SOURCE-MAP.json",
+          "blob": "37c7147874ea66418a352efca3c2598433b3debe",
+          "mode": "100644",
+          "bytes": 2199,
+          "sha256": "850c22030fcf62c66d098ee67b7a375d219ce1b01dcf10211f306b590acfeb61"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/TARGET-01/events.jsonl",
+          "blob": "46f366e2c3702287286a7efe34886bf120c08d3b",
+          "mode": "100644",
+          "bytes": 1499,
+          "sha256": "8607d5223776d630ddf8cde6e43d9d3d769b047b875b400e7e0262c4ef7cd6a1"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/TARGET-01/receipt.json",
+          "blob": "2189d8d195ead87d9ac9e4f1303089cb87e6e32c",
+          "mode": "100644",
+          "bytes": 1207,
+          "sha256": "8773a5708597c0446bc2f2a40b4e7f32f148f951598daa6230ed91473e709f67"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/TARGET-01/stderr.raw",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/TARGET-01/stdout.raw",
+          "blob": "be204287a6287919818af9668d0412a73f480ec8",
+          "mode": "100644",
+          "bytes": 256,
+          "sha256": "bc26d721fa1d431defc66128200857282627e180bbb6919e6d4b030524da9cce"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/TYPES.json",
+          "blob": "838f5405ae5fd8b40e5de5f132fe0ecd096e1162",
+          "mode": "100644",
+          "bytes": 1029,
+          "sha256": "07a9d4e208abb0a9cc86b7318b0d7aa5f15d089a5e9a2f82f3951234e5155293"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/WORKING.json.gz.base64",
+          "blob": "465fad055658ca3dd40316e1777ca8e1d67098e9",
+          "mode": "100644",
+          "bytes": 15168061,
+          "sha256": "32ff8b5a55207bb3b945ac890dcbaf9c948038f008a7d0d63beaa807efb3a1e7"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/audit-data.py",
+          "blob": "67b2c025f163c8e5c72aef9bf6dc2ea6a331613c",
+          "mode": "100644",
+          "bytes": 9864,
+          "sha256": "fa626993cf1ad221c1130d32352071ccc7094fe3e14f34fa787d87bc7ec36b42"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/bootstrap.mjs",
+          "blob": "3e5d10b983c80318ec31e67491d95b99c98ff8c5",
+          "mode": "100644",
+          "bytes": 895,
+          "sha256": "8fc696a5ae5a584e06f3f11c99c0402b54819aaf3ba3a3f5d269816f9fe752b1"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/cases.mjs",
+          "blob": "e925b8476ffe1c3939cc2ab6e0dc414025cd0aee",
+          "mode": "100644",
+          "bytes": 35160,
+          "sha256": "950ead1386223d588ee36176f2e81d44cfc8a642af70fbd6abdddadcf810a89f"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/census.mjs",
+          "blob": "1f7a991586bf42e68d3e36136b3f18dbb61a2a0b",
+          "mode": "100644",
+          "bytes": 4152,
+          "sha256": "62df9336be726a6e18ba261d77f287736b3f0d94d6331eaf7eefc053b8782d84"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/control-startup.mjs",
+          "blob": "b02d228d785aba304fd3ac92538c03a72691101e",
+          "mode": "100644",
+          "bytes": 227,
+          "sha256": "d033b705911eaeacdbf6c5819406db7c16f1878617fd7983ea1ba720409bb12a"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/controls-data.mjs",
+          "blob": "c8a44e2b390be790b714be05b0403c08abd41f00",
+          "mode": "100644",
+          "bytes": 2751,
+          "sha256": "e1f4f4f6740a99d5ad77e42cc466fde2bc83862d3bf262b05e0a8523babd61c8"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/fixtures.mjs",
+          "blob": "0479e54768e510041d51db6f2c16160d187edfa5",
+          "mode": "100644",
+          "bytes": 6833,
+          "sha256": "7130f0cdf6dea855f1d1c805569fb3e2d0d982e4c6f196be46728b0d05f1e396"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/loader.mjs",
+          "blob": "61ac92cd731c974d9b7133baad9d84d9a883aa83",
+          "mode": "100644",
+          "bytes": 3038,
+          "sha256": "bbdd0f3e7e6d1e4083684f749b52b0a97837255344697ac83b06279222dab215"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/observer.mjs",
+          "blob": "b8b0909fefbfc0c26e05627b86d097d005da3a9a",
+          "mode": "100644",
+          "bytes": 14860,
+          "sha256": "8988827da7a4c23b44b563604640333a8121f0fd66a8f3ad47532de1e81afa30"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/outer.mjs",
+          "blob": "e621f49127b66e4c124eff1db2b0c82277fda2be",
+          "mode": "100644",
+          "bytes": 6881,
+          "sha256": "88a502cfe16f4d5e67b5574842a9e455043d439b7d91102eb7943b6ee9120415"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/run.mjs",
+          "blob": "b2c41f5f7acc972231449b82e31f5262d85d8d93",
+          "mode": "100644",
+          "bytes": 22589,
+          "sha256": "e9e481abc9feb33ff46d26b93b9ba7bd356b103132774a2e16687fa7e3fe37dd"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/tool.mjs",
+          "blob": "46d45f49bb07d7b5e045901b919328767eff5db3",
+          "mode": "100644",
+          "bytes": 1648,
+          "sha256": "21883e49f12392a63f7daef4bb1cccdcb013b16a7a6985bde83afc51246d0693"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-boundary.ts",
+          "blob": "6770b0c12fa41b3c42e8f43b2d5215f596fc7387",
+          "mode": "100644",
+          "bytes": 257,
+          "sha256": "9bd20d11c2ec5e31207ee3a20f67eb863e06f58574767482ec4bf5f5fe5f93ad"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-limits.ts",
+          "blob": "5ac7e535605578f312ef13da9ffbc44eb54d220b",
+          "mode": "100644",
+          "bytes": 257,
+          "sha256": "fdccabf351c575a62416278c930006e6bc8d921aec42bb074b558ecdbf647005"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-native.ts",
+          "blob": "e99d4ca922321eaa077bed000453baa47857f62f",
+          "mode": "100644",
+          "bytes": 245,
+          "sha256": "428a73c38550f11ab7ba1b2dedafbacab7dd844409b76b2a374bf30003532904"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-public-root.ts",
+          "blob": "80cdbb454ec5ed273379afbe1159ddeca7e5057f",
+          "mode": "100644",
+          "bytes": 224,
+          "sha256": "ed9ef7fc39f5d9d2c926d21fabd850fdeb8393a47b9ef37b48876b30b38f1b55"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/types/package.json",
+          "blob": "089153bcb5adf57dc25f206a9dad3114c9cff80d",
+          "mode": "100644",
+          "bytes": 18,
+          "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/types/positive.ts",
+          "blob": "57763b6742e2a8859606db11917dd880c9c9eab0",
+          "mode": "100644",
+          "bytes": 714,
+          "sha256": "864908fc03222fbed3631a103dce49eda597c28ac00ad3074696f711895e8648"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-continuation-v12/worker.mjs",
+          "blob": "5fd8e81c8314c9afd26921e1449bbd67c4a46785",
+          "mode": "100644",
+          "bytes": 8478,
+          "sha256": "7fdffa2d6bbd992546c5f6b203d5c9f25379181a38b1c7d7607531d3db76d1ba"
+        }
+      ],
+      "currentTrackedAndRegularMembershipMatches": true
+    },
+    {
+      "commit": "dc380b18d38e72afa7083adcb139fc6f4a28e293",
+      "root": "tests/commands/git-independent-20260828/m1a-type-continuation-v13",
+      "files": [
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/AUDIT.json",
+          "blob": "1bac0bb5811898cde5faeb5d09ab2817da4b35a5",
+          "mode": "100644",
+          "bytes": 5222,
+          "sha256": "53210b99aa8c4a40af01ef5740b5d56aededd0cf91b576f73e56070872ed4d8e"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/EVIDENCE-MANIFEST.json",
+          "blob": "c7f4c1d4fd486497a26367573e2def66152c88fa",
+          "mode": "100644",
+          "bytes": 3184,
+          "sha256": "10dee2324a3b7e87379fd729557d68ca2a5f491c6b2968535b44cbe48427b2f4"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/EXPECTATION.json",
+          "blob": "5ba7d91236ecc9846a8c0bd45bf00d8371ab1972",
+          "mode": "100644",
+          "bytes": 1464,
+          "sha256": "85db2ca07608cd22ed94b4774cc42155b6e94f7308eb2d62088ea94124f487dc"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/HANDOFF.md",
+          "blob": "f4d6aba9365aebee4b8335e679eaa62f7b55f898",
+          "mode": "100644",
+          "bytes": 8453,
+          "sha256": "c9b600ce0cb855ad12f62c1b91a1ca450f83db04b6b64418fcb045c08e1c6e05"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/INPUT-BINDINGS.json",
+          "blob": "bfa6f8985309a143503506a28c708de57c21103a",
+          "mode": "100644",
+          "bytes": 1394972,
+          "sha256": "85c0d5baafcacd6579f490737d038a4a7010bd71a0e46747f52a50e7b4b77ac9"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/PREPARATION.json",
+          "blob": "221c0b3859e38ab2770729d68f0e8096dd72d790",
+          "mode": "100644",
+          "bytes": 2513,
+          "sha256": "b20c1184f321e724b11272a1394e08a9899d23627e9ce451118ce95d34a73ec9"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/PRESEAL.json",
+          "blob": "5eaaba4c1b779962824edb3152342684307b0197",
+          "mode": "100644",
+          "bytes": 7692,
+          "sha256": "359b1d3310bcd133329e6e89c653f58aabeb2d60910915f8d47e2de0776dd5c3"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/RUN-01/events.jsonl",
+          "blob": "4d110839d150d2817e37e7c5ab081a317da94614",
+          "mode": "100644",
+          "bytes": 1480,
+          "sha256": "a8bab9f3a60ef1b9c670bfc1c53bf8a59dc61bb4f6f33bc91b80e448123f7c0c"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/RUN-01/negative-public-root.stderr.raw",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/RUN-01/negative-public-root.stdout.raw",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/RUN-01/positive.stderr.raw",
+          "blob": "68ca91b6ba0de8d113c2727062394e021d77fe42",
+          "mode": "100644",
+          "bytes": 628,
+          "sha256": "2fa9705da22a2e7af4ed29bfd4acb2d44c44c412fe61c48cf1e64b91da8fa170"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/RUN-01/positive.stdout.raw",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/RUN-01/receipt.json",
+          "blob": "675b89464f6dea6f218c521951b20e38f9ff5010",
+          "mode": "100644",
+          "bytes": 9060,
+          "sha256": "f4aede77e9a1604ab34a1d43977c53aec773f760c52d92835bf2437de17c2cb8"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/RUN-01/stderr.raw",
+          "blob": "68ca91b6ba0de8d113c2727062394e021d77fe42",
+          "mode": "100644",
+          "bytes": 628,
+          "sha256": "2fa9705da22a2e7af4ed29bfd4acb2d44c44c412fe61c48cf1e64b91da8fa170"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/RUN-01/stdout.raw",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/RUN-01/timing.json",
+          "blob": "7a71606b8106b0bef182e93a9002e2efb575065f",
+          "mode": "100644",
+          "bytes": 137,
+          "sha256": "f78323b252c2fcd044008cf34a9d8be264f7ffb75372e15f87eee6605af55fca"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/SCOPE.md",
+          "blob": "0f75eb0221dcaf03966b7ff6f16ee47c49bbb3c5",
+          "mode": "100644",
+          "bytes": 4917,
+          "sha256": "c6d96ddb851d843e6b5ba8cf176c8f7f93ff9b2d255d4ee08b866b84966201da"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/compiler.mjs",
+          "blob": "e2a62c9678e52ec543c716ca5dc580e7614194a5",
+          "mode": "100644",
+          "bytes": 6388,
+          "sha256": "f2a32b65682ce5f757c5693eaa44be8f482b6369d8b92371dcae16207cbee1d3"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/guard.mjs",
+          "blob": "4550d50ce2c2bb272ccb2aa46ed619ded4f55ba2",
+          "mode": "100644",
+          "bytes": 2112,
+          "sha256": "7aa0b757d6426fe23bb706083c0e87bffe929d634909960f031310bd8ab15bf4"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/outer.mjs",
+          "blob": "609c8a9ee4c2e0661d12cb7db302422d4bd7c074",
+          "mode": "100644",
+          "bytes": 10373,
+          "sha256": "d24a1eb13da80e3ff4a63600c4c468e2d3c9af46e061784174406c3dfe13dcee"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v13/prepare.py",
+          "blob": "b9f31224f176f6b94185c337a5b49aa1f8104624",
+          "mode": "100644",
+          "bytes": 18353,
+          "sha256": "0bb123fb22e4b76300c9e324f52aead1eb4099b833345e3aec4612f10e4e4757"
+        }
+      ],
+      "currentTrackedAndRegularMembershipMatches": true
+    },
+    {
+      "commit": "7dfde40f453b03d34fdc976eab1d36188c533aa6",
+      "root": "tests/commands/git-independent-20260828/m1a-type-continuation-v14",
+      "files": [
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/AUDIT.json",
+          "blob": "7b3fe5e4a27bc08e32bdc2f0c3c1c2228e1bbfff",
+          "mode": "100644",
+          "bytes": 18475,
+          "sha256": "cafb7029888dd39c20cbe765a6546bf53109680694f6394bdae25f1517762d13"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/CHANGE.json",
+          "blob": "f38c83c02990d322f48ccd5c433757945c61d100",
+          "mode": "100644",
+          "bytes": 1196,
+          "sha256": "bfa0c9b7c3d94622615a54c84922a810125d07129c17ecbd605d69f430f3b27c"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/EVIDENCE-MANIFEST.json",
+          "blob": "65be7b2771123bb22e9362e596db53671705ecf5",
+          "mode": "100644",
+          "bytes": 2013,
+          "sha256": "59a57b8326558e0fcd062b67741ddfd1ea715bd5f2bc78cdedc6fb3cb3c94861"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/EXPECTATION.json",
+          "blob": "5ba7d91236ecc9846a8c0bd45bf00d8371ab1972",
+          "mode": "100644",
+          "bytes": 1464,
+          "sha256": "85db2ca07608cd22ed94b4774cc42155b6e94f7308eb2d62088ea94124f487dc"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/HANDOFF.md",
+          "blob": "b69fe9388de297348072130985802e8c278f8c8f",
+          "mode": "100644",
+          "bytes": 5370,
+          "sha256": "5d2933e358931fa1949502656cf86b24cd3f943a258b9b395035aff02df72155"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/INPUT-BINDINGS.json",
+          "blob": "a4bbf453a27381d7f6e238057406b70c280480d9",
+          "mode": "100644",
+          "bytes": 1402186,
+          "sha256": "f0ea74b2adda766b2bfbd38e495555cbee6a112586645c2663598728a652de5e"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/PRESEAL.json",
+          "blob": "298b9bc80f1e4263fd1fc2a4bea7d235b221199e",
+          "mode": "100644",
+          "bytes": 7572,
+          "sha256": "a8c7d6c7357a29e5745d7e73c1155f0b2885fa0cefb30bb7ec16b503ff9764cf"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/RUN-01/events.jsonl",
+          "blob": "58bd6eeea62b0353bba4c200e60e32abd909b289",
+          "mode": "100644",
+          "bytes": 2668,
+          "sha256": "1520cb9400530a354146bb469212aaaefc4e55c3ce36bc2f414158acac6ed946"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/RUN-01/negative-public-root.stderr.raw",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/RUN-01/negative-public-root.stdout.raw",
+          "blob": "fe5deb1417dba8a1e50ac0e53783dfae28ca80a8",
+          "mode": "100644",
+          "bytes": 226710,
+          "sha256": "eae2b77fc0d8aec5aad8fb90eafb5ecf90d935e1530e07d2f0f82f25c95640c3"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/RUN-01/positive.stderr.raw",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/RUN-01/positive.stdout.raw",
+          "blob": "0d76b21ea9957e2b48e4cb25e939959c8b15d10d",
+          "mode": "100644",
+          "bytes": 153208,
+          "sha256": "874b98a49aef1e647901c87d7c114454e1e7a0b6000578c9217563f157802552"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/RUN-01/receipt.json",
+          "blob": "79e600dda91542033e0c98a34db1d14a5f69484d",
+          "mode": "100644",
+          "bytes": 13605,
+          "sha256": "fc8b9e33126c202423ad0348ecbd174c203fff929758755d5a62e0e403ef2378"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/RUN-01/stderr.raw",
+          "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "mode": "100644",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/RUN-01/stdout.raw",
+          "blob": "58f81320e713389d3a521fb3f08190effafc4289",
+          "mode": "100644",
+          "bytes": 379918,
+          "sha256": "1a9827f66a18a5911c923279cdfb12494b2a6a3ac7c81fb3c24bfe8c52097fff"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/RUN-01/timing.json",
+          "blob": "be7db6858bf4c6700b0f456c0dbf342f9266b0af",
+          "mode": "100644",
+          "bytes": 149,
+          "sha256": "fe09b9b344438775c11a5e6502381d450c163a9619915af75f7471a1a8cde06d"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/audit.py",
+          "blob": "7dd5b2bf984c9ad8f35f93bb29bef9cf3ce7b6db",
+          "mode": "100644",
+          "bytes": 5503,
+          "sha256": "bbd18a77c7625fb0db68adc30dbef22e79feab6ad9f2678fe0283fc2919ef2b3"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/compiler.mjs",
+          "blob": "8b460e50d81bbc37e8e727ed5ff4a3e3a4f4b909",
+          "mode": "100644",
+          "bytes": 6379,
+          "sha256": "1c6a550d82f7801d0eacf9002125b523d6eda8faf82fc2b35f9cc694c613e502"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/guard.mjs",
+          "blob": "4550d50ce2c2bb272ccb2aa46ed619ded4f55ba2",
+          "mode": "100644",
+          "bytes": 2112,
+          "sha256": "7aa0b757d6426fe23bb706083c0e87bffe929d634909960f031310bd8ab15bf4"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/outer.mjs",
+          "blob": "d13faa9bc567135635f793c75ba033ba6efc2bd6",
+          "mode": "100644",
+          "bytes": 10698,
+          "sha256": "170b568246b8e0578bf0de61d66abbe190b8a610dcd9a50630cfd898f0d5f3ae"
+        },
+        {
+          "path": "tests/commands/git-independent-20260828/m1a-type-continuation-v14/prepare.py",
+          "blob": "fbf039a21d606b6d64d051fbe8cea209ecac3606",
+          "mode": "100644",
+          "bytes": 9145,
+          "sha256": "7fc444d5c2ce2007e78ac42cc01a3ff94893c9e72d0e03944c983ff4dfd70fc7"
+        }
+      ],
+      "currentTrackedAndRegularMembershipMatches": true
+    }
+  ]
+}

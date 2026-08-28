@@ -3633,3 +3633,48 @@ that any implementation, command, fixture, or test currently exists.
   opt-in, SafeJS is not a substitute for Node, and npm/npx product commands remain
   excluded. No actual SafeJS/private-engine, native-oracle, external-service,
   superiority or global-gate claim follows from this acceptance.
+
+## 2026-08-28 — ROOT-qualified Git M1A module; type exit convention adjudicated
+
+- ROOT qualifies module source `9885390fb11454fa194a3e60fdbef198dbfdf633`
+  on original derived base `8437e4eda904e1248c25eeef0d9d455b1d251495`,
+  full898-member package SHA256
+  `68541722217fb3f88f7317750c8f1a66042ea090f2c769564b9afc14372dfe68`.
+  This is the frozen M1A composition, not moving HEAD, later M1B or public/default
+  integration. Curie retains the separate future integration decision; defaults78
+  and root exports are unchanged by this record.
+- Evidence `b94bd13b156320d713d692c11f85f655cda68690` retains284 unmodified
+  semantic passes:71 each source/compiled/actual offline-installed/moved, matching
+  observations. Strict build and full-package installation bindings passed.
+  Three loaded mutants were detected, three fresh-child restores passed and three
+  binding controls refused. These denominators remain separate and are not rerun.
+- Four original intended type properties passed. The fifth, missing-root-export,
+  is supported separately by actual v14 exact TS2724 at line1/column9 naming
+  `createGitCommand`, its sealed `createTarCommand` suggestion/related information,
+  no extra diagnostics, identical consumer bytes and actual nonzero exit1.
+  ROOT adjudicates that exit1 as the intended rejection: the inherited API wrapper
+  maps all diagnostics to1, whereas its expected2 came from the CLI convention.
+  This is not an aggregate5/5 claim or a rewritten test verdict.
+- Original v12 overallHOLD/types4-of-5, v13 positive-wrapper failure/negativeUNRUN,
+  and v14 raw negativeFAIL/overallSCOPED_FAILURES/exit1 remain immutable. The v13
+  unsupported `emitSkipped` assertion and secondary empty-JSON failure are retained.
+  V14 observed `emitSkipped:false` without using it as acceptance; exact negative
+  diagnostics were independently compared as DATA after the exit assertion failed.
+  No compiler retry, changed historical exit or product fix accompanies adjudication.
+- Actual per-layout295 closed/destroyed/close-delivered stream objects and167
+  fulfilled registrations remain distinct from SOURCE_LINKED_CONDITIONAL_JOIN
+  private-writer proof. No private-Promise timestamp, native allocation/RSS bound,
+  universal late-error/opaque-host preemption or hostile-host guarantee follows.
+  Untaken fallback/listener branches retain SOURCE-only qualifications. The frozen
+  bounded read-only profile supports SHA1 loose objects/indexes and packed-refs,
+  but refuses pack/idx/promisor and other unsupported storage/configuration forms;
+  text-diff/ignore/pathspec/rendering subsets, provider metadata and nontransactional
+  race/partial-output limitations remain. Native Git6 workflows are still unrun.
+- SOURCE/DATA-only adjudication authenticates evidence
+  `7dfde40f453b03d34fdc976eab1d36188c533aa6`, exact raw negative SHA256
+  `eae2b77fc0d8aec5aad8fb90eafb5ecf90d935e1530e07d2f0f82f25c95640c3`,
+  wrapper literal exit mapping, pinned TypeScript5.9.3/Node22.22.2/options and the
+  recorded no-output/source/FS integrity guards. No new case, compiler, build,
+  install, runtime, private-engine, native-oracle, network or cleanup is executed.
+  Full bindings and limitations:
+  `tests/commands/git-independent-20260828/m1a-type-adjudication-v15/TYPE-ADJUDICATION.md`.

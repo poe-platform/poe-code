@@ -76,13 +76,27 @@ arbitrary-provider support.
 The [user-provided priority table and source audit](docs/COMMAND_PRIORITIES.md)
 distinguish implementation from native compatibility: `sed`, `rg`, `printf`,
 `nl`, `cat`, `head`, `echo`, `find`, `tail` and `ls` are in `agentCommands()`;
-`curl` is an explicit network plugin. Git and `apply_patch` now have module
-candidates under independent review, not accepted public/default integration;
-the accepted aggregate remains78 commands. The proposed Node CommonJS contract
+`curl` is an explicit network plugin. Frozen Git M1A module
+`9885390fb11454fa194a3e60fdbef198dbfdf633` has qualified ROOT acceptance;
+`apply_patch` remains a module candidate under independent review. Git acceptance
+does not authorize root exports/default integration or cover later packed-object
+work; the accepted aggregate remains78 commands. The proposed Node CommonJS contract
 and provider remain unqualified. `safejs` is not Node, and `patch` is not `apply_patch`.
 “Without the npm stuff” excludes npm/npx product commands only; npm, Node and
 TypeScript development tooling remain. The counts in that table are supplied by
 the user, not independently verified usage statistics or completeness scores.
+
+The [Git M1A type adjudication and scoped assessment](tests/commands/git-independent-20260828/m1a-type-adjudication-v15/TYPE-ADJUDICATION.md)
+binds 284 unmodified semantic groups (71 each across source, compiled, offline
+installed and moved layouts), four original type passes plus the separately
+observed exact missing-export negative, and three loaded-mutant detections,
+three restores and three binding refusals. These are separate proof categories,
+not a new aggregate type score or global green gate. Historical failing exits
+remain unchanged. Private-writer joins are source-qualified; closed-stream and
+registration observations do not establish native allocation/RSS bounds.
+This read-only loose-object/index profile refuses packed-object storage and other
+unsupported repository/configuration forms; native Git oracle workflows remain
+unrun. It is not full Git compatibility, packed readiness or acceptance of live HEAD.
 
 After `npm ci` and `npm run build`, package-root imports expose the aggregate:
 

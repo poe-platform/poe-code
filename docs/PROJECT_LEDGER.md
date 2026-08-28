@@ -2762,3 +2762,31 @@ that any implementation, command, fixture, or test currently exists.
   tests/integration/full-gate-20260827/unified76-driver/release-packet-v1/LAUNCH.md.
   The template's pending action/false review/empty authorization fails admission;
   this documentation is not an executable release or automatic promotion.
+
+### 2026-08-28 — Root released76; instruction-copy admission stopped before writes
+
+- Root explicitly authorizes one f5/e062/c109 full76 run through packet39dd,
+  accepts independent5c32f061c36081919a21cbc7e77b2865f0c49c0a (21 inherited plus
+  one new scoped A10,13 observer controls, not22 fresh), and binding8dd78d7d.
+  The same authority forbids AGENTS snapshots/materialization and requires
+  stopping before an existing driver would make such a copy.
+- Blocker evidencea9ec3561b36505d288519804980ee1b7641ee5dd records that exact
+  conditional authority. The approved complete profile includes five AGENTS.md
+  members/47852 bytes, and e062 unconditionally writes them. Its dependency
+  copier also writes benchmark just-bash/dist/AGENTS.md (9231 bytes), the same
+  pathname as the independently disclosed incident. All30 driver files still
+  match the seal; the clean independent typing slice is not a full-extractor
+  instruction-copy-policy proof. Earlier author69a's complete-copy behavior
+  remains historical and must not be relabelled instruction-copy-free.
+- No executable release receipt or full launcher is invoked: zero new archives,
+  copies, private reads, native runs, builds and zero of14 phases. The conditional
+  stop does not consume or rescore a full-gate attempt. Source/index/foreign
+  processes and all existing evidence remain untouched.
+- Proposed, not implemented: retain the full37397-member original authority but
+  explicitly bind the five instruction files and one dependency file as metadata
+  only, validate the physical projection without broad omissions, and address
+  instruction bodies in full Git-history/private/nested-copy paths. Working-tree
+  omission alone is insufficient. A new reviewed driver/projection and matching
+  root receipt are needed; f5/c109 and canonical/profile identities must not be
+  silently weakened. Exact files/callsites and remaining decision are in
+  tests/integration/full-gate-20260827/unified76-driver/release-blocker-instructions-v1/README.md.

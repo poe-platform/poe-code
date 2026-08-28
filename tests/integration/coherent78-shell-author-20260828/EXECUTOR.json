@@ -1,10 +1,11 @@
 {
-  "version": 1,
-  "phase": "executor sealed before first composition product/build execution",
+  "version": 2,
+  "phase": "after preserved v1 pre-import path failure; before first product-case execution",
   "preseal": "186804b7ae9d8280aac3ee78e556bfd7c8bba7d3",
   "artifacts": {
     "run.mjs": "24f6967e5f8ad4472ce1835f616b9093b26bfd9bbfb9fa4e6738b4474a726fb1",
-    "probe.mjs": "6f24179c06d2b5c141c22fa891fcb419e66a4e533ff3156db1513589ae83d68f",
+    "probe.mjs": "7699f467cfa06625389fad09cc223c311a39bd67dd2144eef8ba16927667090a",
     "loader.mjs": "3310399901505de8bee60a4ea1e58fcc288ae315fa7b353b2fe4eb68553bceab"
-  }
+  },
+  "previousExecutorCommit": "acc42a2a"
 }

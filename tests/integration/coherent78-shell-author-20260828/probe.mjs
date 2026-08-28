@@ -7,7 +7,7 @@ import https from "node:https";
 import { syncBuiltinESMExports } from "node:module";
 import { expectedNames } from "./names.mjs";
 
-const root = process.env.PRODUCT_ROOT;
+const root = fs.realpathSync(process.env.PRODUCT_ROOT);
 assert.equal(import.meta.resolve("virtual-bash"), pathToFileURL(path.join(root, "dist/index.js")).href);
 let forbiddenNetwork = 0;
 const denyNetwork = () => { forbiddenNetwork++; throw new Error("Unconfigured host network is forbidden in this fixture"); };

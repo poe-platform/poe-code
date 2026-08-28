@@ -70,8 +70,9 @@
 - Register cooperative InvocationCleanup synchronously through registerCleanup
   before invocation-owned resource acquisition/admission; use the same idempotent
   cleanup from finally, sharing completion across overlapping calls. Close owned
-  acquisition admission and cover admitted work. Public exec/dispose settlement
-  awaits registered cooperative cleanup/tracked resource work, not opaque host work.
+  acquisition admission and cover admitted work. Outcome selection and public
+  exec/dispose settlement await registered cooperative cleanup/tracked resource
+  work and the root cleanup barrier, not opaque host work.
   Direct/custom hosts may omit the hook; finally remains necessary.
 - ByteSink.ownedOutput is optional, destination-specific enrollment. Apply the
   cleanup-before-acquisition rule to createOutputOperation; close blocks new work
@@ -84,6 +85,11 @@
   map (omitted means empty), without inherited exports/PWD injection or local
   promotion; omitted/false retains merge compatibility. Preserve parent state.
   Test actual Shell/registry invocation, not only a stub. See src/contracts/command.md.
+- CommandInvokeOptions.signal is optional, permits explicit undefined and is
+  borrowed; omission/undefined adds no local cancellation resources. Preserve
+  root-caller cancellation > escaping execution/control failure > local
+  cancellation. Do not infer provenance from reason equality or global mappings,
+  or raise an escaping error from an already mapped result status.
 - stdinIsDefault describes provenance, not bytes/EOF/readability. Preserve it
   through transparent forwarding; replacement streams choose origin explicitly.
   xargs child input is the implicit empty default, not consumed argument input.

@@ -2548,3 +2548,39 @@ that any implementation, command, fixture, or test currently exists.
   loaded-module bindings. Original1/5 requirements and2/6 extended observations
   remain historical failures, not rescored. This is a received fixture-profile
   acceptance, not new runtime source work or a whole-release claim.
+
+## 2026-08-28 — Unified76 v3 author packet and received scoped acceptances
+
+- Complete four-file fixture amendment frozen at7e8b9377, source284a4c5a;
+  final76 candidatef5e9fc49b6abb38e180cc9de16c95fced102ff75 is base44f00bf8
+  plus those same four paths. The only remaining edits were the inspection
+  title, unique count76 and HTML/DU/expr suffix; custom counts remain77.
+  Two actual builds produce the unchanged full c109372f… tarball. The first
+  author selection executes49 cases successfully but has one missing-helper
+  module-load failure; a fresh same-candidate completion executes the remaining
+  19 format cases. This is not relabeled as one uninterrupted68/68 run.
+  Prior07047's67/1 and2ffcb23d's20/1/unreached suffix remain historical.
+- Integrated external launcher source2713defc1f53a00dd975931946de4782a980836d
+  has56 bounded author controls passing, including actual small Git transport,
+  inventory routing, inert imports and unreleased-run refusal. Its reviewed
+  inputs are proposed, not independently accepted:632 canonical paths,
+  192 classified.mts,256 cleanup inputs,37,397 committed blobs/2,382,440,321
+  bytes and native49+2 hash admission. Explicit--run, one driver build reused
+  by consumers, bounded setup/output and strict cleanup/zero-skip exit policy
+  are implemented. Root's OS exception is only eleven sampled unreadable
+  references on macOS26.4.1/build25E253, not file hashes/full OS attestation.
+  Evidence:tests/integration/full-gate-20260827/unified76-driver/launcher-v3/
+  evidence/REPORT.json. Dirac's22 groups and the full gate are not executed here.
+- Received root acceptance of HTML74'saff public component through
+  independent9d84903356a4c33402814bdc367e3bbe9894d1c2: the same34 cases in
+  installed/moved Node22,10 type/10 package classes and authenticated830-file
+  d9 package. Prior build/archive proofs were bound, not rerun; close-disposition,
+  stderr, title/HTML5/non-sanitizer and conversion qualifications remain.
+- Root separately accepts WHICH77's284/ee component through0b41da23: unchanged
+  18 runtime+4 type cases installed/moved and8 weakening classes. Its immutable
+  candidate284857d7… and49191d09… package are not rebased into this76 gate.
+  Root also accepts Stage2fd1daa12 through7ca45f2d:26 runtime/6 types,2 controls,
+  three layouts and separate280+39+68 regressions. The frozen M05 mutant survivor
+  remains beside the separate private-seam kill; SafeJS follow-up is pending.
+  Stage2 stays outside selected76. These are received scoped acceptances, not
+  a combined candidate or whole-product gate result.

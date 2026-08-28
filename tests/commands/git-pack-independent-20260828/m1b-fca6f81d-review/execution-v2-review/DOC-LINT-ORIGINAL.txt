@@ -1,0 +1,8 @@
+ERROR: first line must be an H1 ending in or containing 'Specification'
+ERROR: missing required section: Normative Language
+ERROR: missing required section: Problem Statement
+ERROR: missing required section: Goals and Non-Goals
+ERROR: missing required section: Test and Validation Matrix
+ERROR: missing required section: Conformance Criteria
+ERROR: contains no RFC 2119 normative requirements
+FAILED: 7 error(s), 0 warning(s)

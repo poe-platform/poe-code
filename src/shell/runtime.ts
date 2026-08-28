@@ -38,7 +38,7 @@ export const defaultLimits: Required<ShellLimits> = {
 
 const shellBuiltinNames = new Set([
   ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read",
-  "exit", "return", "break", "continue", "command", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts",
+  "exit", "return", "break", "continue", "command", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let",
 ]);
 
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
@@ -2132,6 +2132,51 @@ export class Runtime {
     finally { await input?.close(); }
   }
 
+  private async letBuiltin(context: CommandContext & IO, state: State): Promise<number> {
+    this.signal.throwIfAborted();
+    const { maxExpansionBytes: bytes, maxExpansionFields: fields } = this.budget.limits;
+    const admit = (value: unknown): void => {
+      if (typeof value !== "string" || value.includes("\0")) throw new CommandFailure("let: arguments must be strings without NUL", 2);
+      if (value.length > bytes || Buffer.byteLength(value) > bytes) this.budget.fail("maxExpansionBytes");
+    };
+    const checkpoint = async (): Promise<void> => {
+      this.signal.throwIfAborted();
+      await interruptible(new Promise<void>(resolve => setImmediate(resolve)), this.signal);
+      this.signal.throwIfAborted();
+    };
+    const { args } = context;
+    if (!Array.isArray(args)) throw new CommandFailure("let: argument array required", 2);
+    if (args.length + 1 > fields) this.budget.fail("maxExpansionFields");
+    admit(context.command);
+    for (let index = 0; index < args.length; index++) {
+      this.signal.throwIfAborted();
+      admit(args[index]);
+      if ((index + 1) % 128 === 0) await checkpoint();
+    }
+    if (args[0] === "--help") throw new CommandFailure("let: --help: unsupported option", 2);
+    const offset = args[0] === "--" ? 1 : 0;
+    if (args.length === offset) throw new CommandFailure("let: expression expected", 1);
+    const variables = new Proxy(this.arithmeticVariables(state), { get: (target, key) => {
+      this.signal.throwIfAborted();
+      const value: unknown = Reflect.get(target, key);
+      if (typeof value === "string" && (value.length > bytes || Buffer.byteLength(value) > bytes)) this.budget.fail("maxExpansionBytes");
+      return value;
+    } });
+    let value = 0n;
+    for (let index = offset; index < args.length; index++) {
+      this.signal.throwIfAborted();
+      try { value = evaluateArithmetic(prepareArithmetic(args[index]!), variables); }
+      catch (error) {
+        this.signal.throwIfAborted();
+        if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
+        throw new Error(`let: ${message(error)}`);
+      }
+      if ((index - offset + 1) % 128 === 0) await checkpoint();
+    }
+    this.signal.throwIfAborted();
+    return Number(value === 0n);
+  }
+
   private async getoptsBuiltin(context: CommandContext & IO, state: State): Promise<number> {
     this.signal.throwIfAborted();
     const { maxExpansionBytes: bytes, maxExpansionFields: fields } = this.budget.limits;
@@ -2205,6 +2250,7 @@ export class Runtime {
     const { command, args, stdout, stderr } = context;
     if (command === ":" || command === "true") return 0;
     if (command === "false") return 1;
+    if (command === "let") return this.letBuiltin(context, state);
     if (command === "getopts") return this.getoptsBuiltin(context, state);
     if (command === "pwd") {
       if (args.some((arg) => arg !== "-L" && arg !== "-P")) { await writeText(stderr, "pwd: invalid option\n"); return 2; }

@@ -1,0 +1,16 @@
+{
+  "schema": "let-non-let-runtime-comparison-v1",
+  "baseline": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+  "baselineSHA256": "93c06908aec9d5d61d801657f99ab75122cadb6688f038e1941c587b4a8d4ed3",
+  "candidateSHA256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193",
+  "removedAdditions": [
+    "builtin name let",
+    "private letBuiltin adapter",
+    "let dispatch branch"
+  ],
+  "remainingBytesIdentical": true,
+  "acceptanceStamp": "NONE",
+  "productionWrites": [
+    "src/shell/runtime.ts"
+  ]
+}

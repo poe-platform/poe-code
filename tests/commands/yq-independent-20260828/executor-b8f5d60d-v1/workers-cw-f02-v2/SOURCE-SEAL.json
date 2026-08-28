@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "status": "SOURCE_STATUS_RULES_AND_DEFERRED_DATA_PRESEALED_BEFORE_VALIDATION",
+  "files": {
+    "ASSEMBLY.json": {
+      "sha256": "18876bf2415f08ff7dc5397e6313823ac204bd58084a3a6de4218155be18257a",
+      "bytes": 26266,
+      "mode": 420,
+      "kind": "file"
+    },
+    "CORE-STATUS-INTEGRATION.json": {
+      "sha256": "5834ebbe925781533a3f367a49a893f5045fb60cc1c5666eac1590cf3dc3458c",
+      "bytes": 7818,
+      "mode": 420,
+      "kind": "file"
+    },
+    "DEFERRED-CONTROLS.json": {
+      "sha256": "aca951dd013acee3b4542d24bbb27d53d741aa6dd3fc975ef26799f3e536a7a5",
+      "bytes": 15039,
+      "mode": 420,
+      "kind": "file"
+    },
+    "OBSERVATION-PROPOSAL.json": {
+      "sha256": "96606644f59afb0747949f977d18c6d1c3a27cd864c1101026b2584686b519ff",
+      "bytes": 2601,
+      "mode": 420,
+      "kind": "file"
+    },
+    "SPECIFICATION.md": {
+      "sha256": "4a43cabdf24f9eab816e3f020757ff24fe6461a9e42a7bc93602b2f0d966bf03",
+      "bytes": 9132,
+      "mode": 420,
+      "kind": "file"
+    },
+    "loaded-worker.mjs": {
+      "sha256": "be03ad51d6ef185093236776bf0b0f7dde17e520be6a4ed8505656dbeef4e26c",
+      "bytes": 11554,
+      "mode": 420,
+      "kind": "file"
+    }
+  },
+  "directories": {
+    "": 493
+  },
+  "changedExecutableFiles": 1,
+  "sourceEdits": 5,
+  "knownAffectedGaps": 4,
+  "unaffectedDynamicSlots": 6,
+  "rootGO": false,
+  "authoredExecutions": 0
+}

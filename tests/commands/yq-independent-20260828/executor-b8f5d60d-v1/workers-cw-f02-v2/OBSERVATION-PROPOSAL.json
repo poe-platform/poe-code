@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "status": "NARROW_PROPOSAL_ONLY_NOT_AUTHORIZED_OR_IMPLEMENTED",
+  "id": "UTF22-RETAINED-OUTPUT-CONTROL-OBSERVATION-PROPOSAL",
+  "appliesOnlyIfSeparatelyAccepted": "The four UTF22-based LOADED control roles, never the full UTF22 normative record",
+  "currentEffect": "None: four role gaps remain; no source branch enables this proposal",
+  "possibleBinding": {
+    "witnessId": "UTF-22--whole",
+    "witnessSha256": "96c842953b880ccc65f3df2d38f9c0547d2c968adf6d62a868dab2bf7b89840e",
+    "contextSource": {
+      "revision": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime/recipe/context.mjs",
+      "blob": "d3b77a5ff2d548702d7a749fd106a0b3f225db96",
+      "sha256": "1e3c7edee830a662f678e70d54398a0bccaf7a19a4fe29f53eadd27ad0985a23",
+      "bytes": 4497,
+      "gitMode": "100644",
+      "historicalPosixMode": "NOT_INFERRED_FROM_GIT"
+    },
+    "rawObservation": [
+      "Same-b8/environment/GO authenticated materialized entry and dependency load facts.",
+      "Exact frozen producerReuse=true chunks5b31,2c32,5d0a through the bound existing context; authenticate raw iterator events, including terminal next or return/finalization path.",
+      "Existing context source reuses one Uint8Array and overwrites it with0x78 on subsequent next/finalization; binding must tie that exact source and the actual invocation/events to the capture, not infer execution merely from hashes.",
+      "Pristine normal status0, exact stdout hex5b312c325d0a, empty stderr and no diagnostic; mutant comparison uses only the separately approved role-specific primitive predicate."
+    ],
+    "boundScope": "A specifically named byte-retention witness observation, not proof of all input ownership implementations or universal allocation behavior.",
+    "mustRemainUnchanged": [
+      "UTF22 expected.assertions[0] and whole-record F01 INCOMPLETE.",
+      "No deletion of natural-language assertions or fake BOUND_PROJECTION_ONLY response.",
+      "No inherited positive/kill credit, no additional execution now."
+    ],
+    "requiredFutureDecisions": [
+      "Root explicitly approves a separately scoped observation binding and its concrete evidence schema/provenance.",
+      "Different reviewer validates the observation and whether it suffices for these control roles.",
+      "New versioned source/compound binding and separately authorized dynamic verification; this current overlay continues to deny retained-view controls."
+    ]
+  },
+  "rootGO": false,
+  "adapterImplemented": false,
+  "controlCredit": 0
+}

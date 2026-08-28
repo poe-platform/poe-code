@@ -28,18 +28,22 @@ function groupMembers(pid){
   return execFileSync('/bin/ps',['-axo','pid=,pgid='],{encoding:'utf8',timeout:2000,maxBuffer:BOUNDS.setupStderrBytes}).split('\n').filter(Boolean).map(line=>line.trim().split(/\s+/u).map(Number)).filter(row=>row[1]===pid).map(row=>row[0]);
 }
 function managed(command,args,options){
-  const child=spawn(command,args,{...options,detached:true,stdio:['pipe','pipe','pipe']});let stderrBytes=0,stderr='',failure,closed=false;
+  const {observer,...spawnOptions}=options;
+  const child=spawn(command,args,{...spawnOptions,detached:true,stdio:['pipe','pipe','pipe']});let stderrBytes=0,stderr='',failure,closed=false;
   const kill=()=>{if(child.pid)try{process.kill(-child.pid,'SIGKILL');}catch(error){if(error.code!=='ESRCH')failure??=error;}};
   const done=new Promise(resolve=>{child.once('error',error=>{failure=error;});child.once('close',(status,signal)=>{closed=true;resolve({status,signal});});});
   child.stderr.on('data',chunk=>{try{stderrBytes=enforceCharge(stderrBytes,chunk.length,BOUNDS.setupStderrBytes);stderr+=chunk.toString();}catch(error){failure=error;kill();}});
   const timer=setTimeout(()=>{failure=new Error('bounded setup deadline exceeded');kill();},BOUNDS.setupTimeoutMs);
+  const ready=observer?observer.register(child.pid):Promise.resolve(undefined);
+  ready.catch(()=>{kill();});
+  const observedMembers=async()=>observer?observer.members(await ready):child.pid?groupMembers(child.pid):[];
   const finish=async()=>{
-    const result=await done;clearTimeout(timer);let survivors=child.pid?groupMembers(child.pid):[];
-    if(survivors.length){failure??=new Error('setup left descendants');kill();const deadline=Date.now()+BOUNDS.cleanupTimeoutMs;while(survivors.length&&Date.now()<deadline){await delay(25);survivors=groupMembers(child.pid);}}
+    const result=await done;clearTimeout(timer);let survivors=await observedMembers();
+    if(survivors.length){failure??=new Error('setup left descendants');kill();const deadline=Date.now()+BOUNDS.cleanupTimeoutMs;while(survivors.length&&Date.now()<deadline){await delay(25);survivors=await observedMembers();}}
     assert.equal(closed,true);assert.equal(survivors.length,0,'setup descendants unreaped');if(failure)throw failure;
     assert.equal(result.signal,null);assert.equal(result.status,0,stderr);return{...result,closed,stderrBytes,survivors};
   };
-  return{child,done,kill,finish};
+  return{child,done,kill,finish,ready};
 }
 class Reader{
   constructor(stream){this.iterator=stream[Symbol.asyncIterator]();this.chunk=Buffer.alloc(0);this.offset=0;this.transferred=0;}
@@ -50,11 +54,12 @@ class Reader{
   async line(){const bytes=[];for(let count=0;count<256;count++){const byte=(await this.take(1))[0];if(byte===10)return Buffer.from(bytes).toString();bytes.push(byte);}throw Error('oversized Git batch header');}
   async end(){assert.equal(this.offset,this.chunk.length,'unexpected buffered Git output');assert.equal((await this.iterator.next()).done,true,'unexpected trailing Git output');}
 }
-export async function extractCommitted({git,repository,candidate,entries,destination,environment,bounds=BOUNDS}){
+export async function extractCommitted({git,repository,candidate,entries,destination,environment,bounds=BOUNDS,observer}){
   validateEntries(entries,bounds);
-  const process=managed(git,['--no-replace-objects','cat-file','--batch'],{cwd:repository,env:cleanGitEnvironment(environment)});
+  const process=managed(git,['--no-replace-objects','cat-file','--batch'],{cwd:repository,env:cleanGitEnvironment(environment),observer});
   const reader=new Reader(process.child.stdout);const hashes={};let written=0;
   try{
+    await process.ready;
     for(const entry of entries){
       process.child.stdin.write(entry.blob+'\n');assert.equal(await reader.line(),`${entry.blob} blob ${entry.bytes}`);
       const target=join(destination,entry.path);await mkdir(dirname(target),{recursive:true});

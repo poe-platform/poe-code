@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "createdAt": "2026-08-28T02:59:18.797Z",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "previousSource": "2713defc1f53a00dd975931946de4782a980836d",
+  "previousDriverSha256": "3a3019e02830baf599f7df46c938c44552067d160819e548688ccf6027a1441c",
+  "driverSha256": "4624ffcbafa470f21c6d122adc3e75a1c20744f8b75d80839f4e69eebcf3d0a1",
+  "files": {
+    "review-v4/controls.mjs": "713eb57d0b20995a2f6d01e6b25e94a741cee440f873e79963601cf5b76f4da3",
+    "review-v4/contained-probe.mjs": "b6b324c8e4726f9974a1f47244275b83357170bbac9401d0712d8b7b5657f6a3",
+    "review-v4/README.md": "d0345bd8c6d7f164235985535a7538b078279b77c3f280f7b55a5cb9364785b3",
+    "build-audit.mjs": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
+    "build-types.mjs": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a",
+    "phase-runner.mjs": "efad78d7e558136550de5342a673f77441d8226696ab7fee61166eb1b6aecce3",
+    "process-observer.mjs": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
+    "review-build-types.mjs": "4cde75180c22e2655b1dc4232dcc4400925d7207afbcab9c50c11ed57ad5be2f",
+    "review-build-types-worker.mjs": "1575931a035d8dbfdfc9ac334613f2bd262b53bd3bbdeaa07fadeac1961b4497"
+  },
+  "authorRuns": 0,
+  "wholeGateLaunched": false,
+  "expectations": [
+    "same shared implementation/guards/receipt",
+    "one actual candidate production compiler invocation",
+    "typing reuses actual emitted declarations",
+    "duplicate actual tiny builds rejected",
+    "contained target still refuses ps/outside write",
+    "foreign observer handles/PIDs refused",
+    "natural child/group reaping required",
+    "review result never full-gate acceptance"
+  ]
+}

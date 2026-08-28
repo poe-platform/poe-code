@@ -1,6 +1,6 @@
 {
-  "schema": 4,
-  "createdAt": "2026-08-28T02:59:18.789Z",
+  "schema": 3,
+  "createdAt": "2026-08-28T01:45:18.509Z",
   "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
   "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
   "files": {
@@ -12,14 +12,14 @@
     "EXTERNAL-RECEIPT.json": "0374aad612ced6941f849de615d89bfedc7a6bcdd2708c017ba13fe57417ac84",
     "common.mjs": "b51eceeb99a99f3387d0ab49afe8e9b86bc83118d81cb63f8e9c50902b0084cb",
     "profile.mjs": "382c003d5a97652454dc4a5567bc16cf9fba3964b8fb164e33b335033264a28f",
-    "admission.mjs": "3a41490a765978c216d0609375cdd68eb1e9e1e7c6f19d6a7ef347389b5237a3",
+    "admission.mjs": "565fc81134f3874718d68d2e4dc9f1dadb0075e7ab67eb607d964fe68e2a4c46",
     "inventory.mjs": "075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2",
     "run.mjs": "6b5a31adeaaf76a342ab7965a5c603c37bdb2f78132d03c666db6cbf8755945e",
     "worker.mjs": "2a55672c40ba4fea7824c73aeb4006e22aa2545d972a3edcc9a515d0ce778401",
     "supervise.mjs": "0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55",
-    "execute.mjs": "b43c65b692d24dafccabd8be386eb9298df70a0d5112ebed32b6078626f4b9c7",
+    "execute.mjs": "316320b4c019e116030a9d5cea58b814a981dff5c668041d817a4f51a4d887c9",
     "policy.mjs": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
-    "transport.mjs": "8896ffaac13bf66f81c7742b28d578c7aa719ce9d20724b4bb3dc4ee8d133404",
+    "transport.mjs": "3b319780a805f55ad943b2da5231b4c7c221ee7cf261687453edb6d6015c6053",
     "external.mjs": "c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da",
     "external-admission.mjs": "7ac803044ae4fcc44c77244de136c1e010feecd5e0b73043f7fe863fad2615e1",
     "built-consumers.mjs": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8",
@@ -27,17 +27,8 @@
     "tap.mjs": "76fb3404cdda60bb9d8cf52a2f60f5220d8bc72bfe443fa689236c14a453339b",
     "public.mjs": "0e0398d2163368cfefd36fb3d5c50b7090aaf5f768271d518f6708daa37d1e70",
     "consumer.mts.fixture": "8a9061761d0e22f2bc534ccbebc40a57393a907b9c4885977e8f6eccd9ebd9ba",
-    "negative.mts.fixture": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3",
-    "build-audit.mjs": "57eefea8f3efb22e70ffce47c001f9a71d916b15dba288bd44668a95d201141f",
-    "build-types.mjs": "35ef0abb6d917131fc17dc989ff8bca5adf706539e2e344aedc8d31f3635eb9a",
-    "phase-runner.mjs": "efad78d7e558136550de5342a673f77441d8226696ab7fee61166eb1b6aecce3",
-    "process-observer.mjs": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
-    "review-build-types.mjs": "4cde75180c22e2655b1dc4232dcc4400925d7207afbcab9c50c11ed57ad5be2f",
-    "review-build-types-worker.mjs": "1575931a035d8dbfdfc9ac334613f2bd262b53bd3bbdeaa07fadeac1961b4497"
+    "negative.mts.fixture": "03c4aa908881ccdb3fd15ad5e752578dcd7713d50414089192c8b07b433f31a3"
   },
   "wholeGateLaunched": false,
-  "qualification": "Versioned integrated launcher for review only; explicit root release and independent driver acceptance required.",
-  "previousSource": "2713defc1f53a00dd975931946de4782a980836d",
-  "previousDriverSha256": "3a3019e02830baf599f7df46c938c44552067d160819e548688ccf6027a1441c",
-  "scope": "Version4 shared build/type review and explicit outer transport observer; product/profile unchanged; full gate still release-gated"
+  "qualification": "Versioned integrated launcher for review only; explicit root release and independent driver acceptance required."
 }

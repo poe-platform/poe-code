@@ -18,6 +18,8 @@ import {renderBuiltConsumerRunner,renderConsumerEntry} from './built-consumers.m
 import {accountFile} from './tap.mjs';
 import {supervise} from './supervise.mjs';
 import {verifyConsumerSelection} from './consumer-admission.mjs';
+import {createBuildAudit,runBuildTypes,readBuildAudit} from './build-types.mjs';
+import {createPhaseRunner} from './phase-runner.mjs';
 
 export async function execute(options){
 let output,report,temporary,source,privateModule,sourceGuard,exitCode=0,totalOutput=0;
@@ -83,26 +85,10 @@ try{
   const verify=async()=>{await verifyExternal();if(sourceGuard)assert.deepEqual((await sourceGuard.check()).changes,[],'source additions/removals/content/type/mode changed after setup');else for(const entry of protectedInputs)assert.deepEqual((await entry.guard.check()).changes,[],entry.name);verifyNativeStaging(report.nativeStaged);assert.equal(sha(readFileSync(node24)),preflight.runtime.identity.sha256);assert.equal(sha(readFileSync(npm)),report.npmCli.sha256);assert.equal(sha(readFileSync(cleanup)),sha(JSON.stringify(profile.cleanup,null,2)+'\n'));verifyDriverSeal();};
   const artifactGuard=await createTreeGuard(support);const privateGuard=await createTreeGuard(report.prerequisites.safejs.copiedRoot);
   save(join(output,'SETUP-COMPLETE.json'),{candidate:candidate.candidate,archiveFiles:report.archive.count,external:report.external.sha256});
-  async function phase(label,args,cwd=source,expectedStatus=0,timeoutMs=BOUNDS.phaseTimeoutMs){
-    requireOrdered(completed,label);await verify();assert.deepEqual((await artifactGuard.check()).changes,[]);assert.deepEqual((await privateGuard.check()).changes,[]);
-    const env={...environment,FULL_GATE_IMPORTS:join(output,'imports',label),...label==='public-runtime'?{}:{NODE_OPTIONS:'--import='+pathToFileURL(guard).href}};
-    const result=await supervise(node24,args,{cwd,env,timeoutMs:Math.min(timeoutMs,BOUNDS.phaseTimeoutMs),maxOutputBytes:Math.min(BOUNDS.phaseOutputBytes,BOUNDS.allPhaseOutputBytes-totalOutput),stdout:join(output,label+'.stdout'),stderr:join(output,label+'.stderr'),observeSockets:true});
-    const row={...result,label,expectedStatus,args,cwd,loaderPolicy:label==='public-runtime'?'permission confines all module reads to authenticated moved package and consumer; outer preload intentionally unavailable under that fence':'outer authenticated source guard; child harnesses with explicit environments retain their separately declared fences'};report.phases.push(row);completed.push(label);
-    totalOutput=enforceCharge(totalOutput,result.outputBytes,BOUNDS.allPhaseOutputBytes);
-    if(label==='canonical')row.accounting=await accountFile(join(output,label+'.stdout'));
-    assert.ok(result.clean&&result.closed&&!result.signals.length&&!result.survivors.length,'phase requires natural complete cleanup');
-    row.observedNodeExecutables=result.observed.filter(entry=>/^(?:\S+\/)?node(?:\s|$)/u.test(entry.command)).map(entry=>entry.command.split(/\s+/u)[0]);
-    assert.ok(row.observedNodeExecutables.every(path=>!path.startsWith('/')||realpathSync(path)===realpathSync(node24)),'mixed observed Node runtime');
-    await verify();assert.deepEqual((await artifactGuard.check()).changes,[]);assert.deepEqual((await privateGuard.check()).changes,[]);save(join(output,label+'.json'),row);return row;
-  }
+  const audit=createBuildAudit(source,temporary);
+  const phase=createPhaseRunner({completed,report,source,output,environment,guard,verify,extraGuards:[artifactGuard,privateGuard],requireOrdered,audit});
   await phase('safejs-availability',['--import','tsx','--input-type=module','-e',"import assert from 'node:assert/strict';import {pathToFileURL}from'node:url';const {run}=await import(pathToFileURL(process.env.SAFEJS_LOCAL_ROOT+'/src/run.ts'));const result=await run('1+2');assert.equal(result.ok,true);console.log(JSON.stringify(result));"]);
-  const cold=await phase('cold-typecheck',[npm,'run','typecheck','--','--report',join(output,'cold-types')],source,78);assert.equal(cold.status,78);
-  await phase('typecheck-all',[npm,'run','typecheck:all','--','--report',join(output,'typecheck-all')]);
-  const typing=JSON.parse(readFileSync(join(output,'typecheck-all/report.json')));report.typing={builds:typing.builds,status:typing.status};assert.equal(typing.builds,1);assert.equal(typing.phases.find(entry=>entry.label==='build')?.status,0,'failed build prohibits stale package fallback');
-  await tracked();requireBuildDelta(beforeAuthorizedBuild,await capture(source));sourceGuard=await createTreeGuard(source);report.afterAuthorizedSetup=sourceGuard.before();report.driverProductionBuilds=typing.builds;
-  const {manifest}=await import(pathToFileURL(join(source,'tests/plugins/stream-five-public/harness.mjs')));
-  const approvedBuild={candidate:candidate.candidate,productionBuilds:typing.builds,buildStatus:typing.phases.find(row=>row.label==='build').status,files:manifest(source,'dist')};
-  report.buildReceipt=approvedBuild;
+  const approvedBuild=await runBuildTypes({phase,source,output,report,beforeAuthorizedBuild,tracked,freezeSource:guard=>{sourceGuard=guard;},audit});
   const transformed=renderBuiltConsumerRunner(blob('scripts/verify-current-consumers.mjs').toString(),sha(blob('scripts/verify-current-consumers.mjs')),source);
   const externalRunner=join(temporary,'harness/current-consumers.mjs');writeFileSync(externalRunner,transformed.source,{flag:'wx'});
   const consumerDirectory=join(temporary,'current-consumers');mkdirSync(consumerDirectory);
@@ -141,6 +127,7 @@ try{
     const missing=join(temporary,label);mkdirSync(missing);cpSync(packageRoot,join(missing,'node_modules/virtual-bash'),{recursive:true});rmSync(join(missing,'node_modules/virtual-bash',file));
     const result=await phase(label,['--input-type=module','-e',`await import(${JSON.stringify(specifier)});`],missing,1);assert.equal(result.status,1);assert.match(readEvidenceText(join(output,label+'.stderr')),/ERR_MODULE_NOT_FOUND/u);
   }
+  assert.equal(readBuildAudit(audit).length,1,'complete gate must reuse the single production build');
   requireOrdered(completed,'final-sweep');await verify();await tracked();assert.deepEqual((await packageGuard.check()).changes,[]);assert.equal((await fileIdentity(tarball)).sha256,report.packageSha256);assert.deepEqual(privateModule.privateState(),report.privateBefore);report.phases.push({label:'final-sweep',status:0,expectedStatus:0});completed.push('final-sweep');
   report.canonical=canonical.accounting;report.canonicalMissingPaths=report.canonicalCoverage.missing;report.currentConsumerStatus=consumerResult.status;report.bindingComplete=true;report.guardsPassed=true;report.cleanupComplete=report.phases.every(row=>row.label==='final-sweep'||row.clean&&row.closed&&!row.signals.length&&!row.survivors.length);
 }catch(error){if(!report)report={candidate:candidate.candidate,fullGateLaunched:false};report.status='infrastructure-refused-or-failed';report.error={message:error.message,stack:error.stack};exitCode=error.exitCode===78?78:1;}

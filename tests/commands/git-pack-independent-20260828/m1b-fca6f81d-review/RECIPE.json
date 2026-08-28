@@ -1,6 +1,6 @@
 {
   "schema": "m1b-review-recipe-v1",
-  "state": "COMPLETE_PRESEAL",
+  "state": "HOLD_SCOPE_MUTATION",
   "date": "2026-08-28",
   "authority": "ROOT_STAGING_AUTHORIZATION_ONE_FUTURE_RUN_AFTER_ROOT_ROUTING_AND_COMPONENT_REVIEW_NOT_SELF_ACCEPTANCE",
   "repo": "/Users/kjopek/Workspace/safe-bash",

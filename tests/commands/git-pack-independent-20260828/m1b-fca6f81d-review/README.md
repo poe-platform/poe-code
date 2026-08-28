@@ -1,6 +1,6 @@
 # M1B fca6f81d independent executor preseal
 
-Status: Concrete source/data preseal; different component review and root routing pending
+Status: HOLD_SCOPE_MUTATION — concrete source checkpoint, not a launch-ready preseal
 Implemented Through: Exact source/seal commits in the final `/tmp` handoff
 Purpose: Prepare one bounded independent review, without launching it or inheriting author acceptance.
 Date: Friday, August 28, 2026
@@ -127,3 +127,21 @@ Preparation checks are syntax/source/data only. `runner/PREPARATION-NOTES.md`
 preserves failed authoring attempts without product attribution. No fixture
 encoder, admission control, peer worker, loader, candidate, compiler or npm was
 executed. Final component review and all future dynamic proof remain pending.
+
+## Adjacent successor packets
+
+`mechanical-type-api-v2/` and `semantic-integration-v2/` appeared during finalization.
+Their files are pinned as inert packet-membership data only, not selected into
+this recipe, worker projection or import closure. No new type API or loaded actor
+is silently adopted. Their prospective additions require a separate explicit
+composition/count reconciliation; the selected v1 gaps above remain unchanged.
+
+## Finalization HOLD
+
+The before-commit full membership check observed a newly added, unsealed
+`semantic-mode-v3/` subtree and stopped. `runner/SCOPE-MUTATION-HOLD.json`
+preserves the exact observation. `RECIPE.json` now explicitly denies launch with
+`HOLD_SCOPE_MUTATION`; no complete physical membership or final acceptance is
+claimed. The prospective CLI above is documented, not authorized for this state.
+Root must route sealed selected successors and a bounded additive re-composition
+before restoring a runnable recipe. No evolving source is silently adopted.

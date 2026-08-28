@@ -1,0 +1,306 @@
+{
+  "schema": "m1b-complete-preseal-static-final-v1",
+  "date": "2026-08-28",
+  "state": "PRESEAL_CHECKPOINT_HOLD_SCOPE_MUTATION",
+  "sourceCommit": "a3021720f22c44b66eab7f0bacbfe1d7955a10ae",
+  "previousSourceCommit": "10c62e8ed1614516fd042522c3f4fea3a62f83a0",
+  "earlyAbiCommit": "de95161c9de136852884d054612dad1b8ec716e5",
+  "recipe": {
+    "path": "RECIPE.json",
+    "mode": 420,
+    "bytes": 76564,
+    "sha256": "ff28775ab2033b2b201b62f1e7ca16c065c5b6ee9c9d1ade8190e7c225a26d7c"
+  },
+  "executableClosure": {
+    "path": "runner/EXECUTABLE-CLOSURE.json",
+    "mode": 420,
+    "bytes": 49316,
+    "sha256": "2d3f21bd0ccf214c09f4e9d6827e2e0c69c0a6b13a8768eee92baa900a1a0270"
+  },
+  "parentClosureSha256": "1ebb85870eb06e63325b222c3ed07e3774e8ee10b6399c264df5fd5bdeefb770",
+  "workerProjectionSha256": "529fdfa6c4e680a776e1154f822dd2f1aa11f319db0b97b53b87fe37d4aa2b99",
+  "loader": {
+    "path": "runner/loader.mjs",
+    "mode": 420,
+    "bytes": 2010,
+    "sha256": "59ca84c6ca2cb16989eb701debd8bcad4592e96e0e7a978a32bc235340035791"
+  },
+  "sourceMap": {
+    "path": "runner/SOURCE-MAP.json",
+    "mode": 420,
+    "bytes": 102180,
+    "sha256": "72519e90e6a69aa0d595ca3a6ba456513b3942ce7258214f8972efb921b0f128"
+  },
+  "packageMap": {
+    "path": "runner/PACKAGE-MAP.json",
+    "mode": 420,
+    "bytes": 170625,
+    "sha256": "800e13db20d0c9ea317078d706753804a3f2c5945e3402d735d2a4b2968bbb04"
+  },
+  "tools": {
+    "path": "runner/TOOLS.json",
+    "mode": 420,
+    "bytes": 653408,
+    "sha256": "3089de05f4d78c96997b1f7e18bc1ee8a853f8bf278411d5e268f546bc6d29da"
+  },
+  "componentAuthentication": {
+    "path": "runner/COMPONENT-AUTH.json",
+    "mode": 420,
+    "bytes": 15452,
+    "sha256": "d9022b0bdf44d01b65bf016316fb60c62b4be51969558e4b7dc5af6aa03519f7"
+  },
+  "syntax": {
+    "priorStaticResults": {
+      "path": "runner/STATIC-RESULTS.json",
+      "mode": 420,
+      "bytes": 6430,
+      "sha256": "114b470ddffc515d4770c6bc1baeb367de021af4da10eb0b5a7fa2514784fd41"
+    },
+    "changedBindingPreseal": {
+      "path": "runner/BINDING-SYNTAX-PRESEAL.json",
+      "mode": 420,
+      "bytes": 1951,
+      "sha256": "d81f4c43761158b5eb94eb4026ca4d759e82aa52e26bdf475d918b67eaa11526"
+    },
+    "changedBindingResult": {
+      "status": "SYNTAX_ONLY_COMPLETE",
+      "starts": 4,
+      "peakOwnedChildren": 1,
+      "elapsedMs": 416.53475000000003,
+      "captureBytesBeforeResult": 554,
+      "results": [
+        {
+          "file": "cases.mjs",
+          "pid": 48735,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "elapsedMs": 100.677,
+          "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+        },
+        {
+          "file": "loader.mjs",
+          "pid": 48736,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "elapsedMs": 184.4785,
+          "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+        },
+        {
+          "file": "worker.mjs",
+          "pid": 48737,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "elapsedMs": 278.01975,
+          "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+        },
+        {
+          "file": "check-binding-syntax.mjs",
+          "pid": 48738,
+          "status": 0,
+          "signal": null,
+          "error": null,
+          "elapsedMs": 366.18025,
+          "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+        }
+      ],
+      "candidateImports": 0,
+      "activeChildren": 0
+    },
+    "changedBindingRawFiles": [
+      {
+        "path": "runner/syntax-binding/1.process.json",
+        "mode": 384,
+        "bytes": 133,
+        "sha256": "0ca864fad4086df9ee0844f213966751903f0195f06ae16ae74bf5a38a51a0b5"
+      },
+      {
+        "path": "runner/syntax-binding/1.stderr.bin",
+        "mode": 384,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "runner/syntax-binding/1.stdout.bin",
+        "mode": 384,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "runner/syntax-binding/2.process.json",
+        "mode": 384,
+        "bytes": 135,
+        "sha256": "93ee997dd39cf5ded87ade96cb04891cdb7e6a5551c5e64e3d92879d30a12d8f"
+      },
+      {
+        "path": "runner/syntax-binding/2.stderr.bin",
+        "mode": 384,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "runner/syntax-binding/2.stdout.bin",
+        "mode": 384,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "runner/syntax-binding/3.process.json",
+        "mode": 384,
+        "bytes": 136,
+        "sha256": "af6b74421cd12aa19e7e77807f9de25d692a53a4e78e7b08adeae7761a68bde4"
+      },
+      {
+        "path": "runner/syntax-binding/3.stderr.bin",
+        "mode": 384,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "runner/syntax-binding/3.stdout.bin",
+        "mode": 384,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "runner/syntax-binding/4.process.json",
+        "mode": 384,
+        "bytes": 150,
+        "sha256": "ce3202128cb218971741495f6d360c75b538034c64f0fd8eb2a46d7cf01c82de"
+      },
+      {
+        "path": "runner/syntax-binding/4.stderr.bin",
+        "mode": 384,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "runner/syntax-binding/4.stdout.bin",
+        "mode": 384,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "runner/syntax-binding/RESULT.json",
+        "mode": 384,
+        "bytes": 735,
+        "sha256": "2b39525adf510fbc1d903c3df09af5ea4167a78cf5370c665a9f1d2b6b21aedb"
+      }
+    ],
+    "changedBindingActualCaptureBytes": 1289,
+    "aggregateParserChildrenAcrossThreePresealedPreparationWindows": 33,
+    "checkerParents": 3,
+    "qualification": "Source syntax only, no import/evaluation. Earlier checks apply only to their committed bytes; changed three modules checked under a3021720. Preparation windows are not the future actual review origin. Administrative Git/apply_patch/data-inspector activity is preparation, not claimed review child usage."
+  },
+  "futureReview": {
+    "caseIds": 131,
+    "layoutCaseCalls": 256,
+    "outerBatches": 36,
+    "descendantCompilers": 10,
+    "metadataBuildInstallChildren": 3,
+    "childStarts": 49,
+    "includingCoordinator": 50,
+    "peakProcesses": 3,
+    "rootMaximumProcesses": 4,
+    "rootMaximumStarts": 168,
+    "wallMs": 7200000,
+    "captureReservedMaximumBytes": 258801664,
+    "captureCapBytes": 268435456,
+    "workCapBytes": 1073741824,
+    "phaseEndsMs": {
+      "admission": 300000,
+      "setup": 600000,
+      "build": 720000,
+      "install": 840000,
+      "guards": 1440000,
+      "stock": 4440000,
+      "mechanical": 5040000,
+      "types": 6240000,
+      "loaded": 6840000,
+      "final": 7200000
+    }
+  },
+  "remaining": [
+    "Current packet membership acquired an unsealed semantic-mode-v3 subtree during finalization. No complete launch preseal is claimed; RECIPE HOLD denies execution.",
+    "Different semantic, mechanical and complete-executor review receipt bindings required before root routing; no independent acceptance inherited.",
+    "Fresh actual282-input source admission/recomposition and independent compilation UNRUN.",
+    "Full910 offline install/physical move, stock/mechanical/type/loaded/guard execution UNRUN.",
+    "M1B codec adapter UNQUALIFIED; S02 source-only concern unexecuted and not suppressed.",
+    "CRC/OID/depth transforms lack loaded witness actors; remain UNRUN.",
+    "Resource108 variants preserve12source-only/69peer-dependencies/12private-partials/15unqualified classifications; mapping is not discharge.",
+    "Eight expected-negative compiler exits remain aggregateFAIL under no-nonzero-waiver rule; diagnostic counterproof not product failure attribution.",
+    "G07 symlink branch source-only; actual type filesystem-read trace not claimed.",
+    "Root route/hash plus component references remain absent; no GO/reservation created.",
+    "Two adjacent successor packets appeared during finalization. They are bound only as inert scope membership, not selected into this recipe/import closure and not independently accepted. Any adoption needs an explicit additive composition and reconciled counts before execution."
+  ],
+  "execution": {
+    "candidateImports": 0,
+    "candidateBuilds": 0,
+    "compilerInvocations": 0,
+    "npm": 0,
+    "loaders": 0,
+    "stockCommands": 0,
+    "admissionControls": 0,
+    "fixtureEncoder": 0,
+    "mutants": 0,
+    "nativeGitOracle": 0,
+    "activeChildren": 0
+  },
+  "historicalFailures": "Preserved in PREPARATION-NOTES and BINDING-CORRECTION; no product attribution or rescoring.",
+  "unselectedAdjacentPackets": [
+    {
+      "path": "mechanical-type-api-v2",
+      "seal": {
+        "path": "mechanical-type-api-v2/FINAL-SEAL.json",
+        "mode": 420,
+        "bytes": 6454,
+        "sha256": "e2a71c452cea79089296fe3051ff9686d5b7f74096305a7ab2fd01ff5eb63ea7"
+      }
+    },
+    {
+      "path": "semantic-integration-v2",
+      "seal": {
+        "path": "semantic-integration-v2/FINAL-SEAL.json",
+        "mode": 420,
+        "bytes": 8468,
+        "sha256": "7a26dae3833255423416068f8810e94f5f85b698f5f9a15f78095a5a4155f69a"
+      }
+    }
+  ],
+  "finalizationIntegrity": {
+    "schema": "m1b-preseal-finalization-unsafe-membership-v1",
+    "role": "PREPARATION_INTEGRITY_FINDING_NOT_PRODUCT_FINDING",
+    "phase": "Before final commit and before any actual review",
+    "status": "HOLD_NO_LAUNCH",
+    "sealedSnapshotRawSha256": "ac2d32bbae19f189cb68f5ab37b4064a2ce292108c09f11961bdf6d278fe29b4",
+    "observedAdded": [
+      {
+        "path": "semantic-mode-v3",
+        "kind": "directory",
+        "mode": 493
+      },
+      {
+        "path": "semantic-mode-v3/MODE.patch.data",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 1025,
+        "sha256": "c5e1d54b2caa4deaae78cf5f5ea45040edd3ecdb8ba7d001b15b98def79892b8"
+      },
+      {
+        "path": "semantic-mode-v3/semantic.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 18613,
+        "sha256": "0f8e4b79ec3cf233b9b31a166f83feef264384a62039417ef2f0e049f899da7f"
+      }
+    ],
+    "authority": "Observed DATA only; unsealed adjacent source not imported, selected or used as candidate/executable authority.",
+    "effect": "Full scope membership validation stopped before final commit. RECIPE is explicitly HOLD_SCOPE_MUTATION, so the launch state check denies even if a route were supplied.",
+    "remaining": "Root must finish/routeseal any selected successor peers, then authorize a bounded additive composition with exact source/recipe/seal and full membership recheck. Do not execute this HOLD recipe or silently adopt changing sibling sources.",
+    "retry": false,
+    "targetExecution": 0,
+    "activeChildren": 0
+  }
+}

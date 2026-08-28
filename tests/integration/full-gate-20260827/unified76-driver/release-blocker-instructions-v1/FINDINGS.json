@@ -1,0 +1,145 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-08-28T04:04:07.978Z",
+  "status": "STOPPED_BEFORE_ANY_NEW_MATERIALIZATION",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
+  "driverSource": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+  "driverSha256": "3d8d2a15214f12c07b64e3223f5e0088989845b8f60a74abb0a521dba32fa018",
+  "profileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "unchangedDriverFilesVerified": 30,
+  "rootAuthorityFile": "ROOT-AUTHORITY.json",
+  "independentHandoff": {
+    "commit": "5c32f061c36081919a21cbc7e77b2865f0c49c0a",
+    "path": "tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/HANDOFF.md",
+    "bytes": 10220,
+    "sha256": "00b70710c795c154bcbd8bf169aa72b11cc32469af86316d2f260060cccfe506"
+  },
+  "preservedCopyIncident": {
+    "commit": "5c32f061c36081919a21cbc7e77b2865f0c49c0a",
+    "path": "tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/POLICY-COPY-INCIDENT.json",
+    "bytes": 17031,
+    "sha256": "ddba50c30c6f53b96ad0bcfebfd0d22a0b3c5368220deacce6eda966498c07f9"
+  },
+  "sourceTrace": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "lines": [
+        50,
+        51,
+        54,
+        58,
+        67
+      ],
+      "role": "Unconditional complete candidate extraction+verify, whole Git history, main/benchmark copies, then private prerequisites."
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/transport.mjs",
+      "lines": [
+        63,
+        68,
+        72,
+        84
+      ],
+      "role": "All declared entries must fit original bounds; every regular member opens a physical file; history uses reachable pack-objects stream."
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/inventory.mjs",
+      "lines": [
+        36,
+        39,
+        43
+      ],
+      "role": "Physical files/directories must exactly equal every expected entry; simply skipping five members violates this guard."
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/common.mjs",
+      "lines": [
+        30,
+        34,
+        36
+      ],
+      "role": "Dependency copy excludes only .bin before separately generating wrappers, not AGENTS.md."
+    }
+  ],
+  "candidateInstructionMetadata": [
+    {
+      "path": "AGENTS.md",
+      "mode": "100644",
+      "blob": "d24f9e50fc271acbedf14c6bf415393572376622",
+      "bytes": 12424
+    },
+    {
+      "path": "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/AGENTS.md",
+      "mode": "100644",
+      "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+      "bytes": 8857
+    },
+    {
+      "path": "tests/stress/regex-execution/production-review/snapshots/baseline/AGENTS.md",
+      "mode": "100644",
+      "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+      "bytes": 8857
+    },
+    {
+      "path": "tests/stress/regex-execution/production-review/snapshots/production-final/AGENTS.md",
+      "mode": "100644",
+      "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+      "bytes": 8857
+    },
+    {
+      "path": "tests/stress/regex-execution/production-review/snapshots/production-first/AGENTS.md",
+      "mode": "100644",
+      "blob": "042d04884f8978d7c9876d3f37c024e813155f99",
+      "bytes": 8857
+    }
+  ],
+  "candidateInstructionEntries": 5,
+  "candidateInstructionBytes": 47852,
+  "candidateDeclaredEntries": 37397,
+  "candidateDeclaredBytes": 2382440321,
+  "prospectiveMaterializedNonInstructionEntries": 37392,
+  "prospectiveMaterializedNonInstructionBytes": 2382392469,
+  "dependencyInstructionMetadata": [
+    {
+      "tree": "benchmarks",
+      "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/AGENTS.md",
+      "path": "just-bash/dist/AGENTS.md",
+      "kind": "file",
+      "physical": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules/just-bash/dist/AGENTS.md",
+      "bytes": 9231,
+      "mode": 420,
+      "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979"
+    }
+  ],
+  "dependencyInstructionEntries": 1,
+  "otherCopyPlanes": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/transport.mjs",
+      "line": 84,
+      "issue": "Whole ancestor Git object transfer includes reachable instruction blobs. Working-tree omission alone does not establish metadata-only/no-snapshot history; no exception is assumed."
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs",
+      "authority": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+      "issue": "Private engine copier recursively preserves regular files and has no explicit AGENTS filter. Actual private contents not inspected in this blocked task; successor must fail closed or use an explicitly declared metadata-only rule."
+    }
+  ],
+  "checksNotRun": [
+    "full launcher",
+    "actual runtime/native admission",
+    "source/history/dependency staging",
+    "SafeJS/private copy or inspection",
+    "production build",
+    "typing",
+    "canonical/runtime/package phases"
+  ],
+  "runnableReleaseReceiptCreated": false,
+  "fullGateLaunches": 0,
+  "phasesExecuted": 0,
+  "productionBuilds": 0,
+  "newInstructionCopies": 0,
+  "newProductMaterializations": 0,
+  "copyPolicyQualification": "Findings come from existing manifest metadata and driver source only; no historical/dependency instruction payload is embedded. The independent clean A10/13-observer acceptance remains scoped and is not invalidated or broadened.",
+  "proposalStatus": "NOT_IMPLEMENTED_REQUIRES_NARROW_DRIVER_CORRECTION_AND_REVIEW"
+}

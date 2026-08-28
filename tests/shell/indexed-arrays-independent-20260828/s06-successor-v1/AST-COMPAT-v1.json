@@ -1,0 +1,13 @@
+{
+  "status": "preparation-only; no old or successor parseShell execution",
+  "comparison": "same literal input through the old and successor public parseShell exports; compare all public AST own data recursively, including symbol keys and descriptors; no expected-equals-actual baseline",
+  "oldPackageSha256": "0fadca03da4e100c7dd5b7df0a25d321467f9f1f9fbd288ebcc4456746945d26",
+  "successorPackageSha256": "e12ed19882b6722503a8fb962ca88e0d6c40300a7e76acc3f81aef5961e0a3a3",
+  "cases": [
+    { "id": "AST01", "script": "a=(); b=(); __array_value \"${a[@]}${b[@]}\"", "expectedSamePublicAst": true },
+    { "id": "AST02", "script": "a=(); b=(); __array_value \"\"\"${a[@]}${b[@]}\"", "expectedSamePublicAst": true },
+    { "id": "AST03", "script": "a=([0]=\"\"); __array_value \"${a[@]}\"", "expectedSamePublicAst": true },
+    { "id": "AST04", "script": "a=(); __array_value \"${missing:-${a[@]}}\"", "expectedSamePublicAst": true }
+  ],
+  "restrictions": ["Do not compare ASTs of different scripts as a substitute", "Runtime S06 must change, S08 and existing scalar cases must not", "Private provenance must not become public keys, symbols, options or exports", "No new executor instantiated for these four rows yet; not counted in ready child queue"]
+}

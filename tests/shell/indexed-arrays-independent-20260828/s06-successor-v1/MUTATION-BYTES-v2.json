@@ -1,0 +1,74 @@
+[
+  {
+    "id": "U01",
+    "member": "dist/shell/arrays/ledger.js",
+    "replacements": [
+      {
+        "before": "count > Number.MAX_SAFE_INTEGER - cursor",
+        "after": "count > Number.MAX_SAFE_INTEGER"
+      },
+      {
+        "before": "            const count = requested === true ? 1 : requested;",
+        "after": "            __arrayMutantHit();\n            const count = requested === true ? 1 : requested;"
+      }
+    ],
+    "originalSha256": "d2dc9cb6ecb727d7854468f5aacb3eca8dedf09239e6ec325f25a5ac8510b43d",
+    "originalBytes": 9152,
+    "mode": 420,
+    "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U01\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+    "finalLF": true,
+    "changedSha256": "9777960bf1a7a2b9135152762faa9009b4c434dbc423b49d817933a2f748c718",
+    "changedBytes": 9635
+  },
+  {
+    "id": "U02",
+    "member": "dist/shell/arrays/bindings.js",
+    "replacements": [
+      {
+        "before": "        if (--watch.observers !== 0)",
+        "after": "        __arrayMutantHit();\n        if (--watch.observers !== -1)"
+      }
+    ],
+    "originalSha256": "7ce8b06641fae9420bf2d09870c2db3447bf2124a376e8d8b2a39b18a62a9484",
+    "originalBytes": 10249,
+    "mode": 420,
+    "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U02\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+    "finalLF": true,
+    "changedSha256": "7bba61c09889ece63ae9a76b2430ee2ca7aa8f879f307723f4d6e417409dd999",
+    "changedBytes": 10738
+  },
+  {
+    "id": "U04",
+    "member": "dist/shell/arrays/bindings.js",
+    "replacements": [
+      {
+        "before": "        if (--this.references === 0)\n            this.admission.release();",
+        "after": "        __arrayMutantHit();\n        if (--this.references >= 0)\n            this.admission.release();"
+      }
+    ],
+    "originalSha256": "7ce8b06641fae9420bf2d09870c2db3447bf2124a376e8d8b2a39b18a62a9484",
+    "originalBytes": 10249,
+    "mode": 420,
+    "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U04\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+    "finalLF": true,
+    "changedSha256": "d17b282a35bfacb736c00aa8a382466841b65f26eb3be1ddadcfd6a574a84762",
+    "changedBytes": 10736
+  },
+  {
+    "id": "U12",
+    "member": "dist/shell/arrays/ledger.js",
+    "replacements": [
+      {
+        "before": "        return this.completion;",
+        "after": "        __arrayMutantHit();\n        return this.completion.then(() => undefined);"
+      }
+    ],
+    "originalSha256": "d2dc9cb6ecb727d7854468f5aacb3eca8dedf09239e6ec325f25a5ac8510b43d",
+    "originalBytes": 9152,
+    "mode": 420,
+    "prefix": "import { createHash as __arrayHash } from 'node:crypto';\nimport { readFileSync as __arrayRead } from 'node:fs';\nimport { fileURLToPath as __arrayPath } from 'node:url';\nlet __arrayHits = 0;\nfunction __arrayMutantHit() { if (++__arrayHits === 1) process.stdout.write(JSON.stringify({ activation: { id: \"U12\", path: __arrayPath(import.meta.url), sha256: __arrayHash('sha256').update(__arrayRead(new URL(import.meta.url))).digest('hex'), hits: 1 } }) + '\\n'); }\n",
+    "finalLF": true,
+    "changedSha256": "73172f943eeb549fdf9f2a65e56923227fb8e3e091a025c6b4ed28fca533cf5f",
+    "changedBytes": 9662
+  }
+]

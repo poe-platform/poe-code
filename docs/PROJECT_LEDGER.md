@@ -2664,3 +2664,43 @@ that any implementation, command, fixture, or test currently exists.
   regression:25/25,204 packed plus63 engine copies and private guards. It is
   not rerun here and is not new guest-signal proof. The prior component and
   original failure qualifications remain separate from README usability.
+
+### 2026-08-28 — Unified76 review-only entrypoint; concrete A10 HOLD
+
+- Source b0ee7234b915ce1ac45aa6db6d087dc3430ea21f seals version4 before author
+  execution; evidence dfcb0069c6d2d87c46109fd028e215e70aaff67d. Driver JSON SHA
+  4624ffcbafa470f21c6d122adc3e75a1c20744f8b75d80839f4e69eebcf3d0a1 binds30
+  files. Productf5e9fc49, expectedc109 package, native/profile/cleanup inputs
+  and old2713 source/evidence remain unchanged. No full gate is released.
+- Full execution and explicit --review-build-types call the same extracted
+  build/type phase and supervised phase runner. The design preserves cold78,
+  actual typecheck:all, immutable inputs/dist-only build changes and the
+  emitted-package receipt. A hash-bound inherited preload records actual
+  production compiler invocations; count fields alone cannot authorize reuse.
+  The full --run path still requires a matching root release. Imports are inert.
+- Four bounded author groups pass, including two actual TypeScript builds of
+  a separate tiny project rejecting the one-build check, preload tampering,
+  and actual contained-link transport. The target still reports ps EPERM and
+  denies outside writes. An explicit trusted outer read-only IPC observer binds
+  requester PID/birth and admitted Git PID/group/birth, rejects foreign PID/
+  handle requests and records natural closure with no survivors or signals.
+  This is author evidence, not a new independent22-group score or OS attestation.
+- Exactly one actual review-entry attempt exits1 before extraction/build/types.
+  Zero candidate builds and zero typing phases execute. The unchanged
+  transport.mjs:18 rejects two committed literal-backslash filenames under
+  tests/commands/filesystem-inspection-stress/tree/: evidence/final-436bda3/
+  harness/derived/native-fixtures/controls/back\\slash and
+  sealed/native-fixtures/controls/back\\slash. Both are one-byte mode100644
+  blob63d8dbd40c23542e740659a7168a0ce3138ea748, relative and POSIX-normalized.
+  Outer cleanup is naturally complete, but A10 remains HOLD, not a type failure
+  or successful integrated one-build proof. No retry or filename-policy waiver
+  occurs. The proposed next version admits literal POSIX backslashes while
+  preserving traversal/NUL/.git/symlink/hash/mode/byte checks and tests those
+  exact files. Product/fixture inputs must not be renamed or omitted.
+- Handoff: tests/integration/full-gate-20260827/unified76-driver/launcher-v3/
+  review-v4/HANDOFF.md. Old19/3→21/1 and optional transport failure stay intact;
+  c109 was not rebuilt in this attempt. Dirac's new independent review and any
+  successor admission-policy correction remain separate from release approval.
+- Received root's scoped DU75 composed29 acceptance (public4343b646 plus
+  83645ad0) and combined5137 acceptance through7ebe10a0. These received component
+  decisions neither alter frozen76 nor close its driver/full-gate HOLD.

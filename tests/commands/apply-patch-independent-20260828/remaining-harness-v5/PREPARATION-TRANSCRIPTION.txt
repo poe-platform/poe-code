@@ -1,0 +1,60 @@
+CLASSIFICATION: Tool-rendered terminal transcription, NOT raw stdout/stderr capture.
+Date: 2026-08-28.
+Source-authoring invocation: one; no generation retry.
+Relevant command:
+apply_patch "$(/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node tests/commands/apply-patch-independent-20260828/remaining-harness-v5/author.mjs)"
+
+The preceding apply_patch in the same tool command successfully finished a
+pre-failure edit to evidence-author.mjs. No source was edited after this failure.
+The following is the failed author/empty-patch diagnostic as rendered by the tool:
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+... Skipped lines
+
+  [
+    [
++     'real',
+-     'real-scoped',
+      [
+        'P01',
+        'P06',
+        'P09',
+        'S41'
+...
+    [
++     'mock-s3',
+-     'mock-s3-scoped',
+      [
+        'P01',
+        'P06',
+        'P09',
+        'S41'
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v5/author.mjs:72:8
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [
+    [ 'real', [ 'P01', 'P06', 'P09', 'S41' ] ],
+    [ 'mock-s3', [ 'P01', 'P06', 'P09', 'S41' ] ]
+  ],
+  expected: [
+    [ 'real-scoped', [ 'P01', 'P06', 'P09', 'S41' ] ],
+    [ 'mock-s3-scoped', [ 'P01', 'P06', 'P09', 'S41' ] ]
+  ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2
+Invalid patch: The last line of the patch must be '*** End Patch'
+
+Tool result: terminal exit code1; no continuing session ID. No author PID,
+separate raw channels or measured qualification-epoch duration was captured.

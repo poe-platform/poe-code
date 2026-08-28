@@ -1,0 +1,31 @@
+{
+  "schema": "remaining-harness-v5-preparation-HOLD-evidence-seal",
+  "sourceCommit": "683d3c3c7cdb9ac326fd76ba96e33388e193184d",
+  "classification": "Failure evidence only; terminal transcript is NOT raw capture",
+  "draftSourceSeal": {
+    "bytes": 2536,
+    "mode": 420,
+    "sha256": "9f0cf7e9b279485de93171d726667cf0fa2a532b81639e081b50afa022405885"
+  },
+  "files": {
+    "REPORT.md": {
+      "bytes": 6192,
+      "mode": 420,
+      "sha256": "815c076a6416c74eb8bb51526d39d9a6ceeb0cd1cbdee3b347735829e83ea858"
+    },
+    "PREPARATION-TRANSCRIPTION.txt": {
+      "bytes": 1940,
+      "mode": 420,
+      "sha256": "e4a7748472a0fea5aa2d1633d53b13eb7a42547489c8fc17617f229c0a1ee056"
+    },
+    "POSTGUARDS.json": {
+      "bytes": 2959,
+      "mode": 420,
+      "sha256": "9d73946a5e101de1bb4cb759e9d21ffc8f3e314b92afec9e1088197b515edc47"
+    }
+  },
+  "metadataChecksPassed": true,
+  "executablePresealProduced": false,
+  "admission": "HOLD",
+  "evidenceCommit": "Reported externally, not self-referential"
+}

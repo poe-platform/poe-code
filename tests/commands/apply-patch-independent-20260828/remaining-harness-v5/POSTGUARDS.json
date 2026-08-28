@@ -1,0 +1,99 @@
+{
+  "schema": "remaining-harness-v5-HOLD-postguards",
+  "checkedAt": "2026-08-28T21:05:55.744Z",
+  "classification": "Read-only post-failure evidence checks; no author retry, control execution or product acceptance",
+  "sourceCommit": "683d3c3c7cdb9ac326fd76ba96e33388e193184d",
+  "draftSeal": {
+    "bytes": 2536,
+    "mode": 420,
+    "sha256": "9f0cf7e9b279485de93171d726667cf0fa2a532b81639e081b50afa022405885"
+  },
+  "checks": [
+    {
+      "id": "draft-source-unchanged-after-failure",
+      "status": "PASS",
+      "detail": {
+        "files": 9,
+        "sourceCorrection": false
+      }
+    },
+    {
+      "id": "owned-append-aware-membership-before-evidence-seal",
+      "status": "PASS",
+      "detail": [
+        "CALLGRAPH.md",
+        "DRAFT-SOURCE-SEAL.json",
+        "PLAN.md",
+        "PREPARATION-TRANSCRIPTION.txt",
+        "REPORT.md",
+        "author.mjs",
+        "child.mjs",
+        "data-controls.mjs",
+        "evidence-author.mjs",
+        "fixture-data.mjs",
+        "owner.mjs",
+        "primitives.mjs"
+      ]
+    },
+    {
+      "id": "no-generated-preseal-or-attempt",
+      "status": "PASS",
+      "detail": [
+        "FIXTURES-v5.json",
+        "REMAINING-v5.json",
+        "INPUTS-v5.json",
+        "DISCOVERY-PRESEAL.json",
+        "attempt-01"
+      ]
+    },
+    {
+      "id": "frozen-v4-preseal-and-eight-source-bindings",
+      "status": "PASS",
+      "detail": {
+        "namedBindings": 8,
+        "foreignAppendAware": false,
+        "compilerBindingsNotRead": true
+      }
+    },
+    {
+      "id": "original-matrices-and-worker-bindings",
+      "status": "PASS",
+      "detail": {
+        "namedBindings": [
+          {
+            "filename": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/ORIGINAL32-v1.json",
+            "sha256": "b10cd0aeb7272ddb029baaa871b58f73ef645278e5bc3d9ef9bea1a1d1d6fe29"
+          },
+          {
+            "filename": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/matrix/SUPPLEMENT-v1.json",
+            "sha256": "44074ff7627215afdc92dd4565c2154ca3eb5b34870dafc0cae0433f912ed558"
+          },
+          {
+            "filename": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/worker.mjs",
+            "sha256": "6563b3319cb495dea5c0b5c0499d166eaf5bf63806fd9e12487ed42b6f046296"
+          }
+        ],
+        "archiveBodiesNotRevalidated": true
+      }
+    },
+    {
+      "id": "actual-tool-files-after-failure",
+      "status": "PASS",
+      "detail": {
+        "files": 2,
+        "prelaunchQualification": false
+      }
+    }
+  ],
+  "controls": {
+    "completed": 0,
+    "total": 6,
+    "allUnrun": true
+  },
+  "discoveryRun": false,
+  "platformValue": "UNKNOWN_NOT_READ",
+  "rawMembership": "NOT_AVAILABLE_NO_OWNER_LAUNCH",
+  "knownReap": "NO_CAPTURED_AUTHOR_PID; tool terminal exit only",
+  "bounds": "NO_ENROLLED_EPOCH; no measured cap qualification claimed",
+  "finalAdmission": "HOLD"
+}

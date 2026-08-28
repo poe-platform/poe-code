@@ -1,0 +1,113 @@
+{
+  "schema": "node-abi-preparation-validation-v1",
+  "date": "2026-08-28",
+  "codeFreezeCommit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+  "manifestSha256": "c163bcd7cc0686dc7d4ab67ba24429fe4900c68c244cdf46799bff5b12b4e213",
+  "freezePrecededAllSyntaxChecks": true,
+  "checks": [
+    {
+      "path": "supervisor.mjs.data",
+      "sha256": "986d9c3f06e9341a6dc577d03984092a7c046617386c56bc9569d21d1255891f",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "--input-type=module"
+      ],
+      "stdin": "exact committed .mjs.data bytes",
+      "startedAt": "2026-08-28T17:17:37.920924+00:00",
+      "elapsedMs": 31.994,
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "subjectImports": 0,
+      "classification": "syntax only; no module resolution/evaluation requested"
+    },
+    {
+      "path": "loader.mjs.data",
+      "sha256": "24c302b637912972ad878ad7c597176aa569d5b5fed2d3fbe75695d097352d04",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "--input-type=module"
+      ],
+      "stdin": "exact committed .mjs.data bytes",
+      "startedAt": "2026-08-28T17:17:37.953678+00:00",
+      "elapsedMs": 30.452,
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "subjectImports": 0,
+      "classification": "syntax only; no module resolution/evaluation requested"
+    },
+    {
+      "path": "reference-entry.mjs.data",
+      "sha256": "72d173cbe626079b5cf1e7fcd719f4f62a9b2fb9d7260c4776253c4f56299168",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "--input-type=module"
+      ],
+      "stdin": "exact committed .mjs.data bytes",
+      "startedAt": "2026-08-28T17:17:37.984321+00:00",
+      "elapsedMs": 30.233,
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "subjectImports": 0,
+      "classification": "syntax only; no module resolution/evaluation requested"
+    },
+    {
+      "path": "child.mjs.data",
+      "sha256": "8ee806cbcc01f4a520fad781d081affc92188000b4b0b9f36d7526c639353f72",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "--input-type=module"
+      ],
+      "stdin": "exact committed .mjs.data bytes",
+      "startedAt": "2026-08-28T17:17:38.014761+00:00",
+      "elapsedMs": 31.02,
+      "status": 0,
+      "stdoutBase64": "",
+      "stderrBase64": "",
+      "subjectImports": 0,
+      "classification": "syntax only; no module resolution/evaluation requested"
+    }
+  ],
+  "syntaxPass": true,
+  "dataChecks": {
+    "manifestFiles": 15,
+    "regularPublicSourceMembers": 66,
+    "all18FollowupSourceInputsAuthenticated": true,
+    "canonicalTreeObjects": 13,
+    "canonicalCommitSha1": "bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e",
+    "oldLoaderByteIdentical": true,
+    "originalSevenIdentitiesByteIdentical": true,
+    "allPriorDesignArtifactsUnchanged": true,
+    "evaluationLabels": [
+      "F01",
+      "F02",
+      "F03",
+      "F04",
+      "F05",
+      "F06-object",
+      "F06-null",
+      "F07"
+    ],
+    "externalToolFilesHashMatched": 4,
+    "whitespaceFailures": [],
+    "postCheckInputHashesMatch": true
+  },
+  "engineExecutions": 0,
+  "qualificationEntryInvocations": 0,
+  "supervisorActivations": 0,
+  "loaderImports": 0,
+  "compilerImports": 0,
+  "builds": 0,
+  "installs": 0,
+  "nativeOracleRuns": 0,
+  "privateReadsOrWrites": 0,
+  "syntheticExecutions": 0,
+  "nodeSyntaxProcesses": 4,
+  "qualification": "Syntax/data preparation only, not safety/semantics/containment/lifecycle acceptance. Inputs were sealed before these checks; no ROOT experiment GO or Raman approval is implied."
+}

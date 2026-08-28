@@ -32,7 +32,9 @@ assert.equal(sha(Buffer.from(base.package.base64, "base64")), "b0544dcb3d0d9b224
 const attempt = fs.mkdtempSync(path.join(own, "foundation-attempt-"));
 const source = path.join(attempt, "source");
 fs.mkdirSync(source);
-const report = { profile: "continuation author foundation development; not independent acceptance", revision, startedAt: new Date().toISOString(), baseTree: base.candidateComposedTree, baseInputs: base.inputs, overlays: {}, commands: [], success: false, nativeExecutions: 0 };
+const driverBytes = fs.readFileSync(fileURLToPath(import.meta.url));
+assert.deepEqual(driverBytes, git("show", `${revision}:${relativeOwn}/validate-foundation.mjs`), "committed validation driver");
+const report = { profile: "continuation author foundation development; not independent acceptance", revision, startedAt: new Date().toISOString(), driver: { sha256: sha(driverBytes), base64: driverBytes.toString("base64") }, baseTree: base.candidateComposedTree, baseInputs: base.inputs, overlays: {}, commands: [], success: false, nativeExecutions: 0 };
 const save = () => fs.writeFileSync(path.join(attempt, "RESULTS.json"), JSON.stringify(report, null, 2) + "\n");
 const put = (name, bytes) => {
   assert(!name.split("/").includes(".."));
@@ -84,10 +86,47 @@ try {
     report.overlays[name] = { sha256: sha(bytes), blob: blob(bytes), base64: bytes.toString("base64") };
     put(name, bytes);
   }
+  const bindingBytes = git("show", "0fe2274a:tests/shell/directory-stack-independent-20260828/review-3e4cd743/BINDING-v1.json");
+  assert.equal(sha(bindingBytes), base.bindingSha256);
+  const binding = JSON.parse(bindingBytes);
+  const baselineTree = git("rev-parse", `${binding.baseline}^{tree}`).toString().trim();
+  const objectHash = (kind, bytes) => createHash("sha1").update(`${kind} ${bytes.length}\0`).update(bytes).digest("hex");
+  const compose = (tree, prefix, overrides) => {
+    const raw = tree ? git("cat-file", "tree", tree) : Buffer.alloc(0);
+    if (tree) assert.equal(objectHash("tree", raw), tree);
+    const entries = new Map();
+    for (let offset = 0; offset < raw.length;) {
+      const space = raw.indexOf(32, offset);
+      const nul = raw.indexOf(0, space);
+      entries.set(raw.subarray(space + 1, nul).toString(), { mode: raw.subarray(offset, space).toString(), hash: raw.subarray(nul + 1, nul + 21).toString("hex") });
+      offset = nul + 21;
+    }
+    for (const key of overrides.keys()) if (key.startsWith(prefix)) {
+      const remaining = key.slice(prefix.length);
+      const name = remaining.split("/")[0];
+      if (!entries.has(name)) entries.set(name, { mode: remaining.includes("/") ? "40000" : "100644", hash: undefined });
+    }
+    const chunks = [];
+    for (const [name, entry] of [...entries].sort(([leftName, left], [rightName, right]) => Buffer.compare(Buffer.from(leftName + (left.mode === "40000" ? "/" : "")), Buffer.from(rightName + (right.mode === "40000" ? "/" : ""))))) {
+      const key = prefix + name;
+      const descendants = [...overrides.keys()].some(pathname => pathname.startsWith(key + "/"));
+      const hash = overrides.get(key) ?? (entry.mode === "40000" && descendants ? compose(entry.hash, key + "/", overrides) : entry.hash);
+      assert(hash, key);
+      chunks.push(Buffer.concat([Buffer.from(`${entry.mode} ${name}\0`), Buffer.from(hash, "hex")]));
+    }
+    return objectHash("tree", Buffer.concat(chunks));
+  };
+  const selections = new Map(base.inputs.map(input => [input.path, input.selectedBlob]));
+  assert.equal(compose(baselineTree, "", selections), base.candidateComposedTree);
+  for (const [name, entry] of Object.entries(report.overlays)) if (name.startsWith("src/")) selections.set(name, entry.blob);
+  report.candidateSourceTree = compose(baselineTree, "", selections);
+  report.selectedBuildInputCount = selections.size;
+  report.selectedSourcePolicy = "accepted whole-tree identity plus owned source overrides; compact execution uses selected inputs only, not the full tree";
   fs.symlinkSync(path.join(repository, "node_modules"), path.join(source, "node_modules"), "dir");
   const compiler = path.join(repository, "node_modules/typescript/bin/tsc");
   const loader = path.join(repository, "node_modules/tsx/dist/loader.mjs");
   report.toolchain = { node: process.version, nodeSha256: sha(fs.readFileSync(process.execPath)), compilerSha256: sha(fs.readFileSync(path.join(repository, "node_modules/typescript/lib/_tsc.js"))), loaderSha256: sha(fs.readFileSync(loader)) };
+  report.toolchain.versions = Object.fromEntries(["typescript", "tsx", "@types/node"].map(name => [name, JSON.parse(fs.readFileSync(path.join(repository, "node_modules", name, "package.json"))).version]));
   put("tsconfig.array-foundation.json", JSON.stringify({ extends: "./tsconfig.json", compilerOptions: { noEmit: true }, include: ["src/**/*.ts", `${relativeOwn}/foundation.test.ts`, `${relativeOwn}/syntax.test.ts`], exclude: ["dist", "node_modules"] }));
   put("source-load-hook.mjs", 'import { register } from "node:module"; register("./source-load-guard.mjs", import.meta.url);\n');
   put("source-load-guard.mjs", `import fs from "node:fs";
@@ -104,7 +143,7 @@ export async function load(url, context, nextLoad) {
   if (!(relative.startsWith("src/") || relative === ${JSON.stringify(`${relativeOwn}/foundation.test.ts`)} || relative === ${JSON.stringify(`${relativeOwn}/syntax.test.ts`)})) throw new Error("Out-of-profile source load: " + filename);
   if (/^src\\/commands\\/(?!basic\\.ts$|internal\\.ts$|execution\\.ts$|env-split\\.ts$)/u.test(relative)) throw new Error("Held command module load: " + relative);
   const loaded = await nextLoad(url, context);
-  fs.appendFileSync(${JSON.stringify(path.join(attempt, "source-loads.jsonl"))}, JSON.stringify({ relative, sha256: createHash("sha256").update(fs.readFileSync(filename)).digest("hex") }) + "\\n");
+  fs.appendFileSync(${JSON.stringify(path.join(attempt, "source-loads.jsonl"))}, JSON.stringify({ relative, sha256: createHash("sha256").update(fs.readFileSync(filename)).digest("hex"), loadedSha256: loaded.source === null || loaded.source === undefined ? null : createHash("sha256").update(loaded.source).digest("hex") }) + "\\n");
   return loaded;
 }
 `);

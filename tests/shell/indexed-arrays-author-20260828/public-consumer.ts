@@ -21,7 +21,7 @@ shell.register({ name: "copy", async execute(context) {
   return { exitCode: 0 };
 } });
 shell.register({ name: "nested", async execute(context) {
-  await context.invoke!("eval", ['record "${a[@]}"']);
+  await context.invoke!("eval", ['record "${a[@]}"'], { signal: undefined });
   return { exitCode: 0 };
 } });
 try {

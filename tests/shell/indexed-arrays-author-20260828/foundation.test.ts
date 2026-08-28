@@ -272,6 +272,14 @@ test("foundation: retained scalar LET, CD, STACK and DOTGLOB workflows", { timeo
   } finally { await instance.dispose(); }
 });
 
+test("foundation: private refusal preserves escaping diagnostic sink error", { timeout: 2000 }, async () => {
+  const instance = shell();
+  const failure = new Error("array diagnostic sink");
+  try {
+    await assert.rejects(instance.exec("a[2147483648]=bad", { stderr: { write() { throw failure; } } }), error => error === failure);
+  } finally { await instance.dispose(); }
+});
+
 test("private ledger: last observer retires, ABA gets fresh tickets, overlapping close single-flights", { timeout: 2000 }, async () => {
   const ledger = new ArrayLedger(1000, 100);
   const owner = ArrayOwner.create(ledger);

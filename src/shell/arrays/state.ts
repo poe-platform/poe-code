@@ -45,6 +45,8 @@ export class StateMonitor {
   epoch = 0;
   #publication = false;
   readonly #wrapped = new WeakMap<object, object>();
+  #wrapperCount = 0;
+  #enrollment: Admission | undefined;
   #restorations: Restoration | undefined;
   #overlays: OverlayMap | undefined;
 
@@ -58,6 +60,7 @@ export class StateMonitor {
     if (this.store) return this.store;
     this.session.scope.assertOpen();
     this.session.owner ??= ArrayOwner.create(this.session.ledger);
+    this.#enrollment ??= this.session.owner.reserve({ slots: this.#wrapperCount * 2 + 2, metadata: 128 + this.#wrapperCount * 128, work: this.#wrapperCount * 8 + 8 });
     let pending = 0;
     for (let entry = this.#restorations; entry; entry = entry.next) if (!entry.epoch) pending++;
     if (pending) {
@@ -76,7 +79,9 @@ export class StateMonitor {
     const admission = this.session.ledger.active ? this.session.owner!.reserve({ epoch: true, metadata: 64, work: 8 }) : undefined;
     if (admission) admission.restorationReferences = 1;
     const permit = new Restoration(this, admission, resource);
-    if (resource && this.session.ledger.active) permit.holding = this.session.owner!.hold();
+    try {
+      if (resource && this.session.ledger.active) permit.holding = this.session.owner!.hold();
+    } catch (error) { admission?.release(); throw error; }
     permit.next = this.#restorations;
     if (this.#restorations) this.#restorations.previous = permit;
     this.#restorations = permit;
@@ -96,6 +101,10 @@ export class StateMonitor {
 
   *overlayFrames(): Iterable<OverlayMap> {
     for (let frame = this.#overlays; frame; frame = frame[overlayNext]) yield frame;
+  }
+
+  prepareCollection<Value extends object>(value: Value, field: string): Value {
+    return this.wrap(value, field) as Value;
   }
 
   async prepareTypedPublication(name: string, owner: ArrayOwner, signal: AbortSignal): Promise<() => void> {
@@ -153,6 +162,10 @@ export class StateMonitor {
   private wrap(value: object, field: string): object {
     const previous = this.#wrapped.get(value);
     if (previous) return previous;
+    if (this.#enrollment) {
+      this.session.owner!.reserve({ slots: 2, metadata: 128, work: 8 });
+    }
+    this.#wrapperCount++;
     const monitor = this;
     const named = field === "variables" || field === "exported" || field === "readonlyVariables";
     let proxy: object;

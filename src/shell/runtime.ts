@@ -29,6 +29,7 @@ import type { ArrayAssignment } from "./arrays/syntax.js";
 import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
 import { controlNames, IndexedBinding, textToken } from "./arrays/bindings.js";
 import { arrayStore, requireArrays, snapshotState, stateMonitor, trackState } from "./arrays/state.js";
+import type { Restoration } from "./arrays/state.js";
 import type { Admission } from "./arrays/ledger.js";
 import type { BindingWatch, OwnedText } from "./arrays/bindings.js";
 
@@ -1143,7 +1144,11 @@ export class Runtime {
     try {
       const watch = await store.watch(name, operation, this.signal);
       const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
-      if (freeze) operation.reserve({ metadata: state.readonlyVariables ? 32 : 96, slots: 1, work: 5 });
+      let frozenAttributes: Set<string> | undefined;
+      if (freeze) {
+        store.owner.reserve({ metadata: state.readonlyVariables ? 32 : 96, slots: 1, work: 5 });
+        if (!state.readonlyVariables) frozenAttributes = stateMonitor(state)!.prepareCollection(new Set<string>(), "readonlyVariables");
+      }
       const expanded = await expand();
       this.signal.throwIfAborted();
       if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
@@ -1162,7 +1167,7 @@ export class Runtime {
       stateMonitor(state)!.publish(tickets, name, () => {
         supersede();
         released = store.publish(name, staged!, tickets);
-        if (freeze) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
+        if (freeze) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }
       });
       staged = undefined;
       watch.close();
@@ -1536,8 +1541,11 @@ export class Runtime {
       }
       if (errorCode(error) === "EPIPE") { this.errexit(141, state, io); return 141; }
       const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;
-      try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`); }
-      catch { this.signal.throwIfAborted(); }
+      if (error instanceof ArrayFailure) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`);
+      else {
+        try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`); }
+        catch { this.signal.throwIfAborted(); }
+      }
       if (error instanceof ExpansionFailure) throw new Flow("exit", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
       if (error instanceof FatalCommandFailure) throw new Flow("exit", error.status);
       const status = error instanceof CommandFailure ? error.status : 1;
@@ -1984,14 +1992,31 @@ export class Runtime {
           if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
           const positional = state.positional;
           const positionalSetVersion = state.positionalSetVersion ?? 0;
+          const frameOwner = arrayStore(state)?.owner;
+          frameOwner?.reserve({ metadata: 256 + context.args.length * 32, allocatedSlots: context.args.length + 1, work: context.args.length + 16 });
           const getoptsEntry = cloneGetoptsBinding(state);
           const functionRestoration = stateMonitor(state)?.restoration(true);
-          const getoptsRestoration = stateMonitor(state)?.restoration();
-          state.positional = [...context.args];
-          state.functionDepth++;
-          state.depth++;
+          let getoptsRestoration: Restoration | undefined;
           const locals = new Map<string, SavedVariable>();
-          state.locals.push(locals);
+          try {
+            getoptsRestoration = stateMonitor(state)?.restoration();
+            const stack = state.locals;
+            const argumentsCopy = [...context.args];
+            const monitor = stateMonitor(state);
+            const preparedLocals = frameOwner ? monitor!.prepareCollection(locals, "locals") : locals;
+            const preparedArguments = frameOwner ? monitor!.prepareCollection(argumentsCopy, "positional") : argumentsCopy;
+            const entry = () => {
+              state.positional = preparedArguments;
+              state.functionDepth++;
+              state.depth++;
+              stack.push(preparedLocals);
+            };
+            if (frameOwner) {
+              const tickets = frameOwner.reserve({ epoch: true, work: 8 });
+              monitor!.publish(tickets, undefined, entry);
+              tickets.release();
+            } else entry();
+          } catch (error) { getoptsRestoration?.close(); functionRestoration?.close(); throw error; }
           try { return { exitCode: await this.command(body, state, { ...io, ...context, scriptName: body.sourceName ?? io.scriptName ?? "shell" }) }; }
           catch (error) {
             if (error instanceof Flow && error.kind === "return") return { exitCode: error.status };
@@ -2123,9 +2148,15 @@ export class Runtime {
       if (target === undefined) return 0;
       this.budget.tick();
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
-      state.depth++;
+      const restoration = stateMonitor(state)?.restoration(true);
+      try { state.depth++; }
+      catch (error) { restoration?.close(); throw error; }
       try { return await this.dispatch(target, args, state, { ...io, ...context }, assignments, true); }
-      finally { state.depth--; }
+      finally {
+        const restore = () => { state.depth--; };
+        if (restoration) restoration.apply(restore);
+        else restore();
+      }
     }
     let found = 0;
     for (const name of args) {
@@ -2598,10 +2629,16 @@ export class Runtime {
     const source = args.join(" ");
     this.budget.source(Buffer.byteLength(source));
     this.sourceText(Buffer.from(source), "eval");
-    state.depth++;
+    const restoration = stateMonitor(state)?.restoration(true);
+    try { state.depth++; }
+    catch (error) { restoration?.close(); throw error; }
     try {
       return await this.runCurrentText(source, state, { ...io, diagnosticOffset: (io.diagnosticLine ?? 1) - 1 }, special, `${io.scriptName ?? "shell"}: eval`);
-    } finally { state.depth--; }
+    } finally {
+      const restore = () => { state.depth--; };
+      if (restoration) restoration.apply(restore);
+      else restore();
+    }
   }
 
   async sourceBuiltin(context: CommandContext, state: State, io: IO, special: boolean): Promise<number> {
@@ -2667,21 +2704,41 @@ export class Runtime {
     }
     const positional = state.positional;
     const version = state.positionalSetVersion ?? 0;
-    if (args.length) state.positional = args;
-    state.sourceDepth = (state.sourceDepth ?? 0) + 1;
-    state.depth++;
+    const monitor = stateMonitor(state);
+    const restoration = monitor?.restoration(true);
+    try {
+      const owner = arrayStore(state)?.owner;
+      if (owner) {
+        owner.reserve({ metadata: 64 + args.length * 32, allocatedSlots: args.length, work: args.length + 4 });
+        monitor!.prepareCollection(args, "positional");
+      }
+      const entry = () => {
+        if (args.length) state.positional = args;
+        state.sourceDepth = (state.sourceDepth ?? 0) + 1;
+        state.depth++;
+      };
+      if (owner) {
+        const tickets = owner.reserve({ epoch: true, work: 8 });
+        monitor!.publish(tickets, undefined, entry);
+        tickets.release();
+      } else entry();
+    } catch (error) { restoration?.close(); throw error; }
     try {
       return await this.runCurrentText(source, state, { ...io, scriptName: target, diagnosticOffset: 0, diagnosticLine: 1 }, special);
     } catch (error) {
       if (error instanceof Flow && error.kind === "return") return error.status;
       throw error;
     } finally {
-      state.depth--;
-      state.sourceDepth--;
-      if (args.length && (state.functionDepth > 0 || (state.positionalSetVersion ?? 0) === version)) {
-        state.positional = positional;
-        state.positionalSetVersion = version;
-      }
+      const restore = () => {
+        state.depth--;
+        state.sourceDepth--;
+        if (args.length && (state.functionDepth > 0 || (state.positionalSetVersion ?? 0) === version)) {
+          state.positional = positional;
+          state.positionalSetVersion = version;
+        }
+      };
+      if (restoration) restoration.apply(restore);
+      else restore();
     }
   }
 

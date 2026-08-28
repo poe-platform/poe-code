@@ -1,0 +1,82 @@
+{
+  "classification": "read-only-local-contract-source-bindings-not-product-gate",
+  "recordedAt": "2026-08-28T02:22:31.231Z",
+  "readAtHead": "e7690860f56b18052375c4f24eda82628bb321fb",
+  "paths": [
+    {
+      "path": "src/contracts/io.ts",
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809"
+    },
+    {
+      "path": "src/contracts/output.ts",
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6"
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522"
+    },
+    {
+      "path": "src/contracts/filesystem.md",
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a"
+    },
+    {
+      "path": "src/contracts/plugin.ts",
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae"
+    },
+    {
+      "path": "src/contracts/path.ts",
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34"
+    },
+    {
+      "path": "src/commands/copy-identity.ts",
+      "sha256": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe"
+    },
+    {
+      "path": "src/commands/table-text/internal.ts",
+      "sha256": "544935927754e228711318a299c20d95b3954bc756e14785722d0eac67a436d9"
+    },
+    {
+      "path": "src/commands/table-text/index.ts",
+      "sha256": "9003d5c6d85d283eca5a5e1e50750eae10639ce1830bf68427536c50d40848a9"
+    },
+    {
+      "path": "src/commands/index.ts",
+      "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9"
+    },
+    {
+      "path": "src/index.ts",
+      "sha256": "6d847ff37316fcdc851145024a422cb6541f0cbeab15895c5a972d7f1f97bb6b"
+    },
+    {
+      "path": "package.json",
+      "sha256": "64846cc0868630f863fade5119cef195a949aa0ed36ecc341bd9a076d6c363e2"
+    }
+  ],
+  "upstreamAndAssetGuard": {
+    "verifiedPaths": 44,
+    "result": "unchanged",
+    "appendProof": false
+  },
+  "nativeCount": 28,
+  "firstNativeStart": "2026-08-28T02:15:03.613Z",
+  "lastNativeClose": "2026-08-28T02:15:04.122Z",
+  "protocolCommit": "4e2e582847bc3438f3092f963db05d12fc3bc6c5",
+  "statusCounts": {
+    "0": 23,
+    "1": 5
+  },
+  "host": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "25.4.0",
+    "node": "v22.22.2"
+  }
+}

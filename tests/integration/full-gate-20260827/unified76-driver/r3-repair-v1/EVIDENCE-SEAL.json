@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "sourceCommit": "437778996f60109e212e20b1b242455866fda285",
+  "preseal": "d627747d",
+  "controlSeal": "b7e7689b",
+  "driverSha256": "e5f3124bd62f8710d5293b8c06b4ce6184a80ca68cba534f519ee85af8eac6d4",
+  "files": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/BASELINE.json",
+      "bytes": 3858,
+      "sha256": "c14f53a633191c2db854f8726f7784ed60f0c9dc5efc231d0efa71a19dc516d9"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/CONTROL-RECIPE.md",
+      "bytes": 7097,
+      "sha256": "8e6e57890f16fcf3aaa0cf6374f0425139e6051e6158f132866876536a2e389a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/SOURCE-CANDIDATE.json",
+      "bytes": 6245,
+      "sha256": "47741f284b1593aa96b012d6e2ab9e9f6b64f38d69034b17554dc52544b59e71"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/controls.mjs",
+      "bytes": 23657,
+      "sha256": "384d100194ffc51f7356774666051aeb5ca662972c4de33bba6b0914c9638036"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/RESULTS-v1.json",
+      "bytes": 8220,
+      "sha256": "34295f734e91519013a6217b014b878350602c35de8679e89564e849c184e8b5"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/HANDOFF.md",
+      "bytes": 9964,
+      "sha256": "269f5b4224f539ae58f75549afdebefb205b02afe0d7be95dea99ba9c984d4de"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/PRESERVATION.json",
+      "bytes": 2356,
+      "sha256": "48e1b4c9d73a84e50291b772eb92a012dbaf739fe765d6534671760408964fad"
+    }
+  ],
+  "authorResults": {
+    "pass": 45,
+    "fail": 0,
+    "syntheticDispatches": 17,
+    "actualChildProcesses": 0,
+    "productImportsExecuted": 0
+  },
+  "independentAcceptance": false,
+  "newGateAuthorization": false,
+  "qualification": "Synthetic/source author review only. No native/compiler/product/private/build or gate execution. Old R3 19425P/132F/7skip and 6/14 remain unchanged, unqualified. Selected source is not a combined successor candidate; tools gaps and prospective native checks remain."
+}

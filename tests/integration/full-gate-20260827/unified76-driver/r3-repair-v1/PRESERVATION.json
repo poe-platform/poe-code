@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "mode": "read-only-data-and-source-hash-verification",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "sourceCommit": "437778996f60109e212e20b1b242455866fda285",
+  "bindings": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11/EVIDENCE.json",
+      "sha256": "152c361e078882910d965b8c5e761f5af27cae7ab9b90af43611344caa931bd1"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/released-run-v3-qualified-h11/RESULT-SEAL.json",
+      "sha256": "f0f835a538242164440516e5c46499a4a5d58d46b0a95fa75ba93fc16bd33782"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-diagnosis-v1/OBSERVATIONS.json",
+      "sha256": "4d2666cebfe71824c8ff28ab5757b1154c734b8636d7f7cfb4dab9e9c4a529cb"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/r3-repair-v1/SOURCE-CANDIDATE.json",
+      "sha256": "47741f284b1593aa96b012d6e2ab9e9f6b64f38d69034b17554dc52544b59e71"
+    }
+  ],
+  "rawArtifactsMatched": 928,
+  "rawBytes": 114734734,
+  "encodedArtifactsAndRoundtripsMatched": 928,
+  "resultSealFilesMatched": 7,
+  "retainedSelectedSourceBindingsMatched": 57,
+  "retainedSelectedProductBindingsMatched": 5,
+  "retainedAddedEntriesMatched": 286,
+  "selectedRepairFilesMatched": 15,
+  "shippingMembersMatched": 40,
+  "driverSha256": "e5f3124bd62f8710d5293b8c06b4ce6184a80ca68cba534f519ee85af8eac6d4",
+  "canonicalRawUnchanged": {
+    "pass": 19425,
+    "fail": 132,
+    "skipped": 7,
+    "todo": 0,
+    "cancelled": 0
+  },
+  "phasesExecuted": 6,
+  "phasesDeclared": 14,
+  "oldRootsModified": false,
+  "newSubjectExecutions": 0,
+  "privateReadsOrWrites": 0,
+  "qualifications": [
+    "Read-only final comparison with original manifests; not another run, syscall trace, full-tree census or current product check.",
+    "All 57 previously selected retained-source bindings matched; only five are src product files. No full product-source reauthentication is claimed.",
+    "All 286 previously observed additions matched with exact directory children; they remain present and are not fixed/cleaned in the retained attempt.",
+    "928 original raw/encoded artifacts matched; no original artifact rewritten. Source-derived successor package identity remains unexecuted."
+  ]
+}

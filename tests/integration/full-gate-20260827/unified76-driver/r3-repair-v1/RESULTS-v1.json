@@ -1,0 +1,303 @@
+{
+  "schema": 1,
+  "mode": "whole-module synthetic/source controls; no actual native/product/build/private execution",
+  "preseal": "d627747d",
+  "runtime": {
+    "version": "v24.11.1",
+    "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+  },
+  "at": "2026-08-28T15:24:07.231Z",
+  "milliseconds": 174,
+  "results": [
+    {
+      "id": "C01-success",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C01-spawn-error",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C01-write-error",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C01-adjacent-foreign",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C01-awaited-cleanup",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C02-native-success",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C02-native-error",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C02-foreign-parent",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C02-overlap",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C02-version-error-cleanup",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C03-success",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C03-child-create-error",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C03-registered-before-child",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C03-foreign-parent",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C04-exact-route",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C04-missing-entry",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C04-wrong-hash",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C04-args-build-accounting",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C05-editflow-exact",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C05-editflow-wrong-hash",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C05-s3-exact",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C05-s3-wrong-hash",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C06-npm-exact",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C06-npm-wrong-hash",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C07-safety-tap",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C07-safety-wrong-report",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C07-streaming-tap",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C07-streaming-wrong-report",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C08-identity-success",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C08-identity-error",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C08-wrong-temp-root",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C08-followup-success",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C08-followup-error",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C08-auxiliary-source-route",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C09-tac-success",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C09-tac-error",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C10-separated",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C10-extra-semantic-file",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C10-child-error",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C11-exact-scope",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C11-unchanged-assertions",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C11-missing-tools-not-admitted",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C12-r3-artifact-bindings",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C12-fixed-product-source",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    },
+    {
+      "id": "C12-no-execution-or-host-fixture",
+      "status": "PASS",
+      "kind": "synthetic-or-source-control"
+    }
+  ],
+  "pass": 45,
+  "fail": 0,
+  "syntheticDispatches": 17,
+  "actualChildProcesses": 0,
+  "productImportsExecuted": 0,
+  "sourceBindings": [
+    {
+      "path": "tests/commands/table-text-stress/support.ts",
+      "sha256": "b6e4793cac4c3670de36e6c47de6b0d8126de73cab469b6370257e116e39ea92"
+    },
+    {
+      "path": "tests/commands/table-text-stress/shared-stdin-fix/support.ts",
+      "sha256": "7aa2fd7b61583a94668b4cd0d2bedf48846087eb623345875eec27c468c69c7b"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts",
+      "sha256": "1f81d9226a09c22221a7faacb5f794e81726626b4ac438ee526a2877aec7b342"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "sha256": "e8702db260de5d5117ac86ed48e6e1a5bae0a428e397310b7b404402ed91a55a"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/editflows/helpers.ts",
+      "sha256": "d2ba19c9387a60b0e218d676d6f44f388ccf0f759615ac26df5e682098b5ee78"
+    },
+    {
+      "path": "tests/integration/s3-http-exports/verify.mjs",
+      "sha256": "ae9f72b2114076c92901043f0748c5525ea7cad264994c21b04f17ca3e8c72f9"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release-native-data/helpers.ts",
+      "sha256": "fd55635268b461f69d50bf7403f1ca94f00f27210337303f3352f97ee7b68f05"
+    },
+    {
+      "path": "tests/commands/search-stress/safety.test.ts",
+      "sha256": "8ae3afb363a07e8905006346ce8cdc6318d8227ce0668443381504d54ec731ce"
+    },
+    {
+      "path": "tests/commands/search-stress/streaming.test.ts",
+      "sha256": "8ce5213a4a5cd277628e83dad3390e05c05527f1269001736e64ae9ac7de5f82"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target/oracle.ts",
+      "sha256": "fa393338c0d4f6f1769a560d40e468ed165f196add6da7e9c55b5592212b4726"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target-followup/helpers.ts",
+      "sha256": "3ed6929afc27bda15ecd9732fbd446428be30eb4c4bf24ed99a620312b319e48"
+    },
+    {
+      "path": "tests/commands/stream-inspection/oracle.ts",
+      "sha256": "144a0ab22228978c68a4b89d137ff48f27cf20cfb69ec9784f73976ad7fc9ee7"
+    },
+    {
+      "path": "tests/shell-stress/helpers.ts",
+      "sha256": "a32a59b7ea7efb057837b759fdf30d60c87902f31ed0135d35fcb860f19d1718"
+    }
+  ],
+  "qualifications": [
+    "C02 version control exercises failure cleanup, not successful real version verification.",
+    "C08 auxiliary control is source-only routing; no auxiliary native/product probe.",
+    "No OS fence/real filesystem/tool semantics certified by in-memory imports.",
+    "No compiler/checker, R3 rescore or gate launch."
+  ]
+}

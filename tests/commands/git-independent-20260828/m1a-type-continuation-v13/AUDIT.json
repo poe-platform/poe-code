@@ -1,0 +1,149 @@
+{
+  "status": "HOLD",
+  "presealCommit": "1d981b9f0c4874bc129691d8ef0c2781b341da40",
+  "immutablePrior": "b94bd13b156320d713d692c11f85f655cda68690",
+  "freshPositive": {
+    "launched": 1,
+    "accepted": 0,
+    "exitCode": 1,
+    "classification": "HARNESS_ASSERTION_DEFECT",
+    "rawFailure": {
+      "schema": "M1A-v13-wrapper-failure",
+      "message": "Expected values to be strictly equal:\n\nfalse !== true\n",
+      "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/compiler.mjs:75:10\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)",
+      "nestedProcessAttempts": 0,
+      "networkAttempts": 0
+    }
+  },
+  "freshNegative": {
+    "launched": 0,
+    "status": "UNRUN",
+    "accepted": 0
+  },
+  "historicalOnly": {
+    "semantic": {
+      "passed": 284,
+      "layouts": [
+        71,
+        71,
+        71,
+        71
+      ]
+    },
+    "types": {
+      "passed": 4,
+      "total": 5,
+      "originalMismatch": "expected TS2305; actual TS2724; immutable"
+    },
+    "loadedMutants": 3,
+    "restores": 3,
+    "bindingNegatives": 3,
+    "perLayoutClosedStreams": 295,
+    "perLayoutFulfilledRegistrations": 167,
+    "privateWriter": "SOURCE_LINKED_CONDITIONAL_JOIN"
+  },
+  "composedTypePasses": 4,
+  "composedTypeDenominator": 5,
+  "noCorrectionProof": true,
+  "freshGuards": [
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-review-v5",
+      "entries": 25,
+      "sha256": "61e0fe8598d48ac6e7c52936f687ed3f23be137c42f88bad4dfe11fbbb50ecd6",
+      "newEntryCheck": true
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v11",
+      "entries": 36,
+      "sha256": "423b3b5cdcd978690ba7de35649281e59a8c0268461601d896017d0642c12c43",
+      "newEntryCheck": true
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12",
+      "entries": 126,
+      "sha256": "093b31a70e4487891d2ba9cf831eedb72c98e005a7613605878c48028d212be4",
+      "newEntryCheck": true
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "entries": 147,
+      "sha256": "e521421da6cbe23781c35c25d1833843ec06fbf75b5cae2fd925a72481aefe47",
+      "newEntryCheck": true
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+      "entries": 83,
+      "sha256": "82d024bea4571af26854ecc2d3268901b20f97b05e7bfeb1fb515bb2782f97f9",
+      "newEntryCheck": true
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+      "entries": 41,
+      "sha256": "27aa5665adb343143404983442507e84dace4a8aabcd3b2a98e380fae933ddf5",
+      "newEntryCheck": true
+    }
+  ],
+  "trackedInputFilesChecked": 184,
+  "sealedFilesChecked": 8,
+  "nodeHashUnchanged": true,
+  "workAbsent": true,
+  "captures": [
+    {
+      "path": "RUN-01/events.jsonl",
+      "bytes": 1480,
+      "sha256": "a8bab9f3a60ef1b9c670bfc1c53bf8a59dc61bb4f6f33bc91b80e448123f7c0c"
+    },
+    {
+      "path": "RUN-01/negative-public-root.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "RUN-01/negative-public-root.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "RUN-01/positive.stderr.raw",
+      "bytes": 628,
+      "sha256": "2fa9705da22a2e7af4ed29bfd4acb2d44c44c412fe61c48cf1e64b91da8fa170"
+    },
+    {
+      "path": "RUN-01/positive.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "RUN-01/receipt.json",
+      "bytes": 9060,
+      "sha256": "f4aede77e9a1604ab34a1d43977c53aec773f760c52d92835bf2437de17c2cb8"
+    },
+    {
+      "path": "RUN-01/stderr.raw",
+      "bytes": 628,
+      "sha256": "2fa9705da22a2e7af4ed29bfd4acb2d44c44c412fe61c48cf1e64b91da8fa170"
+    },
+    {
+      "path": "RUN-01/stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "RUN-01/timing.json",
+      "bytes": 137,
+      "sha256": "f78323b252c2fcd044008cf34a9d8be264f7ffb75372e15f87eee6605af55fca"
+    }
+  ],
+  "captureBytes": 11933,
+  "outerTerminalSummaryFromToolSession7275": {
+    "status": "HOLD",
+    "elapsedThroughPublicationAndClosureMs": 4771.265833,
+    "workPeakBytes": 8374197,
+    "controlledProcesses": 2,
+    "peak": 2,
+    "workRemoved": true
+  },
+  "foreignIndexUnchanged": true,
+  "publicationToolingScope": "DATA-only Python owner, one metadata Git child, two apply_patch child invocations for AUDIT and manifest; shell wrapper/other manual inspection and later explicit Git publication separate; no universal helper census",
+  "elapsedBeforeAuditPublicationMs": 447.378958
+}

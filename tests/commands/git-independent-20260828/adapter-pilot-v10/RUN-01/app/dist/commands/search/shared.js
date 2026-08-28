@@ -1,0 +1,111 @@
+import { setImmediate } from "node:timers/promises";
+import { readBytes, writeBytes } from "../../contracts/index.js";
+import { SearchError } from "./options.js";
+export function pathFor(context, path) {
+    if (!path || path.includes("\0"))
+        throw new SearchError("invalid empty or NUL-containing path");
+    return path.startsWith("/") ? path : `${context.cwd.replace(/\/$/u, "")}/${path}`;
+}
+export class OutputClosed extends SearchError {
+}
+export class Limits {
+    context;
+    maxOutputBytes;
+    maxLineBytes;
+    maxFileBytes;
+    maxFiles;
+    outputBytes = 0;
+    files = 0;
+    ticks = 0;
+    stopped = new AbortController();
+    signal;
+    constructor(context, options) {
+        this.context = context;
+        this.signal = AbortSignal.any([context.signal, this.stopped.signal]);
+        this.maxOutputBytes = options.maxOutputBytes ?? 16 * 1024 * 1024;
+        this.maxLineBytes = options.maxLineBytes ?? 1024 * 1024;
+        this.maxFileBytes = options.maxFileBytes ?? 64 * 1024 * 1024;
+        this.maxFiles = options.maxFiles ?? 100000;
+        for (const limit of [this.maxOutputBytes, this.maxLineBytes, this.maxFileBytes, this.maxFiles]) {
+            if (!Number.isSafeInteger(limit) || limit < 1)
+                throw new SearchError("search limits must be positive safe integers");
+        }
+    }
+    async tick() {
+        this.context.signal.throwIfAborted();
+        if (++this.ticks % 128 === 0)
+            await setImmediate(undefined, { signal: this.context.signal });
+    }
+    async write(chunk) {
+        try {
+            await writeBytes(this.context.stdout, chunk, this.signal);
+        }
+        catch (error) {
+            this.context.signal.throwIfAborted();
+            if (error.code === "EPIPE") {
+                const closed = new OutputClosed("stdout closed");
+                this.stopped.abort(closed);
+                throw closed;
+            }
+            throw error;
+        }
+    }
+    async output(value) {
+        const chunk = typeof value === "string" ? Buffer.from(value) : value;
+        if (this.outputBytes + chunk.byteLength > this.maxOutputBytes)
+            throw new SearchError("output byte limit exceeded");
+        await this.write(chunk);
+        this.outputBytes += chunk.byteLength;
+    }
+}
+export async function* fileInput(context, path, limits) {
+    if (context.fs.readStream)
+        yield* readBytes(context.fs.readStream(path, { signal: context.signal }), limits.signal);
+    else
+        yield await context.fs.readFile(path, { signal: context.signal, maxBytes: limits.maxFileBytes });
+}
+export async function diagnostic(context, error) {
+    await writeBytes(context.stderr, Buffer.from(`rg: ${error instanceof Error ? error.message : String(error)}\n`), context.signal);
+}
+export async function* lines(source, limits, state, binary, nullData) {
+    let pending = Buffer.alloc(0);
+    let offset = 0;
+    let number = 0;
+    const delimiter = nullData ? 0 : 10;
+    for await (const data of readBytes(source, limits.signal)) {
+        await limits.tick();
+        const chunk = Buffer.from(data);
+        if (state.bytesRead + chunk.length > limits.maxFileBytes)
+            throw new SearchError("input file byte limit exceeded");
+        const nul = nullData || binary === "text" ? -1 : chunk.indexOf(0);
+        if (nul >= 0 && state.binaryOffset === null)
+            state.binaryOffset = state.bytesRead + nul;
+        state.bytesRead += chunk.length;
+        if (nul >= 0 && binary === "skip") {
+            state.skipped = true;
+            return;
+        }
+        let start = 0;
+        for (let end = 0; end < chunk.length; end++) {
+            if (chunk[end] !== delimiter && !(binary === "binary" && chunk[end] === 0))
+                continue;
+            if (pending.length + end - start > limits.maxLineBytes)
+                throw new SearchError("line byte limit exceeded");
+            const content = Buffer.concat([pending, chunk.subarray(start, end)]);
+            const bytes = Buffer.concat([content, Buffer.from([delimiter])]);
+            state.bytesSearched = offset + bytes.length;
+            yield { content, bytes, number: ++number, offset };
+            offset += bytes.length;
+            pending = Buffer.alloc(0);
+            start = end + 1;
+        }
+        if (pending.length + chunk.length - start > limits.maxLineBytes)
+            throw new SearchError("line byte limit exceeded");
+        pending = Buffer.concat([pending, chunk.subarray(start)]);
+    }
+    if (pending.length) {
+        state.bytesSearched = offset + pending.length;
+        yield { bytes: pending, content: pending, number: ++number, offset };
+    }
+}
+//# sourceMappingURL=shared.js.map

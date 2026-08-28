@@ -1,0 +1,230 @@
+import { FsError, isAbsolutePath, readBytes, toByteSource, validatePath, writeBytes, } from "../contracts/index.js";
+export const encoder = new TextEncoder();
+export const decoder = new TextDecoder();
+export const bufferLimit = 32 * 1024 * 1024;
+export class UsageError extends Error {
+}
+export function options(args, short, long = {}, stopAtOperand = false) {
+    const flags = new Set();
+    const values = new Map();
+    const operands = [];
+    const specifications = new Map();
+    for (let index = 0; index < short.length; index++) {
+        const key = short[index];
+        specifications.set(key, short[index + 1] === ":");
+        if (short[index + 1] === ":")
+            index++;
+    }
+    let ended = false;
+    for (let index = 0; index < args.length; index++) {
+        const argument = args[index];
+        if (ended || argument === "-" || !argument.startsWith("-")) {
+            operands.push(argument);
+            if (stopAtOperand)
+                ended = true;
+            continue;
+        }
+        if (argument === "--") {
+            ended = true;
+            continue;
+        }
+        if (argument.startsWith("--")) {
+            const equals = argument.indexOf("=");
+            const name = argument.slice(2, equals < 0 ? undefined : equals);
+            const key = long[name];
+            if (!key || !specifications.has(key))
+                throw new UsageError(`unrecognized option '${argument}'`);
+            if (specifications.get(key)) {
+                const value = equals >= 0 ? argument.slice(equals + 1) : args[++index];
+                if (value === undefined)
+                    throw new UsageError(`option '--${name}' requires an argument`);
+                values.set(key, [...values.get(key) ?? [], value]);
+            }
+            else if (equals >= 0)
+                throw new UsageError(`option '--${name}' does not take an argument`);
+            flags.add(key);
+            continue;
+        }
+        for (let offset = 1; offset < argument.length; offset++) {
+            const key = argument[offset];
+            if (!specifications.has(key))
+                throw new UsageError(`invalid option -- '${key}'`);
+            if (specifications.get(key)) {
+                const value = argument.slice(offset + 1) || args[++index];
+                if (value === undefined)
+                    throw new UsageError(`option requires an argument -- '${key}'`);
+                values.set(key, [...values.get(key) ?? [], value]);
+                offset = argument.length;
+            }
+            flags.add(key);
+        }
+    }
+    return { flags, values, operands };
+}
+export function value(parsed, key) {
+    return parsed.values.get(key)?.at(-1);
+}
+export function integer(text, minimum = 0) {
+    if (!/^[+]?[0-9]+$/u.test(text))
+        throw new UsageError(`invalid number '${text}'`);
+    const number = Number(text);
+    if (!Number.isSafeInteger(number) || number < minimum)
+        throw new UsageError(`invalid number '${text}'`);
+    return number;
+}
+export function requireOperands(operands, minimum = 1, maximum = Infinity) {
+    if (operands.length < minimum)
+        throw new UsageError("missing operand");
+    if (operands.length > maximum)
+        throw new UsageError(`extra operand '${operands[maximum]}'`);
+}
+export function pathOf(context, path) {
+    if (!path)
+        throw new FsError("ENOENT", { path });
+    validatePath(path);
+    validatePath(context.cwd);
+    if (!isAbsolutePath(context.cwd))
+        throw new FsError("EINVAL", { path: context.cwd, message: "cwd must be absolute" });
+    return isAbsolutePath(path) ? path : `${context.cwd.replace(/\/$/u, "")}/${path}`;
+}
+export function codeOf(error) {
+    return error instanceof Error && "code" in error ? String(error.code) : undefined;
+}
+export async function output(context, text) {
+    context.signal.throwIfAborted();
+    await writeBytes(context.stdout, typeof text === "string" ? encoder.encode(text) : text, context.signal);
+}
+export async function diagnostic(context, error) {
+    context.signal.throwIfAborted();
+    await writeBytes(context.stderr, encoder.encode(`${context.command}: ${error instanceof Error ? error.message : String(error)}\n`), context.signal);
+}
+export function define(name, handler, failureCode = 1) {
+    return {
+        name,
+        async execute(context) {
+            context.signal.throwIfAborted();
+            try {
+                return await handler(context);
+            }
+            catch (error) {
+                context.signal.throwIfAborted();
+                await diagnostic(context, error);
+                return { exitCode: error instanceof UsageError ? 2 : failureCode };
+            }
+        },
+    };
+}
+export async function eachOperand(context, operands, operation) {
+    let exitCode = 0;
+    for (const operand of operands) {
+        context.signal.throwIfAborted();
+        try {
+            await operation(operand);
+        }
+        catch (error) {
+            await diagnostic(context, error);
+            exitCode = 1;
+        }
+    }
+    return { exitCode };
+}
+export async function* input(context, name = "-") {
+    context.signal.throwIfAborted();
+    if (name === "-") {
+        yield* readBytes(context.stdin, context.signal);
+    }
+    else {
+        const path = pathOf(context, name);
+        if (context.fs.readStream)
+            yield* readBytes(context.fs.readStream(path, { signal: context.signal }), context.signal);
+        else
+            yield await context.fs.readFile(path, { signal: context.signal });
+    }
+}
+export function concatenate(chunks, size = chunks.reduce((sum, chunk) => sum + chunk.length, 0)) {
+    const result = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) {
+        result.set(chunk, offset);
+        offset += chunk.length;
+    }
+    return result;
+}
+export async function collect(source, signal, limit = bufferLimit) {
+    const chunks = [];
+    let size = 0;
+    for await (const chunk of source) {
+        signal.throwIfAborted();
+        size += chunk.length;
+        if (size > limit)
+            throw new FsError("EFBIG", { message: `buffer limit exceeded (${limit} bytes)` });
+        chunks.push(new Uint8Array(chunk));
+    }
+    return concatenate(chunks, size);
+}
+export async function* lines(source, separator = 10) {
+    let pending = [];
+    let size = 0;
+    for await (const chunk of source) {
+        let start = 0;
+        for (let offset = 0; offset < chunk.length; offset++) {
+            if (chunk[offset] !== separator)
+                continue;
+            const part = chunk.slice(start, offset);
+            size += part.length;
+            if (size > bufferLimit)
+                throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
+            pending.push(part);
+            yield { bytes: concatenate(pending, size), terminated: true };
+            pending = [];
+            size = 0;
+            start = offset + 1;
+        }
+        if (start < chunk.length) {
+            pending.push(new Uint8Array(chunk.subarray(start)));
+            size += chunk.length - start;
+            if (size > bufferLimit)
+                throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
+        }
+    }
+    if (size)
+        yield { bytes: concatenate(pending, size), terminated: false };
+}
+export function emptyInput() { return toByteSource(""); }
+export function escapeBytes(text, zeroOctal = false) {
+    const chunks = [];
+    const control = { a: 7, b: 8, e: 27, E: 27, f: 12, n: 10, r: 13, t: 9, v: 11, "\\": 92 };
+    for (let index = 0; index < text.length;) {
+        if (text[index] !== "\\" || index + 1 === text.length) {
+            const character = String.fromCodePoint(text.codePointAt(index));
+            chunks.push(encoder.encode(character));
+            index += character.length;
+            continue;
+        }
+        const next = text[index + 1];
+        if (next === "c")
+            return { bytes: concatenate(chunks), stop: true };
+        if (control[next] !== undefined) {
+            chunks.push(Uint8Array.of(control[next]));
+            index += 2;
+            continue;
+        }
+        const rest = text.slice(index + 1);
+        const octal = zeroOctal ? /^0([0-7]{0,3})/u.exec(rest) : /^([0-7]{1,3})/u.exec(rest);
+        if (octal) {
+            chunks.push(Uint8Array.of(parseInt(octal[1] || "0", 8) & 255));
+            index += 1 + octal[0].length;
+            continue;
+        }
+        const hexadecimal = /^x([0-9a-fA-F]{1,2})/u.exec(rest);
+        if (hexadecimal) {
+            chunks.push(Uint8Array.of(parseInt(hexadecimal[1], 16)));
+            index += 1 + hexadecimal[0].length;
+            continue;
+        }
+        chunks.push(encoder.encode(`\\${next}`));
+        index += 2;
+    }
+    return { bytes: concatenate(chunks), stop: false };
+}
+//# sourceMappingURL=internal.js.map

@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "scopeVerdict": "SCOPED_PASS_WITH_TWO_UNEXECUTED_OBLIGATIONS",
+  "complete40CaseContract": "HOLD_NOT_ALL_PASS",
+  "candidateBugProven": false,
+  "noNewRelease": true,
+  "source": "e35d83ca97f6aa4f32b2cb8542f5e711458f6aeb",
+  "evidence": "149d0fcb550f160fcfbe290417ed7b5e0f70873f",
+  "authorPreseal": "6b959e543d57eb88e550825cae9b276b6941d908",
+  "independentFreeze": "17b9249a06c5d768409fea932ea7f44e36b63720",
+  "recipeCommit": "70301c0c0953ca97f704a2ec659c7a0cf4d38649",
+  "driverSha256": "f192ca9330a440d33e49544e135a04305a48e84ce85858f902860aafa2ccd4f9",
+  "effectiveQualificationProfileSha256": "fa6731eec6b41915f3f56affa9cdf29e7352a10e939bb0f1fe1b9d675caa7510",
+  "strictProfileSha256": "8c9363ea17f6a319acc783b1e7ec2a4d4dc0a00529692b9f2331f60571ab149f",
+  "eligibilityReceiptSha256": "519ac40f0239bf363586c5144bbe7f0f3c72c786f42abbc2d1d9ffb004ba2cf6",
+  "shippingFiles": 41,
+  "unchangedPriorMembers": 32,
+  "canonicalPaths": 632,
+  "canonicalIdentitySha256": "e19638754f53af210140d5025220ce4e23efe217fe2cb5a457634b224ebbae35",
+  "normalizedDataBindings": {
+    "OS-INSTRUCTION-FENCE.json": {
+      "rawSha256": "8beb3aeb244fd490bd1904fa32bddc1332a7ccfb4c48d36dfe8c6ebbf3305a7f",
+      "parsedJsonSha256": "8046db8a870470e5a80a0e47b1619236cd6ba67e14b27a372a0b9fb2a587d9f9"
+    },
+    "INSTRUCTION-PROJECTION.json": {
+      "rawSha256": "59b957511d0b259a17dab5e256b2d4e32e7dd9b26059985752998f6a89254537",
+      "parsedJsonSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb"
+    },
+    "TOOL-ROUTES.json": {
+      "rawSha256": "01bbe980528bacee75b89571746763bb92f8990bfa4f426f20307c82a25251c7",
+      "parsedJsonSha256": "b440b32475d24642d0fbe5dc222356ac1f209a11597baa07d63d286b06b68ca9"
+    }
+  },
+  "osFenceSourceSha256": "1955d2225312f57dfd4f7cb4a122e4d940caf997aea9ba4aa4c85f85558bac69",
+  "fencedSupervisorSourceSha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8",
+  "externalEncodedSha256": "ee7a51bc076144312e694b94a19d81f9349f438253d43465e7497616ed9f379e",
+  "counts": {
+    "PASS": 38,
+    "FAIL": 0,
+    "UNEXECUTED": 2
+  },
+  "methods": {
+    "data": {
+      "PASS": 22
+    },
+    "static": {
+      "PASS": 7
+    },
+    "synthetic": {
+      "PASS": 9,
+      "UNEXECUTED": 2
+    }
+  },
+  "rawTap": {
+    "tests": 40,
+    "pass": 38,
+    "fail": 2,
+    "skipped": 0,
+    "todo": 0,
+    "cancelled": 0,
+    "qualification": "The two raw not-ok obligations are UNEXECUTED, not candidate assertion failures; coordinator exit1 retained."
+  },
+  "unexecuted": [
+    {
+      "id": "H06.3",
+      "reason": "No independent injectable outer execute/finally cleanup seam. runPrerequisiteStages exposes setup only; exercising dual outer cleanup errors would invoke forbidden execute or simulate reviewer logic. Source route recorded separately."
+    },
+    {
+      "id": "H11.2",
+      "reason": "Setup seam has no timeout/signal/owned-background lifecycle API. A reviewer Promise.race would test its own deadline, not shipping timeout/cleanup. Full execute/supervisor execution excluded; no false closure proof substituted."
+    }
+  ],
+  "coordinator": {
+    "pid": 39313,
+    "status": 1,
+    "signal": null,
+    "elapsedSeconds": 0.2971599170123227,
+    "signalsSent": [],
+    "naturalExit": true,
+    "ownedChildReaped": true,
+    "stdioClosed": true
+  },
+  "integrity": {
+    "stageUnchanged": true,
+    "loadedModules": 13,
+    "unexpectedModuleOrigins": 0,
+    "temporaryRemoved": true,
+    "boundViolation": null,
+    "caseLabelsAndRawGzipIndependentlyVerified": true
+  },
+  "actualOperations": {
+    "candidateDataSyntheticCoordinator": 1,
+    "nativeOrHelperSetup": 0,
+    "privateReadOrCopy": 0,
+    "buildOrA10OrPack": 0,
+    "gatePhases": 0,
+    "deniedSetidProbes": 0,
+    "retries": 0
+  },
+  "historicalQualification": "NA2755/6755 original FILE operation failures remain bound historical observations; original denial layer UNKNOWN, no fresh capability or private postguard assertion. Node22 mismatch remains separate. Author15/15 and ENOBUFS not independent outcomes.",
+  "releaseRequired": {
+    "action": "ROOT_RELEASE_UNIFIED76",
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "driverSha256": "f192ca9330a440d33e49544e135a04305a48e84ce85858f902860aafa2ccd4f9",
+    "profileSha256": "fa6731eec6b41915f3f56affa9cdf29e7352a10e939bb0f1fe1b9d675caa7510",
+    "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "public74": true,
+    "public75": true,
+    "public76": true,
+    "independentDriverAccepted": true,
+    "authorization": "fresh nonblank ROOT-issued value, not consumed c222 or8e6b",
+    "independentEvidence": "nonblank exact qualified review references including both UNEXECUTED obligations",
+    "eligibilityProfile": "unified76-historical-file-authority-20260828-v1",
+    "historicalEligibilitySha256": "519ac40f0239bf363586c5144bbe7f0f3c72c786f42abbc2d1d9ffb004ba2cf6",
+    "acceptsUnqualifiedHistoricalNative": true
+  },
+  "artifacts": {
+    "RESULTS.json": {
+      "bytes": 202155,
+      "sha256": "b0030cfb35ec939443e833b4ab511a2d5bf095fff33585e6f85fa5ddf6164806"
+    },
+    "TERMINAL.json": {
+      "bytes": 11301,
+      "sha256": "9264cb959ba551f89441d471791d259026ec31af57a621f0a8c45081348fc4cd"
+    },
+    "stdout.gz": {
+      "bytes": 317,
+      "sha256": "fdfcdcadb7295993fe3b01e99e891a19f11c370953efbb0da23c4294cac98991"
+    },
+    "stderr.gz": {
+      "bytes": 20,
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "schema": "manifest-representation-preparation-v3",
+  "started": "2026-08-28T23:09:08.759Z",
+  "startedMs": 1787958548762,
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "bounds": {"milliseconds":1200000,"allOwnedProcesses":32,"peak":4,"captureBytes":67108864,"workingBytes":268435456},
+  "authorization": "Fresh ROOT preparation-only; DATA/SYNTHETIC after committed preseal, no product/build",
+  "previousHold": "5f336d1a52bec6569a3932f3ca6725611a230422",
+  "historicalOmittedByteReport": 380995389,
+  "historicalRawExactBytes": null,
+  "noHistoricalReconstruction": true
+}

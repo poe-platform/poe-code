@@ -201,6 +201,10 @@
 - Inspect git root/status/index before changes. Use apply_patch, stage explicit
   owned paths and git commit --only with those paths. Preserve concurrent edits,
   staging and native temporary artifacts; never broad-stage or commit others' work.
+- Never decode or dump resolved executables. Before text inspection, lstat and
+  admit a bounded regular file of a recognized text type; hash necessary binary
+  tool bindings with bounded streams. Use apply_patch through its patch interface,
+  not binary inspection; editing tools are not executor inputs unless invoked there.
 - Do not create branches or alter unrelated worktrees without instruction.
   Keep documentation corrections narrow and atomic; report checks and remaining
   limits without claiming superiority, universal parity or completion.

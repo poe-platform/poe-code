@@ -1,0 +1,20 @@
+{
+  "schema":"manifest-controls-plan-v1",
+  "scope":"DATA/SYNTHETIC only; no candidate build, product import, original job or native oracle",
+  "cases":["D01-full-historical-roundtrip","D02-all-overlay-differences","D03-job-writer-reader","D04-serialization-minus-at-plus","D05-framing-minus-at-plus","D06-header-LF-multiple-records","D07-dangling","D08-external","D09-duplicate-record","D10-corrupt-catalog","D11-missing-record","D12-wrong-authority","D13-extra-envelope","D14-self-overlay","D15-mode-overlay","D16-extra-overlay-path","D17-duplicate-overlay","D18-wrong-result","D19-extras-authenticated-but-unused","D20-canonical-duplicate-truncation","D21-own-data-falsy-and-unicode","D22-full-membership-refusal","S01-actual-loader-packet-guards"],
+  "controls":23,
+  "qualificationAttempts":1,
+  "qualificationProcesses":2,
+  "qualificationTotalPeak":2,
+  "qualificationTimeoutMs":120000,
+  "qualificationCaptureBytes":8388608,
+  "fixedAdministrativeCap":16777216,
+  "candidate":"753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+  "sourceTree":"6a59ca403c5411344dea2ee057909ba179bf7043",
+  "packageFiles":882,
+  "packageSha256":"f04afbf9230fd9e3275f83c7dab26837aeb618bd6178f4ac0b794b93302d6d95",
+  "historicalInput":"Existing committed runtime manifest is DATA, never reconstructed raw stdout. Original HOLDs and missing bytes remain unchanged.",
+  "futureProfile":"Full54 fresh setup/build rather than reuse3; no inherited product passes; requires new ROOT GO and a complete actual executor preseal.",
+  "fixedFutureBounds":{"milliseconds":6600000,"allOwnedProcesses":70,"totalPeak":4,"captureBytes":134217728,"workBytes":536870912,"caseMs":30000,"buildMs":120000},
+  "newAdministrativeChild":"One serialized Git --batch-check before runtime-object capture; included in future70, not an extra product job."
+}

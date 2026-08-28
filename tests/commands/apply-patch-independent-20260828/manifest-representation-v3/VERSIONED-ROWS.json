@@ -1,0 +1,307 @@
+[
+  {
+    "id": "V6-S62-CANONICAL",
+    "name": "Typed EACCES canonical diagnostic; not truncation evidence",
+    "execution": "NOT_RUN",
+    "independence": "Versioned root-authorized fixture adjudication after frozen diagnosis; not a fresh blind fixture.",
+    "invocation": {
+      "route": "literal-command",
+      "cwd": "/work",
+      "args": [],
+      "stdin": {
+        "chunks": [
+          {
+            "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+          }
+        ],
+        "eof": true
+      }
+    },
+    "before": {
+      "files": {
+        "/work/a": {
+          "utf8": "old\n"
+        }
+      },
+      "directories": [
+        "/",
+        "/work"
+      ]
+    },
+    "expected": {
+      "outcome": {
+        "kind": "return",
+        "exitCode": 1
+      },
+      "files": {
+        "/work/a": {
+          "utf8": "old\n"
+        }
+      },
+      "absent": [],
+      "stdout": {
+        "utf8": ""
+      },
+      "stderr": {
+        "utf8": "apply_patch: permission denied: /work/a\n"
+      },
+      "constraints": [
+        "GLOBAL",
+        "NO_COMMAND_MUTATION",
+        "BOUNDED"
+      ],
+      "diagnosticMeaning": "permission denial /work/a",
+      "diagnosticMaxBytes": 16384
+    },
+    "provider": {
+      "access": {
+        "mode": 2,
+        "reject": {
+          "kind": "FsError",
+          "code": "EACCES",
+          "path": "/work/a",
+          "message": {
+            "repeat": {
+              "utf8": "é"
+            },
+            "count": 20000
+          }
+        }
+      }
+    },
+    "executionId": "S62"
+  },
+  {
+    "id": "V6-S64-LITERAL-NOPULL",
+    "name": "Literal invocation preserves dollar/backtick/backslash path and payload",
+    "execution": "NOT_RUN",
+    "independence": "Versioned root-authorized fixture adjudication after frozen diagnosis; not a fresh blind fixture.",
+    "invocation": {
+      "route": "actual Shell parent context.invoke with literal argv and replaceEnv:true",
+      "cwd": "/work",
+      "args": [
+        "*** Begin Patch\n*** Add File: $HOME`whoami`\\a\n+$(touch escape)\n*** End Patch\n"
+      ],
+      "stdin": {
+        "acquire": "ALLOW_WRAPPER_ACQUISITION",
+        "pull": "THROW_IF_PULLED"
+      },
+      "invokeOptions": {
+        "replaceEnv": true,
+        "env": {
+          "HOME": "/not-expanded"
+        },
+        "signal": "omitted"
+      }
+    },
+    "before": {
+      "files": {},
+      "directories": [
+        "/",
+        "/work"
+      ]
+    },
+    "expected": {
+      "outcome": {
+        "kind": "return",
+        "exitCode": 0
+      },
+      "files": {
+        "/work/$HOME`whoami`\\a": {
+          "utf8": "$(touch escape)\n"
+        }
+      },
+      "absent": [
+        "/work/escape"
+      ],
+      "stdout": {
+        "utf8": "Success. Updated the following files:\nA $HOME`whoami`\\a\n"
+      },
+      "stderr": {
+        "utf8": ""
+      },
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT",
+        "SUCCESS"
+      ],
+      "parentStateUnchanged": true,
+      "noEnvironmentExpansion": true,
+      "stdinPulls": 0,
+      "noExtraFilesystemEffects": true
+    },
+    "executionId": "S64"
+  },
+  {
+    "id": "V6-S71-ACCESS-MODE",
+    "name": "Delete permission probes parent, not writable leaf",
+    "execution": "NOT_RUN",
+    "independence": "Versioned root-authorized fixture adjudication after frozen diagnosis; not a fresh blind fixture.",
+    "invocation": {
+      "route": "literal-command",
+      "cwd": "/work",
+      "args": [],
+      "stdin": {
+        "chunks": [
+          {
+            "utf8": "*** Begin Patch\n*** Delete File: a\n*** End Patch\n"
+          }
+        ],
+        "eof": true
+      }
+    },
+    "before": {
+      "files": {
+        "/work/a": {
+          "utf8": "old\n"
+        }
+      },
+      "directories": [
+        "/",
+        "/work"
+      ]
+    },
+    "expected": {
+      "outcome": {
+        "kind": "return",
+        "exitCode": 1
+      },
+      "files": {
+        "/work/a": {
+          "utf8": "old\n"
+        }
+      },
+      "absent": [],
+      "stdout": {
+        "utf8": ""
+      },
+      "stderr": {
+        "semantic": "preflight-diagnostic"
+      },
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT",
+        "NO_COMMAND_MUTATION"
+      ],
+      "authorization": "DENIED",
+      "operationTrace": {
+        "required": [
+          {
+            "method": "access",
+            "path": "/work",
+            "mode": 2
+          }
+        ],
+        "forbid": [
+          "rm"
+        ]
+      }
+    },
+    "provider": {
+      "access": {
+        "path": "/work",
+        "mode": 2,
+        "reject": {
+          "kind": "FsError",
+          "code": "EACCES"
+        }
+      },
+      "otherAccess": "allow"
+    },
+    "observer": {
+      "accessMode": "actual args[1]",
+      "accessDenialMatch": "exact path and supplied mode"
+    },
+    "executionId": "S71"
+  },
+  {
+    "id": "V6-S74-EXACT-BRANCH-SET",
+    "name": "Unknown real alias can cause qualified partial outcome on revalidation",
+    "execution": "NOT_RUN",
+    "independence": "Versioned root-authorized fixture adjudication after frozen diagnosis; not a fresh blind fixture.",
+    "invocation": {
+      "route": "literal-command",
+      "cwd": "/work",
+      "args": [],
+      "stdin": {
+        "chunks": [
+          {
+            "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** Update File: b\n@@\n-old\n+new\n*** End Patch\n"
+          }
+        ],
+        "eof": true
+      }
+    },
+    "before": {
+      "files": {
+        "/work/a": {
+          "utf8": "old\n"
+        },
+        "/work/b": {
+          "utf8": "old\n"
+        }
+      },
+      "directories": [
+        "/",
+        "/work"
+      ]
+    },
+    "expected": {
+      "outcome": {
+        "kind": "return",
+        "exitCode": 1
+      },
+      "files": {
+        "/work/a": {
+          "utf8": "new\n"
+        },
+        "/work/b": {
+          "utf8": "new\n"
+        }
+      },
+      "absent": [],
+      "stdout": {
+        "utf8": ""
+      },
+      "stderr": {
+        "exactUtf8Alternatives": [
+          "apply_patch: operation 2; prior changes may remain: target bytes changed since preflight: /work/b\n",
+          "apply_patch: operation 2; prior changes may remain: target changed since preflight: /work/b\n"
+        ]
+      },
+      "constraints": [
+        "GLOBAL",
+        "INITIAL_PREFLIGHT"
+      ],
+      "operationOrdinal": 2,
+      "operationTrace": {
+        "required": [
+          {
+            "method": "writeFile",
+            "path": "/work/a",
+            "flag": "w"
+          }
+        ],
+        "forbidMatching": [
+          {
+            "method": "writeFile",
+            "path": "/work/b"
+          }
+        ]
+      },
+      "diagnosticMeaning": "second target changed since initial snapshot; prior changes may remain"
+    },
+    "provider": {
+      "identity": "omitted",
+      "compareEntry": "unknown",
+      "backingAliases": [
+        [
+          "/work/a",
+          "/work/b"
+        ]
+      ],
+      "writeFile": "in-place changes shared backing bytes"
+    },
+    "executionId": "S74"
+  }
+]

@@ -52,6 +52,50 @@ test("foundation: supported lazy bare operators preserve scalar behavior", { tim
     await output(`${initial}; printf "<%s>" "${'${a:=zero}'}" "${'${a:+yes}'}" "${'${a:-no}'}" "${'${a#z}'}" "${'${a/er/X}'}" "${'${#a}'}"`, "<zero><yes><zero><ero><zXo><4>");
   }
   await output('a=(yes); printf "%s" "${a:-${side:=bad}}" "${side-unset}"', "yesunset");
+  for (const initial of ['a=(abcabc tail)', 'a=abcabc']) {
+    await output(`${initial}; printf "<%s>" "${'${a:1:3}'}" "${'${a##a*}'}" "${'${a%%*c}'}" "${'${a//b/X}'}" "${'${a%bc}'}" "${'${a#abc}'}" "${'${a?${side:=bad}}'}" "${'${side-unset}'}"`, "<bca><><><aXcaXc><abca><abc><abcabc><unset>");
+  }
+});
+
+test("foundation: exact thirteen controls refuse conversion before RHS effects", { timeout: 5000 }, async () => {
+  const names = ["PATH", "PWD", "OLDPWD", "HOME", "CDPATH", "IFS", "OPTIND", "OPTERR", "OPTARG", "REPLY", "LANG", "LC_ALL", "LC_CTYPE"];
+  for (const name of names) await output(`${name}=(${'${side:=bad}'}) ; printf "%s/%s" "$?" "${'${side-unset}'}"`, "1/unset");
+  await output('DIRSTACK=(ordinary); printf "%s" "$DIRSTACK"', "ordinary");
+});
+
+test("foundation: read, getopts and for update indexed zero only", { timeout: 5000 }, async () => {
+  await output('a=([2]=tail); read a <<< first; printf "%s/" "$a"; getopts x a -x; printf "%s/" "$a"; for a in loop; do :; done; printf "<%s>" "${a[@]}"', "first/x/<loop><tail>");
+});
+
+test("foundation: script-file syntax preflight precedes all command effects", { timeout: 5000 }, async () => {
+  const fs = new MemoryFileSystem();
+  const instance = new AuthorShell({ fs });
+  let effects = 0;
+  instance.register({ name: "effect", execute() { effects++; return { exitCode: 0 }; } });
+  await fs.writeFile("/invalid", new TextEncoder().encode("effect\na[01]=bad\n"));
+  try {
+    const result = await instance.exec("a=(outer); bash /invalid");
+    assert.equal(result.exitCode, 2);
+    assert.equal(effects, 0);
+    assert.equal(result.stdout, "");
+  } finally { await instance.dispose(); }
+});
+
+test("foundation: exported host environment stays scalar with null prototype", { timeout: 5000 }, async () => {
+  const instance = shell();
+  instance.register({ name: "environment", execute(context) {
+    assert.equal(Object.getPrototypeOf(context.env), null);
+    assert.equal(Object.hasOwn(context.env, "a"), false);
+    assert.equal(Object.hasOwn(context.env, "__proto__"), true);
+    assert.equal(context.env.__proto__, "scalar");
+    assert(Object.values(context.env).every(value => typeof value === "string"));
+    return { exitCode: 0 };
+  } });
+  try {
+    const result = await instance.exec("a=(private); environment", { env: Object.assign(Object.create(null) as Record<string, string>, { ["__proto__"]: "scalar" }) });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+  } finally { await instance.dispose(); }
 });
 
 test("foundation: static overflow suppresses RHS, dynamic zero arity does not consume", { timeout: 5000 }, async () => {

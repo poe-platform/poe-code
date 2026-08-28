@@ -1,0 +1,12 @@
+{
+  "correctionFreeze": "4270e2341dd60acce830a7b7828237ac776a71c5",
+  "freeze": "1c6d0983760d81c6dad2303b8cba96ccd74ac709",
+  "captureSha256": "7b4e295292e4ad7832b6a4e1bf8530c2f649834fe9a0f13ad17ffb7cf2d038ec",
+  "captureBytes": 187780,
+  "passed": 17,
+  "total": 18,
+  "declared": 18,
+  "exitCode": 1,
+  "realObserverChildren": 0,
+  "beforeAfterOriginalHashesAndNewEntryCensus": true
+}

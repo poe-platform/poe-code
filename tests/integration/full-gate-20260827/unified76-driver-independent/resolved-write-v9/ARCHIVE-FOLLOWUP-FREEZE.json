@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "original": "ARCHIVE-RESULTS.json",
+  "exit": 1,
+  "actualNegative": "historical-tar target0; native tar1, AGENTS EPERM, target absent,216 ordinary neighbors, authenticated10300byte blob, streamed2181120byte archive; unchanged first result",
+  "failure": "After target clean completion, phaseRunner save historical-tar.json collided with independent HISTORICAL-TAR.json on APFS case-insensitive namespace; EEXIST worker1. This is not a protection failure or whole-cohort pass.",
+  "fix": "New archive-probe-v2 writes NATIVE-EXTRACTION-DETAIL.json; fresh owned output/raw names in archive-review-v2. No shipping source or oracle change. Repeat once only after this freeze; preserve initial bodies/results.",
+  "a10": "a10-review-v2 requires clean followup receipt; original a10-review never executed"
+}

@@ -27,6 +27,7 @@ export async function stageTypingHelper({root, repository, profile, environment,
     selected.set(path, {...entry, sha256: createHash('sha256').update(body).digest('hex')});
   };
   for (const entry of entries.values()) if (entry.path.startsWith('scripts/') || entry.path.startsWith('tests/plugins/qualified-current-release/')) stage(entry.path);
+  stage('tests/plugins/stream-five-public/current-profile.mjs');
   stage('tsconfig.json');
   const owner = 'tests/plugins/qualified-current-release/';
   const captured = JSON.parse(readFileSync(join(root, owner, 'captured-types.json')));

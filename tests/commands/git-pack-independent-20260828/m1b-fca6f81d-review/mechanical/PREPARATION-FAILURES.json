@@ -1,0 +1,26 @@
+{
+  "schema": "m1b-mechanical-preparation-failures-v1",
+  "failures": [{
+    "id": "PREP01",
+    "role": "STATIC_GIT_DATA_READ_NOT_TARGET_EXECUTION",
+    "command": "node inline data inspection -> execFileSync('git', ['show', '897e5141:tests/commands/git-pack-author-20260828/s01-v3/results-v3/PACKAGE.tgz.base64'])",
+    "defect": "This separate data-read invocation omitted maxBuffer; Node's default child output buffer was too small for the encoded artifact.",
+    "error": "ENOBUFS",
+    "errno": -55,
+    "childStatus": null,
+    "childSignal": "SIGTERM",
+    "childPid": 2432,
+    "retainedStdoutBytesReportedByNode": 1064960,
+    "stderrBytesReportedByNode": 0,
+    "nodeProcessExit": 1,
+    "outerShellExit": 0,
+    "outerShellExplanation": "A later cat command succeeded; this does not rescore the failed Node data read.",
+    "captureLocation": "Conversation tool receipt 405ec9; stdout was rendered partially by Node, not copied as a complete artifact.",
+    "knownReap": "Synchronous spawnSync returned; no independent descendant census claimed.",
+    "correction": "Use explicit maxBuffer=33554432 for subsequent bounded STATIC Git artifact reads. No target retry or execution authorization is created.",
+    "status": "RETAINED_PREPARATION_FAIL"
+  }],
+  "targetExecutions": 0,
+  "compilerExecutions": 0,
+  "controlExecutions": 0
+}

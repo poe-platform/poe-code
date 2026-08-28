@@ -1,0 +1,61 @@
+{
+  "schema": "m1b-mechanical-inputs-v1",
+  "entries": [
+    {
+      "role": "runnerABI",
+      "commit": "de95161c9de136852884d054612dad1b8ec716e5",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/INTERFACE.md",
+      "bytes": 6961,
+      "sha256": "ec7348180748d18490ac873d1078e4585f09dde2f50f10ab2fbfd17acd827a5e"
+    },
+    {
+      "role": "runnerABIData",
+      "commit": "de95161c9de136852884d054612dad1b8ec716e5",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/INTERFACE.json",
+      "bytes": 1274,
+      "sha256": "98d6158260181ddadd37b110b1f5d06bce3c47d8febce33a99311b652f5045a9"
+    },
+    {
+      "role": "resourcePlan",
+      "commit": "4db769480118ebf935f8e26fca80a353c55e493d",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-09029163-preparation/CASE-PLAN.json",
+      "bytes": 73318,
+      "sha256": "d457ccd8160816230a11b9966d814973ff5d48376ffdb8eadb37b76ad0da7a02"
+    },
+    {
+      "role": "priorReview",
+      "commit": "4db769480118ebf935f8e26fca80a353c55e493d",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-09029163-preparation/REVIEW.md",
+      "bytes": 11924,
+      "sha256": "fb1f5a09715c5bd86c7a54b68f064dddbe71b10ea77191e3c30b8cb000e1fbf6"
+    },
+    {
+      "role": "ratification",
+      "commit": "fb61dc8403d6c1e0ce1a4bff691d879193528c31",
+      "path": "tests/commands/git-pack-design-20260828/ratified-v2/SPEC.md",
+      "bytes": 12129,
+      "sha256": "cc38cbe0714ba2d18998b2b8a26c1e5555e987bec80154e11a260b1680f6807d"
+    },
+    {
+      "role": "abstractObserverOnly",
+      "commit": "d80af7048688dfbd1b4b3ebd9c5fb2aacb26f473",
+      "path": "tests/commands/git-independent-20260828/observer-v8-independent/ADAPTER-READINESS.md",
+      "bytes": 9679,
+      "sha256": "c1e48e0399fd96c766eaf26c14fba1918d180ed830b12011e867da050a689a26"
+    },
+    {
+      "role": "authorHandoff",
+      "commit": "897e5141b034b59501f576a259d5ea1e7e2673c6",
+      "path": "tests/commands/git-pack-author-20260828/s01-v3/HANDOFF.md",
+      "bytes": 5729,
+      "sha256": "8ee8910544d43f8563e4f0a040e46434663edd7634cd5db7d5dd9925c25b8624"
+    },
+    {
+      "role": "authorSource",
+      "commit": "897e5141b034b59501f576a259d5ea1e7e2673c6",
+      "path": "tests/commands/git-pack-author-20260828/s01-v3/SOURCE.json",
+      "bytes": 109299,
+      "sha256": "ce54b742cb00f0df0f14fc6865e73a614334ddfd7ac4aeabcc30f7f4c1eb70d9"
+    }
+  ]
+}

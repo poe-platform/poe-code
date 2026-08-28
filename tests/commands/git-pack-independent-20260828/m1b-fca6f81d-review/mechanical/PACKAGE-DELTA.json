@@ -1,0 +1,58 @@
+{
+  "schema": "m1b-mechanical-authenticated-package-delta-v1",
+  "oldSource": "090291636fba5b4003e5ad9771e83ad9da9e0c03",
+  "oldEvidence": "c74cc2a62875afc85f265431e6e6207c9e44f90c",
+  "oldArchiveSha256": "91f5b01f7dfe284fec3d5392b715c1a321a38b00f0fa69f6afbfeb54e8fa723b",
+  "newArchiveSha256": "cc0e75c2d0d12f713f0458e608ddeae157cf3432b4e0b48277a329a98115aa1a",
+  "oldMembers": 910,
+  "newMembers": 910,
+  "changed": [
+    {
+      "before": {
+        "path": "dist/commands/git/pack.d.ts.map",
+        "mode": 420,
+        "bytes": 463,
+        "sha256": "65cf74acde374f8715cda4a15ffa3494a4a328bfccddae992a49b1d9b77f7791"
+      },
+      "after": {
+        "path": "dist/commands/git/pack.d.ts.map",
+        "mode": 420,
+        "bytes": 463,
+        "sha256": "cbcf1a453f539ef8499f94516a5746e8e80b78be2ed0ae5fa6b3a5582ef7c92d"
+      }
+    },
+    {
+      "before": {
+        "path": "dist/commands/git/pack.js",
+        "mode": 420,
+        "bytes": 14274,
+        "sha256": "70215ca9b5ce757cfac1e86dd6fba9ac8c76b7ad4c681554ecb37c3222bc3232"
+      },
+      "after": {
+        "path": "dist/commands/git/pack.js",
+        "mode": 420,
+        "bytes": 14326,
+        "sha256": "8517ec58e2c8b8704908e9fa9347ea60dd9382422a53b4716eeb226726e39656"
+      }
+    },
+    {
+      "before": {
+        "path": "dist/commands/git/pack.js.map",
+        "mode": 420,
+        "bytes": 14884,
+        "sha256": "a4b422d9a213bc32b7736f1bf0ac75e1287ac2e859616afec3fa03d60c59a6b1"
+      },
+      "after": {
+        "path": "dist/commands/git/pack.js.map",
+        "mode": 420,
+        "bytes": 14917,
+        "sha256": "bdca097928d3d55afc677ca08aeec5cd03b7431d688ea17116d3f9107e73c22f"
+      }
+    }
+  ],
+  "unchangedMembers": 907,
+  "readmeUnchanged": true,
+  "publicExportsAbsent": true,
+  "proofRole": "DATA_AUTHENTICATION_ONLY",
+  "execution": 0
+}

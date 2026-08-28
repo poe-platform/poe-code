@@ -1,0 +1,122 @@
+{
+  "schema": "v4-focused-evidence",
+  "recipe": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+  "recipeSha256": "fc1a0df0015ebd428810c8d86976f3507636eac1c308f366298511fca38cf0e8",
+  "files": [
+    {
+      "path": "runs/focused-01/PLAN.json",
+      "bytes": 1867,
+      "mode": 420,
+      "sha256": "ca119c764fb96a6a6b944ba8fdc31be6ebe5a7ea9e6c50f5d041def1bb2f4c2a"
+    },
+    {
+      "path": "runs/focused-01/RESULT.json",
+      "bytes": 21024,
+      "mode": 420,
+      "sha256": "2f88fe0cbba1fb7ac89748e3061d55c2d6f9202a6bf14d2edc38dddc2d93b028"
+    },
+    {
+      "path": "runs/focused-01/child-001.json",
+      "bytes": 583,
+      "mode": 420,
+      "sha256": "5bee2794289dbc61ec1e7f108f3836123267e91a6627e3fe6c325f57fb4fc73f"
+    },
+    {
+      "path": "runs/focused-01/child-001.receipt.json",
+      "bytes": 1198,
+      "mode": 420,
+      "sha256": "664498da80c06250ee4b7b012cae967e9554e29e5cab7af306e4f65e9f7af341"
+    },
+    {
+      "path": "runs/focused-01/child-002.json",
+      "bytes": 591,
+      "mode": 420,
+      "sha256": "f2beac5eb27ed48200ce5832eeb8193b955a33e8fa4d63540961d74837e54906"
+    },
+    {
+      "path": "runs/focused-01/child-002.receipt.json",
+      "bytes": 1218,
+      "mode": 420,
+      "sha256": "89876c38dc12aef629583337f6610aaa9395a5373c3f6869c77eb2a0b2f5297d"
+    },
+    {
+      "path": "runs/focused-01/child-003.json",
+      "bytes": 593,
+      "mode": 420,
+      "sha256": "df9e2629d0baafa6e411ece3a5e96db4a993d1d639e62dcb768a4a2a17844ba9"
+    },
+    {
+      "path": "runs/focused-01/child-003.receipt.json",
+      "bytes": 1639,
+      "mode": 420,
+      "sha256": "c8d9b216a62ddd81156be43d10a4a106cf9acf7fb5506fb2638c8cf5ff7e7924"
+    },
+    {
+      "path": "runs/focused-01/focused-view/actual-effects.mjs",
+      "bytes": 253,
+      "mode": 420,
+      "sha256": "fe077f628f48a40bfb218b12d76e80c1303beef67f1896431c248235d4e94dc5"
+    },
+    {
+      "path": "runs/focused-01/focused-view/noop.mjs",
+      "bytes": 65,
+      "mode": 420,
+      "sha256": "ea774af930927dc24698f2f92ac2b94481e068093608067f662f3c8262792515"
+    },
+    {
+      "path": "runs/focused-01/focused-view/wrong-status.mjs",
+      "bytes": 65,
+      "mode": 420,
+      "sha256": "f4a35c830953d671922262c0154ff643279d6b185c0ebdceab422374c939795e"
+    },
+    {
+      "path": "runs/focused-01/persistence-negative/child-001.json",
+      "bytes": 604,
+      "mode": 420,
+      "sha256": "3eef0eecf6a731d3d696b667f1223e876ce476b58278b9b9ba96727bb2a145fd"
+    },
+    {
+      "path": "runs/focused-01/persistence-negative/collision.json",
+      "bytes": 36,
+      "mode": 420,
+      "sha256": "4733470e3c5b1d17270c5995816961c6082b919b5efb42007c19106b8feb0f6c"
+    },
+    {
+      "path": "runs/focused-01/persistence-negative/focused-view/actual-effects.mjs",
+      "bytes": 253,
+      "mode": 420,
+      "sha256": "fe077f628f48a40bfb218b12d76e80c1303beef67f1896431c248235d4e94dc5"
+    },
+    {
+      "path": "runs/focused-01/persistence-negative/focused-view/noop.mjs",
+      "bytes": 65,
+      "mode": 420,
+      "sha256": "ea774af930927dc24698f2f92ac2b94481e068093608067f662f3c8262792515"
+    },
+    {
+      "path": "runs/focused-01/persistence-negative/focused-view/wrong-status.mjs",
+      "bytes": 65,
+      "mode": 420,
+      "sha256": "f4a35c830953d671922262c0154ff643279d6b185c0ebdceab422374c939795e"
+    },
+    {
+      "path": "runs/handoff/FINAL-AUDIT.json",
+      "bytes": 8230,
+      "mode": 420,
+      "sha256": "1a67033fe0011dd03d6d4c9ceb26f7e7d5b06fc60a93cffa57e1688c57bd38c8"
+    },
+    {
+      "path": "runs/handoff/HANDOFF.md",
+      "bytes": 3364,
+      "mode": 420,
+      "sha256": "01a606dcd46fc1c00fcbcdb22a07609f1c840ab2324428f6c4e8182cdfbbaebe"
+    },
+    {
+      "path": "runs/syntax-01/RAW.json",
+      "bytes": 5943,
+      "mode": 420,
+      "sha256": "5dda22beb3d5aa85e4188aea193843248b1b9b53bfd99309a18b6cb9ed3fc19e"
+    }
+  ],
+  "totalBytes": 47656
+}

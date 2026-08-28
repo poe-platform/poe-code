@@ -1,0 +1,257 @@
+{
+  "date": "2026-08-28T11:07:30.775Z",
+  "recipeCommit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+  "recipeSha256": "fc1a0df0015ebd428810c8d86976f3507636eac1c308f366298511fca38cf0e8",
+  "protectedFiles": 179,
+  "focused": {
+    "passed": 40,
+    "failed": 0,
+    "unrun": 0
+  },
+  "syntax": {
+    "passed": 17,
+    "failed": 0
+  },
+  "children": [
+    {
+      "scope": "loaded-outcomes",
+      "pid": 73741,
+      "group": -73741,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "persisted": true,
+      "state": "PERSISTED",
+      "errors": [],
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "scope": "loaded-outcomes",
+      "pid": 73742,
+      "group": -73742,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "persisted": true,
+      "state": "PERSISTED",
+      "errors": [],
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "scope": "loaded-outcomes",
+      "pid": 73744,
+      "group": -73744,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "persisted": true,
+      "state": "PERSISTED",
+      "errors": [],
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "scope": "intentional-persistence-failure",
+      "pid": 73751,
+      "group": -73751,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "persisted": false,
+      "state": "UNSAFE_STOP",
+      "errors": [
+        {
+          "phase": "persist",
+          "error": {
+            "name": "Error",
+            "code": "EEXIST",
+            "message": "EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/runs/focused-01/persistence-negative/collision.json'",
+            "stack": "Error: EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/runs/focused-01/persistence-negative/collision.json'\n    at Object.openSync (node:fs:560:18)\n    at Object.writeFileSync (node:fs:2444:35)\n    at save (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/focused.mjs:42:6)\n    at persist (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/focused.mjs:166:33)\n    at launchTracked (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/launch-ledger.mjs:73:30)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async child (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/focused.mjs:157:19)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/focused.mjs:201:108\n    at async serial (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:48:16)\n    at async Object.action (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/focused.mjs:201:18)",
+            "original": null
+          }
+        }
+      ],
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    }
+  ],
+  "syntaxChildren": [
+    {
+      "pid": 73490,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "pid": 73491,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "pid": 73492,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "pid": 73493,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "pid": 73494,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "pid": 73495,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "pid": 73496,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "pid": 73497,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "pid": 73498,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "pid": 73499,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "pid": 73500,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "pid": 73501,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "pid": 73502,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "pid": 73503,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "pid": 73504,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "pid": 73505,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    },
+    {
+      "pid": 73507,
+      "status": 0,
+      "reaped": true,
+      "pidAbsentNow": true,
+      "groupAbsentNow": true
+    }
+  ],
+  "allChildrenReapedAndAbsent": true,
+  "intentionalCaptureFailure": {
+    "status": "UNSAFE_STOP",
+    "error": {
+      "phase": "persist",
+      "error": {
+        "name": "Error",
+        "code": "EEXIST",
+        "message": "EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/runs/focused-01/persistence-negative/collision.json'",
+        "stack": "Error: EEXIST: file already exists, open '/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/runs/focused-01/persistence-negative/collision.json'\n    at Object.openSync (node:fs:560:18)\n    at Object.writeFileSync (node:fs:2444:35)\n    at save (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/focused.mjs:42:6)\n    at persist (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/focused.mjs:166:33)\n    at launchTracked (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/launch-ledger.mjs:73:30)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async child (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/focused.mjs:157:19)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/focused.mjs:201:108\n    at async serial (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:48:16)\n    at async Object.action (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/focused.mjs:201:18)",
+        "original": null
+      }
+    },
+    "allChildrenReaped": true,
+    "rawEmergencyReceiptRetained": true,
+    "unsafe": true
+  },
+  "priorReview": {
+    "commit": "e8e71baf2647c6cb0b0c3ed04900c60627f36990",
+    "sealSha256": "16acd3dd7e196d0deffccb5b29d59c91fc45ad3e136d480e1c47143fbf22c591",
+    "counts": "35/44;13/13 DATA;22/31 SYNTHETIC;9 failures",
+    "rescored": false
+  },
+  "held": {
+    "runtimeAdmission": 14,
+    "actualC11Setup": 2,
+    "semanticCases": 99,
+    "packageStaging": 0,
+    "engineImports": 0,
+    "native": 0,
+    "timingCohort": 0
+  }
+}

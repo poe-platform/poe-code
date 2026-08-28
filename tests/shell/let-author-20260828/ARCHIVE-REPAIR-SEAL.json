@@ -1,0 +1,14 @@
+{
+  "schema": "let-archive-only-repair-seal-v2",
+  "created": "2026-08-28T07:40:15.591Z",
+  "files": {
+    "archive-repair-v2.mjs": "7295e82f6f38b4e4bfc573f92a7fa9bef4e9c003ec3e82c04c2143aa8ef01930",
+    "verify-artifacts.mjs": "e72d6f06945f806f97af483bedb1edaa39745d566b9a507bba8d677dedb35ff9",
+    "evidence-v1/INPUTS.json": "3e1580a4ac1847d32db0a07496edc30d3458e90b5680502f03d66f1c06deb2f0",
+    "evidence-v1/ARCHIVE-REJECT-v1.data": "eb23c1bc109cd9c85ae81d311175bfe78f5f07b3837b0aca84a0088b82537a74",
+    "evidence-v1/verify-artifacts-original.mjs.data": "b9d16f3bcdccc47c566cc181c1b4071df6a23fd7649928aecc294f274f246964"
+  },
+  "preserveOriginalRejectedArchive": true,
+  "unknownEntryRejectionUnchanged": true,
+  "productReruns": 0
+}

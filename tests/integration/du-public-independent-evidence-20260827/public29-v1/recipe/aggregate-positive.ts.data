@@ -1,0 +1,4 @@
+import { agentCommands, createAgentCommands, type AgentCommandsOptions } from 'virtual-bash';
+const options: AgentCommandsOptions = { replace: true, du: { limits: { maxEntries: 1 } } };
+agentCommands(options);
+createAgentCommands(options);

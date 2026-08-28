@@ -1,0 +1,16 @@
+{
+  "phase": "unsealed recipe development, input authentication only",
+  "command": "node recipe/prepare.mjs",
+  "unsealedCommonSha256": "b135291da738fa7ba1bad50fb4a49b49664404e2b6b1c7089494078481a60baf",
+  "exitCode": 1,
+  "failure": "assert.deepEqual npm closure arrays compared different enumeration order",
+  "observation": "Displayed differences include LICENSE, README.md and lib/cli.js positions with identical metadata. The draft used recursive default lexical traversal; the prior closure uses a different record ordering.",
+  "rawQualification": "Terminal result exceeded the tool output limit; complete raw stderr was not separately captured and is not reconstructed.",
+  "repair": "Compare unique path-keyed complete records, retaining every mode/type/byte/hash/link field and rejecting duplicate or additional paths. This is an inventory-order adapter, not an execution-order or assertion-value change.",
+  "frozenRecipeInvocations": 0,
+  "productLoads": 0,
+  "actualDUCases": 0,
+  "generatedBindingsWritten": 0,
+  "productEnvironmentFailureEstablished": false,
+  "subsequentStaticAuthentication": "All2274 regular files and12 metadata-only aliases match complete path-keyed records; all771 selected inputs match. No semantic case executed by preparation."
+}

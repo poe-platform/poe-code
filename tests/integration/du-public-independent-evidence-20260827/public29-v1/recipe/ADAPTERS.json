@@ -1,0 +1,60 @@
+{
+  "chronology": "post-candidate execution supplement, not original literal freeze",
+  "originalFilesChanged": 0,
+  "mappings": [
+    {
+      "source": "tests/integration/du-public-independent-20260827/public-cases.mjs",
+      "destination": "public-cases.mjs",
+      "originalSha256": "5620dbc46f39cd5cbee3d4a0e1eed8bd4544af21715d60c15643c619ea162d3e",
+      "adaptedSha256": "86ecef9182703f273555cf76d8f15b310efc90d955a6a0d38d7de8a6e0fd4da2",
+      "replacements": [
+        [
+          "runPublicCases({ root, du, bindings, record })",
+          "runPublicCases({ root, du, bindings, record, selectedId })"
+        ],
+        [
+          "  async function run(id, action) {",
+          "  async function run(id, action) {\n    if (id !== selectedId) return;"
+        ]
+      ]
+    },
+    {
+      "source": "tests/integration/du-public-independent-20260827/binding-contract.mjs",
+      "destination": "binding-contract.mjs",
+      "originalSha256": "6b0f3c6c58eeab74d069c3f1934c88683e3d317c663c201a00101e623365c58d",
+      "adaptedSha256": "19abdaf354046c6f630c73d9dcaa8bc3fd740f064367d6154c42aad182e5f49f",
+      "replacements": [
+        [
+          "['committed-archive', 'strict-live']",
+          "['scoped-committed-archive']"
+        ]
+      ]
+    },
+    {
+      "source": "tests/integration/du-public-independent-20260827/load-proof-hook.mjs",
+      "destination": "load-proof-hook.mjs",
+      "originalSha256": "5f31d3ff8f41988656dc792a0b62cc83878923302c088820d5233ed36626213b",
+      "adaptedSha256": "b14ac5f6df238b00a23fa49f69e6492b5ac8ec4a0ec60066d8bf9525e4a8a1e7",
+      "replacements": [
+        [
+          "export async function resolve(",
+          "export function resolve("
+        ],
+        [
+          "const result = await nextResolve(",
+          "const result = nextResolve("
+        ],
+        [
+          "export async function load(",
+          "export function load("
+        ],
+        [
+          "const result = await nextLoad(",
+          "const result = nextLoad("
+        ]
+      ]
+    }
+  ],
+  "assertionChanges": "only declared admission-mode literal; callable assertions and loader assertions unchanged",
+  "sourceProfile": "separately explicit Node TypeScript transform; never used in moved public consumers"
+}

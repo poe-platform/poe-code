@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-28",
+  "scope": "design-only static source inspection",
+  "fixedBaseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "inspectedHeadBeforeProposal": "270fedbe4f1fee6405dace72e6e18b22f358b5ce",
+  "liveRelevantDiffFromBaseline": "none",
+  "execution": {
+    "nativeOrReferenceRuns": 0,
+    "productOrImportedModuleRuns": 0,
+    "testsRun": 0,
+    "dependencyChanges": 0
+  },
+  "sources": [
+    { "path": "src/commands/structured/limits.ts", "gitBlob": "f40c2edc755f14474ed50491b6f4118be33d7ae5", "sha256": "9919a0c0de44c08a9c63c977f7dc8a6d7319f4111cb37c7f3b249fbfd07743fe" },
+    { "path": "src/commands/structured/parser.ts", "gitBlob": "f1bb01cd4c0203109727b70eb3598bd7822298c4", "sha256": "a7bcafcd6a3676ed8e344dcaa1293d4593652c9c343172c5184c8c826d042b51" },
+    { "path": "src/commands/structured/interpreter.ts", "gitBlob": "f7e0dfcb1815aa90ae49d495e453b4d069139108", "sha256": "bac1cf5325eff5bfa69f1c8bec5d3d8a80bb452fd61cdc802d55a26788acaffc" },
+    { "path": "src/commands/structured/input.ts", "gitBlob": "6350b5c4f5b8cae9243cf6560c98d9e53cb3128e", "sha256": "fa83e47ea3f0dfbb388f509cd748b733886171c16b10c536a5efa05fa7a9e5ca" },
+    { "path": "src/commands/structured/values.ts", "gitBlob": "88556c37d99b451c0d9ef55443c5946c46d46d9b", "sha256": "8d4e7cf5e9182f2c0487be2fba1dd3585c406cc0cfd73c1a38dcb2c95198e46a" },
+    { "path": "src/commands/structured/numbers.ts", "gitBlob": "fe90b5fcbef68a4a2a4aed164d7599d0dcd22630", "sha256": "1ef4803e8311e554c8b11a590e75f4c9a96fb81614872587f534514fadfc7ae2" },
+    { "path": "src/commands/structured/jq.ts", "gitBlob": "f27c7c7925ee22c8aa496b67f5ed6560d125cdfd", "sha256": "096897bfa9d875ba524cebd6b3959c551a26fa5e56d3b0d2fb42f9fabdf80da3" },
+    { "path": "src/contracts/command.ts", "gitBlob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8", "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c" },
+    { "path": "src/contracts/io.ts", "gitBlob": "6dc0efb87132376763228a845b2e62638898268a", "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809" }
+  ],
+  "conclusion": "A one-file private adapter can reuse parse/Interpreter/Budget without evaluator copying and share one Budget/AST across documents; exact compile yielding and pre-allocation/retained accounting require separately approved hooks in existing private modules.",
+  "qualification": "Static Git and live-source inspection only; no native, comparator, product, imported-module, runtime, or service proof."
+}

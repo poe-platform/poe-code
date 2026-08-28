@@ -94,3 +94,37 @@ An implementation conforms only when every `MUST`/`MUST NOT` requirement and dec
 2. Approve the internal shared query-core refactor; direct private imports would create avoidable coupling.
 3. Include opt-in `-i --allow-lossy-write` in the first release, or defer all in-place writes until presentation-preserving storage exists.
 4. Approve the exact safety defaults as yq-family limits; they are not a new shared shell budget.
+
+## 9. Root policy decision v1 (2026-08-28)
+
+Sections 1-8 above are retained byte-for-byte as the initial proposal. This
+versioned decision supersedes their conflicting choices; it does not retroactively
+rewrite that evidence.
+
+The first profile is settled as representability-restricted YAML 1.2 Core only.
+`--yaml-schema` and every JSON/failsafe schema spelling are refused rather than
+silently ignored. The genuine tokenizer/parser/composer, collections and scalars,
+block and multi-document support, and bounded backward aliases remain required.
+Keys are strings; duplicate decoded keys, cycles, forward aliases, merge keys,
+custom/unknown tags, non-finite values, and integral values outside the safe-integer
+boundary are rejected.
+
+Output defaults to deterministic YAML; `-o json` selects JSON. Querying reuses the
+existing safe jq dialect and is explicitly not full Mike Farah expression syntax.
+All in-place spellings, including `-i`, `--inplace`, `--in-place`, and the former
+`--allow-lossy-write`, are initially refused. No atomic-write capability or claim
+belongs to this release.
+
+The numeric family limits in section 5 remain useful starting points but are not
+normative until a different pre-code freeze seals counter units, reset lifetime,
+pre-allocation admission, retained-buffer accounting, UTF-8 measurement, output
+and diagnostic admission, and exact boundary errors. No new runtime Budget or
+deadline counter is implied.
+
+The next design-only proposal is
+`tests/commands/yq-design-20260828/query-adapter-v1/README.md`. It evaluates a new
+narrow adapter over the existing private exports before any jq move/refactor,
+defines the proposed CLI and query boundary, and identifies the precise cases
+where the present private API cannot prove the requested accounting. It authorizes
+no source extraction or implementation. Its inspection is bound to Git baseline
+`5137a74ec855a32d8a8860eb66b62eb44d11e290`; no native/product probe was run.

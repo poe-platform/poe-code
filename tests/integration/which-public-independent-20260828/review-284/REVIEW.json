@@ -1,0 +1,165 @@
+{
+  "sealedAt": "2026-08-28T01:46:28.364Z",
+  "verdict": "Recommend scoped public WHICH component acceptance, not whole76/77 gate or combined Stage2 runtime acceptance",
+  "candidate": "284857d7aa9b0ee0df2b6fdd1a71f41115d7b909",
+  "rootSource": "ee1f69e721e350fcc77d634b92e5c9f13f61dedb",
+  "baseline76": "2ffcb23d6029250c48950030120ed0adad2e5769",
+  "independentFreeze": "02ccea66d1e7983056c0ed114f8842fbd7ec3255",
+  "fixtureHashes": {
+    "cohort.mjs": "46ed767896a6da884dbbe379ed5d2d0e5d8ff53fdb138f3ba4ad5b68377ad8aa",
+    "cases.json": "0d6902f9e4f1522e14394e39d2bcebef6caccab941bbc552ca91f81887aa2e6d",
+    "types.json": "fcde00964796e535c55716fbec15ff23ef741d107b94ca91bde1576ba0d7d948",
+    "negative-plan.json": "812ba74128af85a9dfe7ec66b4ba741b88c713edad6092a90bc8ebc6bb41c656",
+    "README.md": "0742090f2a723b8fe356cabe6e8f666a9e3c627bbb3956e1a4265f0398a2700a",
+    "seal.mjs": "4922a4a92f58489ae64d7bb21f672d7db7abf3ec88fe193a825dc4432a466582",
+    "verify.mjs": "229dd23a9470b35c4f50791641fb32c1441f5720703f324342d0f9c17bb29f9b"
+  },
+  "sourceArchiveSha256": "02af7b524fdd65e89f5c6ebfbf69bcfb29285ba847e21ae0c0916652dafd4dca",
+  "sourceInputCount": 265,
+  "sourceHashes": {
+    "src/index.ts": "6d847ff37316fcdc851145024a422cb6541f0cbeab15895c5a972d7f1f97bb6b",
+    "src/plugins/index.ts": "83d6bd40582d124d1b1ec2471e4abc5fbe8df1f0f2320397b79399330c8e8abf",
+    "package.json": "64846cc0868630f863fade5119cef195a949aa0ed36ecc341bd9a076d6c363e2",
+    "src/commands/which/index.ts": "30286503e52a17e8d2f3e7e6bb590dc8d0307c3fb6e696ace00fc9a996ec7d9a",
+    "src/commands/which/options.ts": "c27af0cdf354a5eb39dc7f21eace39e96f9949ee3aed5f1b9c7cf67e4ddbef15",
+    "src/commands/which/which.ts": "98ace870f4721aa3061893ce5a26b47641e672ce1f5f544cb0d4416f48498a40",
+    "src/shell/runtime.ts": "c746e4cee0f5245d94bba2082ce72b62fdc3b251fd400ee247371fa44dfed722",
+    "src/shell/shell.ts": "2c704d4934889d12836e441112b11f41a4e3cdf6cf1ce96f9db42b4b70cdb332"
+  },
+  "package": {
+    "sha256": "49191d098e1e9f5b946f24dd898377144062110047cf6975d3cbf5d2c71214c0",
+    "entries": 846,
+    "emittedFiles": 844
+  },
+  "node": {
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "tools": {
+    "typescript": "5.9.3",
+    "@types/node": "22.20.1",
+    "undici-types": "6.21.0"
+  },
+  "layouts": {
+    "installed": {
+      "runtime": {
+        "tests": 18,
+        "pass": 18,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "types": [
+        {
+          "label": "installed-T01",
+          "exitCode": 0
+        },
+        {
+          "label": "installed-T02",
+          "exitCode": 0
+        },
+        {
+          "label": "installed-T03",
+          "exitCode": 0
+        },
+        {
+          "label": "installed-T04",
+          "exitCode": 0
+        }
+      ],
+      "authenticatedProductModules": 206
+    },
+    "moved": {
+      "runtime": {
+        "tests": 18,
+        "pass": 18,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "types": [
+        {
+          "label": "moved-T01",
+          "exitCode": 0
+        },
+        {
+          "label": "moved-T02",
+          "exitCode": 0
+        },
+        {
+          "label": "moved-T03",
+          "exitCode": 0
+        },
+        {
+          "label": "moved-T04",
+          "exitCode": 0
+        }
+      ],
+      "authenticatedProductModules": 206
+    }
+  },
+  "negativeControls": {
+    "frozenClasses": 8,
+    "runtimeAssertionMutations": [
+      "N01",
+      "N03",
+      "N04",
+      "N05",
+      "N06"
+    ],
+    "intentionalExportImportFailure": {
+      "id": "N02",
+      "code": "ERR_PACKAGE_PATH_NOT_EXPORTED",
+      "semanticCasesExecuted": 0
+    },
+    "typeMutation": {
+      "id": "N07",
+      "codes": [
+        "TS2344",
+        "TS2322",
+        "TS2578",
+        "TS2578"
+      ]
+    },
+    "loaderClassN08": [
+      "changed package bytes",
+      "unlisted module",
+      "live checkout emitted module"
+    ],
+    "failedBeforeMutationOrSetup": 0,
+    "survivingMutants": 0
+  },
+  "prerequisite": "Parent2ffcb23d whole76 gate remains separately unresolved per root handoff; this review does not run, waive or establish an accepted76 gate prerequisite. Exact77 membership is component behavior, not release-gate substitution.",
+  "priorHistory": "Module original25/26 both layouts, approved two-token B18 overlay1/1 both, public pre-code02ccea66 freeze, Stage2 baselines13/26 and14/26 unchanged",
+  "omitted": [
+    "module26 replay",
+    "native which execution",
+    "Node24 independent replay",
+    "whole76/77 gate",
+    "Stage2+WHICH combined candidate",
+    "SafeJS/private-engine/services"
+  ],
+  "sourceBugs": [],
+  "cleanup": {
+    "allDirectChildrenExitedNaturallyAndESRCH": true,
+    "temporaryRemoved": true,
+    "remainingOwnedRootProcesses": []
+  },
+  "evidence": {
+    "filename": "actual-01.json.gz.base64",
+    "compressedSha256": "1dbb850f655dd43260fb5913b264c5fa5df13ec1a05b5b1a4f9ab74054a5481a"
+  },
+  "files": {
+    "REPORT.md": "a9c08a39a84f6fd0f0afb031c742cab22da7f0bffa376769a6115eeb8ab0b494",
+    "actual-01.json.gz.base64": "43d751ab86d0beeef3566b6d92323b47f40fe4e103d6a7f2aa6aa87c382791ea",
+    "guard.mjs": "5068a32978e183208bee352fef14bda85949d3aad926013202ed5c0eeeb44f0e",
+    "mutations.json": "68f4ca2ed202e1fa545ed47163f2d3b7f9ed5b2964ca96b0c5ec85559bf90c87",
+    "run.mjs": "715f30e3105945c7c155162124d7caea50f4d3ddac960368a5cb80f828470a66",
+    "seal.mjs": "5b58f47a968d491006ed2ae96c99a9354f215a9b3c414dd82e615bc2796635fa",
+    "verify.mjs": "6b1e9b0c208f766152a131d08708bdce7a1b779553eac85da0ee323ecd637efa"
+  }
+}

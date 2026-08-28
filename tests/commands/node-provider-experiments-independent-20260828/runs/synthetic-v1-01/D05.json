@@ -1,0 +1,48 @@
+{
+  "id": "D05",
+  "classifiedAs": "EXPECTED_REJECT_HASH",
+  "observation": {
+    "accepted": false,
+    "reason": {
+      "name": "AssertionError",
+      "code": "ERR_ASSERTION",
+      "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '0000000000000000000000000000000000000000000000000000000000000000'\n- '366810b7c0a0ce333c3db4e5e00390d558e67569bef0250e6aa10609907bfd39'\n"
+    },
+    "receipt": {
+      "schema": "node-abi-child-v1",
+      "identity": "F01",
+      "label": "F01",
+      "sourceSha256": "536677e58f2fb4933bc587767a0b049e7ce648b3c1999a13d8fe2db9df633f84",
+      "classification": "PASS",
+      "clean": true,
+      "unhandled": [],
+      "assertions": [
+        {
+          "name": "synthetic-only",
+          "pass": true
+        }
+      ],
+      "counters": {
+        "engineEntered": 1,
+        "engineSettled": 1
+      },
+      "engineOutcome": {
+        "settled": true,
+        "ok": true
+      },
+      "finalResources": {
+        "hostPending": 0,
+        "accepting": false
+      }
+    },
+    "result": {
+      "status": 0,
+      "terminal": {
+        "label": "F01",
+        "classification": "PASS",
+        "receiptSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    }
+  },
+  "safeToContinue": true
+}

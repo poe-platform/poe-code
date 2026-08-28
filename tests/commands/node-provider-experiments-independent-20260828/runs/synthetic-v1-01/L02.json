@@ -1,0 +1,39 @@
+{
+  "id": "L02",
+  "classifiedAs": "COUNTEREXAMPLE_POSTSPAWN_DEADLINE_RETAINS_CHILD",
+  "observation": {
+    "rejected": true,
+    "exactPrimary": true,
+    "primary": {
+      "name": "Error",
+      "code": null,
+      "message": "EXECUTION_WINDOW_EXHAUSTED"
+    },
+    "remainingCalls": 2,
+    "actualStubReady": true,
+    "subjectStillOwnsActiveChild": true,
+    "subjectRowBeforeReviewerCleanup": {
+      "number": 1,
+      "role": "workflow",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+        "--disallow-code-generation-from-strings",
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/stub.mjs",
+        "hold"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "containment": null,
+      "naturallyReaped": false,
+      "pid": 87333
+    },
+    "counterexample": true,
+    "qualification": "Exact child function under a deterministic outgoing-deadline fault; reviewer cleanup follows and is not credited to the subject."
+  },
+  "safeToContinue": true
+}

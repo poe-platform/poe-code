@@ -1,0 +1,71 @@
+{
+  "schema": "node-abi-independent-authorization-status-v1",
+  "safeToLaunch": false,
+  "reason": "HOLD_B1_POSTSPAWN_RETIREMENT",
+  "reviewReceiptSha256": "f974c9a6ba67f9147a14f0cd738485663a0c6fa22b6ae74eed7139123e98ebae",
+  "reviewReceiptPath": "tests/commands/node-provider-experiments-independent-20260828/REVIEW.json",
+  "rootGrantIssued": false,
+  "runIdIssued": null,
+  "tokenIssued": false,
+  "launchIssued": false,
+  "requiredAuthorReviewFieldCount": 7,
+  "requiredAuthorGrantFieldCount": 16,
+  "requiredAuthorGrantFields": [
+    "schema",
+    "authorized",
+    "executionCommit",
+    "manifestSha256",
+    "runId",
+    "reviewPath",
+    "reviewSha256",
+    "authorizedAt",
+    "evaluations",
+    "guestEvaluations",
+    "sourceManifestSha256",
+    "toolManifestSha256",
+    "referenceAbi",
+    "limits",
+    "privateAccess",
+    "retry"
+  ],
+  "frozenConstants": {
+    "executionCommit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+    "manifestSha256": "c163bcd7cc0686dc7d4ab67ba24429fe4900c68c244cdf46799bff5b12b4e213",
+    "evaluations": [
+      "F01",
+      "F02",
+      "F03",
+      "F04",
+      "F05",
+      "F06-object",
+      "F06-null",
+      "F07"
+    ],
+    "guestEvaluations": 8,
+    "sourceManifestSha256": "a670629995f8cb7331a5e24d35ad4bb185dc0fbe5f70de8281598de615cd35b1",
+    "toolManifestSha256": "4efc7ff6181d6f92dd9aa3fe67803c55af027adc734b701582998efb452ae788",
+    "referenceAbi": "safejs-bb23ec27-values-7fab3dbf15a67cfa8a9fe51b1da95ec90dd73269-v1",
+    "limits": {
+      "overallContainmentMs": 480000,
+      "cleanupReserveMs": 30000,
+      "workflowContainmentMs": 30000,
+      "containmentGraceMs": 1000,
+      "scratchFiles": 512,
+      "scratchBytes": 201326592,
+      "stdoutBytesPerChild": 65536,
+      "stderrBytesPerChild": 65536,
+      "loadTraceBytesPerChild": 2097152,
+      "receiptBytesPerChild": 65536,
+      "totalEvidenceBytes": 33554432,
+      "eventsPerChild": 32
+    },
+    "privateAccess": false,
+    "retry": false
+  },
+  "futureRequirements": [
+    "Version/reseal any changed executable bodies, manifest and handoff.",
+    "Different review must actually be READY_FOR_FRESH_ROOT_GO; this HOLD receipt cannot authorize.",
+    "Fresh root authority must bind exact new commit/manifest/review/grant bytes, unused runId, later authorizedAt and unchanged finite schedule.",
+    "No executable token or real launch command is issued by this review."
+  ]
+}

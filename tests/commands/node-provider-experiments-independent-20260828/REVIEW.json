@@ -1,0 +1,16 @@
+{
+  "schema": "node-abi-raman-review-v1",
+  "reviewer": "Raman",
+  "disposition": "HOLD",
+  "executionCommit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+  "manifestSha256": "c163bcd7cc0686dc7d4ab67ba24429fe4900c68c244cdf46799bff5b12b4e213",
+  "completedAt": "2026-08-28T18:06:54Z",
+  "findings": [
+    "B1 BLOCKING: exact child helper can reject its post-spawn remaining() check before installing error/close handlers or containment; actual harmless L02 stayed READY/alive until independent reviewer SIGTERM/reap. Outer finalizer retains rather than retires active child. Versioned repair and review required.",
+    "B2 QUALIFIED COUNTEREXAMPLE: exact standalone receipt acceptor accepts contradictory PASS/clean fields. D02 is not a composed sealed-driver bypass; bind full driver preconditions or add case-specific reconciliation.",
+    "One presealed synthetic invocation:9 expected observations,0 unexpected failures,4 harmless children closed,reviewer unsafe=false. Zero actual SafeJS evaluations/compiler/author driver or loader activations. Not9 passing bridge cases.",
+    "Selected66 public source memberships and all18 feasibility bindings authenticated in memory;63 inherited emission pins match. Four external tools and eight inherited references checked; no materialized engine/private access/full-history/native-library proof.",
+    "F03 already requires no same-guest reaction during held Sync intrinsic and exact final [true,2,after,job]; F07 is the explicit-await order control. Both unrun; no extra evaluation needed.",
+    "NP1-CJS global preallocation and all-Promise quiescence remain unqualified for the frozen engine. A later successful8-evaluation bridge would be narrower than contract/command acceptance."
+  ]
+}

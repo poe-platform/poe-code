@@ -1,0 +1,39 @@
+{
+  "id": "L03",
+  "classifiedAs": "PUBLICATION_FAILURE_AFTER_KNOWN_CLOSE",
+  "observation": {
+    "exactPrimary": true,
+    "primary": {
+      "name": "Error",
+      "code": null,
+      "message": "CAPTURE_WRITE_FAILURE"
+    },
+    "subjectRow": {
+      "number": 1,
+      "role": "workflow",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+        "--disallow-code-generation-from-strings",
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/stub.mjs",
+        "normal"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+      "stdoutBytes": 3,
+      "stderrBytes": 0,
+      "containment": null,
+      "naturallyReaped": true,
+      "pid": 87334,
+      "status": 0,
+      "signal": null,
+      "closeObserved": true,
+      "stdoutSha256": "a12b7cb43c9d9134b5bb1b35e9096b66775d9e92e7611d1cc92b02edd6782a87",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "activeAfterSettlement": false
+  },
+  "safeToContinue": true
+}

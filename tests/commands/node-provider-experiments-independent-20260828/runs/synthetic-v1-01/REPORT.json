@@ -1,0 +1,485 @@
+{
+  "schema": "node-abi-independent-synthetic-results-v1",
+  "recipeSha256": "62e9392bc79a4a9851d2e3da8097e22f898d0098f377e0106e7a80d52c43db61",
+  "runId": "synthetic-v1-01",
+  "controlsPlanned": 9,
+  "controlsObserved": 9,
+  "unexpectedFailures": 0,
+  "counterexamples": [
+    "D02",
+    "L02"
+  ],
+  "unsafe": false,
+  "allKnownChildrenClosed": true,
+  "children": [
+    {
+      "ordinal": 1,
+      "pid": 87332,
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+        "--disallow-code-generation-from-strings",
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/stub.mjs",
+        "normal"
+      ],
+      "closeObserved": true,
+      "stdoutBytes": 3,
+      "stderrBytes": 0,
+      "supervisorSignals": [],
+      "status": 0,
+      "signal": null,
+      "stdoutUtf8": "OK\n",
+      "stderrUtf8": ""
+    },
+    {
+      "ordinal": 2,
+      "pid": 87333,
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+        "--disallow-code-generation-from-strings",
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/stub.mjs",
+        "hold"
+      ],
+      "closeObserved": true,
+      "stdoutBytes": 6,
+      "stderrBytes": 0,
+      "supervisorSignals": [
+        "SIGTERM"
+      ],
+      "status": null,
+      "signal": "SIGTERM",
+      "stdoutUtf8": "READY\n",
+      "stderrUtf8": ""
+    },
+    {
+      "ordinal": 3,
+      "pid": 87334,
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+        "--disallow-code-generation-from-strings",
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/stub.mjs",
+        "normal"
+      ],
+      "closeObserved": true,
+      "stdoutBytes": 3,
+      "stderrBytes": 0,
+      "supervisorSignals": [],
+      "status": 0,
+      "signal": null,
+      "stdoutUtf8": "OK\n",
+      "stderrUtf8": ""
+    },
+    {
+      "ordinal": 4,
+      "pid": 87335,
+      "args": [
+        "--permission",
+        "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+        "--disallow-code-generation-from-strings",
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=64",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/stub.mjs",
+        "output-bound"
+      ],
+      "closeObserved": true,
+      "stdoutBytes": 96,
+      "stderrBytes": 0,
+      "supervisorSignals": [],
+      "status": null,
+      "signal": "SIGTERM",
+      "stdoutUtf8": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "stderrUtf8": ""
+    }
+  ],
+  "engineEvaluations": 0,
+  "compilerLoads": 0,
+  "realAuthorDriverActivations": 0,
+  "authorLoaderActivations": 0,
+  "elapsedMs": 698,
+  "results": [
+    {
+      "id": "D01",
+      "classifiedAs": "CANONICAL_ACCEPT",
+      "observation": {
+        "accepted": true,
+        "receipt": {
+          "schema": "node-abi-child-v1",
+          "identity": "F01",
+          "label": "F01",
+          "sourceSha256": "536677e58f2fb4933bc587767a0b049e7ce648b3c1999a13d8fe2db9df633f84",
+          "classification": "PASS",
+          "clean": true,
+          "unhandled": [],
+          "assertions": [
+            {
+              "name": "synthetic-only",
+              "pass": true
+            }
+          ],
+          "counters": {
+            "engineEntered": 1,
+            "engineSettled": 1
+          },
+          "engineOutcome": {
+            "settled": true,
+            "ok": true
+          },
+          "finalResources": {
+            "hostPending": 0,
+            "accepting": false
+          }
+        },
+        "result": {
+          "status": 0,
+          "terminal": {
+            "label": "F01",
+            "classification": "PASS",
+            "receiptSha256": "366810b7c0a0ce333c3db4e5e00390d558e67569bef0250e6aa10609907bfd39"
+          }
+        }
+      },
+      "safeToContinue": true
+    },
+    {
+      "id": "D02",
+      "classifiedAs": "COUNTEREXAMPLE_INVALID_RECEIPT_ACCEPTED",
+      "observation": {
+        "accepted": true,
+        "receipt": {
+          "schema": "node-abi-child-v1",
+          "identity": "F01",
+          "label": "F01",
+          "sourceSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+          "classification": "PASS",
+          "clean": true,
+          "unhandled": [],
+          "assertions": [],
+          "counters": {
+            "engineEntered": 1,
+            "engineSettled": 1
+          },
+          "engineOutcome": {
+            "settled": false,
+            "ok": false
+          },
+          "finalResources": {
+            "hostPending": 1,
+            "accepting": true
+          }
+        },
+        "result": {
+          "status": 0,
+          "terminal": {
+            "label": "F01",
+            "classification": "PASS",
+            "receiptSha256": "575a2ba77440f8d125e6c866d8d0754ccb80f0a16b4bc5352a5ffd7a8a6ec1f9"
+          }
+        },
+        "counterexample": true,
+        "qualification": "Standalone exact receipt-acceptor counterexample, not proof that the sealed complete driver can emit this receipt."
+      },
+      "safeToContinue": true
+    },
+    {
+      "id": "D03",
+      "classifiedAs": "EXPECTED_REJECT_DIRTY",
+      "observation": {
+        "accepted": false,
+        "reason": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly equal:\n\nfalse !== true\n"
+        },
+        "receipt": {
+          "schema": "node-abi-child-v1",
+          "identity": "F01",
+          "label": "F01",
+          "sourceSha256": "536677e58f2fb4933bc587767a0b049e7ce648b3c1999a13d8fe2db9df633f84",
+          "classification": "PASS",
+          "clean": false,
+          "unhandled": [],
+          "assertions": [
+            {
+              "name": "synthetic-only",
+              "pass": true
+            }
+          ],
+          "counters": {
+            "engineEntered": 1,
+            "engineSettled": 1
+          },
+          "engineOutcome": {
+            "settled": true,
+            "ok": true
+          },
+          "finalResources": {
+            "hostPending": 0,
+            "accepting": false
+          }
+        },
+        "result": {
+          "status": 0,
+          "terminal": {
+            "label": "F01",
+            "classification": "PASS",
+            "receiptSha256": "278c0810534c48d404d90e3e3b9428145198dafe79b7a99a462752a0b5d78af1"
+          }
+        }
+      },
+      "safeToContinue": true
+    },
+    {
+      "id": "D04",
+      "classifiedAs": "EXPECTED_REJECT_NONZERO",
+      "observation": {
+        "accepted": false,
+        "reason": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        "receipt": {
+          "schema": "node-abi-child-v1",
+          "identity": "F01",
+          "label": "F01",
+          "sourceSha256": "536677e58f2fb4933bc587767a0b049e7ce648b3c1999a13d8fe2db9df633f84",
+          "classification": "PASS",
+          "clean": true,
+          "unhandled": [],
+          "assertions": [
+            {
+              "name": "synthetic-only",
+              "pass": true
+            }
+          ],
+          "counters": {
+            "engineEntered": 1,
+            "engineSettled": 1
+          },
+          "engineOutcome": {
+            "settled": true,
+            "ok": true
+          },
+          "finalResources": {
+            "hostPending": 0,
+            "accepting": false
+          }
+        },
+        "result": {
+          "status": 1,
+          "terminal": {
+            "label": "F01",
+            "classification": "PASS",
+            "receiptSha256": "366810b7c0a0ce333c3db4e5e00390d558e67569bef0250e6aa10609907bfd39"
+          }
+        }
+      },
+      "safeToContinue": true
+    },
+    {
+      "id": "D05",
+      "classifiedAs": "EXPECTED_REJECT_HASH",
+      "observation": {
+        "accepted": false,
+        "reason": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '0000000000000000000000000000000000000000000000000000000000000000'\n- '366810b7c0a0ce333c3db4e5e00390d558e67569bef0250e6aa10609907bfd39'\n"
+        },
+        "receipt": {
+          "schema": "node-abi-child-v1",
+          "identity": "F01",
+          "label": "F01",
+          "sourceSha256": "536677e58f2fb4933bc587767a0b049e7ce648b3c1999a13d8fe2db9df633f84",
+          "classification": "PASS",
+          "clean": true,
+          "unhandled": [],
+          "assertions": [
+            {
+              "name": "synthetic-only",
+              "pass": true
+            }
+          ],
+          "counters": {
+            "engineEntered": 1,
+            "engineSettled": 1
+          },
+          "engineOutcome": {
+            "settled": true,
+            "ok": true
+          },
+          "finalResources": {
+            "hostPending": 0,
+            "accepting": false
+          }
+        },
+        "result": {
+          "status": 0,
+          "terminal": {
+            "label": "F01",
+            "classification": "PASS",
+            "receiptSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        }
+      },
+      "safeToContinue": true
+    },
+    {
+      "id": "L01",
+      "classifiedAs": "NATURAL_CHILD_CLOSED",
+      "observation": {
+        "subjectRow": {
+          "number": 1,
+          "role": "workflow",
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+            "--disallow-code-generation-from-strings",
+            "--unhandled-rejections=strict",
+            "--max-old-space-size=64",
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/stub.mjs",
+            "normal"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+          "stdoutBytes": 3,
+          "stderrBytes": 0,
+          "containment": null,
+          "naturallyReaped": true,
+          "pid": 87332,
+          "status": 0,
+          "signal": null,
+          "closeObserved": true,
+          "stdoutSha256": "a12b7cb43c9d9134b5bb1b35e9096b66775d9e92e7611d1cc92b02edd6782a87",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "activeAfterSettlement": false
+      },
+      "safeToContinue": true
+    },
+    {
+      "id": "L02",
+      "classifiedAs": "COUNTEREXAMPLE_POSTSPAWN_DEADLINE_RETAINS_CHILD",
+      "observation": {
+        "rejected": true,
+        "exactPrimary": true,
+        "primary": {
+          "name": "Error",
+          "code": null,
+          "message": "EXECUTION_WINDOW_EXHAUSTED"
+        },
+        "remainingCalls": 2,
+        "actualStubReady": true,
+        "subjectStillOwnsActiveChild": true,
+        "subjectRowBeforeReviewerCleanup": {
+          "number": 1,
+          "role": "workflow",
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+            "--disallow-code-generation-from-strings",
+            "--unhandled-rejections=strict",
+            "--max-old-space-size=64",
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/stub.mjs",
+            "hold"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+          "stdoutBytes": 0,
+          "stderrBytes": 0,
+          "containment": null,
+          "naturallyReaped": false,
+          "pid": 87333
+        },
+        "counterexample": true,
+        "qualification": "Exact child function under a deterministic outgoing-deadline fault; reviewer cleanup follows and is not credited to the subject."
+      },
+      "safeToContinue": true
+    },
+    {
+      "id": "L03",
+      "classifiedAs": "PUBLICATION_FAILURE_AFTER_KNOWN_CLOSE",
+      "observation": {
+        "exactPrimary": true,
+        "primary": {
+          "name": "Error",
+          "code": null,
+          "message": "CAPTURE_WRITE_FAILURE"
+        },
+        "subjectRow": {
+          "number": 1,
+          "role": "workflow",
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+            "--disallow-code-generation-from-strings",
+            "--unhandled-rejections=strict",
+            "--max-old-space-size=64",
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/stub.mjs",
+            "normal"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+          "stdoutBytes": 3,
+          "stderrBytes": 0,
+          "containment": null,
+          "naturallyReaped": true,
+          "pid": 87334,
+          "status": 0,
+          "signal": null,
+          "closeObserved": true,
+          "stdoutSha256": "a12b7cb43c9d9134b5bb1b35e9096b66775d9e92e7611d1cc92b02edd6782a87",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "activeAfterSettlement": false
+      },
+      "safeToContinue": true
+    },
+    {
+      "id": "L04",
+      "classifiedAs": "CAPTURE_LIMIT_CONTAINED_AND_CLOSED",
+      "observation": {
+        "primary": {
+          "name": "AssertionError",
+          "code": "ERR_ASSERTION",
+          "message": "CHILD_CONTAINMENT_OR_SPAWN"
+        },
+        "subjectRow": {
+          "number": 1,
+          "role": "workflow",
+          "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+          "args": [
+            "--permission",
+            "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+            "--disallow-code-generation-from-strings",
+            "--unhandled-rejections=strict",
+            "--max-old-space-size=64",
+            "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/stub.mjs",
+            "output-bound"
+          ],
+          "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828",
+          "stdoutBytes": 96,
+          "stderrBytes": 0,
+          "containment": "STDOUT_BOUND",
+          "naturallyReaped": false,
+          "pid": 87335,
+          "status": null,
+          "signal": "SIGTERM",
+          "closeObserved": true,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "activeAfterSettlement": false
+      },
+      "safeToContinue": true
+    }
+  ]
+}

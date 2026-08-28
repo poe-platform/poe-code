@@ -1,0 +1,174 @@
+{
+  "schema": "node-abi-independent-review-evidence-v1",
+  "completedAt": "2026-08-28T18:06:54Z",
+  "presealCommit": "e64790155875dfb6cdfba6e8702cb2471b055825",
+  "recipeSha256": "62e9392bc79a4a9851d2e3da8097e22f898d0098f377e0106e7a80d52c43db61",
+  "reviewSha256": "f974c9a6ba67f9147a14f0cd738485663a0c6fa22b6ae74eed7139123e98ebae",
+  "actualSyntheticRun": {
+    "runId": "synthetic-v1-01",
+    "toolExitCode": 0,
+    "toolStdoutUtf8": "{\"runId\":\"synthetic-v1-01\",\"controlsObserved\":9,\"unexpectedFailures\":0,\"counterexamples\":[\"D02\",\"L02\"],\"children\":4,\"allKnownChildrenClosed\":true,\"unsafe\":false,\"engineEvaluations\":0}\n",
+    "toolStderrUtf8": "",
+    "reviewerPid": null,
+    "reviewerPidQualification": "Not recorded; direct child PIDs and close/status/signal are in REPORT.json. No reconstructed process census.",
+    "controlsObserved": 9,
+    "unexpectedFailures": 0,
+    "standaloneAcceptorCounterexamples": [
+      "D02"
+    ],
+    "actualChildLifecycleCounterexamples": [
+      "L02"
+    ],
+    "knownChildrenClosed": 4,
+    "naturallyClosedPositiveChildren": 2,
+    "intentionalSigtermNegativeChildren": 2,
+    "reviewerUnsafe": false
+  },
+  "captures": [
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/runs/synthetic-v1-01/D01.json",
+      "bytes": 980,
+      "mode": 420,
+      "sha256": "b8859550d80e91fd7e3a584f8358204a987c7775ea4f3f3e51614527292f1b81"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/runs/synthetic-v1-01/D02.json",
+      "bytes": 1085,
+      "mode": 420,
+      "sha256": "dde34fd1ee0b5f7c934c7d912910930feb3edc7b70186402bd421f77b2dc2602"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/runs/synthetic-v1-01/D03.json",
+      "bytes": 1150,
+      "mode": 420,
+      "sha256": "69850bb1faa5c9f3522fd0ebbeb58d341cba0975ab30d4acf9306f19f2766236"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/runs/synthetic-v1-01/D04.json",
+      "bytes": 1144,
+      "mode": 420,
+      "sha256": "455e6f3d273061118bc5f493e809addb23990465c77467fcd09d65ddb31cadcf"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/runs/synthetic-v1-01/D05.json",
+      "bytes": 1293,
+      "mode": 420,
+      "sha256": "6f8005b34e5b3a754f2a11e41f75b5835fa250f97faff9e5d975de282d19be01"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/runs/synthetic-v1-01/L01.json",
+      "bytes": 1210,
+      "mode": 420,
+      "sha256": "9aebcc53bfd4cb0d576bbb426b3827d7ba7b95777ffb61b779bdb2323ca8ef18"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/runs/synthetic-v1-01/L02.json",
+      "bytes": 1408,
+      "mode": 420,
+      "sha256": "3e1375c70ef852307f26931f92b28410237ed41ce3ba91ce7e0a02eb8d804bc2"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/runs/synthetic-v1-01/L03.json",
+      "bytes": 1361,
+      "mode": 420,
+      "sha256": "8f129d3c48440a151cddad4d033ffdc8facc7b83ca6e228db2d75967a9ff00c8"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/runs/synthetic-v1-01/L04.json",
+      "bytes": 1383,
+      "mode": 420,
+      "sha256": "93c1f6e67d65c96777176de08439d6c1d5bde7ac833a04b31f7bc55e8589812e"
+    },
+    {
+      "path": "tests/commands/node-provider-experiments-independent-20260828/runs/synthetic-v1-01/REPORT.json",
+      "bytes": 15937,
+      "mode": 420,
+      "sha256": "315f5edcf5747d6ad582b74f9689102ffdb1e1b5b2f52eec40b4f4b4cdd524d3"
+    }
+  ],
+  "capturedRecordBytes": 26951,
+  "postChecks": {
+    "all21PacketInputBytesUnchanged": true,
+    "fourExternalToolsMatch": true,
+    "priorIndependentSealAndRootSelectionUnchanged": true,
+    "inheritedReferences": [
+      {
+        "path": "tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/supervisor.mjs.data",
+        "commit": "6d7159e35a1cd92b0ede967d3fe428d54a74d4bd",
+        "sha256": "91591ae00ae696bbae525bf56f2a81c63f10a3154e89a0cbf87630be8954c76c",
+        "matchesPinnedAndLive": true
+      },
+      {
+        "path": "tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/loader.mjs.data",
+        "commit": "6d7159e35a1cd92b0ede967d3fe428d54a74d4bd",
+        "sha256": "24c302b637912972ad878ad7c597176aa569d5b5fed2d3fbe75695d097352d04",
+        "matchesPinnedAndLive": true
+      },
+      {
+        "path": "tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/child.mjs.data",
+        "commit": "6d7159e35a1cd92b0ede967d3fe428d54a74d4bd",
+        "sha256": "a216ab13f69c944a024296745cc7b2021a12e5aef08f208ed0a84820382aa9ac",
+        "matchesPinnedAndLive": true
+      },
+      {
+        "path": "tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/TOOLS.json",
+        "commit": "6d7159e35a1cd92b0ede967d3fe428d54a74d4bd",
+        "sha256": "808f95497540375aed43c83d305482359e216773bae5d02ccf7f68539dff605f",
+        "matchesPinnedAndLive": true
+      },
+      {
+        "path": "tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/ENGINE.json",
+        "commit": "6d7159e35a1cd92b0ede967d3fe428d54a74d4bd",
+        "sha256": "3be5cdcd7869e0b50da41335a34c7aa44a19abcd089ea3c86290529bf08ab687",
+        "matchesPinnedAndLive": true
+      },
+      {
+        "path": "tests/commands/node-design-20260828/source-feasibility-v1/SOURCES.json",
+        "commit": "6abfe0bb98d9987dd4dee32c0882bb48cc15d007",
+        "sha256": "f7e75197fb97ff055612f3ecced0a6f2d441a5b9b0ffd1c438b2ef7841edd2ec",
+        "matchesPinnedAndLive": true
+      },
+      {
+        "path": "tests/commands/node-design-20260828/source-feasibility-v1/EXPERIMENTS.json",
+        "commit": "6abfe0bb98d9987dd4dee32c0882bb48cc15d007",
+        "sha256": "ee60580ec6b1035dcc5c38286b84ccea43d2ff92763449477fefec8194a53be2",
+        "matchesPinnedAndLive": true
+      },
+      {
+        "path": "tests/commands/node-design-20260828/source-feasibility-v1/REPORT.md",
+        "commit": "6abfe0bb98d9987dd4dee32c0882bb48cc15d007",
+        "sha256": "15ae1a5bdee2431f987d52359d5d353b9a1cbab6a8ed5808ea692ab0af8e7837",
+        "matchesPinnedAndLive": true
+      }
+    ],
+    "oldLoaderByteIdentical": true,
+    "inherited63EmissionPinsMatch": true,
+    "freshCompilerEmissionProof": false,
+    "oldSourceAndScoreRescored": false
+  },
+  "readOnlyPreparationErrors": [
+    {
+      "record": "INPUTS.json inspectionPreparationError",
+      "classification": "jq metadata shape query, no runtime execution"
+    },
+    {
+      "error": "jq: error (at <stdin>:1115): Cannot index string with string \"stderrUtf8\"",
+      "commandMeaning": "Attempted to project stderrUtf8 from mapping.expected, which is sometimes an explicit reference string.",
+      "captureQualification": "Error transcribed from tool response, not a reconstructed raw stderr file or product/cohort failure."
+    }
+  ],
+  "unexecuted": [
+    "all8 actual bridge evaluations",
+    "author supervisor activation",
+    "author loader/compiler/reference entry activation",
+    "NP1-CJS command/runtime/type/package qualification",
+    "native oracle",
+    "private access"
+  ],
+  "notes": [
+    "Actual9 observations are not9 product/bridge passes.",
+    "D02 does not establish a composed sealed-driver bypass.",
+    "L02 reviewer reaping is not subject cleanup credit.",
+    "Fixed Node22.22.2 documentation endpoints yielded no content in the web tool; current official child_process docs consulted only as background, not a changed runtime baseline or a basis for these source/actual-stub findings."
+  ]
+}

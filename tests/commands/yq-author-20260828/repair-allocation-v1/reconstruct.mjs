@@ -10,7 +10,7 @@ const acceptedInterpreterBlob = "d3ba11f0057b07d5ad307c5dfbb5f0612a87a047";
 const acceptedInterpreterSha256 = "e32ad45efe69544ed95b43b97f191006f10d3beea9ca9e2a3327843dffd45a74";
 const sourceRevision = "b8f5d60d";
 const originalTestsRevision = "1d802e7af02add9e334ab934668d41d6e5ffbbe2";
-const repairTestsRevision = "b8f5d60d";
+const repairTestsRevision = "e889e523";
 const freeze = "bd471ef682d768692a682d40009a874f51e3ad68";
 const verification = "de89e478d8ddce62eac955708f1b87d7be1bd137";
 const review = "4b219eae";
@@ -191,7 +191,7 @@ console.log(JSON.stringify({ shellPlugin: true, defaultYq: false }));
       builtYqDeclaration: artifact(builtDeclaration),
       builtQueryModule: artifact(queryModule),
     },
-    tests: { repair: { passed: 8, total: 8 }, originalAuthor: { passed: 26, total: 26 }, selectedParentJq: { passed: 19, total: 19 } },
+    tests: { repair: { passed: 9, total: 9 }, originalAuthor: { passed: 26, total: 26 }, selectedParentJq: { passed: 19, total: 19 } },
     package: { runtimeDependencies: 0, installedRuntime: true, installedTypes: true, movedRuntime: true, movedTypes: true, shellPluginRuntime: true, rootYqExport: false, defaultRegistration: false, wrongSourceDenied: true, wrongModuleHashDenied: true },
     reviewHistoryPreserved: { original35daFailed: true, b04Failed: true, independentOverallFailed: true, unfulfilledObligations: 31, cmd22HarnessPathDomainMismatchUnchanged: true },
     runs,

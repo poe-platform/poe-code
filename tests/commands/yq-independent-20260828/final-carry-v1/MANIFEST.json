@@ -1,0 +1,526 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-28",
+  "status": "ACCEPTED_PRECODE_AUTHOR_FACING_FINAL_OVERLAY_NOT_IMPLEMENTED",
+  "implementedThrough": "Not applicable",
+  "rootDecisionVerbatim": "ROOT FINAL DECISION (authoritative, sealexactly): CARRY explicitly: checkpoint-before-next-owned-unit, proposedKformula unchanged; pendingc persistsacrossphases/docs, NOterminalflush/reset includingemptyclose. Ifnoownedunitfollows,nofinaltickowed. c1022/U1/remaining1admitscopy,pending1023; nextownedunitmustprepay/checkpointbeforeitswork. Versionednormativechoice NOTsilentrewrite. Mandatorysignal+alreadydeclaredclosed-admission checks AFTER EVERYAWAIT and BEFOREcopy/allocation, plus FINALguard BEFOREpublishingcopy/result; evenU1nocheckpoint. GuardsUNCHARGEDsignal/statechecks, no newdiagnostic/erroridentity: preserve declaredcaller-first/closed-session/cleanupselection; drainadmittedownedwork, no newpublicationafterclosed/cancelledguard. RootacceptsNencoder5fa2d5b9 scoped32/32expectedtuples36controlsNOT runtime. No furtherauthorpolicyroundtripunlessactualcontradiction. FINALIZE additive194-recordfreeze+QBtracesunderCARRY/guards;originalsunchanged;explicitAUTHOR-FACINGFINALCONTRACT/MANIFESTsoHeisenbergcanimplement. No productionexecutionyet.",
+  "rootDecisionSha256": "138bc2fd25e3e9b83ccc63fdfd41f4f977e167e5a8e4cefb8281cf7a6e28b1a0",
+  "rootDecisionProvenance": "Current explicit user/root assignment; not falsely attributed to an earlier Git source.",
+  "normativeDocument": "CONTRACT.md",
+  "sourceManifest": "SOURCES.json",
+  "resourceTraces": "RESOURCE-TRACES.json",
+  "precedence": [
+    "initial-readme",
+    "final",
+    "adoption",
+    "n-decisions",
+    "qb-policy",
+    "this latest root CARRY/guard decision"
+  ],
+  "authorityDiff": {
+    "newRootDeltas": [
+      "QBM-01:CARRY_WITHOUT_TERMINAL_FLUSH",
+      "QBM-02:UNCHARGED_AFTER_AWAIT_PREALLOCATION_FINAL_PUBLICATION_GUARDS",
+      "ROOT_ACCEPTS_N_REVIEW_SCOPED_STATIC_32_TUPLES_36_CONTROLS"
+    ],
+    "retainedFormula": "W=1023; K(c,0)=0; cPrime(c,0)=c; K(c,U)=floor((c+U-1)/W) for U>0; cPrime=c+U-K*W; total=U+K",
+    "changedEarlierRule": "Before-next CARRY supersedes any prior reading requiring a terminal or empty-close checkpoint; the final contract old synchronous yq-owned boundary roles are superseded only by the accepted new private async mechanism.",
+    "notChanged": [
+      "21 private caps",
+      "9 Budget fields",
+      "54 diagnostic catalogue and outcome selection",
+      "public factory/plugin API",
+      "exact help/version",
+      "retention qualifications",
+      "FS effects and sibling output ownership",
+      "compiler/interpreter qualified synchronous internals",
+      "N1-N4 and exact NUL decisions",
+      "accepted length base"
+    ],
+    "prohibited": [
+      "history edits or rescoring",
+      "new shared Budget/API/limits refactor",
+      "product implementation or execution",
+      "new dependencies or private access",
+      "new error identity or normal diagnostic",
+      "refunds, interleaved reservation consumption or new Budget per alias/document"
+    ]
+  },
+  "inheritedBindings": [
+    {
+      "source": "final",
+      "pointer": "/fixedPrivateCaps",
+      "sha256": "d0280995e7de0150f35538f34054edb3f38506c2c08a323c40b6905b6930d1e9",
+      "qualification": "Apply with root adoption and accepted N deltas where expressly relevant."
+    },
+    {
+      "source": "final",
+      "pointer": "/defaultBudgetMapping",
+      "sha256": "2841d1ef618540638983f77cf4b26b337cb0449276978b1427043043309eb338",
+      "qualification": "Apply with root adoption and accepted N deltas where expressly relevant."
+    },
+    {
+      "source": "final",
+      "pointer": "/diagnostics",
+      "sha256": "a8f4ad4c2336d873d4d9f70f040fca9b838e87bb0dfb9185b27d3577c5af10fa",
+      "qualification": "Apply with root adoption and accepted N deltas where expressly relevant."
+    },
+    {
+      "source": "final",
+      "pointer": "/exactInformation",
+      "sha256": "af1dea5de15e5457ef5208abf0d6547b11c25022482b31aa301cfdff33073c16",
+      "qualification": "Apply with root adoption and accepted N deltas where expressly relevant."
+    },
+    {
+      "source": "final",
+      "pointer": "/publicApi",
+      "sha256": "5bde9971f8a27d91dc67e694a2fa7b6db551012b9a77b460f24fd1b8261ac261",
+      "qualification": "Apply with root adoption and accepted N deltas where expressly relevant."
+    },
+    {
+      "source": "final",
+      "pointer": "/cliAmendments",
+      "sha256": "86a463de70c4e0c13964789914ed675a6747c2d4eccf0e92900756baac358eeb",
+      "qualification": "Apply with root adoption and accepted N deltas where expressly relevant."
+    },
+    {
+      "source": "final",
+      "pointer": "/languageAmendments",
+      "sha256": "e6d7e2f4a0d951426b60686b92e9e4346acc2808f4e350f76349acd7dc6a61bb",
+      "qualification": "Apply with root adoption and accepted N deltas where expressly relevant."
+    },
+    {
+      "source": "final",
+      "pointer": "/numericAmendments",
+      "sha256": "c608c6f063cef97b2e45050d74519bdc155c4fa8890b279aabbf87fc689330d8",
+      "qualification": "Apply with root adoption and accepted N deltas where expressly relevant."
+    },
+    {
+      "source": "final",
+      "pointer": "/outputAccounting",
+      "sha256": "4f360e9244f90c9ef0dd5b4d6951a9173131b79b62997ca2a2b41b3c98c90c8b",
+      "qualification": "Apply with root adoption and accepted N deltas where expressly relevant."
+    },
+    {
+      "source": "final",
+      "pointer": "/counterAdmission",
+      "sha256": "76e672615fe3e256b8b8ee93f700080f88f651e9aa5d8b2fdc7108088a674845",
+      "qualification": "Retained except explicit accepted QB/CARRY/guard role, timing and admission deltas."
+    },
+    {
+      "source": "final",
+      "pointer": "/workUnits",
+      "sha256": "197e1bbe0fbf14fefa85da52186e40ac9db1e57129b4ab48855a5059370b0209",
+      "qualification": "Retained except explicit accepted QB/CARRY/guard role, timing and admission deltas."
+    },
+    {
+      "source": "final",
+      "pointer": "/retention",
+      "sha256": "fa8a370b863063e604f16c670899561f09850843ceffc98503bd7907aae37a5c",
+      "qualification": "Apply with root adoption and accepted N deltas where expressly relevant."
+    },
+    {
+      "source": "final",
+      "pointer": "/failureAndCleanupBoundary",
+      "sha256": "7a42c85d358d876c11dc4f070074ed38f1f19a87ac14d23bfe19125ac2fc41fa",
+      "qualification": "Apply with root adoption and accepted N deltas where expressly relevant."
+    },
+    {
+      "source": "final",
+      "pointer": "/privateAdapter",
+      "sha256": "e95bc3a59dcf2aa9e777591f1aa8590f1c67515e139052c5c527db59a06b4f35",
+      "qualification": "Retained except explicit accepted QB/CARRY/guard role, timing and admission deltas."
+    }
+  ],
+  "invariantCounts": {
+    "privateCaps": 21,
+    "budgetFields": 9,
+    "diagnosticEntries": 54,
+    "helpBytes": 501,
+    "versionBytes": 37,
+    "originalCases": 194,
+    "sourceSubtrees": 8,
+    "historicalFiles": 50
+  },
+  "coverage": {
+    "recordCount": 194,
+    "groups": [
+      {
+        "source": "freeze-command-parser",
+        "records": 60,
+        "caseIds": "CMD-01 CMD-02 CMD-03 CMD-04 CMD-05 CMD-06 CMD-07 CMD-08 CMD-09 CMD-10 CMD-11 CMD-12 CMD-13 CMD-14 CMD-15 CMD-16 CMD-17 CMD-18 CMD-19 CMD-20 CMD-21 CMD-22 CMD-23 CMD-24 PAR-01 PAR-02 PAR-03 PAR-04 PAR-05 PAR-06 PAR-07 PAR-08 PAR-09 PAR-10 PAR-11 PAR-12 PAR-13 PAR-14 PAR-15 PAR-16 PAR-17 PAR-18 PAR-19 PAR-20 PAR-21 PAR-22 PAR-23 PAR-24 PAR-25 PAR-26 PAR-27 PAR-28 PAR-29 PAR-30 PAR-31 PAR-32 PAR-33 PAR-34 PAR-35 PAR-36",
+        "originalInputsSha256": "790e6ea76b287614efd5603ffb16d0af6123d884160203c198fa8062a7cb762f",
+        "lookup": "Exact ID in /cases; use its original input and defaults, unless an explicit current field overlay names otherwise."
+      },
+      {
+        "source": "freeze-value-query",
+        "records": 53,
+        "caseIds": "NUM-01 NUM-02 NUM-03 NUM-04 NUM-05 NUM-06 NUM-07 NUM-08 NUM-09 NUM-10 NUM-11 NUM-12 NUM-13 NUM-14 NUM-15 NUM-16 ENC-01 ENC-02 ENC-03 ENC-04 ENC-05 ENC-06 ENC-07 ENC-08 ENC-09 ENC-10 QUE-01 QUE-02 QUE-03 QUE-04 QUE-05 QUE-06 QUE-07 QUE-08 QUE-09 QUE-10 QUE-11 QUE-12 ALS-01 ALS-02 ALS-03 ALS-04 ALS-05 ALS-06 ALS-07 ALS-08 ALS-09 ALS-10 ALS-11 ALS-12 ALS-13 ALS-14 ALS-15",
+        "originalInputsSha256": "aec4277dc622670a20b2833a6b9dce9791f2e4fe39941a1c35e4c32118818de1",
+        "lookup": "Exact ID in /cases; use its original input and defaults, unless an explicit current field overlay names otherwise."
+      },
+      {
+        "source": "freeze-utf8",
+        "records": 22,
+        "caseIds": "UTF-01 UTF-02 UTF-03 UTF-04 UTF-05 UTF-06 UTF-07 UTF-08 UTF-09 UTF-10 UTF-11 UTF-12 UTF-13 UTF-14 UTF-15 UTF-16 UTF-17 UTF-18 UTF-19 UTF-20 UTF-21 UTF-22",
+        "originalInputsSha256": "b795862bb45b44e9c5e1a00054a1b9be1d477d4f13602b1c18489dfc10cc6e3e",
+        "lookup": "Exact ID in /cases; use its original input and defaults, unless an explicit current field overlay names otherwise."
+      },
+      {
+        "source": "freeze-accounting",
+        "records": 26,
+        "caseIds": "WRK-01 WRK-02 WRK-03 WRK-04 WRK-05 WRK-06 WRK-07 WRK-08 WRK-09 WRK-10 WRK-11 WRK-12 WRK-13 WRK-14 WRK-15 WRK-16 WRK-17 WRK-18 WRK-19 WRK-20 WRK-21 WRK-22 WRK-23 WRK-24 WRK-25 WRK-26",
+        "originalInputsSha256": "b17083c5c0fdd66624271f66b78a5fa1540cc58863697b2cbc31cd4b28373bc1",
+        "lookup": "Exact ID in /cases; use its original input and defaults, unless an explicit current field overlay names otherwise."
+      },
+      {
+        "source": "freeze-integration",
+        "records": 33,
+        "caseIds": "LIF-01 LIF-02 LIF-03 LIF-04 LIF-05 LIF-06 LIF-07 LIF-08 LIF-09 LIF-10 FS-01 FS-02 FS-03 FS-04 FS-05 FS-06 MOV-01 MOV-02 MOV-03 TYP-01 TYP-02 TYP-03 TYP-04 TYP-05 TYP-06 TYP-07 TYP-08 NEG-01 NEG-02 NEG-03 NEG-04 NEG-05 NEG-06",
+        "originalInputsSha256": "09f0aba8cc5ad1680cf9abcded5c88efae65f721b88345df088498ff77b62a2c",
+        "lookup": "Exact ID in /cases; use its original input and defaults, unless an explicit current field overlay names otherwise."
+      }
+    ],
+    "defaultCurrentStatus": "FROZEN_FUTURE_ASSERTION_UNEXECUTED",
+    "defaultRule": "Preserve every original case input/expectation except the listed current fields; apply this final contract globally. References are to authenticated data, never expected values computed by a product.",
+    "policyHeldIds": [],
+    "globalObligations": [
+      "CARRY state across all owned phases/documents",
+      "new genuinely async yq-owned measurement/encoding",
+      "one shared Budget and exact U+K once-only preadmission",
+      "uncharged guards after every await/before copy-allocation/final publication",
+      "unchanged caller/raw/control/cleanup precedence and admitted drain"
+    ]
+  },
+  "overlays": [
+    {
+      "id": "NUM-14",
+      "fields": [
+        "/blocked",
+        "/expect"
+      ],
+      "state": "RESOLVED",
+      "currentExpectation": {
+        "source": "n-cases",
+        "caseId": "N2-05",
+        "pointer": "/expect"
+      },
+      "inputEquality": {
+        "original": "/input/stdinUtf8",
+        "adopted": "/input/utf8"
+      },
+      "decision": "Adopted preconversion zero-range refusal; no zero waiver."
+    },
+    {
+      "id": "NUM-15",
+      "fields": [
+        "/blocked",
+        "/expect"
+      ],
+      "state": "RESOLVED",
+      "currentExpectation": {
+        "source": "n-cases",
+        "caseId": "N2-01",
+        "pointer": "/expect"
+      },
+      "inputEquality": {
+        "original": "/input/stdinUtf8",
+        "adopted": "/input/utf8"
+      },
+      "decision": "N2 nonzero trailing-zero normalization before normalized exponent admission."
+    },
+    {
+      "id": "UTF-12",
+      "fields": [
+        "/blocked",
+        "/expect"
+      ],
+      "state": "RESOLVED",
+      "currentExpectation": {
+        "source": "n-cases",
+        "caseId": "N3-02",
+        "pointer": "/expect"
+      },
+      "inputEquality": {
+        "original": "/input/stdinUtf8",
+        "adopted": "/input/utf8"
+      },
+      "decision": "N3 adjacent 16-bit high/low escapes combine before scalar validity."
+    },
+    {
+      "id": "ENC-07",
+      "fields": [
+        "/blocked",
+        "/expect"
+      ],
+      "state": "RESOLVED",
+      "currentExpectation": {
+        "source": "n-cases",
+        "caseId": "E-01",
+        "pointer": "/expect"
+      },
+      "inputEquality": {
+        "original": "/input/stdinUtf8",
+        "adopted": "/input/utf8"
+      },
+      "decision": "NUL exact \\u0000 spelling; original YAML argv retained."
+    },
+    {
+      "id": "QUE-12",
+      "fields": [
+        "/blocked",
+        "/note"
+      ],
+      "state": "RESOLVED",
+      "currentExpectation": "Original /expect unchanged; accepted length prerequisite is satisfied.",
+      "decision": "length-relay at 3387a103798bb441764218d38696639d501d19d2; no independent pack replay."
+    },
+    {
+      "id": "WRK-10",
+      "fields": [
+        "/blocked",
+        "/input/scenario",
+        "/expect/assertions/0"
+      ],
+      "state": "RESOLVED",
+      "currentExpectation": {
+        "source": "reconciliation",
+        "pointer": "/resolved/1/currentBoundary"
+      },
+      "decision": "63/64 postfix optional operators give AST depth 64/65, as statically bound; no parser execution."
+    },
+    {
+      "id": "WRK-22",
+      "fields": [
+        "/input/scenario",
+        "/expect/assertions/0"
+      ],
+      "state": "SUPERSEDED_BY_EXPLICIT_ACCEPTED_TIMING_AND_MECHANISM",
+      "currentExpectation": "Before the NEXT owned unit at pending 1023, charge/checkpoint; carry pending across phases/docs and finish, with no terminal/empty-close tick or reset. All required signal/state guards apply even U=1 with no checkpoint. Use genuinely async new boundary helpers, not async-wrapped old synchronous helpers.",
+      "decision": "QB-F1 plus QBM-01 CARRY and QBM-02 guards close the former helper-scope hold."
+    },
+    {
+      "id": "WRK-26",
+      "fields": [
+        "/input/scenario",
+        "/expect/assertions/0"
+      ],
+      "state": "PRIVATE_ROLE_VOCABULARY_SUPERSEDED",
+      "currentExpectation": "Apply original invalid-count controls to the accepted private charge/reserve/admission roles: charge uses positive safe units, reserve accepts checked nonnegative units including its U=0 accounting branch; no raw Budget/reset/decrement/limit replacement or public DI. Former direct owned step/tick roles are not required exports.",
+      "decision": "Exact accepted private role signatures in qb-policy; no new public API."
+    }
+  ],
+  "resolvedDecisions": [
+    {
+      "id": "N1",
+      "binding": "n-decisions#/crosswalk/0",
+      "expectations": [
+        "n-cases:N1-01",
+        "n-cases:N1-02",
+        "n-cases:N1-03",
+        "n-cases:N1-04"
+      ],
+      "originalControls": [
+        "WRK-25"
+      ],
+      "state": "ACCEPTED_PRODUCTION_SPECIFIC_SCOPE"
+    },
+    {
+      "id": "N2",
+      "binding": "n-decisions#/crosswalk/1",
+      "originalIds": [
+        "NUM-15",
+        "NUM-14"
+      ],
+      "state": "ACCEPTED_NORMALIZATION_WITH_RAW_ZERO_GATES"
+    },
+    {
+      "id": "N3",
+      "binding": "n-decisions#/crosswalk/2",
+      "originalIds": [
+        "UTF-12"
+      ],
+      "state": "ACCEPTED_LITERAL_ADJACENT_ESCAPE_PAIR_RULE"
+    },
+    {
+      "id": "N4",
+      "binding": "n-decisions#/crosswalk/3",
+      "expectations": [
+        "n-cases:N4-01",
+        "n-cases:N4-02",
+        "n-cases:N4-03",
+        "n-cases:N4-04"
+      ],
+      "state": "ACCEPTED_DIRECT_TAG_FAMILY"
+    },
+    {
+      "id": "B-ENCODER-ESCAPE-SPELLING",
+      "binding": "n-decisions#/crosswalk/4",
+      "originalIds": [
+        "ENC-07"
+      ],
+      "state": "ACCEPTED_EXACT_NUL_BYTES"
+    },
+    {
+      "id": "QB-F1",
+      "binding": "qb-policy#QB-F1",
+      "originalIds": [
+        "WRK-08",
+        "WRK-17",
+        "WRK-21",
+        "WRK-22",
+        "TYP-08"
+      ],
+      "state": "ACCEPTED_NEW_ASYNC_PRIVATE_TRAVERSALS"
+    },
+    {
+      "id": "QB-F2",
+      "binding": "qb-policy#QB-F2",
+      "originalIds": [
+        "ALS-13",
+        "WRK-11",
+        "WRK-16",
+        "WRK-22",
+        "WRK-26"
+      ],
+      "state": "ACCEPTED_ESTIMATE_THEN_SINGLE_U_PLUS_K_RESERVATION"
+    },
+    {
+      "id": "QBM-01",
+      "binding": "rootDecisionVerbatim",
+      "review": "qb-review-cases:S10,S13,A02,A06,T12",
+      "state": "ACCEPTED_CARRY"
+    },
+    {
+      "id": "QBM-02",
+      "binding": "rootDecisionVerbatim",
+      "review": "qb-review-cases:T03,T04,T05,T06,T07,T08,T09,T11",
+      "state": "ACCEPTED_UNCHARGED_GUARDS"
+    }
+  ],
+  "observations": [
+    {
+      "id": "N5",
+      "state": "REACHABILITY_OBSERVATION_NOT_POLICY_HOLD",
+      "catalogueUnchanged": true,
+      "detail": "No demonstrated normal-input ALIAS_CYCLE witness; do not remove, reserve or activate it. ALIAS_DUPLICATE_ANCHOR alone remains explicitly reserved/unreachable."
+    }
+  ],
+  "evidenceScope": {
+    "originalFreeze": 194,
+    "normative": 80,
+    "queryBudget": 62,
+    "adoptedN": 32,
+    "nReviewStaticTuples": 32,
+    "nReviewStaticControls": 36,
+    "independentQbOriginalRows": 64,
+    "authorArithmeticHistoricalRows": 23,
+    "newYamlInputs": 0,
+    "uniqueProductCaseUnion": null,
+    "policyHoldsRemaining": 0,
+    "historicalRecordsEdited": false,
+    "historicalResultsRescored": false,
+    "productExecutions": 0,
+    "nativeOrParserExecutions": 0,
+    "lengthPackReplays": 0
+  },
+  "futureModule": {
+    "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+    "lengthPrerequisiteRemains": false,
+    "full846Accepted": true,
+    "full846PackageSha256": "ff230f2e9079cc843198533e412f836abb62e4ade63f4fa210b7269f7deb4eff",
+    "newScope": "NEW yq/private-query-adapter files only; root export integration remains separately owned.",
+    "implemented": false,
+    "globalGoGranted": false,
+    "differentQbSealReviewNext": true
+  },
+  "allowedCommitPaths": [
+    "tests/commands/yq-independent-20260828/README.md",
+    "tests/commands/yq-independent-20260828/final-carry-v1/CONTRACT.md",
+    "tests/commands/yq-independent-20260828/final-carry-v1/MANIFEST.json",
+    "tests/commands/yq-independent-20260828/final-carry-v1/RESOURCE-TRACES.json",
+    "tests/commands/yq-independent-20260828/final-carry-v1/SOURCES.json",
+    "tests/commands/yq-independent-20260828/final-carry-v1/check.mjs"
+  ],
+  "artifactHashes": [
+    {
+      "path": "CONTRACT.md",
+      "sha256": "1e31a9883fdaf3e8fbb890c736a4082246b58d6dafd7479ebbec194dd8531401"
+    },
+    {
+      "path": "RESOURCE-TRACES.json",
+      "sha256": "c316344722cb4b4720978b1406f4d7e614bb362f1aa441d3966e14832b6cfacd"
+    },
+    {
+      "path": "SOURCES.json",
+      "sha256": "11eba6977e60c33340374ecb51b002f330d2ca97a3c59384991eeff24134b5c6"
+    },
+    {
+      "path": "check.mjs",
+      "sha256": "4b9d6f3817cb91f0199b2fd85a664e04e82756b769987afc50f1fca2ffe33e3c"
+    }
+  ],
+  "actualContradictions": [],
+  "preparationNotes": [
+    "First local checker attempt included ancestor directories emitted by git ls-tree -t in a bounded subtree comparison; the checker now selects exactly descendants of each authenticated scope. Historical files were not changed; this was a preparation-checker defect, not a product finding."
+  ],
+  "overlaySchemaRule": "Expected references retain their source packet schema (for example stdout.utf8/hex versus original stdoutUtf8); they are declarative field bindings, not a blind JSON merge that retains obsolete blockers.",
+  "staticValidationReceipt": {
+    "date": "2026-08-28",
+    "classification": "STATIC_ONLY_NOT_PRODUCT_ACCEPTANCE",
+    "historicalCheckers": [
+      {
+        "path": "tests/commands/yq-independent-20260828/freeze/verify-preparation.mjs",
+        "checkerSha256": "430b92c6270b73ab18e3e313255fee5c473914299bca203655a75a39b8af8de1",
+        "exitStatus": 0,
+        "stdoutSha256": "b73c5b0467c55ddf29fd438f4c89983c3bbbaeebcc3b6975c741a31b95a16733"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/normative/check-static.mjs",
+        "checkerSha256": "cd866d7b8aa228f672a55c72152d15899f05283029e8c3b96d23ba296610b6b2",
+        "exitStatus": 0,
+        "stdoutSha256": "614652c891ad499b1c4729b3f6a28da87dca47f50cac1c374fa18c6e19f4bce8"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/query-budget/check.mjs",
+        "checkerSha256": "889b2229b4622a0f8bff3b0b4b51947db4b629c51609cd5cad868ebf25050550",
+        "exitStatus": 0,
+        "stdoutSha256": "73d989425d83c376ea566bc6a7473d4574fe1c24074e42d6e3d89f2e6d87d463"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/reconciliation-v1/check.mjs",
+        "checkerSha256": "86e447aaed4f996d2acafa654e452ce9c5af820fbae54b6793ebfa85f25424cf",
+        "exitStatus": 0,
+        "stdoutSha256": "9ae8c753dca3754e22463c636630ff4eb995e362a58ee368f95a15143c11d8df"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-v1/check.mjs",
+        "checkerSha256": "3575b88f575eba515f05e6d8510ffca0da76e45d760a76604deb4e41ea577915",
+        "exitStatus": 0,
+        "stdoutSha256": "3f2aa01f88a54771a44fd15c99bc2a2a60ce2ba05948483cd54630f778f398d6"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/adopted-n-encoder-review-v1/results-v1/check.mjs",
+        "checkerSha256": "466460156169bc26b3da06419e2931df532923ef4567527f54a8c1ca598a2935",
+        "exitStatus": 0,
+        "stdoutSha256": "51c8b2f5cd784dd2016b3a75efdb516e363aabbb939d2f44e4ffb87be0c5d189"
+      },
+      {
+        "path": "tests/commands/yq-independent-20260828/qb-mechanism-review-v1/check.mjs",
+        "checkerSha256": "c10cd76e86b5c328f541e6b62563969efcce38f6986687fbdc38012c3f34477e",
+        "exitStatus": 0,
+        "stdoutSha256": "a02116740abce3a079bd4b2d185fccbcd9950a74645f63b90f896d365f0d93d6"
+      }
+    ],
+    "finalStaticChecker": "PASS",
+    "writeSpec": {
+      "exitStatus": 0,
+      "warnings": 0
+    },
+    "author23RunnerExecuted": false,
+    "historicalResultsRescored": false,
+    "productExecutions": 0,
+    "scope": "Hashes of this static revalidation output; no raw output archive or whole live HEAD qualification is claimed. First five checkers were run by the unchanged independent N checker."
+  }
+}

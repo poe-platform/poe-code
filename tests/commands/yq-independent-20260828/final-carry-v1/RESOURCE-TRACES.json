@@ -1,0 +1,61 @@
+{
+  "schemaVersion":1,
+  "classification":"CURRENT_CARRY_DATA_ONLY_LOGICAL_PROJECTIONS_NOT_PRODUCT_OR_ASYNC_SIMULATION",
+  "source":"qb-review-cases",
+  "originalRows":64,
+  "originalRowsEditedOrRescored":false,
+  "currentProjection":{
+    "scheduleRows":{"count":16,"select":["checkpoints","finalPending","cost"],"excludeFromCurrentPolicy":["terminalCloseCost"]},
+    "sequenceRows":{"count":5,"rule":"Use post-estimation pending, charge estimate separately, carry after each phase."},
+    "admissionRows":{"count":8,"select":"beforeNextAdmits","excludeFromCurrentPolicy":["terminalCloseAdmits"]},
+    "refusalRows":{"count":9,"rule":"Check types/bounds and additions before evaluation; no unsafe addition, new diagnostic or huge allocation."},
+    "payloadRows":{"count":4,"rule":"Bucket execution fragments within one copy operation; never merge distinct operations."},
+    "mutationRows":{"count":10,"rule":"Preserve original expected/mutant distinctions as data; current root selects the carried before-next branch."},
+    "traceRows":{"count":12,"rule":"T01-T12 remain immutable; latest guard obligations resolve T06/T07, CARRY selects T12 without its historical alternative."}
+  },
+  "handoffs":[
+    {"id":"C01","lineage":["S10","A02","S14","T12"],"pending":1022,"units":1,"remaining":1,"expect":{"checkpoints":0,"cost":1,"admitted":true,"finalPending":1023,"remaining":0,"finishCost":0,"nextReservationUnits":1,"nextReservationCost":2,"nextReservationAdmitted":false,"nextCopyAllocated":false}},
+    {"id":"C02","lineage":["S13","A06","T12"],"pending":1023,"units":0,"remaining":0,"expect":{"checkpoints":0,"cost":0,"admitted":true,"finalPending":1023,"remaining":0,"finishCost":0,"phaseCloseCost":0,"emptyCloseCost":0,"terminalTickOwed":false}},
+    {"id":"C03","lineage":["S10","S14","T12"],"pending":1022,"units":1,"remaining":3,"eventsAfterFinish":["unrelated await","document boundary","unrelated engine tick has no authority to reset owned pending"],"expect":{"cost":1,"finalPending":1023,"finishCost":0,"nextNormalUnit":{"realCheckpointCost":1,"ordinaryCost":1,"finalPending":1},"budgetQualification":"Any actual engine work retains its own separate charges; event labels assert only owned-state non-reset, not free engine work."}},
+    {"id":"C04","lineage":["Q01","T12"],"pending":0,"estimateUnits":1023,"copyUnits":1,"expect":{"estimateCost":1023,"postEstimatePending":1023,"copyCheckpoints":1,"copyCost":2,"combinedCost":1025,"finalPending":1,"finishCost":0,"reservationStepCalls":1,"copyRealStepCalls":0,"copyRealTickCalls":0}}
+  ],
+  "guardModel":{
+    "scope":"Symbolic state/identity selection and admission arithmetic only; no AbortController, timers, Budget, YAML parser, command or async operation executes.",
+    "reasonTokens":["false","null","undefined","object"],
+    "closedToken":"already-declared-closed-control identity, not a new error class/code",
+    "guardCharges":0,
+    "afterAwaitRequired":true,
+    "beforeAllocationRequired":true,
+    "beforePublicationRequired":true,
+    "selection":"Borrowed/root caller abort first; otherwise preserve selected execution/yield failure; otherwise already-declared closed-session control; otherwise cleanup failure; never manufacture a normal diagnostic. Continue admitted cleanup before settlement.",
+    "finalPendingFailureQualification":"Failure is terminal for reservation/session; pendingReset=false means no reset is justified by a failed checkpoint/guard, not permission to reuse expired credit."
+  },
+  "guardRows":[
+    {"id":"G01","lineage":"T06","stage":"after-unit-await","pending":0,"units":1,"aborted":true,"reason":"false","closed":false,"allocationIntent":true,"publishIntent":true,"drained":true,"expect":{"outcome":"caller","charged":1,"allocatedBeforeGuard":0,"mayAllocate":false,"mayPublish":false,"pendingReset":false,"settled":true,"refund":0}},
+    {"id":"G02","lineage":"T06","stage":"after-unit-await","pending":0,"units":1,"aborted":true,"reason":"null","closed":false,"allocationIntent":true,"publishIntent":true,"drained":true,"expect":{"outcome":"caller","charged":1,"allocatedBeforeGuard":0,"mayAllocate":false,"mayPublish":false,"pendingReset":false,"settled":true,"refund":0}},
+    {"id":"G03","lineage":"T06","stage":"after-unit-await","pending":0,"units":1,"aborted":true,"reason":"undefined","closed":false,"allocationIntent":true,"publishIntent":true,"drained":true,"expect":{"outcome":"caller","charged":1,"allocatedBeforeGuard":0,"mayAllocate":false,"mayPublish":false,"pendingReset":false,"settled":true,"refund":0}},
+    {"id":"G04","lineage":"T06","stage":"after-unit-await","pending":0,"units":1,"aborted":true,"reason":"object","closed":true,"allocationIntent":true,"publishIntent":true,"drained":true,"expect":{"outcome":"caller","charged":1,"allocatedBeforeGuard":0,"mayAllocate":false,"mayPublish":false,"pendingReset":false,"settled":true,"refund":0}},
+    {"id":"G05","lineage":"T06","stage":"after-unit-await","pending":0,"units":1,"aborted":false,"closed":true,"allocationIntent":true,"publishIntent":true,"drained":true,"expect":{"outcome":"closed","charged":1,"allocatedBeforeGuard":0,"mayAllocate":false,"mayPublish":false,"pendingReset":false,"settled":true,"refund":0}},
+    {"id":"G06","lineage":"T07","stage":"final-publication","pending":1022,"units":1,"aborted":true,"reason":"object","closed":false,"allocationIntent":false,"publishIntent":true,"drained":true,"expect":{"outcome":"caller","charged":1,"allocatedBeforeGuard":1,"mayAllocate":false,"mayPublish":false,"pendingReset":false,"settled":true,"refund":0}},
+    {"id":"G07","lineage":"T07","stage":"final-publication","pending":1022,"units":1,"aborted":false,"closed":true,"allocationIntent":false,"publishIntent":true,"drained":true,"expect":{"outcome":"closed","charged":1,"allocatedBeforeGuard":1,"mayAllocate":false,"mayPublish":false,"pendingReset":false,"settled":true,"refund":0}},
+    {"id":"G08","lineage":"T07","stage":"final-publication","pending":1022,"units":1,"aborted":false,"closed":false,"allocationIntent":false,"publishIntent":true,"drained":true,"expect":{"outcome":"continue","charged":1,"allocatedBeforeGuard":1,"mayAllocate":false,"mayPublish":true,"pendingReset":false,"settled":true,"refund":0}},
+    {"id":"G09","lineage":"T12","stage":"empty-close","pending":1023,"units":0,"aborted":false,"closed":false,"allocationIntent":false,"publishIntent":false,"drained":true,"expect":{"outcome":"continue","charged":0,"allocatedBeforeGuard":0,"mayAllocate":false,"mayPublish":false,"pendingReset":false,"settled":true,"refund":0}},
+    {"id":"G10","lineage":"T12","stage":"empty-close","pending":1023,"units":0,"aborted":true,"reason":"false","closed":true,"allocationIntent":false,"publishIntent":false,"drained":true,"expect":{"outcome":"caller","charged":0,"allocatedBeforeGuard":0,"mayAllocate":false,"mayPublish":false,"pendingReset":false,"settled":true,"refund":0}},
+    {"id":"G11","lineage":"T04","stage":"prepaid-await-rejected","pending":1023,"units":1,"aborted":false,"reason":"object","closed":false,"yieldFailure":"same-object-as-reason","allocationIntent":true,"publishIntent":true,"drained":true,"expect":{"outcome":"yield","charged":2,"allocatedBeforeGuard":0,"mayAllocate":false,"mayPublish":false,"pendingReset":false,"settled":true,"refund":0}},
+    {"id":"G12","lineage":"T03","stage":"prepaid-await-rejected","pending":1023,"units":1,"aborted":true,"reason":"object","closed":false,"yieldFailure":"same-object-as-reason","allocationIntent":true,"publishIntent":true,"drained":true,"expect":{"outcome":"caller","charged":2,"allocatedBeforeGuard":0,"mayAllocate":false,"mayPublish":false,"pendingReset":false,"settled":true,"refund":0}},
+    {"id":"G13","lineage":"T05","stage":"prepaid-await-fulfilled","pending":1023,"units":1,"aborted":true,"reason":"null","closed":false,"allocationIntent":true,"publishIntent":true,"drained":true,"expect":{"outcome":"caller","charged":2,"allocatedBeforeGuard":0,"mayAllocate":false,"mayPublish":false,"pendingReset":false,"settled":true,"refund":0}},
+    {"id":"G14","lineage":"T05","stage":"prepaid-await-fulfilled","pending":1023,"units":1,"aborted":false,"closed":true,"allocationIntent":true,"publishIntent":true,"drained":true,"expect":{"outcome":"closed","charged":2,"allocatedBeforeGuard":0,"mayAllocate":false,"mayPublish":false,"pendingReset":false,"settled":true,"refund":0}},
+    {"id":"G15","lineage":"T09","stage":"final-publication","pending":1022,"units":1,"aborted":false,"closed":true,"executionFailure":true,"cleanupFailure":true,"allocationIntent":false,"publishIntent":true,"drained":true,"expect":{"outcome":"execution","charged":1,"allocatedBeforeGuard":1,"mayAllocate":false,"mayPublish":false,"pendingReset":false,"settled":true,"refund":0}},
+    {"id":"G16","lineage":"T09","stage":"final-publication","pending":1022,"units":1,"aborted":true,"reason":"undefined","closed":true,"executionFailure":true,"cleanupFailure":true,"allocationIntent":false,"publishIntent":true,"drained":false,"expect":{"outcome":"caller","charged":1,"allocatedBeforeGuard":1,"mayAllocate":false,"mayPublish":false,"pendingReset":false,"settled":false,"refund":0}},
+    {"id":"G17","lineage":"T01","stage":"before-admission","pending":0,"units":1,"aborted":true,"reason":"object","closed":false,"allocationIntent":true,"publishIntent":true,"drained":true,"expect":{"outcome":"caller","charged":0,"allocatedBeforeGuard":0,"mayAllocate":false,"mayPublish":false,"pendingReset":false,"settled":true,"refund":0}},
+    {"id":"G18","lineage":"T06","stage":"after-unit-await","pending":0,"units":1,"aborted":false,"reason":"false","closed":false,"allocationIntent":true,"publishIntent":true,"drained":true,"expect":{"outcome":"continue","charged":1,"allocatedBeforeGuard":0,"mayAllocate":true,"mayPublish":true,"pendingReset":false,"settled":true,"refund":0}}
+  ],
+  "guardCount":18,
+  "handoffCount":4,
+  "modelQualification":"mayPublish means guard permits the intent only after remaining copy/credit/final guards and cleanup obligations; it is not a product publication observation. Final-publication states describe observable boundary states, not asynchronous preemption inside one bounded synchronous operation. Reason tokens are symbolic selection/identity controls, not claims that every state pair is constructible with a standard AbortController or a new signal API.",
+  "historicalT02Admission":"A live failed Budget.step(total) increments attempted total before throwing; no local projection/credit/copy is installed. This is not a transactional guard or refund.",
+  "historicalT08CompletedEffects":"A later caller abort cannot undo earlier completed output; drain admitted cooperative work before settlement.",
+  "historicalT10T11":"No interleaving, nested reservation, new Budget, refund or publication after abandon/closed admission; overlapping close shares completion.",
+  "newYamlInputs":0,
+  "productOrNativeExecutions":0
+}

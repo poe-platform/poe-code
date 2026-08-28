@@ -1,0 +1,520 @@
+{
+  "classification": "BOUNDED_SCHEMA_DATA_REVIEW_NOT_AUTHORIZATION",
+  "candidate": "230ed3c6e15617b312760367adf9ede4e5c7ff6a",
+  "suppliedEvidenceCommit": "fedfca3c445696a19aaf84ac85bc74cff229d5c2",
+  "suppliedRecipeSha256": "05aa8dce295c507fd605c93aa113ba2ecd5605064dc0f6dfe3a20aa6dc6bf04d",
+  "presealCommit": "1b467df7fb4b006df7b98b4e91d252269da6050c",
+  "presealSha256": "bb0a3687536561c716e9d9be54e15fcd3ded86350386fca7baf04f74f2ea22b5",
+  "startedAt": "2026-08-28T14:54:15.602Z",
+  "finishedAt": "2026-08-28T14:54:15.619Z",
+  "runtime": {
+    "node": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "execArgv": [
+      "--unhandled-rejections=strict"
+    ]
+  },
+  "entrypoint": "readAuthorization only",
+  "expectedCases": 8,
+  "actualCalls": 8,
+  "matchingExpectations": 7,
+  "divergentExpectations": [
+    "A02"
+  ],
+  "rows": [
+    {
+      "id": "A01",
+      "fixture": "runs/paths/A01/AUTH.json",
+      "sha256": "af42c0c3de12d12e53d327f394e8b44e2f653fa0ce5e5fcadc57323ef32b694c",
+      "expected": {
+        "outcome": "accepted",
+        "code": null
+      },
+      "outcome": "accepted",
+      "matches": true,
+      "returned": {
+        "review": {
+          "commit": "0000000000000000000000000000000000000000",
+          "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/nonexistent-review.json",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "grant": {
+          "commit": "0000000000000000000000000000000000000000",
+          "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/nonexistent-grant.json",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      },
+      "returnedReviewCommitType": "string",
+      "returnedReviewCommitIsArray": false,
+      "returnedUnchanged": true,
+      "error": null
+    },
+    {
+      "id": "A02",
+      "fixture": "runs/paths/A02/AUTH.json",
+      "sha256": "5c5393bf20340e764137bd53d8fa7a0fdd0b68ea0bcbd4700042a60e4c24e172",
+      "expected": {
+        "outcome": "rejected",
+        "code": "AUTH_REFERENCE_SCHEMA"
+      },
+      "outcome": "accepted",
+      "matches": false,
+      "returned": {
+        "review": {
+          "commit": [
+            "0000000000000000000000000000000000000000"
+          ],
+          "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/nonexistent-review.json",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "grant": {
+          "commit": "0000000000000000000000000000000000000000",
+          "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/nonexistent-grant.json",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      },
+      "returnedReviewCommitType": "object",
+      "returnedReviewCommitIsArray": true,
+      "returnedUnchanged": true,
+      "error": null
+    },
+    {
+      "id": "A03",
+      "fixture": "runs/paths/A03/AUTH.json",
+      "sha256": "59502a11a3f5724a44f9ad6a29bf63bda9f8a11f41f75f33df5d4c7151e87302",
+      "expected": {
+        "outcome": "rejected",
+        "code": "AUTH_REFERENCE_SCHEMA"
+      },
+      "outcome": "rejected",
+      "matches": true,
+      "returned": null,
+      "returnedReviewCommitType": null,
+      "returnedReviewCommitIsArray": null,
+      "returnedUnchanged": null,
+      "error": {
+        "name": "Error",
+        "code": "AUTH_REFERENCE_SCHEMA",
+        "message": "AUTH_REFERENCE_SCHEMA: \"review\"",
+        "stack": "Error: AUTH_REFERENCE_SCHEMA: \"review\"\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:11:39)\n    at readAuthorization (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r1/authorization.mjs:21:5)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/harness.mjs:57:18"
+      }
+    },
+    {
+      "id": "A04",
+      "fixture": "runs/paths/A04/AUTH.json",
+      "sha256": "7b5f6933133ee73a5162a881f6852d2b0cb9ce25bd3030b8a256a011755f9b3e",
+      "expected": {
+        "outcome": "rejected",
+        "code": "AUTH_REFERENCE_SCHEMA"
+      },
+      "outcome": "rejected",
+      "matches": true,
+      "returned": null,
+      "returnedReviewCommitType": null,
+      "returnedReviewCommitIsArray": null,
+      "returnedUnchanged": null,
+      "error": {
+        "name": "Error",
+        "code": "AUTH_REFERENCE_SCHEMA",
+        "message": "AUTH_REFERENCE_SCHEMA: \"review\"",
+        "stack": "Error: AUTH_REFERENCE_SCHEMA: \"review\"\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:11:39)\n    at readAuthorization (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r1/authorization.mjs:21:5)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/harness.mjs:57:18"
+      }
+    },
+    {
+      "id": "A05",
+      "fixture": "runs/paths/A05/AUTH.json",
+      "sha256": "47088debd33e6a31cfd2f333ec6b83b769b72521886c12a7f2d7e885bb8e3fa2",
+      "expected": {
+        "outcome": "rejected",
+        "code": "AUTH_REFERENCE_SCHEMA"
+      },
+      "outcome": "rejected",
+      "matches": true,
+      "returned": null,
+      "returnedReviewCommitType": null,
+      "returnedReviewCommitIsArray": null,
+      "returnedUnchanged": null,
+      "error": {
+        "name": "Error",
+        "code": "AUTH_REFERENCE_SCHEMA",
+        "message": "AUTH_REFERENCE_SCHEMA: \"review\"",
+        "stack": "Error: AUTH_REFERENCE_SCHEMA: \"review\"\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:11:39)\n    at readAuthorization (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r1/authorization.mjs:21:5)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/harness.mjs:57:18"
+      }
+    },
+    {
+      "id": "A06",
+      "fixture": "runs/paths/A06/AUTH.json",
+      "sha256": "f974bb09ce50f2fd21a6301f1c69d4fc61981c8b2515a2941b4e9ef8a480fbfb",
+      "expected": {
+        "outcome": "rejected",
+        "code": "AUTH_REFERENCE_SCHEMA"
+      },
+      "outcome": "rejected",
+      "matches": true,
+      "returned": null,
+      "returnedReviewCommitType": null,
+      "returnedReviewCommitIsArray": null,
+      "returnedUnchanged": null,
+      "error": {
+        "name": "Error",
+        "code": "AUTH_REFERENCE_SCHEMA",
+        "message": "AUTH_REFERENCE_SCHEMA: \"review\"",
+        "stack": "Error: AUTH_REFERENCE_SCHEMA: \"review\"\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:11:39)\n    at readAuthorization (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r1/authorization.mjs:21:5)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/harness.mjs:57:18"
+      }
+    },
+    {
+      "id": "A07",
+      "fixture": "runs/paths/A07/AUTH.json",
+      "sha256": "785f27252dade62a0052db6d94201d71f3a59e391466d4a97b8e4bc13af197d3",
+      "expected": {
+        "outcome": "rejected",
+        "code": "AUTH_REFERENCE_SCHEMA"
+      },
+      "outcome": "rejected",
+      "matches": true,
+      "returned": null,
+      "returnedReviewCommitType": null,
+      "returnedReviewCommitIsArray": null,
+      "returnedUnchanged": null,
+      "error": {
+        "name": "Error",
+        "code": "AUTH_REFERENCE_SCHEMA",
+        "message": "AUTH_REFERENCE_SCHEMA: \"review\"",
+        "stack": "Error: AUTH_REFERENCE_SCHEMA: \"review\"\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:11:39)\n    at readAuthorization (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r1/authorization.mjs:21:5)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/harness.mjs:57:18"
+      }
+    },
+    {
+      "id": "A08",
+      "fixture": "runs/paths/A08/AUTH.json",
+      "sha256": "87b5db2fa0a2c9275b3635f7c30b6134e5f3039b2ad3018bdc73b00cc8ab9b57",
+      "expected": {
+        "outcome": "rejected",
+        "code": "AUTH_FILE_SCHEMA"
+      },
+      "outcome": "rejected",
+      "matches": true,
+      "returned": null,
+      "returnedReviewCommitType": null,
+      "returnedReviewCommitIsArray": null,
+      "returnedUnchanged": null,
+      "error": {
+        "name": "Error",
+        "code": "AUTH_FILE_SCHEMA",
+        "message": "AUTH_FILE_SCHEMA: null",
+        "stack": "Error: AUTH_FILE_SCHEMA: null\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:11:39)\n    at readAuthorization (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r1/authorization.mjs:18:3)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/harness.mjs:57:18"
+      }
+    }
+  ],
+  "fatal": null,
+  "integrityError": null,
+  "sourcesBefore": [
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/authorization.mjs",
+      "bytes": 5367,
+      "mode": 420,
+      "sha256": "bf0c0d1dc58a634606c16911b7ffd82ef0259ac963463bd1020f9796ecca1bd1"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs",
+      "bytes": 3107,
+      "mode": 420,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/projection.mjs",
+      "bytes": 113,
+      "mode": 420,
+      "sha256": "372c5c121f5cb25acc1c42357344da69acab1bedbc34ff7efa9c686f72e78c34"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/operations.mjs",
+      "bytes": 3560,
+      "mode": 420,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/bootstrap.mjs",
+      "bytes": 5261,
+      "mode": 420,
+      "sha256": "5104b893860638beb026acac1526f677eb2861a6a2c354e58818cdf51bc04ffd"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7/projection.mjs",
+      "bytes": 138,
+      "mode": 420,
+      "sha256": "2d2a2b6d76a4b6af24320616565213a71f8946bf71bb7ad5a451ed63906aed3e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7/schema.mjs",
+      "bytes": 1438,
+      "mode": 420,
+      "sha256": "37fc2c5ef2c36157c4e617fb611950018265376ac3d1ef7b4632207a0be3ff3e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v5/projection.mjs",
+      "bytes": 8547,
+      "mode": 420,
+      "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v5/consumer-scope.mjs",
+      "bytes": 2056,
+      "mode": 420,
+      "sha256": "8bcd4f1ac63fbbdd882eec1d9564601a4f1027c65e71d83d6d3a9981b3f59b09"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/projection.mjs",
+      "bytes": 8872,
+      "mode": 420,
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "bb15018f97824b908421464cf45b325a0e3176698a183b6ef58597423066e664"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/production.mjs",
+      "bytes": 4131,
+      "mode": 420,
+      "sha256": "663cff7f5d4ba5ca4a4c5dc53e9cd4aed9f34aabefcb6d8803fbf4c5ca8c5fc9"
+    }
+  ],
+  "sourcesAfter": [
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/authorization.mjs",
+      "bytes": 5367,
+      "mode": 420,
+      "sha256": "bf0c0d1dc58a634606c16911b7ffd82ef0259ac963463bd1020f9796ecca1bd1"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs",
+      "bytes": 3107,
+      "mode": 420,
+      "sha256": "74849abb4e28b012ec8cddb729d1bae02cbde253291b3e2f2bb070457b7e66a2"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/projection.mjs",
+      "bytes": 113,
+      "mode": 420,
+      "sha256": "372c5c121f5cb25acc1c42357344da69acab1bedbc34ff7efa9c686f72e78c34"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v4/operations.mjs",
+      "bytes": 3560,
+      "mode": 420,
+      "sha256": "c4ec72e794ced9affb2bd7fee57b6a6d53b28bb7ea699178ecd160f4cd755741"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/bootstrap.mjs",
+      "bytes": 5261,
+      "mode": 420,
+      "sha256": "5104b893860638beb026acac1526f677eb2861a6a2c354e58818cdf51bc04ffd"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/schema.mjs",
+      "bytes": 93,
+      "mode": 420,
+      "sha256": "1b516b9be6a36964254e79694c7f6df2243b9380d96d9b4a986266f5b7a074ed"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/regular-read.mjs",
+      "bytes": 999,
+      "mode": 420,
+      "sha256": "9995afc3c98840ece5b85fa7057c48f5331c5e174b52a8dea682df65c72833bb"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7/projection.mjs",
+      "bytes": 138,
+      "mode": 420,
+      "sha256": "2d2a2b6d76a4b6af24320616565213a71f8946bf71bb7ad5a451ed63906aed3e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7/schema.mjs",
+      "bytes": 1438,
+      "mode": 420,
+      "sha256": "37fc2c5ef2c36157c4e617fb611950018265376ac3d1ef7b4632207a0be3ff3e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v5/projection.mjs",
+      "bytes": 8547,
+      "mode": 420,
+      "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v5/consumer-scope.mjs",
+      "bytes": 2056,
+      "mode": 420,
+      "sha256": "8bcd4f1ac63fbbdd882eec1d9564601a4f1027c65e71d83d6d3a9981b3f59b09"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs",
+      "bytes": 3012,
+      "mode": 420,
+      "sha256": "056f5c1c205e2c7273270a44898b05c247628413f4cd0e3182075d405b83b913"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v3/projection.mjs",
+      "bytes": 8872,
+      "mode": 420,
+      "sha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v5/CONSUMER-SCOPES.json",
+      "bytes": 1539,
+      "mode": 420,
+      "sha256": "bb15018f97824b908421464cf45b325a0e3176698a183b6ef58597423066e664"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-20260828/executor-v7-r1/production.mjs",
+      "bytes": 4131,
+      "mode": 420,
+      "sha256": "663cff7f5d4ba5ca4a4c5dc53e9cd4aed9f34aabefcb6d8803fbf4c5ca8c5fc9"
+    }
+  ],
+  "inputsBefore": [
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/harness.mjs",
+      "bytes": 5209,
+      "mode": 420,
+      "sha256": "27c3f1647d63b05baf6c38ed67b2d19fc81fde5fd1406ef7c9e1799bbfff37b0"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/EXPECTATIONS.json",
+      "bytes": 2316,
+      "mode": 420,
+      "sha256": "2294d3000d2f33a71c4b1c38628ec2d9c5a7177884cafe9f9de8f4e281b08c3f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A01/AUTH.json",
+      "bytes": 619,
+      "mode": 420,
+      "sha256": "af42c0c3de12d12e53d327f394e8b44e2f653fa0ce5e5fcadc57323ef32b694c"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A02/AUTH.json",
+      "bytes": 633,
+      "mode": 420,
+      "sha256": "5c5393bf20340e764137bd53d8fa7a0fdd0b68ea0bcbd4700042a60e4c24e172"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A03/AUTH.json",
+      "bytes": 578,
+      "mode": 420,
+      "sha256": "59502a11a3f5724a44f9ad6a29bf63bda9f8a11f41f75f33df5d4c7151e87302"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A04/AUTH.json",
+      "bytes": 633,
+      "mode": 420,
+      "sha256": "7b5f6933133ee73a5162a881f6852d2b0cb9ce25bd3030b8a256a011755f9b3e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A05/AUTH.json",
+      "bytes": 633,
+      "mode": 420,
+      "sha256": "47088debd33e6a31cfd2f333ec6b83b769b72521886c12a7f2d7e885bb8e3fa2"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A06/AUTH.json",
+      "bytes": 638,
+      "mode": 420,
+      "sha256": "f974bb09ce50f2fd21a6301f1c69d4fc61981c8b2515a2941b4e9ef8a480fbfb"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A07/AUTH.json",
+      "bytes": 537,
+      "mode": 420,
+      "sha256": "785f27252dade62a0052db6d94201d71f3a59e391466d4a97b8e4bc13af197d3"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A08/AUTH.json",
+      "bytes": 647,
+      "mode": 420,
+      "sha256": "87b5db2fa0a2c9275b3635f7c30b6134e5f3039b2ad3018bdc73b00cc8ab9b57"
+    }
+  ],
+  "inputsAfter": [
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/harness.mjs",
+      "bytes": 5209,
+      "mode": 420,
+      "sha256": "27c3f1647d63b05baf6c38ed67b2d19fc81fde5fd1406ef7c9e1799bbfff37b0"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/EXPECTATIONS.json",
+      "bytes": 2316,
+      "mode": 420,
+      "sha256": "2294d3000d2f33a71c4b1c38628ec2d9c5a7177884cafe9f9de8f4e281b08c3f"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A01/AUTH.json",
+      "bytes": 619,
+      "mode": 420,
+      "sha256": "af42c0c3de12d12e53d327f394e8b44e2f653fa0ce5e5fcadc57323ef32b694c"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A02/AUTH.json",
+      "bytes": 633,
+      "mode": 420,
+      "sha256": "5c5393bf20340e764137bd53d8fa7a0fdd0b68ea0bcbd4700042a60e4c24e172"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A03/AUTH.json",
+      "bytes": 578,
+      "mode": 420,
+      "sha256": "59502a11a3f5724a44f9ad6a29bf63bda9f8a11f41f75f33df5d4c7151e87302"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A04/AUTH.json",
+      "bytes": 633,
+      "mode": 420,
+      "sha256": "7b5f6933133ee73a5162a881f6852d2b0cb9ce25bd3030b8a256a011755f9b3e"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A05/AUTH.json",
+      "bytes": 633,
+      "mode": 420,
+      "sha256": "47088debd33e6a31cfd2f333ec6b83b769b72521886c12a7f2d7e885bb8e3fa2"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A06/AUTH.json",
+      "bytes": 638,
+      "mode": 420,
+      "sha256": "f974bb09ce50f2fd21a6301f1c69d4fc61981c8b2515a2941b4e9ef8a480fbfb"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A07/AUTH.json",
+      "bytes": 537,
+      "mode": 420,
+      "sha256": "785f27252dade62a0052db6d94201d71f3a59e391466d4a97b8e4bc13af197d3"
+    },
+    {
+      "path": "tests/comparison/breadth-continuation-independent-20260828/executor-v7-r1-review/authorization-shape/runs/paths/A08/AUTH.json",
+      "bytes": 647,
+      "mode": 420,
+      "sha256": "87b5db2fa0a2c9275b3635f7c30b6134e5f3039b2ad3018bdc73b00cc8ab9b57"
+    }
+  ],
+  "integrityScope": "Listed files only; not append-proof or concurrent-mutation protection."
+}

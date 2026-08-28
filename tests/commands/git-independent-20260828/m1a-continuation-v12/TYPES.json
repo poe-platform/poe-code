@@ -1,0 +1,37 @@
+[
+  {
+    "id": "positive",
+    "path": "types/positive.ts",
+    "sha256": "864908fc03222fbed3631a103dce49eda597c28ac00ad3074696f711895e8648",
+    "exitCode": 0,
+    "diagnostic": null
+  },
+  {
+    "id": "negative-limits",
+    "path": "types/negative-limits.ts",
+    "sha256": "fdccabf351c575a62416278c930006e6bc8d921aec42bb074b558ecdbf647005",
+    "exitCode": 2,
+    "diagnostic": "TS2353"
+  },
+  {
+    "id": "negative-native",
+    "path": "types/negative-native.ts",
+    "sha256": "428a73c38550f11ab7ba1b2dedafbacab7dd844409b76b2a374bf30003532904",
+    "exitCode": 2,
+    "diagnostic": "TS2353"
+  },
+  {
+    "id": "negative-boundary",
+    "path": "types/negative-boundary.ts",
+    "sha256": "9bd20d11c2ec5e31207ee3a20f67eb863e06f58574767482ec4bf5f5fe5f93ad",
+    "exitCode": 2,
+    "diagnostic": "TS2322"
+  },
+  {
+    "id": "negative-public-root",
+    "path": "types/negative-public-root.ts",
+    "sha256": "ed9ef7fc39f5d9d2c926d21fabd850fdeb8393a47b9ef37b48876b30b38f1b55",
+    "exitCode": 2,
+    "diagnostic": "TS2305"
+  }
+]

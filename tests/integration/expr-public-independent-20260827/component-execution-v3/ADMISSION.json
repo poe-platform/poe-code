@@ -1,0 +1,957 @@
+{
+  "schema": "expr-component-reader-admission-v3/1",
+  "startedAt": "2026-08-28T01:36:22.324Z",
+  "commit": "56f550afee7e6fd895b6d700e4cec376b6cf1eaf",
+  "scope": "EXPRPUBLICCOMPONENT",
+  "status": "qualified",
+  "controls": {
+    "status": "qualified",
+    "controls": 16,
+    "pass": 16,
+    "allChildrenClosed": true,
+    "childCount": 13,
+    "rows": [
+      {
+        "id": "positive-over-4MiB-backpressure",
+        "expectedCode": null,
+        "actualCode": null,
+        "children": [
+          {
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "args": [
+              "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/control-producer.mjs",
+              "normal",
+              "4259841"
+            ],
+            "expectedBytes": 4259841,
+            "expectedHash": "51e1935b6f95f89c024c2d20f1c5bb3ed1393aa1162dd7799b05c9b774f55e29",
+            "bound": 4259841,
+            "metadata": false,
+            "bytes": 4259841,
+            "chunks": 66,
+            "maxChunkBytes": 65536,
+            "stderrBytes": 0,
+            "stderr": "",
+            "startedAt": "2026-08-28T01:36:22.506Z",
+            "closed": true,
+            "killed": false,
+            "pid": 83003,
+            "code": 0,
+            "signal": null,
+            "sha256": "51e1935b6f95f89c024c2d20f1c5bb3ed1393aa1162dd7799b05c9b774f55e29",
+            "status": "pass",
+            "finishedAt": "2026-08-28T01:36:22.541Z"
+          }
+        ],
+        "qualified": true
+      },
+      {
+        "id": "underdeclared-size-overflow",
+        "expectedCode": "OVERFLOW",
+        "actualCode": "OVERFLOW",
+        "error": "OVERFLOW: declared byte bound exceeded before sink write",
+        "children": [
+          {
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "args": [
+              "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/control-producer.mjs",
+              "normal",
+              "4259841"
+            ],
+            "expectedBytes": 4259840,
+            "expectedHash": "d9590e6d954efdab00df03cfc90bcb1e9f01ac7ab1b7370c9b2a8ececc89bc8e",
+            "bound": 4259840,
+            "metadata": false,
+            "bytes": 4259841,
+            "chunks": 66,
+            "maxChunkBytes": 65536,
+            "stderrBytes": 0,
+            "stderr": "",
+            "startedAt": "2026-08-28T01:36:22.543Z",
+            "closed": true,
+            "killed": true,
+            "pid": 83007,
+            "code": null,
+            "signal": "SIGKILL",
+            "sha256": "d9590e6d954efdab00df03cfc90bcb1e9f01ac7ab1b7370c9b2a8ececc89bc8e",
+            "status": "fail",
+            "errorCode": "OVERFLOW",
+            "error": "OVERFLOW: declared byte bound exceeded before sink write",
+            "finishedAt": "2026-08-28T01:36:22.572Z"
+          }
+        ],
+        "qualified": true
+      },
+      {
+        "id": "overdeclared-size",
+        "expectedCode": "TRUNCATION",
+        "actualCode": "TRUNCATION",
+        "error": "TRUNCATION: exact byte count mismatch",
+        "children": [
+          {
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "args": [
+              "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/control-producer.mjs",
+              "normal",
+              "4259841"
+            ],
+            "expectedBytes": 4259842,
+            "expectedHash": "6f0628fca869e8333d5a4985bb1f46cbf6aed013c2f7a5b3e9743d1fbdf53712",
+            "bound": 4259842,
+            "metadata": false,
+            "bytes": 4259841,
+            "chunks": 66,
+            "maxChunkBytes": 65536,
+            "stderrBytes": 0,
+            "stderr": "",
+            "startedAt": "2026-08-28T01:36:22.574Z",
+            "closed": true,
+            "killed": false,
+            "pid": 83009,
+            "code": 0,
+            "signal": null,
+            "sha256": "51e1935b6f95f89c024c2d20f1c5bb3ed1393aa1162dd7799b05c9b774f55e29",
+            "status": "fail",
+            "errorCode": "TRUNCATION",
+            "error": "TRUNCATION: exact byte count mismatch",
+            "finishedAt": "2026-08-28T01:36:22.607Z"
+          }
+        ],
+        "qualified": true
+      },
+      {
+        "id": "truncated-producer",
+        "expectedCode": "TRUNCATION",
+        "actualCode": "TRUNCATION",
+        "error": "TRUNCATION: exact byte count mismatch",
+        "children": [
+          {
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "args": [
+              "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/control-producer.mjs",
+              "normal",
+              "4194305"
+            ],
+            "expectedBytes": 4259841,
+            "expectedHash": "51e1935b6f95f89c024c2d20f1c5bb3ed1393aa1162dd7799b05c9b774f55e29",
+            "bound": 4259841,
+            "metadata": false,
+            "bytes": 4194305,
+            "chunks": 65,
+            "maxChunkBytes": 65536,
+            "stderrBytes": 0,
+            "stderr": "",
+            "startedAt": "2026-08-28T01:36:22.608Z",
+            "closed": true,
+            "killed": false,
+            "pid": 83010,
+            "code": 0,
+            "signal": null,
+            "sha256": "acd560a1e1d523c090ab93aed616d154b7b5e8206a153cced729d83f2c7dcfc3",
+            "status": "fail",
+            "errorCode": "TRUNCATION",
+            "error": "TRUNCATION: exact byte count mismatch",
+            "finishedAt": "2026-08-28T01:36:22.642Z"
+          }
+        ],
+        "qualified": true
+      },
+      {
+        "id": "wrong-sha256",
+        "expectedCode": "HASH",
+        "actualCode": "HASH",
+        "error": "HASH: SHA-256 mismatch",
+        "children": [
+          {
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "args": [
+              "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/control-producer.mjs",
+              "normal",
+              "4259841"
+            ],
+            "expectedBytes": 4259841,
+            "expectedHash": "0000000000000000000000000000000000000000000000000000000000000000",
+            "bound": 4259841,
+            "metadata": false,
+            "bytes": 4259841,
+            "chunks": 66,
+            "maxChunkBytes": 65536,
+            "stderrBytes": 0,
+            "stderr": "",
+            "startedAt": "2026-08-28T01:36:22.642Z",
+            "closed": true,
+            "killed": false,
+            "pid": 83011,
+            "code": 0,
+            "signal": null,
+            "sha256": "51e1935b6f95f89c024c2d20f1c5bb3ed1393aa1162dd7799b05c9b774f55e29",
+            "status": "fail",
+            "errorCode": "HASH",
+            "error": "HASH: SHA-256 mismatch",
+            "finishedAt": "2026-08-28T01:36:22.675Z"
+          }
+        ],
+        "qualified": true
+      },
+      {
+        "id": "nonzero-exit-after-exact-bytes",
+        "expectedCode": "EXIT",
+        "actualCode": "EXIT",
+        "error": "EXIT: code=7 signal=null",
+        "children": [
+          {
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "args": [
+              "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/control-producer.mjs",
+              "exit",
+              "4259841"
+            ],
+            "expectedBytes": 4259841,
+            "expectedHash": "51e1935b6f95f89c024c2d20f1c5bb3ed1393aa1162dd7799b05c9b774f55e29",
+            "bound": 4259841,
+            "metadata": false,
+            "bytes": 4259841,
+            "chunks": 66,
+            "maxChunkBytes": 65536,
+            "stderrBytes": 0,
+            "stderr": "",
+            "startedAt": "2026-08-28T01:36:22.677Z",
+            "closed": true,
+            "killed": false,
+            "pid": 83013,
+            "code": 7,
+            "signal": null,
+            "sha256": "51e1935b6f95f89c024c2d20f1c5bb3ed1393aa1162dd7799b05c9b774f55e29",
+            "status": "fail",
+            "errorCode": "EXIT",
+            "error": "EXIT: code=7 signal=null",
+            "finishedAt": "2026-08-28T01:36:22.706Z"
+          }
+        ],
+        "qualified": true
+      },
+      {
+        "id": "deadline-closed",
+        "expectedCode": "DEADLINE",
+        "actualCode": "DEADLINE",
+        "error": "DEADLINE: transport deadline",
+        "children": [
+          {
+            "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+            "args": [
+              "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/control-producer.mjs",
+              "hang",
+              "0"
+            ],
+            "expectedBytes": 4259841,
+            "expectedHash": "51e1935b6f95f89c024c2d20f1c5bb3ed1393aa1162dd7799b05c9b774f55e29",
+            "bound": 4259841,
+            "metadata": false,
+            "bytes": 0,
+            "chunks": 0,
+            "maxChunkBytes": 0,
+            "stderrBytes": 0,
+            "stderr": "",
+            "startedAt": "2026-08-28T01:36:22.708Z",
+            "closed": true,
+            "killed": true,
+            "pid": 83015,
+            "code": null,
+            "signal": "SIGKILL",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "status": "fail",
+            "errorCode": "DEADLINE",
+            "error": "DEADLINE: transport deadline",
+            "finishedAt": "2026-08-28T01:36:23.711Z"
+          }
+        ],
+        "qualified": true
+      },
+      {
+        "id": "unsupported-mode",
+        "expectedCode": "MODE",
+        "actualCode": "MODE",
+        "error": "MODE: only regular 100644 files admitted",
+        "children": [],
+        "qualified": true
+      },
+      {
+        "id": "unsupported-type",
+        "expectedCode": "TYPE",
+        "actualCode": "TYPE",
+        "error": "TYPE: only blobs admitted",
+        "children": [],
+        "qualified": true
+      },
+      {
+        "id": "unsafe-path",
+        "expectedCode": "PATH",
+        "actualCode": "PATH",
+        "error": "PATH: nonliteral or unsafe input path",
+        "children": [],
+        "qualified": true
+      },
+      {
+        "id": "AGENTS-path",
+        "expectedCode": "PATH",
+        "actualCode": "PATH",
+        "error": "PATH: nonliteral or unsafe input path",
+        "children": [],
+        "qualified": true
+      },
+      {
+        "id": "unknown-input",
+        "expectedCode": "UNKNOWN_INPUT",
+        "actualCode": "UNKNOWN_INPUT",
+        "error": "UNKNOWN_INPUT: input absent from sealed catalog",
+        "children": [],
+        "qualified": true
+      },
+      {
+        "id": "missing-tree-path",
+        "expectedCode": "TREE_PATH",
+        "actualCode": "TREE_PATH",
+        "error": "TREE_PATH: missing/nonexact path",
+        "children": [
+          {
+            "executable": "/Library/Developer/CommandLineTools/usr/bin/git",
+            "args": [
+              "--no-replace-objects",
+              "--literal-pathspecs",
+              "ls-tree",
+              "-lz",
+              "eaca395fd0f90051676798971750515d04b0c005",
+              "--",
+              "not-a-real-expr-control-file"
+            ],
+            "bound": 131072,
+            "metadata": true,
+            "bytes": 0,
+            "chunks": 0,
+            "maxChunkBytes": 0,
+            "stderrBytes": 0,
+            "stderr": "",
+            "startedAt": "2026-08-28T01:36:23.713Z",
+            "closed": true,
+            "killed": false,
+            "pid": 83022,
+            "code": 0,
+            "signal": null,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "status": "pass",
+            "finishedAt": "2026-08-28T01:36:23.725Z"
+          }
+        ],
+        "qualified": true
+      },
+      {
+        "id": "wrong-tree-size",
+        "expectedCode": "TREE_BYTES",
+        "actualCode": "TREE_BYTES",
+        "error": "TREE_BYTES: pinned bytes mismatch",
+        "children": [
+          {
+            "executable": "/Library/Developer/CommandLineTools/usr/bin/git",
+            "args": [
+              "--no-replace-objects",
+              "--literal-pathspecs",
+              "ls-tree",
+              "-lz",
+              "eaca395fd0f90051676798971750515d04b0c005",
+              "--",
+              "tests/integration/expr-public-independent-20260827/component-execution-v1/silent-worker.mjs"
+            ],
+            "bound": 131072,
+            "metadata": true,
+            "bytes": 153,
+            "chunks": 1,
+            "maxChunkBytes": 153,
+            "stderrBytes": 0,
+            "stderr": "",
+            "startedAt": "2026-08-28T01:36:23.725Z",
+            "closed": true,
+            "killed": false,
+            "pid": 83023,
+            "code": 0,
+            "signal": null,
+            "sha256": "b19c4466e184cd57e800f59425dc3bcae8b78f2bab1e75db0ad0b95141b03e96",
+            "status": "pass",
+            "finishedAt": "2026-08-28T01:36:23.739Z"
+          }
+        ],
+        "qualified": true
+      },
+      {
+        "id": "wrong-path-object-binding",
+        "expectedCode": "TREE_OBJECTID",
+        "actualCode": "TREE_OBJECTID",
+        "error": "TREE_OBJECTID: pinned objectId mismatch",
+        "children": [
+          {
+            "executable": "/Library/Developer/CommandLineTools/usr/bin/git",
+            "args": [
+              "--no-replace-objects",
+              "--literal-pathspecs",
+              "ls-tree",
+              "-lz",
+              "eaca395fd0f90051676798971750515d04b0c005",
+              "--",
+              "tests/integration/expr-public-independent-20260827/component-execution-v1/silent-worker.mjs"
+            ],
+            "bound": 131072,
+            "metadata": true,
+            "bytes": 153,
+            "chunks": 1,
+            "maxChunkBytes": 153,
+            "stderrBytes": 0,
+            "stderr": "",
+            "startedAt": "2026-08-28T01:36:23.739Z",
+            "closed": true,
+            "killed": false,
+            "pid": 83024,
+            "code": 0,
+            "signal": null,
+            "sha256": "b19c4466e184cd57e800f59425dc3bcae8b78f2bab1e75db0ad0b95141b03e96",
+            "status": "pass",
+            "finishedAt": "2026-08-28T01:36:23.750Z"
+          }
+        ],
+        "qualified": true
+      },
+      {
+        "id": "actual-git-blob-positive",
+        "expectedCode": null,
+        "actualCode": null,
+        "children": [
+          {
+            "executable": "/Library/Developer/CommandLineTools/usr/bin/git",
+            "args": [
+              "--no-replace-objects",
+              "--literal-pathspecs",
+              "ls-tree",
+              "-lz",
+              "eaca395fd0f90051676798971750515d04b0c005",
+              "--",
+              "tests/integration/expr-public-independent-20260827/component-execution-v1/silent-worker.mjs"
+            ],
+            "bound": 131072,
+            "metadata": true,
+            "bytes": 153,
+            "chunks": 1,
+            "maxChunkBytes": 153,
+            "stderrBytes": 0,
+            "stderr": "",
+            "startedAt": "2026-08-28T01:36:23.750Z",
+            "closed": true,
+            "killed": false,
+            "pid": 83025,
+            "code": 0,
+            "signal": null,
+            "sha256": "b19c4466e184cd57e800f59425dc3bcae8b78f2bab1e75db0ad0b95141b03e96",
+            "status": "pass",
+            "finishedAt": "2026-08-28T01:36:23.761Z"
+          },
+          {
+            "executable": "/Library/Developer/CommandLineTools/usr/bin/git",
+            "args": [
+              "--no-replace-objects",
+              "--literal-pathspecs",
+              "cat-file",
+              "-t",
+              "00bb7bf4461c8f2752d26489cc95c83dbf02a1d3"
+            ],
+            "bound": 131072,
+            "metadata": true,
+            "bytes": 5,
+            "chunks": 1,
+            "maxChunkBytes": 5,
+            "stderrBytes": 0,
+            "stderr": "",
+            "startedAt": "2026-08-28T01:36:23.761Z",
+            "closed": true,
+            "killed": false,
+            "pid": 83026,
+            "code": 0,
+            "signal": null,
+            "sha256": "bc103b4a84971ef6459b294a2b98568a2bfb72cded09d4acd1e16366a401f95b",
+            "status": "pass",
+            "finishedAt": "2026-08-28T01:36:23.774Z"
+          },
+          {
+            "executable": "/Library/Developer/CommandLineTools/usr/bin/git",
+            "args": [
+              "--no-replace-objects",
+              "cat-file",
+              "blob",
+              "00bb7bf4461c8f2752d26489cc95c83dbf02a1d3"
+            ],
+            "expectedBytes": 178,
+            "expectedHash": "fbd03925f44cda3e46a012e3060e4c2e5547773dc4c26ca40a0dcb53bc5ef9ed",
+            "bound": 178,
+            "metadata": false,
+            "bytes": 178,
+            "chunks": 1,
+            "maxChunkBytes": 178,
+            "stderrBytes": 0,
+            "stderr": "",
+            "startedAt": "2026-08-28T01:36:23.774Z",
+            "closed": true,
+            "killed": false,
+            "pid": 83027,
+            "code": 0,
+            "signal": null,
+            "sha256": "fbd03925f44cda3e46a012e3060e4c2e5547773dc4c26ca40a0dcb53bc5ef9ed",
+            "gitObjectId": "00bb7bf4461c8f2752d26489cc95c83dbf02a1d3",
+            "status": "pass",
+            "finishedAt": "2026-08-28T01:36:23.786Z"
+          }
+        ],
+        "qualified": true
+      }
+    ]
+  },
+  "P01": "unrun",
+  "runtimeAssertions": 0,
+  "types": 0,
+  "acceptedDUGate": "HELD",
+  "recipe": [
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/.gitignore",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "9d931c43c2cc015a0a4aaa2d110bee8ab2ada230",
+      "bytes": 6,
+      "sha256": "61f65dd9598c7421870bf4918332637f83f34abe1f9fc7cc095852ef7a1b44f7"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/OVERLAY.json",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "a6a8e8cf3008ee23e9ee14feebe716e0f0b065bc",
+      "bytes": 7138,
+      "sha256": "4f3623d2f05b42fea31a7aa647b2abcbb97cb3b93122906d88a8a079fdd2abc0"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/PINS.json",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "b11b8ef6db59c3b8ec8ad89ae6121c1aa9a2cfa0",
+      "bytes": 142480,
+      "sha256": "b321260e2f0a20deef0f5eb7df50538072a57c1313e34163216abae01a2e2231"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/PREPARATION.json",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "b861b157296ed28b8759779ddad439085eb64a65",
+      "bytes": 1413,
+      "sha256": "58ff08006679da6d85eb17aa3092482d6638f294115a231f3930e23605be9a17"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/RECIPE-SEAL.json",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "d51a6a07726b6cf8c0dc25a33233229e4ee16328",
+      "bytes": 3011,
+      "sha256": "fbea38f27740e7c750a3f3a72f37378ee708dbcc2122e62e49f7d9797397aade"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/RECIPE.md",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "3cef63c31bdbd3800baad56da368916dd655d047",
+      "bytes": 6593,
+      "sha256": "b52627a26732c0c797b1963ac70762d6d0ba20613fb2fadaf957916473405988"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/admission.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "f052b51525a770a73c9ae766ed248b56372bc10d",
+      "bytes": 8908,
+      "sha256": "63d45cdbf628155234a791b6e39f98d81ebab07c6d2a7a50fd0adbc6afda67fe"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/common.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "fff1a46b8d3f050d7d8d123f34ca1e843f97d980",
+      "bytes": 3125,
+      "sha256": "f187faeae304362884656f249692cc312aad1363526f950fef2c5d203620ed89"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/control-producer.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "92df88f0345c598a296df43a3f7692d7f349da55",
+      "bytes": 560,
+      "sha256": "9457d28ff1d36c97e999d4fc299a75c199b288f2b71107073f791836a6cfeebd"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/entry.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "6dcd0d9043b6a6324b3dccebf1ccc9375c0e46fc",
+      "bytes": 541,
+      "sha256": "7e719f1a9f0ed896f199fd7d5fad671fe9b759cc05c27bf24dae67fafc517f14"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/generate-run.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "490b065a905f528994ec323ccd62faf8c9b0c731",
+      "bytes": 6180,
+      "sha256": "d05b8c7b1ae5d98808b6e04aba642581c5b95033a5cdd62b5e7159b6bce859bf"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/prepare.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "1abc786fba0e58438a10fdaae680053c2f5a05f0",
+      "bytes": 7030,
+      "sha256": "5169f8f5102186a4a5b3c11284e5704d2d7949308ad1c66c4c2ef70c47a2b584"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/qualify.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "5a431eaf3b20c37047ed1ed31171b44fa0d9c5af",
+      "bytes": 4267,
+      "sha256": "8e96c872c97e0debb909d73ae66dc8287a7b739a32a147567dda984016073e18"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/run.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "6841efc6f92b5539671312fc79d7b2daf4745b74",
+      "bytes": 27520,
+      "sha256": "a23592d7ed2f9d7b7aef6324964523b6fd7900e79c8ed05d2429a7ffafc59ee9"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/seal-evidence.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "d388d40a03d0c6775700077a00090e2cc294f047",
+      "bytes": 4697,
+      "sha256": "f8b505c808b8a2edaf9d6782fc150d223ae1d0b3914ecf96c1c5931df8e16f8b"
+    },
+    {
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/stream-reader.mjs",
+      "mode": "100644",
+      "type": "blob",
+      "objectId": "2b8df249e6f5901450c3600c637e2b4a723e0a4e",
+      "bytes": 7222,
+      "sha256": "5248d0c33f0a0282d80931c1ee7505bd379b802e377c4f2a7341a3e16df7932b"
+    }
+  ],
+  "historicalInputs": [
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/.gitignore",
+      "bytes": 7,
+      "sha256": "07cc0e3f57247b75f5278d110feba3719a32f4b2383e41234cf01325de774d40"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/FREEZE.json",
+      "bytes": 4316,
+      "sha256": "b8a89ba9d399696987f2a68a1e3480fe925f9aac568e8dc51334707e57333f60"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/INPUTS.json",
+      "bytes": 816134,
+      "sha256": "0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/LAYOUT-PREPARATION.raw.txt",
+      "bytes": 181,
+      "sha256": "00456322b525f2b9acb3c7aee906a9bcc84f0f370e42d42e5fc0a159966204f3"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/LAYOUTS.json",
+      "bytes": 4644868,
+      "sha256": "bd87688f4e107bbd14d55b4c8761d0c8bc2880bb8a8d94d0575f591f7d6417d9"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/PREPARATION-NOTES.md",
+      "bytes": 651,
+      "sha256": "2d72ddfac0d13a9c4566749f0248b9ab0b99af8d36e81d05aa51114c63b41023"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/PREPARATION.raw.txt",
+      "bytes": 364,
+      "sha256": "f85ea0ffc12324b7fe2c33cbcd9552f97f55f53c7b4d871b677003522507daea"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/RECIPE.md",
+      "bytes": 4920,
+      "sha256": "f4ef309b148778515c876ee9ec15fece5f6aa8144e97de9be8057a1adb10e436"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/cases.json",
+      "bytes": 5911,
+      "sha256": "215f5e8f44ccf8792cfc175437fe9701fa7f176d29081d5d561cd828f1269b16"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/child.mjs",
+      "bytes": 10510,
+      "sha256": "12076360e83881be5ec755e121728efd7dc7378572d3fae06009b2145d6c2c19"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/common.mjs",
+      "bytes": 3294,
+      "sha256": "2f14179589b14f83ce6485b47111a0716a8fe815bf49ea02b2e2a4f8b76a2b9d"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/consumer-component.mjs",
+      "bytes": 8853,
+      "sha256": "5ccaaa9967b3528927c30f7a63438d725f1ef7f8c7c87d69de7b9af9af13d16e"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/guard.mjs",
+      "bytes": 1453,
+      "sha256": "cdb6a9678e0226e82384bcd8e9424fbbe5b453427e7011de645df823962f2448"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/negative.ts.fixture",
+      "bytes": 907,
+      "sha256": "5585338e666d821baacafbde4c19641e1f73c0722a63366b5dc217d67b7d41d3"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/observer.mjs",
+      "bytes": 5078,
+      "sha256": "1fffd7e99be072e87127be1af56461334a6db529d37c8be38b5418762548e37c"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/positive.ts.fixture",
+      "bytes": 2382,
+      "sha256": "43756d6555472d6dc57ad9c01b9083880b03538c49bd215c7fe8eda2bc979e81"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/prepare-layouts.mjs",
+      "bytes": 3811,
+      "sha256": "5b4f45c30678f2509da261fd7ba044d969bf2a1a727a8dfb5b9c80ab4fcfa6cb"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/prepare.mjs",
+      "bytes": 4320,
+      "sha256": "2ac0aca8477b2ca52e4a97442ea6c8cbc8fbd46c447263617105b788bbb365cd"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/run.mjs",
+      "bytes": 27238,
+      "sha256": "b7b254bb248a9cf8eabfabc0d1c92551f8b1cde5806a3406a4e6411fa76f7227"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/silent-worker.mjs",
+      "bytes": 178,
+      "sha256": "fbd03925f44cda3e46a012e3060e4c2e5547773dc4c26ca40a0dcb53bc5ef9ed"
+    },
+    {
+      "commit": "eaca395fd0f90051676798971750515d04b0c005",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/worker-guard.mjs",
+      "bytes": 22,
+      "sha256": "fbb63fe38bed0564672e83bc960b7538059e332e34481ff44211124460ddb142"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/FREEZE-CHECKS.json",
+      "bytes": 1190,
+      "sha256": "18d27f15fba9fab03b308510520c3dcd33e061de84ed4c00a4038ed76a524c1c"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/PROTOCOL.md",
+      "bytes": 9749,
+      "sha256": "4d5606e192b3f52fdfaec64c9de090f0c2e0938ca98afd70cf0b497b257a7568"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/README.md",
+      "bytes": 6594,
+      "sha256": "be1f7097901df77b55d16e9604eba1f3778bc5b6ecca231a1134441664a626d8"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/cases.json",
+      "bytes": 5911,
+      "sha256": "215f5e8f44ccf8792cfc175437fe9701fa7f176d29081d5d561cd828f1269b16"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/consumer.mjs",
+      "bytes": 8827,
+      "sha256": "0e4f011b37009faf83a8289bbf517c2cdecc6b409bec1b9abe1315a41f8e7cab"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/negative.ts.fixture",
+      "bytes": 907,
+      "sha256": "5585338e666d821baacafbde4c19641e1f73c0722a63366b5dc217d67b7d41d3"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/positive.ts.fixture",
+      "bytes": 2382,
+      "sha256": "43756d6555472d6dc57ad9c01b9083880b03538c49bd215c7fe8eda2bc979e81"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/provenance.json",
+      "bytes": 6564,
+      "sha256": "bdd6ccf8948658032b3c8c0a10953d767ff43fd223492edddf30d5867a6e156e"
+    },
+    {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/self-check.mjs",
+      "bytes": 2291,
+      "sha256": "567d18fc33468e4c516c209416260ca1e65c77fdbe0eff9de9a4bec38c9f1040"
+    },
+    {
+      "commit": "a0142c7711c4be2cc33384c87bd6d8dea9e3d07d",
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/ADDENDUM.md",
+      "bytes": 9939,
+      "sha256": "d4c894e971725f0a6b0ee6f8d6c20f8ad3d39a63c9ac8aa114788474e898d1b7"
+    },
+    {
+      "commit": "a0142c7711c4be2cc33384c87bd6d8dea9e3d07d",
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/AUTHENTICATION.json",
+      "bytes": 20548,
+      "sha256": "9834df838d5aca6f9bf756b9af6e0a8f6e448e6c0ab7d477c02925e39ac11d2e"
+    },
+    {
+      "commit": "a0142c7711c4be2cc33384c87bd6d8dea9e3d07d",
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/CHECKS.json",
+      "bytes": 1900,
+      "sha256": "1825a868610b89cdaa4d7ed8c2fedec5f686e0470a436c05ac489956196db198"
+    },
+    {
+      "commit": "a0142c7711c4be2cc33384c87bd6d8dea9e3d07d",
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/SEAL.json",
+      "bytes": 3334,
+      "sha256": "3a0dea0fbb822af2451c249c0b29310cf17d4f6f2d13af80db84b6087ffd02ca"
+    },
+    {
+      "commit": "a0142c7711c4be2cc33384c87bd6d8dea9e3d07d",
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/inspect.mjs",
+      "bytes": 13203,
+      "sha256": "3e294b4a9d24aa9f3159ed8671e61cd10461b48862283b409074efae041b5515"
+    },
+    {
+      "commit": "e87d3f16d9688d2449050ebc66f50ac93eb9c17b",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v2/.gitignore",
+      "bytes": 6,
+      "sha256": "61f65dd9598c7421870bf4918332637f83f34abe1f9fc7cc095852ef7a1b44f7"
+    },
+    {
+      "commit": "e87d3f16d9688d2449050ebc66f50ac93eb9c17b",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v2/CHECKPOINT.json",
+      "bytes": 1791,
+      "sha256": "b5fa2f7e5b10f3c26dc73a07ac65d80c1e0ee6981127b2e684814dc116a2d089"
+    },
+    {
+      "commit": "e87d3f16d9688d2449050ebc66f50ac93eb9c17b",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v2/CHECKPOINT.md",
+      "bytes": 761,
+      "sha256": "6687a947770ae861a78ee2fe286cfad09e8379814d97c3c2433c084305e34e24"
+    },
+    {
+      "commit": "e87d3f16d9688d2449050ebc66f50ac93eb9c17b",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v2/control-producer.mjs",
+      "bytes": 422,
+      "sha256": "c5eb025b5d8194a5980d661d04077f40e05f649893c4c808fe2076f4351ec8c7"
+    },
+    {
+      "commit": "e87d3f16d9688d2449050ebc66f50ac93eb9c17b",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v2/stream-reader.mjs",
+      "bytes": 6651,
+      "sha256": "d54cc0f1d745d4eafb7f16c62b17ac5c3962c570f3ccc7cedc9612db0201d6a6"
+    }
+  ],
+  "engine": {
+    "acceptedCommit": "c3e40f8bd721da5e496f3b3abfd51aee45db5a84",
+    "unchanged": [
+      {
+        "path": "src/commands/expr/bre-worker.ts",
+        "gitBlob": "95d2fda3b701d095458f83eadb4ebec61eb9f669",
+        "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+        "acceptedObjectId": "95d2fda3b701d095458f83eadb4ebec61eb9f669"
+      },
+      {
+        "path": "src/commands/expr/evaluate.ts",
+        "gitBlob": "aa1d278bb4ec9fc1fe72b53afd5afaf65fd63a99",
+        "sha256": "c90884b0b08d422e588826df648935fba2944382d93c5d4a12f796b61390505d",
+        "acceptedObjectId": "aa1d278bb4ec9fc1fe72b53afd5afaf65fd63a99"
+      },
+      {
+        "path": "src/commands/expr/index.ts",
+        "gitBlob": "1031dd28c5dda297d35914dbff4c99f8844c8981",
+        "sha256": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e",
+        "acceptedObjectId": "1031dd28c5dda297d35914dbff4c99f8844c8981"
+      },
+      {
+        "path": "src/commands/expr/internal.ts",
+        "gitBlob": "46b7604d21fe6823167301e1012d97d0ed7b6342",
+        "sha256": "07f203d8fc4e991e4d23cab87d67a23911f7960a2ed6d649fd843b0d7060e840",
+        "acceptedObjectId": "46b7604d21fe6823167301e1012d97d0ed7b6342"
+      },
+      {
+        "path": "src/commands/expr/syntax.ts",
+        "gitBlob": "352e8d330bfb54427844451711d56b7959a4d147",
+        "sha256": "68dc433cb081344eaa180dbe592534b669b641426e9752abdabfd5a214e8c7e4",
+        "acceptedObjectId": "352e8d330bfb54427844451711d56b7959a4d147"
+      },
+      {
+        "path": "src/commands/regex-execution/client.ts",
+        "gitBlob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+        "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+        "acceptedObjectId": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6"
+      },
+      {
+        "path": "src/commands/regex-execution/matching.ts",
+        "gitBlob": "9f1f53ec5fd78ddc2e6062bccaafd038fdec1f07",
+        "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+        "acceptedObjectId": "9f1f53ec5fd78ddc2e6062bccaafd038fdec1f07"
+      },
+      {
+        "path": "src/commands/regex-execution/protocol.ts",
+        "gitBlob": "99f39e111b0e105d8a3c0373266d90f2bd356433",
+        "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+        "acceptedObjectId": "99f39e111b0e105d8a3c0373266d90f2bd356433"
+      },
+      {
+        "path": "src/commands/regex-execution/worker.ts",
+        "gitBlob": "8da7d8566d17ab7d81ff4d440f632e8127312000",
+        "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+        "acceptedObjectId": "8da7d8566d17ab7d81ff4d440f632e8127312000"
+      }
+    ]
+  },
+  "selected": {
+    "count": 357,
+    "inventorySha256": "500351d1a3518eee8c44ff42288e9ec586f4f6a7d1357373e4066f084717ab2e",
+    "exactTree": "5905cf8d43233c68ea2bd499275ada2641223d9a",
+    "authenticatedEveryBlob": true
+  },
+  "finishedAt": "2026-08-28T01:36:33.349Z",
+  "childCount": 1223,
+  "allChildrenClosed": true
+}

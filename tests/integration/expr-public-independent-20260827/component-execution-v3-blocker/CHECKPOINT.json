@@ -1,0 +1,295 @@
+{
+  "schema": "expr-component-v3-blocker-checkpoint/1",
+  "observedAt": "2026-08-28T01:39:44.059Z",
+  "authorizationDate": "2026-08-28",
+  "scope": "EXPRPUBLICCOMPONENT",
+  "recipeCommit": "56f550afee7e6fd895b6d700e4cec376b6cf1eaf",
+  "status": "HELD; one invocation completed; no retry authorized",
+  "candidate": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "tree": "5905cf8d43233c68ea2bd499275ada2641223d9a",
+  "reader": {
+    "controlsQualified": 16,
+    "controlsPlanned": 16,
+    "transportChildrenForControls": 13,
+    "selectedAuthenticated": 357,
+    "authenticatedLAYOUTSBytes": 4644868,
+    "childrenAtAdmission": 1223,
+    "childrenAfterFinalization": 2295,
+    "allClosed": true,
+    "constantMemoryClaim": false
+  },
+  "build": {
+    "invocations": 1,
+    "status": 2,
+    "naturalSettlement": true,
+    "closed": true,
+    "durationMs": 2138,
+    "diagnostics": {
+      "TS5033": 832
+    },
+    "stdoutBytes": 236680,
+    "stderrBytes": 0,
+    "firstDiagnostic": "error TS5033: Could not write file '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/work/run-001/build/dist/commands/archive/create.d.ts': Access to this API has been restricted. Use --allow-fs-write to manage permissions..",
+    "lastDiagnostic": "error TS5033: Could not write file '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/work/run-001/build/dist/shell/types.js.map': Access to this API has been restricted. Use --allow-fs-write to manage permissions..",
+    "writePermissionArgument": "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/work/run-001/build/dist",
+    "distCreated": true,
+    "distFileCount": 0,
+    "distDirectoryCount": 0,
+    "packInvocations": 0,
+    "P01": "FAILED independent rebuild; no reproduced pack",
+    "qualification": "Frozen Node output fence rejected compiler emission. No permission relaxation, output-directory repair, recompilation or package run was attempted. Exact causal permission treatment needs a separately qualified versioned recipe; this is not a product semantic/type verdict."
+  },
+  "fallback": {
+    "authorpackSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "bytes": 727526,
+    "members": 834,
+    "authenticatedAndUnpacked": true,
+    "publicLoadProof": false,
+    "missingPath": "tests/integration/expr-public-independent-20260827/component-execution-v3/cases.json",
+    "errorCode": "ENOENT",
+    "site": "component-execution-v3/run.mjs:84 bind() still addresses v3/cases.json instead of frozen legacy fixture",
+    "originalAndInstalledFixturesPresent": true,
+    "qualification": "Reader/build attempt and authorpack authentication do not establish installed runtime acceptance. The unmodified v3 overlay missed one fixture path. Error preserved; no fixture copied or runner changed after execution."
+  },
+  "counts": {
+    "readerControls": {
+      "pass": 16,
+      "fail": 0
+    },
+    "independentBuilds": 1,
+    "independentPacks": 0,
+    "packageControls": 0,
+    "runtime": {
+      "planned": 104,
+      "executed": 0,
+      "pass": 0,
+      "fail": 0,
+      "unrun": 104
+    },
+    "types": {
+      "planned": 40,
+      "executed": 0
+    },
+    "workerCreations": 0,
+    "originalGateProductPasses": 0
+  },
+  "unrunContexts": [
+    {
+      "context": "installed-node22",
+      "ids": [
+        "R01",
+        "R02",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+        "R17",
+        "R18",
+        "R19",
+        "R20",
+        "R21",
+        "R22",
+        "R23",
+        "R24",
+        "R25",
+        "R26"
+      ],
+      "status": "unrun",
+      "reason": "fallback binding preflight ENOENT before first public child"
+    },
+    {
+      "context": "installed-node24",
+      "ids": [
+        "R01",
+        "R02",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+        "R17",
+        "R18",
+        "R19",
+        "R20",
+        "R21",
+        "R22",
+        "R23",
+        "R24",
+        "R25",
+        "R26"
+      ],
+      "status": "unrun",
+      "reason": "fallback binding preflight ENOENT before first public child"
+    },
+    {
+      "context": "moved-node22",
+      "ids": [
+        "R01",
+        "R02",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+        "R17",
+        "R18",
+        "R19",
+        "R20",
+        "R21",
+        "R22",
+        "R23",
+        "R24",
+        "R25",
+        "R26"
+      ],
+      "status": "unrun",
+      "reason": "fallback binding preflight ENOENT before first public child"
+    },
+    {
+      "context": "moved-node24",
+      "ids": [
+        "R01",
+        "R02",
+        "R03",
+        "R04",
+        "R05",
+        "R06",
+        "R07",
+        "R08",
+        "R09",
+        "R10",
+        "R11",
+        "R12",
+        "R13",
+        "R14",
+        "R15",
+        "R16",
+        "R17",
+        "R18",
+        "R19",
+        "R20",
+        "R21",
+        "R22",
+        "R23",
+        "R24",
+        "R25",
+        "R26"
+      ],
+      "status": "unrun",
+      "reason": "fallback binding preflight ENOENT before first public child"
+    }
+  ],
+  "rawFailures": [
+    {
+      "name": "P01",
+      "error": "independent build/exact pack proof failed; authorpack cannot repair P01"
+    },
+    {
+      "name": "runner",
+      "error": "Error: ENOENT: no such file or directory, open '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/cases.json'\n    at openSync (node:fs:560:18)\n    at read (file:///Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/common.mjs:16:22)\n    at json (file:///Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/common.mjs:20:40)\n    at bind (file:///Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/run.mjs:84:154)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/run.mjs:248:27\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    }
+  ],
+  "shellInvocationExit": 0,
+  "shellExitQualification": "Wrapper exit 0 did not mean P01/component success; REPORT and raw diagnostics are authoritative.",
+  "allRecordedChildrenClosed": true,
+  "compilerChildrenClosed": true,
+  "readOnlySupplementalChecks": [
+    {
+      "name": "copied-tools-mode-hash-newentry-postcheck",
+      "status": "pass",
+      "productPass": false,
+      "details": {
+        "entries": 2821,
+        "sha256": "55e2701900e54cd3e7ef4ed690343512b0254ee4c0cae5d2cc252b28fe880431"
+      }
+    },
+    {
+      "name": "complete-build-input-mode-hash-newentry-postcheck",
+      "status": "pass",
+      "productPass": false,
+      "details": {
+        "entries": 690,
+        "generatedOutputExclusion": "dist/ only",
+        "sha256": "6f44c71577ddf4a7b2a57b9ffd49e72c1c16afdac0e3b3b92f861d68e22d46fe"
+      }
+    },
+    {
+      "name": "selected-source-mode-hash-newentry-postcheck",
+      "status": "pass",
+      "productPass": false,
+      "details": {
+        "entries": 414,
+        "selectedFiles": 357
+      }
+    },
+    {
+      "name": "raw-evidence-compressed-and-entry-integrity",
+      "status": "pass",
+      "productPass": false,
+      "details": {
+        "entries": 8,
+        "payloadBytes": 2965441,
+        "compressedBytes": 1248656
+      }
+    },
+    {
+      "name": "full-authenticated-installed-authorpack-members",
+      "status": "pass",
+      "productPass": false,
+      "details": {
+        "members": 834,
+        "loadedByProductRuntime": false,
+        "installedOnly": true
+      }
+    }
+  ],
+  "evidence": {
+    "manifestSha256": "f2344a8bac78bf32599ba78b73eafa98e8102cf53976e5628b3d9bbf1b2af5c3",
+    "evidenceSealSha256": "03b306734d7ce62993b519810cd3d1de4931bfd6f27e35c2bfb977c79dcfef3c",
+    "recipeSealSha256": "fbea38f27740e7c750a3f3a72f37378ee708dbcc2122e62e49f7d9797397aade",
+    "rawJournalSha256": "0e2bc4f8c4553d3909a5363de6afec250e7aedf4bd3e7e06e7876e6028fb29d6",
+    "buildReceiptSha256": "4124a7182b893a1491121326d2440daa87bb8c9af16b65143e8d461f5287e169"
+  },
+  "nextAuthorization": "Root must authorize a NEW presealed overlay and qualified compiler-output/fixture-path repair before any additional candidate invocation. Preserve the single v3 attempt and original v1/v2 history; no automatic retry, no product change or permission-fence weakening.",
+  "holds": [
+    "accepted-DU prerequisite remains HELD until root/Raman verdict",
+    "original gate unchanged and unrescored",
+    "all104/types/P01 completion unestablished",
+    "no whole76/fullgate evidence"
+  ],
+  "HTML": "accepted separately by root; not run here",
+  "chronology": [
+    "Initial scoped checkpoint/history inspection, then new v3 authoring; all manual edits via apply_patch.",
+    "Pre-run recipe commit, then exactly one admission entry invocation.",
+    "After failure, the first human-readable build receipt inspection exceeded terminal display size; the raw file was preserved, followed by a bounded diagnostic summary.",
+    "Read-only final evidence integrity checks are supplemental, not product passes."
+  ]
+}

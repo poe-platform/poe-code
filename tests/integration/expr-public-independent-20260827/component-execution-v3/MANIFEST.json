@@ -1,0 +1,92 @@
+{
+  "schema": "expr-independent-evidence-v3",
+  "freezeCommit": "56f550afee7e6fd895b6d700e4cec376b6cf1eaf",
+  "inputsSha256": "0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3",
+  "payloadSha256": "6bffdcfdbda058734a04f9bce528d1ebaa76bb984159ea42f2bd18d275d2a6fd",
+  "payloadBytes": 2965441,
+  "compressedSha256": "d394547f4c962ec42766a1c2a6123f4bcd363bf33adb6418538ba3272d71ee76",
+  "compressedBytes": 1248656,
+  "entries": [
+    {
+      "path": "P01-build.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 239457,
+      "sha256": "4124a7182b893a1491121326d2440daa87bb8c9af16b65143e8d461f5287e169"
+    },
+    {
+      "path": "REPORT.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3192,
+      "sha256": "aaadfe52f29400fb6bd7c94683541780b276f56d1b40ef7e827e82551c97d6f7"
+    },
+    {
+      "path": "authenticated-authorpack.tgz.base64",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 970037,
+      "sha256": "4c63017ad2d22e9f68af64df3b45b7b08794f65e3eea6cd73774d653a4a918d8"
+    },
+    {
+      "path": "build-complete-after.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 130533,
+      "sha256": "6206348b0f8445c338297e084c5c4b465a7a5dc67d4bfa402b03fe465f40852d"
+    },
+    {
+      "path": "build-complete-before.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 130463,
+      "sha256": "1dd9e67fbe9e8c4926f7d5431a06205ef88c9cf306d655d00ad809525434da5e"
+    },
+    {
+      "path": "build-source-before.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 76451,
+      "sha256": "b88f343effe62e93658e1dbca051fd83d790a2670711bbea619d49985bc07ba4"
+    },
+    {
+      "path": "runtime-package-members.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 146072,
+      "sha256": "ed3917383e7dfe5eca93de2b9c140304e5d29865577c553ab79e423c32640052"
+    },
+    {
+      "path": "tools-before.json",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 526862,
+      "sha256": "12b3d527971a21398c6f35e68a0f0ff40ca8de6b943e2b1a63a29d63295a4b55"
+    }
+  ],
+  "counts": {
+    "plannedRuntimeContexts": 4,
+    "plannedRuntimeAssertions": 104,
+    "executed": 0,
+    "pass": 0,
+    "fail": 0,
+    "unrun": 104,
+    "controlsExecuted": 0,
+    "controlsPass": 0,
+    "typeInvocations": 0,
+    "typePass": 0
+  },
+  "P01": {
+    "status": "fail",
+    "buildExecuted": true,
+    "buildStatus": 2,
+    "independentInputs": 357,
+    "exactPackRequired": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd"
+  },
+  "holds": [
+    "accepted-DU75 remains HELD/unrescored",
+    "HTML accepted by root separately; not rerun or certified here",
+    "whole76 HELD",
+    "original acceptance-gated consumer HELD"
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "schema": "expr-independent-component-v3",
+  "authorizationDate": "2026-08-28",
+  "startedAt": "2026-08-28T01:36:33.351Z",
+  "freezeCommit": "56f550afee7e6fd895b6d700e4cec376b6cf1eaf",
+  "inputsSha256": "0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3",
+  "candidate": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "tree": "5905cf8d43233c68ea2bd499275ada2641223d9a",
+  "scope": "EXPRPUBLICCOMPONENT only; no accepted-DU or whole76 claim",
+  "P01": {
+    "status": "fail",
+    "buildExecuted": true,
+    "buildStatus": 2,
+    "independentInputs": 357,
+    "exactPackRequired": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd"
+  },
+  "contexts": [],
+  "checks": [
+    {
+      "name": "original-nine-admission-five-and-tools-readonly-postcheck",
+      "status": "pass",
+      "productPass": false
+    }
+  ],
+  "failures": [
+    {
+      "name": "P01",
+      "error": "independent build/exact pack proof failed; authorpack cannot repair P01"
+    },
+    {
+      "name": "runner",
+      "error": "Error: ENOENT: no such file or directory, open '/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/cases.json'\n    at openSync (node:fs:560:18)\n    at read (file:///Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/common.mjs:16:22)\n    at json (file:///Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/common.mjs:20:40)\n    at bind (file:///Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/run.mjs:84:154)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/run.mjs:248:27\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+    }
+  ],
+  "commands": [
+    {
+      "name": "P01-build",
+      "status": 2,
+      "durationMs": 2138,
+      "supervision": null,
+      "naturalSettlement": true,
+      "closed": true
+    }
+  ],
+  "holds": [
+    "accepted-DU75 remains HELD/unrescored",
+    "HTML accepted by root separately; not rerun or certified here",
+    "whole76 HELD",
+    "original acceptance-gated consumer HELD"
+  ],
+  "originalFilesProductPasses": 0,
+  "sourceScope": "Nine expr/shared-regex sources retain accepted c3 bytes. Candidate shell/cancellation.ts is separate lifecycle scope, not TEMP acceptance; actual public loads are reported below.",
+  "executionDirectory": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v3/work/run-001",
+  "runtimeArtifact": "separately authenticated authorpack; P01 remains failed",
+  "finishedAt": "2026-08-28T01:36:45.646Z",
+  "allProcessChildrenClosed": true,
+  "readerQualification": {
+    "status": "qualified",
+    "controls": 16,
+    "receipt": "ADMISSION.json"
+  },
+  "counts": {
+    "plannedRuntimeContexts": 4,
+    "plannedRuntimeAssertions": 104,
+    "executed": 0,
+    "pass": 0,
+    "fail": 0,
+    "unrun": 104,
+    "controlsExecuted": 0,
+    "controlsPass": 0,
+    "typeInvocations": 0,
+    "typePass": 0
+  }
+}

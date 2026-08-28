@@ -18,7 +18,15 @@ const executor = JSON.parse(fs.readFileSync(path.join(own, "EXECUTOR.json")));
 for (const [filename, digest] of Object.entries(executor.artifacts)) assert.equal(sha256(fs.readFileSync(path.join(own, filename))), digest, filename);
 const manifest = JSON.parse(fs.readFileSync(path.join(own, "MANIFEST.json")));
 const typeCases = JSON.parse(fs.readFileSync(path.join(own, "TYPES.json")));
-const evidence = { version: 1, presealCommit, composition: manifest.composedTree, executor, commands: [], layouts: [], types: [], controls: [], cleanup: {}, createdAt: new Date().toISOString() };
+const amendment = JSON.parse(fs.readFileSync(path.join(own, "CASES-v2-overlay.json")));
+assert.equal(amendment.originalCasesSha256, seal.artifacts["CASES.json"]);
+assert.equal(amendment.composition, manifest.composedTree);
+const originalCases = JSON.parse(fs.readFileSync(path.join(own, "CASES.json")));
+const originalUnicode = originalCases.cases.find(row => row.id === "C15").unicodeValues;
+assert.equal(sha256(Buffer.from(JSON.stringify(originalUnicode))), amendment.originalC15InputSha256);
+assert.deepEqual(amendment.C15.unicodeValues.slice(0, -1), originalUnicode.slice(0, -1));
+assert.equal(amendment.C15.unicodeValues.at(-1), "\ufffd");
+const evidence = { version: 2, presealCommit, composition: manifest.composedTree, executor, amendment, buildRole: "fresh reproducible build; prior temporary roots removed, no original-build reuse", commands: [], layouts: [], types: [], controls: [], cleanup: {}, createdAt: new Date().toISOString() };
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "coherent78-author-"));
 const captureName = path.basename(temporary) + ".json.gz.base64";
 const compiler = path.join(repository, "node_modules/typescript/bin/tsc");
@@ -39,7 +47,7 @@ function command(label, executable, args, cwd, extraEnv = {}) {
 const success = row => assert.equal(row.status, 0, `${row.label}\n${row.stdout}\n${row.stderr}`);
 const packageInventory = root => ({ ...Object.fromEntries(Object.entries(inventory(path.join(root, "dist"))).map(([name, item]) => ["dist/" + name, item])), ...Object.fromEntries(["package.json", "README.md"].map(name => { const bytes = fs.readFileSync(path.join(root, name)); return [name, { kind: "file", mode: fs.statSync(path.join(root, name)).mode & 0o777, bytes: bytes.length, sha256: sha256(bytes) }]; })) });
 function installHarness(root, admitted) {
-  for (const name of ["probe.mjs", "loader.mjs", "names.mjs", "CASES.json"]) fs.copyFileSync(path.join(own, name), path.join(root, name));
+  for (const name of ["probe.mjs", "loader.mjs", "names.mjs", "CASES.json", "CASES-v2-overlay.json"]) fs.copyFileSync(path.join(own, name), path.join(root, name));
   fs.writeFileSync(path.join(root, "admitted.json"), JSON.stringify(admitted));
 }
 function runtime(label, root, product, extra = {}) {
@@ -52,20 +60,31 @@ function runtime(label, root, product, extra = {}) {
   return row;
 }
 function types(label, root) {
+  const product = fs.realpathSync(fs.existsSync(path.join(root, "dist")) ? root : path.join(root, "node_modules/virtual-bash"));
+  const admitted = JSON.parse(fs.readFileSync(path.join(root, "admitted.json")));
   for (const test of [...typeCases.positive.map(row => ({ ...row, expected: 0 })), ...typeCases.negative.flatMap(row => [{ ...row, expected: 2 }, { ...row, id: row.id + "-inversion", body: row.inversion, expected: 0 }])]) {
     const filename = path.join(root, "consumer.mts");
     fs.writeFileSync(filename, typeCases.prefix + test.body + "\n");
-    const result = command(`${label}-${test.id}`, process.execPath, [compiler, "--noEmit", "--strict", "--exactOptionalPropertyTypes", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--target", "ES2023", "--types", "node", "--typeRoots", path.join(repository, "node_modules/@types"), filename], outside);
+    const result = command(`${label}-${test.id}`, process.execPath, [compiler, "--noEmit", "--listFiles", "--strict", "--exactOptionalPropertyTypes", "--module", "NodeNext", "--moduleResolution", "NodeNext", "--target", "ES2023", "--types", "node", "--typeRoots", path.join(repository, "node_modules/@types"), filename], outside);
     const matched = result.status === test.expected && (test.expected === 0 || (result.stdout.includes(test.diagnostic) && result.stdout.includes(test.term) && !result.stdout.includes("TS2307")));
-    evidence.types.push({ layout: label, id: test.id, matched, expected: test.expected, actual: result.status });
+    const declarations = result.stdout.split("\n").filter(line => path.isAbsolute(line) && line.endsWith(".d.ts")).map(line => fs.realpathSync(line)).filter(name => name.startsWith(product + path.sep)).map(name => {
+      const relative = path.relative(product, name), digest = sha256(fs.readFileSync(name));
+      assert.equal(admitted[relative]?.sha256, digest, relative);
+      return { relative, sha256: digest };
+    });
+    assert.ok(declarations.some(row => row.relative === "dist/index.d.ts"));
+    assert.ok(declarations.some(row => row.relative === "dist/commands/timeout/index.d.ts"));
+    assert.equal(result.stdout.split("\n").some(line => path.isAbsolute(line) && line.includes("/src/") && line.endsWith(".ts") && !line.endsWith(".d.ts")), false);
+    evidence.types.push({ layout: label, id: test.id, matched, expected: test.expected, actual: result.status, declarations });
     fs.unlinkSync(filename);
     assert.equal(matched, true, result.stdout + result.stderr);
   }
 }
-function checkRuntime(row) {
+function checkRuntime(row, expectedIds) {
   success(row);
   const summary = row.observations.find(item => item.summary)?.summary;
-  assert.equal(summary?.pass, 18); assert.equal(summary.cases, 18); assert.equal(summary.created, summary.disposed);
+  assert.equal(summary?.pass, expectedIds.length); assert.equal(summary.cases, expectedIds.length); assert.equal(summary.created, summary.disposed);
+  assert.deepEqual(row.observations.filter(item => item.id).map(item => item.id), expectedIds);
   const unique = [...new Set(row.loads.map(item => item.relative))].sort();
   for (const required of ["dist/index.js", "dist/shell/runtime.js", "dist/shell/shell.js", "dist/commands/timeout/index.js", "dist/commands/structured/interpreter.js", "dist/fs/webdav/webdav.js", "dist/commands/network/curl.js"]) assert.ok(unique.includes(required), required);
   evidence.layouts.push({ ...summary, modules: unique.length, loaded: unique });
@@ -83,8 +102,11 @@ try {
   const admitted = packageInventory(source);
   assert.equal(Object.values(admitted).filter(row => row.kind === "file").length, 858);
   evidence.packageInventory = admitted;
+  evidence.packageInventorySha256 = sha256(Buffer.from(JSON.stringify(admitted)));
+  evidence.declarations = Object.fromEntries(Object.entries(admitted).filter(([name]) => name.endsWith(".d.ts")));
+  evidence.declarationsSha256 = sha256(Buffer.from(JSON.stringify(evidence.declarations)));
   installHarness(source, admitted);
-  checkRuntime(runtime("source-build", source, source));
+  checkRuntime(runtime("source-build-v2-affected", source, source, { CASE_IDS: "C14,C15,R15" }), ["C14", "C15", "R15"]);
   types("source-build", source);
   const packed = command("offline-pack", process.execPath, [npm, "pack", "--offline", "--ignore-scripts", "--json", "--pack-destination", temporary], source);
   success(packed);
@@ -99,12 +121,13 @@ try {
   evidence.fullInstalledBefore = inventory(installed);
   assert.equal(Object.values(evidence.fullInstalledBefore).filter(row => row.kind === "file").length, 858);
   installHarness(consumer, admitted);
-  checkRuntime(runtime("installed", consumer, installed));
+  const revisedIds = [...originalCases.cases.map(row => row.id), "R15"];
+  checkRuntime(runtime("installed", consumer, installed), revisedIds);
   types("installed", consumer);
   const moved = path.join(temporary, "physically moved consumer"); fs.renameSync(consumer, moved);
   assert.equal(fs.existsSync(consumer), false);
   const product = path.join(moved, "node_modules/virtual-bash");
-  checkRuntime(runtime("moved", moved, product));
+  checkRuntime(runtime("moved", moved, product), revisedIds);
   types("moved", moved);
   evidence.physicalMove = { oldAbsent: !fs.existsSync(consumer), newPath: moved };
   const runtimePath = path.join(product, "dist/shell/runtime.js"), original = fs.readFileSync(runtimePath);

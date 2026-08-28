@@ -1,11 +1,12 @@
 {
-  "version": 2,
-  "phase": "after preserved v1 pre-import path failure; before first product-case execution",
+  "version": 3,
+  "phase": "root-approved v2 overlay sealed before affected-source or installed/moved execution",
   "preseal": "186804b7ae9d8280aac3ee78e556bfd7c8bba7d3",
   "artifacts": {
-    "run.mjs": "24f6967e5f8ad4472ce1835f616b9093b26bfd9bbfb9fa4e6738b4474a726fb1",
-    "probe.mjs": "7699f467cfa06625389fad09cc223c311a39bd67dd2144eef8ba16927667090a",
-    "loader.mjs": "3310399901505de8bee60a4ea1e58fcc288ae315fa7b353b2fe4eb68553bceab"
+    "run.mjs": "11557db275a404a5f87a02e457d83927111c5f49e44e25f571cd7fbe211f0622",
+    "probe.mjs": "c46da7b648b7f1c5402666276f88893f940c60d02606c5f911c6352309586456",
+    "loader.mjs": "3310399901505de8bee60a4ea1e58fcc288ae315fa7b353b2fe4eb68553bceab",
+    "CASES-v2-overlay.json": "a9aba608d1e30b24b8b3e4c70ca27bd4af8cca2dfac8df45fa460a15d052194d"
   },
-  "previousExecutorCommit": "acc42a2a"
+  "previousExecutorCommit": "688ccf86f3c666518a5a3f13a3a264d699dbd7ca"
 }

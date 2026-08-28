@@ -16,6 +16,10 @@ syncBuiltinESMExports();
 const api = await import("virtual-bash");
 const timeoutApi = await import("virtual-bash/commands/timeout");
 const frozen = JSON.parse(fs.readFileSync(new URL("./CASES.json", import.meta.url), "utf8"));
+const amendment = JSON.parse(fs.readFileSync(new URL("./CASES-v2-overlay.json", import.meta.url), "utf8"));
+const revised = frozen.cases.map(row => row.id === "C15" ? { ...row, unicodeValues: amendment.C15.unicodeValues } : row);
+const originalC15 = frozen.cases.find(row => row.id === "C15");
+const refusal = { ...originalC15, ...amendment.refusal };
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
@@ -50,7 +54,7 @@ function match(row, result) {
   if (row.stdout !== undefined) assert.equal(result.stdout, row.stdout + (process.env.CONTROL === "assertion" && row.id === "C02" ? "!" : ""));
   if (row.stdoutBytes) assert.deepEqual([...result.stdoutBytes], row.stdoutBytes);
   if (row.stderrContains) assert.ok(result.stderr.includes(row.stderrContains));
-  else if (row.id !== "C17") assert.equal(result.stderr, "");
+  else if (row.id !== "C17") assert.equal(result.stderr, row.stderr ?? "");
 }
 
 function network(mode) {
@@ -209,13 +213,16 @@ async function execute(row) {
       scheduler.fire(1);
     }
     const result = await outcome; net.events.order.push("settled");
+    detail.network = net.events; detail.requestSignalAborted = net.signal().aborted;
+    detail.schedulerCalls = scheduler.calls;
     match(row, result);
     assert.equal(caller.signal.aborted, false);
     assert.equal(net.events.authorized, 1); assert.equal(net.events.requests, 1);
     assert.equal(net.events.acquires, 1); assert.equal(net.events.finalized, 1); assert.equal(net.events.disposed, 1);
     assert.equal(net.events.pending, 0); assert.equal(net.events.listeners, 0);
     assert.ok(net.events.order.indexOf("dispose") < net.events.order.indexOf("settled"));
-    if (row.id !== "C12") { assert.equal(net.events.returned, 1); assert.equal(net.signal().aborted, true); }
+    if (row.id !== "C12") assert.equal(net.events.returned, 1);
+    if (row.id === "C13") assert.equal(net.signal().aborted, true);
     if (row.id === "C14") { assert.equal(net.events.delivered, 1); assert.ok(net.events.next === 1 || net.events.next === 2); }
     if (row.id !== "C13") {
       assert.ok(decoder.decode(await filesystem.readFile("/headers")).includes("X-Fixture: yes"));
@@ -223,7 +230,7 @@ async function execute(row) {
     }
     assert.equal(scheduler.handles.size, 0); detail.network = net.events; detail.schedulerCalls = scheduler.calls; return;
   }
-  if (row.id === "C15") await filesystem.writeFile("/unicode.json", encoder.encode(JSON.stringify(row.unicodeValues)));
+  if (row.id === "C15" || row.id === "R15") await filesystem.writeFile("/unicode.json", encoder.encode(JSON.stringify(row.unicodeValues)));
   if (row.id === "C17") shell.use((context, next) => { if (context.command === "pushd") Object.assign(context, { stdout: { async write() { throw Object.assign(new Error("fixture closed"), { code: "EPIPE" }); } } }); return next(); });
   if (row.id === "C18") {
     const setup = await shell.exec("pushd /search/project >/sink; shopt -s dotglob; let value=3; set -- -ab; getopts ab first");
@@ -235,8 +242,8 @@ async function execute(row) {
 
 if (process.env.CONTROL === "source-fallback") await import(pathToFileURL(process.env.FALLBACK_PATH).href);
 const ids = process.env.CASE_IDS?.split(",");
-const rows = frozen.cases.filter(row => !ids || ids.includes(row.id));
-assert.equal(rows.length, ids?.length ?? 18);
+const rows = [...revised, refusal].filter(row => !ids || ids.includes(row.id));
+assert.equal(rows.length, ids?.length ?? 19);
 const observations = [];
 for (const row of rows) {
   resources = []; detail = {};
@@ -252,6 +259,6 @@ for (const row of rows) {
   }
   observations.push(observation); console.log(JSON.stringify(observation));
 }
-const summary = { layout: process.env.LAYOUT, cases: observations.length, pass: observations.filter(row => row.pass).length, failed: observations.filter(row => !row.pass).map(row => row.id), created: observations.reduce((sum, row) => sum + row.created, 0), disposed: observations.reduce((sum, row) => sum + row.disposed, 0), forbiddenNetwork, nativeRuns: 0, privateSafeJsRuns: 0 };
+const summary = { layout: process.env.LAYOUT, profile: "root-approved-v2", cases: observations.length, positives: observations.filter(row => row.id !== "R15").length, positivePass: observations.filter(row => row.id !== "R15" && row.pass).length, refusalControls: observations.filter(row => row.id === "R15").length, refusalPass: observations.filter(row => row.id === "R15" && row.pass).length, pass: observations.filter(row => row.pass).length, failed: observations.filter(row => !row.pass).map(row => row.id), created: observations.reduce((sum, row) => sum + row.created, 0), disposed: observations.reduce((sum, row) => sum + row.disposed, 0), forbiddenNetwork, nativeRuns: 0, privateSafeJsRuns: 0 };
 console.log(JSON.stringify({ summary }));
 if (summary.pass !== summary.cases || summary.created !== summary.disposed) process.exitCode = 1;

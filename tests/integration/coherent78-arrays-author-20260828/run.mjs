@@ -13,7 +13,7 @@ assert.deepEqual(manifest, JSON.parse(await fs.readFile(path.join(own, 'SOURCE.j
 assert.equal(process.execPath, seal.tools.nodePath);
 assert.equal(process.version, seal.tools.nodeVersion);
 assert.equal(sha(await fs.readFile(process.execPath)), seal.tools.nodeSha256);
-const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR-v4.json')));
+const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR-v5.json')));
 for (const [name, expected] of Object.entries(executor.files)) assert.equal(sha(await fs.readFile(path.join(own, name))), expected, name);
 const output = await fs.mkdtemp(path.join(os.tmpdir(), 'coherent78-arrays-author-'));
 console.log(JSON.stringify({ output, candidate: manifest.computedTree, sourceSha256: sha(await fs.readFile(path.join(own, 'SOURCE.json'))) }));
@@ -25,6 +25,11 @@ assert.equal(prior.candidate, manifest.computedTree);
 assert.equal(prior.pack.sha256, 'f5152eaeaaeb78aff350a86d55f67905c2caab900ba2f45b1869da6498e1e956');
 assert.equal(prior.children.filter(row => row.label === 'production-build-once' && row.code === 0).length, 1);
 receipt.continuation = { originalRawSha256: sha(priorEncoded), priorOutput: prior.output, originalStatus: prior.status, productionBuildsThisContinuation: 0, originalPhasesNotRerun: prior.phases.map(row => ({ layout: row.layout, script: row.script, summary: row.summary })), originalTypeGroupsNotRerun: prior.types.length };
+const secondEncoded = await fs.readFile(path.join(own, 'RAW-v3.json.gz.base64'));
+assert.equal(sha(secondEncoded), '7e903844979ab00dd8ee40d420cbe37f9ddba4c37ec6b779bdbca7774aaf5fce');
+const second = JSON.parse(gunzipSync(Buffer.from(secondEncoded.toString().trim(), 'base64'), { maxOutputLength: 134217728 })).receipt;
+assert.equal(second.candidate, manifest.computedTree); assert.equal(second.pack.sha256, prior.pack.sha256);
+receipt.continuation.completedPriorContinuation = { rawSha256: sha(secondEncoded), phases: second.phases.map(row => ({ layout: row.layout, script: row.script, summary: row.summary })), typeGroups: second.types.length, notRerun: true };
 let totalCapture = 0, written = 0, childCount = 0;
 const active = new Set();
 const save = () => fs.writeFile(path.join(output, 'RESULT.json'), JSON.stringify(receipt, null, 2) + '\n');
@@ -101,7 +106,7 @@ async function types(label, consumer) {
     { id: 'inversions', cases: table.negative.map(row => row.id + '-inverse'), body: table.negative.map(row => `{ ${row.inversion} }`).join('\n') },
   ];
   for (const group of groups) {
-    const filename = path.join(consumer, `consumer-${group.id}.ts`);
+    const filename = path.join(consumer, `${label}-consumer-${group.id}.ts`);
     await write(filename, table.prefix + group.body + '\n');
     const result = await child(`${label}-types-${group.id}`, process.execPath, [compiler, '--noEmit', '--strict', '--exactOptionalPropertyTypes', '--target', 'ES2022', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--skipLibCheck', '--pretty', 'false', '--listFiles', '--typeRoots', path.join(source, 'node_modules/@types'), filename], consumer);
     const diagnostic = result.out.toString() + result.err.toString();
@@ -198,11 +203,11 @@ try {
   const installedAll = await inventory(product);
   assert.equal(Object.values(installedAll).filter(row => row.kind === 'file').length, seal.expectedFullPackageMembers);
   receipt.fullInstalled = installedAll;
-  await stageHarness(consumer); await types('installed', consumer);
+  await stageHarness(consumer);
   const moved = path.join(output, 'physically moved consumer'); await fs.rename(consumer, moved);
   await assert.rejects(fs.lstat(consumer), error => error.code === 'ENOENT');
   movedRoot = path.join(moved, 'node_modules/virtual-bash'); receipt.move = { originalAbsent: true, moved };
-  await layout('moved', moved, movedRoot);
+  await types('moved', moved);
   const runtimePath = path.join(movedRoot, 'dist/shell/runtime.js'), runtimeBytes = await fs.readFile(runtimePath);
   try {
     await fs.appendFile(runtimePath, '\n');
@@ -258,9 +263,9 @@ try {
   const captures = [];
   for (const name of (await fs.readdir(output)).sort()) if (/\.(stdout|stderr|jsonl)$/.test(name)) captures.push({ name, base64: (await fs.readFile(path.join(output, name))).toString('base64') });
   const encoded = gzipSync(Buffer.from(JSON.stringify({ receipt, captures })), { level: 9 }).toString('base64') + '\n';
-  await fs.writeFile(path.join(own, 'RAW-v3.json.gz.base64'), encoded, { flag: 'wx' });
+  await fs.writeFile(path.join(own, 'RAW-v4.json.gz.base64'), encoded, { flag: 'wx' });
   const summary = { candidate: receipt.candidate, status: receipt.status, pack: receipt.pack?.sha256, phases: receipt.phases.map(row => ({ layout: row.layout, script: row.script, summary: row.summary })), failures: receipt.failures, setupOrControlFailure: receipt.setupOrControlFailure, typeGroups: receipt.types.length, typePass: receipt.types.filter(row => row.pass).length, controls: receipt.controls, cleanup: receipt.cleanup, elapsedMilliseconds: receipt.elapsedMilliseconds, rawSha256: sha(Buffer.from(encoded)) };
-  await fs.writeFile(path.join(own, 'RESULT-v3.json'), JSON.stringify(summary, null, 2) + '\n', { flag: 'wx' });
+  await fs.writeFile(path.join(own, 'RESULT-v4.json'), JSON.stringify(summary, null, 2) + '\n', { flag: 'wx' });
   console.log(JSON.stringify(summary));
   if (receipt.status !== 'AUTHOR_SCOPED_PASS') process.exitCode = 1;
 }

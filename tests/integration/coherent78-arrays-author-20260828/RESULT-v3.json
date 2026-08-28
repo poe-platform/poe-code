@@ -1,0 +1,55 @@
+{
+  "candidate": "d111e5bf1f53aff16c5d4112e9ead2e025d6464f",
+  "status": "FAILED_OR_INCOMPLETE",
+  "pack": "f5152eaeaaeb78aff350a86d55f67905c2caab900ba2f45b1869da6498e1e956",
+  "phases": [
+    {
+      "layout": "moved",
+      "script": "probe.mjs",
+      "summary": {
+        "layout": "moved-probe.mjs",
+        "profile": "root-approved-v2",
+        "cases": 19,
+        "positives": 18,
+        "positivePass": 18,
+        "refusalControls": 1,
+        "refusalPass": 1,
+        "pass": 19,
+        "failed": [],
+        "created": 21,
+        "disposed": 21,
+        "forbiddenNetwork": 0,
+        "nativeRuns": 0,
+        "privateSafeJsRuns": 0
+      }
+    },
+    {
+      "layout": "moved",
+      "script": "arrays.mjs",
+      "summary": {
+        "profile": "coherent78-array-author-v1",
+        "cases": 12,
+        "pass": 12,
+        "disposed": 12
+      }
+    }
+  ],
+  "failures": [],
+  "setupOrControlFailure": {
+    "message": "EEXIST: file already exists, open '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-qiglX1/physically moved consumer/consumer-positive.ts'",
+    "stack": "Error: EEXIST: file already exists, open '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-qiglX1/physically moved consumer/consumer-positive.ts'\n    at async open (node:internal/fs/promises:639:25)\n    at async Object.writeFile (node:internal/fs/promises:1219:14)\n    at async write (file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-author-20260828/run.mjs:35:3)\n    at async types (file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-author-20260828/run.mjs:105:5)\n    at async layout (file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-author-20260828/run.mjs:135:3)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-author-20260828/run.mjs:205:3"
+  },
+  "typeGroups": 6,
+  "typePass": 6,
+  "controls": [],
+  "cleanup": {
+    "directChildren": 9,
+    "closed": 9,
+    "active": 0,
+    "signals": [],
+    "scratchRetained": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-qiglX1",
+    "noForeignCleanup": true
+  },
+  "elapsedMilliseconds": 5892,
+  "rawSha256": "7e903844979ab00dd8ee40d420cbe37f9ddba4c37ec6b779bdbca7774aaf5fce"
+}

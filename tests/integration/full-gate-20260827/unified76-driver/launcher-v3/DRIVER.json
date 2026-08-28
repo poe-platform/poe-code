@@ -1,6 +1,6 @@
 {
-  "schema": 4,
-  "createdAt": "2026-08-28T02:59:18.789Z",
+  "schema": 5,
+  "createdAt": "2026-08-28T03:12:27.451Z",
   "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
   "tree": "5687cbdebc46ec6d3618d32072c4de708118b9bb",
   "files": {
@@ -19,7 +19,7 @@
     "supervise.mjs": "0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55",
     "execute.mjs": "b43c65b692d24dafccabd8be386eb9298df70a0d5112ebed32b6078626f4b9c7",
     "policy.mjs": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
-    "transport.mjs": "8896ffaac13bf66f81c7742b28d578c7aa719ce9d20724b4bb3dc4ee8d133404",
+    "transport.mjs": "c115efe4a62c850868ddee551f5dca535c971fd0636074b21b359565f6bb6e5d",
     "external.mjs": "c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da",
     "external-admission.mjs": "7ac803044ae4fcc44c77244de136c1e010feecd5e0b73043f7fe863fad2615e1",
     "built-consumers.mjs": "ee133c167e94513af7f42b5f4fa875c27b2079311a5597e358e789faa30048d8",
@@ -37,7 +37,7 @@
   },
   "wholeGateLaunched": false,
   "qualification": "Versioned integrated launcher for review only; explicit root release and independent driver acceptance required.",
-  "previousSource": "2713defc1f53a00dd975931946de4782a980836d",
-  "previousDriverSha256": "3a3019e02830baf599f7df46c938c44552067d160819e548688ccf6027a1441c",
-  "scope": "Version4 shared build/type review and explicit outer transport observer; product/profile unchanged; full gate still release-gated"
+  "previousSource": "b0ee7234b915ce1ac45aa6db6d087dc3430ea21f",
+  "previousDriverSha256": "4624ffcbafa470f21c6d122adc3e75a1c20744f8b75d80839f4e69eebcf3d0a1",
+  "scope": "Version5 pinned POSIX literal-backslash filename admission only; candidate/profile/other guards unchanged"
 }

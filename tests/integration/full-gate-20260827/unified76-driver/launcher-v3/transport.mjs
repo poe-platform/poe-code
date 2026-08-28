@@ -8,14 +8,19 @@ import {pipeline} from 'node:stream/promises';
 import {setTimeout as delay} from 'node:timers/promises';
 import {BOUNDS,enforceCharge} from './policy.mjs';
 
+export const ARCHIVE_PATH_PROFILE=Object.freeze({platform:'darwin',arch:'arm64',syntax:'posix',separator:'/'});
+
 export function cleanGitEnvironment(environment){
   const result=Object.fromEntries(Object.entries(environment).filter(([key])=>!key.startsWith('GIT_')));
   return{...result,GIT_CONFIG_NOSYSTEM:'1',GIT_CONFIG_GLOBAL:'/dev/null',GIT_ATTR_NOSYSTEM:'1',GIT_NO_REPLACE_OBJECTS:'1',GIT_OPTIONAL_LOCKS:'0',GIT_TERMINAL_PROMPT:'0',GIT_CONFIG_COUNT:'1',GIT_CONFIG_KEY_0:'core.hooksPath',GIT_CONFIG_VALUE_0:'/dev/null'};
 }
-export function validateEntries(entries,bounds=BOUNDS){
+export function validateEntries(entries,bounds=BOUNDS,pathProfile=ARCHIVE_PATH_PROFILE){
+  assert.deepEqual(pathProfile,ARCHIVE_PATH_PROFILE,'only the pinned POSIX archive path profile is supported');
+  assert.equal(process.platform,pathProfile.platform,'archive extraction host is outside the pinned POSIX profile');
+  assert.equal(process.arch,pathProfile.arch,'archive extraction architecture is outside the pinned profile');
   assert.equal(entries.length,bounds.archiveEntries);const seen=new Set();let bytes=0;
   for(const entry of entries){
-    assert.ok(typeof entry.path==='string'&&entry.path.length>0&&!entry.path.includes('\0')&&!entry.path.includes('\\'));
+    assert.ok(typeof entry.path==='string'&&entry.path.length>0&&!entry.path.includes('\0'));
     assert.ok(!posix.isAbsolute(entry.path)&&entry.path===posix.normalize(entry.path)&&!entry.path.split('/').some(part=>part==='..'||part==='.git'));
     assert.ok(!seen.has(entry.path));seen.add(entry.path);assert.ok(['100644','100755','120000'].includes(entry.mode));assert.match(entry.blob,/^[a-f0-9]{40}$/u);
     bytes=enforceCharge(bytes,entry.bytes,bounds.archiveBytes);
@@ -54,8 +59,8 @@ class Reader{
   async line(){const bytes=[];for(let count=0;count<256;count++){const byte=(await this.take(1))[0];if(byte===10)return Buffer.from(bytes).toString();bytes.push(byte);}throw Error('oversized Git batch header');}
   async end(){assert.equal(this.offset,this.chunk.length,'unexpected buffered Git output');assert.equal((await this.iterator.next()).done,true,'unexpected trailing Git output');}
 }
-export async function extractCommitted({git,repository,candidate,entries,destination,environment,bounds=BOUNDS,observer}){
-  validateEntries(entries,bounds);
+export async function extractCommitted({git,repository,candidate,entries,destination,environment,bounds=BOUNDS,observer,pathProfile=ARCHIVE_PATH_PROFILE}){
+  validateEntries(entries,bounds,pathProfile);
   const process=managed(git,['--no-replace-objects','cat-file','--batch'],{cwd:repository,env:cleanGitEnvironment(environment),observer});
   const reader=new Reader(process.child.stdout);const hashes={};let written=0;
   try{

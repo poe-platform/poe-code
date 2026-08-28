@@ -1,0 +1,5 @@
+{"phase":"installed-node22","targets":4,"controls":55,"held":false,"failures":0}
+{"phase":"installed-node24","targets":8,"controls":58,"held":false,"failures":0}
+{"phase":"moved-node22","targets":12,"controls":61,"held":false,"failures":0}
+{"phase":"moved-node24","targets":16,"controls":64,"held":false,"failures":0}
+{"phase":"entry-settled","status":"TARGETS_QUALIFIED","counts":{"targets":16,"targetPass":16,"targetFail":0,"targetUnrun":0,"controls":64,"controlsPass":64,"controlsFail":0,"controlsUnrun":0,"children":28,"naturalChildren":28,"forcedChildren":0,"workers":0,"checks":59},"post":true,"audit":{"status":"pass","entries":185,"bytes":12300813,"archive":{"path":"RAW.jsonl.gz","bytes":2771559,"sha256":"0a56848b4c36600f5d50066e75e1daddb3a5ba623337d94259ce5b01a50e0e50"}}}

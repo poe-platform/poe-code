@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, chmodSync, realpathSync, renameSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, chmodSync, realpathSync, renameSync, symlinkSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
@@ -49,6 +49,7 @@ export function stageBaseline(revision, label) {
   const finalPackage = join(moved, 'node_modules/virtual-bash'), finalHarness = join(moved, 'harness');
   assertInventory(finalPackage, binding.package.members);
   const scratchRoot = join(work, 'vfs-scratch'); mkdirSync(scratchRoot);
+  prepareRealFixture(scratchRoot, 'baseline');
   const manifest = {
     kind: 'dotglob-stack-baseline-calibration-v1', acceptedComposition: binding.acceptedComposition, packageSha256: binding.package.sha256,
     dotglobCandidate: null, node: binding.node, packageRoot: finalPackage, harnessRoot: finalHarness, scratchRoot,
@@ -60,4 +61,12 @@ export function stageBaseline(revision, label) {
   };
   const manifestPath = join(work, 'manifest.json'); save(manifestPath, manifest);
   return { work, moved, packageRoot: finalPackage, harnessRoot: finalHarness, binding, manifest, manifestPath, manifestSha256: hash(readFileSync(manifestPath)), archiveSha256: hash(archive), preparationRevision: revision, movedFrom: initial };
+}
+
+export function prepareRealFixture(scratchRoot, label) {
+  assert.match(label, /^[a-z0-9-]+$/u);
+  const owned = join(scratchRoot, label), root = join(owned, 'root');
+  mkdirSync(root, { recursive: true });
+  writeFileSync(join(owned, 'outside.txt'), 'owned-outside-sentinel', { flag: 'wx' });
+  symlinkSync('../outside.txt', join(root, 'escape'));
 }

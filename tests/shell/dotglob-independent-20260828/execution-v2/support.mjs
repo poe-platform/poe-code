@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync, mkdirSync, writeFileSync, symlinkSync } from 'node:fs';
+import { readFileSync, lstatSync, readlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { fixture, exactResult, commandCase } from '../execution-prep-v1/cohorts.mjs';
 import { cases, quote } from '../execution-prep-v1/plan.mjs';
@@ -58,6 +58,14 @@ export function watchBuiltin(Runtime, resources, name = 'shopt') {
       assert.equal(setter.state[changed[0]], true, 'enabled boolean not rolled back after later failure');
       return { field: changed[0], enabled: setter.state[changed[0]] };
     },
+    enabledState(item = records.at(-1)) {
+      const setter = records.find(value => value.status === 0 && value.args.includes('-s') && value.args.includes('dotglob'));
+      assert.ok(setter); assert.ok(item);
+      const changed = Object.keys(setter.after).filter(key => setter.before[key] === false && setter.after[key] === true);
+      assert.equal(changed.length, 1);
+      assert.equal(typeof item.state[changed[0]], 'boolean');
+      return item.state[changed[0]];
+    },
   };
 }
 export function mergeEvents(events) {
@@ -97,9 +105,9 @@ export async function patternAbort(api, Runtime, resources, manifest, prefix = '
 export async function realFixture(api, resources, manifest, label) {
   assert.match(label, /^[a-z0-9-]+$/u);
   const owned = join(manifest.scratchRoot, label), root = join(owned, 'root');
-  mkdirSync(root, { recursive: true });
-  writeFileSync(join(owned, 'outside.txt'), 'owned-outside-sentinel');
-  symlinkSync('../outside.txt', join(root, 'escape'));
+  assert.ok(lstatSync(root).isDirectory(), 'parent-prepared owned RealFS fixture');
+  assert.equal(readlinkSync(join(root, 'escape')), '../outside.txt');
+  assert.equal(readFileSync(join(owned, 'outside.txt'), 'utf8'), 'owned-outside-sentinel');
   const fs = new api.RealFileSystem({ root });
   await fs.mkdir('/g');
   for (const name of ['visible', '.hidden', '..keep']) await fs.writeFile('/g/' + name, encode(name));

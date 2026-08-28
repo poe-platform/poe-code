@@ -6,6 +6,7 @@ import { hash, save, inventory } from '../execution-prep-v1/artifacts.mjs';
 import { assertInventory } from '../execution-prep-v1/admission.mjs';
 import { supervise, classify } from '../execution-prep-v1/protocol.mjs';
 import { calibrationIds } from './calibration.mjs';
+import { baselineGuards } from './baseline-guards.mjs';
 
 const revision = process.argv[2], label = process.argv[3];
 assert.match(revision ?? '', /^[a-f0-9]{40}$/u); assert.match(label ?? '', /^[a-z0-9-]+$/u);
@@ -27,7 +28,8 @@ try {
     result.runs.push({ role: mode === 'smoke' ? 'actual-package-allPASS-nonzero' : 'source-fallback-denial', run: child, classification: classified });
     if (child.failure || !child.groupAbsent) { infrastructureFailure = true; throw new Error('guard child cleanup/resource failure'); }
   }
-  const fixtures = [['positive', 'consumer.mts.fixture'], ['negative-option', 'negative-option.mts.fixture'], ['negative-api', 'negative-api.mts.fixture'], ['option-inversion', 'negative-option.mts.fixture'], ['api-inversion', 'negative-api.mts.fixture']];
+  result.guards = await baselineGuards(stage, flags, env, worker);
+  const fixtures = [['positive-v2', 'execution-v2/consumer-v2.mts.fixture'], ['negative-option', 'negative-option.mts.fixture'], ['negative-api', 'negative-api.mts.fixture'], ['option-inversion', 'negative-option.mts.fixture'], ['api-inversion', 'negative-api.mts.fixture']];
   for (const [id, name] of fixtures) {
     let text = readFileSync(join(stage.harnessRoot, name), 'utf8');
     if (id === 'option-inversion') text = text.replace(', dotglob: true', '');
@@ -42,7 +44,7 @@ try {
   assert.deepEqual(Object.keys(after).filter(name => !Object.hasOwn(before, name)).sort(), fixtures.map(([id]) => id + '.mts').sort(), 'only five admitted type-consumer additions');
   assertInventory(stage.packageRoot, binding.package.members);
   result.after = after;
-} catch (error) { result.error = String(error?.stack ?? error); }
+} catch (error) { infrastructureFailure ||= error?.infrastructureFailure === true; result.error = String(error?.stack ?? error); if (error?.results) result.guards = error.results; }
 finally {
   if (!infrastructureFailure) { rmSync(stage.work, { recursive: true, force: true }); result.cleanup = { exactOwnedRootRemoved: stage.work, absent: !existsSync(stage.work) }; }
   else result.cleanup = { retainedForInspection: stage.work, noFurtherExecution: true };

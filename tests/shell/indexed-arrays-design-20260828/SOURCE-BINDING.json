@@ -1,0 +1,37 @@
+{
+  "schema": "indexed-arrays-read-only-design-v1",
+  "date": "2026-08-28",
+  "authority": "Current user accepts CD+LET; STACK remains independently reviewed, not accepted",
+  "observedHead": "b2baa225e134da0cc6510a147b73eeec2e1d1ce0",
+  "execution": { "product": 0, "nativeOracles": 0, "comparators": 0, "tests": 0, "importsOfProduct": 0 },
+  "composition": {
+    "base": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "cd": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+    "cdReview": "2585f78dcd5cfd2ea454977462c57b23f7044a12",
+    "cdFinalAudit": "192ab78b4202be5afc92ffc12a72816da98ddfe0",
+    "providerBlobsRevision": "ca1d33424b94a21ae0f40a36412fd8191611e2df",
+    "let": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+    "letReview": "08b0553148afdfdb95edd722a2cdd7f63935d470",
+    "selectedInputs": 265,
+    "publishedFull846PackageSha256": "21c4858e6e4b857cd5e0d526159667621bcd206b4f1fd1ce1f84b54ad7abbace",
+    "qualification": "Published selected composition, not full Git archive; package was not opened/reexecuted here",
+    "pendingStack": "3e4cd743f1d4d2302b6b58a337740b3fde68462a"
+  },
+  "receipts": [
+    { "path": "docs/PROJECT_LEDGER.md", "sha256AtRead": "605eacf69fcc15c9665f0b73152c08ea219453f8e01d02f1d7151215c1da0b80", "anchors": [3005, 3061, 3075] },
+    { "path": "tests/shell/let-independent-20260828/BINDINGS.json", "sha256": "d18b2eea4819cdf65d7d10a171faae9e87a63e83670b86a66ea92646ac3e1cb8" },
+    { "path": "tests/shell/let-independent-20260828/candidate-review-v1/BINDINGS.json", "sha256": "e39468831869a38b51135a66e2e5381f463fed7d4bdba29ba2b78ed41fd8e2ea" },
+    { "path": "tests/shell/let-independent-20260828/final-review/HANDOFF.md", "sha256": "59060e7fcd3fbe3b7213f7ef510b68850acfcc44ee90bfd422d9c4c49a8e83df" }
+  ],
+  "sources": [
+    { "path": "src/shell/runtime.ts", "revision": "c26892c3a1a419311c9cf46a6c2976e696e00624", "sha256": "eb4588578001136b8ac011c1c458079b0c8a9f07e653938836d342dff052e193", "hashMethod": "git show bytes piped to builtin node:crypto", "liveSha256AtRead": "12b2ebdc006ba36159eb81149498cba65ba65d4efc014ce076ae13dc1c4ba419" },
+    { "path": "src/shell/parser.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e", "liveMatchesPublishedHash": true },
+    { "path": "src/shell/arithmetic.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd", "liveMatchesPublishedHash": true },
+    { "path": "src/shell/shell.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24", "liveSha256AtRead": "59e5f9dfac10ada26bc4d836ea78aabd998c8f269e467dd17ffe316ffc047018" },
+    { "path": "src/shell/input.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32", "liveMatchesPublishedHash": true },
+    { "path": "src/shell/types.ts", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990", "liveMatchesPublishedHash": true },
+    { "path": "src/contracts/command.md", "revision": "5137a74ec855a32d8a8860eb66b62eb44d11e290", "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6", "liveMatchesPublishedHash": true }
+  ],
+  "sourceQualification": "Non-runtime accepted digests are published inventory values; blobs were read with git show and live bytes hashed for comparison. This is not a fresh complete 265-input or artifact integrity audit.",
+  "futureBindingPrerequisite": "Root must explicitly select accepted shell composition plus any subsequently accepted STACK integration and exact source/test/consumer inventory before product GO; mixed HEAD is not the accepted baseline."
+}

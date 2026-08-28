@@ -30,6 +30,11 @@ export function runtimeEntries(tree) {
   return result;
 }
 
+export function assertFullPackage(files, readme) {
+  assert.equal(Object.keys(files).length, 870, 'Complete package must have 870 files');
+  assert.deepEqual(files['README.md'], { sha256: readme.sha256, bytes: readme.bytes, mode: readme.mode }, 'Complete baseline README identity');
+}
+
 export function validateEnvelope(root, expectedSeal, pins) {
   assert(root && root.schema === 1 && root.purpose === 'YQ_COMPOUND_AFTER_ROOT_PRESEAL' && root.execute === true, 'Missing root execution authorization');
   const keys = ['schema', 'purpose', 'execute', 'rootApproval', 'integrationSealSha256', 'authorSourceCommit', 'consumerCandidateCommit', 'sourceBase', 'acceptedLength', 'rootSourceCompositionAccepted', 'consumerReceipt', 'admissionReceipt', 'frameworkReviewReceipt', 'sourceArchive', 'packageArchive', 'archiveSourceRoot', 'consumerSourceRoot', 'packageRoot', 'outputParent', 'buildProof'];

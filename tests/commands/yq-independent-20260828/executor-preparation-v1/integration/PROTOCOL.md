@@ -7,7 +7,7 @@ Implemented Through: Not applicable
 Purpose: Compose the two immutable executor components without changing their
 contracts, expanding YQ policy or authorizing a product run during preparation.
 
-## Normative Language, Goals and Boundary
+## Normative Language
 
 MUST/MUST NOT apply to this binding recipe. Original runtime and consumers trees
 are read-only. Only new `integration/**` and the framework coordination README
@@ -16,6 +16,16 @@ are owned. This recipe MUST preserve the 194 IDs, eight overlays, semantic
 Root MUST supply a later independently hashed execution envelope, accepted
 admission/review receipts and exact candidate paths before execution. Merely
 finding an unsealed worker artifact or mutable HEAD is not authorization.
+
+## Problem Statement
+
+The two sealed components use different source/provenance, tree-hash and
+materialization interfaces. This wrapper must bind them without silent bypass.
+
+## Goals and Non-Goals
+
+Prepare a functional deferred composition and preserve honest proof routing.
+Do not execute a product, replace a sealed component, or add semantic breadth.
 
 ## Interfaces and Configuration
 
@@ -77,7 +87,7 @@ Materialization is explicit and physically moved via the enrolled consumer API.
 No foreign kill, escaped-descendant proof, implicit host VFS/network, or security
 sandbox is claimed. Preload harness imports before the exclusive consumer hook.
 
-## Validation Matrix and Conformance
+## Test and Validation Matrix
 
 `core/SYNTHETIC.json` predeclares only composition controls: schema/hash refusal,
 source-view mismatch, complete README/package maps, pure tree/hash translation,
@@ -86,6 +96,8 @@ routing. Seal fixture/helper source before these data-only checks. No candidate
 code is imported, built, typechecked or run during checks. Both component seals
 are checked before and after. Prior runtime 15-control evidence is not the
 different reviewer's acceptance of this compound recipe.
+
+## Conformance Criteria
 
 Completion means a sealed deferred interface, passing scoped synthetic/data
 checks, truthful incompatibility/gap record and root handoff. Public admission

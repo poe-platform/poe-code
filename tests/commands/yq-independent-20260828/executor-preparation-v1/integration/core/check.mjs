@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { chmodSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { loadComponents, coreRoot, framework, hash, jsonHash, readJson } from './components.mjs';
-import { continuation, directoryMap, runtimeEntries, translateRuntime, validateEnvelope } from './translation.mjs';
+import { assertFullPackage, continuation, runtimeEntries, translateRuntime, validateEnvelope } from './translation.mjs';
 
 const components = await loadComponents();
 const { pins, recipe, runtime, guards, types } = components;
@@ -61,7 +61,10 @@ const controls = {
     delete baseline['README.md'];
     assert.throws(() => guards.expectedPackage({}, baseline, readJson(join(framework, 'consumers/SELECTED.json')).readme), /README_IDENTITY/);
   },
-  'package-count-not-870': () => { const count = 846 + 6 * 4; assert.equal(count, 870); assert.notEqual(count - 1, 870); },
+  'package-count-not-870': () => {
+    const files = Object.fromEntries(Array.from({ length: 869 }, (_, index) => [`fixture-${index}`, {}]));
+    assert.throws(() => assertFullPackage(files, {}), /870 files/);
+  },
   'source-addition-mismatch': () => assert.throws(() => guards.assertSourceMap({ 'src/commands/yq/fake.ts': { sha256: syntheticHash } }, {}), /SOURCE_BINDING/),
   'negative-type-diagnostic-match': () => assert.equal(types.classifyCompilerOutcome(negativeJob, compilerRaw, compilerFiles).classification, 'ACCEPTED_COMPILE_REJECTION'),
   'negative-type-wrong-diagnostic': () => assert.throws(() => types.classifyCompilerOutcome(negativeJob, { ...compilerRaw, stdout: compilerRaw.stdout.replace('TS2554', 'TS2307') }, compilerFiles), /COMPILER_DIAGNOSTICS/),

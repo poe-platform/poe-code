@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { lstatSync } from 'node:fs';
 import { join } from 'node:path';
 import { coreRoot, framework, hash, loadComponents, readBound, readJson, repository, verifyIntegration } from './components.mjs';
-import { directoryMap, runtimeEntries, validateEnvelope } from './translation.mjs';
+import { assertFullPackage, directoryMap, runtimeEntries, validateEnvelope } from './translation.mjs';
 
 const omittedTestData = [
   'tests/commands/structured-stress/harness.ts', 'tests/commands/structured-stress/join-safety.test.ts',
@@ -44,8 +44,7 @@ export async function bind(rootPath, rootHash, sealPath, sealHash) {
   const sourceTree = { files: sourceFiles, directories: directoryMap(sourceFiles) };
   const archiveTree = { files: archiveFiles, directories: directoryMap(archiveFiles) };
   const packageTree = guards.expectedPackage(receipt, baselinePackage, selected.readme);
-  assert.equal(Object.keys(packageTree.files).length, 870, 'Complete package must have 870 files');
-  assert.deepEqual(packageTree.files['README.md'], { sha256: selected.readme.sha256, bytes: selected.readme.bytes, mode: selected.readme.mode });
+  assertFullPackage(packageTree.files, selected.readme);
   assert.equal(receipt.entries.yq, 'dist/commands/yq/index.js');
   assert.equal(packageTree.files[receipt.entries.yq].sha256, pins.author.entrySha256);
   const builtins = new Set(['node:path', 'node:util', 'node:buffer', 'node:stream', 'node:stream/web']);

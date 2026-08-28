@@ -146,7 +146,7 @@ try {
   }
 } catch (error) { aggregate = 'FAIL'; stopped ??= `binding-or-execution: ${String(error)}`; }
 if (stopped || results.length !== recipe.bounds.maximumChildren || runtime.host.activeChildren().length) aggregate = 'FAIL';
-const summary = { schema: 1, aggregate, stopped, rootHash, sealHash, results, activeChildren: runtime.host.activeChildren(), uniqueOriginalIds: 194, semanticEligibility: recipe.semantic, missingBindings: recipe.missingBindings, publicStatus: 'PUBLIC_EXPORT_GAP', buildProofClassification: bound.root.buildProof.classification, semanticPassRate: 'Not computed: two environments are not additive; 80 original binding gaps remain.', productAcceptance: false };
+const summary = { schema: 1, aggregate, stopped, rootHash, sealHash, results, activeChildren: runtime.host.activeChildren(), uniqueOriginalIds: 194, semanticEligibility: { eligibleIds: 111, completeExplicitProjectionIds: 94, partialIds: 17 }, runtimeChildAdmissions: results.filter((result) => ['original-runtime', 'moved-runtime'].includes(result.mode)).reduce((sum, result) => sum + result.admitted, 0), missingBindings: recipe.missingBindings, publicStatus: 'PUBLIC_EXPORT_GAP', buildProofClassification: bound.root.buildProof.classification, semanticPassRate: 'Not computed: two environments are not additive; 80 original binding gaps remain.', productAcceptance: false };
 runtime.integrity.atomicJson(join(runRoot, 'COMPOUND-RESULT.json'), summary);
 console.log(JSON.stringify({ aggregate, stopped, evidence: runRoot, children: results.length, activeChildren: summary.activeChildren }));
 process.exitCode = aggregate === 'PASS' ? 0 : 1;

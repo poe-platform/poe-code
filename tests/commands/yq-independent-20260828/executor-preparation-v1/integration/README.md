@@ -141,7 +141,7 @@ builtins; an additional necessary builtin is an explicit new-version gap.
 - `components.mjs`: `verifyIntegration`, `loadComponents`, raw hash/read helpers.
   It authenticates the consumer verifier before importing guards/type helpers
   and verifies both immutable recipes before/after use.
-- `translation.mjs`: `directoryMap`, `runtimeEntries`, `validateEnvelope`,
+- `translation.mjs`: `directoryMap`, `runtimeEntries`, `assertFullPackage`, `validateEnvelope`,
   `translateRuntime`, `continuation`. These are harness data helpers, not product
   exports or private query injection.
 - `binding.mjs`: `bind` validates exact receipts/maps/artifacts/paths;

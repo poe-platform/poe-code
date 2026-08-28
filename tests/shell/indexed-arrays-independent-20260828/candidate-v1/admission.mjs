@@ -7,6 +7,7 @@ import { gunzipSync } from 'node:zlib';
 import { census, digest, tarInventory, verifyProjection, verifyTree } from '../executor-v1/boundary.mjs';
 import { supervise } from '../executor-v1/supervisor.mjs';
 import { runTypes, typeCases } from '../executor-v1/types.mjs';
+import { verifyTool } from './npm-tool.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../../../..');
@@ -56,11 +57,17 @@ for (const tool of toolBinding.typeTools) {
   assert.deepEqual(Object.fromEntries(Object.entries(actual).filter(([, item]) => !item.directory)), tool.inventory.files);
 }
 const npmRoot = path.resolve(path.dirname(node.path), '../lib/node_modules/npm');
-const npmTree = { root: npmRoot, entries: census(npmRoot) };
+const npmInventory = fs.readFileSync(path.join(here, 'NPM-TOOL-INVENTORY.json.gz.base64'));
+assert.equal(digest(npmInventory), '5623653d01886efdbb55e5a4c6b387ba8af00e4b4673740caf23a482ce473af4');
+const npmDecoded = gunzipSync(Buffer.from(npmInventory.toString().trim(), 'base64'), { maxOutputLength: 2 * 1024 * 1024 });
+assert.equal(digest(npmDecoded), '1a09d4358a33e162bcc6fc260258d70089a0acdc463d0b0dac56f3f232dcf4ce');
+const npmTree = verifyTool(JSON.parse(npmDecoded));
+assert.equal(npmTree.root, npmRoot);
 const npmCLI = path.join(npmRoot, 'bin/npm-cli.js');
-assert.ok(npmTree.entries['bin/npm-cli.js']);
+assert.equal(npmTree.entries.find(entry => entry.path === 'bin/npm-cli.js').sha256, '8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7');
 const work = fs.mkdtempSync(path.join(here, 'admission-'));
 const report = { kind: 'array-independent-candidate-admission-v1', candidate, product, evidence, reviewerScriptSha256: digest(fs.readFileSync(fileURLToPath(import.meta.url))), rootReceipt: git('rev-parse', rootReceipt).toString().trim(), node, work, sourceProjection, sourceProjectionSha256: projection.projectionSha256, commands: [], types: [], accepted: false, productRuntimeImports: 0, nativeCalls: 0 };
+report.npmTool = { root: npmRoot, version: '10.9.7', inventorySha256: digest(npmDecoded), linkCount: npmTree.links.length, validatorSha256: digest(fs.readFileSync(path.join(here, 'npm-tool.mjs'))) };
 const sourceRoot = path.join(work, 'source');
 const buildRoot = path.join(work, 'build');
 const artifacts = path.join(work, 'artifacts');
@@ -81,8 +88,10 @@ function copyTool(tool, destination) {
   }
 }
 async function command(label, args, cwd, timeoutMs = 120000) {
+  verifyTool(npmTree); assert.equal(digest(fs.readFileSync(node.path)), node.sha256);
   const run = await supervise(node.path, args, { cwd, env: { PATH: path.dirname(node.path), HOME: path.join(work, 'home'), TMPDIR: work, LC_ALL: 'C', TZ: 'UTC', npm_config_cache: path.join(work, 'cache') }, timeoutMs, maxBytes: 2 * 1024 * 1024 });
   report.commands.push({ label, args, cwd, run });
+  verifyTool(npmTree); assert.equal(digest(fs.readFileSync(node.path)), node.sha256);
   assert.ok(run.closeObserved && run.groupAbsent && !run.fault && !run.signal && !run.spawnError, `${label}: unsafe child`);
   assert.equal(run.code, 0, `${label}: ${run.stderr}`); return run;
 }
@@ -112,7 +121,7 @@ try {
   await command('selected-production-build', [compiler, '-p', 'tsconfig.build.json'], buildRoot);
   verifyTree(sourceTree);
   const pack = await command('fresh-full-package', [npmCLI, 'pack', '--ignore-scripts', '--offline', '--json', '--pack-destination', artifacts], buildRoot);
-  verifyTree(npmTree);
+  verifyTool(npmTree);
   const packageTar = path.join(artifacts, JSON.parse(pack.stdout)[0].filename);
   const packed = fs.readFileSync(packageTar); report.package = { path: packageTar, sha256: digest(packed), files: Object.keys(tarInventory(packed)).length };
   assert.equal(report.package.sha256, digest(authorTar), 'fresh full package exactly root-selected author artifact');
@@ -138,7 +147,7 @@ try {
   report.accepted = report.types.length === 9 && report.types.every(row => row.accepted);
   report.sourceTree = sourceTree; report.typeTrees = typeTrees; report.packageRoot = packageRoot; report.harnessRoot = harness; report.tools = tools;
   report.unapprovedAstChanges = [];
-  verifyTree(sourceTree); verifyTree(npmTree);
+  verifyTree(sourceTree); verifyTool(npmTree);
 } catch (error) { report.error = String(error?.stack ?? error); }
 const output = Buffer.from(JSON.stringify(report));
 assert.ok(output.length <= 24 * 1024 * 1024);

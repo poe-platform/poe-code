@@ -1,5 +1,5 @@
 import {
-  ACCESS_MODES, composeMiddleware, createBytePipe, pipeBytes, resolvePath, toByteSource, validateExitCode, writeText,
+  ACCESS_MODES, FsError, composeMiddleware, createBytePipe, pipeBytes, resolvePath, toByteSource, validateExitCode, writeText,
 } from "../contracts/index.js";
 import type {
   ByteSink, ByteSource, CommandContext, CommandInvoker, CommandRegistry, CommandResult, FileSystem, Middleware,
@@ -338,6 +338,123 @@ function filesystemDiagnostic(error: unknown, target: string): string | undefine
   const descriptions: Readonly<Record<string, string>> = { ENOENT: "No such file or directory", EACCES: "Permission denied", EPERM: "Operation not permitted", ENOTDIR: "Not a directory", EISDIR: "Is a directory", ELOOP: "Too many levels of symbolic links", ENOSPC: "No space left on device", EROFS: "Read-only file system" };
   const description = descriptions[errorCode(error) ?? ""];
   return description ? `${target}: ${description}` : undefined;
+}
+
+function cdUtf8Width(codePoint: number): number {
+  return codePoint <= 0x7f ? 1 : codePoint <= 0x7ff ? 2 : codePoint <= 0xffff ? 3 : 4;
+}
+
+function cdDiagnostic(fragments: readonly string[]): string {
+  const chunks: string[] = [];
+  let bytes = 0;
+  let suffixBoundary = 0;
+  let units = 0;
+  for (const fragment of fragments) {
+    let index = 0;
+    while (index < fragment.length) {
+      const codePoint = fragment.codePointAt(index)!;
+      const width = cdUtf8Width(codePoint);
+      if (bytes + width > 65_792) {
+        chunks.push(fragment.slice(0, index));
+        return `${chunks.join("").slice(0, suffixBoundary)} [truncated]`;
+      }
+      bytes += width;
+      const length = codePoint > 0xffff ? 2 : 1;
+      index += length;
+      units += length;
+      if (bytes <= 65_780) suffixBoundary = units;
+    }
+    chunks.push(fragment);
+  }
+  return chunks.join("");
+}
+
+class CdLookup {
+  private spent = 0;
+  private probes = 0;
+
+  constructor(private readonly signal: AbortSignal) {}
+
+  private async charge(amount: number): Promise<void> {
+    this.signal.throwIfAborted();
+    if (amount > 8_388_608 - this.spent) throw new Error("cd: helper work limit exceeded");
+    while (amount > 0) {
+      const step = Math.min(amount, 128 - this.spent % 128);
+      this.spent += step;
+      amount -= step;
+      if (this.spent % 128 === 0) {
+        this.signal.throwIfAborted();
+        await interruptible(new Promise<void>(resolve => setImmediate(resolve)), this.signal);
+        this.signal.throwIfAborted();
+      }
+    }
+  }
+
+  private async scan(value: string, search = false): Promise<{
+    bytes: number; components: { start: number; end: number; bytes: number }[];
+  }> {
+    let bytes = 0;
+    let start = 0;
+    let startBytes = 0;
+    let slots = 1;
+    const components: { start: number; end: number; bytes: number }[] = [];
+    for (let index = 0; index < value.length;) {
+      const codePoint = value.codePointAt(index)!;
+      const width = cdUtf8Width(codePoint);
+      if (bytes + width > 65_536) throw new Error(search ? "cd: CDPATH exceeds 65536 UTF-8 bytes" : "cd: path exceeds 65536 UTF-8 bytes");
+      if (search && codePoint === 58 && ++slots > 4096) throw new Error("cd: CDPATH exceeds 4096 components");
+      await this.charge(width);
+      if (search && codePoint === 58) {
+        components.push({ start, end: index, bytes: bytes - startBytes });
+        start = index + 1;
+        startBytes = bytes + width;
+      }
+      bytes += width;
+      index += codePoint > 0xffff ? 2 : 1;
+    }
+    if (search) components.push({ start, end: value.length, bytes: bytes - startBytes });
+    return { bytes, components };
+  }
+
+  async find(fs: FileSystem, cwd: string, target: string, cdpath: string | undefined): Promise<{ path: string; print: boolean }> {
+    const targetBytes = (await this.scan(target)).bytes;
+    const absolute = target.startsWith("/");
+    const cwdBytes = absolute ? 0 : (await this.scan(cwd)).bytes;
+    const eligible = !absolute && target !== "." && target !== ".." && !target.startsWith("./") && !target.startsWith("../");
+    const search = eligible && cdpath ? await this.scan(cdpath, true) : undefined;
+    const probe = async (component: string, componentBytes: number): Promise<string> => {
+      const rawBytes = absolute ? targetBytes : component.startsWith("/") ? componentBytes + 1 + targetBytes
+        : cwdBytes + 1 + (component ? componentBytes + 1 : 0) + targetBytes;
+      if (rawBytes > 65_536) throw new Error("cd: path exceeds 65536 UTF-8 bytes");
+      await this.charge(2 * rawBytes);
+      const raw = absolute ? target : component.startsWith("/") ? `${component}/${target}`
+        : component ? `${cwd}/${component}/${target}` : `${cwd}/${target}`;
+      const path = resolvePath(cwd, raw);
+      await this.scan(path);
+      this.signal.throwIfAborted();
+      if (++this.probes > 4097) throw new Error("cd: probe limit exceeded");
+      await this.charge(1);
+      this.signal.throwIfAborted();
+      const stat = await fs.stat(path, { signal: this.signal });
+      this.signal.throwIfAborted();
+      if (stat.type !== "directory") throw new FsError("ENOTDIR", { path });
+      await this.charge(1);
+      this.signal.throwIfAborted();
+      await fs.access(path, ACCESS_MODES.X_OK, { signal: this.signal });
+      this.signal.throwIfAborted();
+      return path;
+    };
+    for (const component of search?.components ?? []) {
+      try {
+        const path = await probe(cdpath!.slice(component.start, component.end), component.bytes);
+        return { path, print: component.start !== component.end };
+      } catch (error) {
+        this.signal.throwIfAborted();
+        if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EACCES"].includes(error.code)) throw error;
+      }
+    }
+    return { path: await probe("", 0), print: false };
+  }
 }
 
 const closedSink: ByteSink = { async write() { throw Object.assign(new Error("Bad file descriptor"), { code: "EBADF" }); } };
@@ -2096,23 +2213,27 @@ export class Runtime {
       return 0;
     }
     if (command === "cd") {
+      this.signal.throwIfAborted();
       if (args.length > 1) { await writeText(stderr, "cd: too many arguments\n"); return 1; }
       const target = args[0] === "-" ? state.variables.OLDPWD : (args[0] ?? state.variables.HOME);
       if (target === undefined) { await writeText(stderr, `cd: ${args[0] === "-" ? "OLDPWD" : "HOME"} not set\n`); return 1; }
-      const path = resolvePath(state.cwd, target || ".");
+      let selected: { path: string; print: boolean };
       try {
-        if ((await this.fs.stat(path, { signal: this.signal })).type !== "directory") throw new Error(`cd: ${target}: Not a directory`);
+        selected = await new CdLookup(this.signal).find(this.fs, state.cwd, target || ".", state.variables.CDPATH);
       } catch (error) {
-        const diagnostic = filesystemDiagnostic(error, `cd: ${target}`);
-        if (diagnostic) diagnose?.(error, diagnostic);
+        this.signal.throwIfAborted();
+        const description = filesystemDiagnostic(error, "");
+        diagnose?.(error, cdDiagnostic(description ? ["cd: ", target, description] : [message(error)]));
         throw error;
       }
+      this.signal.throwIfAborted();
+      const { path } = selected;
       this.writeVariable(state, "OLDPWD", state.cwd);
       state.cwd = path;
       this.writeVariable(state, "PWD", path);
       state.exported.add("PWD");
       state.exported.add("OLDPWD");
-      if (args[0] === "-") await writeText(stdout, `${path}\n`);
+      if (selected.print || args[0] === "-") await writeText(stdout, `${path}\n`);
       return 0;
     }
     if (command === "set") {

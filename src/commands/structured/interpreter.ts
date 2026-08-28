@@ -210,7 +210,11 @@ export class Interpreter {
     if (name === "length") {
       if (input === null) yield 0;
       else if (isNumber(input)) yield Math.abs(numberValue(input));
-      else if (typeof input === "string") yield Array.from(input).length;
+      else if (typeof input === "string") {
+        let length = 0;
+        for (const _ of input) length++;
+        yield length;
+      }
       else if (Array.isArray(input)) yield input.length;
       else if (isObject(input)) yield objectKeys(input).length;
       else throw new JqError("boolean has no length");

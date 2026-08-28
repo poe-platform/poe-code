@@ -1,0 +1,444 @@
+{
+  "schema": "independent-v3-data-synthetic-review",
+  "presealCommit": "ecae08ab0fba8a13669584293468e13d70bffe4f",
+  "freezeSha256": "70789abbc58c2b04cb15f56bf05b7e3d496a25b1750028297dde5fe40eaa32ba",
+  "recipeCommit": "e7f0981b9abfddb27d946c991e5860e30365166c",
+  "recipeSha256": "20e82f8030075adbd2772c54c534c3db5e6eec0fa641a72b0f2fa9d4cf372df8",
+  "checks": [
+    {
+      "id": "D01-exact-committed-recipe",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "D02-initial-inputs-match-frozen-git",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": {
+        "files": 146,
+        "recipeMembers": 80
+      }
+    },
+    {
+      "id": "D03-recursive-packet-membership",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "D04-author-composed-evidence-not-rerun",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": {
+        "authorDataSyntax": "51/51",
+        "authorDefects": "20/20",
+        "composedApplicable": "11/11",
+        "actualC11": "UNRUN",
+        "authorChildren": 19,
+        "originalFailuresRetained": true
+      }
+    },
+    {
+      "id": "D05-prior-review-bound-not-rerun",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": {
+        "path": "tests/comparison/breadth-continuation-independent-20260828/overlay-v2-review/README.md",
+        "bytes": 18835,
+        "mode": 420,
+        "sha256": "25f4d745b514a84e53970d3687f41be247924e7c378584dc53599572609c6528",
+        "commit": "a66683b5bf9b0274705f5f6e61ff1e35aee1db46",
+        "gitSha256": "25f4d745b514a84e53970d3687f41be247924e7c378584dc53599572609c6528"
+      }
+    },
+    {
+      "id": "D06-compressed-archives-hash-only",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": {
+        "targetIndexedMembers": 858,
+        "decompressed": false,
+        "staged": false
+      }
+    },
+    {
+      "id": "D07-complete-projection-metadata",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": {
+        "instructionContentReads": 0,
+        "assets": 29,
+        "targetMembers": 858,
+        "closureMembers": 3844
+      }
+    },
+    {
+      "id": "D08-preserved-counts-and-separate-setup",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "D09-moved-view-origin-metadata",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "D10-stage-data-hash-bound",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "D11-tools-hash-bound",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": [
+        {
+          "role": "node",
+          "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+        },
+        {
+          "role": "git",
+          "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+        }
+      ]
+    },
+    {
+      "id": "S01-F1-emit-rejection-still-disposes",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S02-F1-ordered-primary-and-secondary-errors",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S03-F1-null-primary-retained",
+      "expected": "assertions hold",
+      "pass": false,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ Error: secondary\n+     at emit (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:117:231)\n+     at phase (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs:27:45)\n+     at settle (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs:30:11)\n+     at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:117:152\n+     at async check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:56:29)\n+     at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:117:75\n- null\n",
+        "actual": {},
+        "expected": null,
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ Error: secondary\n+     at emit (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:117:231)\n+     at phase (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs:27:45)\n+     at settle (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs:30:11)\n+     at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:117:152\n+     at async check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:56:29)\n+     at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:117:75\n- null\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:117:293\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:56:29)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:117:75"
+      }
+    },
+    {
+      "id": "S03-F1-undefined-primary-retained",
+      "expected": "assertions hold",
+      "pass": false,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ Error: secondary\n+     at emit (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:117:231)\n+     at phase (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs:27:45)\n+     at settle (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs:30:11)\n+     at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:117:152\n+     at async check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:56:29)\n+     at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:117:75\n- undefined\n",
+        "actual": {},
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ Error: secondary\n+     at emit (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:117:231)\n+     at phase (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs:27:45)\n+     at settle (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v3/safety.mjs:30:11)\n+     at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:117:152\n+     at async check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:56:29)\n+     at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:117:75\n- undefined\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:117:293\n    at async check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:56:29)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:117:75"
+      }
+    },
+    {
+      "id": "S04-F2-before-stops-tail",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S04-F2-after-stops-tail",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S04-F2-unsafe-result-stops-tail",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S04-F2-action-stops-tail",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S05-F2-settled-assertion-may-continue",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S06-W03-shared-bytes-distinct-qualification",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S07-F3-malformed-receipts-cannot-qualify",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S08-W03-byte-status-filesystem-negatives",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S09-W07-no-bytes-inference",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S10-W07-receiver-and-semantic-phase",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S11-child-success-requires-all-exit-close-group-fields",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S12-complete-outcome-positive-model",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S13-outcome-rejects-missing-late",
+      "expected": "assertions hold",
+      "pass": false,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n\ntrue !== false\n",
+        "actual": true,
+        "expected": false,
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:137:208\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:56:35)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:137:10"
+      }
+    },
+    {
+      "id": "S13-outcome-rejects-late-error",
+      "expected": "assertions hold",
+      "pass": false,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n\ntrue !== false\n",
+        "actual": true,
+        "expected": false,
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:137:208\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:56:35)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:137:10"
+      }
+    },
+    {
+      "id": "S13-outcome-rejects-denied-load",
+      "expected": "assertions hold",
+      "pass": false,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n\ntrue !== false\n",
+        "actual": true,
+        "expected": false,
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:137:208\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:56:35)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:137:10"
+      }
+    },
+    {
+      "id": "S13-outcome-rejects-missing-post-guard",
+      "expected": "assertions hold",
+      "pass": false,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n\ntrue !== false\n",
+        "actual": true,
+        "expected": false,
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:137:208\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:56:35)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:137:10"
+      }
+    },
+    {
+      "id": "S13-outcome-rejects-execution-error",
+      "expected": "assertions hold",
+      "pass": false,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n\ntrue !== false\n",
+        "actual": true,
+        "expected": false,
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\ntrue !== false\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:137:208\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:56:35)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:137:10"
+      }
+    },
+    {
+      "id": "S14-admission-grant-cannot-admit-case-preimport",
+      "expected": "assertions hold",
+      "pass": false,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Missing expected exception.",
+        "stack": "AssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:150:77\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:56:35)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:150:7"
+      }
+    },
+    {
+      "id": "S15-cohort-grant-cannot-admit-C11-preimport",
+      "expected": "assertions hold",
+      "pass": false,
+      "error": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Missing expected exception.",
+        "stack": "AssertionError [ERR_ASSERTION]: Missing expected exception.\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:151:73\n    at check (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:56:35)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v3-review/review.mjs:151:7"
+      }
+    },
+    {
+      "id": "S16-transport-malformed-and-duplicate-final",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S17-transport-write-failure-latches-disposal",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S18-tree-extra-mode-symlink-negatives",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "S19-instruction-name-rejected-before-content",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "C-load",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "C-deny",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "C-late-rejection",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "C-output-overflow",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "D12-final-hashes-and-new-entry-check",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    },
+    {
+      "id": "D13-all-owned-children-closed",
+      "expected": "assertions hold",
+      "pass": true,
+      "observation": null
+    }
+  ],
+  "counts": {
+    "total": 44,
+    "passed": 35,
+    "failed": 9,
+    "data": 13,
+    "synthetic": 31
+  },
+  "children": [
+    {
+      "mode": "load",
+      "pid": 30490,
+      "reaped": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "natural": true
+    },
+    {
+      "mode": "deny",
+      "pid": 30491,
+      "reaped": true,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "natural": true
+    },
+    {
+      "mode": "late-rejection",
+      "pid": 30492,
+      "reaped": true,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "natural": false
+    },
+    {
+      "mode": "output-overflow",
+      "pid": 30494,
+      "reaped": true,
+      "exit": {
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "close": {
+        "code": null,
+        "signal": "SIGTERM"
+      },
+      "natural": false
+    }
+  ],
+  "activeChildren": 0,
+  "execution": {
+    "product": 0,
+    "comparator": 0,
+    "native": 0,
+    "actualC11": 0,
+    "staging": 0,
+    "engineImports": 0,
+    "originalCohortsRerun": 0
+  },
+  "workerPrefixSha256": "ddd1fd0b3b0cf7c15e55f2b8aeb9b7d1348eb22df12adf77bb2e6fcbcce299fc",
+  "outcomeMutationScope": "Assessor boundary coherence; not evidence of contradictory actual worker output.",
+  "phaseModelScope": "Exact preimport worker prefix with fake trusted dependencies; no authority grant or engine import."
+}

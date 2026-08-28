@@ -1,0 +1,120 @@
+{
+  "pid": 30490,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "reaped": true,
+  "failures": [],
+  "signals": [],
+  "records": [
+    {
+      "sequence": 0,
+      "kind": "asset-read",
+      "path": "entry.mjs",
+      "bytes": 180,
+      "sha256": "c5d1c3c1d29f49fa7f51e2d90a7bb6d421c6dfcec3cd7f247e430140a9c8e257"
+    },
+    {
+      "sequence": 1,
+      "kind": "nextLoad",
+      "path": "entry.mjs",
+      "format": "module",
+      "bytes": 180,
+      "sha256": "c5d1c3c1d29f49fa7f51e2d90a7bb6d421c6dfcec3cd7f247e430140a9c8e257",
+      "evaluationProven": false,
+      "origin": "actual-nextLoad-source"
+    },
+    {
+      "sequence": 2,
+      "kind": "asset-read",
+      "path": "value.cjs",
+      "bytes": 32,
+      "sha256": "43fdccd0f7ec64388eccf6f7b5a9810f207f0636fd48acf4495b70795f9a9016"
+    },
+    {
+      "sequence": 3,
+      "kind": "asset-read",
+      "path": "value.cjs",
+      "bytes": 32,
+      "sha256": "43fdccd0f7ec64388eccf6f7b5a9810f207f0636fd48acf4495b70795f9a9016"
+    },
+    {
+      "sequence": 4,
+      "kind": "nextLoad",
+      "path": "value.cjs",
+      "format": "commonjs",
+      "bytes": 32,
+      "sha256": "43fdccd0f7ec64388eccf6f7b5a9810f207f0636fd48acf4495b70795f9a9016",
+      "evaluationProven": false,
+      "origin": "actual-nextLoad-source"
+    },
+    {
+      "sequence": 5,
+      "kind": "final",
+      "report": {
+        "observation": {
+          "value": 73,
+          "fixtureOnly": true
+        },
+        "loads": [
+          {
+            "kind": "nextLoad",
+            "path": "entry.mjs",
+            "format": "module",
+            "bytes": 180,
+            "sha256": "c5d1c3c1d29f49fa7f51e2d90a7bb6d421c6dfcec3cd7f247e430140a9c8e257",
+            "evaluationProven": false,
+            "origin": "actual-nextLoad-source"
+          },
+          {
+            "kind": "nextLoad",
+            "path": "value.cjs",
+            "format": "commonjs",
+            "bytes": 32,
+            "sha256": "43fdccd0f7ec64388eccf6f7b5a9810f207f0636fd48acf4495b70795f9a9016",
+            "evaluationProven": false,
+            "origin": "actual-nextLoad-source"
+          }
+        ],
+        "resources": {
+          "pending": 0,
+          "descriptors": 0,
+          "violations": [],
+          "assets": [
+            {
+              "path": "entry.mjs",
+              "bytes": 180,
+              "sha256": "c5d1c3c1d29f49fa7f51e2d90a7bb6d421c6dfcec3cd7f247e430140a9c8e257"
+            },
+            {
+              "path": "value.cjs",
+              "bytes": 32,
+              "sha256": "43fdccd0f7ec64388eccf6f7b5a9810f207f0636fd48acf4495b70795f9a9016"
+            },
+            {
+              "path": "value.cjs",
+              "bytes": 32,
+              "sha256": "43fdccd0f7ec64388eccf6f7b5a9810f207f0636fd48acf4495b70795f9a9016"
+            }
+          ],
+          "scope": "trusted dependency operation guard; not adversarial JavaScript isolation",
+          "workerWasmPolicy": "refuse before creation/compilation; unsupported never qualifies"
+        }
+      }
+    }
+  ],
+  "captureBytes": {
+    "stdout": 0,
+    "stderr": 0,
+    "records": 1927
+  },
+  "stdout": "",
+  "stderr": "",
+  "rawRecords": "eyJzZXF1ZW5jZSI6MCwia2luZCI6ImFzc2V0LXJlYWQiLCJwYXRoIjoiZW50cnkubWpzIiwiYnl0ZXMiOjE4MCwic2hhMjU2IjoiYzVkMWMzYzFkMjlmNDlmYTdmNTFlMmQ5MGE3YmI2ZDQyMWM2ZGZjZWMzY2Q3ZjI0N2U0MzAxNDBhOWM4ZTI1NyJ9Cnsic2VxdWVuY2UiOjEsImtpbmQiOiJuZXh0TG9hZCIsInBhdGgiOiJlbnRyeS5tanMiLCJmb3JtYXQiOiJtb2R1bGUiLCJieXRlcyI6MTgwLCJzaGEyNTYiOiJjNWQxYzNjMWQyOWY0OWZhN2Y1MWUyZDkwYTdiYjZkNDIxYzZkZmNlYzNjZDdmMjQ3ZTQzMDE0MGE5YzhlMjU3IiwiZXZhbHVhdGlvblByb3ZlbiI6ZmFsc2UsIm9yaWdpbiI6ImFjdHVhbC1uZXh0TG9hZC1zb3VyY2UifQp7InNlcXVlbmNlIjoyLCJraW5kIjoiYXNzZXQtcmVhZCIsInBhdGgiOiJ2YWx1ZS5janMiLCJieXRlcyI6MzIsInNoYTI1NiI6IjQzZmRjY2QwZjdlYzY0Mzg4ZWNjZjZmN2I1YTk4MTBmMjA3ZjA2MzZmZDQ4YWNmNDQ5NWI3MDc5NWY5YTkwMTYifQp7InNlcXVlbmNlIjozLCJraW5kIjoiYXNzZXQtcmVhZCIsInBhdGgiOiJ2YWx1ZS5janMiLCJieXRlcyI6MzIsInNoYTI1NiI6IjQzZmRjY2QwZjdlYzY0Mzg4ZWNjZjZmN2I1YTk4MTBmMjA3ZjA2MzZmZDQ4YWNmNDQ5NWI3MDc5NWY5YTkwMTYifQp7InNlcXVlbmNlIjo0LCJraW5kIjoibmV4dExvYWQiLCJwYXRoIjoidmFsdWUuY2pzIiwiZm9ybWF0IjoiY29tbW9uanMiLCJieXRlcyI6MzIsInNoYTI1NiI6IjQzZmRjY2QwZjdlYzY0Mzg4ZWNjZjZmN2I1YTk4MTBmMjA3ZjA2MzZmZDQ4YWNmNDQ5NWI3MDc5NWY5YTkwMTYiLCJldmFsdWF0aW9uUHJvdmVuIjpmYWxzZSwib3JpZ2luIjoiYWN0dWFsLW5leHRMb2FkLXNvdXJjZSJ9Cnsic2VxdWVuY2UiOjUsImtpbmQiOiJmaW5hbCIsInJlcG9ydCI6eyJvYnNlcnZhdGlvbiI6eyJ2YWx1ZSI6NzMsImZpeHR1cmVPbmx5Ijp0cnVlfSwibG9hZHMiOlt7ImtpbmQiOiJuZXh0TG9hZCIsInBhdGgiOiJlbnRyeS5tanMiLCJmb3JtYXQiOiJtb2R1bGUiLCJieXRlcyI6MTgwLCJzaGEyNTYiOiJjNWQxYzNjMWQyOWY0OWZhN2Y1MWUyZDkwYTdiYjZkNDIxYzZkZmNlYzNjZDdmMjQ3ZTQzMDE0MGE5YzhlMjU3IiwiZXZhbHVhdGlvblByb3ZlbiI6ZmFsc2UsIm9yaWdpbiI6ImFjdHVhbC1uZXh0TG9hZC1zb3VyY2UifSx7ImtpbmQiOiJuZXh0TG9hZCIsInBhdGgiOiJ2YWx1ZS5janMiLCJmb3JtYXQiOiJjb21tb25qcyIsImJ5dGVzIjozMiwic2hhMjU2IjoiNDNmZGNjZDBmN2VjNjQzODhlY2NmNmY3YjVhOTgxMGYyMDdmMDYzNmZkNDhhY2Y0NDk1YjcwNzk1ZjlhOTAxNiIsImV2YWx1YXRpb25Qcm92ZW4iOmZhbHNlLCJvcmlnaW4iOiJhY3R1YWwtbmV4dExvYWQtc291cmNlIn1dLCJyZXNvdXJjZXMiOnsicGVuZGluZyI6MCwiZGVzY3JpcHRvcnMiOjAsInZpb2xhdGlvbnMiOltdLCJhc3NldHMiOlt7InBhdGgiOiJlbnRyeS5tanMiLCJieXRlcyI6MTgwLCJzaGEyNTYiOiJjNWQxYzNjMWQyOWY0OWZhN2Y1MWUyZDkwYTdiYjZkNDIxYzZkZmNlYzNjZDdmMjQ3ZTQzMDE0MGE5YzhlMjU3In0seyJwYXRoIjoidmFsdWUuY2pzIiwiYnl0ZXMiOjMyLCJzaGEyNTYiOiI0M2ZkY2NkMGY3ZWM2NDM4OGVjY2Y2ZjdiNWE5ODEwZjIwN2YwNjM2ZmQ0OGFjZjQ0OTViNzA3OTVmOWE5MDE2In0seyJwYXRoIjoidmFsdWUuY2pzIiwiYnl0ZXMiOjMyLCJzaGEyNTYiOiI0M2ZkY2NkMGY3ZWM2NDM4OGVjY2Y2ZjdiNWE5ODEwZjIwN2YwNjM2ZmQ0OGFjZjQ0OTViNzA3OTVmOWE5MDE2In1dLCJzY29wZSI6InRydXN0ZWQgZGVwZW5kZW5jeSBvcGVyYXRpb24gZ3VhcmQ7IG5vdCBhZHZlcnNhcmlhbCBKYXZhU2NyaXB0IGlzb2xhdGlvbiIsIndvcmtlcldhc21Qb2xpY3kiOiJyZWZ1c2UgYmVmb3JlIGNyZWF0aW9uL2NvbXBpbGF0aW9uOyB1bnN1cHBvcnRlZCBuZXZlciBxdWFsaWZpZXMifX19Cg==",
+  "natural": true
+}

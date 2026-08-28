@@ -1,0 +1,44 @@
+{
+  "schema": "apply-patch-independent-matrix-integration-v1",
+  "status": "FROZEN_INTERFACE_NOT_EXECUTABLE_CASES",
+  "ownership": "Another leaf owns the independent matrix; this file neither reads nor modifies that matrix",
+  "authorInput": {
+    "commit": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+    "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+    "sha256": "e13c2ed4ddce65dc0d976a06ba32ddd42f00d7472579cbc30769d007ea42ab61",
+    "ids": ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18", "P19", "P20", "P21", "P22", "P23", "P24", "P25", "P26", "P27", "P28", "P29", "P30", "P31", "P32"],
+    "familyIds": ["A01", "A02", "A03", "A04", "A05", "A06", "A07", "A08", "A09", "A10", "A11", "A12"],
+    "expansion": "Pinned fixtureRules: /work cwd and existing writable /work; unspecified files unchanged; body gets exact Begin/End envelope; explicit patch stays byte-identical. Sparse proposal objects are not executable author fixtures.",
+    "noFutureFixtureRead": true
+  },
+  "requiredExtraSlots": [
+    {"slot": "X-GRAMMAR", "families": ["A01", "A11"], "observations": "argument cardinality, stdin trap, literal heredoc pipeline, omitted/chained anchors, EOF/backward/no-fuzz, malformed late section"},
+    {"slot": "X-BYTES", "families": ["A01", "A08"], "observations": "fatal patch/target UTF8, BOM/NUL, lone surrogate, split scalar/CRLF, reused buffer and byteOffset, normal/early iterator-finalization mutation"},
+    {"slot": "X-PATH-ALIAS", "families": ["A03"], "observations": "root/dotdot/control/dir/symlink refusal, normalized duplicates, file-parent conflict, same scoped identity across mounts, unknown/conflicting/error compareEntry"},
+    {"slot": "X-AUTHORIZATION", "families": ["A04", "A10"], "observations": "readOnly before target reads, real EACCES/EPERM/EROFS, permissionsfalse unsupported W_OK UNOBSERVABLE then actual success and denial; no capability inference"},
+    {"slot": "X-PREFLIGHT-PARTIAL", "families": ["A05", "A06"], "observations": "late syntax/metadata/content no command writes; wx race; Move partial write/source revalidation/unlink failure; second mkdir/write failure exact effects"},
+    {"slot": "X-LIFECYCLE", "families": ["A07", "A08", "A09"], "observations": "all abort phases, falsy/errno-shaped reasons, cleanup before acquisition, close admission, drain all, overlapping finally/dispose, child/sibling isolation, error provenance"},
+    {"slot": "X-SINK", "families": ["A09", "A11"], "observations": "blocked awaited writes, output byte/chunk limits, destination-only ownership, stdout close vs file/stderr, parent Shell output budget, sink error after effects"},
+    {"slot": "X-CAPS", "families": ["A02"], "observations": "all14 fixed ceilings minus1/exact/plus1; dynamic vs unobservable accounting; other-cap interference; independent checked ledgers"},
+    {"slot": "X-BACKENDS", "families": ["A10"], "observations": "Memory/readonly/mount/overlay/rooted Real/injected S3/injected WebDAV separate; read housekeeping traced; no deployed service or native inference"},
+    {"slot": "X-INTEGRATION", "families": ["A11", "A12"], "observations": "actual Shell/registry/invoke shared state/budgets; source/install/moved/types; inspect actual API only after handoff; guard/mutant markers and exact loads"}
+  ],
+  "handoffRecordKeys": ["schema", "matrixCommit", "matrixPath", "matrixSha256", "checkerCommit", "checkerClosureSha256", "authorPreparationSha256", "authorFixtureBinding", "cases", "familyCoverage", "jobExpansion", "expectedProductInvocationCount", "unresolved"],
+  "caseRecordKeys": ["id", "origin", "authorIds", "familyIds", "extraSlots", "fixtureBinding", "layouts", "backends", "entryRoute", "schedule", "expected", "observability", "mutationIds"],
+  "expectedRecordKeys": ["completionKind", "exitCode", "reasonIdentityToken", "stdoutBytes", "stderrExpectation", "beforeNamespace", "afterNamespace", "fsTrace", "ownedResourceTrace", "unchangedSentinels", "forbiddenEffects"],
+  "receiptRecordKeys": ["caseId", "jobId", "phase", "nonce", "layout", "backend", "candidateBindingSha256", "matrixSha256", "fixtureSha256", "checkerSha256", "observed", "rawArtifacts", "loadWitnesses", "cleanup", "status"],
+  "validation": {
+    "ownData": "Closed finite own-data keys; exact primitive types/literals, nonnegative safe integers and finite lengths; reject holes/accessors/extras/symbols/coercion. Sequence order is exact; cross-realm prototype identity is irrelevant.",
+    "bytes": "Explicit UTF8 fixture bytes or base64 for arbitrary bytes; stdout/FS equality is exact, not digest-only evidence. Retain complete bounded byte artifacts and their length/digest bindings.",
+    "identity": "Thrown-reason references are checked Object.is/strict identity inside the live worker, including false/0/null/undefined and object tokens. JSON labels are reports, not reconstructed thrown objects or cancellation provenance.",
+    "coverage": "All32 author IDs exactly once in base case mapping; variants have unique subordinate IDs. Every A01..A12 scenario label maps to concrete extra cases or an explicit unresolved/nonpass obligation. Slots are coverage requirements, NOT10 executed cases.",
+    "caseCount": "Freeze matrix extra count and exact layout/backend/schedule-expanded denominator at handoff. 32 author plus N extras is distinct from invocation count and from data assertions. Duplicates/missing IDs or a count-only receipt refuse.",
+    "acceptance": "Expected status/rejection plus exact output and full namespace/byte effects gate before PASS; FS calls ordered where contract demands, no invented total counts. Parent finalization also requires complete, closed, intact, exact required IDs and retired owned handles.",
+    "exclusions": "Unsupported provider/API/unreachable-cap/opaque-work obligations are separate nonpasses with reasons, not dropped or converted into skips accepted as success.",
+    "unresolved": "Candidate API, author actual fixtures, matrix path/commit/bytes, diagnostic checker and driver are deliberately null in BINDING-v1.json; no HEAD inference"
+  },
+  "statuses": ["NOT_RUN", "DATA_AUTHENTICATED", "PASS", "FAIL", "UNOBSERVABLE", "BLOCKED_OTHER_CAP", "UNREACHABLE_WITHIN_PROFILE", "UNSAFE_STOP"],
+  "preparedStatus": "NOT_RUN",
+  "productInvocationCeiling": 4096,
+  "perWorkerInvocationCeiling": 128
+}

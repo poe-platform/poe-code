@@ -1,0 +1,33 @@
+{
+  "authorization": "FRESH ROOT GO",
+  "attempt": 1,
+  "candidate": "58be2d6c5706f3e90f01d48e695ecfd9daa52669",
+  "evidence": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+  "sealSha256": "ec2f19e1825970b662d60a99f2128158ab7ab494b4161ce2a4b0f121f4dcc8e5",
+  "entrypoint": "tests/commands/apply-patch-independent-20260828/capture-membership-v3/future-v3/controller.mjs",
+  "controllerSha256": "89af8472d1f19e2e0dee02c3f09d7d011e7c677cec755b4c614aa8b6a5b8ab3d",
+  "controllerBytes": 32318,
+  "rootConfirmation": {
+    "authority": "Latest authoritative user confirmation in the sole delegated operator/verifier assignment, August 28, 2026",
+    "reference": "LATEST AUTHORITATIVE USER CONFIRMATION: ROOT corrects its stale command path; CONFIRMED already sealed successor",
+    "correction": "The corrected entrypoint above replaces only the stale root command path; the same one actual attempt and frozen seal remain authorized.",
+    "historicalRootMismatchCommit": "8405f9228fe646281311ed784d10096361df03ae",
+    "historicalRootMismatch": "0/70 preflight HOLD, root command mismatch, not author/product failure, actual attempt not consumed"
+  },
+  "acceptedScopedClosures": [
+    { "commit": "4934900a237c6930262a623afe303490fdcf0118", "scope": "different Raman C18 regular52+3" },
+    { "commit": "9c4dad3091845987d538f4cbb67cd7060268444e", "scope": "different Raman C18 symlink6+4" }
+  ],
+  "bounds": {
+    "controllerMs": 6600000,
+    "maximumJobs": 70,
+    "peakOwnedProcesses": 2,
+    "captureBytes": 134217728,
+    "workingBytes": 536870912,
+    "caseTimeoutMs": 30000,
+    "buildTypeTimeoutMs": 120000,
+    "retry": false,
+    "budgetExtension": false
+  },
+  "scope": "Review GO only, not acceptance or integration; unchanged frozen permissions, jobs, fixtures, safety, integrity, postbuild committed runtime seal, cleanup and product restrictions apply."
+}

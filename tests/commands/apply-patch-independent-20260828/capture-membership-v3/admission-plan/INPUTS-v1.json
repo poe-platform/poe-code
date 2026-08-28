@@ -1,0 +1,575 @@
+{
+  "schema": "apply-patch-preparation-input-observations-v1",
+  "classification": "READ_ONLY_INPUT_CAPTURE_NOT_PRODUCT_OR_CHECKER_EXECUTION",
+  "preparationSnapshotCommit": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+  "snapshotQualification": "Administrative reference for permitted contracts/reviewer/tooling paths only; never the candidate binding. No candidate source/test contents read.",
+  "current": [
+    {
+      "path": "AGENTS.md",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/AGENTS.md",
+      "bytes": 14250,
+      "mode": 420,
+      "sha256": "e6a7bca2ab72cc8e4448a67cc315dda84a1823d3b32214360697157a274626e6",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 14250,
+      "storedSha256": "e6a7bca2ab72cc8e4448a67cc315dda84a1823d3b32214360697157a274626e6",
+      "gitTreeRecord": "100644 blob 35e03362f6313c2cfc13342d2675100be12a573c\tAGENTS.md"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.ts",
+      "bytes": 2968,
+      "mode": 420,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 2968,
+      "storedSha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "gitTreeRecord": "100644 blob 9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8\tsrc/contracts/command.ts"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/src/contracts/command.md",
+      "bytes": 9253,
+      "mode": 420,
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 9253,
+      "storedSha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "gitTreeRecord": "100644 blob ef94adf238122441a66c2232fb3055aaee62d290\tsrc/contracts/command.md"
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.ts",
+      "bytes": 3897,
+      "mode": 420,
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 3897,
+      "storedSha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "gitTreeRecord": "100644 blob 5c1a59a85e47bc9bc242a2e92b22680d785fcc89\tsrc/contracts/filesystem.ts"
+    },
+    {
+      "path": "src/contracts/filesystem.md",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/src/contracts/filesystem.md",
+      "bytes": 20876,
+      "mode": 420,
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 20876,
+      "storedSha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "gitTreeRecord": "100644 blob 574db49cd823e7d662cb6ada5ad4dd0c92a8d192\tsrc/contracts/filesystem.md"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/src/contracts/io.ts",
+      "bytes": 7663,
+      "mode": 420,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 7663,
+      "storedSha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "gitTreeRecord": "100644 blob 6dc0efb87132376763228a845b2e62638898268a\tsrc/contracts/io.ts"
+    },
+    {
+      "path": "src/contracts/output.ts",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/src/contracts/output.ts",
+      "bytes": 4661,
+      "mode": 420,
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 4661,
+      "storedSha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "gitTreeRecord": "100644 blob 3b1fe9536352a5e13c94ff231ce20ead354aabc8\tsrc/contracts/output.ts"
+    },
+    {
+      "path": "src/contracts/path.ts",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/src/contracts/path.ts",
+      "bytes": 1675,
+      "mode": 420,
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 1675,
+      "storedSha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "gitTreeRecord": "100644 blob 4cbf95a4baa405a6fc5438c23511a9059b977201\tsrc/contracts/path.ts"
+    },
+    {
+      "path": "src/contracts/plugin.ts",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/src/contracts/plugin.ts",
+      "bytes": 2359,
+      "mode": 420,
+      "sha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 2359,
+      "storedSha256": "b45e85e0d89f88308caf0b68f0b14f78341c4bba246d02e81103646f5a4c54ae",
+      "gitTreeRecord": "100644 blob 69b685ebbf6cfb7d1068c419b7e4109e4f9179d4\tsrc/contracts/plugin.ts"
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/src/contracts/errors.ts",
+      "bytes": 3457,
+      "mode": 420,
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 3457,
+      "storedSha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "gitTreeRecord": "100644 blob d466866ce93c4feced56e2bd5fe4c41637e62226\tsrc/contracts/errors.ts"
+    },
+    {
+      "path": "src/contracts/index.ts",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/src/contracts/index.ts",
+      "bytes": 202,
+      "mode": 420,
+      "sha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 202,
+      "storedSha256": "21b09d18564ec4f586542af67a1e26f0198cc20938563f8b572cb5c4b38f676c",
+      "gitTreeRecord": "100644 blob bde8cdfbe7f5b14da1b064d3b4f3a8c31d9c45ef\tsrc/contracts/index.ts"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/controller.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/controller.mjs",
+      "bytes": 8301,
+      "mode": 420,
+      "sha256": "a82b3503d4613a209d00db7cd77d23c70ae362391a576e7b1fecedaa2d7ce6e3",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 8301,
+      "storedSha256": "a82b3503d4613a209d00db7cd77d23c70ae362391a576e7b1fecedaa2d7ce6e3",
+      "gitTreeRecord": "100644 blob a7557ce65a6795dbe931a6dca612dbdbbbeadab6\ttests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/controller.mjs"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/supervisor.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/supervisor.mjs",
+      "bytes": 4656,
+      "mode": 420,
+      "sha256": "fd49dbff486a8399b19de12e3a8abc5c41116ae18a11191d67ee199782572e31",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 4656,
+      "storedSha256": "fd49dbff486a8399b19de12e3a8abc5c41116ae18a11191d67ee199782572e31",
+      "gitTreeRecord": "100644 blob f8063c7db4f3469b028a67f7dfff2b9b6de0f29b\ttests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/supervisor.mjs"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/deadline.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/deadline.mjs",
+      "bytes": 1413,
+      "mode": 420,
+      "sha256": "b2538ecd3b45ea7ea9e4114ca29fae73d7e39aad585ce53259da7968922eb55e",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 1413,
+      "storedSha256": "b2538ecd3b45ea7ea9e4114ca29fae73d7e39aad585ce53259da7968922eb55e",
+      "gitTreeRecord": "100644 blob 521898f371fb0c2a192a063cf86a9330e81d9032\ttests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/deadline.mjs"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/dispatch.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/dispatch.mjs",
+      "bytes": 22690,
+      "mode": 420,
+      "sha256": "ee5f7e1d17d7ce47dc7bdd6de757923180c8bd46add0f854fda960bbbc374807",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 22690,
+      "storedSha256": "ee5f7e1d17d7ce47dc7bdd6de757923180c8bd46add0f854fda960bbbc374807",
+      "gitTreeRecord": "100644 blob b9a7ab34e307bdf42d7aece5c9553f97031457eb\ttests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/dispatch.mjs"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/worker.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/worker.mjs",
+      "bytes": 5066,
+      "mode": 420,
+      "sha256": "b28ccf82fa89cc057b84bd0bc8b800b9e844e878c893966cc336dfc5e8144b2e",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 5066,
+      "storedSha256": "b28ccf82fa89cc057b84bd0bc8b800b9e844e878c893966cc336dfc5e8144b2e",
+      "gitTreeRecord": "100644 blob cfc2871a01ae505ee67a489eadbdec64e9fd760b\ttests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/worker.mjs"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/RESULT.md",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/RESULT.md",
+      "bytes": 9495,
+      "mode": 420,
+      "sha256": "6d69fa19b1ac7eb7dcee9859b22e25e998f6f0da004d0a88e83b60bf18c7bacf",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 9495,
+      "storedSha256": "6d69fa19b1ac7eb7dcee9859b22e25e998f6f0da004d0a88e83b60bf18c7bacf",
+      "gitTreeRecord": "100644 blob f8a9f7c5006cd9f038b84bf2e4d1d63673f03b6e\ttests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/RESULT.md"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/SEAL.json",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/SEAL.json",
+      "bytes": 46538,
+      "mode": 420,
+      "sha256": "c7f198821b82f8ce2661913b944211b747de2bd5a4017c431406687cda212d80",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 46538,
+      "storedSha256": "c7f198821b82f8ce2661913b944211b747de2bd5a4017c431406687cda212d80",
+      "gitTreeRecord": "100644 blob deddc143d33039c295b969b5774e09ed75c8eba2\ttests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/SEAL.json"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/candidate-v1/boundary-app.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/candidate-v1/boundary-app.mjs",
+      "bytes": 11119,
+      "mode": 420,
+      "sha256": "a8c7cddbf73fe9dddab960a59c430265a16262691a71fc88e8fe6b9fffae40cf",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 11119,
+      "storedSha256": "a8c7cddbf73fe9dddab960a59c430265a16262691a71fc88e8fe6b9fffae40cf",
+      "gitTreeRecord": "100644 blob be72b57934d3a87d5ab719506b19d169c8074721\ttests/shell/indexed-arrays-independent-20260828/candidate-v1/boundary-app.mjs"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v3/staging.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v3/staging.mjs",
+      "bytes": 4647,
+      "mode": 420,
+      "sha256": "861e25bad0935d25cc035b9aa991fdbb9cb9ceddaea72665532ed2a8805e717d",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 4647,
+      "storedSha256": "861e25bad0935d25cc035b9aa991fdbb9cb9ceddaea72665532ed2a8805e717d",
+      "gitTreeRecord": "100644 blob c6f3516ae343dd40d00596d1cbdc21dc21e8e0ee\ttests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v3/staging.mjs"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v1/loader.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v1/loader.mjs",
+      "bytes": 2512,
+      "mode": 420,
+      "sha256": "777021f914407f1873ec20a62472d282c959813724bb1997284dc7b434f70dd4",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 2512,
+      "storedSha256": "777021f914407f1873ec20a62472d282c959813724bb1997284dc7b434f70dd4",
+      "gitTreeRecord": "100644 blob c2268f4e59dd7c7d6ffe333674259d6fc1a69352\ttests/commands/xan-module-review-20260828/actual-review-v1/loader.mjs"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v1/a01.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v1/a01.mjs",
+      "bytes": 3595,
+      "mode": 420,
+      "sha256": "9c59d364484a71c881bf0465f0534628fefabc51b93741cc83ebc0b911efb28c",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 3595,
+      "storedSha256": "9c59d364484a71c881bf0465f0534628fefabc51b93741cc83ebc0b911efb28c",
+      "gitTreeRecord": "100644 blob 34e9f96b8a61466441693fea421e6794aef7de90\ttests/commands/xan-module-review-20260828/actual-review-v1/a01.mjs"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/common.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/common.mjs",
+      "bytes": 2291,
+      "mode": 420,
+      "sha256": "cb3652a407ca269cff51d3c8cfe805b9fe2b2a3d65a2182ec5543b64a63f7e32",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 2291,
+      "storedSha256": "cb3652a407ca269cff51d3c8cfe805b9fe2b2a3d65a2182ec5543b64a63f7e32",
+      "gitTreeRecord": "100644 blob 0976c55101444e086fd6c2a1247cc2f8233c885d\ttests/commands/xan-module-review-20260828/actual-review-v2/common.mjs"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/HANDOFF.md",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/HANDOFF.md",
+      "bytes": 9125,
+      "mode": 420,
+      "sha256": "3fe0582843eb4240d169a3a6be2567908738b50ee3ebc980be63dea7c1f1eae9",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 9125,
+      "storedSha256": "3fe0582843eb4240d169a3a6be2567908738b50ee3ebc980be63dea7c1f1eae9",
+      "gitTreeRecord": "100644 blob 5f7192393d9b1d2915e9d30c094013840a6e4b54\ttests/commands/xan-module-review-20260828/actual-review-v2/HANDOFF.md"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/actual-review-v2/PROTOCOL.md",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/actual-review-v2/PROTOCOL.md",
+      "bytes": 3903,
+      "mode": 420,
+      "sha256": "02612335127502020808c94a8771f98ef80abfdadd5b64c25ef85857c111087e",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 3903,
+      "storedSha256": "02612335127502020808c94a8771f98ef80abfdadd5b64c25ef85857c111087e",
+      "gitTreeRecord": "100644 blob 504b288b969fd2e91d044239a9000df411715987\ttests/commands/xan-module-review-20260828/actual-review-v2/PROTOCOL.md"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/preparation-v2/supervisor.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/supervisor.mjs",
+      "bytes": 4583,
+      "mode": 420,
+      "sha256": "2599d8d7f9df252584d46ad24f8d19d59e931049a804e18a054dfc789942ebec",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 4583,
+      "storedSha256": "2599d8d7f9df252584d46ad24f8d19d59e931049a804e18a054dfc789942ebec",
+      "gitTreeRecord": "100644 blob 56f0afe927cf1a90b44cf08d11593fe3dd15aef8\ttests/commands/xan-module-review-20260828/preparation-v2/supervisor.mjs"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/preparation-v2/HANDOFF.md",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/HANDOFF.md",
+      "bytes": 5378,
+      "mode": 420,
+      "sha256": "7e7695f881d93ad3adc6d061051e2de162187099d85b4d6de663a32068a82768",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 5378,
+      "storedSha256": "7e7695f881d93ad3adc6d061051e2de162187099d85b4d6de663a32068a82768",
+      "gitTreeRecord": "100644 blob 48878ef9bc6fd9017ea634e98efc8feba87f997c\ttests/commands/xan-module-review-20260828/preparation-v2/HANDOFF.md"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/preparation-v2/READINESS-AUDIT.md",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/preparation-v2/READINESS-AUDIT.md",
+      "bytes": 2614,
+      "mode": 420,
+      "sha256": "c1f925c2f460cd3e50f19f5cffe0e976398f6acc1c8877cdedc46810401469d3",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 2614,
+      "storedSha256": "c1f925c2f460cd3e50f19f5cffe0e976398f6acc1c8877cdedc46810401469d3",
+      "gitTreeRecord": "100644 blob f5744db759c1df563fe054e57ff3028cf18d7427\ttests/commands/xan-module-review-20260828/preparation-v2/READINESS-AUDIT.md"
+    },
+    {
+      "path": "tests/commands/xan-module-review-20260828/core.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/commands/xan-module-review-20260828/core.mjs",
+      "bytes": 6085,
+      "mode": 420,
+      "sha256": "3895185f7962d316bfde115614ab7d33e683a7b8c4a05886917df5b374abefdc",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 6085,
+      "storedSha256": "3895185f7962d316bfde115614ab7d33e683a7b8c4a05886917df5b374abefdc",
+      "gitTreeRecord": "100644 blob 409fcb7ebcb67052f94b0e4ea988352653d7dd89\ttests/commands/xan-module-review-20260828/core.mjs"
+    },
+    {
+      "path": "scripts/typecheck.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/scripts/typecheck.mjs",
+      "bytes": 4382,
+      "mode": 420,
+      "sha256": "3bd6ead5b5d2141d3adcd708a2e1013e463e27112b097ba444371a329e226ec0",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 4382,
+      "storedSha256": "3bd6ead5b5d2141d3adcd708a2e1013e463e27112b097ba444371a329e226ec0",
+      "gitTreeRecord": "100644 blob 9d383e1effb3ebff36ebcae3e3a1a8cdfbaf4621\tscripts/typecheck.mjs"
+    },
+    {
+      "path": "scripts/typecheck-inputs.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/scripts/typecheck-inputs.mjs",
+      "bytes": 4467,
+      "mode": 420,
+      "sha256": "94db499f97fb7dbdc30043bc23978dd8c647492503750e5399bb9331f6e5e736",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 4467,
+      "storedSha256": "94db499f97fb7dbdc30043bc23978dd8c647492503750e5399bb9331f6e5e736",
+      "gitTreeRecord": "100644 blob c835687a4b8c9180d24fff10f2bf4035a8588886\tscripts/typecheck-inputs.mjs"
+    },
+    {
+      "path": "scripts/typecheck-consumers.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/scripts/typecheck-consumers.mjs",
+      "bytes": 9794,
+      "mode": 420,
+      "sha256": "7c5747ded3491deed236486c930bd402b129a381cf4f2148dd272fe729ec1a37",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 9794,
+      "storedSha256": "7c5747ded3491deed236486c930bd402b129a381cf4f2148dd272fe729ec1a37",
+      "gitTreeRecord": "100644 blob 5fb30bcf8d6b3994b30486fc0c23eeee2409f65a\tscripts/typecheck-consumers.mjs"
+    },
+    {
+      "path": "scripts/typecheck-staged-inputs.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/scripts/typecheck-staged-inputs.mjs",
+      "bytes": 2691,
+      "mode": 420,
+      "sha256": "99365eb838c17fe07960183f256b5ae4b1fc83dbc80e251809a243d9cb19109a",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 2691,
+      "storedSha256": "99365eb838c17fe07960183f256b5ae4b1fc83dbc80e251809a243d9cb19109a",
+      "gitTreeRecord": "100644 blob 90a448f49b943e051758b37e380fc5bfa900c082\tscripts/typecheck-staged-inputs.mjs"
+    },
+    {
+      "path": "scripts/verify-current-consumers.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/scripts/verify-current-consumers.mjs",
+      "bytes": 13365,
+      "mode": 420,
+      "sha256": "09d04680a1dd80059fd31da73068c919bb0402d8bdd31a4d0a971a67d8e1259c",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 13365,
+      "storedSha256": "09d04680a1dd80059fd31da73068c919bb0402d8bdd31a4d0a971a67d8e1259c",
+      "gitTreeRecord": "100644 blob 326c6664c7d4a88f4cc61a5496aa1f01c3a52594\tscripts/verify-current-consumers.mjs"
+    },
+    {
+      "path": "scripts/verify-qualified-release.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/scripts/verify-qualified-release.mjs",
+      "bytes": 9955,
+      "mode": 420,
+      "sha256": "830043ed51632f12ea1049ef0ed8d4fa369519ef4d3cc3fb7c3a797fc6f69768",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 9955,
+      "storedSha256": "830043ed51632f12ea1049ef0ed8d4fa369519ef4d3cc3fb7c3a797fc6f69768",
+      "gitTreeRecord": "100644 blob 36655cefe74fb6fa29468010cc113801dbf0d7bc\tscripts/verify-qualified-release.mjs"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/README.md",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/README.md",
+      "bytes": 13071,
+      "mode": 420,
+      "sha256": "d48e257ccfaf044d1f6ff7cc33f143b2fe0f8fa3417f7ea0c57d4f9ed26dd76e",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 13071,
+      "storedSha256": "d48e257ccfaf044d1f6ff7cc33f143b2fe0f8fa3417f7ea0c57d4f9ed26dd76e",
+      "gitTreeRecord": "100644 blob 51f4dba88d54899c951b1eac2b9e7b776076939d\ttests/plugins/qualified-current-release/README.md"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/snapshot.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/snapshot.mjs",
+      "bytes": 4810,
+      "mode": 420,
+      "sha256": "0c5771090524c84ee9e415fb61e5cf9f0cf80e4546bd7566649cacd6ebb23aa5",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 4810,
+      "storedSha256": "0c5771090524c84ee9e415fb61e5cf9f0cf80e4546bd7566649cacd6ebb23aa5",
+      "gitTreeRecord": "100644 blob 241eed71557db50b777b51797211bfaceb31e7e5\ttests/plugins/qualified-current-release/snapshot.mjs"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/consumers.mjs",
+      "bytes": 9820,
+      "mode": 420,
+      "sha256": "6b5502b239c45ba956e9d6fa65403df306e06f76919e773cfea4b9c72931236b",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 9820,
+      "storedSha256": "6b5502b239c45ba956e9d6fa65403df306e06f76919e773cfea4b9c72931236b",
+      "gitTreeRecord": "100644 blob 1ff5fe52936e147f16b78ed9c67c1a35e186ac5a\ttests/plugins/qualified-current-release/consumers.mjs"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/inventory-check.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/inventory-check.mjs",
+      "bytes": 1967,
+      "mode": 420,
+      "sha256": "1afd5cf0b4a1f42ed86330fde6655f5b606eed3be79a4f1026b4c2bf6294b9f3",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 1967,
+      "storedSha256": "1afd5cf0b4a1f42ed86330fde6655f5b606eed3be79a4f1026b4c2bf6294b9f3",
+      "gitTreeRecord": "100644 blob 243c9d6635a0890de139eff229a87a09c28afab3\ttests/plugins/qualified-current-release/inventory-check.mjs"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/runtime-coverage.mjs",
+      "bytes": 2863,
+      "mode": 420,
+      "sha256": "96403245ff2ff31b27708d20a56c96c36466551b1a19fcf892e0b0d19ce9e9f5",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 2863,
+      "storedSha256": "96403245ff2ff31b27708d20a56c96c36466551b1a19fcf892e0b0d19ce9e9f5",
+      "gitTreeRecord": "100644 blob fc102adfd9572fd1130d7b419fe048e86e27800b\ttests/plugins/qualified-current-release/runtime-coverage.mjs"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/inventory.json",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/inventory.json",
+      "bytes": 187419,
+      "mode": 420,
+      "sha256": "7dbe62573f69670f697f978c5f91beb1b7003c582ad31728fda5ed4fa0bcd6e0",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 187419,
+      "storedSha256": "7dbe62573f69670f697f978c5f91beb1b7003c582ad31728fda5ed4fa0bcd6e0",
+      "gitTreeRecord": "100644 blob d005458082349bef772e9141ae874dc514e8762b\ttests/plugins/qualified-current-release/inventory.json"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/captured-types.json",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/captured-types.json",
+      "bytes": 2896,
+      "mode": 420,
+      "sha256": "70fcd5c2b8d8baec26c2c69cc3fb9110de75366757bf36416b52d7838f4b961f",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 2896,
+      "storedSha256": "70fcd5c2b8d8baec26c2c69cc3fb9110de75366757bf36416b52d7838f4b961f",
+      "gitTreeRecord": "100644 blob 9ead388709d284b91f9ab19c25d84546675c0753\ttests/plugins/qualified-current-release/captured-types.json"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/staged-types.json",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/staged-types.json",
+      "bytes": 9736,
+      "mode": 420,
+      "sha256": "74c0e75d5ae06a28db0647545387a2827ca3d51394aae19c4656dcb6bf9a1e43",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 9736,
+      "storedSha256": "74c0e75d5ae06a28db0647545387a2827ca3d51394aae19c4656dcb6bf9a1e43",
+      "gitTreeRecord": "100644 blob 8f75e34f94435e1b322eeb3dcb6ca7ee4219f9b0\ttests/plugins/qualified-current-release/staged-types.json"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/tsconfig.consumer.json",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/tests/plugins/qualified-current-release/tsconfig.consumer.json",
+      "bytes": 367,
+      "mode": 420,
+      "sha256": "e848f92d4ac977a05d457b2bb13ad99163a0f16426decfe8a34389a78e506068",
+      "storedAt": "570e5accd0ff9686fbdc0b00ab1d01a20c82950e",
+      "storedBytes": 367,
+      "storedSha256": "e848f92d4ac977a05d457b2bb13ad99163a0f16426decfe8a34389a78e506068",
+      "gitTreeRecord": "100644 blob fcfdf2041955289e7f9bbf44c50aaffa565b6a99\ttests/plugins/qualified-current-release/tsconfig.consumer.json"
+    }
+  ],
+  "pinned": [
+    {
+      "path": "tests/commands/apply-patch-author-20260828/PROFILE-PROPOSAL-v1.md",
+      "commit": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+      "bytes": 17119,
+      "sha256": "a10ed971116193969888f7c18f013871a8c93977bcf19852459fac7e85be4064",
+      "gitTreeRecord": "100644 blob c109beaea3d138270ff84a00a9b81626d61b73a5\ttests/commands/apply-patch-author-20260828/PROFILE-PROPOSAL-v1.md"
+    },
+    {
+      "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+      "commit": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+      "bytes": 9459,
+      "sha256": "e13c2ed4ddce65dc0d976a06ba32ddd42f00d7472579cbc30769d007ea42ab61",
+      "gitTreeRecord": "100644 blob 9da3c66a433c3d5a0a868a35b5f23046eb8758d0\ttests/commands/apply-patch-author-20260828/CASES-v1.json"
+    },
+    {
+      "path": "tests/commands/apply-patch-author-20260828/DESIGN-CHECK-v1.json",
+      "commit": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+      "bytes": 1941,
+      "sha256": "4c4ef49fbce5c8861736c2c414fea21eabf80da85b02cadf7bfe29233770c13c",
+      "gitTreeRecord": "100644 blob 538993c638ea3b51d479cca3c30acaa04aee07c6\ttests/commands/apply-patch-author-20260828/DESIGN-CHECK-v1.json"
+    },
+    {
+      "path": "tests/commands/apply-patch-author-20260828/SOURCES-v1.json",
+      "commit": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+      "bytes": 7130,
+      "sha256": "c42a5c0e7e5e28ba3e8454468e43124659de801f5bb78715d0c5df6fa942cce3",
+      "gitTreeRecord": "100644 blob 2a1405295445329f306ed2fd0905d68e224bef4f\ttests/commands/apply-patch-author-20260828/SOURCES-v1.json"
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "resolvedPath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/usr/bin/git",
+      "resolvedPath": "/usr/bin/git",
+      "bytes": 118928,
+      "mode": 493,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    {
+      "path": "node_modules/typescript/bin/tsc",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+      "bytes": 45,
+      "mode": 493,
+      "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+    },
+    {
+      "path": "node_modules/typescript/lib/tsc.js",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
+      "bytes": 267,
+      "mode": 420,
+      "sha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983"
+    },
+    {
+      "path": "node_modules/typescript/lib/_tsc.js",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/_tsc.js",
+      "bytes": 6213092,
+      "mode": 420,
+      "sha256": "e8f349eabd48486bdb2bf9dc1a00c89d58297270c54b745838879e2859194419"
+    },
+    {
+      "path": "node_modules/typescript/package.json",
+      "resolvedPath": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/package.json",
+      "bytes": 3620,
+      "mode": 420,
+      "sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+    }
+  ],
+  "captureRuntime": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2"
+  },
+  "toolQualification": "Node and /usr/bin/git executable bytes and selected compiler entries only. Apple git launcher delegation, complete TypeScript libs/@types/tool tree, npm pack/install closure and runtime guards remain unbound until handoff. No runtime candidate authorization.",
+  "parentRule": {
+    "path": "../AGENTS.md",
+    "qualification": "Read-only applicable instruction outside owned repository; not copied, edited, or claimed as committed repository input"
+  }
+}

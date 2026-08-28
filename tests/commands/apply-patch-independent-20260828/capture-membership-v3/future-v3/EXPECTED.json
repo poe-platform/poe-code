@@ -1,0 +1,32 @@
+{
+  "schema": "path-transport-v2-frozen-expectations",
+  "candidateCount": 50002,
+  "actualSpecialCount": 98,
+  "baseCount": 37412,
+  "selectedCount": 274,
+  "candidateTree": "189bef24a927241d7c47a662f1ac447b56da1835",
+  "composedTree": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "originalRows": 32,
+  "adversarialRows": 80,
+  "frozenPackageFileCount": 882,
+  "captureCorruptions": [
+    "hash",
+    "offset",
+    "total",
+    "base64",
+    "missing",
+    "duplicate",
+    "extra-channel",
+    "exit",
+    "cleanup"
+  ],
+  "syntheticVectors": 35,
+  "comparison": "independent bottom-up raw-byte directory algorithm versus repaired trie and authenticated stored root; no stored lookup for derived identities",
+  "limits": {
+    "repairMs": 1800000,
+    "metadataChildMs": 10000,
+    "peakOwnedProcesses": 2,
+    "captureBytes": 134217728,
+    "workBytes": 536870912
+  }
+}

@@ -1,0 +1,1105 @@
+{
+  "schema": "apply-patch-independent-actual-execution-seal-v1",
+  "sealedAt": "2026-08-28T17:53:40.367Z",
+  "authority": {
+    "source": "58be2d6c5706f3e90f01d48e695ecfd9daa52669",
+    "evidence": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+    "userGo": "Exact current assignment; historical ROOTGO-null superseded"
+  },
+  "metadataSha256": "86c3a490f2818d3155d5cc7b7472c705a8bc514253a0b1746a4f1b6c7504a0c1",
+  "files": {
+    "EARLY-FINDINGS.md": {
+      "bytes": 2338,
+      "mode": 420,
+      "sha256": "ad84372eba2b450a0474a17e93c6f4ea26562de7323c500b5aac9e8cc5065c7d"
+    },
+    "EXECUTION-PROFILE.md": {
+      "bytes": 8775,
+      "mode": 420,
+      "sha256": "b0a28b0fb5c7048b8e8228eeb2228b272facd107bb6290a07a2d354a5b88af49"
+    },
+    "METADATA.json": {
+      "bytes": 7963554,
+      "mode": 420,
+      "sha256": "86c3a490f2818d3155d5cc7b7472c705a8bc514253a0b1746a4f1b6c7504a0c1"
+    },
+    "PREINSPECTION.md": {
+      "bytes": 2886,
+      "mode": 420,
+      "sha256": "7cf0234fdc4180a3bb9eeb94430427086ac47d1a57d95002ea1bcf1856a8bb5f"
+    },
+    "bootstrap.mjs": {
+      "bytes": 1734,
+      "mode": 420,
+      "sha256": "848d730fdc7d20fa5e0cc5c6e2c460255fda79e69266e129a347b14707aeab55"
+    },
+    "capture-metadata.mjs": {
+      "bytes": 4787,
+      "mode": 420,
+      "sha256": "23fa6019b02fd11abb23397732395e112521bc139d88dbd931d94c599a6936c7"
+    },
+    "controller.mjs": {
+      "bytes": 33463,
+      "mode": 420,
+      "sha256": "72ca30986f03c9f8a81dd5010c9912d294b3326799f9569eb689ec8858ef1d20"
+    },
+    "deadline.mjs": {
+      "bytes": 1413,
+      "mode": 420,
+      "sha256": "b2538ecd3b45ea7ea9e4114ca29fae73d7e39aad585ce53259da7968922eb55e"
+    },
+    "guard-control.mjs": {
+      "bytes": 1145,
+      "mode": 420,
+      "sha256": "e507f769ec8c19445062587f11ddfe151147a62d45f9ce845540bc69df8d5ee2"
+    },
+    "loader.mjs": {
+      "bytes": 3266,
+      "mode": 420,
+      "sha256": "377495e5490a5803eac46617b7c3c41846cd454b296c340eb6a055fa8d7fe9d4"
+    },
+    "supervisor.mjs": {
+      "bytes": 4817,
+      "mode": 420,
+      "sha256": "f980185cb8437db368c8e4881fa9d6c7f5c446780023e23200ab36bb98ad124b"
+    },
+    "worker.mjs": {
+      "bytes": 25968,
+      "mode": 420,
+      "sha256": "6563b3319cb495dea5c0b5c0499d166eaf5bf63806fd9e12487ed42b6f046296"
+    }
+  },
+  "jobs": [
+    {
+      "id": "git-base-tree",
+      "role": "git",
+      "timeoutMs": 10000,
+      "maxBytes": 8388608
+    },
+    {
+      "id": "git-authenticated-inputs",
+      "role": "git",
+      "timeoutMs": 10000,
+      "maxBytes": 8388608
+    },
+    {
+      "id": "guard-hash",
+      "role": "guard",
+      "timeoutMs": 10000,
+      "maxBytes": 65536
+    },
+    {
+      "id": "guard-missing",
+      "role": "guard",
+      "timeoutMs": 10000,
+      "maxBytes": 65536
+    },
+    {
+      "id": "guard-mode",
+      "role": "guard",
+      "timeoutMs": 10000,
+      "maxBytes": 65536
+    },
+    {
+      "id": "supervisor-binary",
+      "role": "guard",
+      "timeoutMs": 10000,
+      "maxBytes": 65536
+    },
+    {
+      "id": "build-source",
+      "role": "build",
+      "timeoutMs": 120000,
+      "maxBytes": 1048576
+    },
+    {
+      "id": "git-runtime-seal",
+      "role": "git",
+      "timeoutMs": 10000,
+      "maxBytes": 1048576
+    },
+    {
+      "id": "source-originals",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "ids": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07",
+        "P08",
+        "P09",
+        "P10",
+        "P11",
+        "P12",
+        "P13",
+        "P14",
+        "P15",
+        "P16",
+        "P17",
+        "P18",
+        "P19",
+        "P20",
+        "P21",
+        "P22",
+        "P23",
+        "P24",
+        "P25",
+        "P26",
+        "P27",
+        "P28",
+        "P29",
+        "P30",
+        "P31",
+        "P32"
+      ]
+    },
+    {
+      "id": "source-supplement-a",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "ids": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "S09",
+        "S10",
+        "S11",
+        "S12",
+        "S13",
+        "S14",
+        "S15",
+        "S16",
+        "S17",
+        "S18",
+        "S19",
+        "S20",
+        "S21",
+        "S22",
+        "S23",
+        "S24",
+        "S25",
+        "S26",
+        "S27",
+        "S28",
+        "S29",
+        "S30",
+        "S31",
+        "S32",
+        "S33",
+        "S34",
+        "S35",
+        "S36",
+        "S37",
+        "S38",
+        "S39",
+        "S40"
+      ]
+    },
+    {
+      "id": "source-supplement-b",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "ids": [
+        "S41",
+        "S42",
+        "S43",
+        "S44",
+        "S45",
+        "S46",
+        "S47",
+        "S48",
+        "S49",
+        "S50",
+        "S51",
+        "S52",
+        "S53",
+        "S54",
+        "S55",
+        "S56",
+        "S57",
+        "S58",
+        "S59",
+        "S60",
+        "S61",
+        "S62",
+        "S63",
+        "S64",
+        "S65",
+        "S66",
+        "S67",
+        "S68",
+        "S69",
+        "S70",
+        "S71",
+        "S72",
+        "S73",
+        "S74",
+        "S75",
+        "S76",
+        "S77",
+        "S78",
+        "S79",
+        "S80"
+      ]
+    },
+    {
+      "id": "types-source-positive",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "source",
+      "variant": "positive"
+    },
+    {
+      "id": "types-source-bad-value",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "source",
+      "variant": "bad-value"
+    },
+    {
+      "id": "types-source-bad-value-repair",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "source",
+      "variant": "bad-value-repair"
+    },
+    {
+      "id": "types-source-root-negative",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "source",
+      "variant": "root-negative"
+    },
+    {
+      "id": "types-source-root-repair",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "source",
+      "variant": "root-repair"
+    },
+    {
+      "id": "installed-originals",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "installed",
+      "ids": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07",
+        "P08",
+        "P09",
+        "P10",
+        "P11",
+        "P12",
+        "P13",
+        "P14",
+        "P15",
+        "P16",
+        "P17",
+        "P18",
+        "P19",
+        "P20",
+        "P21",
+        "P22",
+        "P23",
+        "P24",
+        "P25",
+        "P26",
+        "P27",
+        "P28",
+        "P29",
+        "P30",
+        "P31",
+        "P32"
+      ]
+    },
+    {
+      "id": "installed-supplement-a",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "installed",
+      "ids": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "S09",
+        "S10",
+        "S11",
+        "S12",
+        "S13",
+        "S14",
+        "S15",
+        "S16",
+        "S17",
+        "S18",
+        "S19",
+        "S20",
+        "S21",
+        "S22",
+        "S23",
+        "S24",
+        "S25",
+        "S26",
+        "S27",
+        "S28",
+        "S29",
+        "S30",
+        "S31",
+        "S32",
+        "S33",
+        "S34",
+        "S35",
+        "S36",
+        "S37",
+        "S38",
+        "S39",
+        "S40"
+      ]
+    },
+    {
+      "id": "installed-supplement-b",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "installed",
+      "ids": [
+        "S41",
+        "S42",
+        "S43",
+        "S44",
+        "S45",
+        "S46",
+        "S47",
+        "S48",
+        "S49",
+        "S50",
+        "S51",
+        "S52",
+        "S53",
+        "S54",
+        "S55",
+        "S56",
+        "S57",
+        "S58",
+        "S59",
+        "S60",
+        "S61",
+        "S62",
+        "S63",
+        "S64",
+        "S65",
+        "S66",
+        "S67",
+        "S68",
+        "S69",
+        "S70",
+        "S71",
+        "S72",
+        "S73",
+        "S74",
+        "S75",
+        "S76",
+        "S77",
+        "S78",
+        "S79",
+        "S80"
+      ]
+    },
+    {
+      "id": "types-installed-positive",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "installed",
+      "variant": "positive"
+    },
+    {
+      "id": "types-installed-bad-value",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "installed",
+      "variant": "bad-value"
+    },
+    {
+      "id": "types-installed-bad-value-repair",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "installed",
+      "variant": "bad-value-repair"
+    },
+    {
+      "id": "types-installed-root-negative",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "installed",
+      "variant": "root-negative"
+    },
+    {
+      "id": "types-installed-root-repair",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "installed",
+      "variant": "root-repair"
+    },
+    {
+      "id": "moved-originals",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "moved",
+      "ids": [
+        "P01",
+        "P02",
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "P07",
+        "P08",
+        "P09",
+        "P10",
+        "P11",
+        "P12",
+        "P13",
+        "P14",
+        "P15",
+        "P16",
+        "P17",
+        "P18",
+        "P19",
+        "P20",
+        "P21",
+        "P22",
+        "P23",
+        "P24",
+        "P25",
+        "P26",
+        "P27",
+        "P28",
+        "P29",
+        "P30",
+        "P31",
+        "P32"
+      ]
+    },
+    {
+      "id": "moved-supplement-a",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "moved",
+      "ids": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "S09",
+        "S10",
+        "S11",
+        "S12",
+        "S13",
+        "S14",
+        "S15",
+        "S16",
+        "S17",
+        "S18",
+        "S19",
+        "S20",
+        "S21",
+        "S22",
+        "S23",
+        "S24",
+        "S25",
+        "S26",
+        "S27",
+        "S28",
+        "S29",
+        "S30",
+        "S31",
+        "S32",
+        "S33",
+        "S34",
+        "S35",
+        "S36",
+        "S37",
+        "S38",
+        "S39",
+        "S40"
+      ]
+    },
+    {
+      "id": "moved-supplement-b",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "moved",
+      "ids": [
+        "S41",
+        "S42",
+        "S43",
+        "S44",
+        "S45",
+        "S46",
+        "S47",
+        "S48",
+        "S49",
+        "S50",
+        "S51",
+        "S52",
+        "S53",
+        "S54",
+        "S55",
+        "S56",
+        "S57",
+        "S58",
+        "S59",
+        "S60",
+        "S61",
+        "S62",
+        "S63",
+        "S64",
+        "S65",
+        "S66",
+        "S67",
+        "S68",
+        "S69",
+        "S70",
+        "S71",
+        "S72",
+        "S73",
+        "S74",
+        "S75",
+        "S76",
+        "S77",
+        "S78",
+        "S79",
+        "S80"
+      ]
+    },
+    {
+      "id": "types-moved-positive",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "moved",
+      "variant": "positive"
+    },
+    {
+      "id": "types-moved-bad-value",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "moved",
+      "variant": "bad-value"
+    },
+    {
+      "id": "types-moved-bad-value-repair",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "moved",
+      "variant": "bad-value-repair"
+    },
+    {
+      "id": "types-moved-root-negative",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "moved",
+      "variant": "root-negative"
+    },
+    {
+      "id": "types-moved-root-repair",
+      "role": "type",
+      "timeoutMs": 120000,
+      "maxBytes": 262144,
+      "layout": "moved",
+      "variant": "root-repair"
+    },
+    {
+      "id": "cap-L01-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L01",
+      "endpoint": "minus"
+    },
+    {
+      "id": "cap-L01-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L01",
+      "endpoint": "at"
+    },
+    {
+      "id": "cap-L01-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L01",
+      "endpoint": "over"
+    },
+    {
+      "id": "cap-L02-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L02",
+      "endpoint": "minus"
+    },
+    {
+      "id": "cap-L02-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L02",
+      "endpoint": "at"
+    },
+    {
+      "id": "cap-L02-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L02",
+      "endpoint": "over"
+    },
+    {
+      "id": "cap-L05-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L05",
+      "endpoint": "minus"
+    },
+    {
+      "id": "cap-L05-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L05",
+      "endpoint": "at"
+    },
+    {
+      "id": "cap-L05-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L05",
+      "endpoint": "over"
+    },
+    {
+      "id": "cap-L06-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L06",
+      "endpoint": "minus"
+    },
+    {
+      "id": "cap-L06-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L06",
+      "endpoint": "at"
+    },
+    {
+      "id": "cap-L06-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L06",
+      "endpoint": "over"
+    },
+    {
+      "id": "cap-L07-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L07",
+      "endpoint": "minus"
+    },
+    {
+      "id": "cap-L07-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L07",
+      "endpoint": "at"
+    },
+    {
+      "id": "cap-L07-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L07",
+      "endpoint": "over"
+    },
+    {
+      "id": "cap-L10-minus",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L10",
+      "endpoint": "minus"
+    },
+    {
+      "id": "cap-L10-at",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L10",
+      "endpoint": "at"
+    },
+    {
+      "id": "cap-L10-over",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "cap": "L10",
+      "endpoint": "over"
+    },
+    {
+      "id": "real-scoped",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "backend": "real",
+      "ids": [
+        "P01",
+        "P06",
+        "P09",
+        "S41"
+      ]
+    },
+    {
+      "id": "mock-s3-scoped",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 2097152,
+      "layout": "source",
+      "backend": "mock-s3",
+      "ids": [
+        "P01",
+        "P06",
+        "P09",
+        "S41"
+      ]
+    },
+    {
+      "id": "mutation-M01-before",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M01",
+      "phase": "before",
+      "ids": [
+        "P02"
+      ]
+    },
+    {
+      "id": "mutation-M01-mutant",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M01",
+      "phase": "mutant",
+      "ids": [
+        "P02"
+      ]
+    },
+    {
+      "id": "mutation-M01-restored",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M01",
+      "phase": "restored",
+      "ids": [
+        "P02"
+      ]
+    },
+    {
+      "id": "mutation-M03-before",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M03",
+      "phase": "before",
+      "ids": [
+        "P18"
+      ]
+    },
+    {
+      "id": "mutation-M03-mutant",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M03",
+      "phase": "mutant",
+      "ids": [
+        "P18"
+      ]
+    },
+    {
+      "id": "mutation-M03-restored",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M03",
+      "phase": "restored",
+      "ids": [
+        "P18"
+      ]
+    },
+    {
+      "id": "mutation-M04-before",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M04",
+      "phase": "before",
+      "ids": [
+        "P16"
+      ]
+    },
+    {
+      "id": "mutation-M04-mutant",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M04",
+      "phase": "mutant",
+      "ids": [
+        "P16"
+      ]
+    },
+    {
+      "id": "mutation-M04-restored",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M04",
+      "phase": "restored",
+      "ids": [
+        "P16"
+      ]
+    },
+    {
+      "id": "mutation-M09-before",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M09",
+      "phase": "before",
+      "ids": [
+        "S40"
+      ]
+    },
+    {
+      "id": "mutation-M09-mutant",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M09",
+      "phase": "mutant",
+      "ids": [
+        "S40"
+      ]
+    },
+    {
+      "id": "mutation-M09-restored",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M09",
+      "phase": "restored",
+      "ids": [
+        "S40"
+      ]
+    },
+    {
+      "id": "mutation-M12-before",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M12",
+      "phase": "before",
+      "ids": [
+        "S49"
+      ]
+    },
+    {
+      "id": "mutation-M12-mutant",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M12",
+      "phase": "mutant",
+      "ids": [
+        "S49"
+      ]
+    },
+    {
+      "id": "mutation-M12-restored",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M12",
+      "phase": "restored",
+      "ids": [
+        "S49"
+      ]
+    },
+    {
+      "id": "mutation-M18-before",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M18",
+      "phase": "before",
+      "ids": [],
+      "cap": "L10",
+      "endpoint": "over"
+    },
+    {
+      "id": "mutation-M18-mutant",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M18",
+      "phase": "mutant",
+      "ids": [],
+      "cap": "L10",
+      "endpoint": "over"
+    },
+    {
+      "id": "mutation-M18-restored",
+      "role": "product",
+      "timeoutMs": 30000,
+      "maxBytes": 1048576,
+      "layout": "installed",
+      "mutation": "M18",
+      "phase": "restored",
+      "ids": [],
+      "cap": "L10",
+      "endpoint": "over"
+    }
+  ],
+  "counts": {
+    "plannedChildren": 70,
+    "byRole": {
+      "git": 3,
+      "guard": 4,
+      "build": 1,
+      "type": 15,
+      "product": 47
+    },
+    "plannedCommandEntries": 401,
+    "plannedCaseReceipts": 422,
+    "plannedIndependentRowsPerLayout": 112,
+    "expandedPerLayout": 126,
+    "sourceBuilds": 1,
+    "physicalMoves": 1,
+    "offlineAssemblySubprocesses": 0,
+    "workerInstances": 0,
+    "testServers": 0,
+    "nativeOracles": 0,
+    "networkRequests": 0
+  },
+  "bounds": {
+    "controllerMs": 6600000,
+    "cleanupReserveMs": 30000,
+    "peakOwnedProcesses": 2,
+    "userPeakCap": 4,
+    "workingBytes": 536870912,
+    "captureBytes": 134217728,
+    "oldSpaceMiB": 256,
+    "oldSpaceQualification": "Not RSS limit",
+    "worstPlannedChildTimeoutMs": 3400000
+  },
+  "postBuildSeal": "Authenticate generated full emissions and exact witness/mutant copies, commit RUNTIME-SEAL before local RUNTIME-START marker; controller clock continues without reset",
+  "prepChecks": {
+    "syntaxOnlyHarnessChecks": 5,
+    "captureMetadataGitChildren": 8,
+    "additionalAuthenticatedBuiltinInspectionGitChildren": 1,
+    "interactiveReadOnlyGitCommands": "Available in session transcript; not included in controller child totals"
+  },
+  "scope": "EXECUTION-PROFILE.md declares all nonpasses and narrower trace/consumer/provider coverage before dispatch; no author observations used as semantic oracle"
+}

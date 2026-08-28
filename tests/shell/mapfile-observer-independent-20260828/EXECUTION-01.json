@@ -1,0 +1,20 @@
+{
+  "schema": "external-host-outcome-v1",
+  "freeze": "1c6d0983760d81c6dad2303b8cba96ccd74ac709",
+  "observedInterpreterExit": 1,
+  "receiptIntendedExit": 90,
+  "captureSha256": "2b0948fe9874356d9947f22e6938f6733c34771b008931fea3fd0c872901a527",
+  "diagnosticExcerpt": "node:internal/bootstrap/switches/is_main_thread:83\n        stream = new net.Socket({\n                 ^\n\nTypeError: net.Socket is not a constructor",
+  "stderrQualification": "tool output contained a long data-URL source stack; this is an exact diagnostic excerpt, not a complete stderr capture",
+  "cause": "Trusted host lazily initializes stdout after net.Socket was denied. First failure progress logging throws; original outer catch captures that stop. Final summary logging throws again after both evidence files were exclusively written.",
+  "completed": 31,
+  "predicatePasses": 30,
+  "predicateFailures": ["close-before-spawn-live-group"],
+  "unexecuted": 18,
+  "actualObserverChildren": 0,
+  "actualNetworkConnections": 0,
+  "forbiddenCallbackInvocations": 0,
+  "completedCaseQueuesAndDescriptorsDrained": true,
+  "postHocOriginalSixFileHashesMatchFreeze": true,
+  "qualification": "First run is stopped, not an all-PASS run. Its raw capture/receipt and genuine subject failure stay immutable. Per-case integrity passed through case31; full final integrity was skipped by the stopped harness and independently checked afterward. No failure is erased by continuation."
+}

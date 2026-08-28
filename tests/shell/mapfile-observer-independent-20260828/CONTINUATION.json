@@ -1,0 +1,13 @@
+{
+  "schema": "minimal-host-fixture-correction-v2",
+  "originalFreeze": "1c6d0983760d81c6dad2303b8cba96ccd74ac709",
+  "originalCaptureSha256": "2b0948fe9874356d9947f22e6938f6733c34771b008931fea3fd0c872901a527",
+  "completedObserverPrefix": 31,
+  "remainingObserverControls": 10,
+  "remainingDirectControls": 8,
+  "repeatedControls": 0,
+  "newControls": 0,
+  "subjectSourceTransform": "none",
+  "reviewerCorrection": "pre-initialize existing host stdio before unchanged network guards; deterministic reviewer-only selection/census/output adaptation in continue-v2.mjs.data",
+  "classification": "opt-in DATA/SYNTHETIC only, not canonical test discovery"
+}

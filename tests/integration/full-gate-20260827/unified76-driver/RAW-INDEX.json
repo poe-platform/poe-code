@@ -1,0 +1,227 @@
+{
+  "fixture-initial": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/REPORT.json",
+    "bytes": 147470,
+    "sha256": "1d420c366e6834c03b98b914ce00499da32552f65dd7eed746aa608bae4d61e2"
+  },
+  "fixture-followup": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/FOLLOWUP.json",
+    "bytes": 7988,
+    "sha256": "5f8846daaae298655bbb1475f8ad5ddec0237fd3206cc632fbfb04e5e8c8c6fd"
+  },
+  "controls-first": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-controls-v039Pj/REPORT.json",
+    "bytes": 32564,
+    "sha256": "db436b7bfadc6fc32757c394146ad295c434fa38d9205abe09a6843f067c79e7"
+  },
+  "controls-second": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-controls-Xtq3Ww/REPORT.json",
+    "bytes": 32564,
+    "sha256": "5ef5a4114a48bb06f66242c5bfc30d2c14ef9a8d3e826d30b57dae5c8e98b929"
+  },
+  "controls-final": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-controls-DJHc1M/REPORT.json",
+    "bytes": 33790,
+    "sha256": "2d6ed6cc63f6ba2fee60e6e8ec70a44c761734ea11508cd5607d66d79695b4fd"
+  },
+  "inventory-final": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-stream-inventory-IL78qw/REPORT.json",
+    "bytes": 1481,
+    "sha256": "5359c0bd4714971a0bd9ca9595940be497a0ea9a5326f4df27de17964c8b3cee"
+  },
+  "reconstruction-first": {
+    "path": "/tmp/unified76-reconstruction-receipt-v1.json",
+    "bytes": 970,
+    "sha256": "fa173409d1a3c7a8b30f3c164db3b981c7144e20515007084921d5e8f8341d0c"
+  },
+  "reconstruction-final": {
+    "path": "/tmp/unified76-reconstruction-v2.json",
+    "bytes": 970,
+    "sha256": "7287711c986f900458ee7dd213a3d662a2268bf34f45ddd7a4ec64f87023855a"
+  },
+  "inspect-original": {
+    "path": "/tmp/unified76-inspect-v1.json",
+    "bytes": 21643,
+    "sha256": "5b16333334bfe4cc6aae1147df885dec4ae59c7e89007ba1b0d67850f0fe05f2"
+  },
+  "inspect-path-error": {
+    "path": "/tmp/unified76-inspect-final.json",
+    "bytes": 1147,
+    "sha256": "10d21d453399fee9135a1b770e674e12663924926b989ed1f2452735b922b3c5"
+  },
+  "inspect-final": {
+    "path": "/tmp/unified76-inspect-final-v2.json",
+    "bytes": 21643,
+    "sha256": "432f049d442d5f45cca4fc1d8a470665811643ca5b3cb03149da1600ae15e094"
+  },
+  "fixture-logs/build.stderr": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/build.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixture-logs/build.stdout": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/build.stdout",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixture-logs/original-1.stderr": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/original-1.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixture-logs/original-1.stdout": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/original-1.stdout",
+    "bytes": 2499,
+    "sha256": "b3382508dd372ec4c9234600bff1e4e4449e24417b587069217c486b87b4cd0a"
+  },
+  "fixture-logs/original-2.stderr": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/original-2.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixture-logs/original-2.stdout": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/original-2.stdout",
+    "bytes": 4741,
+    "sha256": "7fb20ffbae2efcf86f42466cf2ce7cc7eb78630213b1224b57a246dc6e1d34e0"
+  },
+  "fixture-logs/original-3.stderr": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/original-3.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixture-logs/original-3.stdout": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/original-3.stdout",
+    "bytes": 5399,
+    "sha256": "cff1a01d541217b880d3465b8a93f1ab17f2933b4e5966016e47ed1762237c48"
+  },
+  "fixture-logs/original-4.stderr": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/original-4.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixture-logs/original-4.stdout": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/original-4.stdout",
+    "bytes": 7644,
+    "sha256": "f311c1c2753091e7e2cde39984b396613f184803f151e2b4a91646fafad9996c"
+  },
+  "fixture-logs/pack.stderr": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/pack.stderr",
+    "bytes": 208,
+    "sha256": "3c1a1c66d72b342f55ef0823c9431c5bd2d76356829adc72eed5e5172d3ad240"
+  },
+  "fixture-logs/pack.stdout": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/pack.stdout",
+    "bytes": 93950,
+    "sha256": "4565108f1c4d79d7d34bd7eb88ee5e08e6f94a14268870427623a92c5cc6abfe"
+  },
+  "fixture-logs/revised-1.stderr": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/revised-1.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixture-logs/revised-1.stdout": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/revised-1.stdout",
+    "bytes": 1579,
+    "sha256": "7d8b3bebeffc8ec9bbf8541181868516b3d12a77a8df0fabc388b4bbafb354b5"
+  },
+  "fixture-logs/revised-2.stderr": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/revised-2.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixture-logs/revised-2.stdout": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/revised-2.stdout",
+    "bytes": 3905,
+    "sha256": "9e246d056f1b6da6f434237a160870711da63e223f24ba26d4e5281f6e989bdb"
+  },
+  "fixture-logs/revised-3.stderr": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/revised-3.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixture-logs/revised-3.stdout": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/revised-3.stdout",
+    "bytes": 4652,
+    "sha256": "73670ccdb2e77c14e253b2c41aaa695d0cb6a1b654640623a1a0e279f68bec37"
+  },
+  "fixture-logs/revised-4-followup.stderr": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/revised-4-followup.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fixture-logs/revised-4-followup.stdout": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/revised-4-followup.stdout",
+    "bytes": 3685,
+    "sha256": "615764187e8cc0b099399f709b3b3a805a30a89c1374eefee62ddce7422069d2"
+  },
+  "package-v1/REPORT.json": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/package-controls/REPORT.json",
+    "bytes": 3107,
+    "sha256": "d00a46eacca457955f2f4cd02ffb646f06b9725964b293d8a92952e852ae8a44"
+  },
+  "package-v1/missing-contracts.json": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/package-controls/missing-contracts.json",
+    "bytes": 1710,
+    "sha256": "c7efab8afdd26153eafc56f1ef9d0722fe3dbdd8bca10e3abeec17be0d4f739d"
+  },
+  "package-v1/missing-root.json": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/package-controls/missing-root.json",
+    "bytes": 1660,
+    "sha256": "1b8cc553c67ab46a9fe538d50742a4de79bef47b025dfa3f97ccab576e298597"
+  },
+  "package-v1/negative-types.json": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/package-controls/negative-types.json",
+    "bytes": 1068368,
+    "sha256": "5f4ab5ef2815435bd0d9968d268ac96c710ea9d684c1a699b37037ae13dbd62d"
+  },
+  "package-v1/public.json": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/package-controls/public.json",
+    "bytes": 1704,
+    "sha256": "c003c08f526ac0a7e44105fc5fb896eceedd67f71ac28b6b8581241626e727d2"
+  },
+  "package-v1/runtime-probe.json": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/package-controls/runtime-probe.json",
+    "bytes": 3321,
+    "sha256": "a2cced50040ce68591e4397b275412d7a83502cccd8c89bf67c2791ee6c2468d"
+  },
+  "package-v1/types.json": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/package-controls/types.json",
+    "bytes": 1076457,
+    "sha256": "049c164188699ab4d812c6c9a86e94e182db911c7c41ef85be3b59468dec514d"
+  },
+  "package-v2/REPORT.json": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/package-controls-v2/REPORT.json",
+    "bytes": 1099,
+    "sha256": "9f1ed7f343094b46985b13d207acd9c67811860c741ddd403fe4557f10e60287"
+  },
+  "package-v2/missing-contracts.json": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/package-controls-v2/missing-contracts.json",
+    "bytes": 1730,
+    "sha256": "edc5d6b4dfa263e68a8b21563b4f6681925ee2deebfa1421fa5e7e87e9d36e83"
+  },
+  "package-v2/missing-root.json": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/package-controls-v2/missing-root.json",
+    "bytes": 1680,
+    "sha256": "a4cfb493e9819e31f125c6e70e21c052eb1bbb0b83b1bf220746305222b57054"
+  },
+  "package-v2/negative-types.json": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/package-controls-v2/negative-types.json",
+    "bytes": 1068871,
+    "sha256": "bbf32e9ae6f674578ce617a663a9a1c1a49b7df8c8f073b754613167dd6283e0"
+  },
+  "package-v2/public.json": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/package-controls-v2/public.json",
+    "bytes": 6185,
+    "sha256": "3d111748f9803eae8ef868017d98c36a20df621445923042648e5cd839580225"
+  },
+  "package-v2/runtime-probe.json": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/package-controls-v2/runtime-probe.json",
+    "bytes": 3365,
+    "sha256": "733ca89a846fcc0cd80169e782d2dd79c798ce3543e94a91de3678dab394fe9d"
+  },
+  "package-v2/types.json": {
+    "path": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/unified76-fixture-proof-DCrWNr/package-controls-v2/types.json",
+    "bytes": 1076960,
+    "sha256": "fce638b055035eaf52d09470990b1139f8205b524d62b5f694a77583a2a772f3"
+  }
+}

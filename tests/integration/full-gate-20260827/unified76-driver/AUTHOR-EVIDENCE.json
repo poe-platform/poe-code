@@ -1,0 +1,146 @@
+{
+  "schema": 1,
+  "capturedAt": "2026-08-28T00:36:06.587Z",
+  "candidate": "07047e8f7bd577f60350246b1380732712305f58",
+  "tree": "f2b9afdbaafee930e188fa4d216e6779a2fbed75",
+  "sourceTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+  "driverCommit": "86f75025b423f9d25a9dbcb35d07e73e95d33f9d",
+  "driverSha256": "436e11579c0f4096d4f11ea83272c3af2f276ee94bbd972eccfd8eabbdd51553",
+  "profileSha256": "86699f558c53df7e6416819f86acd192cb438a1ec5e77063a212dcb6eb743ee1",
+  "profileEncodedSha256": "adea62d151c64794bb591ce0c414c182ba80acf324438ac4628011144777bec0",
+  "cleanupSha256": "0fb7b9fc30e76b58d76e5ef8912c886ec0df766136523cc0a7417e5dbb2fd3ef",
+  "packageManifestSha256": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a",
+  "tarballSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "expectedTarballSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "ancestry": {
+    "eba049535d154f4e028f57ffd8efd7622b2239ca": true,
+    "618d8967009117547ab476256bc6eb0a9463309a": true,
+    "fbbe1ef793b7434871403125efbeb46624a8e081": true,
+    "073d39c6c49d5ee24172706e02179dd6da484483": true,
+    "e422ad06b3470477b7f9323c89289d2963a00407": true,
+    "373437cf": false,
+    "0902f3c5": false
+  },
+  "fixture": {
+    "original": [
+      {
+        "label": "original-1",
+        "pass": 6,
+        "fail": 1,
+        "skipped": 0,
+        "todo": 0,
+        "cancelled": 0
+      },
+      {
+        "label": "original-2",
+        "pass": 18,
+        "fail": 1,
+        "skipped": 0,
+        "todo": 0,
+        "cancelled": 0
+      },
+      {
+        "label": "original-3",
+        "pass": 19,
+        "fail": 2,
+        "skipped": 0,
+        "todo": 0,
+        "cancelled": 0
+      },
+      {
+        "label": "original-4",
+        "pass": 15,
+        "fail": 6,
+        "skipped": 0,
+        "todo": 0,
+        "cancelled": 0
+      }
+    ],
+    "revised": [
+      {
+        "label": "revised-1",
+        "pass": 7,
+        "fail": 0,
+        "skipped": 0,
+        "todo": 0,
+        "cancelled": 0
+      },
+      {
+        "label": "revised-2",
+        "pass": 19,
+        "fail": 0,
+        "skipped": 0,
+        "todo": 0,
+        "cancelled": 0
+      },
+      {
+        "label": "revised-3",
+        "pass": 20,
+        "fail": 1,
+        "skipped": 0,
+        "todo": 0,
+        "cancelled": 0
+      },
+      {
+        "label": "revised-4-followup",
+        "pass": 21,
+        "fail": 0,
+        "skipped": 0,
+        "todo": 0,
+        "cancelled": 0
+      }
+    ],
+    "originalTotal": {
+      "pass": 58,
+      "fail": 10,
+      "skipped": 0,
+      "todo": 0,
+      "cancelled": 0
+    },
+    "revisedTotal": {
+      "pass": 67,
+      "fail": 1,
+      "skipped": 0,
+      "todo": 0,
+      "cancelled": 0
+    },
+    "initialReportStatus": "FAIL",
+    "remaining": "inspection first registry case fails at definitions.length73; unique count73 and exact old trailing list remain unreached, not changed without approval",
+    "source": "actual same rebuilt product, one process per file; revised fourth consumer separately completed after initial harness stopped",
+    "finalSelectedSourceInputsUnchanged": true
+  },
+  "controls": {
+    "pass": 54,
+    "fail": 0
+  },
+  "inventory": {
+    "pass": 13,
+    "fail": 0
+  },
+  "packageControls": {
+    "pass": 7,
+    "fail": 0,
+    "original": "6/7 author path-alias permission launch error retained; physical-root v2 is7/7"
+  },
+  "bindings": {
+    "nativeBase": 49,
+    "nativeExtensions": 2,
+    "nativeObserved": 51,
+    "nativeIssues": [],
+    "canonical": 632,
+    "classifiedMts": 192,
+    "cleanup": 256
+  },
+  "raw": {
+    "encodedSha256": "64308da952f0aa3ce8bcea3ccfb1762725241b3d176340febb0d1f15f6d08dc6",
+    "payloadSha256": "84b8415f815a30362547bcac758bb631ecbfe7260f59cf961f1ecb6b022db7b7",
+    "artifacts": 45,
+    "payloadBytes": 6339582
+  },
+  "fullGateLaunched": false,
+  "sourceTypecheckAllExecuted": false,
+  "public74_75_76IndependentlyAcceptedByThisTask": false,
+  "privateCheckoutAccessed": false,
+  "release": "HOLD_PUBLIC_AND_DRIVER_REVIEW_AND_ROOT_RELEASE",
+  "qualification": "author infrastructure and four-fixture/package measurements only; original histories and partial/failed attempts retained"
+}

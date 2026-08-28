@@ -70,6 +70,28 @@ the launcher writes that exact object to a new external file and supplies both
 required cleanup environment variables. No220/244 envelope or mutable HEAD is
 reused. `CLEANUP.json` is its readable evidence copy.
 
+### Current-consumer hash qualification (F01)
+
+Dirac's first static validation remains exit1:191/192 inventory SHA fields match
+selected bodies, not192/192. The differing path is the **current**
+`tests/fs/webdav/consumer/provider.mts`. Inventory `288d17dc…` describes its old
+6,603-byte body; `456a0738` changed it to the10,948-byte timestamp-retaining helper.
+Both selected44 and070 contain Git blob
+`21f5fe464f028b4e056d2aae40b26612f560bd95`, SHA256
+`af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6`.
+
+This is not a historical-capture classification. The selected
+`inventory-check.mjs:15` intentionally enforces the inventory SHA field only for
+non-current entries; this rule already exists at02704bd1. Current membership and
+compile/runtime routing remain mandatory. The selected Git/archive body is the
+runtime authority. `MTS-AUTHORITY.json` records all192 actual body hashes alongside
+their inventory fields and the provider's lineage. It does not change the
+candidate, consumer, inventory, driver or old failing validator. Minimal proposed
+review qualification: retain F01 as stale informational metadata, use the actual
+candidate body hash for current entries, and retain every non-current frozen hash
+check and current route. The driver's existing Git-blob/archive binding already
+requires the new provider body. No fifth fixture change is requested or made.
+
 For runtime, the closure is conservatively **all37,397 committed entries,
 2,382,440,287 bytes**, plus isolated ancestor Git objects, authenticated native
 assets, copied cached dependencies and an actual current SafeJS regular-file copy.

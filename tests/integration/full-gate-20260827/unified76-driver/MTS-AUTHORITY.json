@@ -1,0 +1,1832 @@
+{
+  "schema": 1,
+  "capturedAt": "2026-08-28T00:41:11.493Z",
+  "candidate": "07047e8f7bd577f60350246b1380732712305f58",
+  "base": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "sourceTree": "5876c6bf4ad9bc07f22cc46f8dbee99461981862",
+  "checker": {
+    "path": "tests/plugins/qualified-current-release/inventory-check.mjs",
+    "sha256": "1afd5cf0b4a1f42ed86330fde6655f5b606eed3be79a4f1026b4c2bf6294b9f3",
+    "introducedPolicyRevision": "02704bd1291b83763d7360b97bc5c6d50403ad10",
+    "rule": "Current role and route are enforced; entry.sha256 equality is enforced only for non-current entries. Executed current bytes must separately bind the selected Git candidate, not live files."
+  },
+  "finding": {
+    "originalIndependentStaticExit": 1,
+    "originalIndependentReceipt": "148d77b2",
+    "retained": true,
+    "classification": "stale informational hash on maintained current consumer; not a historical classification and not a new waiver",
+    "matches": 191,
+    "total": 192,
+    "mismatches": [
+      {
+        "path": "tests/fs/webdav/consumer/provider.mts",
+        "classification": "current",
+        "group": "webdav-loopback",
+        "recordedInventorySha256": "288d17dca5b6950fababb945cf21c15594dfbf37897d1cdcaab2aba1088a6b9b",
+        "selectedGitBlob": "21f5fe464f028b4e056d2aae40b26612f560bd95",
+        "selectedSourceSha256": "af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6",
+        "hashFieldEnforcedBySelectedChecker": false
+      }
+    ]
+  },
+  "lineage": [
+    {
+      "revision": "966cfac676f593e2542e4c84d1b79cb49776c08d",
+      "gitBlob": "27c6761a57a8e8fda7f083189bf7af4064a6f875",
+      "bytes": 6603,
+      "sha256": "288d17dca5b6950fababb945cf21c15594dfbf37897d1cdcaab2aba1088a6b9b"
+    },
+    {
+      "revision": "e90346e2a6225508f30d77068b26720786ce5cc7",
+      "gitBlob": "27c6761a57a8e8fda7f083189bf7af4064a6f875",
+      "bytes": 6603,
+      "sha256": "288d17dca5b6950fababb945cf21c15594dfbf37897d1cdcaab2aba1088a6b9b"
+    },
+    {
+      "revision": "41298e6f46754b3dd419e6433a373aabf2949a50",
+      "gitBlob": "27c6761a57a8e8fda7f083189bf7af4064a6f875",
+      "bytes": 6603,
+      "sha256": "288d17dca5b6950fababb945cf21c15594dfbf37897d1cdcaab2aba1088a6b9b"
+    },
+    {
+      "revision": "456a0738b0d2dc130ebbd9b7ccf5e299bcf177da",
+      "gitBlob": "21f5fe464f028b4e056d2aae40b26612f560bd95",
+      "bytes": 10948,
+      "sha256": "af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6"
+    },
+    {
+      "revision": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "gitBlob": "21f5fe464f028b4e056d2aae40b26612f560bd95",
+      "bytes": 10948,
+      "sha256": "af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6"
+    },
+    {
+      "revision": "07047e8f7bd577f60350246b1380732712305f58",
+      "gitBlob": "21f5fe464f028b4e056d2aae40b26612f560bd95",
+      "bytes": 10948,
+      "sha256": "af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6"
+    }
+  ],
+  "rows": [
+    {
+      "path": "tests/commands/column-stress/current-contract-review/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "b2b44e440153be72a34aff617b27f02b4c52b508295ce6a81904322ba82ef35d",
+      "selectedGitBlob": "3f5d9271336329a15ed75a6c208cea46de2f947c",
+      "selectedSourceSha256": "b2b44e440153be72a34aff617b27f02b4c52b508295ce6a81904322ba82ef35d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/column-stress/handoff-20260827/packed-types.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "b8ee0c9c82cc6ce08b9c297711aac74ce05ce53e5c69ff9ab6ccefb2f4bf81d7",
+      "selectedGitBlob": "6b44c1f75d6af5ed52f8f81bf2fa186131e8e07c",
+      "selectedSourceSha256": "b8ee0c9c82cc6ce08b9c297711aac74ce05ce53e5c69ff9ab6ccefb2f4bf81d7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/column-stress/padding-evolution/execution-20260827/packed-types.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "b8ee0c9c82cc6ce08b9c297711aac74ce05ce53e5c69ff9ab6ccefb2f4bf81d7",
+      "selectedGitBlob": "6b44c1f75d6af5ed52f8f81bf2fa186131e8e07c",
+      "selectedSourceSha256": "b8ee0c9c82cc6ce08b9c297711aac74ce05ce53e5c69ff9ab6ccefb2f4bf81d7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/grep-aliases-stress/verification/coverage-supplement/pipeline-holdouts.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "ca8c863323effd4e3765177a8bec4df224921ef5f2f6c389ea91db0c0a8c0f25",
+      "selectedGitBlob": "78d32dc91e0fd873126c082b03b466203e31ce5d",
+      "selectedSourceSha256": "ca8c863323effd4e3765177a8bec4df224921ef5f2f6c389ea91db0c0a8c0f25",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/grep-aliases-stress/verification/holdouts.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "d454002f97fa37b6546bad238feec5472774646a6bf0d766fea32c2c0c32977b",
+      "selectedGitBlob": "6f6c38676da4585f40f3b8cf0a95eb30d43692d9",
+      "selectedSourceSha256": "d454002f97fa37b6546bad238feec5472774646a6bf0d766fea32c2c0c32977b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/grep-aliases-stress/verification/public-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "7a9b9b87209490941c88f3896f92c40d3f6bda215887f245c1a3e5aca8671b94",
+      "selectedGitBlob": "a0eab69a90bcf60a2275c8f2ea1c065cbde7c859",
+      "selectedSourceSha256": "7a9b9b87209490941c88f3896f92c40d3f6bda215887f245c1a3e5aca8671b94",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/grep-aliases/consumer.mts",
+      "classification": "current",
+      "group": "grep-aliases-public",
+      "recordedInventorySha256": "4b8028bf709e6b73eea7f91e30cf2fd4b45e7709455f0209612b1b6978f995ac",
+      "selectedGitBlob": "72bfdf67fba91e3de998e74e4ec66a467692fb0c",
+      "selectedSourceSha256": "4b8028bf709e6b73eea7f91e30cf2fd4b45e7709455f0209612b1b6978f995ac",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/commands/network-zero-caps-review/consumer.mts",
+      "classification": "current",
+      "group": "network-zero-caps-public",
+      "recordedInventorySha256": "6e7cf339e0414a58c68cb46e95bcc4a59a349c94d346c8389f9b5445c75a87a1",
+      "selectedGitBlob": "4998c5e99589727e14159a20655ff98670ec9696",
+      "selectedSourceSha256": "6e7cf339e0414a58c68cb46e95bcc4a59a349c94d346c8389f9b5445c75a87a1",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/commands/network-zero-caps-review/mutations.d.mts",
+      "classification": "declaration",
+      "group": null,
+      "recordedInventorySha256": "09cda7f29f79d2625f9c892c0c25c1c65cc3d3f23942a60349599b42a6c53d8f",
+      "selectedGitBlob": "94f66ea182f2271c2c859adfca6ff931686cfa0b",
+      "selectedSourceSha256": "09cda7f29f79d2625f9c892c0c25c1c65cc3d3f23942a60349599b42a6c53d8f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/network-zero-caps-review/offline.d.mts",
+      "classification": "declaration",
+      "group": null,
+      "recordedInventorySha256": "1d6020b8dd8f6ba0d5f1a4b73615832499bbd3ec3e147aa469e6f78ffbfb3836",
+      "selectedGitBlob": "c0538a8713dc98fb639d8d980cbf8a3f1b239653",
+      "selectedSourceSha256": "1d6020b8dd8f6ba0d5f1a4b73615832499bbd3ec3e147aa469e6f78ffbfb3836",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/network-zero-caps-review/runtime.d.mts",
+      "classification": "declaration",
+      "group": null,
+      "recordedInventorySha256": "83a8579f6bcf3e42adda383e3519edaeb3fb49b98b471b8a56ebe758595aa1bc",
+      "selectedGitBlob": "c02408c654fef11e12b844f5678b4ff22674b0fc",
+      "selectedSourceSha256": "83a8579f6bcf3e42adda383e3519edaeb3fb49b98b471b8a56ebe758595aa1bc",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/regex-execution/continuation/package-consumer.mts",
+      "classification": "current",
+      "group": "regex-continuation",
+      "recordedInventorySha256": "7e27be9c20ee8fd7413e60c4424221520a1856ddfe2b8b80d19d1c1443eea4b3",
+      "selectedGitBlob": "29c298280d3719d9049e33541111432db942af84",
+      "selectedSourceSha256": "7e27be9c20ee8fd7413e60c4424221520a1856ddfe2b8b80d19d1c1443eea4b3",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/commands/regex-execution/followup/product-consumer.mts",
+      "classification": "current",
+      "group": "regex-followup",
+      "recordedInventorySha256": "98002da21b35415d69181b33fed9a2011a8dea758fd63407d0e17a8d488bb36d",
+      "selectedGitBlob": "2b82fa240d0dcc6193403235f72c0c2806037441",
+      "selectedSourceSha256": "98002da21b35415d69181b33fed9a2011a8dea758fd63407d0e17a8d488bb36d",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/commands/regex-execution/package-consumer.mts",
+      "classification": "current",
+      "group": "regex",
+      "recordedInventorySha256": "a3d27cd3208a139758543299cfb1646ce27786d978f0cb7afa515f86b237f1f2",
+      "selectedGitBlob": "7f90a0e44dccda62fbcc8c64faa7f442e47aed98",
+      "selectedSourceSha256": "a3d27cd3208a139758543299cfb1646ce27786d978f0cb7afa515f86b237f1f2",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/cases.d.mts",
+      "classification": "declaration",
+      "group": null,
+      "recordedInventorySha256": "a7bd523bd9c7f3cc5b915b06d03478a5d8c3d5e6fe5d444c7409b1c0fa23a8b4",
+      "selectedGitBlob": "fa5a019147f6d9cb2717d844fc2e76e71907748f",
+      "selectedSourceSha256": "a7bd523bd9c7f3cc5b915b06d03478a5d8c3d5e6fe5d444c7409b1c0fa23a8b4",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/common.d.mts",
+      "classification": "declaration",
+      "group": null,
+      "recordedInventorySha256": "cd6923f50a115a2348d5e9878c42e13bf808640a37eabd19c313974501c9db53",
+      "selectedGitBlob": "709ad36702218f457668141a39ed373068d96e6b",
+      "selectedSourceSha256": "cd6923f50a115a2348d5e9878c42e13bf808640a37eabd19c313974501c9db53",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/structured-stress/jq-42-independent-review/evidence.d.mts",
+      "classification": "declaration",
+      "group": null,
+      "recordedInventorySha256": "c47ee3003c5b361e4402c7145e2815b96e71f317915905a8e453c767b5a140f7",
+      "selectedGitBlob": "d291dd8ed1e763de13848f24f013803d1bfbf146",
+      "selectedSourceSha256": "c47ee3003c5b361e4402c7145e2815b96e71f317915905a8e453c767b5a140f7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/time-env-stress/consumer.mts",
+      "classification": "frozen-oracle",
+      "group": null,
+      "recordedInventorySha256": "7cede429d70acd5ffdb63cf15af06ff126fe04c06f7e9e744d0cebeca5338d1b",
+      "selectedGitBlob": "39fd691eb5e75b27488f359e4921967cd2dc80af",
+      "selectedSourceSha256": "7cede429d70acd5ffdb63cf15af06ff126fe04c06f7e9e744d0cebeca5338d1b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/time-env-stress/fix-review/holdout.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "a4013ca7e8bd8b7006350d8f4120eb9313317d6bbd2dd0d85cf870f162708823",
+      "selectedGitBlob": "82dc52311084f8f1612aa3eccc4ad566e9bb946e",
+      "selectedSourceSha256": "a4013ca7e8bd8b7006350d8f4120eb9313317d6bbd2dd0d85cf870f162708823",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/controls.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "9e4e037fb68ff027e97712ed7db9a7eb117c2d3818829a9c81db378b73cd3c19",
+      "selectedGitBlob": "fa54ca7442d5c7b79c2c26f9af2ace1dbf977c7a",
+      "selectedSourceSha256": "9e4e037fb68ff027e97712ed7db9a7eb117c2d3818829a9c81db378b73cd3c19",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/leaf-negative.mts",
+      "classification": "negative-types",
+      "group": "time-env-leaf-negative",
+      "recordedInventorySha256": "95bea0f4174db8f3abcf1df9930721edf33e261ac6ba9c7550e08306835e9fa0",
+      "selectedGitBlob": "ce4e0c3573090ee44e2af449bd4d4a841e1176bd",
+      "selectedSourceSha256": "95bea0f4174db8f3abcf1df9930721edf33e261ac6ba9c7550e08306835e9fa0",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/leaf-positive.mts",
+      "classification": "current",
+      "group": "time-env-leaf",
+      "recordedInventorySha256": "04612e41329331b9699d82af7632650e582a4b9d700b29128b91c35d78cd55ac",
+      "selectedGitBlob": "451bc9b0ece8de896601cc76810c8779451fed21",
+      "selectedSourceSha256": "04612e41329331b9699d82af7632650e582a4b9d700b29128b91c35d78cd55ac",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/public-negative.mts",
+      "classification": "negative-types",
+      "group": "time-env-public-negative",
+      "recordedInventorySha256": "1edc12f034e43292c8332997a0793fe5dedeecc7d81b2696aeea5057670f70af",
+      "selectedGitBlob": "58762d0ceec8575f488dbe9ecdef27fee64a4ded",
+      "selectedSourceSha256": "1edc12f034e43292c8332997a0793fe5dedeecc7d81b2696aeea5057670f70af",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/public-positive.mts",
+      "classification": "current",
+      "group": "time-env-public",
+      "recordedInventorySha256": "7aea50f6aa8cfbcd54f686a9b7f8741500dabd3f3cb423ffbafbcbc53c2982f4",
+      "selectedGitBlob": "53cbf7f6cb1f242b15922fc4406374e1f5a880e1",
+      "selectedSourceSha256": "7aea50f6aa8cfbcd54f686a9b7f8741500dabd3f3cb423ffbafbcbc53c2982f4",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/commands/time-env-stress/fraction-independent/packed/public-time-env-unavailable.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c64cf98af455e8ad338b22e84e518dbdbc039abc45be1ce69d1ffa62cdf9e273",
+      "selectedGitBlob": "2574aa65f9db61fe55932011b0fc673baae3402e",
+      "selectedSourceSha256": "c64cf98af455e8ad338b22e84e518dbdbc039abc45be1ce69d1ffa62cdf9e273",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/s3/constructor-comparison/consumer.mts",
+      "classification": "current",
+      "group": "s3-constructor",
+      "recordedInventorySha256": "1c3a43c9c582380f179e0e4c888bcd238076f37beb33810a95accc40442a2383",
+      "selectedGitBlob": "3103a694f8f5401634b321dada55d749d4eb8a8c",
+      "selectedSourceSha256": "1c3a43c9c582380f179e0e4c888bcd238076f37beb33810a95accc40442a2383",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/s3/http-independent/public-workflow.mts",
+      "classification": "current",
+      "group": "s3-http-independent",
+      "recordedInventorySha256": "1b9c3ca734232921684a5bff00c59f4dd408d73f8d7a363d3b1a10de60e978cf",
+      "selectedGitBlob": "cb8494eb5658a8233d9ef80dc3c5f1c9c9c85c57",
+      "selectedSourceSha256": "1b9c3ca734232921684a5bff00c59f4dd408d73f8d7a363d3b1a10de60e978cf",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/s3/http/author/public-consumer.mts",
+      "classification": "current",
+      "group": "s3-http-author",
+      "recordedInventorySha256": "190253ffc034bfea5a7af208cce2dc91bd0b6fb2be993fdb8623b9e5cbf4b1dd",
+      "selectedGitBlob": "4c0546ded232d21ece6ecaa26980ab5cbc5816d2",
+      "selectedSourceSha256": "190253ffc034bfea5a7af208cce2dc91bd0b6fb2be993fdb8623b9e5cbf4b1dd",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/s3/rmdir-independent/public-consumer.mts",
+      "classification": "current",
+      "group": "s3-rmdir",
+      "recordedInventorySha256": "d409e32b638f8055d99692f709daf93a3e8a806efbdb658e10e79400be8550ea",
+      "selectedGitBlob": "699b1db8f2f22d9a3b75e63d09f135d122772d9a",
+      "selectedSourceSha256": "d409e32b638f8055d99692f709daf93a3e8a806efbdb658e10e79400be8550ea",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension-independent/consumer.mts",
+      "classification": "current",
+      "group": "webdav-atomic-independent",
+      "recordedInventorySha256": "097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46",
+      "selectedGitBlob": "f0149ad78e12f4096dc79f2a5dc5b18e20f760ad",
+      "selectedSourceSha256": "097fb4af66360dde04e79a9520bfd06a00e8213bc9f686d88c5a7ed52310dc46",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/consumer.mts",
+      "classification": "current",
+      "group": "webdav-atomic",
+      "recordedInventorySha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "selectedGitBlob": "0cec0ccdb1d961e4dfebb2e77bb94f1610888773",
+      "selectedSourceSha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "selectedGitBlob": "0cec0ccdb1d961e4dfebb2e77bb94f1610888773",
+      "selectedSourceSha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04",
+      "selectedGitBlob": "0bbf8a9da838b233a66884f5ef91d32eee2e8d60",
+      "selectedSourceSha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-final/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "selectedGitBlob": "0cec0ccdb1d961e4dfebb2e77bb94f1610888773",
+      "selectedSourceSha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "6c299e206c0f3942ca11de35e8f75b79dfebbcc5bf82e3a10958d6e138f6fbc7",
+      "selectedGitBlob": "36d5b0cb5b6bd0821bc159e02c80c3a24148048a",
+      "selectedSourceSha256": "6c299e206c0f3942ca11de35e8f75b79dfebbcc5bf82e3a10958d6e138f6fbc7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-first/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "selectedGitBlob": "0cec0ccdb1d961e4dfebb2e77bb94f1610888773",
+      "selectedSourceSha256": "2a975eda5ba8035eb4ac3b9932a990b2cd2e0038349b99c5aa4575e8e323e4fd",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04",
+      "selectedGitBlob": "0bbf8a9da838b233a66884f5ef91d32eee2e8d60",
+      "selectedSourceSha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/evidence/provider-second/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/example.mts",
+      "classification": "current",
+      "group": "webdav-atomic",
+      "recordedInventorySha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04",
+      "selectedGitBlob": "0bbf8a9da838b233a66884f5ef91d32eee2e8d60",
+      "selectedSourceSha256": "0a477635fa96ed8a68c200b279ed1f78889296fc9cea1ed414df722416d6ec04",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/webdav/atomic-extension/https.mts",
+      "classification": "current",
+      "group": "webdav-atomic",
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/webdav/consumer/consumer.test.mts",
+      "classification": "current",
+      "group": "webdav-loopback",
+      "recordedInventorySha256": "b69e78c54d5afb844cef7f59c4d530e1ddad6634394a32e56e455b7a7bce752a",
+      "selectedGitBlob": "c736a346ba00eb34c6d2b272c3b420405a3c6b9a",
+      "selectedSourceSha256": "b69e78c54d5afb844cef7f59c4d530e1ddad6634394a32e56e455b7a7bce752a",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/webdav/consumer/example.mts",
+      "classification": "current",
+      "group": "webdav-loopback",
+      "recordedInventorySha256": "7a51aed0e78cc30d54dfa1b616c9e659710bed4f0a4cd7e42e28258a974f7b15",
+      "selectedGitBlob": "eb22a29c424273ca455fa47a93fd61175ef3c13c",
+      "selectedSourceSha256": "7a51aed0e78cc30d54dfa1b616c9e659710bed4f0a4cd7e42e28258a974f7b15",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/webdav/consumer/provider.mts",
+      "classification": "current",
+      "group": "webdav-loopback",
+      "recordedInventorySha256": "288d17dca5b6950fababb945cf21c15594dfbf37897d1cdcaab2aba1088a6b9b",
+      "selectedGitBlob": "21f5fe464f028b4e056d2aae40b26612f560bd95",
+      "selectedSourceSha256": "af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/webdav/consumer/types.mts",
+      "classification": "current",
+      "group": "webdav-loopback",
+      "recordedInventorySha256": "90ad547d0b4ff13cb0b5fc4f79b26b8b59ceac144adea8de4f511b421663d028",
+      "selectedGitBlob": "7d51afcecd1a75ca3f2d91b838225f82714b4288",
+      "selectedSourceSha256": "90ad547d0b4ff13cb0b5fc4f79b26b8b59ceac144adea8de4f511b421663d028",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/evidence/attempt1/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "06e3ab5978349056f54824532baa5476e6116320846a6936c768bba50511c1b5",
+      "selectedGitBlob": "aea34381f9ea3fa280fba451c04f04ab63933c18",
+      "selectedSourceSha256": "06e3ab5978349056f54824532baa5476e6116320846a6936c768bba50511c1b5",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/evidence/attempt2/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "d1f633592b40625a158a96fbca38286358215048d7959b44f02456ef00cbc7f2",
+      "selectedGitBlob": "edadc943d97db5d1fad34ce58d13f8af4a1a73f3",
+      "selectedSourceSha256": "d1f633592b40625a158a96fbca38286358215048d7959b44f02456ef00cbc7f2",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/evidence/attempt3/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "a3425f55a3041bc614f2b5e00c51db21df8cab644f70a2aeeed4e68358babbca",
+      "selectedGitBlob": "bfba5433c6f19dbb721910d4687bd98d24ac0535",
+      "selectedSourceSha256": "a3425f55a3041bc614f2b5e00c51db21df8cab644f70a2aeeed4e68358babbca",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/evidence/final/apache/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "selectedGitBlob": "6ba86502f90fb9bd2836bcbe38530b0e9bbe4fce",
+      "selectedSourceSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/evidence/final/wsgidav/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "selectedGitBlob": "6ba86502f90fb9bd2836bcbe38530b0e9bbe4fce",
+      "selectedSourceSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/independent.mts",
+      "classification": "current",
+      "group": "webdav-services",
+      "recordedInventorySha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "selectedGitBlob": "6ba86502f90fb9bd2836bcbe38530b0e9bbe4fce",
+      "selectedSourceSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "selectedGitBlob": "6ba86502f90fb9bd2836bcbe38530b0e9bbe4fce",
+      "selectedSourceSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/apache/inputs/scope-neighbors.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66",
+      "selectedGitBlob": "64286fb4006f74502bd51d79c719711626c5b824",
+      "selectedSourceSha256": "a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "selectedGitBlob": "6ba86502f90fb9bd2836bcbe38530b0e9bbe4fce",
+      "selectedSourceSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/attempt1/wsgidav/inputs/scope-neighbors.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66",
+      "selectedGitBlob": "64286fb4006f74502bd51d79c719711626c5b824",
+      "selectedSourceSha256": "a62d82374edc28dd641425690bc308b067def6c9c4fc2d79847573cbff0f7c66",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "selectedGitBlob": "6ba86502f90fb9bd2836bcbe38530b0e9bbe4fce",
+      "selectedSourceSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/apache/inputs/scope-neighbors.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+      "selectedGitBlob": "965ba4c59e3ef382b074b94aa76a6c8871dd152d",
+      "selectedSourceSha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "selectedGitBlob": "6ba86502f90fb9bd2836bcbe38530b0e9bbe4fce",
+      "selectedSourceSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/final/wsgidav/inputs/scope-neighbors.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+      "selectedGitBlob": "965ba4c59e3ef382b074b94aa76a6c8871dd152d",
+      "selectedSourceSha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "selectedGitBlob": "6ba86502f90fb9bd2836bcbe38530b0e9bbe4fce",
+      "selectedSourceSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/apache/inputs/scope-neighbors.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+      "selectedGitBlob": "965ba4c59e3ef382b074b94aa76a6c8871dd152d",
+      "selectedSourceSha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "selectedGitBlob": "6ba86502f90fb9bd2836bcbe38530b0e9bbe4fce",
+      "selectedSourceSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-fix-evidence/parent/wsgidav/inputs/scope-neighbors.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+      "selectedGitBlob": "965ba4c59e3ef382b074b94aa76a6c8871dd152d",
+      "selectedSourceSha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service-independent/scope-neighbors.mts",
+      "classification": "current",
+      "group": "webdav-services",
+      "recordedInventorySha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+      "selectedGitBlob": "965ba4c59e3ef382b074b94aa76a6c8871dd152d",
+      "selectedSourceSha256": "8468487d6e4766f33496719b8a88068adc28925e28f897c758c48eb08bbf4cd2",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/webdav/real-service/consumer.mts",
+      "classification": "current",
+      "group": "webdav-services",
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-final/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-final/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-final/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-corrected/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "753ea13c3a9c42243840860512c994ca1d2760dc9f07cc26ce4c4e21e98d78ea",
+      "selectedGitBlob": "2da36b6cdf18fde7bf20fb97daeaaef549a56cca",
+      "selectedSourceSha256": "753ea13c3a9c42243840860512c994ca1d2760dc9f07cc26ce4c4e21e98d78ea",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-corrected/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-corrected/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-first/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "6d5191014fa83b3a9d62bb7c9ec6d7bc61f690a377a45f2579385dc516ca6224",
+      "selectedGitBlob": "dd58b7194454bbc749ee5864569e5dbfabb3870e",
+      "selectedSourceSha256": "6d5191014fa83b3a9d62bb7c9ec6d7bc61f690a377a45f2579385dc516ca6224",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-first/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/apache-matrix-first/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "494b9bfebae525d00f765fd8a004fa922fa9eec097d7617b126ac84b0f03e6bd",
+      "selectedGitBlob": "3d8209309d2190ec9d802b644cb3a89f0e66147d",
+      "selectedSourceSha256": "494b9bfebae525d00f765fd8a004fa922fa9eec097d7617b126ac84b0f03e6bd",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-after-authority/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-after-authority/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-after-authority/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-after-authority/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "673fa3a4b15f9ecc487084b0a5951ace52f75ca7155e58a378dbbf862330256c",
+      "selectedGitBlob": "3c24695dca00bfed1de027dbafbffb35d6872ec0",
+      "selectedSourceSha256": "673fa3a4b15f9ecc487084b0a5951ace52f75ca7155e58a378dbbf862330256c",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-before-alias/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-before-alias/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-before-alias/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-before-alias/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "673fa3a4b15f9ecc487084b0a5951ace52f75ca7155e58a378dbbf862330256c",
+      "selectedGitBlob": "3c24695dca00bfed1de027dbafbffb35d6872ec0",
+      "selectedSourceSha256": "673fa3a4b15f9ecc487084b0a5951ace52f75ca7155e58a378dbbf862330256c",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-final/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-final/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-final/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-apache-final/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-after-authority/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-after-authority/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-after-authority/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-after-authority/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "673fa3a4b15f9ecc487084b0a5951ace52f75ca7155e58a378dbbf862330256c",
+      "selectedGitBlob": "3c24695dca00bfed1de027dbafbffb35d6872ec0",
+      "selectedSourceSha256": "673fa3a4b15f9ecc487084b0a5951ace52f75ca7155e58a378dbbf862330256c",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-final/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-final/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-final/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/legacy-wsgidav-final/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "selectedGitBlob": "6ba86502f90fb9bd2836bcbe38530b0e9bbe4fce",
+      "selectedSourceSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/apache/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "selectedGitBlob": "6ba86502f90fb9bd2836bcbe38530b0e9bbe4fce",
+      "selectedSourceSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-after/capture/wsgidav/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "selectedGitBlob": "6ba86502f90fb9bd2836bcbe38530b0e9bbe4fce",
+      "selectedSourceSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/apache/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "selectedGitBlob": "6ba86502f90fb9bd2836bcbe38530b0e9bbe4fce",
+      "selectedSourceSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-before/capture/wsgidav/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "selectedGitBlob": "6ba86502f90fb9bd2836bcbe38530b0e9bbe4fce",
+      "selectedSourceSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/apache/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs/independent.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "selectedGitBlob": "6ba86502f90fb9bd2836bcbe38530b0e9bbe4fce",
+      "selectedSourceSha256": "41c2fe53195bc78d7c695836897f6ff1001164b897e68775bf02ce51166d2923",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/scope-parent-before/capture/wsgidav/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-final/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-final/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-final/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-first/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "55d83eb7dca8c1a364f7312a7e015163a6f6653c516b68bc6d9e631b38930ebb",
+      "selectedGitBlob": "acf0abb4d7b16cd36a2ec5a45514f23f6556b693",
+      "selectedSourceSha256": "55d83eb7dca8c1a364f7312a7e015163a6f6653c516b68bc6d9e631b38930ebb",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-first/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-first/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "494b9bfebae525d00f765fd8a004fa922fa9eec097d7617b126ac84b0f03e6bd",
+      "selectedGitBlob": "3d8209309d2190ec9d802b644cb3a89f0e66147d",
+      "selectedSourceSha256": "494b9bfebae525d00f765fd8a004fa922fa9eec097d7617b126ac84b0f03e6bd",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-second/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "753ea13c3a9c42243840860512c994ca1d2760dc9f07cc26ce4c4e21e98d78ea",
+      "selectedGitBlob": "2da36b6cdf18fde7bf20fb97daeaaef549a56cca",
+      "selectedSourceSha256": "753ea13c3a9c42243840860512c994ca1d2760dc9f07cc26ce4c4e21e98d78ea",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-second/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/evidence/wsgidav-matrix-second/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "494b9bfebae525d00f765fd8a004fa922fa9eec097d7617b126ac84b0f03e6bd",
+      "selectedGitBlob": "3d8209309d2190ec9d802b644cb3a89f0e66147d",
+      "selectedSourceSha256": "494b9bfebae525d00f765fd8a004fa922fa9eec097d7617b126ac84b0f03e6bd",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/real-service/example.mts",
+      "classification": "current",
+      "group": "webdav-services",
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/webdav/real-service/https.mts",
+      "classification": "current",
+      "group": "webdav-services",
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/webdav/real-service/phase2-consumer.mts",
+      "classification": "current",
+      "group": "webdav-services",
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/webdav/release-timestamp-independent/independent.test.mts",
+      "classification": "current",
+      "group": "webdav-timestamp-independent",
+      "recordedInventorySha256": "9df9eb1914e8a8a7cf98e40e29dac567488f16aba7e0fdabe42793eff5f2f358",
+      "selectedGitBlob": "14f7d360d8999cf38cba194fb65523b023d9891f",
+      "selectedSourceSha256": "9df9eb1914e8a8a7cf98e40e29dac567488f16aba7e0fdabe42793eff5f2f358",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs/feasibility.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca",
+      "selectedGitBlob": "2038f2b29ec3f668becac4ac9c3612978d719f4f",
+      "selectedSourceSha256": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/apache/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs/feasibility.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca",
+      "selectedGitBlob": "2038f2b29ec3f668becac4ac9c3612978d719f4f",
+      "selectedSourceSha256": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-final/wsgidav/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs/feasibility.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "e94a048b4a9e76798f58267af925dd8ee712780c5e576b648aff023d34c2a9af",
+      "selectedGitBlob": "6af3c9dc5c4485a490ce364392c1425a312abbed",
+      "selectedSourceSha256": "e94a048b4a9e76798f58267af925dd8ee712780c5e576b648aff023d34c2a9af",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/apache/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs/consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "selectedGitBlob": "dd092cd7f88b8b0f75da85ea6a9a3097c06accfd",
+      "selectedSourceSha256": "1419b9951d07fe884a2dc0ec21e2d13685e25c2dd8bd3ebc649a20ca38e7b79f",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs/example.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "selectedGitBlob": "fa930472b06e4abafe90e93d07db2456aecfd98d",
+      "selectedSourceSha256": "912cfa9aa3fb70e3e8ab72b6bee8432123e28ab2856be4ec32ed9d1465a8b45b",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs/feasibility.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "e94a048b4a9e76798f58267af925dd8ee712780c5e576b648aff023d34c2a9af",
+      "selectedGitBlob": "6af3c9dc5c4485a490ce364392c1425a312abbed",
+      "selectedSourceSha256": "e94a048b4a9e76798f58267af925dd8ee712780c5e576b648aff023d34c2a9af",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs/https.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "selectedGitBlob": "84feec504bdd792af8dacb7d7095e859681ae293",
+      "selectedSourceSha256": "c5ebf142974da0d5bef812b911d3124f74c12f2688f82e7dcf298f535246383d",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/evidence/feasibility-first/wsgidav/inputs/phase2-consumer.mts",
+      "classification": "frozen-evidence",
+      "group": null,
+      "recordedInventorySha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "selectedGitBlob": "0f5b87eeaff36232b2638872166b740dfbe3bf47",
+      "selectedSourceSha256": "67ce2110494c65a27d07375dd639dc88867cd510079de0ae99dde9238c40cbd7",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/fs/webdav/rmdir-real-service/feasibility.mts",
+      "classification": "current",
+      "group": "webdav-services",
+      "recordedInventorySha256": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca",
+      "selectedGitBlob": "2038f2b29ec3f668becac4ac9c3612978d719f4f",
+      "selectedSourceSha256": "295130247672732248290f5a6934100e134b228fe9bc07138a1d159958fe30ca",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/consumer.mts",
+      "classification": "current",
+      "group": "stream-inspection",
+      "recordedInventorySha256": "02227d955901b365ea76818f12616ce59a3b81bc3eb9379ccb704bb99cde4713",
+      "selectedGitBlob": "96b8a25998e21e551b78651f64ac460ace504ccd",
+      "selectedSourceSha256": "02227d955901b365ea76818f12616ce59a3b81bc3eb9379ccb704bb99cde4713",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/current-column.mts",
+      "classification": "current",
+      "group": "column-public",
+      "recordedInventorySha256": "c74ed7b2dd94ca0bbd236db5f7a2f843f082313aa673fa69abf4ca99a8c13f3a",
+      "selectedGitBlob": "d69eeb626b490aa3ad3ec5519f20e57162b74172",
+      "selectedSourceSha256": "c74ed7b2dd94ca0bbd236db5f7a2f843f082313aa673fa69abf4ca99a8c13f3a",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/plugins/qualified-current-release/du-leaf.mts",
+      "classification": "current",
+      "group": "du-leaf",
+      "recordedInventorySha256": "c141a7c1877d033b6e38b4251eab67e807c56307d16cd665b015f6e73d12ea0f",
+      "selectedGitBlob": "31375aa3670389ea878f4a831626de30f45c7918",
+      "selectedSourceSha256": "c141a7c1877d033b6e38b4251eab67e807c56307d16cd665b015f6e73d12ea0f",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/plugins/stream-five-fixture-migration/public-options.mts",
+      "classification": "current",
+      "group": "stream-five",
+      "recordedInventorySha256": "08ed67a1861bf424c2354e5a0dc3a12727245d90d7b34c898f853211e1ea58eb",
+      "selectedGitBlob": "495dca9c78cff499f046104b761a3faffa92f79e",
+      "selectedSourceSha256": "08ed67a1861bf424c2354e5a0dc3a12727245d90d7b34c898f853211e1ea58eb",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/shell-stress/env-split-validity/invalid-binding.mts",
+      "classification": "negative-types",
+      "group": null,
+      "recordedInventorySha256": "1148c543c99b9177923fa30ac5248a090a9782b5151f9d91f2541bc97e4fcd1c",
+      "selectedGitBlob": "1fa16beac805c307a579fe1bd37fb84a4ee1b626",
+      "selectedSourceSha256": "1148c543c99b9177923fa30ac5248a090a9782b5151f9d91f2541bc97e4fcd1c",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/shell-stress/env-split-validity/public-types.mts",
+      "classification": "current",
+      "group": "env-split-public-types",
+      "recordedInventorySha256": "1e3363f9dd73614f3b5b3b31eac4341f7d72a6f203da82c0700256e62b3793dc",
+      "selectedGitBlob": "6c8275e83070c23a121560d718f6bb23b6c81cc9",
+      "selectedSourceSha256": "1e3363f9dd73614f3b5b3b31eac4341f7d72a6f203da82c0700256e62b3793dc",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/shell-stress/kernel-reconciliation/support.d.mts",
+      "classification": "declaration",
+      "group": null,
+      "recordedInventorySha256": "79b24079ff93f916aa5f35db06f98b1352df5703d0c3305dc12012da7587d869",
+      "selectedGitBlob": "2d890b75e578c4feec09251291ceec74a038b979",
+      "selectedSourceSha256": "79b24079ff93f916aa5f35db06f98b1352df5703d0c3305dc12012da7587d869",
+      "hashFieldEnforcedBySelectedChecker": true
+    },
+    {
+      "path": "tests/stress/regex-execution/production-continuation-review/package-consumer.mts",
+      "classification": "current",
+      "group": "regex-production-continuation",
+      "recordedInventorySha256": "f885b55a6a280729b109084ae36885167135f3e753052f98aa01b4f206dd39cc",
+      "selectedGitBlob": "7b8df6e8d8b336b4cf1e903fcf7dc780f2ff3b1e",
+      "selectedSourceSha256": "f885b55a6a280729b109084ae36885167135f3e753052f98aa01b4f206dd39cc",
+      "hashFieldEnforcedBySelectedChecker": false
+    },
+    {
+      "path": "tests/stress/regex-execution/production-review/package-consumer.mts",
+      "classification": "current",
+      "group": "regex-production",
+      "recordedInventorySha256": "b2d369407771c8f6760adff58fa2eff193879f1932c545870831a7d19fd84675",
+      "selectedGitBlob": "9b3da5b06a1bb191321dcc83e8cc2f72e761e12a",
+      "selectedSourceSha256": "b2d369407771c8f6760adff58fa2eff193879f1932c545870831a7d19fd84675",
+      "hashFieldEnforcedBySelectedChecker": false
+    }
+  ],
+  "proposal": {
+    "candidateOrFixtureChanges": [],
+    "inventoryRewritten": false,
+    "driverSourceChanged": false,
+    "policy": "Retain original static mismatch. For current-role entries display recorded inventory SHA and selected source SHA/Git blob; require actual selected archive bytes to match the latter. For every non-current entry preserve inventory hash/frozen-evidence checks. Keep all current compilation/runtime routes.",
+    "providerRuntimeAuthority": {
+      "revision": "07047e8f7bd577f60350246b1380732712305f58",
+      "gitBlob": "21f5fe464f028b4e056d2aae40b26612f560bd95",
+      "bytes": 10948,
+      "sha256": "af9ffdb0f991696818512c5f50dab94fdb76387d3b66a2abca80fb799d6d30b6"
+    },
+    "runtimeRoutes": [
+      "webdav-loopback strict group, serialized consumer.test.mjs (13 existing cases)",
+      "webdav-timestamp-independent companion for23 existing cases (20 controls and3 mutant kills)"
+    ],
+    "runtimeExecutedByThisInvestigation": false,
+    "qualification": "The provider helper changed at456a073. No claim that provider inputs or deployed-server semantics remained unchanged."
+  },
+  "evidence": {
+    "inventory": {
+      "revision": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "path": "tests/plugins/qualified-current-release/inventory.json",
+      "sha256": "725b0c12e7965bc3e400f25cae1a31a1d2f3e456b232f1bcc3a8bb561cc0a6f7"
+    },
+    "consumers": {
+      "revision": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+      "path": "tests/plugins/qualified-current-release/consumers.mjs",
+      "sha256": "dd907b3f09da229685d5275be73160d0fd5f93eb6b9bc499793349a32e21e9d6"
+    },
+    "independentTimestampEvidence": "a30bfd939fc55889c75e357c70ea1cebac3b010c",
+    "rootStatement": "timestamp helper fix separately accepted; not rerun in this investigation"
+  }
+}

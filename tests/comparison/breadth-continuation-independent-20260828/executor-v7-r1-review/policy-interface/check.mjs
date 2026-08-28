@@ -129,8 +129,10 @@ if (mode === 'requests') {
   const reached = new Set();
   const visit = filename => { if (reached.has(filename)) return; reached.add(filename); for (const dependency of closure.get(filename) ?? []) visit(dependency); };
   for (const name of ['launch.mjs', 'coordinator.mjs', 'production.mjs', 'worker.mjs', 'synthetic-worker.mjs']) visit(path.join(repository, successor, name));
-  results.imports = { parsed, reached: reached.size, missing, dynamicEdgesNotCertified: true };
+  const activeMissing = missing.filter(entry => reached.has(path.join(repository, entry.path)));
+  results.imports = { parsed, reached: reached.size, reachedPaths: [...reached].map(filename => path.relative(repository, filename)).sort(), missing, activeMissing, dynamicEdgesNotCertified: true };
   check('all static relative imports bound', missing.length === 0);
+  check('admission seeded static relative imports bound', activeMissing.length === 0);
   const handoff = JSON.parse(blobs.get(`${evidence}:${successor}/runs/handoff-01/HANDOFF.json`).body);
   const focused = JSON.parse(blobs.get(`${evidence}:${successor}/runs/focused-r1-01/RESULT.json`).body);
   check('original author 31/33 preserved', handoff.originalSyntheticRun.pass === 31 && handoff.originalSyntheticRun.fail === 2 && handoff.originalSyntheticRun.reaped.total === 28);

@@ -14,3 +14,12 @@
    `git ls-tree -r 230ed3c6e15617b312760367adf9ede4e5c7ff6a | node "$P/check.mjs" tree`
    and then the existing before/after commands. The initial REQUESTS.txt stays
    unchanged; missing responses are retained as classifications, not suppressed.
+3. Corrected preseal `67233342`; completed BEFORE.json is not all-pass:
+   322/322 bound input bodies/modes match, 480/481 data checks pass, and both
+   namespace censuses match. The failing whole-seal import check identifies
+   coordinator-report-v1/publisher.mjs importing unbound ./records.mjs.
+   This is not automatically an active admission-path defect. Before the final
+   capture, the checker is extended to report the already-computed 48-file
+   admission-seeded closure and whether that particular missing edge is active.
+   The original failing assertion and BEFORE.json remain untouched. No additional
+   runtime or original comparator-source checks are introduced.

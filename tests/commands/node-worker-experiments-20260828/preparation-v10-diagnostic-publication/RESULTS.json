@@ -1,0 +1,313 @@
+{
+  "schema": "wrq-v10-diagnostic-results",
+  "sourceCommit": "1afe801c1ce898b44ae202a63dfab81946958a59",
+  "date": "2026-08-28",
+  "passed": 20,
+  "total": 20,
+  "controls": {
+    "schema": "diagnostic-publication-controls-v1",
+    "passed": 20,
+    "total": 20,
+    "results": [
+      {
+        "id": "D01-normal-known-fields",
+        "pass": true
+      },
+      {
+        "id": "D02-stack-accessor-unread",
+        "pass": true
+      },
+      {
+        "id": "D03-transport-accessor-unread",
+        "pass": true
+      },
+      {
+        "id": "D04-proxy-reason-no-traps",
+        "pass": true
+      },
+      {
+        "id": "D05-no-arbitrary-message",
+        "pass": true
+      },
+      {
+        "id": "D06-observer-undefined-preserves-primary",
+        "pass": true
+      },
+      {
+        "id": "D07-writer-false-preserves-sink",
+        "pass": true
+      },
+      {
+        "id": "D08-release-failure-not-clean",
+        "pass": true
+      },
+      {
+        "id": "D09-dual-failure-order",
+        "pass": true
+      },
+      {
+        "id": "D10-precharge-before-observer",
+        "pass": true
+      },
+      {
+        "id": "D11-record-overflow",
+        "pass": true
+      },
+      {
+        "id": "D12-array-accessor-no-call",
+        "pass": true
+      },
+      {
+        "id": "D13-proxy-array-no-call",
+        "pass": true
+      },
+      {
+        "id": "D14-raw-value-accessor-no-call",
+        "pass": true
+      },
+      {
+        "id": "D15-extra-raw-key",
+        "pass": true
+      },
+      {
+        "id": "D16-pending-writer-keeps-reservation",
+        "pass": true
+      },
+      {
+        "id": "D17-four-record-byte-bound",
+        "pass": true
+      },
+      {
+        "id": "D18-huge-field-redacted-before-copy",
+        "pass": true
+      },
+      {
+        "id": "D19-identity-not-serialized",
+        "pass": true
+      },
+      {
+        "id": "D20-null-prototype-own-record",
+        "pass": true
+      }
+    ],
+    "Workers": 0,
+    "guests": 0,
+    "engines": 0,
+    "compilers": 0
+  },
+  "loads": {
+    "schema": "repair-control-loads-v1",
+    "loaded": [
+      {
+        "path": "controls.mjs",
+        "bytes": 7899,
+        "sha256": "661bdc7c128c35d2f3db001535e2945644721e8d049738f1c3f6f511815df56c"
+      },
+      {
+        "path": "diagnostic-publication.mjs",
+        "bytes": 4164,
+        "sha256": "7fd093905541561d6112b13f7ac224dec43caaaed6bfcb2124294ac3b88baa07"
+      },
+      {
+        "path": "reservations.mjs",
+        "bytes": 919,
+        "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde"
+      },
+      {
+        "path": "json-size.mjs",
+        "bytes": 1709,
+        "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5"
+      }
+    ],
+    "edges": [
+      {
+        "importer": "control-entry.mjs",
+        "specifier": "./controls.mjs",
+        "target": "controls.mjs"
+      },
+      {
+        "importer": "controls.mjs",
+        "specifier": "./diagnostic-publication.mjs",
+        "target": "diagnostic-publication.mjs"
+      },
+      {
+        "importer": "controls.mjs",
+        "specifier": "./reservations.mjs",
+        "target": "reservations.mjs"
+      },
+      {
+        "importer": "diagnostic-publication.mjs",
+        "specifier": "node:util",
+        "target": "node:util"
+      },
+      {
+        "importer": "diagnostic-publication.mjs",
+        "specifier": "./json-size.mjs",
+        "target": "json-size.mjs"
+      }
+    ]
+  },
+  "owner": {
+    "schema": "parent-only-owner-v1",
+    "launched": true,
+    "pid": 11713,
+    "closed": true,
+    "code": 0,
+    "signal": null,
+    "childErrorPresent": false,
+    "elapsedMs": 223,
+    "capture": {
+      "primary": {
+        "present": false,
+        "origin": null
+      },
+      "secondary": [],
+      "slots": [
+        {
+          "acquired": true,
+          "closeAttempted": true,
+          "closed": true
+        },
+        {
+          "acquired": true,
+          "closeAttempted": true,
+          "closed": true
+        }
+      ],
+      "bytesSeen": 2113,
+      "bytesWritten": 2113,
+      "writeCalls": 2,
+      "cleanupComplete": true
+    },
+    "primary": {
+      "present": false,
+      "origin": null
+    },
+    "secondary": []
+  },
+  "raw": {
+    "stdoutBytes": 2113,
+    "stdoutSha256": "11946654ee502c43f32590455fe442a2b96e53e97edba60efa14e490aaec94d5",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "postBindings": [
+    {
+      "path": "diagnostic-publication.mjs",
+      "sha256": "7fd093905541561d6112b13f7ac224dec43caaaed6bfcb2124294ac3b88baa07"
+    },
+    {
+      "path": "json-size.mjs",
+      "sha256": "dfb182483ccb9b3d1866f1d87cd22be2dd6b51f077b08bcf48f0efd812252af5"
+    },
+    {
+      "path": "reservations.mjs",
+      "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde"
+    },
+    {
+      "path": "controls.mjs",
+      "sha256": "661bdc7c128c35d2f3db001535e2945644721e8d049738f1c3f6f511815df56c"
+    },
+    {
+      "path": "control-entry.mjs",
+      "sha256": "7acc2b36fdbbf4efb4804fa6ad12fee10443713f59bb46b0b4c02cf9edf61bf7"
+    },
+    {
+      "path": "launch.mjs",
+      "sha256": "7d544cf6168b883a988aa62d9b4375692074b2d07b417938c772385b0caeeb33"
+    },
+    {
+      "path": "../preparation-v7-capture/capture-owner.mjs",
+      "sha256": "1cbec42dfb24de259c515e5686faa3aff8a5cb17171689831fa3b3360a9fe104"
+    }
+  ],
+  "sourceCensusFailure": {
+    "originalPredicate": "all compiled/ entries must count95",
+    "observed": 96,
+    "error": "emission preservation",
+    "correction": "95 unchanged .js emissions plus1 unchanged compiled/engine/package.json metadata; no mismatched hashes",
+    "controlRerun": false
+  },
+  "continuation": {
+    "authorized": false,
+    "Workers": 10,
+    "guests": 9,
+    "selectedInstances": [
+      "WRQ02-L02-repeat-v10",
+      "WRQ03-L03-v3",
+      "WRQ04-L04-v3",
+      "WRQ05-L05-undefined-v3",
+      "WRQ05-L05-false-v3",
+      "WRQ05-L05-object-v3",
+      "WRQ06-L06a-v3",
+      "WRQ06-L06b-v3",
+      "WRQ07-L07-v3",
+      "WRQ08-L08-v3"
+    ],
+    "oldUnrun": 9,
+    "versionedL02Repeat": 1,
+    "L01Replays": 0,
+    "compositionFiles": 125,
+    "bytes": 1323686,
+    "moduleRecords": 117,
+    "edges": 303,
+    "unchangedEmissions": 95,
+    "changedOrAddedPaths": [
+      "CASES.json",
+      "GRANT.template.json",
+      "MODULES.json",
+      "PROFILE.json",
+      "SOURCES.json",
+      "errors.mjs",
+      "parent-entry.mjs",
+      "supervisor.mjs",
+      "diagnostic-publication.mjs"
+    ]
+  },
+  "scope": {
+    "actual": "20 helper DATA/synthetic controls; injected writers, native Error test records; not whole parent/Worker publication",
+    "sourceOnly": "parent-entry native exclusive-write callback, supervisor same-ledger handoff, future-owner and complete125 composition",
+    "Workers": 0,
+    "guests": 0,
+    "engines": 0,
+    "compilers": 0,
+    "privateReads": 0,
+    "network": 0,
+    "retries": 0,
+    "productChanges": 0
+  },
+  "history": {
+    "original": "345b9851f00e77ba520014b36567259440fd4ed0",
+    "L01": "PASS",
+    "L02": "FAIL exact original detail unknown",
+    "parentProbe": "4d7f8531dc72a8006e9f8548cddbf0a181595621 separate/not engine proof",
+    "prior23": "525b9d478b9dd2de246f59bc9f13334f9d1cc6f0 unchanged",
+    "F05": "DEFERRED"
+  },
+  "limits": {
+    "elapsedAtPublicationMs": 586820,
+    "startsBeforePublication": 5,
+    "startsAfterTwoGitPublicationChildren": 7,
+    "maxStarts": 12,
+    "controlChildMs": 223,
+    "controlChildren": 1,
+    "peakOwnedChildren": 1,
+    "captureBytes": 2113
+  },
+  "hashes": {
+    "diagnostic-publication.mjs": "7fd093905541561d6112b13f7ac224dec43caaaed6bfcb2124294ac3b88baa07",
+    "errors.mjs": "73fe9e571ab1d51843b54e1e1197484ef2f27e1f9895ac3ade5c95fc90c4044c",
+    "parent-entry.mjs": "b2193a377bb07da1cde60d3309179a0b21af2a6d91cc98314f24cab842a546c7",
+    "supervisor.mjs": "51321ac41bdfe140c53bbf912805d8c0faaecd8c182ed979febeeca2d5aff396",
+    "PROFILE.json": "61d005bfce187fc80aa9f827359d25141269ee2c10ec0066f048ecd65dc856da",
+    "CASES.json": "93ce7b5eb2a8e0eefee4d9d1d80268f7ede54be2855589bef907eb8f20b73c62",
+    "MODULES.json": "8b5b6b83e650b6354fe276b2247ef51e7eefe562405680dc40b5f202fefc9255",
+    "SOURCES.json": "1018e37263caa1ceced89021495866a6ac1d0d854754954941f50d2af58a6d45",
+    "COMPOSITION.json": "5e611bd8d1748944ff105ec9837388ccba788ac41cb543bb379e25b433d9a286",
+    "CONTINUATION-PRESEAL.json": "058965bf4c3fdc56d6921037d836ac581b7ca9ba69157020a0288e185cb1cf72",
+    "PRESEAL.json": "92d97e036344fb2fda4b9dc262eadb856948f2418d395bb7652b4845f1bd9a41",
+    "future-owner.mjs": "e944eaac0de22016f61446b32d94654510b3a8c04c47d7a5a42813c976b5c7d2",
+    "HANDOFF.md": "33878efa2eea57b0c36413410a4710b871205c6e91d9103819acd6168d6f0ff1"
+  },
+  "decision": "SOURCE/DATA ready for different review; actual10/9 continuation HELD; K1-K4partial"
+}

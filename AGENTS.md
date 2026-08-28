@@ -155,6 +155,9 @@
   Authenticate all inputs and recompute exact canonical tree bytes/hashes; do
   not require git rev-parse success for a declared derived-only identity.
   Claims of stored commits/blobs/trees still require object verification.
+- Authenticate Git path inventories from NUL-delimited records and byte-exact
+  paths, not C-quoted line displays; never reinterpret quoted display names as
+  filenames or classify a wrong-tree harness capture as a product failure.
 - Preserve original cohorts, failures, fixture inputs and oracle defects beside
   later corrections. Record exact source hashes, profiles, versions, denominators,
   dirty-vs-frozen state and external-oracle availability. Unmeasured/unsupported

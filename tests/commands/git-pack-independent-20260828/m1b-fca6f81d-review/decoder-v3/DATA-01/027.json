@@ -1,0 +1,1 @@
+{"role":"DECODER_CONTROL","id":"negative-nonstring","value":null,"error":{"type":"object","message":"UNSAFE_FIXTURE: neutral encoded string"}}

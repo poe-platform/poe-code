@@ -1,0 +1,556 @@
+{
+  "schema": 1,
+  "capturedAt": "2026-08-28T02:21:51.205Z",
+  "sourceCommit": "b37cf57280dcdfc8495aba6d5fb974c228ed0f6e",
+  "candidate": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "candidateTree": "48e5ae39ce98e1c8e416bae77da40d88b75e1db5",
+  "packageSha256": "13fe54de1cf900d587855e276375fdf72ed1ed0d0e0625cf7ef00730f2bb74c9",
+  "readmeBefore": {
+    "revision": "77206625fa1fe824a58097756a3296ed50449c27",
+    "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1"
+  },
+  "readmeAfter": {
+    "revision": "b37cf57280dcdfc8495aba6d5fb974c228ed0f6e",
+    "sha256": "a77d646fddfb8f8beaf46a9d699eb7d3a83c981f11d562b933ddbaaa1a6e431f"
+  },
+  "sourceBindings": [
+    {
+      "path": "README.md",
+      "sha256": "a77d646fddfb8f8beaf46a9d699eb7d3a83c981f11d562b933ddbaaa1a6e431f",
+      "bytes": 38561,
+      "blob": "938b6d9def34660d1bef099d840a49ce809286c2"
+    },
+    {
+      "path": "tests/integration/readme-combined77-smoke-20260828/README.md",
+      "sha256": "1d0c741d1b14589de534ba59e292b2ee75e69ade815c30caa3271998f368114f",
+      "bytes": 5126,
+      "blob": "864caa34ca6361576514d3223e58ea91b26869fd"
+    },
+    {
+      "path": "tests/integration/readme-combined77-smoke-20260828/no-network.mjs",
+      "sha256": "b7adf31175df9c6370b1c895ecf7607a2d9d3e680fa2447c98d8ba0de0d81c83",
+      "bytes": 680,
+      "blob": "4de927aad83e20198ddf4cc0e02121b53096fb0c"
+    },
+    {
+      "path": "tests/integration/readme-combined77-smoke-20260828/verify.mjs",
+      "sha256": "929751d26fb9aaf117e36f7e3520f7e885c2f9e9fc63489e2dcd5e92fc14451e",
+      "bytes": 9895,
+      "blob": "74397df861a8959e97f377a03bb4e99de8742571"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/common.mjs",
+      "sha256": "697f3d47e4e252911ea7d9f57eca131a6689399a0ed8763756efdd51b7f69ebe",
+      "bytes": 4466,
+      "blob": "d58422c3e8292a57457e10c9f5605d9b5a052029"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/inventory.mjs",
+      "sha256": "075b6b0bc2f2f28de164248f51e1a8de5c48c78a7329021bcff5793beec9c4a2",
+      "bytes": 5405,
+      "blob": "512838e7e86ba7d6d7bbaeadf3320484bd393858"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/external.mjs",
+      "sha256": "c1b1f7776562154a88a50cd36b80272c77779ffd6378f1e5c36e1606b3e3d5da",
+      "bytes": 6129,
+      "blob": "1d6f68d61e1587dda956c4a5bf0daa9eeaf1f787"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/policy.mjs",
+      "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86",
+      "bytes": 4441,
+      "blob": "49228227576c2d4e750edd6a00ed3f8611a3e69a"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/account.mjs",
+      "sha256": "279f552950ee9f90a884c448f31d19903add6672da042d4a195b89fd84de742c",
+      "bytes": 3491,
+      "blob": "093b692c504c8b39cf17aed23bf34cff28935368"
+    },
+    {
+      "path": "tests/integration/readme-combined77-smoke-20260828/workflows.mts.fixture",
+      "sha256": "39578c33d2deb9f743d50ef4ac38907c4220b16f90045d8e6a0daa51cabe828c",
+      "bytes": 6463,
+      "blob": "4b075a183d3b5ad76df8c2e9d478b80afeaa8a6c"
+    }
+  ],
+  "runs": [
+    {
+      "root": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/combined77-doc-smoke-d69991",
+      "candidate": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "packageSha256": "13fe54de1cf900d587855e276375fdf72ed1ed0d0e0625cf7ef00730f2bb74c9",
+      "readmeSha256": "a77d646fddfb8f8beaf46a9d699eb7d3a83c981f11d562b933ddbaaa1a6e431f",
+      "status": "FAIL",
+      "commands": [
+        {
+          "label": "strict-public-types",
+          "status": 0
+        },
+        {
+          "label": "readme-22",
+          "status": 1,
+          "counts": {
+            "pass": 0,
+            "fail": 2,
+            "skipped": 0,
+            "todo": 0,
+            "cancelled": 0
+          }
+        }
+      ],
+      "error": "AssertionError [ERR_ASSERTION]: (node:36820) SecurityWarning: The flag --allow-worker must be used with extreme caution. It could invalidate the permission model.\n(Use `node --trace-warnings ...` to show where the warning was created)\nTAP version 13\n# Subtest: docs-runtime.mjs\nnot ok 1 - docs-runtime.mjs\n  ---\n  duration_ms: 0.824167\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/combined77-doc-smoke-d69991/moved documentation consumer/docs-runtime.mjs:1:1'\n  failureType: 'testCodeFailure'\n  error: 'Access to this API has been restricted. Use --allow-child-process to manage permissions.'\n  code: 'ERR_ACCESS_DENIED'\n  stack: |-\n    ChildProcess.spawn (node:internal/child_process:395:28)\n    spawn (node:child_process:787:9)\n    TestContext.<anonymous> (node:internal/test_runner/runner:377:19)\n    FileTest.runInAsyncScope (node:async_hooks:214:14)\n    FileTest.run (node:internal/test_runner/test:1047:25)\n    FileTest.start (node:internal/test_runner/test:944:17)\n    runTestFile (node:internal/test_runner/runner:456:32)\n    node:internal/test_runner/runner:727:25\n    node:internal/per_context/primordials:561:37\n    new Promise (<anonymous>)\n  ...\n# Subtest: emitted/workflows.mjs\nnot ok 2 - emitted/workflows.mjs\n  ---\n  duration_ms: 0.088333\n  type: 'test'\n  location: '/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/combined77-doc-smoke-d69991/moved documentation consumer/emitted/workflows.mjs:1:1'\n  failureType: 'testCodeFailure'\n  error: 'Access to this API has been restricted. Use --allow-child-process to manage permissions.'\n  code: 'ERR_ACCESS_DENIED'\n  stack: |-\n    ChildProcess.spawn (node:internal/child_process:395:28)\n    spawn (node:child_process:787:9)\n    TestContext.<anonymous> (node:internal/test_runner/runner:377:19)\n    FileTest.runInAsyncScope (node:async_hooks:214:14)\n    FileTest.run (node:internal/test_runner/test:1047:25)\n    Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n    FileTest.postRun (node:internal/test_runner/test:1173:19)\n    FileTest.run (node:internal/test_runner/test:1101:12)\n    process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 0\n# fail 2\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 4.5785\n\n\n1 !== 0\n\n    at requireSuccess (file:///Users/kjopek/Workspace/safe-bash/tests/integration/readme-combined77-smoke-20260828/verify.mjs:57:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/readme-combined77-smoke-20260828/verify.mjs:110:5"
+    },
+    {
+      "root": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/combined77-doc-smoke-dVYEFe",
+      "candidate": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "packageSha256": "13fe54de1cf900d587855e276375fdf72ed1ed0d0e0625cf7ef00730f2bb74c9",
+      "readmeSha256": "a77d646fddfb8f8beaf46a9d699eb7d3a83c981f11d562b933ddbaaa1a6e431f",
+      "status": "SCOPED_README_SMOKE_PASS",
+      "commands": [
+        {
+          "label": "strict-public-types",
+          "status": 0
+        },
+        {
+          "label": "readme-22",
+          "status": 0,
+          "counts": {
+            "pass": 15,
+            "fail": 0,
+            "skipped": 0,
+            "todo": 0,
+            "cancelled": 0
+          }
+        },
+        {
+          "label": "source-denial-22",
+          "status": 1
+        },
+        {
+          "label": "network-trap-control-22",
+          "status": 0
+        },
+        {
+          "label": "readme-24",
+          "status": 0,
+          "counts": {
+            "pass": 15,
+            "fail": 0,
+            "skipped": 0,
+            "todo": 0,
+            "cancelled": 0
+          }
+        },
+        {
+          "label": "source-denial-24",
+          "status": 1
+        },
+        {
+          "label": "network-trap-control-24",
+          "status": 0
+        }
+      ]
+    },
+    {
+      "root": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/combined77-doc-smoke-fuAGtD",
+      "candidate": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "packageSha256": "13fe54de1cf900d587855e276375fdf72ed1ed0d0e0625cf7ef00730f2bb74c9",
+      "readmeSha256": "a77d646fddfb8f8beaf46a9d699eb7d3a83c981f11d562b933ddbaaa1a6e431f",
+      "status": "SCOPED_README_SMOKE_PASS",
+      "commands": [
+        {
+          "label": "strict-public-types",
+          "status": 0
+        },
+        {
+          "label": "readme-22",
+          "status": 0,
+          "counts": {
+            "pass": 15,
+            "fail": 0,
+            "skipped": 0,
+            "todo": 0,
+            "cancelled": 0
+          }
+        },
+        {
+          "label": "source-denial-22",
+          "status": 1
+        },
+        {
+          "label": "network-trap-control-22",
+          "status": 0
+        },
+        {
+          "label": "readme-24",
+          "status": 0,
+          "counts": {
+            "pass": 15,
+            "fail": 0,
+            "skipped": 0,
+            "todo": 0,
+            "cancelled": 0
+          }
+        },
+        {
+          "label": "source-denial-24",
+          "status": 1
+        },
+        {
+          "label": "network-trap-control-24",
+          "status": 0
+        }
+      ]
+    }
+  ],
+  "examples": [
+    {
+      "number": 1,
+      "line": 57,
+      "snippetSha256": "e1190b7addd2be33aabd411e9750ca2cc58d36bb5b5f0c054cee97e02ea35f9a",
+      "stagedSha256": "e1190b7addd2be33aabd411e9750ca2cc58d36bb5b5f0c054cee97e02ea35f9a",
+      "role": "exact standalone runtime and strict types"
+    },
+    {
+      "number": 2,
+      "line": 97,
+      "snippetSha256": "6fb367107fbf1263619bd4b4d50977adfee7ec9aeca8cda9d53f74bce0938a7e",
+      "stagedSha256": "6fb367107fbf1263619bd4b4d50977adfee7ec9aeca8cda9d53f74bce0938a7e",
+      "role": "exact standalone runtime and strict types"
+    },
+    {
+      "number": 3,
+      "line": 135,
+      "snippetSha256": "32b8d8c3ed944fe4ba4450023c70cf76a99de3293cee500c3b11d02e3dcb55e3",
+      "stagedSha256": "32b8d8c3ed944fe4ba4450023c70cf76a99de3293cee500c3b11d02e3dcb55e3",
+      "role": "exact standalone runtime and strict types"
+    },
+    {
+      "number": 4,
+      "line": 168,
+      "snippetSha256": "faf7283d27c8ade0491131b7a1c64c9b72bc4351ac8472ffbe27ad3cda04a330",
+      "stagedSha256": "faf7283d27c8ade0491131b7a1c64c9b72bc4351ac8472ffbe27ad3cda04a330",
+      "role": "exact standalone runtime and strict types"
+    },
+    {
+      "number": 5,
+      "line": 293,
+      "snippetSha256": "d7a118f385b925fa22539bad138e4e8f740fea71c9a71ee3dae08a354e3f7d1a",
+      "stagedSha256": "d7a118f385b925fa22539bad138e4e8f740fea71c9a71ee3dae08a354e3f7d1a",
+      "role": "exact standalone runtime and strict types"
+    },
+    {
+      "number": 6,
+      "line": 335,
+      "snippetSha256": "543d72de033e9f9e8aadfb623843576a5c468911376b2d9e187b9e18fdef4fc6",
+      "stagedSha256": "632e4b22093c715a2ba6bb659ef9c2d60b9e39077f0668f3a6867eba9f31b37a",
+      "role": "strict types; separate contextual workflow"
+    },
+    {
+      "number": 7,
+      "line": 358,
+      "snippetSha256": "b72e6e4ba1c315a1db94bc9efbd2cadd2a1dd1c3576e76516564e3360d292ee4",
+      "stagedSha256": "e3f42624bfae0907e3b1b630336497cf7e3cced854e8ea69e9ca83ae3dce854b",
+      "role": "strict types; separate contextual workflow"
+    },
+    {
+      "number": 8,
+      "line": 376,
+      "snippetSha256": "bd280dd94b49b1fb09a56b06269fbee2ef618831a6f03a68d6035314bd205bf7",
+      "stagedSha256": "bd280dd94b49b1fb09a56b06269fbee2ef618831a6f03a68d6035314bd205bf7",
+      "role": "exact standalone runtime and strict types"
+    },
+    {
+      "number": 9,
+      "line": 412,
+      "snippetSha256": "c7704472b557a6e873d633993f76ea7d8973a5213d3bb3e166446a23d88641c1",
+      "stagedSha256": "c7704472b557a6e873d633993f76ea7d8973a5213d3bb3e166446a23d88641c1",
+      "role": "exact standalone runtime and strict types"
+    },
+    {
+      "number": 10,
+      "line": 502,
+      "snippetSha256": "ce857455d24dc56eb97ceedc2fb680164068f91ea443b9a4be89412862fd4cb7",
+      "stagedSha256": "ce857455d24dc56eb97ceedc2fb680164068f91ea443b9a4be89412862fd4cb7",
+      "role": "exact standalone runtime and strict types"
+    },
+    {
+      "number": 11,
+      "line": 539,
+      "snippetSha256": "25d6507e5e09282d706b5e3092868ce254c29f0362cc264df82ef2246d17903a",
+      "stagedSha256": "25d6507e5e09282d706b5e3092868ce254c29f0362cc264df82ef2246d17903a",
+      "role": "strict SafeJS injection factory types only; no guest or private engine executed"
+    },
+    {
+      "number": 12,
+      "line": 628,
+      "snippetSha256": "5ee3f3e14f58f9262fbdc32b6e1b109cd4233012052532ac8d4045491d7f30c4",
+      "stagedSha256": "5ee3f3e14f58f9262fbdc32b6e1b109cd4233012052532ac8d4045491d7f30c4",
+      "role": "strict original HTML example; contextual runtime substitutes explicit mock transport"
+    },
+    {
+      "number": 13,
+      "line": 667,
+      "snippetSha256": "a6502e962e2176938a8c6aaf49e6fec552bd8e90a698c9cd85cc28126c1702c4",
+      "stagedSha256": "a6502e962e2176938a8c6aaf49e6fec552bd8e90a698c9cd85cc28126c1702c4",
+      "role": "exact standalone runtime and strict types"
+    }
+  ],
+  "tools": {
+    "node22": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "physical": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "node24": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "physical": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+      "bytes": 117591472,
+      "mode": 493,
+      "sha256": "4255a388254ca4319e2f95f1da375d5deaddf25baf9c7c85070b67f9543b15d0"
+    },
+    "tar": {
+      "origin": "/usr/bin/tar",
+      "physical": "/usr/bin/bsdtar",
+      "bytes": 275344,
+      "mode": 493,
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+    }
+  },
+  "dependenciesSha256": "2f7cc0954648d94c2413f933da309bcee4274ef5a30333551080f62f51d4bf2c",
+  "packageInventorySha256": "447e09468e07b389b16175b839f6c45fd746a453b65bbe2fa49246c9735182e8",
+  "packageRegularFiles": 846,
+  "raw": {
+    "schema": 1,
+    "encoding": "base64(gzip(JSON))",
+    "compressedBytes": 367234,
+    "compressedSha256": "2299f536d5033a40ce90c33601a4282dc1380cef0345cb7e2b256043aaf7c303",
+    "uncompressedBytes": 1680864,
+    "uncompressedSha256": "cd3bae48e184463df1636dd5f8ced4901eadd40eeb5dabe3646501088ce3d62b",
+    "files": [
+      {
+        "path": "attempt-1/README.input.md",
+        "bytes": 38561,
+        "sha256": "a77d646fddfb8f8beaf46a9d699eb7d3a83c981f11d562b933ddbaaa1a6e431f"
+      },
+      {
+        "path": "attempt-1/REPORT.json",
+        "bytes": 351054,
+        "sha256": "4994bb6a3ec369e8b68f458641798b0bbdf25978d86d498a58957b4d53db8294"
+      },
+      {
+        "path": "attempt-1/readme-22.stderr",
+        "bytes": 203,
+        "sha256": "c25114ac33970e704a75418b3aba120ef41d8e7c9314c92d00dfd989a308b340"
+      },
+      {
+        "path": "attempt-1/readme-22.stdout",
+        "bytes": 2060,
+        "sha256": "4af7a55108ad0cca2ff6164ef198c1a2447e968b006eaf993dffceb35a1e210d"
+      },
+      {
+        "path": "attempt-1/strict-public-types.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "attempt-1/strict-public-types.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "attempt-2/README.input.md",
+        "bytes": 38561,
+        "sha256": "a77d646fddfb8f8beaf46a9d699eb7d3a83c981f11d562b933ddbaaa1a6e431f"
+      },
+      {
+        "path": "attempt-2/REPORT.json",
+        "bytes": 359278,
+        "sha256": "0dc8de06e1608ccdf16dd6bf0f24d847a2c87f2347f0c85b062fd26225162bdc"
+      },
+      {
+        "path": "attempt-2/network-trap-control-22.stderr",
+        "bytes": 203,
+        "sha256": "3a00988477e63547e68270364ac5e5ee444a6a757d02d76f0c4b3d804e4f2abd"
+      },
+      {
+        "path": "attempt-2/network-trap-control-22.stdout",
+        "bytes": 26,
+        "sha256": "d7427ae54ad9879cbf9ea3d2bc263a59b5dbb2d01511ddd5849211ff01cd9751"
+      },
+      {
+        "path": "attempt-2/network-trap-control-24.stderr",
+        "bytes": 203,
+        "sha256": "fbe082fa9043502e37a701b93b6e10f6e31f0740d91645f1ea9d681d27d0cad1"
+      },
+      {
+        "path": "attempt-2/network-trap-control-24.stdout",
+        "bytes": 26,
+        "sha256": "d7427ae54ad9879cbf9ea3d2bc263a59b5dbb2d01511ddd5849211ff01cd9751"
+      },
+      {
+        "path": "attempt-2/readme-22.stderr",
+        "bytes": 203,
+        "sha256": "f985b810fe65d32bb256417771c7c2fbf85be1e25f9c893f75c9e351776df580"
+      },
+      {
+        "path": "attempt-2/readme-22.stdout",
+        "bytes": 2542,
+        "sha256": "d86aa98cc44afa6d97f4f9fe303638f4190a9202b4eb9d2a05f7c31e8c322a27"
+      },
+      {
+        "path": "attempt-2/readme-24.stderr",
+        "bytes": 203,
+        "sha256": "c3ce63ba32b9f76af020172f9c4800e67a7cd43453ac93de79def9cebf3520a6"
+      },
+      {
+        "path": "attempt-2/readme-24.stdout",
+        "bytes": 2534,
+        "sha256": "93877d79798aff8caf6ecfc5366fa468c2c4b05e15a7073e1b4a03e3ce63a2d8"
+      },
+      {
+        "path": "attempt-2/source-denial-22.stderr",
+        "bytes": 1120,
+        "sha256": "eda47f00a91b011b910c9e4f4bb3e5dc717bc56ff5bcc3833557eb7caab047ec"
+      },
+      {
+        "path": "attempt-2/source-denial-22.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "attempt-2/source-denial-24.stderr",
+        "bytes": 1120,
+        "sha256": "9407462f007c86f1fa08d755b8fa3a791bde1c18fffbbf19ef572bfa3f610da9"
+      },
+      {
+        "path": "attempt-2/source-denial-24.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "attempt-2/strict-public-types.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "attempt-2/strict-public-types.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "attempt-3/README.input.md",
+        "bytes": 38561,
+        "sha256": "a77d646fddfb8f8beaf46a9d699eb7d3a83c981f11d562b933ddbaaa1a6e431f"
+      },
+      {
+        "path": "attempt-3/REPORT.json",
+        "bytes": 359278,
+        "sha256": "f9350b8aa2b20c3256ffd61016a76a211264c270a074a0d7a8f51d143e2116d6"
+      },
+      {
+        "path": "attempt-3/network-trap-control-22.stderr",
+        "bytes": 203,
+        "sha256": "4fa65c2f7ab58dbf0523eb04545d2f45f8cafbe52895aec63cc8953391027540"
+      },
+      {
+        "path": "attempt-3/network-trap-control-22.stdout",
+        "bytes": 26,
+        "sha256": "d7427ae54ad9879cbf9ea3d2bc263a59b5dbb2d01511ddd5849211ff01cd9751"
+      },
+      {
+        "path": "attempt-3/network-trap-control-24.stderr",
+        "bytes": 203,
+        "sha256": "8ad2102124b2de7e146a2d707db2521043f8df36894d5df8cfc6a4580dec990d"
+      },
+      {
+        "path": "attempt-3/network-trap-control-24.stdout",
+        "bytes": 26,
+        "sha256": "d7427ae54ad9879cbf9ea3d2bc263a59b5dbb2d01511ddd5849211ff01cd9751"
+      },
+      {
+        "path": "attempt-3/readme-22.stderr",
+        "bytes": 203,
+        "sha256": "e0ea218f107539edda486c7a72c9b0a1537853b559d9e99c67b16ce56e2b392c"
+      },
+      {
+        "path": "attempt-3/readme-22.stdout",
+        "bytes": 2536,
+        "sha256": "9328692a345e81384bbfe5ed94d489e2eb37441b07b303cd60035a69887ed343"
+      },
+      {
+        "path": "attempt-3/readme-24.stderr",
+        "bytes": 203,
+        "sha256": "83619e887df194a788e1606fb65bab8d0821894f6ff81986cf0bc4e0f5bb08d8"
+      },
+      {
+        "path": "attempt-3/readme-24.stdout",
+        "bytes": 2541,
+        "sha256": "3891d9d36e07301ab3d2f0be21855f13810cf663b00eef44e9bbd03a66e13484"
+      },
+      {
+        "path": "attempt-3/source-denial-22.stderr",
+        "bytes": 1120,
+        "sha256": "79bcd27c7043b8576a1950397fdb9dddb4e0ada4317ea3e21f08e0b7623486e7"
+      },
+      {
+        "path": "attempt-3/source-denial-22.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "attempt-3/source-denial-24.stderr",
+        "bytes": 1120,
+        "sha256": "75bf58274670a0b30e6a5b6e186974e23ed971854d3ef2a72a7935f61c9ac47a"
+      },
+      {
+        "path": "attempt-3/source-denial-24.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "attempt-3/strict-public-types.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "attempt-3/strict-public-types.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "initial-verifier.mjs",
+        "bytes": 9845,
+        "sha256": "eda80b0c4c23ce12e8e23f4d3069b755eb5c4a4d9852090b069ff55f51ea6c65"
+      },
+      {
+        "path": "initial-and-second-workflows.mts.fixture",
+        "bytes": 6157,
+        "sha256": "1df501a5d065fa797c1094a5b418c67e5ac229d0a98f106cea67592b902f9580"
+      },
+      {
+        "path": "before/README.md",
+        "bytes": 36273,
+        "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1"
+      }
+    ]
+  },
+  "scope": {
+    "authorDocumentationSmoke": true,
+    "newProductBuild": false,
+    "privateEngine": false,
+    "externalNetwork": false,
+    "fullGate": false,
+    "independentCombinedAcceptance": false,
+    "actualRuntimeCounts": "15/15 Node22.22.2 and15/15 Node24.11.1; each9 exact standalone examples+6 declared contextual/policy checks",
+    "types": "All13 README TS blocks plus maintained workflow template, strict NodeNext against same full extracted package",
+    "safeJs": "Typechecked injection factory only; received fd1 actual-engine acceptance is separate and not rerun",
+    "historical76": "Selected candidate f5e9fc49 and driver2713 immutable; updated live README is not overlaid into either frozen candidate",
+    "failedAttempt": "Initial two file-test bootstrap failures before product bodies because node --test requires process permission. Direct sequential test-module imports fix harness without granting child-process permission; raw initial verifier and diagnostics retained",
+    "controlQualification": "Two source-read refusals plus three network-trap checks per runtime, not universal OS/network confinement",
+    "artifacts": "Only reports/logs/template history in compact data; no product tarball or dependency copies committed"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "pid": 90077,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "reaped": true,
+  "failures": [],
+  "signals": [],
+  "records": [
+    {
+      "sequence": 0,
+      "kind": "nextLoad",
+      "path": "outcomes.mjs",
+      "format": "module",
+      "bytes": 737,
+      "sha256": "d67539215f0023d4227274cf7204fa0dd2ae5a4acbe60d8e6cec0fe2620c42d7",
+      "evaluationProven": false,
+      "origin": "actual-nextLoad-source"
+    },
+    {
+      "sequence": 1,
+      "kind": "final",
+      "report": {
+        "evaluated": true,
+        "entrySha256": "d67539215f0023d4227274cf7204fa0dd2ae5a4acbe60d8e6cec0fe2620c42d7",
+        "observation": {
+          "exitCode": 23,
+          "stdoutBase64": "c3RhdHVzLWNvbnRyb2wK",
+          "stderrBase64": "",
+          "files": {}
+        },
+        "execArgv": [
+          "--unhandled-rejections=strict",
+          "--max-old-space-size=64"
+        ],
+        "observationSha256": "c0d85b97f8f6ae00c7d06f863a2858adbb5caf917691a0436f8a1f502158d739"
+      }
+    }
+  ],
+  "captureBytes": {
+    "stdout": 0,
+    "stderr": 0,
+    "records": 614
+  },
+  "stdout": "",
+  "stderr": "",
+  "rawRecords": "eyJzZXF1ZW5jZSI6MCwia2luZCI6Im5leHRMb2FkIiwicGF0aCI6Im91dGNvbWVzLm1qcyIsImZvcm1hdCI6Im1vZHVsZSIsImJ5dGVzIjo3MzcsInNoYTI1NiI6ImQ2NzUzOTIxNWYwMDIzZDQyMjcyNzRjZjcyMDRmYTBkZDJhZTVhNGFjYmU2MGQ4ZTZjZWMwZmUyNjIwYzQyZDciLCJldmFsdWF0aW9uUHJvdmVuIjpmYWxzZSwib3JpZ2luIjoiYWN0dWFsLW5leHRMb2FkLXNvdXJjZSJ9Cnsic2VxdWVuY2UiOjEsImtpbmQiOiJmaW5hbCIsInJlcG9ydCI6eyJldmFsdWF0ZWQiOnRydWUsImVudHJ5U2hhMjU2IjoiZDY3NTM5MjE1ZjAwMjNkNDIyNzI3NGNmNzIwNGZhMGRkMmFlNWE0YWNiZTYwZDhlNmNlYzBmZTI2MjBjNDJkNyIsIm9ic2VydmF0aW9uIjp7ImV4aXRDb2RlIjoyMywic3Rkb3V0QmFzZTY0IjoiYzNSaGRIVnpMV052Ym5SeWIyd0siLCJzdGRlcnJCYXNlNjQiOiIiLCJmaWxlcyI6e319LCJleGVjQXJndiI6WyItLXVuaGFuZGxlZC1yZWplY3Rpb25zPXN0cmljdCIsIi0tbWF4LW9sZC1zcGFjZS1zaXplPTY0Il0sIm9ic2VydmF0aW9uU2hhMjU2IjoiYzBkODViOTdmOGY2YWUwMGM3ZDA2Zjg2M2EyODU4YWRiYjVjYWY5MTc2OTFhMDQzNmY4YTFmNTAyMTU4ZDczOSJ9fQo=",
+  "natural": true
+}

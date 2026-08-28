@@ -1,0 +1,55 @@
+{
+  "role": "different-reviewer",
+  "verdict": "PREEXECUTION_ACCEPTED",
+  "scope": "Focused V4 R1-R4+B1 repairs and faithful root W07 disposition; executable preparation only",
+  "recipeSha256": "fc1a0df0015ebd428810c8d86976f3507636eac1c308f366298511fca38cf0e8",
+  "recipeCommit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+  "authorEvidenceCommit": "e055968836d73e0eebfa175b56242547008af282",
+  "presealCommit": "b1b1d5d16f4f24e486f3170caed0db6132b5cbd6",
+  "freezeSha256": "6d9de84d7288b561ca3c5ef871c034aabe4f32a84c6450e0b5ba6cf495dd91dd",
+  "resultPath": "tests/comparison/breadth-continuation-independent-20260828/executor-v4-review/evidence-01/RESULT.json",
+  "resultSha256": "35ab2a084934af286a94f213638207d8684bfb579fb47c0f7ed4f3881a052bac",
+  "counts": { "DATA": 2, "SYNTHETIC": 27, "passed": 29, "failed": 0, "unrun": 0, "freshFixtureChildren": 5, "closed": 5 },
+  "focusedFindings": {
+    "R1": "ACCEPTED: exact engine preimport prefix rejects phase crossings before claim/view/import; model binds run, output, phase plan, command, operation, ordinal, layout, specimen and control source set",
+    "R2": "ACCEPTED: null/undefined/Error/0 primary identity retained by settle, presence and ordered secondary errors retained through injected-library adapter boundary",
+    "R3": "ACCEPTED: fresh guarded fixture returns drive actual assessed status/output/effects; status23 and partial/complete effects cannot earn no-op control credit",
+    "R4": "ACCEPTED: enrollment and handle/PID/group attachment precede fallible persistence; actual EEXIST preserves unsafe emergency receipt, closed child and unrun tail",
+    "B1": "ACCEPTED: five standalone W02 schema negatives defensively reject; valid model passes; not evidence of prior composed engine bypasses",
+    "W07": "Root disposition preserved: UNQUALIFIED_UNCREDITED, pass null, semantic/non-execution credit false; bytes separate; original failed obligation retained"
+  },
+  "intentionalPersistenceFailure": { "status": "UNSAFE_STOP", "tail": "UNRUN_UNSAFE_TAIL", "reaped": true, "convertedToAdmissionSuccess": false },
+  "remainingExecutablePreparationObjections": [],
+  "runtimeAdmissionAuthorized": false,
+  "runtimeAdmissionPerformed": false,
+  "semanticGo": false,
+  "actualProductImports": 0,
+  "actualComparatorImports": 0,
+  "actualC11": 0,
+  "actualSemanticCalls": 0,
+  "futureAdmission": { "plannedChildren": 14, "childCeiling": 27, "C11EmptySetups": 2, "semanticCalls": 0, "attempts": 1, "automaticCohort": false, "separateLaterCohort": 99 },
+  "futureRuntimeDuties": [
+    "Root-pinned committed grant and review references, fresh exact phase/run/output/command/plan binding",
+    "Actual full current closure and projection authentication, source/archive prerequisites and before/after namespace inventory",
+    "Fresh installed and physically moved target loads with old origin absent, plus guarded comparator public consumer load",
+    "Applicable returned-source CJS/require and assets qualification; unsupported workers/WASM remain denied, not qualified by file presence",
+    "Instruction member omitted from executable projection and never read/materialized as plaintext",
+    "Actual pending/rejected C11 empty setups, resource closure, exact envelopes and accepted admission evidence before separate cohort grant"
+  ],
+  "historicalEvidence": {
+    "v3PresealCommit": "ecae08ab0fba8a13669584293468e13d70bffe4f",
+    "v3EvidenceCommit": "e8e71baf2647c6cb0b0c3ed04900c60627f36990",
+    "v3Independent": "35/44; nine failures preserved",
+    "otherScores": ["400/402", "391/394", "13/54 versus 47/54"],
+    "rerun": false,
+    "rescored": false
+  },
+  "authorEvidenceNotRecounted": { "focusedPassed": 40, "DATA": 2, "SYNTHETIC": 38, "syntaxOnly": 17, "fixtureChildren": 4 },
+  "limitations": [
+    "Prefix proof uses synthetic authority/filesystem/view dependencies; no actual root grant or engine worker launched",
+    "C12 independent children use a new static owned fixture and real inherited loader/V4 supervisor/assessor, not the author worker CLI",
+    "Adapter evidence is an injected-library failure boundary, not product execution",
+    "Frozen listed inherited files are checked before/after; recursive new-entry detection covers V4 author tree including runs, not an append-proof lease on every historical directory",
+    "No source fallback, native/timing/service evidence, universal parity or superiority claim"
+  ]
+}

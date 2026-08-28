@@ -1,0 +1,49 @@
+{
+  "schema": "scoped-env-v13-outer-capture/1",
+  "startedAt": "2026-08-28T10:15:13.758Z",
+  "finishedObservedAt": "2026-08-28T10:17:28.626Z",
+  "command": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+    "args": [
+      "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/scoped-env-v13/review-v1/review.mjs",
+      "--cohort-once"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "env": {
+      "PATH": "/dev/null",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  "process": {
+    "status": 1,
+    "signal": null,
+    "closed": true,
+    "pid": 76242
+  },
+  "watchdogEvents": [],
+  "totalCapturedBytes": 185,
+  "capturedBuffers": {
+    "stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "base64": ""
+    },
+    "stderr": {
+      "bytes": 185,
+      "sha256": "bd79fc7a940f057c81b94660d6d545ab362a61fcf0a5c6b56a61addde8fe506a",
+      "base64": "eyJmaW5pc2hlZEF0IjoiMjAyNi0wOC0yOFQxMDoxNToyMC40MjNaIiwiY291bnRzIjp7InBhc3MiOjMwLCJmYWlsIjoyLCJ1bmV4ZWN1dGVkIjoxfSwic3RhdHVzIjoiUVVBTElGSUVEX0hPTEQiLCJjb29yZGluYXRvckV4aXRDb2RlIjoxLCJ3b3JrZXJzIjo1LCJzdG9wcGVkIjpmYWxzZSwicm9vdHNSZW1vdmVkIjp0cnVlfQo="
+    }
+  },
+  "captureDefect": {
+    "finding": "Reviewer outer collector used function-scoped var chunks in a loop; both stream listeners appended to the final stderrParts binding. Original stream-event attribution was not retained.",
+    "affected": "Coordinator pipe labels only. These captured buffer names are preserved, NOT asserted as actual stdout/stderr attribution. Shipping supervisor per-worker stdout/stderr files remain separately captured and hash-verified.",
+    "source": "for (var [stream,chunks] of [[coordinator.stdout,stdoutParts],[coordinator.stderr,stderrParts]]) stream.on(\"data\",chunk => { ... chunks.push(Buffer.from(chunk)); });",
+    "notRepaired": true,
+    "noRetry": true,
+    "coordinatorExitUnaffected": true,
+    "bytesNotDiscarded": true
+  },
+  "qualification": "Combined coordinator bytes preserved, channel attribution unreliable. No clean per-stream outer capture claim. Terminal JSON and actual process close exit1 agree."
+}

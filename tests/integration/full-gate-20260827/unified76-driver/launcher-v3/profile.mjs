@@ -6,6 +6,7 @@ import {join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {candidate,directory,entries,blob,sha,save,verifyAssembly} from './common.mjs';
 import {selectProjection,readProjection} from './projection.mjs';
+import {readHistoricalEligibility,validateEligibilityProfile} from './historical-eligibility.mjs';
 
 export const supportPaths=[
   'tests/integration/full-gate-20260827/account.mjs',
@@ -51,9 +52,10 @@ export function readProfile() {
   const encoded=readFileSync(join(directory,'PROFILE.json.gz.base64'));
   const receipt=JSON.parse(readFileSync(join(directory,'PROFILE-RECEIPT.json')));
   assert.equal(sha(encoded),receipt.encodedSha256);const bytes=gunzipSync(Buffer.from(encoded.toString().trim(),'base64'));assert.equal(sha(bytes),receipt.profileSha256);
-  const profile=JSON.parse(bytes);validateProfile(profile);return profile;
+  const profile={...JSON.parse(bytes),historicalEligibility:readHistoricalEligibility()};validateProfile(profile);return profile;
 }
 export function validateProfile(profile) {
+  validateEligibilityProfile(profile);
   verifyAssembly();assert.equal(profile.candidate,candidate.candidate);assert.equal(profile.tree,candidate.tree);
   assert.equal(profile.sourceTree,candidate.sourceTree);assert.deepEqual(profile.scopeInputs,entries());
   assert.deepEqual(selectProjection(profile.scopeInputs,profile.candidate),readProjection().candidateEntries);

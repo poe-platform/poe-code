@@ -22,6 +22,7 @@ import {verifyConsumerSelection} from './consumer-admission.mjs';
 import {createBuildAudit,runBuildTypes,readBuildAudit} from './build-types.mjs';
 import {createPhaseRunner} from './phase-runner.mjs';
 import {assertNoInstructionCopyTree} from './projection.mjs';
+import {createPrerequisiteReceipt,prerequisites as maintainedPrerequisites} from './maintained-prerequisites.mjs';
 
 export async function execute(options,scope){
 let output,report,temporary,source,privateModule,sourceGuard,helperRoute,exitCode=0,totalOutput=0;
@@ -40,6 +41,8 @@ try{
   temporary=realpathSync(mkdtempSync(join(tmpdir(),'unified76-execution-')));source=join(temporary,'source');
   for(const name of ['source','harness','home','tmp','native','consumer'])mkdirSync(join(temporary,name));
   report={startedAt:new Date().toISOString(),candidate:candidate.candidate,tree:candidate.tree,sourceTree:candidate.sourceTree,driverSha256:sha(JSON.stringify(seal)),profileSha256:sha(JSON.stringify(profile)),preflight,external,temporary,output,phases:[],driverProductionBuilds:0,bindingComplete:false,guardsPassed:false,cleanupComplete:false,fullGateLaunched:false,scope:'new unified76 profile; not rescore or continuation of historical gates'};
+  report.historicalEligibility=profile.historicalEligibility;
+  report.scope='prospective historical-file-authority profile; native parity remains UNQUALIFIED; fixed632 canonical inputs unchanged; no old gate rescore';
   report.osInstructionFence=scope.envelope;save(join(output,'ADMISSION.json'),report);
   const support=join(temporary,'support');mkdirSync(support);
   const supportInputs=copySelection(support,Object.keys(profile.support));for(const entry of supportInputs)assert.equal(entry.sha256,profile.support[entry.path]);
@@ -71,7 +74,8 @@ try{
   report.nativeStaged=stageNative(preflight,{snapshot:source,nativeRoot:join(temporary,'native'),environment});
   helperRoute=createInheritedHelperRoute(report.toolRoutes,environment,join(temporary,'native'));report.inheritedHelperRoutes=helperRoute.records;
   report.privateCopyAdmission=assertNoInstructionCopyTree('/Users/kjopek/Workspace/poe-code/packages/safejs',['node_modules','.git','dist','.cache','.turbo']);
-  report.prerequisites=await helperRoute.run('prerequisites',()=>privateModule.prerequisites({repository,source,temporary,environment,candidate:candidate.candidate}));
+  report.prerequisites=createPrerequisiteReceipt();
+  await helperRoute.run('prerequisites',()=>maintainedPrerequisites({repository,source,temporary,environment,candidate:candidate.candidate,receipt:report.prerequisites,historicalEligibility:profile.historicalEligibility,privateState:()=>privateModule.privateState()}));
   report.privateBefore=report.prerequisites.safejs.before;
   const guard=join(temporary,'harness/import-guard.mjs');writeFileSync(guard,blob('tests/integration/full-gate-20260827/combined-8670ebe8/import-guard.mjs'),{flag:'wx'});
   const critical=Object.fromEntries(['src/commands/execution.ts','src/commands/env-split.ts'].map(path=>[path,profile.sourceBindings[path]]));
@@ -108,6 +112,7 @@ try{
   await phase('benchmark-types',[join(source,'benchmarks/node_modules/typescript/bin/tsc'),'--noEmit','-p','tsconfig.json'],join(source,'benchmarks'));
   await phase('env-source-binding',['--import','tsx','--input-type=module','-e',"await import('./src/commands/execution.ts');await import('./src/commands/env-split.ts');console.log('candidate env source loaded')"]);
   const args=canonicalArguments(profile);requireCanonicalArguments(args,profile);report.fullGateLaunched=true;const canonical=await phase('canonical',args,source,0,3600000);
+  report.canonical=canonical.accounting;
   const canonicalLogs=join(output,'imports/canonical');
   const loaded=new Set(readdirSync(canonicalLogs).flatMap(name=>readEvidenceText(join(canonicalLogs,name)).trim().split('\n').filter(Boolean).map(line=>JSON.parse(line).relative)));
   report.canonicalCoverage={expected:profile.canonicalFiles.length,observed:profile.canonicalFiles.filter(path=>loaded.has(path)),missing:profile.canonicalFiles.filter(path=>!loaded.has(path)),qualification:'resolved main-thread module paths observed by outer hook; not an invented worker-thread transitive trace'};
@@ -139,6 +144,7 @@ try{
   report.canonical=canonical.accounting;report.canonicalMissingPaths=report.canonicalCoverage.missing;report.currentConsumerStatus=consumerResult.status;report.bindingComplete=true;report.guardsPassed=true;report.cleanupComplete=report.phases.every(row=>row.label==='final-sweep'||row.clean&&row.closed&&!row.signals.length&&!row.survivors.length);
 }catch(error){if(!report)report={candidate:candidate.candidate,fullGateLaunched:false};report.status='infrastructure-refused-or-failed';report.error={message:error.message,stack:error.stack};exitCode=error.exitCode===78?78:1;}
 finally{
+  if(report&&!report.privateBefore&&report.prerequisites?.safejs?.before)report.privateBefore=report.prerequisites.safejs.before;
   if(report){if(report.privateBefore&&privateModule){try{report.privateAfter=await helperRoute.run('private-finally',()=>privateModule.privateState());report.privateUnchanged=JSON.stringify(report.privateBefore)===JSON.stringify(report.privateAfter);report.privateFileChanges=report.prerequisites.safejs.files.filter(entry=>{const file=join(report.privateBefore.root,'packages/safejs',entry.path),stat=lstatSync(file);return!stat.isFile()||stat.isSymbolicLink()||(stat.mode&0o777)!==entry.mode||sha(readFileSync(file))!==entry.sha256;}).map(entry=>entry.path);if(!report.privateUnchanged||report.privateFileChanges.length)exitCode=1;}catch(error){report.privateGuardError=error.stack;exitCode=1;}}
     report.finishedAt=new Date().toISOString();report.temporary=temporary;report.cleanup='Temporary evidence retained for exact inspection; supervised phase children recorded and drained. No broad cleanup of live or private trees.';
     report.verdict=gateVerdict(report);if(exitCode)report.verdict={...report.verdict,status:'HOLD_OR_QUALIFIED_RED',exitCode,problems:[...report.verdict.problems,report.error?.message??'final guard failed']};exitCode=report.verdict.exitCode;report.status=report.verdict.status;

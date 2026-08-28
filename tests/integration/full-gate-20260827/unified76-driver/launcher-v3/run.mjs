@@ -12,11 +12,11 @@ export async function main(args){
   const{superviseFencedWorker}=await import('./fenced-supervisor.mjs');
   const fence=await superviseFencedWorker({output:options.output,outer,script:join(directory,'worker.mjs'),args:[JSON.stringify(options)],cwd:directory,environment:process.env,phases:PHASES.slice(0,-1).map(([label])=>label),limits:{observeSockets:true,setupSentinel:join(options.output,'SETUP-COMPLETE.json'),setupTimeoutMs:BOUNDS.setupTimeoutMs,timeoutMs:BOUNDS.setupTimeoutMs+PHASES.length*BOUNDS.phaseTimeoutMs+BOUNDS.cleanupTimeoutMs,maxOutputBytes:BOUNDS.phaseOutputBytes}});
   const result=fence.result;
-  let innerVerdict;try{const inner=JSON.parse(readFileSync(join(options.output,'REPORT.json')));innerVerdict=gateVerdict(inner);if(inner.driverSha256!==sha(JSON.stringify(seal))||inner.verdict?.exitCode!==0)innerVerdict={exitCode:1,problems:['inner driver binding or verdict failed']};}catch(error){innerVerdict={exitCode:1,problems:['missing or invalid inner report: '+error.message]};}
-  const success=fence.clean&&result.status===0&&result.clean&&result.closed&&!result.signals.length&&!result.survivors.length&&innerVerdict.exitCode===0;
-  const receipt={candidate:options.candidate,driverSha256:sha(JSON.stringify(seal)),outer,result,fence,innerVerdict,status:success?'QUALIFIED_ZERO_SKIP_GATE':'HOLD_OR_QUALIFIED_RED',qualification:'Outer setup/total deadline, inherited OS write fence and descendant cleanup qualification; inner report is required, never overridden by a successful TAP footer'};
+  let innerVerdict;try{const inner=JSON.parse(readFileSync(join(options.output,'REPORT.json')));innerVerdict=gateVerdict(inner);if(inner.driverSha256!==sha(JSON.stringify(seal))||JSON.stringify(inner.verdict)!==JSON.stringify(innerVerdict))innerVerdict={exitCode:1,problems:['inner driver binding or verdict failed']};}catch(error){innerVerdict={exitCode:1,problems:['missing or invalid inner report: '+error.message]};}
+  const complete=fence.clean&&result.status===1&&result.clean&&result.closed&&!result.signals.length&&!result.survivors.length&&innerVerdict.status==='QUALIFIED_DIAGNOSTIC_UNQUALIFIED_NATIVE';
+  const receipt={candidate:options.candidate,driverSha256:sha(JSON.stringify(seal)),outer,result,fence,innerVerdict,status:complete?'QUALIFIED_DIAGNOSTIC_UNQUALIFIED_NATIVE':'HOLD_OR_QUALIFIED_RED',qualification:'Historical native obligations force nonzero even with complete runtime evidence. Outer deadlines, OS fence, descendant cleanup and exact inner verdict remain mandatory; no successful TAP footer overrides them.'};
   writeFileSync(join(outer,'REPORT.json'),JSON.stringify(receipt,null,2)+'\n',{flag:'wx'});console.log(JSON.stringify({outer,status:receipt.status,candidate:options.candidate}));
-  return success?0:result.status===78?78:1;
+  return result.status===78?78:1;
 }
 
 if(import.meta.main){

@@ -5,11 +5,13 @@ import {pathToFileURL} from 'node:url';
 import {directory,repository,candidate,sha,blob,git} from './common.mjs';
 import {readProfile,validateProfile} from './profile.mjs';
 import {parseArgs} from './policy.mjs';
+import {requireEligibilityRelease} from './historical-eligibility.mjs';
 
 export const order=['safejs-availability','cold-typecheck','typecheck-all','benchmark-types','env-source-binding','canonical','current-consumers','pack','public-runtime','public-types','negative-types','missing-root','missing-contracts','final-sweep'];
 export const runtimeFiles=['CANDIDATE.json','PROFILE.json.gz.base64','PROFILE-RECEIPT.json','CLEANUP.json','EXTERNAL.json.gz.base64','EXTERNAL-RECEIPT.json','common.mjs','profile.mjs','admission.mjs','inventory.mjs','run.mjs','worker.mjs','supervise.mjs','execute.mjs','policy.mjs','transport.mjs','external.mjs','external-admission.mjs','built-consumers.mjs','consumer-admission.mjs','tap.mjs','public.mjs','consumer.mts.fixture','negative.mts.fixture','build-audit.mjs','build-types.mjs','phase-runner.mjs','process-observer.mjs','review-build-types.mjs','review-build-types-worker.mjs','projection.mjs','INSTRUCTION-PROJECTION.json'];
 runtimeFiles.push('os-instruction-fence.mjs','fenced-supervisor.mjs','OS-INSTRUCTION-FENCE.json');
 runtimeFiles.push('tool-routing.mjs','TOOL-ROUTES.json');
+runtimeFiles.push('historical-eligibility.mjs','ELIGIBILITY.json','maintained-prerequisites.mjs');
 export function requireOrdered(completed,next){assert.equal(next,order[completed.length],'phase omitted or reordered');assert.deepEqual(completed,order.slice(0,completed.length));}
 export function canonicalArguments(profile){return ['--import','tsx','--test','--test-reporter=tap',`--test-concurrency=${profile.testConcurrency}`,...profile.canonicalFiles];}
 export function requireCanonicalArguments(args,profile){assert.deepEqual(args,canonicalArguments(profile),'canonical discovery, TAP and concurrency are mandatory');}
@@ -17,6 +19,7 @@ export function parse(args){
   return parseArgs(args);
 }
 export function requireRelease(receipt,seal,profile){
+  requireEligibilityRelease(receipt,profile);
   assert.equal(receipt.action,'ROOT_RELEASE_UNIFIED76');assert.equal(receipt.candidate,candidate.candidate);assert.equal(receipt.driverSha256,sha(JSON.stringify(seal)));
   assert.equal(receipt.profileSha256,sha(JSON.stringify(profile)));assert.equal(receipt.packageSha256,candidate.expectedPackageSha256);
   assert.equal(receipt.public74,true);assert.equal(receipt.public75,true);assert.equal(receipt.public76,true);assert.equal(receipt.independentDriverAccepted,true);

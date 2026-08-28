@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {historicalVerdict} from './historical-eligibility.mjs';
 
 export const PRODUCT = 'f5e9fc49b6abb38e180cc9de16c95fced102ff75';
 export const BOUNDS = Object.freeze({
@@ -77,5 +78,9 @@ export function gateVerdict(report) {
   if (!tap || tap.reconciled !== true || !Number.isSafeInteger(tap.counts?.pass) || tap.counts.pass < 1) problems.push('incomplete canonical TAP');
   for (const name of ['fail', 'skipped', 'todo', 'cancelled']) if (tap?.counts?.[name] !== 0) problems.push(`canonical ${name} is nonzero or missing`);
   if (report.canonicalMissingPaths?.length !== 0) problems.push('missing canonical execution coverage');
-  return Object.freeze({ status: problems.length ? 'HOLD_OR_QUALIFIED_RED' : 'QUALIFIED_ZERO_SKIP_GATE', exitCode: problems.length ? 1 : 0, problems });
+  const historical=historicalVerdict(report);
+  return Object.freeze({status:problems.length||!historical.valid?'HOLD_OR_QUALIFIED_RED':'QUALIFIED_DIAGNOSTIC_UNQUALIFIED_NATIVE',exitCode:1,
+    runtimeQualified:problems.length===0,historicalObligations:historical.obligations,problems:[...problems,...historical.problems],
+    phaseOutcomes:PHASES.map(([label,expectedStatus],index)=>{const observed=report.phases?.[index];return{label,expectedStatus,execution:observed?.label===label?'EXECUTED':'NOT_EXECUTED',actualStatus:observed?.label===label?observed.status:null,qualification:'Raw exit observation only; assertions, lifecycle and guards remain required. Selection is not execution.'};}),
+    qualification:'Historical NA-2755/NA-6755 remain unqualified, never fresh capability or canonical-test attribution. Raw TAP counts are not changed.'});
 }

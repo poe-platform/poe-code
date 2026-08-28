@@ -73,7 +73,7 @@ export class PackCatalogue {
             pairs.get(name)!.add(kind);
             demand(stat.size <= (kind === "pack" ? GIT_LIMITS.maxPackBytes : GIT_LIMITS.maxIndexBytes), "Git pack/idx/sidecar size exceeded");
           } else {
-            demand(part === "pack" ? entry.name === "multi-pack-index" : entry.name === "packs" || entry.name === "commit-graph", "Git unknown/promisor packed storage refused");
+            demand(part === "pack" ? entry.name === "multi-pack-index" : entry.name === "packs" || entry.name === "commit-graph", "unsupported Git unknown/promisor packed storage");
             demand(stat.size <= GIT_LIMITS.maxIndexBytes, "Git inert sidecar size exceeded");
           }
           const observation = `${part}/${entry.name}:${stat.type}:${stat.size}:${stat.mode}:${stat.mtimeMs}:${stat.ctimeMs}`;
@@ -161,11 +161,19 @@ export class PackCatalogue {
       demand(await session.hash(pack.subarray(0, -20)) === checksum && name === checksum, "Git pack checksum/name mismatch");
       index = await session.readExact(path.slice(0, -5) + ".idx", GIT_LIMITS.maxIndexBytes);
       const rows = await this.index(index, pack);
-      const byOid = new Map(rows.map(row => [row.oid, row]));
-      const byOffset = new Map(rows.map(row => [row.offset, row]));
+      const byOid = new Map<string, Row>();
+      const byOffset = new Map<number, Row>();
+      const offsets: string[] = [];
+      for (const row of rows) {
+        await session.step(4);
+        byOid.set(row.oid, row);
+        byOffset.set(row.offset, row);
+        offsets.push(row.offset.toString().padStart(10, "0"));
+      }
       demand(byOffset.size === rows.length, "duplicate Git idx pack offset");
-      const order = await session.sorted(rows.map(row => row.offset.toString().padStart(10, "0")));
-      const ordered = order.map(offset => byOffset.get(Number(offset))!);
+      const order = await session.sorted(offsets);
+      const ordered: Row[] = [];
+      for (const offset of order) { await session.step(); ordered.push(byOffset.get(Number(offset))!); }
       if (!ordered.length) demand(pack.length === 32, "Git empty pack trailing bytes");
       for (let position = 0; position < ordered.length; position++) {
         const row = ordered[position]!;

@@ -1,0 +1,161 @@
+{
+  "schema": "wrq-complete-source-seal-v1",
+  "status": "PRE_DATA_SOURCE_SEAL_NOT_RUNTIME_GO",
+  "date": "2026-08-28",
+  "files": [
+    {
+      "path": "CASES.json",
+      "bytes": 7310,
+      "sha256": "6be8405ac53c40fa1e267a5bd0bc50c8a4f60163145ab580da1fa3135ac0adee"
+    },
+    {
+      "path": "CONTROL.json",
+      "bytes": 4302,
+      "sha256": "86e8b9bd26803bfb22a4c00bdf5c1863e118a471be974c38ac08d851af0930d8"
+    },
+    {
+      "path": "DATA-CHECKER.mjs.data",
+      "bytes": 10013,
+      "sha256": "041dee5a81f5593faa86317a8b697339c836cc3a703728d9419caa320c474b2a"
+    },
+    {
+      "path": "EMISSIONS.json",
+      "bytes": 21589,
+      "sha256": "02928458d31cdee4378f621eb9a9175c91e48edfd59daecbe53fcfec73d67dc1"
+    },
+    {
+      "path": "EXECUTABLE-PRESEAL.md",
+      "bytes": 11348,
+      "sha256": "b6aeb4dce304b17f119fef055a3d122cdf0dddb9084d7818f2a258ad6d3b08cb"
+    },
+    {
+      "path": "GRANT.template.json",
+      "bytes": 752,
+      "sha256": "f905bc5992ed93007240c4204d8d575510971cb50d3d5097e62bb5029e2c313e"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 3181,
+      "sha256": "10f9e42ed108a95981cd6e97f3219ff7973eb43059bf402d8570998d829e3e80"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 16914,
+      "sha256": "bbc066972a1248e7036d72a4221613278685c087846eb9c54ee43fba9a39af46"
+    },
+    {
+      "path": "MODULES.json",
+      "bytes": 3974,
+      "sha256": "006ffa83945faf34a8c22685142a817bd2451d29d71a134630572e19c9cbbaa3"
+    },
+    {
+      "path": "PREPARATION-PRESEAL.md",
+      "bytes": 1595,
+      "sha256": "3b44d90b2cdd6688efaaf9d20b95d801de29ec40faf6332460c4059e921d0a3a"
+    },
+    {
+      "path": "PROFILE.json",
+      "bytes": 2672,
+      "sha256": "f0d0951cf31aa738747d737e9a3f34460cac41839de56c3cac6e8d86a13e321f"
+    },
+    {
+      "path": "SOURCES.json",
+      "bytes": 18567,
+      "sha256": "a00bf38fff98b78de3ba88bda5630748f2d35dc630bd8938a02f6de71775d6d5"
+    },
+    {
+      "path": "TOOLS.json",
+      "bytes": 2727,
+      "sha256": "691ce21dc37b71aa12ba12dba894360f1ffbd6c05f1b7c566c78a25874d3ce4a"
+    },
+    {
+      "path": "compile-entry.mjs",
+      "bytes": 229,
+      "sha256": "5bff85d92d457e03ec5143fccbe9a26f752ccb2749be87161f215e8dfec25e3f"
+    },
+    {
+      "path": "errors.mjs",
+      "bytes": 2257,
+      "sha256": "6231be9c6256f3695232f7f982a869feccc22e8298b95ce2db73413993adad2b"
+    },
+    {
+      "path": "fixtures.mjs",
+      "bytes": 3094,
+      "sha256": "bfe1021a9fad5b381f05c7c677c32c78abee2d960842486daf3fe49d1c2b1e91"
+    },
+    {
+      "path": "load-guard.mjs",
+      "bytes": 3180,
+      "sha256": "adc975345d17a31ca07e583c62009906ffc588c9709c6a82cd2afdd8908b2180"
+    },
+    {
+      "path": "owner.mjs",
+      "bytes": 4019,
+      "sha256": "38273375aa011fa2410f59f4a00835540e1de146f63afc449ab0276b3ff76975"
+    },
+    {
+      "path": "parent-entry.mjs",
+      "bytes": 3148,
+      "sha256": "fa5c6e5ed0403180a7ef385b9b7ca74bca593cf6d94bce0c95e69257a2cb5a84"
+    },
+    {
+      "path": "parent-rpc.mjs",
+      "bytes": 8038,
+      "sha256": "57614f640e90c2d70fee7c3f141e04f9adc6ecbe98258d27d90329d1f82c56ae"
+    },
+    {
+      "path": "reservations.mjs",
+      "bytes": 919,
+      "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde"
+    },
+    {
+      "path": "scaffold.guest.js.data",
+      "bytes": 6447,
+      "sha256": "5dc35b46d5ed6da3119abc54e01f9efe8eb6f997a55a8673236075a385cced7d"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 5197,
+      "sha256": "48c0b9ee1cac9c184fc3cc0ef57530d80e07b082c8d6186b5e8427a717c50a6f"
+    },
+    {
+      "path": "sync-bridge.mjs",
+      "bytes": 4417,
+      "sha256": "1f7355adbebe699b235162719868e4c005346dc30e90ae0affca822144abfc3a"
+    },
+    {
+      "path": "wire.mjs",
+      "bytes": 8975,
+      "sha256": "7af017fb8b2e5c9581e5e0087e51eb3aa96e5dba263c59d27882dc5d0a566248"
+    },
+    {
+      "path": "worker-body.mjs",
+      "bytes": 1756,
+      "sha256": "a84a595bd156024bc721767e9a131d9db298153d28bc2373fa4b21a8f59aba79"
+    },
+    {
+      "path": "worker-entry.mjs",
+      "bytes": 151,
+      "sha256": "f53d1bc9d746243e4eb9c229d0c61ebf637f29892ed346e735920fcfcf36bf0b"
+    }
+  ],
+  "externalBindings": [
+    {
+      "path": "tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v3/SEAL.json",
+      "bytes": 2330,
+      "sha256": "7a89d5911ddadcd7154c84553ce35442e744f2ded14d484af2b4e1bc92fcdacd"
+    }
+  ],
+  "inventoryRule": "Exact recursive regular-file inventory; SEAL.json excluded from own body hash. Only later evidence/ DATA outputs excluded. Detect all other new entries, including untracked ones. Complete seal body hash reported externally.",
+  "runtimeAuthorized": false,
+  "dataFollowup": {
+    "checkerBody": "DATA-CHECKER.mjs.data",
+    "children": 0,
+    "peakChildren": 0,
+    "maxElapsedMs": 300000,
+    "maxCaptureBytes": 16777216,
+    "maxWorkBytes": 67108864,
+    "allowed": "JSON parsing, raw byte Git/tree/path authentication, digest, exact counts and source-text presence only",
+    "forbidden": "harness/subject imports or execution, syntax parsing, VM, Worker, engine, compiler, private, network, native subject, source materialization"
+  }
+}

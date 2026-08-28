@@ -1,0 +1,137 @@
+{
+  const dataFs = await import('node:fs/promises');
+  const dataCrypto = await import('node:crypto');
+  const dataZlib = await import('node:zlib');
+  const workspace = '/Users/kjopek/Workspace/safe-bash';
+  const preparation = 'tests/commands/node-worker-experiments-20260828/preparation-v1';
+  const design = 'tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v3';
+  const started = Date.now();
+  let workBytes = 0;
+  const checks = [];
+  const digest = bytes => dataCrypto.createHash('sha256').update(bytes).digest('hex');
+  const gitDigest = (kind, bytes) => dataCrypto.createHash('sha1').update(Buffer.from(kind + ' ' + bytes.length + '\0')).update(bytes).digest('hex');
+  function charge(bytes) {
+    workBytes += bytes;
+    if (workBytes > 67108864 || Date.now() - started > 300000) throw new Error('DATA limit');
+  }
+  function requireData(condition, name) {
+    if (!condition) throw new Error('DATA failed: ' + name);
+    checks.push(name);
+  }
+  async function read(relative) {
+    if (relative.startsWith('/') || relative.split('/').includes('..')) throw new Error('DATA path authority');
+    const stat = await dataFs.lstat(workspace + '/' + relative);
+    if (!stat.isFile() || stat.size > 4194304) throw new Error('DATA regular bounded file');
+    charge(stat.size * 2);
+    return dataFs.readFile(workspace + '/' + relative);
+  }
+  async function inventory(directory) {
+    const found = [];
+    for (const entry of await dataFs.readdir(workspace + '/' + directory, { withFileTypes: true })) {
+      if (entry.name === 'evidence' && directory === preparation) continue;
+      const relative = directory + '/' + entry.name;
+      if (entry.isDirectory()) found.push(...await inventory(relative));
+      else if (entry.isFile()) found.push(relative);
+      else throw new Error('DATA nonregular inventory');
+    }
+    charge(found.reduce((sum, value) => sum + value.length * 2, 0));
+    return found.sort();
+  }
+  const sealed = [];
+  for (const directory of [design, preparation]) {
+    const sealBytes = await read(directory + '/SEAL.json');
+    const seal = JSON.parse(sealBytes);
+    const actual = (await inventory(directory)).filter(path => path !== directory + '/SEAL.json');
+    requireData(JSON.stringify(actual) === JSON.stringify(seal.files.map(row => directory + '/' + row.path).sort()), 'append-aware inventory:' + directory);
+    for (const record of seal.files) {
+      const bytes = await read(directory + '/' + record.path);
+      requireData(bytes.length === record.bytes && digest(bytes) === record.sha256, 'sealed body:' + record.path);
+      if (record.path.endsWith('.json')) JSON.parse(bytes);
+    }
+    for (const record of seal.externalBindings) {
+      const bytes = await read(record.path);
+      requireData(bytes.length === record.bytes && digest(bytes) === record.sha256, 'external body:' + record.path);
+    }
+    sealed.push({ directory, files: seal.files.length, sealSha256: digest(sealBytes) });
+  }
+  const inputs = JSON.parse(await read(preparation + '/INPUTS.json'));
+  for (const record of inputs.inputs) {
+    const bytes = await read(record.path);
+    requireData(bytes.length === record.bytes && digest(bytes) === record.sha256 && gitDigest('blob', bytes) === record.blob, 'committed input:' + record.commit + ':' + record.path);
+  }
+  const publicManifest = JSON.parse(await read(preparation + '/SOURCES.json'));
+  const encoded = await read('tests/commands/node-provider-experiments-20260828/PUBLIC-SOURCE.json.gz.base64');
+  requireData(digest(encoded) === publicManifest.archive.sha256, 'public archive encoded');
+  const compressed = Buffer.from(encoded.toString(), 'base64');
+  charge(compressed.length * 2);
+  requireData(digest(compressed) === publicManifest.archive.gzipSha256, 'public archive gzip');
+  const unpacked = dataZlib.gunzipSync(compressed, { maxOutputLength: 2000000 });
+  charge(unpacked.length * 4);
+  requireData(digest(unpacked) === publicManifest.archive.decodedSha256, 'public archive decoded');
+  const archiveData = JSON.parse(unpacked);
+  const commitBytes = Buffer.from(archiveData.proof.commitBase64, 'base64');
+  charge(commitBytes.length * 2);
+  requireData(gitDigest('commit', commitBytes) === publicManifest.engineCommit && digest(commitBytes) === archiveData.proof.commitSha256, 'public commit canonical bytes');
+  const trees = new Map();
+  for (const record of archiveData.proof.trees) {
+    const bytes = Buffer.from(record.rawBase64, 'base64');
+    charge(bytes.length * 2);
+    requireData(gitDigest('tree', bytes) === record.sha, 'public raw tree:' + record.sha);
+    const entries = new Map();
+    let offset = 0;
+    while (offset < bytes.length) {
+      const space = bytes.indexOf(32, offset);
+      const zero = bytes.indexOf(0, space + 1);
+      if (space < offset || zero < space || zero + 21 > bytes.length) throw new Error('tree record');
+      const name = bytes.subarray(space + 1, zero);
+      const key = name.toString('hex');
+      if (entries.has(key)) throw new Error('duplicate byte path');
+      entries.set(key, { mode: bytes.subarray(offset, space).toString(), id: bytes.subarray(zero + 1, zero + 21).toString('hex') });
+      offset = zero + 21;
+    }
+    trees.set(record.sha, entries);
+  }
+  requireData(archiveData.files.length === 66 && publicManifest.files.length === 66 && trees.size === 13, 'public66/tree13 counts');
+  const rootTree = commitBytes.toString().match(/^tree ([a-f0-9]{40})\n/)[1];
+  for (const record of publicManifest.files) {
+    const archived = archiveData.files.find(row => row.path === record.path);
+    if (!archived) throw new Error('missing archive member');
+    const bytes = Buffer.from(archived.base64, 'base64');
+    charge(bytes.length * 3);
+    requireData(bytes.length === record.bytes && digest(bytes) === record.sha256 && gitDigest('blob', bytes) === record.gitBlob, 'public source blob:' + record.path);
+    let tree = rootTree;
+    let entry;
+    for (const part of ('packages/safejs/' + record.path).split('/')) {
+      entry = trees.get(tree)?.get(Buffer.from(part).toString('hex'));
+      if (!entry) throw new Error('public byte path membership');
+      tree = entry.id;
+    }
+    requireData(entry.id === record.gitBlob && entry.mode === '100644', 'public path membership:' + record.path);
+  }
+  const core = Buffer.from(archiveData.files.find(row => row.path === 'src/core.ts').base64, 'base64').toString();
+  requireData(core.includes('from "./lint.js"') && !archiveData.files.some(row => row.path === 'src/lint.ts'), 'hard blocker: public core lint absent');
+  const cases = JSON.parse(await read(preparation + '/CASES.json'));
+  const instanceKeys = ['instance', 'wrq', 'root', 'fixture', 'reason', 'workers', 'guestEvaluations', 'candidateImplemented', 'schedule', 'expectedStdout', 'expectedStderr', 'expectedStatus', 'expectedEffects', 'unqualified'];
+  for (const row of cases.instances) requireData(JSON.stringify(Object.keys(row)) === JSON.stringify(instanceKeys), 'case finite keys:' + row.instance);
+  requireData(cases.instances.length === 11 && new Set(cases.instances.map(row => row.instance)).size === 11, 'eleven unique instances');
+  requireData(cases.instances.reduce((sum, row) => sum + row.workers, 0) === 11 && cases.instances.reduce((sum, row) => sum + row.guestEvaluations, 0) === 10, '11 Worker /10 guest ceilings');
+  requireData(cases.instances.filter(row => row.candidateImplemented).length === 9 && cases.admissibleNow === 0, '9 source candidates;0 admissions');
+  const mapping = JSON.parse(await read(design + '/OBLIGATIONS.json'));
+  requireData(mapping.obligations.length === 8 && mapping.obligations.every((row, index) => row.id === 'WRQ0' + (index + 1) && row.rootId === 'L0' + (index + 1)), 'eight ordered WRQ/L mappings');
+  const rpc = JSON.parse(await read(design + '/RPC.json'));
+  requireData(rpc.layout.bytes === 197056 && rpc.layout.slotCount === 3 && rpc.layout.activeSlots.length === 1 && rpc.transitions.length === 15, 'fixed layout plus explicit fifteenth edge');
+  requireData(rpc.controlSchemas.terminal.keys.includes('deliveredSeq') && rpc.namespaceSchema.namespace.includes('1..128'), 'finite terminal/cache schema text bindings');
+  const profile = JSON.parse(await read(preparation + '/PROFILE.json'));
+  const grant = JSON.parse(await read(preparation + '/GRANT.template.json'));
+  requireData(Object.values(profile.execution).every(value => value === 0) && grant.authorized === false && grant.compiler === false && grant.selectedInstances.length === 0, 'zero executions and no GO');
+  const controlRecipes = JSON.parse(await read(preparation + '/CONTROL.json'));
+  requireData(controlRecipes.controls.length === 9 && controlRecipes.controls.every(row => row.currentExecutableControl === false), 'nine deferred control recipes,not executed controls');
+  const source = (await read(preparation + '/sync-bridge.mjs')).toString();
+  const ownerSource = (await read(preparation + '/owner.mjs')).toString();
+  requireData(source.includes('PHASES.FINAL_ACK, TAGS[result.kind], 0, 0, empty') && source.includes("authority !== 'postcopy-v1'"), 'source-text only: zero ACK and explicit marker');
+  requireData(ownerSource.includes("acquisition = 'unconfirmed'") && ownerSource.includes("acquisition = 'proven-none'"), 'source-text only: acquisition distinction');
+  const output = { schema: 'wrq-zero-child-data-result-v1', status: 'DATA_PASS_RUNTIME_STILL_BLOCKED', elapsedMs: Date.now() - started, workBytes, childProcesses: 0, peakChildren: 0, checks: checks.length, inputs: inputs.inputs.length, publicSourceBlobs: 66, publicRawTrees: 13, sealed, semanticPasses: 0, syntaxTrials: 0, harnessImports: 0, workers: 0, engines: 0, compilers: 0, privateReads: 0, guests: 0, counts: { declaredWorkers: 11, declaredGuests: 10, sourceCandidates: 9, admitted: 0 }, preservedPreparationFailure: inputs.preservedPreparationFailure };
+  const capture = JSON.stringify(output);
+  if (Buffer.byteLength(capture) > 16777216) throw new Error('DATA capture cap');
+  nodeRepl.write(capture);
+}

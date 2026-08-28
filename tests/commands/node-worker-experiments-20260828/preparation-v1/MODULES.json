@@ -1,0 +1,167 @@
+{
+  "schema": "wrq-static-module-source-manifest-v1",
+  "files": [
+    {
+      "path": "compile-entry.mjs",
+      "bytes": 229,
+      "sha256": "5bff85d92d457e03ec5143fccbe9a26f752ccb2749be87161f215e8dfec25e3f",
+      "roles": [
+        "compiler"
+      ]
+    },
+    {
+      "path": "errors.mjs",
+      "bytes": 2257,
+      "sha256": "6231be9c6256f3695232f7f982a869feccc22e8298b95ce2db73413993adad2b",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    },
+    {
+      "path": "fixtures.mjs",
+      "bytes": 3094,
+      "sha256": "bfe1021a9fad5b381f05c7c677c32c78abee2d960842486daf3fe49d1c2b1e91",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "path": "load-guard.mjs",
+      "bytes": 3180,
+      "sha256": "adc975345d17a31ca07e583c62009906ffc588c9709c6a82cd2afdd8908b2180",
+      "roles": [
+        "parent",
+        "worker",
+        "compiler"
+      ]
+    },
+    {
+      "path": "owner.mjs",
+      "bytes": 4019,
+      "sha256": "38273375aa011fa2410f59f4a00835540e1de146f63afc449ab0276b3ff76975",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "path": "parent-entry.mjs",
+      "bytes": 3148,
+      "sha256": "fa5c6e5ed0403180a7ef385b9b7ca74bca593cf6d94bce0c95e69257a2cb5a84",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "path": "parent-rpc.mjs",
+      "bytes": 8038,
+      "sha256": "57614f640e90c2d70fee7c3f141e04f9adc6ecbe98258d27d90329d1f82c56ae",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "path": "reservations.mjs",
+      "bytes": 919,
+      "sha256": "1a2fea68c59338ecf92f7bb9a8355428c39b2f667370864ba4e9570214225dde",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 5197,
+      "sha256": "48c0b9ee1cac9c184fc3cc0ef57530d80e07b082c8d6186b5e8427a717c50a6f",
+      "roles": [
+        "parent"
+      ]
+    },
+    {
+      "path": "sync-bridge.mjs",
+      "bytes": 4417,
+      "sha256": "1f7355adbebe699b235162719868e4c005346dc30e90ae0affca822144abfc3a",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "wire.mjs",
+      "bytes": 8975,
+      "sha256": "7af017fb8b2e5c9581e5e0087e51eb3aa96e5dba263c59d27882dc5d0a566248",
+      "roles": [
+        "parent",
+        "worker"
+      ]
+    },
+    {
+      "path": "worker-body.mjs",
+      "bytes": 1756,
+      "sha256": "a84a595bd156024bc721767e9a131d9db298153d28bc2373fa4b21a8f59aba79",
+      "roles": [
+        "worker"
+      ]
+    },
+    {
+      "path": "worker-entry.mjs",
+      "bytes": 151,
+      "sha256": "f53d1bc9d746243e4eb9c229d0c61ebf637f29892ed346e735920fcfcf36bf0b",
+      "roles": [
+        "worker"
+      ]
+    }
+  ],
+  "publicEntry": {
+    "specifier": "@poe-code/safejs/core",
+    "status": "BLOCKED",
+    "path": null,
+    "missing": [
+      "src/lint.ts and its authenticated transitive public sources",
+      "core/index emitted body binding"
+    ],
+    "fallback": false
+  },
+  "builtins": {
+    "parent": [
+      "node:fs",
+      "node:crypto",
+      "node:module",
+      "node:url",
+      "node:worker_threads"
+    ],
+    "worker": [
+      "node:fs",
+      "node:crypto",
+      "node:module",
+      "node:url",
+      "node:worker_threads",
+      "node:async_hooks",
+      "node:fs/promises",
+      "node:path",
+      "node:util"
+    ],
+    "compiler": [
+      "node:fs",
+      "node:crypto",
+      "node:module",
+      "node:url"
+    ]
+  },
+  "bootstrapTCB": [
+    "parent-entry.mjs",
+    "worker-entry.mjs",
+    "load-guard.mjs"
+  ],
+  "nonModuleData": [
+    "scaffold.guest.js.data",
+    "DATA-CHECKER.mjs.data",
+    "CASES.json",
+    "CONTROL.json",
+    "PROFILE.json",
+    "SOURCES.json",
+    "INPUTS.json",
+    "EMISSIONS.json",
+    "TOOLS.json",
+    "GRANT.template.json"
+  ],
+  "qualification": "Source hashes only. Guard unrun, exact loaded closure unavailable. Worker builtin names include text-only PUBLIC66 import names, not permission to load missing sources or proof of runtime closure. No compiler module permitted by current guard."
+}

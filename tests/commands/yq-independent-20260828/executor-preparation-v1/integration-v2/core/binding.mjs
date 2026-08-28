@@ -81,7 +81,7 @@ export async function bind(rootPath, rootHash, sealPath, sealHash) {
     { kind: 'tree', path: coreRoot, sha256: seal.coreTreeSha256 },
     ...[components.consumerRoot, guards.fixtureRoot].map((path) => ({ kind: 'tree', path, sha256: runtime.integrity.jsonHash(runtime.integrity.treeSnapshot(path)) })),
     { kind: 'tree', path: components.runtimeRoot, sha256: pins.runtime.treeSha256 },
-    { kind: 'tree', path: join(repository, pins.runtime.sourceRoot), sha256: pins.runtime.sourceTreeSha256 },
+    { kind: 'file', path: join(repository, pins.runtime.sourcePreseal.path), sha256: pins.runtime.sourcePreseal.sha256, mode: 420 },
     ...[[root.archiveSourceRoot, archiveTree], [root.consumerSourceRoot, sourceTree], [root.packageRoot, packageTree]].map(([path, tree]) => ({ kind: 'tree', path, sha256: runtime.integrity.jsonHash(runtimeEntries(tree)) })),
     ...[...inputs, { path: rootPath, sha256: rootHash }, { path: sealPath, sha256: sealHash }, { path: process.execPath, sha256: selected.tools.node.sha256 }].map((file) => ({ kind: 'file', ...file, mode: lstatSync(file.path).mode & 4095, maximumBytes: 134217728 })),
   ];

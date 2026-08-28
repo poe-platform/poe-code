@@ -55,8 +55,11 @@ export function verifyIntegration(sealPath, sealSha256) {
 
 export function verifyRuntimeSource(pins = readJson(join(coreRoot, 'COMPONENTS.json'))) {
   assert.equal(pins.runtime.status, 'SEALED', 'RUNTIME_V2_BINDING_PENDING: no fallback to original runtime');
-  for (const binding of [pins.runtime.sourcePreseal, pins.runtime.seal, ...pins.runtime.files]) readBound(join(repository, binding.path), binding.sha256);
-  assert.equal(jsonHash(treeEntries(join(repository, pins.runtime.sourceRoot))), pins.runtime.sourceTreeSha256, 'Runtime-v2 source membership/hash/modes');
+  for (const binding of [pins.runtime.sourcePreseal, pins.runtime.seal, ...pins.runtime.files]) {
+    readBound(join(repository, binding.path), binding.sha256);
+    assert.equal(lstatSync(join(repository, binding.path)).mode & 4095, binding.mode ?? 420);
+  }
+  assert.deepEqual(readdirSync(join(repository, pins.runtime.sourceRoot)).sort(), pins.runtime.rootMembership, 'Runtime-v2 root membership including added source entries');
   return JSON.parse(readBound(join(repository, pins.runtime.seal.path), pins.runtime.seal.sha256));
 }
 

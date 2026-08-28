@@ -26,3 +26,12 @@
   and its label/documentation are corrected; original candidate/frozen data and
   consumer code are unchanged. No materialization child followed this failure.
   Raw data-check-f2b97135-83c4-40f4-84e2-4d7dc586faaf evidence remains retained.
+- Third validation at validation-CURHFwrF: syntax/protocol and all16 data controls
+  passed. Harness materialization refused BEFORE any child because this author's
+  overbroad runtime-source tree snapshot included runtime-v2/work, an ignored
+  unsealed scratch directory containing a deliberate symlink negative fixture.
+  The corrected binding uses all11 declared source-preseal files, their modes,
+  and exact root membership, never treating ignored scratch as committed source.
+  Every materialized runtime recipe/candidate/source/package tree still has a
+  complete regular membership/hash/mode guard. No symlink allowance was added.
+  Raw refusal remains; no synthetic product or actual candidate was admitted.

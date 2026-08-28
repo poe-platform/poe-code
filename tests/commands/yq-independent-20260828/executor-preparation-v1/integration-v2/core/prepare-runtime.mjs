@@ -19,7 +19,7 @@ const integrity = await import(pathToFileURL(join(bootstrapRoot, 'integrity.mjs'
 const host = await import(pathToFileURL(join(bootstrapRoot, 'host.mjs')).href);
 const guards = [
   { kind: 'tree', path: coreRoot, sha256: seal.coreTreeSha256 },
-  { kind: 'tree', path: join(repository, pins.runtime.sourceRoot), sha256: pins.runtime.sourceTreeSha256 },
+  { kind: 'file', path: join(repository, pins.runtime.sourcePreseal.path), sha256: pins.runtime.sourcePreseal.sha256, mode: 420 },
   { kind: 'tree', path: bootstrapRoot, sha256: runtimeSeal.originalTreeSha256 },
 ];
 const evidence = integrity.createEvidence(evidenceParent, guards);
@@ -30,6 +30,7 @@ const result = await host.runJobs({
   bounds: { deadlineMs: 30000, termGraceMs: 150, reapMs: 2000, captureBytes: 16777216, maximumJobs: 1 },
   jobs: [{ id: 'materialize-runtime', cwd: repository, args: [join(coreRoot, 'materialize-runtime.mjs'), sealPath, sealHash, destination] }],
   assertReceipt(receipt) {
+    verifyRuntimeSource(pins);
     assert.equal(receipt.outcome, 'CAPTURED');
     assert.equal(receipt.recipeRoot, destination);
     assert.equal(receipt.sealPath, join(repository, pins.runtime.seal.path));

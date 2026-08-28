@@ -5,7 +5,6 @@
     "commit": "7add5d2c0a3acb27483ba0bb5dd52385812d8ed7",
     "evidenceCommit": "70fa3df66f9c8dc3f972cfa8c0c5862d77d7514e",
     "sourceRoot": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2",
-    "sourceTreeSha256": "903d1b0effacca80e1725253719a7dcd2d9fc879a9e3124006dc98ff5438cd8b",
     "sourcePreseal": {
       "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/runtime-v2/SOURCE-PRESEAL.json",
       "sha256": "c971d27207b661ae3ee23d61d6e1ee7cfefc2b6a8a890f4e0fde228c81945c64"
@@ -104,7 +103,41 @@
       "sha256": "26d426b6db948fd9f72f3d712bdd8cfdde9d0e84e99c60f140705380617a6198"
     },
     "diffSha256": "ae8de91fef938c24df0293a78548492bac44435509a610bf7f7decaede5c59fc",
-    "materializedRoot": "Explicit caller-selected canonical directory; exact sealed recipe tree, never runtime-v1 fallback"
+    "materializedRoot": "Explicit caller-selected canonical directory; exact sealed recipe tree, never runtime-v1 fallback",
+    "rootMembership": [
+      ".gitignore",
+      "BINDINGS.json",
+      "EVIDENCE-SEAL.json",
+      "HANDOFF.md",
+      "PROTOCOL.md",
+      "RECIPE-SEAL.json",
+      "SOURCE-PRESEAL.json",
+      "STATIC-CHECKS.json",
+      "V1-V2.diff",
+      "controls.json",
+      "delta.mjs",
+      "evidence",
+      "frozen.mjs",
+      "recipe.mjs",
+      "synthetic-child.mjs",
+      "validate.mjs",
+      "work"
+    ],
+    "sourceScope": {
+      "regularFiles": "All eleven SOURCE-PRESEAL files plus the preseal; exact hashes/modes before imports and before/after children",
+      "rootMembership": "Every direct root entry including additions",
+      "nonImportedNamespaces": [
+        {
+          "path": "work",
+          "role": "Ignored unsealed author scratch; never imported or source authority"
+        },
+        {
+          "path": "evidence",
+          "role": "Sealed historical captures; never imported by this composition"
+        }
+      ],
+      "materializedRecipe": "Entire fresh eleven-file tree; all added entries/modes/hash changes rejected"
+    }
   },
   "consumers": {
     "commit": "90c4c50070334a34c1b75d78f7da25d302f6bb61",

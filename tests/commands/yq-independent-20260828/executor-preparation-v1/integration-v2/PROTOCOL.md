@@ -60,7 +60,9 @@ A data-only preparation child MUST materialize a fresh recipe with an explicit
 parent; identical corrected-recipe host/integrity bytes provide bounded bootstrap.
 Future binding MUST compare that recipe against the exact v2 seal before imports.
 This necessary version adapter MUST NOT execute the candidate or bypass root
-authorization. The whole runtime-v2 source tree remains guarded.
+authorization. All declared runtime-v2 source files/modes and exact root membership remain
+guarded. Its explicitly non-imported evidence/work namespaces are historical
+captures and ignored author scratch, not materialized recipe/source authority.
 
 ## Processing and Failure Semantics
 

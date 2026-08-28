@@ -41,7 +41,7 @@ identical to the corrected recipe, not a fallback to v1 assertions/context. It
 returns fresh recipeRoot and v2 sealPath/hash. For actual work use an external
 evidence parent and root.runtimeRecipeRoot equal to the returned root. No
 candidate is imported or admitted. Every future recipe import checks exact
-bytes/membership/modes; the entire runtime-v2 source tree is guarded too.
+bytes/membership/modes; all declared runtime-v2 source bytes/modes and exact root membership are guarded.
 
 Use pinned Node22 from immutable `consumers/SELECTED.json`, not ambient Node.
 Missing arguments refuse before output/children. `bind(rootPath,rootHash,sealPath,
@@ -110,3 +110,11 @@ satisfy corrected assertions. Unknown/natural-language/private obligations fail
 as INCOMPLETE; successful audits are BOUND_PROJECTION_ONLY, never full-record
 passes. The moved worker uses the same module-scoped encodeRejection as drain,
 not an unrelated encoder that loses within-child command/cleanup identity.
+
+Runtime source scope is explicit: all eleven SOURCE-PRESEAL regular files and
+the preseal, exact hashes/modes and root membership before/after children. The
+non-imported evidence/work namespaces are respectively historical captures and
+ignored author scratch, not source authority. No symlink is imported or accepted
+in a candidate or materialized recipe tree. The runtime host guards the source
+preseal file; outer and materializer boundaries additionally authenticate every
+declared source file plus root membership before permitting continuation.

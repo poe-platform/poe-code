@@ -22,8 +22,8 @@
     {
       "path": "runner/cases.mjs",
       "mode": 420,
-      "bytes": 11795,
-      "sha256": "f323791b8d7f63a9250d832a9cf66e686fce3194a67bb2c8aba72f6374f905d3"
+      "bytes": 11961,
+      "sha256": "775ece5f0809ff796304259ed8a66454fa613d775c9809f0bec57317158d21e3"
     },
     {
       "path": "runner/coordinator.mjs",
@@ -46,8 +46,8 @@
     {
       "path": "runner/loader.mjs",
       "mode": 420,
-      "bytes": 1469,
-      "sha256": "cf19d469c353e372f0d1e2d9ba851f9149af8c4238c35f50566d0529930a0aa8"
+      "bytes": 2010,
+      "sha256": "59ca84c6ca2cb16989eb701debd8bcad4592e96e0e7a978a32bc235340035791"
     },
     {
       "path": "runner/materialize.mjs",
@@ -82,16 +82,16 @@
     {
       "path": "runner/worker.mjs",
       "mode": 420,
-      "bytes": 5576,
-      "sha256": "acfb751a8652b145100cd76ac511f997c180f03d5e6d41c8c63f4f538c61e907"
+      "bytes": 5877,
+      "sha256": "0d434522244b9dce7d9cbcff436f7f2338e628b9d1063a992446e16f9f44c6fc"
     }
   ],
   "workerProjection": [
     {
       "path": "runner/worker.mjs",
       "mode": 420,
-      "bytes": 5576,
-      "sha256": "acfb751a8652b145100cd76ac511f997c180f03d5e6d41c8c63f4f538c61e907"
+      "bytes": 5877,
+      "sha256": "0d434522244b9dce7d9cbcff436f7f2338e628b9d1063a992446e16f9f44c6fc"
     },
     {
       "path": "runner/primitives.mjs",
@@ -108,8 +108,8 @@
     {
       "path": "runner/loader.mjs",
       "mode": 420,
-      "bytes": 1469,
-      "sha256": "cf19d469c353e372f0d1e2d9ba851f9149af8c4238c35f50566d0529930a0aa8"
+      "bytes": 2010,
+      "sha256": "59ca84c6ca2cb16989eb701debd8bcad4592e96e0e7a978a32bc235340035791"
     },
     {
       "path": "runner/load-policy.mjs",
@@ -220,7 +220,7 @@
       "sha256": "b321bd54c37c0e654edd970d2e1636c32b0d4f860e0d74a15a58c65f868ff025"
     }
   ],
-  "codeClosureSha256": "1017aba25e52ef635e762b630b12ab8f74eb9ed28117e7e18f1288866118ec39",
+  "codeClosureSha256": "1ebb85870eb06e63325b222c3ed07e3774e8ee10b6399c264df5fd5bdeefb770",
   "candidateCompiledFiles": [
     {
       "path": "dist/commands/archive/create.js",

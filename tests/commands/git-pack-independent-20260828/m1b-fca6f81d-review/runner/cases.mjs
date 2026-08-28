@@ -78,7 +78,7 @@ export async function runBatch(state, batch, items, candidateRoot, compile) {
   let caseStream;
   let framingBytes = 0;
   const deadline = Math.min(budget.deadline(recipe.phaseEndsMs[batch.phase]), budget.now() + batch.timeoutMs);
-  const child = await supervise(budget, { id: batch.id, executable: state.node, argv: ['--experimental-loader', path.join(harnessRoot, 'runner/loader.mjs'), path.join(harnessRoot, 'runner/worker.mjs')], cwd: caseBase, env: { ...state.env, M1B_JOB: jobFile, M1B_LOAD_BINDING: bindingFile }, streamBytes: batch.streamBytes, deadline }, async (message, record, clocks) => {
+  const child = await supervise(budget, { id: batch.id, executable: state.node, argv: ['--experimental-loader', path.join(harnessRoot, 'runner/loader.mjs'), path.join(harnessRoot, 'runner/worker.mjs')], cwd: caseBase, env: { ...state.env, M1B_JOB: jobFile, M1B_JOB_BYTES: String(jobHash.bytes), M1B_JOB_SHA256: jobHash.sha256, M1B_LOAD_BINDING: bindingFile, M1B_LOAD_BINDING_BYTES: String(bindingHash.bytes), M1B_LOAD_BINDING_SHA256: bindingHash.sha256 }, streamBytes: batch.streamBytes, deadline }, async (message, record, clocks) => {
     const frame = exact(message, ['sequence', 'type', 'value']);
     demand(frame.sequence === ++lastSequence && !ended, 'RPC_SEQUENCE');
     let value = null;

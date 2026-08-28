@@ -1,0 +1,65 @@
+{
+  "schema": "m1b-runner-binding-syntax-preseal-v1",
+  "role": "PREPARATION_SYNTAX_ONLY_CHANGED_CHILD_CONTROL_BINDINGS",
+  "node": {
+    "name": "node",
+    "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "mode": 493,
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "destination": "tools/bin/node",
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node"
+  },
+  "wallMs": 120000,
+  "finalizeMs": 10000,
+  "maxChildren": 4,
+  "captureBytes": 2097152,
+  "workBytes": 4194304,
+  "peakProcessesIncludingChecker": 2,
+  "command": [
+    "__PINNED_NODE__",
+    "runner/check-binding-syntax.mjs"
+  ],
+  "files": [
+    {
+      "path": "cases.mjs",
+      "mode": 420,
+      "bytes": 11961,
+      "sha256": "775ece5f0809ff796304259ed8a66454fa613d775c9809f0bec57317158d21e3"
+    },
+    {
+      "path": "loader.mjs",
+      "mode": 420,
+      "bytes": 2010,
+      "sha256": "59ca84c6ca2cb16989eb701debd8bcad4592e96e0e7a978a32bc235340035791"
+    },
+    {
+      "path": "worker.mjs",
+      "mode": 420,
+      "bytes": 5877,
+      "sha256": "0d434522244b9dce7d9cbcff436f7f2338e628b9d1063a992446e16f9f44c6fc"
+    },
+    {
+      "path": "check-binding-syntax.mjs",
+      "mode": 420,
+      "bytes": 3001,
+      "sha256": "385730a11aa1645b9035dd305963b6fed3b1bc932f35a820accb37c3935646a4"
+    },
+    {
+      "path": "EXECUTABLE-CLOSURE.json",
+      "mode": 420,
+      "bytes": 49316,
+      "sha256": "2d3f21bd0ccf214c09f4e9d6827e2e0c69c0a6b13a8768eee92baa900a1a0270"
+    },
+    {
+      "path": "../RECIPE.json",
+      "mode": 420,
+      "bytes": 76561,
+      "sha256": "a26e64a7a79e17d4e366006a61ce46ee65fec8264bb41ca0212fee0eb45d0a96"
+    }
+  ],
+  "targetExecution": 0,
+  "priorChecks": "Immutable earlier-source results; no inheritance for changed executable bytes",
+  "totalProcessesIncludingChecker": 5
+}

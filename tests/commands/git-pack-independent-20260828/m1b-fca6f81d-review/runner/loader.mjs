@@ -3,7 +3,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { enrolledUrl } from './load-policy.mjs';
 
-const binding = JSON.parse(await fs.readFile(process.env.M1B_LOAD_BINDING, 'utf8'));
+const bindingFile = process.env.M1B_LOAD_BINDING;
+const bindingStat = await fs.lstat(bindingFile);
+if (!bindingStat.isFile() || bindingStat.isSymbolicLink() || (bindingStat.mode & 0o777) !== 0o600 || String(bindingStat.size) !== process.env.M1B_LOAD_BINDING_BYTES || await fs.realpath(bindingFile) !== bindingFile) throw new Error('LOAD_BINDING_PHYSICAL_IDENTITY');
+const bindingBytes = await fs.readFile(bindingFile);
+if (createHash('sha256').update(bindingBytes).digest('hex') !== process.env.M1B_LOAD_BINDING_SHA256) throw new Error('LOAD_BINDING_EXPECTED_HASH');
+const binding = JSON.parse(bindingBytes.toString('utf8'));
 const files = new Map(binding.files.map(row => [row.absolute, row]));
 const builtins = new Set(binding.builtins);
 function demand(condition, label) { if (!condition) throw new Error(label); }

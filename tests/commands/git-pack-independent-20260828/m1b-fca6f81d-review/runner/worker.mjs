@@ -2,9 +2,11 @@ import './tool-fence.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { demand, exact, ownData, relative } from './primitives.mjs';
+import { demand, exact, ownData, relative, regular } from './primitives.mjs';
 
-const request = JSON.parse(await fs.readFile(process.env.M1B_JOB, 'utf8'));
+const jobSize = Number(process.env.M1B_JOB_BYTES);
+demand(Number.isSafeInteger(jobSize) && jobSize >= 0 && jobSize <= 131072 && /^[a-f0-9]{64}$/.test(process.env.M1B_JOB_SHA256 ?? ''), 'JOB_EXPECTED_IDENTITY');
+const request = JSON.parse((await regular(process.env.M1B_JOB, { mode: 0o600, bytes: jobSize, sha256: process.env.M1B_JOB_SHA256 })).body.toString('utf8'));
 let sequence = 0;
 let pending = null;
 let controller;

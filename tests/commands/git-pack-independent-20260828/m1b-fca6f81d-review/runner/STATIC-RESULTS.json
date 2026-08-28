@@ -1,0 +1,232 @@
+{
+  "schema": "m1b-static-composition-results-v1",
+  "sourceCommit": "10c62e8ed1614516fd042522c3f4fea3a62f83a0",
+  "scope": "SOURCE_DATA_SYNTAX_ONLY_NOT_RUNTIME_PROOF",
+  "syntax": {
+    "status": "SYNTAX_ONLY_COMPLETE",
+    "starts": 16,
+    "peakOwnedChildren": 1,
+    "elapsedMs": 1696.049875,
+    "captureBytesBeforeResult": 2267,
+    "results": [
+      {
+        "file": "admission-controls.mjs",
+        "pid": 45525,
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 142.511833,
+        "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+      },
+      {
+        "file": "archive.mjs",
+        "pid": 45526,
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 237.28670799999998,
+        "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+      },
+      {
+        "file": "budget.mjs",
+        "pid": 45527,
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 341.427375,
+        "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+      },
+      {
+        "file": "cases.mjs",
+        "pid": 45529,
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 478.2695,
+        "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+      },
+      {
+        "file": "check-final-syntax.mjs",
+        "pid": 45532,
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 586.415916,
+        "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+      },
+      {
+        "file": "check-syntax.mjs",
+        "pid": 45535,
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 709.537125,
+        "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+      },
+      {
+        "file": "coordinator.mjs",
+        "pid": 45540,
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 816.499458,
+        "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+      },
+      {
+        "file": "launch.mjs",
+        "pid": 45546,
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 915.274833,
+        "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+      },
+      {
+        "file": "load-policy.mjs",
+        "pid": 45547,
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 1015.144,
+        "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+      },
+      {
+        "file": "loader.mjs",
+        "pid": 45548,
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 1108.476833,
+        "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+      },
+      {
+        "file": "materialize.mjs",
+        "pid": 45550,
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 1193.244916,
+        "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+      },
+      {
+        "file": "primitives.mjs",
+        "pid": 45553,
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 1286.646,
+        "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+      },
+      {
+        "file": "source-admission.mjs",
+        "pid": 45556,
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 1378.255666,
+        "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+      },
+      {
+        "file": "supervisor.mjs",
+        "pid": 45559,
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 1465.909208,
+        "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+      },
+      {
+        "file": "tool-fence.mjs",
+        "pid": 45560,
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 1553.849958,
+        "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+      },
+      {
+        "file": "worker.mjs",
+        "pid": 45561,
+        "status": 0,
+        "signal": null,
+        "error": null,
+        "elapsedMs": 1640.401083,
+        "role": "SYNTAX_ONLY_NO_IMPORT_EVALUATION"
+      }
+    ],
+    "candidateImports": 0,
+    "activeChildren": 0
+  },
+  "toolBeforeAfter": [
+    {
+      "name": "node",
+      "unchanged": true,
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "name": "git",
+      "unchanged": true,
+      "bytes": 7604272,
+      "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae"
+    },
+    {
+      "name": "typescript",
+      "unchanged": true,
+      "members": 147,
+      "sha256": "c09d5ee3ef3e6ca9650a50197ef6b6d59b213dab09ec086d16d9b26b4de447c6",
+      "projectionSha256": "c09d5ee3ef3e6ca9650a50197ef6b6d59b213dab09ec086d16d9b26b4de447c6"
+    },
+    {
+      "name": "npm",
+      "unchanged": true,
+      "members": 2556,
+      "sha256": "78c574266fdd2ab8bb844cb96bb2c3f6206592743293d20cf508810ee0b08d5e",
+      "projectionSha256": "e679789291849b591cd599af124333786fda28f9d33952846a581784f55b5465"
+    },
+    {
+      "name": "@types/node",
+      "unchanged": true,
+      "members": 83,
+      "sha256": "8ca2048ebd99dceb81c24f79314ebd89c954a5132ca411347236029cb05e6758",
+      "projectionSha256": "8ca2048ebd99dceb81c24f79314ebd89c954a5132ca411347236029cb05e6758"
+    },
+    {
+      "name": "undici-types",
+      "unchanged": true,
+      "members": 41,
+      "sha256": "a808f312cbbd8c5b3fd0398710a6a2d1e0b3309e2137217ebba2817484655649",
+      "projectionSha256": "a808f312cbbd8c5b3fd0398710a6a2d1e0b3309e2137217ebba2817484655649"
+    }
+  ],
+  "counts": {
+    "peerCaseIds": 131,
+    "uniqueCaseIds": 131,
+    "layoutCaseCalls": 256,
+    "batches": 36,
+    "ownedChildren": 49,
+    "coordinatorPlusChildren": 50,
+    "maximumCaptureBytes": 258801664,
+    "rootCaptureCap": 268435456
+  },
+  "targetExecution": {
+    "imports": 0,
+    "builds": 0,
+    "compilerCalls": 0,
+    "npm": 0,
+    "loaders": 0,
+    "admissionControls": 0,
+    "mutants": 0,
+    "fixtures": 0,
+    "stockCommands": 0,
+    "nativeGitOracle": 0
+  },
+  "remaining": [
+    "Different prelaunch component/complete-executor review references required",
+    "Actual fresh282 membership/composition admission and source compilation UNRUN",
+    "Actual offline installation/movement, all cases/types/loaded controls UNRUN",
+    "M1B native codec adapter UNQUALIFIED; S02 source concern not suppressed",
+    "Three loaded transform witness bindings absent; no invented bindings",
+    "Expected compiler exit2 remains aggregateFAIL, not product-bug attribution"
+  ]
+}

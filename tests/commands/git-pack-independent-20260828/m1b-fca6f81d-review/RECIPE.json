@@ -106,8 +106,8 @@
       {
         "path": "runner/worker.mjs",
         "mode": 420,
-        "bytes": 5576,
-        "sha256": "acfb751a8652b145100cd76ac511f997c180f03d5e6d41c8c63f4f538c61e907"
+        "bytes": 5877,
+        "sha256": "0d434522244b9dce7d9cbcff436f7f2338e628b9d1063a992446e16f9f44c6fc"
       },
       {
         "path": "runner/primitives.mjs",
@@ -124,8 +124,8 @@
       {
         "path": "runner/loader.mjs",
         "mode": 420,
-        "bytes": 1469,
-        "sha256": "cf19d469c353e372f0d1e2d9ba851f9149af8c4238c35f50566d0529930a0aa8"
+        "bytes": 2010,
+        "sha256": "59ca84c6ca2cb16989eb701debd8bcad4592e96e0e7a978a32bc235340035791"
       },
       {
         "path": "runner/load-policy.mjs",
@@ -236,7 +236,7 @@
         "sha256": "b321bd54c37c0e654edd970d2e1636c32b0d4f860e0d74a15a58c65f868ff025"
       }
     ],
-    "sha256": "9667bf0d7eb18feee88690d12462a9e65fae4352d1e709c38ea1410a2724a89f"
+    "sha256": "529fdfa6c4e680a776e1154f822dd2f1aa11f319db0b97b53b87fe37d4aa2b99"
   },
   "loader": {
     "builtins": [
@@ -2555,7 +2555,7 @@
     },
     {
       "component": "complete-executor",
-      "sourceSeal": "1017aba25e52ef635e762b630b12ab8f74eb9ed28117e7e18f1288866118ec39"
+      "sourceSeal": "1ebb85870eb06e63325b222c3ed07e3774e8ee10b6399c264df5fd5bdeefb770"
     }
   ],
   "reviewStatus": "DIFFERENT_PRELAUNCH_REVIEW_REFERENCES_REQUIRED_IN_ROOT_ROUTE",

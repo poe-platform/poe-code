@@ -1,0 +1,93 @@
+{
+  "schema": 2,
+  "controls": [
+    {
+      "id": "selected-composition",
+      "outcome": "ADMISSION",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "wrong-baseline",
+      "outcome": "SOURCE_BINDING",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "wrong-length",
+      "outcome": "SOURCE_BINDING",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "wrong-new-source-bytes",
+      "outcome": "SOURCE_BINDING",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "wrong-new-source-mode",
+      "outcome": "DESCRIPTOR",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "unapproved-yq-addition",
+      "outcome": "SOURCE_BINDING",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "unapproved-root-edit",
+      "outcome": "SOURCE_BINDING",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "missing-authorized-new-path",
+      "outcome": "SOURCE_BINDING",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "mutable-head-origin",
+      "outcome": "RECEIPT_SCHEMA",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "wrong-fixed-origin",
+      "outcome": "SOURCE_BINDING",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "invented-source-overrides",
+      "outcome": "RECEIPT_SCHEMA",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "receipt-hash-mismatch",
+      "outcome": "RECEIPT_HASH",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "composed-baseline-edit",
+      "outcome": "SOURCE_BINDING",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "composed-source-extra",
+      "outcome": "SOURCE_BINDING",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "composed-readme-missing",
+      "outcome": "SOURCE_BINDING",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "full870-baseline-readme",
+      "outcome": "PACKAGE_DATA_ADMISSION",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    },
+    {
+      "id": "public-export-gap",
+      "outcome": "PUBLIC_EXPORT_GAP",
+      "role": "DATA_ONLY_SOURCE_OR_PACKAGE_ADMISSION_NOT_YQ_SEMANTICS"
+    }
+  ],
+  "originalSyntheticControls": 36,
+  "originalControlsSha256": "37511f0e2cd6c168deea24b3f477dee8e52d7249136618c78366175495007018",
+  "productExecutions": 0
+}

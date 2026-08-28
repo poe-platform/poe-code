@@ -242,3 +242,32 @@ test("literal VFS order and repetitions use the configured filesystem", async ()
   });
   assert.deepEqual({ status: result.result.exitCode, stdout: result.stdout, stderr: result.stderr }, { status: 0, stdout: "2\n3\n1\n2\n", stderr: "" });
 });
+
+test("block chomping, indentation indicators, and folded indentation", async () => {
+  const values = await run(["-o", "json", "-c", "."], "strip: |-\n  z\n\nclip: |\n  z\n\nkeep: |+\n  z\n\n");
+  assert.equal(values.stdout, '{"strip":"z","clip":"z\\n","keep":"z\\n\\n"}\n', values.stderr);
+  assert.equal((await run(["-o", "json", "-c", "."], "|\n  z")).stdout, '"z"\n');
+  const folded = await run(["-o", "json", "-c", "."], ">-\n  red\n  blue\n\n  green\n    inset\n  gold\n");
+  assert.equal(folded.stdout, '"red blue\\ngreen\\n  inset\\ngold"\n', folded.stderr);
+  assert.equal((await run(["-o", "json", "-c", "."], "first: |2-\n  z\nsecond: |-2\n  z\n")).stdout, '{"first":"z","second":"z"}\n');
+  assert.match((await run([], "|0\n  z\n")).stderr, /INPUT_YAML_SYNTAX/u);
+});
+
+test("indentless sequences and flow pairs follow their YAML productions", async () => {
+  const indentless = await run(["-o", "json", "-c", "."], "items:\n- label: red\n  parts: [one, {two: three},]\n");
+  assert.equal(indentless.stdout, '{"items":[{"label":"red","parts":["one",{"two":"three"}]}]}\n', indentless.stderr);
+  const flow = await run(["-o", "json", "-c", "."], "[https://a/#b, red#blue, red: blue, {\"k\":v}]\n");
+  assert.equal(flow.stdout, '["https://a/#b","red#blue",{"red":"blue"},{"k":"v"}]\n', flow.stderr);
+});
+
+test("empty tagged keys, duplicate properties, and anchor-name breadth", async () => {
+  assert.equal((await run(["-o", "json", "-c", "."], "? !!str\n: red\n")).stdout, '{"":"red"}\n');
+  assert.match((await run([], "&item &item red\n")).stderr, /INPUT_YAML_SYNTAX/u);
+  assert.equal((await run(["-o", "json", "-c", "."], "[&a:b#c red, *a:b#c]\n")).stdout, '["red","red"]\n');
+  assert.equal((await run(["-o", "json", "-c", "."], "{store: &text '<<', *text : 1}\n")).stdout, '{"store":"<<","<<":1}\n');
+});
+
+test("stream end markers permit empty and subsequent bare documents", async () => {
+  assert.deepEqual(await run(["-o", "json", "-c", "."], "...\n...\n"), { status: 0, stdout: "", stderr: "" });
+  assert.deepEqual(await run(["-o", "json", "-c", "."], "red\n...\nblue\n"), { status: 0, stdout: '"red"\n"blue"\n', stderr: "" });
+});

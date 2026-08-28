@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "createdAt": "2026-08-28T04:17:35.577Z",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "previousSource": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+  "originalStop": "a9ec3561b36505d288519804980ee1b7641ee5dd",
+  "projectionSha256": "b74e575644c9476b26d96b6863aa2a2078931e73fe3251862d713edd1d7bbefb",
+  "controls": [
+    "Exact five candidate logical entries streamed/hash-verified; zero physical instruction files",
+    "Each metadata path/mode/length/blob/content hash mutation rejects",
+    "Wrong Git body/hash and truncated/missing body reject without instruction writes",
+    "Missing logical/body-binding proof rejects",
+    "Noninstruction omission/addition/modification/mode change rejects",
+    "Instruction alias and symlink-to-instruction targets reject; traversal/absolute/NUL/contained-link controls remain",
+    "Pinned benchmark instruction authenticated but absent physically; wrong identity/origin/unknown instruction rejects",
+    "Opaque real Git transfer preserves commit/tree/blob proof without checkout or plaintext instruction extraction",
+    "Private-engine would-copy path census refuses unexpected instruction inputs; no private writes",
+    "Existing POSIX/outer-observer/single-production-build controls remain",
+    "One bounded shared review-only build/type slice after source seal; no full gate"
+  ],
+  "executed": 0,
+  "sourceUnchangedAtPreseal": true,
+  "scope": "Transport/inventory/dependency/proof guards only; f5/c109/profile/14 phases unchanged"
+}
+

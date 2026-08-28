@@ -1,0 +1,285 @@
+{
+  "schema": "git-native-bridge-v4-preseal",
+  "classification": "SOURCE_DATA_SYNTHETIC_ONLY",
+  "date": "2026-08-28",
+  "sources": [
+    {
+      "path": "finite.mjs",
+      "mode": 420,
+      "bytes": 3962,
+      "sha256": "00bb3f0c42c4369738b799b1bc9bef03769c90b7023fe18f51c6bc6cbc91698d"
+    },
+    {
+      "path": "fence.mjs",
+      "mode": 420,
+      "bytes": 3827,
+      "sha256": "067c88f8f07102cf2d78bf1836bba20fbd271a80abb358b25d2b66a31a985a4e"
+    },
+    {
+      "path": "recipe.mjs",
+      "mode": 420,
+      "bytes": 2655,
+      "sha256": "fce616879ae4f9db138bcd80694ab5aa5fd3465cef04cc9589226d14c3ed50f2"
+    },
+    {
+      "path": "account.mjs",
+      "mode": 420,
+      "bytes": 4956,
+      "sha256": "11c849e2337536f67f5a4376b1bded4d455ee1ef55befa1ffb4cab70e633b907"
+    },
+    {
+      "path": "whole-h11.mjs",
+      "mode": 420,
+      "bytes": 2146,
+      "sha256": "6d8967bec12b5bbb2de34836a658658d23088750cf33f3d2e681fb6d3a7917c6"
+    },
+    {
+      "path": "bridge.mjs",
+      "mode": 420,
+      "bytes": 4562,
+      "sha256": "08eefc16202ee140bc25895dd4f5dd041a381373f53799fe3e52554b14e720e4"
+    },
+    {
+      "path": "collector.mjs",
+      "mode": 420,
+      "bytes": 3523,
+      "sha256": "07d583c609561407c0e6774e5f5bcfd43323a097df7aef0c2c8bd4d63e1c0b6d"
+    },
+    {
+      "path": "synthetic.mjs",
+      "mode": 420,
+      "bytes": 15717,
+      "sha256": "5124d80eb6788c040880c09c3454b49ac412143e8a732e5e7465cf865409ffd8"
+    },
+    {
+      "path": "future-recipe.mjs",
+      "mode": 420,
+      "bytes": 4055,
+      "sha256": "1f08b27939b58cd0138d9652f8b14e69c61686b52f623737f8ed20242b471cd0"
+    },
+    {
+      "path": "stubs.json",
+      "mode": 420,
+      "bytes": 778,
+      "sha256": "6d38bf6928f8f4e38a69e356132bb98e20eb55398d79e27f4d4f3878acb04ba9"
+    },
+    {
+      "path": "seal.mjs",
+      "mode": 420,
+      "bytes": 3092,
+      "sha256": "e1ff32bb2178c68b91740e9d6b469a2ee8ef68423a35d18814aac19be76971a4"
+    },
+    {
+      "path": "run-synthetic.mjs",
+      "mode": 420,
+      "bytes": 3499,
+      "sha256": "9d887cc63706f4d7c6cc3539405f0bfefe41f9cdcecaa81275e2bc40d2e5fca5"
+    },
+    {
+      "path": "README.md",
+      "mode": 420,
+      "bytes": 9780,
+      "sha256": "dd5ad36a9a898866f4004d5466b857c626823c42a302713f855a25bfcfd982fe"
+    }
+  ],
+  "protectedInputs": [
+    {
+      "path": "../preparation-v3/NATIVE-RECIPE.md",
+      "mode": 420,
+      "bytes": 12276,
+      "sha256": "e118a4c6f26feef12d67f321eafa908c173a1870c5cfa9a020b9d8e9c0423b3e"
+    },
+    {
+      "path": "../preparation-v3/PRESEAL.json",
+      "mode": 420,
+      "bytes": 2929,
+      "sha256": "b9abb288b3b83c7edb230c48001a1e71e3062e04f707126f018be990d30d2f46"
+    },
+    {
+      "path": "../preparation-v3/README.md",
+      "mode": 420,
+      "bytes": 9985,
+      "sha256": "5f51356085d11a408b71325d7424f09bc9674db14eecac8ce5cf3e201d5d8fe3"
+    },
+    {
+      "path": "../preparation-v3/RECEIPT.md",
+      "mode": 420,
+      "bytes": 6059,
+      "sha256": "beda9a8c9568f95ab6cffde065d816527a4edfed940bc61f8c3c813e676715eb"
+    },
+    {
+      "path": "../preparation-v3/binding.mjs",
+      "mode": 420,
+      "bytes": 6269,
+      "sha256": "1d89cddf3d846860440228d91d575317b8acd1e7607790841b5a1b609d939f30"
+    },
+    {
+      "path": "../preparation-v3/capture-metadata.mjs",
+      "mode": 420,
+      "bytes": 4017,
+      "sha256": "9c6a9f3690958e8dd3d8cbd564732eaf2958ebe9ac873cf26ddc32767547b9d8"
+    },
+    {
+      "path": "../preparation-v3/fixture-data.mjs",
+      "mode": 420,
+      "bytes": 3382,
+      "sha256": "84c80a66c70d7b11eb3b64d5ebca572b7f7435a11913e01dab169879191a9205"
+    },
+    {
+      "path": "../preparation-v3/module-adapter.mjs",
+      "mode": 420,
+      "bytes": 8825,
+      "sha256": "8abb66aec360270086a24790b890dc20e0eabd66f89ea522ef878ae01893b0e1"
+    },
+    {
+      "path": "../preparation-v3/native-adapter.mjs",
+      "mode": 420,
+      "bytes": 12249,
+      "sha256": "8e3175b074c1d6597f115a71886749bf5fe3368318000f52fd14cf2c0bde424f"
+    },
+    {
+      "path": "../preparation-v3/package-adapter.mjs",
+      "mode": 420,
+      "bytes": 3711,
+      "sha256": "b030a8cd5f515e707f5bd16a036104d6b95db5db743d5031a9fcb01c0b84c35b"
+    },
+    {
+      "path": "../preparation-v3/records.json",
+      "mode": 420,
+      "bytes": 161781,
+      "sha256": "e502117739af665d49f572a138d580ab2f1d37b33d92f0cf45a5643ca447cde8"
+    },
+    {
+      "path": "../preparation-v3/seal.mjs",
+      "mode": 420,
+      "bytes": 1646,
+      "sha256": "aa021cfea7a3ccb4592bb9344df9937ef48a61356a4fa7d6ab25e4b63d4b0b8e"
+    },
+    {
+      "path": "../preparation-v3/syntax-01.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "../preparation-v3/syntax-01.stdout.txt",
+      "mode": 420,
+      "bytes": 460,
+      "sha256": "0fda09a4259e42d56db0fa254667a1b2794a7018cfa62324f941e40f10c77b58"
+    },
+    {
+      "path": "../preparation-v3/synthetic-01.status.txt",
+      "mode": 420,
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "../preparation-v3/synthetic-01.stderr.txt",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "../preparation-v3/synthetic-01.stdout.json",
+      "mode": 420,
+      "bytes": 2151,
+      "sha256": "f8da84bc7410858fb11d7c5e671d776a825129db6f9b0d7514de3e77bb7a583f"
+    },
+    {
+      "path": "../preparation-v3/synthetic.mjs",
+      "mode": 420,
+      "bytes": 8343,
+      "sha256": "1b0a03b2c4c7a4d601e11168bc3a8758d34edd7ee3e9cc4e5ed6e2d4e7125b4a"
+    },
+    {
+      "path": "../preparation-v3/type-adapter.mjs",
+      "mode": 420,
+      "bytes": 1797,
+      "sha256": "5bfae08bb6b19e9b805b50b59a94b673ef1cdc15725afb59b194609bcdb961c3"
+    },
+    {
+      "path": "../preparation-v3/type-consumer.ts.txt",
+      "mode": 420,
+      "bytes": 869,
+      "sha256": "4cc53d6f2e7e8ad1e46c7a0bf2ad9c54cfa692e05deb675a9e5b4ce5062556ee"
+    }
+  ],
+  "rendered": {
+    "path": "rendered.json",
+    "mode": 420,
+    "bytes": 34131,
+    "sha256": "9e685555f1f9115de1e6671e69da189353e36e97f76e2737dbb3a43232500272"
+  },
+  "syntax": {
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "argv": [
+      "--check",
+      "<each exact .mjs in sources order>"
+    ],
+    "deadlineMs": 10000,
+    "status": "UNRUN_AT_SEAL",
+    "qualification": "existing development path only, no fresh tool/version/hash inspection"
+  },
+  "cohort": {
+    "count": 26,
+    "ids": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12",
+      "S13",
+      "S14",
+      "S15",
+      "S16",
+      "S17",
+      "S18",
+      "S19",
+      "S20",
+      "S21",
+      "S22",
+      "S23",
+      "S24",
+      "S25",
+      "S26"
+    ],
+    "argv": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "--experimental-vm-modules",
+      "--no-warnings",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/native-bridge-v4/run-synthetic.mjs"
+    ],
+    "env": {
+      "PATH": "/dev/null",
+      "LANG": "C",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    },
+    "wallMs": 120000,
+    "rawStdoutBytes": 65536,
+    "rawStderrBytes": 65536,
+    "retries": 0,
+    "vmEvaluationMs": 1000,
+    "mockedNativeWorkflowMs": 10000,
+    "mockedCleanupMs": 5000,
+    "mockedOverallMs": 120000,
+    "mockedAllChildBytes": 65536,
+    "capture": [
+      "synthetic-01.stdout.jsonl",
+      "synthetic-01.stderr.txt",
+      "synthetic-01.status.txt"
+    ],
+    "imports": "All owned .mjs files sealed; synthetic dynamically imported only after exact source/data guard; no product, real child_process, H11 actual imports, native, or fallback."
+  },
+  "actualNative": "A01-A06_UNRUN",
+  "module": "UNRUN",
+  "typeAll": "UNRUN",
+  "OS": "UNEXECUTED"
+}

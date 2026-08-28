@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "id": "FC-F02",
+  "classification": "CODE_AGGREGATE_JOB_CAPTURE_BUDGET_UNCHARGED_PARENT_WRITES",
+  "status": "STATIC_CONTRADICTION_NO_EXECUTION",
+  "criteria": "FC05/FC10",
+  "authority": "Composition SPECIFICATION.md:63 and LOAD-AND-TOOL-SEAL.processAndCapture.capture.aggregateJobCaptureMetadataAndRaw declare raw plus metadata share33554432 bytes/job.",
+  "sources": [
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/SPECIFICATION.md",
+      "sha256": "bf5f99d167c1100ffaf6770bbe0f237c41125e669cadf2b3d75a153521bc09a1",
+      "bytes": 11489,
+      "startLine": 61,
+      "endLine": 63,
+      "exactSource": "Ordinary safe assertion failures may continue ONLY after both integrity and known reap. Provenance, source/runtime admission, loader, membership/mode/hash or unknown-reap failure MUST stop admissions. Aggregate failure is sticky. Parent raw process files and in-child command captures precede assertions; scoped reason identity remains unchanged.\n\nProcess peak remains four: supervisor, coordinator, one outer and one nested owned tool. Worker streams share16MiB; compiler streams share8MiB; raw plus metadata share32MiB/job. IPC262144bytes/2048messages and phase4096events/4MiB remain unchanged. The fixed logical disk reservation is23.25GiB within24GiB; complete retained work is counted. No hard RSS, physical filesystem quota, escaped-descendant or opaque-host preemption guarantee is made. The inherited2MiB command capture is NOT the product16MiB cap. Overflow retains its bounded prefix and is a harness limitation, not public-boundary proof or automatically a product bug.\n"
+    },
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/supervisor.mjs",
+      "sha256": "c353bf16984a670f07a7414a60ca999c192215bfcccfd98b58b7377e608436ed",
+      "bytes": 25075,
+      "startLine": 100,
+      "endLine": 105,
+      "exactSource": "    const request = { schema: 1, job: jobBinding, rootGoSha256: admission.rootHash, recipeSha256: admission.recipeHash, evidenceRoot, scratchRoot, materializationRoot, workerRole: dispatch, bindings: { ...bindings }, deadline: { globalNs: globalDeadline.toString(), phaseNs: requestClock.phaseDeadlineNs, jobNs: requestClock.jobDeadlineNs, workNs: workDeadline.toString(), reservationNs: requestClock.reservationNs }, nonce: randomUUID(), activeRoots: admission.recipe.activeRoots, data: admission.recipe.data, workerModule, controlEnrollments: admission.root.controlEnrollments };\n    const artifact = atomicJson(join(evidenceRoot, 'request.json'), request);\n    const context = { name, job: jobBinding, request, home, temporary, tools: 0, compilers: 0, git: 0, rawBudget: { remaining: 33554432 - artifact.bytes - 4194304 }, rawReceipts: [], generated: [], toolFailure: false, toolPromise: null, phase: new PhaseCapture(join(evidenceRoot, 'phases.ndjson'), job, request.deadline), received: 0, sent: 0, result: null, unsafe: false, inflight: false, registrations: [] };\n    currentContext = context;\n    context.phase.record('outer-admission', { reservationNs: requestClock.reservationNs, preflightStartedNs, preflightEndedNs, workerModule, deadline: request.deadline });\n    const owner = startOwned({ role: 'outer', executable: join(admission.root.toolchain.root, admission.root.toolchain.node), argv: [join(coreDirectory, 'worker-host.mjs'), artifact.path, artifact.sha256], cwd: scratchRoot, env: cleanEnvironment(home, temporary), directory: evidenceRoot, name: 'worker', ipc: true, captureLimit: 16777216, budget: context.rawBudget, workDeadline, hardDeadline: BigInt(requestClock.jobDeadlineNs), currentDeadline: () => context.phase.currentDeadline() });\n"
+    },
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/supervisor.mjs",
+      "sha256": "c353bf16984a670f07a7414a60ca999c192215bfcccfd98b58b7377e608436ed",
+      "bytes": 25075,
+      "startLine": 156,
+      "endLine": 162,
+      "exactSource": "        } else if (message.type === 'RESULT') {\n          requireFact(context.result === null && context.phase.index === 5, 'DUPLICATE_OR_EARLY_RESULT');\n          keys(message.payload, ['schema', 'jobId', 'environment', 'role', 'status', 'details', 'artifacts', 'stageOutput', 'rootGoSha256', 'recipeSha256']);\n          requireFact(message.payload.schema === 1 && message.payload.jobId === job.id && message.payload.environment === (jobBinding.environment ?? null) && message.payload.rootGoSha256 === admission.rootHash && message.payload.recipeSha256 === admission.recipeHash && ['PASS', 'FAIL', 'INCOMPLETE', 'UNRUN'].includes(message.payload.status), 'RECEIPT_BINDING');\n          context.result = message.payload;\n          atomicJson(join(evidenceRoot, 'job-receipt.json'), message.payload);\n          value = { recorded: true };\n"
+    },
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/supervisor.mjs",
+      "sha256": "c353bf16984a670f07a7414a60ca999c192215bfcccfd98b58b7377e608436ed",
+      "bytes": 25075,
+      "startLine": 174,
+      "endLine": 180,
+      "exactSource": "    context.rawReceipts.push(processReceipt);\n    let integrity = false;\n    try {\n      guard();\n      for (const raw of context.rawReceipts) for (const stream of ['stdout', 'stderr']) { const current = fileDigest(raw[`${stream}Path`]); requireFact(current.sha256 === raw[`${stream}Sha256`] && current.bytes === raw[`${stream}Bytes`] && current.mode === 384, 'RAW_CAPTURE_CHANGED'); }\n      integrity = true;\n    } catch (error) { context.unsafe = true; atomicJson(join(evidenceRoot, 'integrity-failure.json'), describeError(error)); }\n"
+    },
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/supervisor.mjs",
+      "sha256": "c353bf16984a670f07a7414a60ca999c192215bfcccfd98b58b7377e608436ed",
+      "bytes": 25075,
+      "startLine": 205,
+      "endLine": 211,
+      "exactSource": "    atomicJson(join(evidenceRoot, 'outer-outcome.json'), result);\n    const manifest = snapshot(evidenceRoot, evidenceLimits);\n    const workManifest = snapshot(workRoot, evidenceLimits);\n    closedWorks.push({ name, root: workRoot, manifest: workManifest, identity: identity(workRoot) });\n    counters.disk += Object.values(manifest.files).concat(Object.values(workManifest.files)).reduce((sum, descriptor) => sum + descriptor.bytes, 0);\n    requireFact(counters.disk <= 25769803776, 'COHORT_DISK');\n    closedJobs.push({ name, root: evidenceRoot, manifest });\n"
+    },
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/owned-process.mjs",
+      "sha256": "bcb309eed5984baeaf064d89cae892d54e4afe2d8c9dd710ad26ccf516c9d302",
+      "bytes": 5989,
+      "startLine": 70,
+      "endLine": 79,
+      "exactSource": "  const finish = reaped => {\n    if (settled) return;\n    settled = true;\n    clearInterval(timer);\n    for (const stream of Object.values(output)) { fsyncSync(stream.descriptor); closeSync(stream.descriptor); }\n    const receipt = { role: options.role, pid: child.pid ?? null, group: child.pid ?? null, registeredBeforeSpawnNs: reservation.registeredBeforeSpawnNs, code: exitCode, signal: exitSignal, timedOut, overflow, spawnError, closeObserved, reaped, termSentNs: termAt?.toString() ?? null, killSentNs: killAt?.toString() ?? null, closedNs: closedAt?.toString() ?? null, workDeadlineNs: options.workDeadline.toString(), hardDeadlineNs: options.hardDeadline.toString(), endedNs: now().toString() };\n    for (const [name, stream] of Object.entries(output)) { receipt[`${name}Path`] = stream.path; receipt[`${name}Bytes`] = stream.bytes; receipt[`${name}Sha256`] = stream.digest.digest('hex'); }\n    atomicJson(join(options.directory, `${options.name}.process.json`), receipt);\n    if (reaped) active.delete(reservation);\n    resolveDone(receipt);\n"
+    },
+    {
+      "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/worker-api.mjs",
+      "sha256": "e6548d6d4d7d8c6433f11953a0f62638e8f699a91dc31617cfc2dea2740fc876",
+      "bytes": 13187,
+      "startLine": 33,
+      "endLine": 43,
+      "exactSource": "  const writeBytes = async (relativePath, bytes) => {\n    safeRelative(relativePath);\n    requireFact(bytes instanceof Uint8Array && (writtenBytes += bytes.length) <= 33554432, 'WORKER_METADATA_TOTAL');\n    await rpc('EVIDENCE_RESERVE', { bytes: bytes.length });\n    let parent = request.evidenceRoot;\n    for (const part of relative(request.evidenceRoot, dirname(join(request.evidenceRoot, relativePath))).split('/').filter(Boolean)) { parent = join(parent, part); if (!existsSync(parent)) newDirectory(parent); }\n    const artifact = atomicBytes(join(request.evidenceRoot, relativePath), bytes);\n    await note('artifact', artifact);\n    return artifact;\n  };\n  const writeJson = (relativePath, value) => writeBytes(relativePath, Buffer.from(`${JSON.stringify(value)}\\n`));\n"
+    }
+  ],
+  "staticTrace": [
+    "Supervisor initializes rawBudget.remaining =33554432 -request artifact bytes -4194304 reserved phase bytes.",
+    "Owned stdout/stderr decrement that shared balance; worker writeBytes/writeJson use EVIDENCE_RESERVE. Build adoption also explicitly charges its record.",
+    "Owned-process publishes each tool/outer .process.json with atomicJson without charging or reserving its bytes. Supervisor also publishes job-receipt.json, integrity-failure.json when needed and outer-outcome.json without charging the remaining job budget.",
+    "The closing job snapshot uses evidenceLimits.treeBytes268435456, not33554432; cohort disk accounting tests24GiB, not this per-job cap. There is no final combined32MiB check for these uncharged files."
+  ],
+  "boundedArithmetic": {
+    "jobCap": 33554432,
+    "phaseReservation": 4194304,
+    "requestBytes": "R",
+    "remainingAdmittedRawAndWorkerMetadata": "B =33554432-R-4194304",
+    "parentOtherReceiptBytes": "U>0, not deducted from B",
+    "claimedAdmissionUpperBound": "R+4194304+B =33554432",
+    "actualWriterUpperBoundNotEnforced": "R+phaseActual+admittedRawAndWorkerMetadata+U; at their individually admitted limits this can exceed33554432 by U.",
+    "qualification": "Source budget-closure contradiction; not an observed saturation, claimed current candidate output, OS quota or dynamic negative control."
+  },
+  "requiredCorrection": "Root should route owner to reserve/charge all per-job parent/tool metadata publications within the same finite cap (including terminal/failure evidence) and enforce the actual total. Do not silently raise the32MiB cap, waive captured errors or merely relabel the reservation. No foreign patch by reviewer.",
+  "targetExecutions": 0,
+  "controlPasses": 0,
+  "rootGO": false
+}

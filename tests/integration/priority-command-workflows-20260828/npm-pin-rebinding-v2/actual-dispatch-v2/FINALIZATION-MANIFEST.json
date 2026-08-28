@@ -1,0 +1,207 @@
+{
+  "schema": "priority-actual-dispatch-v2-finalization-manifest",
+  "createdAt": "2026-08-28T20:50:24.865Z",
+  "evidenceCommit": "78e5628e98a4ed408d0826985f8342a43ceee370",
+  "role": "DEVGIT_COMMIT_AUTHENTICATION_AND_ACCOUNTING_RECEIPTS_ONLY_NO_RUNTIME_REPLAY",
+  "files": [
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/FINALIZATION-COMMIT-PATHS.nul",
+      "bytes": 4165,
+      "mode": 420,
+      "sha256": "71905ae8e542bc2f1d29e127d06388dea96ae45a2042b030ec78cb082a74b919"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/FINALIZATION.json",
+      "bytes": 81112,
+      "mode": 420,
+      "sha256": "622828487834fd9caa311964825b1f5aceb01067e0ebf9d9e09a84746bf9fab6"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-add.status.json",
+      "bytes": 744,
+      "mode": 420,
+      "sha256": "4003703a6fb24816e2770e80beb9e298891ab4836c56ef0e6030c5eea8538ee9"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-add.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-add.stdout",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-commit-identity.status.json",
+      "bytes": 662,
+      "mode": 420,
+      "sha256": "c1442b29820454816509a26d236e77d79d8d340c0802b5875a7ed84fb8729070"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-commit-identity.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-commit-identity.stdout",
+      "bytes": 41,
+      "mode": 420,
+      "sha256": "0a582fb3d341a15ebf38f87824b43e56c8a8b3beb7c6767c5a51ecb81c3c7d60"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-commit.status.json",
+      "bytes": 836,
+      "mode": 420,
+      "sha256": "ea9376605ac6a58900cc4aef5d521c02906d950399b4619ada584ff8da4c1233"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-commit.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-commit.stdout",
+      "bytes": 25999,
+      "mode": 420,
+      "sha256": "b1938ccf25dcfb5b3a3eafdff9d4b93d60cc82ee5e3c3614b86b5edbe3e052da"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-committed-paths.status.json",
+      "bytes": 626,
+      "mode": 420,
+      "sha256": "db5058f462775ecd976ba128a3336fe555364369734929a7a3ea675b3902623d"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-committed-paths.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-committed-paths.stdout",
+      "bytes": 21838,
+      "mode": 420,
+      "sha256": "b9566a8c67a10ba9ffb129841e1ac5d678e6e727cd9843d6b80695914e211c73"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-committed-tree.status.json",
+      "bytes": 23891,
+      "mode": 420,
+      "sha256": "e71540e732cc81a93bf49689285401e67653fe5a19965be04d5d72b3169cdff3"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-committed-tree.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-committed-tree.stdout",
+      "bytes": 32544,
+      "mode": 420,
+      "sha256": "a14ec09874acd19f168880d4016bb5f22345d797209012b892bdce373434d6ec"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-diff-check.status.json",
+      "bytes": 771,
+      "mode": 420,
+      "sha256": "74c3eb378e0040ff699bbbd436b5e3c2939a5563b2a216f14399a4808372b1e9"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-diff-check.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-diff-check.stdout",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-index-after.status.json",
+      "bytes": 553,
+      "mode": 420,
+      "sha256": "76f734faf2da1de48cc62c8a8e29fa2a5c53b5cf3f5277009e8fbe256f17bbdb"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-index-after.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-index-after.stdout",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-index-before.status.json",
+      "bytes": 553,
+      "mode": 420,
+      "sha256": "c247a64383e90f345890facce33a676dcff2b939bdac6af9bc9cbe3bd14915fa"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-index-before.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-index-before.stdout",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-owned-before.status.json",
+      "bytes": 23826,
+      "mode": 420,
+      "sha256": "41ffbc6d748d886e78092076219ec7a22880b928e3df6c07b745cc40dfad4a73"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-owned-before.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-owned-before.stdout",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-verify.status.json",
+      "bytes": 405,
+      "mode": 420,
+      "sha256": "b0f30d69f84570b0885d49c28f182908be3f3ed6842b497917879b12da4d0b1e"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-verify.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-verify.stdin",
+      "bytes": 30120,
+      "mode": 420,
+      "sha256": "5dda5557e89da5d25f744253ddd7998f4ff7b47df7b65b22d6f39f199889d99a"
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/actual-dispatch-v2/evidence-verify.stdout",
+      "bytes": 33549064,
+      "mode": 420,
+      "sha256": "00c6f731b47809ed0f12af6a98f957ce16fa53000f490cde2d897a568c490b9a"
+    }
+  ],
+  "selfExclusion": "Manifest and this finalization commit are reported by exact identity in the final handoff; no self-referential receipt is fabricated."
+}

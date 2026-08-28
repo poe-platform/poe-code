@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "status": "POST_COUNTEREXAMPLE_PRE_SAFE_REMAINDER",
+  "finding": "FINDING.json",
+  "allowed": [
+    "Fresh safe canary-only environment-cleared Node/native descendants under identical frozen shipping APIs",
+    "Shipping parent preopened regular FD closure and separate deliberately inherited FD limitation",
+    "Separate review-owned sentinel survival"
+  ],
+  "forbidden": [
+    "Actual historical instruction Git/tar extraction",
+    "A10/product builds/types/pack",
+    "Fullgate/private access/release"
+  ],
+  "changes": "Controller fresh names and only descendant/shipping-FD phases; exact previously frozen worker-followup and probe bytes unchanged. No rerun of ordinary/names/imports. No source fix. Preserve original setup failure and counterexample.",
+  "expected": "Descendants deny pathname writes; shipping stdio does not pass outside file FD; explicit unsafe raw FD3 can bypass pathname policy as disclosed, never a positive shipping gate proof. If failure, no hidden retry."
+}

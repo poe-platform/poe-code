@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "status": "HOLD_OUTSIDE_DIRECTORY_SYMLINK_IMPORT_ALLOWED",
+  "source": "86038b27d1bee03333f13560e374ad407db417b8",
+  "evidence": "62593a89afb0ee9db82341cf073229c555d3e2bc",
+  "driverSha256": "a99c9f24b9edee16ef959139b48905e943ee108080c0aa39511965103f32f26a",
+  "profileSha256": "7d41ff6fb9623db9b54dcd8517ae0897e910b32121fb859a446709002969ecba",
+  "envelope": {
+    "schema": "unified76-os-instruction-fence/1",
+    "createdAt": "2026-08-28T06:52:42.306Z",
+    "launcherPid": 13463,
+    "roots": [
+      {
+        "path": "/private/tmp/unified76-os-write-79hwpT",
+        "device": 16777232,
+        "inode": 180598420,
+        "mode": 448,
+        "uid": 501
+      },
+      {
+        "path": "/private/tmp/unified76-build-types-review-independent-os-v8-followup-13463",
+        "device": 16777232,
+        "inode": 180598421,
+        "mode": 448,
+        "uid": 501
+      }
+    ],
+    "output": "/tmp/unified76-build-types-review-independent-os-v8-followup-13463",
+    "external": {
+      "manifestSha256": "fe1a7f720959472bdd8e39b4cb3c9e80e27a9be43961dd5558d69bb61560096f",
+      "binary": {
+        "path": "/usr/bin/sandbox-exec",
+        "bytes": 102560,
+        "mode": 493,
+        "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+      },
+      "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+      "systemReferences": [
+        [
+          "/usr/bin/sandbox-exec",
+          "/usr/lib/libsandbox.1.dylib"
+        ],
+        [
+          "/usr/bin/sandbox-exec",
+          "/usr/lib/libSystem.B.dylib"
+        ]
+      ],
+      "qualification": "Root approved exactly two additional sandbox-exec/tool system-reference pairs on pinned macOS26.4.1/25E253; physical library paths ENOENT, not file-hash/full-OS attestation. Original eleven-pair receipt unchanged. No non-system or ambient-loader exception."
+    },
+    "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor",
+    "profileSha256": "7d41ff6fb9623db9b54dcd8517ae0897e910b32121fb859a446709002969ecba"
+  },
+  "phase": "imports",
+  "phaseStatus": 1,
+  "rawError": "node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: outside-directory-symlink must deny\n    at deny (file:///private/tmp/unified76-os-write-79hwpT/probe.mjs:12:10)\n    at file:///private/tmp/unified76-os-write-79hwpT/probe.mjs:31:3\n    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:671:26)\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v24.11.1\n",
+  "repro": {
+    "api": "fs.symlinkSync(input.outsideDirectory, join(root,\"imported-link\"))",
+    "callpath": "review-followup -> superviseFencedWorker -> worker-followup -> createPhaseRunner -> openFencedWorker.supervise -> attachPhaseSupervisor -> instructionFenceInvocation -> frozen supervise -> sandbox-exec -> probe imports",
+    "sourceFile": "probe.mjs",
+    "line": 31,
+    "operationThrew": false,
+    "link": {
+      "path": "/private/tmp/unified76-os-write-79hwpT/imported-link",
+      "symlink": true,
+      "target": "/private/tmp/unified76-independent-os-v8-vCyh0P/outside-directory-followup",
+      "device": 16777232,
+      "inode": 180598519,
+      "mode": 493
+    },
+    "outsideCanary": {
+      "path": "/private/tmp/unified76-independent-os-v8-vCyh0P/outside-directory-followup/benign",
+      "sha256": "906560a07e9fafbdf50f9a7b35ea1715d99ee965293f2e2154a17e774d25c7b9",
+      "bytes": 11
+    },
+    "outsidePublicationExists": false
+  },
+  "qualification": "Benign symlink publication is a counterexample to root requirement outside directory imports DENIED. This does not prove a write through the link escapes the OS fence, nor that any AGENTS payload was materialized. No actual instruction content used. Source not changed.",
+  "stop": [
+    "historical Git archive/native tar instruction extraction NOT_EXECUTED",
+    "new production A10/build/type/duplicate NOT_EXECUTED",
+    "fullgate and rootrelease NOT_EXECUTED"
+  ],
+  "next": "Source author/root must resolve target-import policy before new admission. Do not treat readonly symlink publication as instruction plaintext copy or waive root requirement."
+}

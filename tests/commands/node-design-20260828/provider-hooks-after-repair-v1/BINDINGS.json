@@ -1,0 +1,48 @@
+{
+  "schema": "node-provider-hooks-after-repair-v1",
+  "date": "2026-08-28",
+  "classification": "post-repair proposals only; no implementation/experiment/new root choice",
+  "afterCoherentRepairCommit": "7b269a291d9fdc76e0760d36446d937e54060757",
+  "sources": [
+    {
+      "commit": "790a4412198cbe1a9b5b03fcc75aa8d1fcdfd1b9",
+      "path": "tests/commands/node-independent-20260828/np1-cjs-v1-review/REVIEW.md",
+      "blob": "61de6c76f497532319c29d7107efb20aee4b7ba8",
+      "bytes": 9373,
+      "sha256": "5c1565eafe1c0912fe921d9cf6624d54fce53612019bac718a857d06f54d32d7"
+    },
+    {
+      "commit": "3495d20e5d52c3fb90666b2453ed0a964a14a8ce",
+      "path": "tests/commands/node-design-20260828/np1-cjs-v1/BINDINGS.json",
+      "blob": "d23420ca6fab772d1528e5123aa5835ad8bb7f00",
+      "bytes": 39030,
+      "sha256": "35502753a94b84e970323f205d21dcfc34d5a9320c7be26814fc0b143f38295a"
+    },
+    {
+      "commit": "7b269a291d9fdc76e0760d36446d937e54060757",
+      "path": "tests/commands/node-provider-experiments-20260828/repair-v2/EVIDENCE.json",
+      "blob": "9a9e60c8ab52c69e89a3004ff4e3f6b76c5dc67c",
+      "bytes": 7444,
+      "sha256": "9c3df4e3ee40e9c9bc03ba6aa7f0816a3123afdf9aec897f008b76e9a4518b58"
+    },
+    {
+      "commit": "7b269a291d9fdc76e0760d36446d937e54060757",
+      "path": "tests/commands/node-provider-experiments-20260828/repair-v2/HANDOFF.md",
+      "blob": "6af86bcb47915b7f6bfd7d9a5eb8923eec82bd33",
+      "bytes": 6668,
+      "sha256": "2d32c9dcca77beef5276c76fd86867957de960f0a7058ae05e200efcc8a17809"
+    }
+  ],
+  "proposal": {
+    "path": "PROPOSAL.md",
+    "bytes": 7154,
+    "sha256": "948691f3b22c3a8b1738eb6e2e7ab99cea63374a00dbf914905f73d9bc3b56e5"
+  },
+  "rootAuthority": "Current narrow ROOT repair GO requests these proposals only AFTER coherent repair; transcript authority, not a fabricated commit. Alternative scope is not selected.",
+  "sourceQualification": "K1/K2 engine physical-line observations are attributed to exact independent Raman review; no new engine/private source inspection or execution for this proposal.",
+  "originalNP1CapsUnchanged": true,
+  "newEngineCases": 0,
+  "engineExecutions": 0,
+  "implementationFiles": 0,
+  "reviewApprovalClaimed": false
+}

@@ -151,7 +151,11 @@ export function managedOutput(source: ByteSource, scope: InputScope, budget: Bud
       budget.check();
       if (closed) return { done: true, value: undefined };
       iterator ??= source[Symbol.asyncIterator]();
-      return iterator.next();
+      const next = await iterator.next();
+      if (!next.done) for (let offset = 0; offset < next.value.length; offset += 4096) {
+        budget.work(Math.min(4096, next.value.length - offset)); await budget.checkpoint();
+      }
+      return next;
     },
     return: async () => { await close(); return { done: true, value: undefined }; },
   }) };
@@ -175,8 +179,16 @@ export async function publish(context: CommandContext, destination: Destination 
   let result: Uint8Array | undefined;
   try {
     for await (const chunk of source) {
-      budget.hold(chunk.length + 32); budget.work(chunk.length); await budget.checkpoint();
-      parts.push(new Uint8Array(chunk)); size += chunk.length;
+      budget.hold(chunk.length + 32);
+      let admitted = false;
+      try {
+        const copy = new Uint8Array(chunk.length);
+        for (let offset = 0; offset < chunk.length; offset += 4096) {
+          const fragment = chunk.subarray(offset, offset + 4096);
+          budget.work(fragment.length); copy.set(fragment, offset); await budget.checkpoint();
+        }
+        parts.push(copy); size += chunk.length; admitted = true;
+      } finally { if (!admitted) budget.release(chunk.length + 32); }
     }
     budget.hold(size); result = new Uint8Array(size);
     let offset = 0;

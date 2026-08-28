@@ -1,0 +1,64 @@
+{
+  "schema": "timeout-public-prewiring-freeze/1",
+  "sealedAt": "2026-08-28T04:32:35.102Z",
+  "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "acceptedModule": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+  "publicCandidate": null,
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 7824,
+      "sha256": "df2e0b9d44e8d37e48b1675244e5e22a245a958f7ddb094f69f3b76150bbc235"
+    },
+    {
+      "path": "cases.mjs",
+      "bytes": 21906,
+      "sha256": "e9b6408731e74c9e61523684146f9863d42a9b5e1d5208e4e6f29a055a5966e2"
+    },
+    {
+      "path": "types.mjs",
+      "bytes": 4613,
+      "sha256": "166ace4eaaa37a6cd7ffdeea615ddc31a01591cf06b354311bf2220e9d4879e1"
+    },
+    {
+      "path": "predicates.mjs",
+      "bytes": 4181,
+      "sha256": "619f0ad371ad5d7134318bdb63519136b430062be187637f8a463e9a53e55aec"
+    },
+    {
+      "path": "seal.mjs",
+      "bytes": 7762,
+      "sha256": "ceeef46ba273d9b6fe65ee495e750f1a0149e0b9a89b337e83fe43444e000ae4"
+    },
+    {
+      "path": "validate.mjs",
+      "bytes": 11227,
+      "sha256": "4a84edc935a02da1ea7039ced5bbb04662f7c41b4b46e129c9b3359d1b517abd"
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 304012,
+      "sha256": "7a32cb77fac733116f12e5f08ca38c883ddcda85cfa5c7ac3927c6520362014e"
+    }
+  ],
+  "runtimeFamilies": 30,
+  "typeConsumers": 10,
+  "positiveTypes": 4,
+  "negativeTypes": 6,
+  "admissionFamilies": 8,
+  "syntheticControls": 36,
+  "runtimeLayouts": [
+    "authenticated-source",
+    "offline-installed-public",
+    "physically-moved-public"
+  ],
+  "typeLayouts": [
+    "offline-installed-public",
+    "physically-moved-public"
+  ],
+  "actualPublicCases": 0,
+  "actualPublicTypes": 0,
+  "actualBuilds": 0,
+  "native": 0,
+  "safeJS": 0
+}

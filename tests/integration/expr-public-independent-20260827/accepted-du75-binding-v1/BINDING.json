@@ -1,0 +1,255 @@
+{
+  "schema": "expr-accepted-du75-prerequisite-binding/1",
+  "profile": "EXPR_ACCEPTED_DU75_PREREQUISITE_BOUND_20260828",
+  "kind": "NONEXECUTED_ACCEPTANCE_BINDING",
+  "dateLabel": "2026-08-28 (coordinator-supplied authorization date; not an execution or message timestamp)",
+  "authority": {
+    "kind": "Root acceptance conveyed verbatim by coordinator in this delegation; not independently authenticated message transport",
+    "quote": "ROOT ACCEPTS DU75PUBLIC now: original83645ad0qualified22 +separatecontinuation4343b646/84e7f5fa7/7 =COMPOSED29,19runtimeeachlayout unchanged/T03correctTS2322leafproof/T04T05rootproof22controls23guards,oldrejectunrescored. ThusExpraccepted-DU75prerequisite genuinelySATISFIED(notmembershipsubstitute); preserveoldHOLDrecords and qualifynewprofilebinding. FinishR21boundary/N04case-specificreconciliation asauthorized; allother100runtime/32types/36package/R25R26/P01proofremainboundnotrerun. No fullgateuntilfinalexprqualification+Diracdriver.",
+    "currentPrerequisite": "SATISFIED",
+    "acceptanceBasis": "Root acceptance of the composed DU29 receipts for exactly the Expr-selected DU75 base; not membership or ancestry substituted for acceptance.",
+    "chronology": "The R21/N04 delegate launched under the earlier HELD assumption. Root acceptance reached the coordinator during preparation. Its now-completed immutable recipe/result retain the initial assumption as historical metadata, not latest root status. No precise message timestamp or ordering relative to exact commands is asserted.",
+    "priorAcceptedBeforeRunRewritten": false
+  },
+  "du": {
+    "selectedBase": "0895de2dc63014989f23912c3d48f7c4d0d35a47",
+    "freeze": "1bd1048b0075adf9ee1ebf041e299122f72c3459",
+    "pack": {
+      "sha256": "4d4d071a0142ac950240f7c3aaacd5283777143d70cc2e3c245ba199fdd01c7d",
+      "bytes": 726693,
+      "members": 834
+    },
+    "composition": {
+      "originalQualified": 22,
+      "continuationQualified": 7,
+      "total": 29,
+      "sourceRuntime": 19,
+      "movedRuntime": 19,
+      "continuationIds": [
+        "T03",
+        "T04",
+        "T05",
+        "P03",
+        "P04",
+        "P05",
+        "P06"
+      ],
+      "focusedControls": 22,
+      "packageGuardExpectedRejects": 23,
+      "T03": "TS2322, DU leaf declaration proof",
+      "T04T05": "root declaration proof",
+      "originalT03Rejection": "UNCHANGED_UNRESCORED",
+      "originalNeverExecuted": [
+        "P03",
+        "P04",
+        "P05",
+        "P06",
+        "T04",
+        "T05"
+      ],
+      "runtimeReruns": 0
+    }
+  },
+  "expr": {
+    "candidate": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+    "tree": "5905cf8d43233c68ea2bd499275ada2641223d9a",
+    "sourceCommit": "a1c95fc52ddeef2d753950b09dd2a26b44b4ab6e",
+    "originalFreeze": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+    "pack": {
+      "sha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+      "bytes": 727526,
+      "members": 834,
+      "inputs": 357
+    },
+    "relation": "DU-selected-base ancestry to Expr candidate is checked, NOT byte identity. DU and Expr packages are distinct; existing Expr build/package proof is bound, not reproduced.",
+    "executedHistoricalProfile": "EXPR_COMPONENT_ACCEPTED_DU75_HELD",
+    "originalConsumerSha256": "0e4f011b37009faf83a8289bbf517c2cdecc6b409bec1b9abe1315a41f8e7cab",
+    "componentAdapterSha256": "5ccaaa9967b3528927c30f7a63438d725f1ef7f8c7c87d69de7b9af9af13d16e",
+    "historicalHolds": "v1-v5 records remain unchanged. This new nonexecuted profile supersedes only their current accepted-DU prerequisite assumption; no old report, consumer, addendum, acceptedBeforeRun value or failure is rewritten.",
+    "boundProof": {
+      "status": "BOUND_NOT_RERUN",
+      "v5Runtime": {
+        "pass": 100,
+        "total": 104,
+        "fail": 4
+      },
+      "v5Types": {
+        "pass": 32,
+        "total": 40,
+        "fail": 8
+      },
+      "v5PackageControls": 36,
+      "R25": "PASS in all four v5 layouts/runtimes; bound only",
+      "R26": "PASS in all four v5 layouts/runtimes; bound only",
+      "P01": "Accepted independent build in exprV4Manifest; bound by exprV5Manifest, exprV5Report and r21N04Seal. No build/repack here."
+    }
+  },
+  "reconciliation": {
+    "status": "SEPARATE_PREEXISTING_EXECUTION_BOUND_NOT_RERUN",
+    "receipt": "r21N04Seal",
+    "checkpoint": "r21N04Checkpoint",
+    "reported": {
+      "observations": 16,
+      "targetPass": 8,
+      "controlsPass": 72,
+      "naturalChildren": 48,
+      "forcedChildren": 0,
+      "workers": 0,
+      "checks": 98
+    },
+    "boundaryObservations": {
+      "publicNul": {
+        "exprCalls": 0,
+        "status": 1,
+        "diagnostic": "Shell invoke NUL admission"
+      },
+      "directNul": {
+        "exprCalls": 1,
+        "status": 2,
+        "diagnostic": "expr NUL unsupported"
+      },
+      "loneHighSurrogate": {
+        "boundaries": [
+          "public",
+          "direct"
+        ],
+        "exprCallsEach": 1,
+        "statusEach": 2,
+        "diagnostic": "expr Unicode"
+      }
+    },
+    "N04": {
+      "newCaseSpecificExpectation": "TS2561",
+      "line": 11,
+      "column": 32,
+      "field": "maxRegexSteps",
+      "otherDiagnosticCodes": "UNCHANGED",
+      "originalReceipts": "UNCHANGED"
+    },
+    "R21": {
+      "futureBoundarySplit": "PROPOSAL_ONLY_NOT_IMPLEMENTED",
+      "rootAuthorizedFixtureAmendment": false,
+      "original": "UNCHANGED_UNRESCORED"
+    },
+    "staleAcceptedDuHeld": "Historical initial delegation/recipe assumption only; superseded for current prerequisite status by the coordinator-conveyed root acceptance. Sealed bytes, including the preexisting EOF whitespace warning, are not altered."
+  },
+  "remaining": {
+    "finalExprQualification": "PENDING_ROOT_REVIEW",
+    "R21FixtureAmendment": "NOT_YET_ROOT_AUTHORIZED",
+    "DiracDriver": "SEPARATE_PENDING",
+    "originalConsumerNewExecution": false,
+    "fullGate": "NOT_AUTHORIZED_UNTIL_FINAL_EXPR_QUALIFICATION_AND_DIRAC_DRIVER",
+    "releaseOrSuperiorityClaim": false
+  },
+  "thisBindingExecution": {
+    "productRuntime": 0,
+    "productTypeChecks": 0,
+    "productTests": 0,
+    "probes": 0,
+    "builds": 0,
+    "installs": 0,
+    "executionCohorts": 0,
+    "archiveExtractions": 0,
+    "fullGates": 0,
+    "newProductPasses": 0,
+    "scope": "Only bounded read-only Git provenance and target-file hashing; verifier execution is not product execution."
+  },
+  "sources": {
+    "duOriginalManifest": {
+      "commit": "83645ad032238edb6d0887ae445c3b8c9d7c7f2a",
+      "path": "tests/integration/du-public-independent-evidence-20260827/public29-v1/EVIDENCE-MANIFEST.json",
+      "sha256": "c1c45fd86a7d9e24f8d31271a09c511a234723f69bb3169025ac8e0b9ae29f51",
+      "bytes": 3626
+    },
+    "duOriginalReport": {
+      "commit": "83645ad032238edb6d0887ae445c3b8c9d7c7f2a",
+      "path": "tests/integration/du-public-independent-evidence-20260827/public29-v1/REPORT.json",
+      "sha256": "bfcd8be74232cee91b1129cf93897b2f8ea398a9c57b22d826b1e73c17a2de26",
+      "bytes": 4804
+    },
+    "duContinuationManifest": {
+      "commit": "4343b6466c5ba8d0f5d4654ad2bb47839fc5c0c1",
+      "path": "tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/EVIDENCE-MANIFEST.json",
+      "sha256": "f94e69b43982da8afe0ac7791ffd070338d887939306d6b48230e14aa5e2c2d3",
+      "bytes": 2747
+    },
+    "duContinuationReport": {
+      "commit": "4343b6466c5ba8d0f5d4654ad2bb47839fc5c0c1",
+      "path": "tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/REPORT.json",
+      "sha256": "6aeaf4f1f6aae2915d0cdc064e4c5a50943bfbc8141f7c936fd68adba1dbc821",
+      "bytes": 11834
+    },
+    "duContinuationRecipe": {
+      "commit": "84e7f5fa7a77b9b4692578c1cfe4687a3b5f991d",
+      "path": "tests/integration/du-public-independent-evidence-20260827/public29-declaration-continuation-v1/recipe/MANIFEST.json",
+      "sha256": "45d08a0d94af60537c95afa7d5b7ec231be985f7ab6657ce7a34c817aaf79bea",
+      "bytes": 1970
+    },
+    "exprAdmission": {
+      "commit": "a0142c7711c4be2cc33384c87bd6d8dea9e3d07d",
+      "path": "tests/integration/expr-public-independent-20260827/component-admission-v1/AUTHENTICATION.json",
+      "sha256": "9834df838d5aca6f9bf756b9af6e0a8f6e448e6c0ab7d477c02925e39ac11d2e",
+      "bytes": 20548
+    },
+    "exprInputs": {
+      "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/INPUTS.json",
+      "sha256": "0f91a67b95b92981e61eec057e2b021f7e06bd190f2b33aa1c5a92074c7c50a3",
+      "bytes": 816134
+    },
+    "exprV4Manifest": {
+      "commit": "1ec1912001db43f803af46bb5dea89a7e397b83b",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v4/MANIFEST.json",
+      "sha256": "5baf947732e17db0e61d734de5c8bde3acfbe5daa14d634539dd1ecea4de7eb4",
+      "bytes": 19117
+    },
+    "exprV5Manifest": {
+      "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v5/MANIFEST.json",
+      "sha256": "b8605b3dfe7d35723d6d24627a797edb0a60165e614c5800e54ffba4e0ff08f1",
+      "bytes": 190988
+    },
+    "exprV5Report": {
+      "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v5/REPORT.json",
+      "sha256": "c927fe9fb51c3c1ae5f423de13b0dbed4d817213449556e5b24597b4d0363e0c",
+      "bytes": 912466
+    },
+    "r21N04Recipe": {
+      "commit": "0efeb43ece20f2dd55ae1cd5328c6dd3abc5ca08",
+      "path": "tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/RECIPE-SEAL.json",
+      "sha256": "f7fa8110f3141acf6c99cabae2414c449035289de043a5d23023b66cdaa44d51",
+      "bytes": 5444
+    },
+    "r21N04Manifest": {
+      "commit": "7c11c00d74316299342d75f74c7f9dd631065902",
+      "path": "tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/MANIFEST.json",
+      "sha256": "e89be0a522712f0fc51555d5b8a34b6d96b71365a735de1e7732c1e9f3a8c466",
+      "bytes": 50123
+    },
+    "r21N04Seal": {
+      "commit": "7c11c00d74316299342d75f74c7f9dd631065902",
+      "path": "tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1/EVIDENCE-SEAL.json",
+      "sha256": "6202ffd8c2f8dad281c4355fc8c7ca9f6ade3e52ce4d857a0737567550e57e34",
+      "bytes": 3985
+    },
+    "r21N04Checkpoint": {
+      "commit": "7c11c00d74316299342d75f74c7f9dd631065902",
+      "path": "tests/integration/expr-public-independent-20260827/r21-n04-reconciliation-v1-result/CHECKPOINT.md",
+      "sha256": "7177e5cb82fb9a32a22d2b967af1906b6d8239c443cc531ff58e3eca7453f1ed",
+      "bytes": 10694
+    },
+    "originalConsumer": {
+      "commit": "f8b982f09e51b9a0a073b0b7bb393cb54796dd62",
+      "path": "tests/integration/expr-public-independent-20260827/consumer.mjs",
+      "sha256": "0e4f011b37009faf83a8289bbf517c2cdecc6b409bec1b9abe1315a41f8e7cab",
+      "bytes": 8827
+    },
+    "componentAdapter": {
+      "commit": "7b68a7b2866217a21d52ff8b99dcab166f83f5ae",
+      "path": "tests/integration/expr-public-independent-20260827/component-execution-v1/consumer-component.mjs",
+      "sha256": "5ccaaa9967b3528927c30f7a63438d725f1ef7f8c7c87d69de7b9af9af13d16e",
+      "bytes": 8853
+    }
+  }
+}

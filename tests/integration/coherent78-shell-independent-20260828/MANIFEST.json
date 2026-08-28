@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "scope": "tests/integration/coherent78-shell-independent-20260828",
+  "classification": "Explicit opt-in independent review fixture data and immutable captures; no canonical TypeScript test discovery",
+  "includesNewEntries": true,
+  "selfExcluded": true,
+  "files": [
+    {
+      "path": "CHECKPOINT-v1.md",
+      "bytes": 1563,
+      "sha256": "bea1d6d9e3b632136d7a69d998809c3973f80cc5c1a0b2326f989e7c72ae1beb"
+    },
+    {
+      "path": "EVIDENCE.json",
+      "bytes": 171946,
+      "sha256": "b227b7f0538d1c6d70d6be110c9515e7603b4335cc78996f24f02162090a5519"
+    },
+    {
+      "path": "EXECUTOR-v2.json",
+      "bytes": 2328,
+      "sha256": "1ef10c1ba857ac6283462343313d7322e2ecbbc4a6b6ff8c95859880eda001db"
+    },
+    {
+      "path": "EXECUTOR.json",
+      "bytes": 1463,
+      "sha256": "c33c3b607a1d987528ca6e324454f154b0a3d278ea583105a6ade803ed72014b"
+    },
+    {
+      "path": "HOLDOUTS.json",
+      "bytes": 4783,
+      "sha256": "96cfee8f645709cba08da4f48aa3c4ef02cbf8354c7b213ab39b80b23d63a67a"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 9234,
+      "sha256": "472dc457e162015c0105d2afbbf1a5db79e1bc17893b7ddb5d61f24f399f0cb5"
+    },
+    {
+      "path": "RAW-v1.json.gz.base64",
+      "bytes": 4060057,
+      "sha256": "3e2048eb7290fd2d369bd46d677838f0d3a6dc0b70f13c2c8ef2849e254f6116"
+    },
+    {
+      "path": "RAW-v2.json.gz.base64",
+      "bytes": 5916905,
+      "sha256": "a49b8a7055ac2902d1368ddb638d62c5a1896dc9ed25c18b025816a710077509"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1281,
+      "sha256": "6f19d9dab471ce3ef4795ff8b061d085a101a34228a5b6ce621a00e6d0b5ee31"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 4920,
+      "sha256": "65e30cbaa931ea5d084d23e3af3ef259c72360cb6107211131b1b21183158f55"
+    },
+    {
+      "path": "REVIEW-v1.json",
+      "bytes": 4322,
+      "sha256": "53a8827c24124e81287b0f0ee08f02298093a7a9d3d9ae7aa561e92dd07be638"
+    },
+    {
+      "path": "REVIEW-v2.json",
+      "bytes": 111470,
+      "sha256": "b22c58ed079be507f4821c14a40c86f303e71497bd4f28a554728d080a32cc85"
+    },
+    {
+      "path": "TYPES.json",
+      "bytes": 2504,
+      "sha256": "a05046092d81e1fb2747aee4b8e770681169300e46c0996af945cf52388efc33"
+    },
+    {
+      "path": "guard.mjs.data",
+      "bytes": 622,
+      "sha256": "aff310d837860b406a29d3863a6cb069d1740030412ff9a7b5b18f7447fda5b2"
+    },
+    {
+      "path": "holdout.mjs.data",
+      "bytes": 12568,
+      "sha256": "e4f358d951ba7ad8dba7f7ec10e14c48fd0434a4c2eb916c7ed5d44affde5bcf"
+    },
+    {
+      "path": "loader.mjs.data",
+      "bytes": 1333,
+      "sha256": "d0969da7329f25d3bd1442661bc62dc2ec77540c143ec7126a6d43736803c66e"
+    },
+    {
+      "path": "run-v2.mjs.data",
+      "bytes": 33815,
+      "sha256": "2c5ff316a4fda0548869101cf9da58bbaad864c5b7dacb114e647d6ccd0350be"
+    },
+    {
+      "path": "run.mjs.data",
+      "bytes": 33126,
+      "sha256": "8a277747a65b16f8350b3b131b8f7ed3054b58ef04437b8d101c9b82dad41134"
+    }
+  ],
+  "ownedCommits": [
+    {
+      "revision": "083d939c3583a92a81db263d266c91b3e0756f47",
+      "changed": [
+        "tests/integration/coherent78-shell-independent-20260828/HOLDOUTS.json",
+        "tests/integration/coherent78-shell-independent-20260828/PRESEAL.json",
+        "tests/integration/coherent78-shell-independent-20260828/README.md"
+      ]
+    },
+    {
+      "revision": "121ac8aa32700d75fc98c43b9f3712a287953d1c",
+      "changed": [
+        "tests/integration/coherent78-shell-independent-20260828/EXECUTOR.json",
+        "tests/integration/coherent78-shell-independent-20260828/TYPES.json",
+        "tests/integration/coherent78-shell-independent-20260828/guard.mjs.data",
+        "tests/integration/coherent78-shell-independent-20260828/holdout.mjs.data",
+        "tests/integration/coherent78-shell-independent-20260828/loader.mjs.data",
+        "tests/integration/coherent78-shell-independent-20260828/run.mjs.data"
+      ]
+    },
+    {
+      "revision": "822a15282d05428b89ca9241c43bd773279f7b18",
+      "changed": [
+        "tests/integration/coherent78-shell-independent-20260828/CHECKPOINT-v1.md",
+        "tests/integration/coherent78-shell-independent-20260828/RAW-v1.json.gz.base64",
+        "tests/integration/coherent78-shell-independent-20260828/REVIEW-v1.json"
+      ]
+    },
+    {
+      "revision": "4024f790ad4157772b3c5fad862d7b6a3bc38cb4",
+      "changed": [
+        "tests/integration/coherent78-shell-independent-20260828/EXECUTOR-v2.json",
+        "tests/integration/coherent78-shell-independent-20260828/run-v2.mjs.data"
+      ]
+    }
+  ],
+  "rawArchives": "Base64 of gzip JSON, originals preserved; digest covers literal base64 file bytes",
+  "currentChecks": [
+    "Both raw archives decoded and hashes authenticated",
+    "Identical rebuilt full tarballs and installed manifests",
+    "136 unique naturally reaped direct children",
+    "88 baseline behavior observations pass; source H07 explicit repeat retained",
+    "36 precisely matched strict type outcomes with86 actual declarations each",
+    "All three layout module manifests agree on210 actual loaded modules",
+    "M1 valid built/loaded semantic discriminator confirmed",
+    "Scoped git diff --check; no runtime rerun for reporting"
+  ]
+}

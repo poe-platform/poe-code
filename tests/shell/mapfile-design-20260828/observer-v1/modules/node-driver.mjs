@@ -14,7 +14,7 @@ export function nodePort(authorized) {
     clearTimer: timer => clearTimeout(timer),
     stat(filename) {
       const stat = fs.lstatSync(filename);
-      return { kind: stat.isSymbolicLink() ? "symlink" : stat.isDirectory() ? "directory" : stat.isFile() ? "file" : "other", bytes: stat.size, identity: `${stat.dev}:${stat.ino}` };
+      return { kind: stat.isSymbolicLink() ? "symlink" : stat.isDirectory() ? "directory" : stat.isFile() ? "file" : "other", bytes: stat.size, mode: stat.mode & 0o7777, identity: `${stat.dev}:${stat.ino}` };
     },
     read: filename => fs.readFileSync(filename),
     hash(filename, maximumBytes) {
@@ -30,7 +30,7 @@ export function nodePort(authorized) {
         }
         assert.equal(fs.readSync(descriptor, scratch, 0, 1, null), 0, "enlarged bound file");
         const after = fs.fstatSync(descriptor), pathname = fs.lstatSync(filename);
-        assert.equal(after.size, before.size); assert.equal(after.mtimeMs, before.mtimeMs); assert.equal(after.ctimeMs, before.ctimeMs);
+        assert.equal(after.size, before.size); assert.equal(after.mode, before.mode); assert.equal(after.mtimeMs, before.mtimeMs); assert.equal(after.ctimeMs, before.ctimeMs);
         assert.ok(pathname.isFile()); assert.equal(pathname.dev, after.dev); assert.equal(pathname.ino, after.ino);
         return hash.digest("hex");
       } finally { fs.closeSync(descriptor); }

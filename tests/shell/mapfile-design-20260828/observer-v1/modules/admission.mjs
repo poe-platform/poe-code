@@ -1,46 +1,68 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import { createHash } from "node:crypto";
+import { assertOwnData, snapshotOwnData } from "./data.mjs";
 
 export const digest = bytes => createHash("sha256").update(bytes).digest("hex");
 export const moduleUrl = import.meta.url;
 export function inside(root, filename) {
   return path.isAbsolute(filename) && filename.startsWith(root + path.sep) && path.normalize(filename) === filename;
 }
+export function statData(port, filename) {
+  const stat = snapshotOwnData(port.stat(filename));
+  assertOwnData(Object.keys(stat).sort(), ["bytes", "identity", "kind", "mode"]);
+  assert.ok(["file", "directory", "symlink", "other"].includes(stat.kind));
+  assert.ok(Number.isSafeInteger(stat.bytes) && stat.bytes >= 0);
+  assert.ok(Number.isSafeInteger(stat.mode) && stat.mode >= 0 && stat.mode <= 0o7777);
+  assert.ok(typeof stat.identity === "string" || Number.isSafeInteger(stat.identity));
+  return stat;
+}
 export function authenticate(port, config) {
+  config = snapshotOwnData(config);
+  assertOwnData(Object.keys(config).sort(), ["schema", "mode", "runtime", "protected", "protectedModes", "moduleRoot", "moduleFiles", "moduleSealSha256", "authorizationPath", "authorizationSha256", "recipeSha256", "rows", "rowIds", "outputRoot", "binary", "binaryBytes", "binaryMode", "binarySha256"].sort());
   assert.equal(config.schema, "mapfile-observer-v1");
   assert.ok(["native", "synthetic"].includes(config.mode));
   assert.ok(Object.keys(config.protected).length > 0 && Object.keys(config.protected).length <= 128);
+  assertOwnData(Object.keys(config.protectedModes).sort(), Object.keys(config.protected).sort(), "complete protected modes");
   let total = 0;
   for (const [filename, expected] of Object.entries(config.protected)) {
     assert.equal(port.canonical(filename), filename, "canonical control path");
-    const stat = port.stat(filename);
+    const stat = statData(port, filename);
     assert.equal(stat.kind, "file", `protected regular file: ${filename}`);
+    assert.equal(config.protectedModes[filename], 0o644, "sealed control mode policy");
+    assert.equal(stat.mode, config.protectedModes[filename], `protected mode: ${filename}`);
     assert.ok(stat.bytes <= 16 * 1024 * 1024);
     total += stat.bytes; assert.ok(total <= 64 * 1024 * 1024);
     assert.equal(digest(port.read(filename)), expected, `protected bytes: ${filename}`);
   }
-  assert.deepEqual(port.list(config.moduleRoot).sort(), config.moduleFiles.slice().sort(), "complete module directory");
+  assertOwnData(snapshotOwnData(port.list(config.moduleRoot)).sort(), config.moduleFiles.slice().sort(), "complete module directory");
   for (const filename of config.moduleFiles) assert.ok(config.protected[path.join(config.moduleRoot, filename)], "every module must be byte-bound");
   const authorization = JSON.parse(port.read(config.authorizationPath));
+  assertOwnData(authorization, { kind: config.mode === "native" ? "ROOT_NATIVE_GO" : "SYNTHETIC_ONLY", runtime: config.runtime, moduleSealSha256: config.moduleSealSha256, recipeSha256: config.recipeSha256, outputRoot: config.outputRoot, rowIds: config.rowIds }, "exact route authorization");
   assert.equal(digest(port.read(config.authorizationPath)), config.authorizationSha256, "authorization bytes");
   assert.equal(authorization.kind, config.mode === "native" ? "ROOT_NATIVE_GO" : "SYNTHETIC_ONLY");
   assert.equal(authorization.moduleSealSha256, config.moduleSealSha256);
   assert.equal(authorization.recipeSha256, config.recipeSha256);
   assert.equal(authorization.outputRoot, config.outputRoot);
-  assert.deepEqual(authorization.rowIds, config.rowIds);
-  assert.deepEqual(authorization.runtime, config.runtime, "explicit runtime authorization");
-  const { bytes: runtimeBytes, sha256: runtimeHash, ...runtimeIdentity } = config.runtime;
-  assert.deepEqual(port.runtimeIdentity(), runtimeIdentity, "executing runtime identity");
+  assertOwnData(authorization.rowIds, config.rowIds);
+  assertOwnData(authorization.runtime, config.runtime, "explicit runtime authorization");
+  const { bytes: runtimeBytes, sha256: runtimeHash, mode: runtimeMode, ...runtimeIdentity } = config.runtime;
+  assertOwnData(port.runtimeIdentity(), runtimeIdentity, "executing runtime identity");
+  assert.equal(runtimeMode, 0o755, "sealed runtime mode policy");
   assert.ok(Number.isSafeInteger(runtimeBytes) && runtimeBytes > 0 && runtimeBytes <= 256 * 1024 * 1024);
   assert.equal(port.canonical(runtimeIdentity.path), runtimeIdentity.path);
-  assert.equal(port.stat(runtimeIdentity.path).kind, "file");
-  assert.equal(port.stat(runtimeIdentity.path).bytes, runtimeBytes);
+  const runtimeStat = statData(port, runtimeIdentity.path);
+  assert.equal(runtimeStat.kind, "file");
+  assert.equal(runtimeStat.mode, runtimeMode, "runtime executable mode");
+  assert.equal(runtimeStat.bytes, runtimeBytes);
   assert.equal(port.hash(runtimeIdentity.path, runtimeBytes), runtimeHash, "runtime binary bytes");
   assert.equal(port.canonical(config.binary), config.binary);
-  assert.equal(port.stat(config.binary).kind, "file");
+  const binaryStat = statData(port, config.binary);
+  assert.equal(binaryStat.kind, "file");
+  assert.equal(config.binaryMode, 0o755, "sealed native mode policy");
+  assert.equal(binaryStat.mode, config.binaryMode, "native executable mode");
   assert.ok(Number.isSafeInteger(config.binaryBytes) && config.binaryBytes > 0 && config.binaryBytes <= 16 * 1024 * 1024);
-  assert.equal(port.stat(config.binary).bytes, config.binaryBytes);
+  assert.equal(binaryStat.bytes, config.binaryBytes);
   assert.equal(port.hash(config.binary, config.binaryBytes), config.binarySha256, "binary bytes");
   assert.equal(path.normalize(config.outputRoot), config.outputRoot);
   assert.ok(path.isAbsolute(config.outputRoot) && config.outputRoot !== "/");

@@ -128,3 +128,51 @@ The synthetic parent records its own existing Node identity by read-only metadat
 and streaming hash, plus actual imported module URLs/hashes. This parent execution
 is not a native recipe or an actual child-process control. No new runtime
 dependencies, product imports, fixtures outside this subtree, or permission probes.
+
+## Version3 independent-findings repair
+
+Independent075fbe24 retains original37/37 plus26/32 independent results. REPAIR-v3
+was sealed before these source repairs: exact modes, admission after slow work,
+honest completion consistency, and finite own-data role validation. No43 recipe
+bytes change. MODULE-SEAL-v2 preserves the previous candidate's full seal.
+
+The new seal explicitly binds `artifactModes`: controlled regular files644,
+parent Node755, GNU executable755 (all07777 bits compared, including special bits).
+Future ROOT authorization adds exact runtime.mode755; protectedModes covers all
+controlled files, including authorization/seal/source files. Newly acquired
+directories must be700 and receipts600. These expectations are declared constants,
+not copied from the mutable stat being checked. Mode drift fails before effects
+where observed, at every admission and finally; no chmod/global umask change.
+Canonical regular-file/no-symlink requirements remain. This is not hostile-race
+protection between final check and a native syscall.
+
+After initial/per-row authentication, recheck whole deadline. Register and persist
+the attempt, recheck, then audit receipts and reauthenticate all inputs immediately
+before start; recheck again. Equality to the150000ms whole deadline refuses, as
+does reaching the row's2500ms TERM boundary during attempt work. The3000ms terminal
+boundary remains, not a permission to start after a deadline. A synchronous start
+which returns after admission has expired remains a submitted real attempt with
+its actual PID/events, is faulted and cleaned up without retry. No primitive
+preemption or rollback is claimed. Attempts refused before start retain their
+record and spawnCalled=false. Failed/late admission cannot launch the next row.
+
+Successful completion additionally requires submitted positive PID and actual
+spawn/exit/close observations with absent group. Missing facts produce inconsistent
+driver failure/uncertainty, never invented notifications. Late events after
+terminal reporting cannot retroactively change outcome/counts. Genuine observed
+nonzero exit remains neutral, not a guard failure.
+
+The eighth module data.mjs snapshots exact finite own data with descriptor checks,
+not JSON coercion or prototype equality. It rejects holes/accessors/extra array
+keys and symbols; bounds32768 nodes/64 depth/4096 own keys per container. Role
+schemas retain exact fields/order. Unexpected descriptor/proxy throws escape
+validation unchanged. Captured observer/row failures retain original references
+in nonserialized properties; JSON diagnostics are bounded safe summaries, not
+replacement reasons. Prototype variants are tested without a VM/engine import;
+this is not a hostile-host sandbox or an executed independent-realm claim.
+
+Original37 control predicates are unchanged, with explicit mode-aware dependency
+metadata and the8-module closure replacing7. New repair-controls.mjs runs27
+presealed families separately under the existing2MiB report bound. Both use only
+finite in-memory children; real-driver code, including its actual mode projection,
+remains uninstantiated. No arbitrary time/output/process/recipe limits widen.

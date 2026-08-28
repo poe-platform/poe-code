@@ -1,0 +1,37 @@
+{
+  "schema": "mapfile-observer-module-seal-v2",
+  "phase": "before revised37 synthetic controls execution; original28 capture preserved",
+  "precodeCommit": "cc471485",
+  "moduleFiles": [
+    "admission.mjs",
+    "cli.mjs",
+    "lifecycle.mjs",
+    "node-driver.mjs",
+    "observer.mjs",
+    "storage.mjs",
+    "synthetic.mjs"
+  ],
+  "combinedRecipeSha256": "18f52fe34068d96f12bc35af5d7e51443f3c59e89627accd33f7ce54b8f1534a",
+  "artifacts": {
+    "SEAL.json": "3ffdfde6e4b0b8536d2a6593dffa340f6c09868b47d7ce5ee55b6fa85be39fe1",
+    "SOURCE-BINDINGS.json": "5af734d1acb1879e26351d6fea1b65ba33ca61576cc1efc151820adb45818e29",
+    "OBSERVATIONS.json": "f252918ca8594cd4401d1938051498628e48211c18343c47011dfb5c6843083d",
+    "OBSERVER-PROTOCOL.md": "0f805b39e14d458cc18e8e807d7788a38fe5595d3398c8f00c854aafdde0df65",
+    "ADDENDUM-v2.md": "06d194641b3df74e17b6c2708e0b54c7872e7c00dfbdfaaf852c240a2fea4e69",
+    "OBSERVATIONS-addendum-v2.json": "e6892b11fca34cc0ecc0f7e9d7856d34db01bf5ddc768cc56a1f0818e89624af",
+    "observer-v1/PRECODE.json": "a522bf543796951728d64b963e67c4cc94e2b8503eb93b9ff9f482154ff9219c",
+    "observer-v1/README.md": "2a149c739d749305e864d1e1d01bd5153460780b8f24d9e4e4ef16c74f08ad42",
+    "observer-v1/modules/admission.mjs": "3255eb1910c19825ce3979f3349790c2ce8605c8bf70ee0a6dc49a45584319fe",
+    "observer-v1/modules/cli.mjs": "8856ed8dee41a988fb620df602f2dcf49af5c57503d58dd62fa3c567029cccde",
+    "observer-v1/modules/lifecycle.mjs": "49607f93cb12abede9eab7f72598394d7a540a0bad1a5c6e8c4757af0f71ae1e",
+    "observer-v1/modules/node-driver.mjs": "93edadfbdd820f2c1e0b4dca73d3bc8cd0155dac216cd10009efa5c5608e4b24",
+    "observer-v1/modules/observer.mjs": "dbd2644969ec04f528750c735d456d71249884e920067942d18edf7ebd25d1c0",
+    "observer-v1/modules/storage.mjs": "9c507d81bfdc4359a2a734c39c59cb27ad748acde955dfed39d8242febb1dd6e",
+    "observer-v1/modules/synthetic.mjs": "1cd9b320a03f56607a7c2c227abf52531f7e0ccbc9422f569313efe668e9bf07",
+    "observer-v1/PRECODE-v2.json": "d4f2d336037435bdc905402a54179bb2e22b8e93207c842da329ba6c4cc58903",
+    "observer-v1/MODULE-SEAL-v1.json": "e2b58d8bf09d93b38f90d1b75902a9b78cbc937f3a137e63cc4a690f96f77934"
+  },
+  "nativeAuthorized": false,
+  "actualChildControlsAuthorized": false,
+  "supplementalPrecodeCommit": "d9608e23"
+}

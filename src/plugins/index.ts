@@ -62,6 +62,7 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
   const commands: CommandDefinition[] = [];
   const exprLimits = options.expr?.limits;
   const whichLimits = options.which?.limits;
+  const timeoutOptions = options.timeout;
   commands.push(
     ...createStandardCommands({ execute: options.execute ?? executor(name => commands.find(command => command.name === name)), ...(options.regex === undefined ? {} : { regex: options.regex }) }),
     ...createTextProgramCommands({ ...options.text }),
@@ -84,7 +85,11 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
     ...createDuCommands({ ...options.du }),
     ...createExprCommands({ ...(exprLimits === undefined ? {} : { limits: exprLimits }), ...(options.regex === undefined ? {} : { regex: options.regex }) }),
     ...createWhichCommands(whichLimits === undefined ? {} : { limits: whichLimits }),
-    ...createTimeoutCommands({ ...options.timeout, replace: options.replace ?? false }),
+    ...createTimeoutCommands(timeoutOptions === undefined ? undefined : {
+      invoke: timeoutOptions.invoke,
+      scheduler: timeoutOptions.scheduler,
+      maxTimerMilliseconds: timeoutOptions.maxTimerMilliseconds,
+    }),
   );
   return new CommandRegistry(commands).list();
 }

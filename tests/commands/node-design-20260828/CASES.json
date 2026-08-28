@@ -1,0 +1,314 @@
+{
+  "schema": "virtual-node-design-cases-v1",
+  "date": "2026-08-28",
+  "classification": "design-data-only; not canonical executable test input",
+  "profile": "virtual-node-np1",
+  "status": "proposed-unexecuted",
+  "executionAuthorization": false,
+  "identityCount": 36,
+  "results": null,
+  "baseline": "Official Node v22.15.0 documentation, not a new native oracle capture",
+  "expectationMeaning": "Normative proposed virtual-profile outcomes, not observed results or full Node byte parity. null means the adjacent qualifier intentionally leaves that field unsettled.",
+  "defaults": {
+    "cwd": "/work",
+    "env": {"KEEP": "parent"},
+    "filesUtf8": {},
+    "stdinUtf8": "",
+    "stdinIsDefault": true,
+    "grants": ["sourceRead", "dataRead", "directoryRead", "dataWrite", "stdinRead", "stdoutWrite", "stderrWrite", "jsonModules"],
+    "provider": "future independently qualified NP1 provider; none selected or executed",
+    "filesystem": "controlled authority-limited VFS, parent /work exists, no ambient filesystem",
+    "stateAfter": "parent cwd/env unchanged; no namespace mutation except explicitly listed; all cooperative invocation resources retired before settlement",
+    "shellRedirections": "none; Shell redirection effects are outside entry-preflight no-effects assertions",
+    "argvEncoding": "literal argv array; source strings are never executed by this artifact"
+  },
+  "cases": [
+    {
+      "id": "N01",
+      "name": "actual inline evaluation",
+      "argv": ["-e", "console.log('ok')"],
+      "expected": {"stdoutUtf8": "ok\n", "stderrUtf8": "", "exitCode": 0, "filesChangedUtf8": {}},
+      "assertions": ["Output depends on evaluated source, not a canned command handler"]
+    },
+    {
+      "id": "N02",
+      "name": "primitive print and literal eval arguments",
+      "argv": ["-p", "JSON.stringify(process.argv)", "--", "alpha", "--flag"],
+      "expected": {"stdoutUtf8": "[\"/virtual/bin/node\",\"alpha\",\"--flag\"]\n", "stderrUtf8": "", "exitCode": 0},
+      "qualification": "Virtual execPath and argv convention are proposed, not freshly oracle-verified"
+    },
+    {
+      "id": "N03",
+      "name": "undefined is a print value rather than omitted output",
+      "argv": ["-p", "undefined"],
+      "expected": {"stdoutUtf8": "undefined\n", "stderrUtf8": "", "exitCode": 0},
+      "assertions": ["Do not reuse safejs print omission for undefined"]
+    },
+    {
+      "id": "N04",
+      "name": "print statement list rejected during admission",
+      "argv": ["-p", "console.log('before'); 7"],
+      "expected": {"stdoutUtf8": "", "stderrUtf8": "node: ERR_VNODE_UNSUPPORTED: print requires one expression\n", "exitCode": 2},
+      "assertions": ["No console host call occurs; a full Node eval-completion claim is not made"]
+    },
+    {
+      "id": "N05",
+      "name": "VFS script argv, exit status and parent isolation",
+      "filesUtf8": {"/work/main.cjs": "console.log(JSON.stringify(process.argv)); process.env.KEEP='child'; process.exitCode=7;"},
+      "argv": ["main.cjs", "--version", "a b"],
+      "expected": {"stdoutUtf8": "[\"/virtual/bin/node\",\"/work/main.cjs\",\"--version\",\"a b\"]\n", "stderrUtf8": "", "exitCode": 7, "parentEnv": {"KEEP": "parent"}, "parentCwd": "/work"}
+    },
+    {
+      "id": "N06",
+      "name": "stdin-as-source is consumed once",
+      "argv": ["-", "arg"],
+      "stdinUtf8": "console.log(require('fs').readFileSync(process.stdin.fd,'utf8').length); console.log(JSON.stringify(process.argv));",
+      "stdinIsDefault": false,
+      "expected": {"stdoutUtf8": "0\n[\"/virtual/bin/node\",\"-\",\"arg\"]\n", "stderrUtf8": "", "exitCode": 0},
+      "assertions": ["No second stdin acquisition or duplicated source-as-data bytes"]
+    },
+    {
+      "id": "N07",
+      "name": "stdin data ownership and UTF8 split decoding",
+      "argv": ["-e", "process.stdout.write(require('fs').readFileSync(0,'utf8'))"],
+      "stdinIsDefault": false,
+      "inputDriver": {"kind": "planned-controlled-byte-producer", "chunksHex": ["41c3", "a942"], "reuseBackingStorageAfterEachAdvance": true},
+      "expected": {"stdoutUtf8": "AéB", "stderrUtf8": "", "exitCode": 0},
+      "assertions": ["Retained bytes copied before producer reuse/finalization", "stdinIsDefault does not decide whether bytes exist"]
+    },
+    {
+      "id": "N08",
+      "name": "module-mode promise fs JSON editing",
+      "filesUtf8": {"/work/config.json": "{\"count\":1}"},
+      "argv": ["--input-type=module", "-e", "import fs from 'node:fs/promises'; const data=JSON.parse(await fs.readFile('config.json','utf8')); data.count+=1; await fs.writeFile('config.json',JSON.stringify(data)); console.log(data.count);"],
+      "expected": {"stdoutUtf8": "2\n", "stderrUtf8": "", "exitCode": 0, "filesChangedUtf8": {"/work/config.json": "{\"count\":2}"}},
+      "assertions": ["No host fs import; actual supplied VFS gets the mutation"]
+    },
+    {
+      "id": "N09",
+      "name": "sync VFS creation and exclusive collision",
+      "argv": ["-e", "const fs=require('fs'); fs.writeFileSync('out','first',{flag:'wx'}); try { fs.writeFileSync('out','second',{flag:'wx'}); } catch(error) { console.log(error.code); } process.stdout.write(fs.readFileSync('out','utf8'));"],
+      "expected": {"stdoutUtf8": "EEXIST\nfirst", "stderrUtf8": "", "exitCode": 0, "filesChangedUtf8": {"/work/out": "first"}},
+      "assertions": ["Exclusive VFS publication is real, not stat-then-write", "Sync calls never expose a Promise"]
+    },
+    {
+      "id": "N10",
+      "name": "sync continuation blocks guest jobs while host read is held",
+      "filesUtf8": {"/work/in": "data"},
+      "argv": ["-e", "Promise.resolve().then(()=>process.stdout.write('job')); const text=require('fs').readFileSync('in','utf8'); process.stdout.write(text);"],
+      "control": "Hold the VFS read after admission, inspect pending state, then release its bytes",
+      "expected": {"stdoutUtf8": "datajob", "stderrUtf8": "", "exitCode": 0, "whileHeld": {"stdoutUtf8": "", "publicPending": true, "guestJobsExecuted": 0}},
+      "qualification": "Required virtual sync/job ordering; not currently established by SafeJS"
+    },
+    {
+      "id": "N11",
+      "name": "JSON first-load timing, alias identity and cache retention",
+      "argv": ["-e", "const fs=require('fs'); fs.writeFileSync('c.json','{\"v\":1}'); const first=require('./c.json'); first.v=2; fs.writeFileSync('c.json','{\"v\":3}'); const second=require('././c.json'); console.log(first===second); console.log(second.v);"],
+      "expected": {"stdoutUtf8": "true\n2\n", "stderrUtf8": "", "exitCode": 0, "filesChangedUtf8": {"/work/c.json": "{\"v\":3}"}},
+      "assertions": ["No eager JSON preload before the earlier write", "Cache is guest-native, not a fresh host-value copy"]
+    },
+    {
+      "id": "N12",
+      "name": "failed JSON module load does not poison the cache",
+      "argv": ["-e", "try { require('./new.json'); } catch(error) { console.log(error.code); } require('fs').writeFileSync('new.json','{\"value\":4}'); console.log(require('./new.json').value);"],
+      "expected": {"stdoutUtf8": "ENOENT\n4\n", "stderrUtf8": "", "exitCode": 0, "filesChangedUtf8": {"/work/new.json": "{\"value\":4}"}},
+      "qualification": "NP1 preserves VFS error codes; this is not a claim of Node MODULE_NOT_FOUND diagnostic parity"
+    },
+    {
+      "id": "N13",
+      "name": "pure POSIX paths use virtual cwd",
+      "argv": ["-e", "const path=require('node:path'); console.log(path.resolve('a','../b')); console.log(path.relative('/work/a','/work/b')); console.log(path.basename('/work/config.json'));"],
+      "expected": {"stdoutUtf8": "/work/b\n../b\nconfig.json\n", "stderrUtf8": "", "exitCode": 0},
+      "assertions": ["Zero filesystem or host cwd calls for lexical path operations"]
+    },
+    {
+      "id": "N14",
+      "name": "exported env only and inert loader environment",
+      "env": {"KEEP": "parent", "NODE_OPTIONS": "--require /host/escape.cjs", "NODE_PATH": "/host/modules"},
+      "hostOnlyEnv": {"HOST_SECRET": "must-not-be-observed"},
+      "argv": ["-e", "console.log(process.cwd()); console.log(process.env.HOST_SECRET); delete process.env.KEEP; console.log(process.env.KEEP);"],
+      "expected": {"stdoutUtf8": "/work\nundefined\nundefined\n", "stderrUtf8": "", "exitCode": 0, "hostModuleLookups": 0, "parentEnvUnchanged": true}
+    },
+    {
+      "id": "N15",
+      "name": "read-only provider error remains meaningful",
+      "filesystem": "controlled read-only VFS; writeText call rejects FsError EROFS with path /work/out",
+      "argv": ["-e", "try { require('fs').writeFileSync('out','no'); } catch(error) { console.log(error.code); }"],
+      "expected": {"stdoutUtf8": "EROFS\n", "stderrUtf8": "", "exitCode": 0, "filesChangedUtf8": {}},
+      "assertions": ["Do not fabricate writable success or coerce failure to ENOENT"]
+    },
+    {
+      "id": "N16",
+      "name": "builtin aliases preserve guest identity",
+      "argv": ["-e", "console.log(require('fs')===require('node:fs')); console.log(require('fs').promises===require('node:fs/promises')); console.log(require('process')===process);"],
+      "expected": {"stdoutUtf8": "true\ntrue\ntrue\n", "stderrUtf8": "", "exitCode": 0},
+      "assertions": ["Repeated host-object wrapping cannot substitute for one guest module object"]
+    },
+    {
+      "id": "N17",
+      "name": "main source cannot escape VFS authority",
+      "argv": ["/work/link/main.cjs"],
+      "filesystem": "trusted confined adapter refuses a symlink from /work/link to outside its configured namespace before any content read",
+      "expected": {"stdoutUtf8": "", "stderrUtf8": null, "exitCode": 1, "externalReads": 0, "guestExecutions": 0},
+      "unsettled": "Provider-specific typed permission error/message retained; no invented universal errno or diagnostic bytes"
+    },
+    {
+      "id": "N18",
+      "name": "malformed JSON causes a real guest failure",
+      "argv": ["-e", "try { JSON.parse('{'); } catch(error) { console.log(error.name); }"],
+      "expected": {"stdoutUtf8": "SyntaxError\n", "stderrUtf8": "", "exitCode": 0},
+      "assertions": ["Parse failure does not become null/empty data or a success stub"]
+    },
+    {
+      "id": "N19",
+      "name": "unsupported fs overload refuses before data acquisition",
+      "filesUtf8": {"/work/in": "do not read"},
+      "argv": ["-e", "require('fs').readFileSync('in')"],
+      "expected": {"stdoutUtf8": "", "stderrUtf8": "node: ERR_VNODE_UNSUPPORTED: binary readFileSync result\n", "exitCode": 2, "dataReads": 0},
+      "assertions": ["Omitted encoding is not silently treated as UTF8", "URL/buffer paths and unsupported options need equivalent pre-operation rejection"]
+    },
+    {
+      "id": "N20",
+      "name": "literal forbidden builtin rejected in complete-entry preflight",
+      "argv": ["-e", "process.stdout.write('before'); require('child_process')"],
+      "expected": {"stdoutUtf8": "", "stderrUtf8": "node: ERR_VNODE_UNSUPPORTED: module child_process\n", "exitCode": 2, "nativeCalls": 0, "filesChangedUtf8": {}},
+      "assertions": ["No host require/fs/process/eval fallback"]
+    },
+    {
+      "id": "N21",
+      "name": "computed module refusal does not erase earlier effects",
+      "argv": ["-e", "require('fs').writeFileSync('kept','yes'); process.stdout.write('before\n'); const name='child_'+'process'; require(name);"],
+      "expected": {"stdoutUtf8": "before\n", "stderrUtf8": "node: ERR_VNODE_UNSUPPORTED: module child_process\n", "exitCode": 2, "filesChangedUtf8": {"/work/kept": "yes"}, "nativeCalls": 0},
+      "assertions": ["No global no-effects or rollback promise for runtime refusal", "Classifier does not run guest code to constant-fold this expression"]
+    },
+    {
+      "id": "N22",
+      "name": "local executable module is not confused with entry loading",
+      "filesUtf8": {"/work/helper.cjs": "module.exports=7"},
+      "argv": ["-e", "console.log('before'); require('./helper.cjs')"],
+      "expected": {"stdoutUtf8": "", "stderrUtf8": "node: ERR_VNODE_UNSUPPORTED: local executable module\n", "exitCode": 2, "moduleBodyExecutions": 0},
+      "assertions": ["No package/index/extension probing or native addon loading"]
+    },
+    {
+      "id": "N23",
+      "name": "dynamic import and code-generation syntax denied before entry effects",
+      "argv": ["-e", "process.stdout.write('before'); import('node:fs')"],
+      "expected": {"stdoutUtf8": "", "stderrUtf8": "node: ERR_VNODE_UNSUPPORTED: dynamic import\n", "exitCode": 2},
+      "requiredSiblingInputs": ["class Example {}", "eval('1')", "Function('return 1')", "return 1"],
+      "qualification": "Sibling inputs remain individually unexecuted admission checks, not additional passed identities; their feature diagnostics differ"
+    },
+    {
+      "id": "N24",
+      "name": "ambiguous js entry does not ignore package semantics",
+      "filesUtf8": {"/work/package.json": "{\"type\":\"module\"}", "/work/main.js": "console.log('must not run')"},
+      "argv": ["main.js"],
+      "expected": {"stdoutUtf8": "", "stderrUtf8": "node: ERR_VNODE_UNSUPPORTED: package-controlled entry type\n", "exitCode": 2, "guestExecutions": 0},
+      "assertions": ["Search only authorized ancestors; unavailable ancestor authority is refusal, not no-package proof"]
+    },
+    {
+      "id": "N25",
+      "name": "native flags refused before reading source",
+      "argv": ["--inspect", "main.cjs"],
+      "expected": {"stdoutUtf8": "", "stderrUtf8": "node: ERR_VNODE_USAGE: unsupported option --inspect\n", "exitCode": 2, "sourceReads": 0, "socketsOpened": 0},
+      "requiredSiblingInputs": [["--version"], ["-e"], ["--input-type=module", "-p", "1"]],
+      "qualification": "Flags after an eval selector may be guest args; the conflicting-mode control places --input-type=module before -p. Sibling diagnostic bytes are not settled here. No Node version string may be fabricated."
+    },
+    {
+      "id": "N26",
+      "name": "unavailable or insufficient provider is not a working node",
+      "argv": ["main.cjs"],
+      "provider": "absent, or frozen SafeJsRuntime lacking qualified NP1 facilities",
+      "expected": {"stdoutUtf8": "", "stderrUtf8": "node: ERR_VNODE_PROVIDER: qualified NP1 provider required\n", "exitCode": 127, "sourceReads": 0, "guestExecutions": 0},
+      "assertions": ["No install/private import/vendor/native/eval fallback"]
+    },
+    {
+      "id": "N27",
+      "name": "caller reason identity and held cooperative acquisition",
+      "argv": ["-e", "require('fs').readFileSync('held','utf8'); console.log('late')"],
+      "control": "Hold admitted read and cleanup, abort root caller with a particular object carrying code ENOENT, then release cooperative cleanup",
+      "expected": {"stdoutUtf8": "", "stderrUtf8": "", "exitCode": null, "outcome": "propagated exact caller reason", "whileCleanupHeld": "public exec/dispose remain pending", "afterRelease": "all owned work retired before public rejection"},
+      "unsettled": "Raw public rejection is not a numeric command status; primitive/undefined/falsy reason controls require separate future runs",
+      "assertions": ["errno-shaped cancellation is not swallowed as missing file", "No post-abort guest statement or reacquisition"]
+    },
+    {
+      "id": "N28",
+      "name": "escaping host failure outranks later local cancellation",
+      "argv": ["-e", "process.stdout.write('held')"],
+      "control": "Sink fails with raw object FAILURE, then local deadline aborts before final selection; a separate ordered control additionally aborts the root caller with CALLER",
+      "expected": {"stdoutUtf8": "", "stderrUtf8": "", "exitCode": null, "outcome": "FAILURE by identity without caller abort; CALLER by identity with caller abort"},
+      "unsettled": "These are ordered raw rejection outcomes, not errors reconstructed from result status",
+      "assertions": ["Record origin independently of reason equality", "Shared identical reason objects across different origins must not determine precedence"]
+    },
+    {
+      "id": "N29",
+      "name": "register-before-acquisition and idempotent root cleanup barrier",
+      "argv": ["-e", "console.log('ok')"],
+      "control": "Instrument provider create/prepare, stdout operation creation and stdin admission; hold one registered cleanup; overlap command finally and Shell.dispose",
+      "expected": {"stdoutUtf8": "ok\n", "stderrUtf8": "", "exitCode": 0, "whileHeld": "public settlement pending", "cleanupInvocationsWithEffects": 1, "postCloseAdmissions": 0},
+      "assertions": ["Cleanup registered synchronously before resource creation", "Provider close, nested scopes and admitted work share one retirement promise", "Controlled normal completion status applies only when dispose adds no caller cancellation"]
+    },
+    {
+      "id": "N30",
+      "name": "destination closure does not cancel sibling resources",
+      "argv": ["--input-type=module", "-e", "import fs from 'node:fs/promises'; const pending=fs.writeFile('out','kept'); process.stdout.write('closed'); await pending;"],
+      "control": "Admit and hold file write and independent stderr work, then close enrolled stdout; release all owned resources",
+      "expected": {"stdoutUtf8": "", "stderrUtf8": null, "exitCode": null, "filesChangedUtf8": {"/work/out": "kept"}, "siblingSignalsAbortedByStdoutClose": false},
+      "unsettled": "Outer Shell early-pipe/pipefail selection and independent stderr payload determine final bytes/status; no universal 0 or 141 claim",
+      "assertions": ["The admitted file write is not undone", "Destination close drains its own scope and does not cancel shared fs"]
+    },
+    {
+      "id": "N31",
+      "name": "unawaited promise failure cannot disappear after guest return",
+      "argv": ["-e", "require('fs/promises').writeFile('out','x');"],
+      "control": "Hold cooperative write after guest top-level completion, then reject with FsError EROFS /work/out",
+      "expected": {"stdoutUtf8": "", "stderrUtf8": null, "exitCode": 1, "whileHeld": "public pending", "filesChangedUtf8": {}, "unhandledHostRejections": 0},
+      "unsettled": "Exact unhandled-guest diagnostic formatting is not yet settled; raw failure must remain observed and cooperative resources must retire"
+    },
+    {
+      "id": "N32",
+      "name": "source and parse admission caps precede guest effects",
+      "inputData": {"sourceBytes": 262145, "prefixUtf8": "process.stdout.write('never');", "remainder": "ASCII spaces to declared byte count"},
+      "argvMode": "stdin source",
+      "expected": {"stdoutUtf8": "", "stderrUtf8": "node: ERR_VNODE_LIMIT: sourceBytes\n", "exitCode": 124, "guestExecutions": 0},
+      "requiredSiblingInputs": ["Within-byte-cap source exceeding 128 nesting depth", "Within-byte-cap source exceeding 65536 parser tokens"],
+      "assertions": ["No parser stack overflow or unlimited work hidden by byte cap", "Each sibling needs its own limit-specific diagnostic and future execution"]
+    },
+    {
+      "id": "N33",
+      "name": "guest step and call-depth limits cannot reset",
+      "argv": ["-e", "while (true) {}"],
+      "expected": {"stdoutUtf8": "", "stderrUtf8": "node: ERR_VNODE_LIMIT: steps\n", "exitCode": 124},
+      "requiredSiblingInputs": ["function recurse(){return recurse();} recurse();", "Promise jobs consuming one aggregate step allowance", "Repeated JSON requires cannot reset steps or aggregate read allowance"],
+      "assertions": ["Budget spans callbacks/continuations/modules", "No elapsed-time correctness oracle; callback/depth controls need individual limit assertions"]
+    },
+    {
+      "id": "N34",
+      "name": "byte output cap refuses an entire write before publication",
+      "limits": {"combinedOutputBytes": 4},
+      "argv": ["-e", "process.stdout.write('ab'); process.stdout.write('éé');"],
+      "expected": {"stdoutUtf8": "ab", "stderrUtf8": "", "exitCode": 124, "secondSinkWriteCalls": 0},
+      "qualification": "UTF8 makes the second write4 bytes. Remaining combined output2 cannot admit a full limit diagnostic, so diagnostic output is omitted, not budget-exempt.",
+      "assertions": ["No partial second write or UTF16 byte-count confusion", "VFS write caps likewise check before invoking a mutator"]
+    },
+    {
+      "id": "N35",
+      "name": "concurrent invocation caches, state and resource ownership are disjoint",
+      "control": "Run two future NP1 invocations with distinct VFS instances/cwd/env but identical module paths; hold and locally abort the first, complete the second",
+      "invocations": [
+        {"env": {"KEEP": "A"}, "filesUtf8": {"/work/data.json": "{\"value\":1}"}},
+        {"env": {"KEEP": "B"}, "filesUtf8": {"/work/data.json": "{\"value\":2}"}}
+      ],
+      "argv": ["-e", "console.log(require('./data.json').value); console.log(process.env.KEEP);"],
+      "expected": {"second": {"stdoutUtf8": "2\nB\n", "stderrUtf8": "", "exitCode": 0}, "first": {"stdoutUtf8": null, "stderrUtf8": null, "exitCode": 124}, "sharedFsDisposed": false, "crossInvocationCacheHits": 0},
+      "unsettled": "First invocation's held boundary determines whether earlier bytes were already written; it cannot change second's outcome"
+    },
+    {
+      "id": "N36",
+      "name": "host request validation and insufficient-provider containment",
+      "control": "An intentionally nonconforming provider sends a request with own accessor path or an extra field; a separate controlled request is a valid cross-realm own-data record",
+      "expected": {"stdoutUtf8": "", "stderrUtf8": null, "exitCode": null, "accessorCalls": 0, "invalidRequestProviderOperations": 0, "validCrossRealmRequest": "accepted by structural validation under the same grants"},
+      "unsettled": "Invalid provider request is an escaping contract failure, not guest success or a fixed numeric Shell status; diagnostic wording unbound",
+      "assertions": ["No coercion/prototype-identity admission", "Uncooperative opaque work is observed but cannot be claimed forcibly retired", "Trusted host JS is not sandboxed by these checks"]
+    }
+  ]
+}

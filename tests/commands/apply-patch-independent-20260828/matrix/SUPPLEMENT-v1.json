@@ -1,0 +1,5212 @@
+{
+  "version": 1,
+  "execution": "NOT_RUN",
+  "counting": "80 named adversarial rows; explicit finite variants are separately expanded observations, never passes. Boundary and transport probes live in separate files.",
+  "scheduleSemantics": {
+    "at": "Intercept specified public call before its effects. Unspecified calls follow policy.",
+    "after": "Run immediately after successful operation before command continuation.",
+    "actor": "External authorized synthetic actor; its effects are distinguished from command publication.",
+    "reject": "Throw the exact fixture reason or typed FsError; do not use errno-shaped object as typed FsError.",
+    "reasonRef": "One host value per name retained by reference within execution; never serialize away identity.",
+    "variants": "Independent resets; each row variant overrides named reason/outcome. Required actual-Shell rows remain unbound until root admission."
+  },
+  "cases": [
+    {
+      "id": "S01",
+      "name": "Omitted first hunk header accepts explicit body prefixes",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "new\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "S02",
+      "name": "CRLF framing strips one CR but Add emits LF",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\r\n*** Add File: a\r\n+x\r\n*** End Patch\r\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "x\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nA a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "S03",
+      "name": "Content BOM is a literal retained scalar",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-﻿old\n+﻿new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "﻿old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "﻿new\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "S04",
+      "name": "Canonical-equivalent Unicode is not normalized",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-é\n+ok\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "é\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "é\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S05",
+      "name": "Sparse final blank records are real records",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-a\n+A\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "a\n\n\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "A\n\n\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "S06",
+      "name": "Removing unterminated last record strips new final ending",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-last\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "first\r\nlast"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "first"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "S07",
+      "name": "Empty original receiving text gets final LF",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": ""
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "x\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "S08",
+      "name": "Unchanged context-only Update reports M without write",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n a\n \n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "a\r\n\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "a\r\n\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS",
+          "NO_COMMAND_MUTATION"
+        ],
+        "operationTrace": {
+          "forbid": [
+            "writeFile",
+            "mkdir",
+            "rm"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S09",
+      "name": "Pure addition advances cursor and blocks later consuming hunk",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n+tail\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S10",
+      "name": "Later hunk cannot consume text produced by earlier hunk",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n@@\n-new\n+again\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S11",
+      "name": "EOF explicit blank consumes actual empty final record",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-\n+tail\n*** End of File\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "a\n\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "a\ntail\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "S12",
+      "name": "EOF does not invent trailing empty record",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-\n+tail\n*** End of File\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "a\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "a\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S13",
+      "name": "Malformed UTF8 patch refuses before FS",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "concat": [
+                {
+                  "utf8": "*** Begin Patch\n*** Add File: a\n+"
+                },
+                {
+                  "hex": "c328"
+                },
+                {
+                  "utf8": "\n*** End Patch\n"
+                }
+              ]
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S14",
+      "name": "Malformed UTF8 update target refuses without replacement decode",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "hex": "6f6c64ff0a"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "hex": "6f6c64ff0a"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S15",
+      "name": "Delete snapshots binary without decoding",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Delete File: a\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "hex": "00ff80c0af"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {},
+        "absent": [
+          "/work/a"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nD a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "S16",
+      "name": "Add-overwrite accepts binary old bytes",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: a\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "hex": "00ff80c0af"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "x\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nA a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ],
+        "operationTrace": {
+          "required": [
+            {
+              "method": "writeFile",
+              "path": "/work/a",
+              "flag": "w",
+              "bytes": {
+                "utf8": "x\n"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "S17",
+      "name": "Lone UTF16 surrogate argv refuses rather than replacement encoding",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [
+          {
+            "utf16CodeUnits": [
+              42,
+              42,
+              42,
+              32,
+              66,
+              101,
+              103,
+              105,
+              110,
+              32,
+              80,
+              97,
+              116,
+              99,
+              104,
+              10,
+              42,
+              42,
+              42,
+              32,
+              65,
+              100,
+              100,
+              32,
+              70,
+              105,
+              108,
+              101,
+              58,
+              32,
+              97,
+              10,
+              43,
+              120,
+              10,
+              42,
+              42,
+              42,
+              32,
+              69,
+              110,
+              100,
+              32,
+              80,
+              97,
+              116,
+              99,
+              104,
+              55296
+            ]
+          }
+        ],
+        "stdin": {
+          "acquire": "THROW_IF_ACQUIRED"
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S18",
+      "name": "NUL in patch payload is not binary Add support",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: a\n+x\u0000y\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S19",
+      "name": "BOM before Begin is not silently stripped",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "﻿*** Begin Patch\n*** Add File: a\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S20",
+      "name": "Extra outer blank line is not trimmed",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: a\n+x\n*** End Patch\n\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S21",
+      "name": "Literal shell heredoc wrapper is not reexecuted",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [
+          "apply_patch <<'PATCH'\n*** Begin Patch\n*** Add File: a\n+x\n*** End Patch\nPATCH\n"
+        ],
+        "stdin": {
+          "acquire": "THROW_IF_ACQUIRED"
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S22",
+      "name": "Two arguments reject before input acquisition",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [
+          "*** Begin Patch\n*** Add File: a\n+x\n*** End Patch\n",
+          "extra"
+        ],
+        "stdin": {
+          "acquire": "THROW_IF_ACQUIRED"
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S23",
+      "name": "Root target refuses lexically",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: /\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S24",
+      "name": "Observed ancestor symlink refuses without following to sentinel",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: link/a\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work",
+          "/outside"
+        ],
+        "symlinks": {
+          "/work/link": "/outside"
+        }
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ],
+        "unchangedSymlinks": true,
+        "operationTrace": {
+          "forbidPaths": [
+            "/outside/a"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S25",
+      "name": "Observed dangling leaf symlink refuses even Add overwrite",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: a\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "symlinks": {
+          "/work/a": "/missing-target"
+        }
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {},
+        "absent": [
+          "/missing-target"
+        ],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ],
+        "unchangedSymlinks": true
+      }
+    },
+    {
+      "id": "S26",
+      "name": "Directory target never becomes regular file",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: a\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a/keep": {
+            "utf8": "sentinel\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work",
+          "/work/a"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a/keep": {
+            "utf8": "sentinel\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ],
+        "directories": [
+          "/",
+          "/work",
+          "/work/a"
+        ]
+      }
+    },
+    {
+      "id": "S27",
+      "name": "Nondirectory ancestor refuses",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: a/child\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "sentinel\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "sentinel\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S28",
+      "name": "File-parent collision refuses before stat",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: a\n+x\n*** Add File: a/child\n+y\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S29",
+      "name": "Known scoped identity aliases across operations refuse",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** Update File: b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ],
+        "operationTrace": {
+          "forbid": [
+            "readFile",
+            "writeFile",
+            "rm"
+          ]
+        }
+      },
+      "provider": {
+        "identities": {
+          "/work/a": {
+            "scopeRef": "shared",
+            "dev": 0,
+            "ino": 0
+          },
+          "/work/b": {
+            "scopeRef": "shared",
+            "dev": 0,
+            "ino": 0
+          }
+        },
+        "backingAliases": [
+          [
+            "/work/a",
+            "/work/b"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "S30",
+      "name": "Authoritative compareEntry same refuses unknown tuples",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** Update File: b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ],
+        "operationTrace": {
+          "forbid": [
+            "readFile",
+            "writeFile",
+            "rm"
+          ],
+          "maxQueriesPerDistinctAuthority": 1
+        }
+      },
+      "provider": {
+        "identity": "omitted",
+        "compareEntry": "same",
+        "backingAliases": [
+          [
+            "/work/a",
+            "/work/b"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "S31",
+      "name": "Invalid comparison result cannot become unknown or distinct",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** Update File: b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ],
+        "diagnosticMeaning": "invalid comparison/EIO",
+        "operationTrace": {
+          "forbid": [
+            "readFile",
+            "writeFile",
+            "rm"
+          ]
+        }
+      },
+      "provider": {
+        "identity": "omitted",
+        "compareEntry": "SAME"
+      }
+    },
+    {
+      "id": "S32",
+      "name": "Conflicting operand authorities fail before content reads",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** Update File: b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ],
+        "diagnosticMeaning": "conflicting comparison/EIO",
+        "operationTrace": {
+          "forbid": [
+            "readFile",
+            "writeFile",
+            "rm"
+          ],
+          "maxQueriesPerDistinctAuthority": 1
+        }
+      },
+      "provider": {
+        "identity": "omitted",
+        "operandAuthorities": [
+          {
+            "operand": "/work/a",
+            "answer": "distinct"
+          },
+          {
+            "operand": "/work/b",
+            "answer": "same"
+          }
+        ]
+      }
+    },
+    {
+      "id": "S33",
+      "name": "Unknown identities do not invent disjointness or forbid ordinary in-place updates",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** Update File: b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "new\n"
+          },
+          "/work/b": {
+            "utf8": "new\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\nM b\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ],
+        "operationTrace": {
+          "required": [
+            {
+              "method": "readFile",
+              "path": "/work/a",
+              "phase": "publication-revalidation"
+            },
+            {
+              "method": "readFile",
+              "path": "/work/b",
+              "phase": "publication-revalidation"
+            }
+          ]
+        }
+      },
+      "provider": {
+        "identity": "omitted",
+        "compareEntry": "unknown",
+        "backing": "two genuinely separate synthetic entries"
+      }
+    },
+    {
+      "id": "S34",
+      "name": "ReadOnly capability fails before target reads",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ],
+        "operationTrace": {
+          "forbid": [
+            "readFile",
+            "writeFile",
+            "mkdir",
+            "rm"
+          ]
+        }
+      },
+      "provider": {
+        "capabilities": {
+          "readOnly": true,
+          "permissions": true
+        }
+      }
+    },
+    {
+      "id": "S35",
+      "name": "Typed W_OK denial is not unsupported permission",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ],
+        "authorization": "DENIED",
+        "diagnosticMeaning": "permission denied /work/a"
+      },
+      "provider": {
+        "capabilities": {
+          "permissions": false
+        },
+        "access": {
+          "mode": 2,
+          "path": "/work/a",
+          "reject": {
+            "kind": "FsError",
+            "code": "EACCES"
+          }
+        }
+      }
+    },
+    {
+      "id": "S36",
+      "name": "Unsupported W_OK is unobservable; successful provider write remains possible",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "new\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ],
+        "authorization": "UNOBSERVABLE",
+        "operationTrace": {
+          "required": [
+            {
+              "method": "writeFile",
+              "path": "/work/a",
+              "flag": "w"
+            }
+          ]
+        }
+      },
+      "provider": {
+        "capabilities": {
+          "permissions": false
+        },
+        "access": {
+          "mode": 2,
+          "reject": {
+            "kind": "FsError",
+            "code": "ENOTSUP"
+          }
+        },
+        "writeFile": "allow"
+      }
+    },
+    {
+      "id": "S37",
+      "name": "Unobservable W_OK followed by provider denial does not grant access",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "publication-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT"
+        ],
+        "authorization": "UNOBSERVABLE",
+        "operationOrdinal": 1
+      },
+      "schedule": [
+        {
+          "at": {
+            "method": "writeFile",
+            "path": "/work/a",
+            "occurrence": 1
+          },
+          "reject": {
+            "kind": "FsError",
+            "code": "EPERM"
+          },
+          "effect": "none"
+        }
+      ],
+      "provider": {
+        "capabilities": {
+          "permissions": false
+        },
+        "access": {
+          "mode": 2,
+          "reject": {
+            "kind": "FsError",
+            "code": "EOPNOTSUPP"
+          }
+        }
+      }
+    },
+    {
+      "id": "S38",
+      "name": "Unsupported W_OK on permissions:true refuses preflight",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ],
+        "authorization": "FAILED_PROBE"
+      },
+      "provider": {
+        "capabilities": {
+          "permissions": true
+        },
+        "access": {
+          "mode": 2,
+          "reject": {
+            "kind": "FsError",
+            "code": "ENOTSUP"
+          }
+        }
+      }
+    },
+    {
+      "id": "S39",
+      "name": "Add creation race preserves newly existing file",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: a\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "racer\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "publication-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT"
+        ],
+        "operationOrdinal": 1,
+        "operationTrace": {
+          "writeFileCalls": 1,
+          "forbidFlags": [
+            "w"
+          ]
+        }
+      },
+      "schedule": [
+        {
+          "at": {
+            "method": "writeFile",
+            "path": "/work/a",
+            "occurrence": 1
+          },
+          "beforeCallActor": {
+            "create": {
+              "/work/a": {
+                "utf8": "racer\n"
+              }
+            }
+          },
+          "requireFlag": "wx",
+          "reject": {
+            "kind": "FsError",
+            "code": "EEXIST"
+          },
+          "effect": "none from command"
+        }
+      ]
+    },
+    {
+      "id": "S40",
+      "name": "Move destination race preserves source and raced destination",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n*** Move to: b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "racer\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "publication-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "MOVE"
+        ],
+        "operationOrdinal": 1,
+        "operationTrace": {
+          "forbid": [
+            "rm"
+          ],
+          "forbidFlags": [
+            "w"
+          ]
+        }
+      },
+      "schedule": [
+        {
+          "at": {
+            "method": "writeFile",
+            "path": "/work/b",
+            "occurrence": 1
+          },
+          "beforeCallActor": {
+            "create": {
+              "/work/b": {
+                "utf8": "racer\n"
+              }
+            }
+          },
+          "requireFlag": "wx",
+          "reject": {
+            "kind": "FsError",
+            "code": "EEXIST"
+          },
+          "effect": "none from command"
+        }
+      ]
+    },
+    {
+      "id": "S41",
+      "name": "Partial failed Move write retains source and partial destination",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n*** Move to: b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "hex": "6e65"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "publication-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "MOVE"
+        ],
+        "operationOrdinal": 1,
+        "operationTrace": {
+          "forbid": [
+            "rm"
+          ]
+        }
+      },
+      "schedule": [
+        {
+          "at": {
+            "method": "writeFile",
+            "path": "/work/b",
+            "occurrence": 1
+          },
+          "requireFlag": "wx",
+          "effect": {
+            "replace": {
+              "/work/b": {
+                "hex": "6e65"
+              }
+            }
+          },
+          "reject": {
+            "kind": "FsError",
+            "code": "EIO"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S42",
+      "name": "Move source change after destination write prevents unlink",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n*** Move to: b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "external\n"
+          },
+          "/work/b": {
+            "utf8": "new\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "publication-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "MOVE"
+        ],
+        "operationOrdinal": 1,
+        "operationTrace": {
+          "forbid": [
+            "rm"
+          ]
+        }
+      },
+      "schedule": [
+        {
+          "after": {
+            "method": "writeFile",
+            "path": "/work/b",
+            "fulfilled": true
+          },
+          "actor": {
+            "replace": {
+              "/work/a": {
+                "utf8": "external\n"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "S43",
+      "name": "Move unlink denial retains both copies",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n*** Move to: b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "new\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "publication-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "MOVE"
+        ],
+        "operationOrdinal": 1
+      },
+      "schedule": [
+        {
+          "at": {
+            "method": "rm",
+            "path": "/work/a",
+            "occurrence": 1
+          },
+          "reject": {
+            "kind": "FsError",
+            "code": "EACCES"
+          },
+          "effect": "none"
+        }
+      ]
+    },
+    {
+      "id": "S44",
+      "name": "Later write failure retains earlier file and failing partial bytes",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** Update File: b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "new\n"
+          },
+          "/work/b": {
+            "utf8": "ne"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "publication-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT"
+        ],
+        "operationOrdinal": 2,
+        "operationTrace": {
+          "forbid": [
+            "rm",
+            "rename",
+            "copyFile"
+          ]
+        }
+      },
+      "schedule": [
+        {
+          "at": {
+            "method": "writeFile",
+            "path": "/work/b",
+            "occurrence": 1
+          },
+          "effect": {
+            "replace": {
+              "/work/b": {
+                "utf8": "ne"
+              }
+            }
+          },
+          "reject": {
+            "kind": "FsError",
+            "code": "EIO"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S45",
+      "name": "Missing-parent creation failure retains earlier created parent",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: d/e/a\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "publication-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT"
+        ],
+        "directories": [
+          "/",
+          "/work",
+          "/work/d"
+        ],
+        "operationOrdinal": 1,
+        "operationTrace": {
+          "forbid": [
+            "rm",
+            "rmdir",
+            "writeFile"
+          ],
+          "mkdirRecursive": false
+        }
+      },
+      "schedule": [
+        {
+          "at": {
+            "method": "mkdir",
+            "path": "/work/d/e",
+            "occurrence": 1
+          },
+          "reject": {
+            "kind": "FsError",
+            "code": "EACCES"
+          },
+          "effect": "none"
+        }
+      ]
+    },
+    {
+      "id": "S46",
+      "name": "Raced EEXIST parent must be observed directory, not swallowed",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: d/a\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/d": {
+            "utf8": "racer\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "publication-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT"
+        ],
+        "operationOrdinal": 1,
+        "operationTrace": {
+          "forbid": [
+            "writeFile"
+          ],
+          "required": [
+            {
+              "method": "lstat",
+              "path": "/work/d",
+              "phase": "after mkdir EEXIST"
+            }
+          ]
+        }
+      },
+      "schedule": [
+        {
+          "at": {
+            "method": "mkdir",
+            "path": "/work/d",
+            "occurrence": 1
+          },
+          "beforeCallActor": {
+            "create": {
+              "/work/d": {
+                "utf8": "racer\n"
+              }
+            }
+          },
+          "reject": {
+            "kind": "FsError",
+            "code": "EEXIST"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S47",
+      "name": "Preflight overlay housekeeping is not command publication",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** Update File: b\n@@\n-missing\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ],
+        "adapterEffects": {
+          "hiddenGarbageRemoved": true
+        },
+        "commandMutationCalls": 0
+      },
+      "provider": {
+        "kind": "synthetic overlay-shaped wrapper, not actual overlay execution",
+        "hiddenBefore": {
+          "garbage": "retired blob"
+        },
+        "housekeeping": {
+          "onReadFile": "/work/a",
+          "hiddenAfter": {}
+        }
+      }
+    },
+    {
+      "id": "S48",
+      "name": "Move exclusive-create ENOTSUP never retries with truncation",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n*** Move to: b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [
+          "/work/b"
+        ],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "publication-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "MOVE"
+        ],
+        "operationOrdinal": 1,
+        "operationTrace": {
+          "writeFileCalls": 1,
+          "forbid": [
+            "rm"
+          ],
+          "forbidFlags": [
+            "w"
+          ]
+        }
+      },
+      "schedule": [
+        {
+          "at": {
+            "method": "writeFile",
+            "path": "/work/b",
+            "occurrence": 1
+          },
+          "requireFlag": "wx",
+          "reject": {
+            "kind": "FsError",
+            "code": "ENOTSUP"
+          },
+          "effect": "none"
+        }
+      ]
+    },
+    {
+      "id": "S49",
+      "name": "Retained reused Buffer views survive next pull and finalization",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "producer": "one backing Buffer, each yield a subarray view; overwrite entire backing before each next and before done:true",
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n"
+            },
+            {
+              "utf8": "*** Add File: a\n"
+            },
+            {
+              "utf8": "+x\n"
+            },
+            {
+              "utf8": "*** End Patch\n"
+            }
+          ],
+          "overwriteHex": "7a",
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "x\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nA a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS",
+          "BOUNDED",
+          "CLEANUP"
+        ]
+      }
+    },
+    {
+      "id": "S50",
+      "name": "Split UTF8 scalar and CRLF across byte chunks reconstruct exactly",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\r"
+            },
+            {
+              "utf8": "\n*** Add File: a\r\n+"
+            },
+            {
+              "hex": "e7"
+            },
+            {
+              "hex": "8cabf09f"
+            },
+            {
+              "hex": "9982"
+            },
+            {
+              "utf8": "\r"
+            },
+            {
+              "utf8": "\n*** End Patch\r"
+            },
+            {
+              "utf8": "\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "猫🙂\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nA a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS",
+          "BOUNDED"
+        ]
+      }
+    },
+    {
+      "id": "S51",
+      "name": "ByteSource nonbyte chunk is protocol failure not text coercion",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n"
+            },
+            {
+              "nonByteValue": "*** Add File: a\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "reject-class",
+          "class": "TypeError",
+          "boundary": "direct handler, source read contract"
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION",
+          "CLEANUP"
+        ],
+        "iteratorReturnCalls": 1
+      }
+    },
+    {
+      "id": "S52",
+      "name": "Pre-aborted errno-shaped root reason wins usage and FsError handling",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [
+          "too",
+          "many"
+        ],
+        "stdin": {
+          "acquire": "THROW_IF_ACQUIRED"
+        },
+        "signal": {
+          "preAborted": true,
+          "reasonRef": "caller-errno-object"
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "reject-ref",
+          "ref": "caller-errno-object",
+          "boundary": "root exec"
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION",
+          "REASON"
+        ]
+      },
+      "provider": {
+        "reasonObjects": {
+          "caller-errno-object": {
+            "code": "EACCES",
+            "message": "caller, not permission result"
+          }
+        }
+      }
+    },
+    {
+      "id": "S53",
+      "name": "Abort pending opaque next observes late rejection without waiting forever",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [],
+          "next": "deferred opaque promise",
+          "return": "deferred opaque promise"
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "reject-ref",
+          "ref": "caller-object",
+          "boundary": "root exec"
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION",
+          "REASON",
+          "CLEANUP"
+        ],
+        "unhandledRejections": 0,
+        "awaitOpaqueBeforePublicSettlement": false
+      },
+      "schedule": [
+        {
+          "at": "first stdin.next pending",
+          "abort": {
+            "scope": "root",
+            "reasonRef": "caller-object"
+          }
+        },
+        {
+          "after": "public rejection",
+          "rejectDeferred": {
+            "next": "late-next-object",
+            "return": "late-return-object"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S54",
+      "name": "Cancellation at first work yield prevents write admission",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "concat": [
+              {
+                "repeat": {
+                  "utf8": "x"
+                },
+                "count": 8192
+              },
+              {
+                "utf8": "\nold\n"
+              }
+            ]
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "reject-ref",
+          "ref": "caller-false",
+          "boundary": "root exec"
+        },
+        "files": {
+          "/work/a": {
+            "concat": [
+              {
+                "repeat": {
+                  "utf8": "x"
+                },
+                "count": 8192
+              },
+              {
+                "utf8": "\nold\n"
+              }
+            ]
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "NO_COMMAND_MUTATION",
+          "REASON",
+          "CLEANUP",
+          "BOUNDED"
+        ]
+      },
+      "schedule": [
+        {
+          "at": "first interruptible work yield after 4096 charged work units",
+          "abort": {
+            "scope": "root",
+            "reasonRef": "caller-false",
+            "value": false
+          }
+        }
+      ],
+      "sourceReviewRequired": "Bind yield observation without lowering caps or importing private module now."
+    },
+    {
+      "id": "S55",
+      "name": "Abort after first publication preserves it and forbids second write",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** Update File: b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "reject-ref",
+          "ref": "caller-zero",
+          "boundary": "root exec"
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "new\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "REASON",
+          "CLEANUP"
+        ],
+        "operationTrace": {
+          "forbidMatching": [
+            {
+              "method": "writeFile",
+              "path": "/work/b"
+            }
+          ]
+        }
+      },
+      "schedule": [
+        {
+          "after": {
+            "method": "writeFile",
+            "path": "/work/a",
+            "fulfilled": true
+          },
+          "abort": {
+            "scope": "root",
+            "reasonRef": "caller-zero",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "S56",
+      "name": "Falsy input rejection survives secondary iterator-return failure",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n"
+            }
+          ],
+          "nextAfterChunks": {
+            "rejectRef": "primary"
+          },
+          "return": {
+            "rejectRef": "secondary-object"
+          }
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "reject-ref",
+          "ref": "primary",
+          "boundary": "direct handler"
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION",
+          "REASON",
+          "CLEANUP"
+        ],
+        "iteratorReturnCalls": 1,
+        "unhandledRejections": 0
+      },
+      "variants": [
+        {
+          "key": "null",
+          "primary": {
+            "kind": "primitive",
+            "value": null
+          }
+        },
+        {
+          "key": "false",
+          "primary": {
+            "kind": "primitive",
+            "value": false
+          }
+        },
+        {
+          "key": "zero",
+          "primary": {
+            "kind": "primitive",
+            "value": 0
+          }
+        },
+        {
+          "key": "undefined",
+          "primary": {
+            "kind": "undefined"
+          }
+        },
+        {
+          "key": "object",
+          "primary": {
+            "kind": "object-ref",
+            "ref": "input-object"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S57",
+      "name": "Cooperative cleanup settlement precedence and close admission",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "actual-shell with explicit host-owned middleware resource",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: a\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "variant-outcome",
+          "boundary": "public exec/dispose"
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "x\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "semantic": "variant: success bytes if handler returned; sink-failure variants admit zero bytes"
+        },
+        "stderr": {
+          "semantic": "runtime-mapped diagnostic only in mapped-nonzero variant; exact bytes source review"
+        },
+        "constraints": [
+          "GLOBAL",
+          "REASON",
+          "CLEANUP"
+        ],
+        "cleanupReleaseCalls": 1,
+        "settlementAfterRelease": true
+      },
+      "schedule": [
+        {
+          "at": "before resource admission",
+          "registerCleanup": "idempotent deferred release"
+        },
+        {
+          "at": "handler finally and simultaneous dispose",
+          "close": "same callback, shared completion"
+        },
+        {
+          "at": "after close",
+          "attemptAcquisition": "must reject without acquisition"
+        },
+        {
+          "at": "drain",
+          "release": "reject cleanup-object"
+        }
+      ],
+      "variants": [
+        {
+          "key": "cleanup-only",
+          "execution": "returned 0",
+          "outcome": {
+            "kind": "reject-ref",
+            "ref": "cleanup-object"
+          }
+        },
+        {
+          "key": "execution-first",
+          "execution": "stdout rejects execution-object",
+          "outcome": {
+            "kind": "reject-ref",
+            "ref": "execution-object"
+          }
+        },
+        {
+          "key": "caller-first",
+          "execution": "stdout rejects execution-object; root abort caller-object during drain",
+          "outcome": {
+            "kind": "reject-ref",
+            "ref": "caller-object"
+          }
+        },
+        {
+          "key": "mapped-nonzero",
+          "execution": "runtime mapped ordinary error to numeric 1 before cleanup",
+          "outcome": {
+            "kind": "reject-ref",
+            "ref": "cleanup-object"
+          }
+        }
+      ],
+      "sourceReviewRequired": "Host-owned probe measures boundary; do not pretend command acquires arbitrary host lease or depend on cleanup registration order."
+    },
+    {
+      "id": "S58",
+      "name": "Awaited stdout rejection preserves exact falsy reason after publication",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: a\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "reject-ref",
+          "ref": "sink-reason",
+          "boundary": "direct handler"
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "x\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "REASON",
+          "CLEANUP",
+          "OUTPUT_ISOLATION"
+        ],
+        "rollbackCalls": 0
+      },
+      "schedule": [
+        {
+          "at": "first stdout.write",
+          "rejectRef": "sink-reason",
+          "effect": "accept zero bytes"
+        }
+      ],
+      "variants": [
+        {
+          "key": "null",
+          "reason": {
+            "kind": "primitive",
+            "value": null
+          }
+        },
+        {
+          "key": "false",
+          "reason": {
+            "kind": "primitive",
+            "value": false
+          }
+        },
+        {
+          "key": "zero",
+          "reason": {
+            "kind": "primitive",
+            "value": 0
+          }
+        },
+        {
+          "key": "undefined",
+          "reason": {
+            "kind": "undefined"
+          }
+        },
+        {
+          "key": "object",
+          "reason": {
+            "kind": "object-ref",
+            "ref": "sink-object"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S59",
+      "name": "Stderr sink rejection supersedes numeric preflight result",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "not-old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "reject-ref",
+          "ref": "stderr-object",
+          "boundary": "direct handler"
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "not-old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "NO_COMMAND_MUTATION",
+          "REASON",
+          "CLEANUP"
+        ]
+      },
+      "schedule": [
+        {
+          "at": "first stderr.write",
+          "rejectRef": "stderr-object",
+          "effect": "accept zero bytes"
+        }
+      ]
+    },
+    {
+      "id": "S60",
+      "name": "Enrolled stdout closure cannot own sibling file work",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: a\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "reject-ref",
+          "ref": "output-only-object",
+          "boundary": "direct handler summary output"
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "x\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "OUTPUT_ISOLATION",
+          "CLEANUP"
+        ],
+        "rootSignalAborted": false,
+        "siblingFileAndStderrSignalAborted": false,
+        "operationTrace": {
+          "required": [
+            {
+              "method": "writeFile",
+              "path": "/work/a",
+              "flag": "wx",
+              "bytes": {
+                "utf8": "x\n"
+              }
+            }
+          ]
+        }
+      },
+      "schedule": [
+        {
+          "at": "before command entry",
+          "abort": {
+            "scope": "stdout.ownedOutput.consumerClosed",
+            "reasonRef": "output-only-object"
+          }
+        },
+        {
+          "at": "provider writeFile admission",
+          "assertSignal": "root still live; write fulfills"
+        }
+      ]
+    },
+    {
+      "id": "S61",
+      "name": "Actual invoke shares output budget rather than resetting it",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "actual-shell CommandContext.invoke literal argv",
+        "cwd": "/work",
+        "args": [
+          "*** Begin Patch\n*** Add File: a\n+x\n*** End Patch\n"
+        ],
+        "stdin": {
+          "acquire": "THROW_IF_ACQUIRED"
+        },
+        "hostBudget": {
+          "outputBytesRemaining": 0,
+          "commandCallsRemaining": 2
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "runtime-budget-failure",
+          "boundary": "actual Shell existing mapping, not invented numeric status"
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "x\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "existing runtime budget mapping; bind source later"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "REASON",
+          "CLEANUP"
+        ],
+        "sharedBudgetReset": false,
+        "newShellInstances": 0
+      },
+      "sourceReviewRequired": "No public budget changes. Existing runtime sink rejects at first summary write; case requires that explicitly configured failure checkpoint."
+    },
+    {
+      "id": "S62",
+      "name": "Huge typed preflight error diagnostic is bounded before construction",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "NO_COMMAND_MUTATION",
+          "BOUNDED"
+        ],
+        "diagnosticMeaning": "permission denial /work/a",
+        "diagnosticMaxBytes": 16384,
+        "diagnosticTruncationSuffix": " [truncated]\n"
+      },
+      "provider": {
+        "access": {
+          "mode": 2,
+          "reject": {
+            "kind": "FsError",
+            "code": "EACCES",
+            "path": "/work/a",
+            "message": {
+              "repeat": {
+                "utf8": "é"
+              },
+              "count": 20000
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "S63",
+      "name": "Readonly routed child is not authorized by writable aggregate",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: readonly/a\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work",
+          "/work/readonly"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ],
+        "authorization": "DENIED",
+        "diagnosticMeaning": "read-only /work/readonly",
+        "directories": [
+          "/",
+          "/work",
+          "/work/readonly"
+        ]
+      },
+      "provider": {
+        "kind": "synthetic mounted route",
+        "capabilities": {
+          "readOnly": false,
+          "permissions": true
+        },
+        "routes": [
+          {
+            "prefix": "/work/readonly",
+            "readOnly": true,
+            "accessReject": {
+              "kind": "FsError",
+              "code": "EROFS"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "S64",
+      "name": "Literal invocation preserves dollar/backtick/backslash path and payload",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "actual Shell parent context.invoke with literal argv and replaceEnv:true",
+        "cwd": "/work",
+        "args": [
+          "*** Begin Patch\n*** Add File: $HOME`whoami`\\a\n+$(touch escape)\n*** End Patch\n"
+        ],
+        "stdin": {
+          "acquire": "THROW_IF_ACQUIRED"
+        },
+        "invokeOptions": {
+          "replaceEnv": true,
+          "env": {
+            "HOME": "/not-expanded"
+          },
+          "signal": "omitted"
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/$HOME`whoami`\\a": {
+            "utf8": "$(touch escape)\n"
+          }
+        },
+        "absent": [
+          "/work/escape"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nA $HOME`whoami`\\a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ],
+        "parentStateUnchanged": true,
+        "noEnvironmentExpansion": true
+      }
+    },
+    {
+      "id": "S65",
+      "name": "Hunk following EOF marker is whole-input syntax failure",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End of File\n@@\n+tail\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S66",
+      "name": "Smart punctuation is not ASCII quote fuzz",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-\"quoted\"\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "“quoted”\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "“quoted”\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S67",
+      "name": "Move cycle is duplicate participation before reads",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n*** Move to: b\n@@\n old\n*** Update File: b\n*** Move to: a\n@@\n old\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S68",
+      "name": "Duplicate slashes and dot components collide after normalization",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: d//a\n+x\n*** Add File: ./d/a\n+y\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S69",
+      "name": "Forbidden terminal and control paths never reach VFS",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: a/\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION"
+        ]
+      },
+      "notes": "For each variant replace only the Add header path in the literal envelope; no shell parser is involved.",
+      "variants": [
+        {
+          "key": "trailing-slash",
+          "headerPath": "a/"
+        },
+        {
+          "key": "final-dot",
+          "headerPath": "a/."
+        },
+        {
+          "key": "control-tab",
+          "headerPath": "a\tb"
+        },
+        {
+          "key": "empty",
+          "headerPath": ""
+        }
+      ]
+    },
+    {
+      "id": "S70",
+      "name": "NUL in valid-UTF8 existing target is content refusal",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\u0000\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\u0000\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "S71",
+      "name": "Delete permission probes parent, not writable leaf",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Delete File: a\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ],
+        "authorization": "DENIED",
+        "operationTrace": {
+          "required": [
+            {
+              "method": "access",
+              "path": "/work",
+              "mode": 2
+            }
+          ],
+          "forbid": [
+            "rm"
+          ]
+        }
+      },
+      "provider": {
+        "access": {
+          "path": "/work",
+          "mode": 2,
+          "reject": {
+            "kind": "FsError",
+            "code": "EACCES"
+          }
+        },
+        "otherAccess": "allow"
+      }
+    },
+    {
+      "id": "S72",
+      "name": "Later target authorization denial blocks earlier otherwise valid update",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** Update File: b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ],
+        "authorization": "DENIED",
+        "operationTrace": {
+          "forbid": [
+            "writeFile",
+            "mkdir",
+            "rm"
+          ]
+        }
+      },
+      "provider": {
+        "access": {
+          "path": "/work/b",
+          "mode": 2,
+          "reject": {
+            "kind": "FsError",
+            "code": "EROFS"
+          }
+        },
+        "otherAccess": "allow"
+      }
+    },
+    {
+      "id": "S73",
+      "name": "Comparison throws errno-shaped ordinary object without typed-error conversion",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** Update File: b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "reject-ref",
+          "ref": "comparison-object",
+          "boundary": "direct handler"
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "NO_COMMAND_MUTATION",
+          "REASON"
+        ],
+        "operationTrace": {
+          "forbid": [
+            "readFile",
+            "writeFile",
+            "rm"
+          ]
+        }
+      },
+      "provider": {
+        "identity": "omitted",
+        "compareEntry": {
+          "rejectRef": "comparison-object"
+        },
+        "reasonObjects": {
+          "comparison-object": {
+            "code": "EACCES",
+            "marker": "not FsError"
+          }
+        }
+      }
+    },
+    {
+      "id": "S74",
+      "name": "Unknown real alias can cause qualified partial outcome on revalidation",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** Update File: b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "new\n"
+          },
+          "/work/b": {
+            "utf8": "new\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "publication-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT"
+        ],
+        "operationOrdinal": 2,
+        "operationTrace": {
+          "required": [
+            {
+              "method": "writeFile",
+              "path": "/work/a",
+              "flag": "w"
+            }
+          ],
+          "forbidMatching": [
+            {
+              "method": "writeFile",
+              "path": "/work/b"
+            }
+          ]
+        },
+        "diagnosticMeaning": "second target changed since initial snapshot; prior changes may remain"
+      },
+      "provider": {
+        "identity": "omitted",
+        "compareEntry": "unknown",
+        "backingAliases": [
+          [
+            "/work/a",
+            "/work/b"
+          ]
+        ],
+        "writeFile": "in-place changes shared backing bytes"
+      }
+    },
+    {
+      "id": "S75",
+      "name": "Raced mkdir EEXIST directory is validated then usable",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: d/a\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/d/a": {
+            "utf8": "x\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nA d/a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ],
+        "directories": [
+          "/",
+          "/work",
+          "/work/d"
+        ],
+        "operationTrace": {
+          "required": [
+            {
+              "method": "lstat",
+              "path": "/work/d",
+              "phase": "after mkdir EEXIST"
+            },
+            {
+              "method": "writeFile",
+              "path": "/work/d/a",
+              "flag": "wx"
+            }
+          ]
+        }
+      },
+      "schedule": [
+        {
+          "at": {
+            "method": "mkdir",
+            "path": "/work/d",
+            "occurrence": 1
+          },
+          "beforeCallActor": {
+            "mkdir": "/work/d"
+          },
+          "reject": {
+            "kind": "FsError",
+            "code": "EEXIST"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S76",
+      "name": "CRCRLF framing strips exactly one CR and preserves payload CR",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\r\n*** Add File: a\r\n+x\r\r\n*** End Patch\r\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "x\r\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nA a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "S77",
+      "name": "Removing all sparse empty records produces zero bytes",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-\n-\n*** End of File\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "\n\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": ""
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "S78",
+      "name": "Actual quoted shell heredoc provides literal effective stdin",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "actual Shell.exec, existing quoted-heredoc parser",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "source": "effective shell heredoc, not outer default input"
+        },
+        "script": "apply_patch <<'PATCH'\n*** Begin Patch\n*** Add File: a\n+$HOME `whoami` $(touch escape)\n*** End Patch\nPATCH\n",
+        "stdinIsDefault": false
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "$HOME `whoami` $(touch escape)\n"
+          }
+        },
+        "absent": [
+          "/work/escape"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nA a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ],
+        "noEnvironmentExpansion": true
+      },
+      "sourceReviewRequired": "Future run uses actual Shell, not a hand-fed equivalent stub."
+    },
+    {
+      "id": "S79",
+      "name": "Direct context without cleanup hook still finalizes failing source",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n"
+            }
+          ],
+          "nextAfterChunks": {
+            "rejectRef": "input-object"
+          },
+          "return": {
+            "deferred": "return-release"
+          }
+        },
+        "registerCleanup": "omitted"
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "reject-ref",
+          "ref": "input-object",
+          "boundary": "direct handler"
+        },
+        "files": {},
+        "absent": [],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "ZERO_FS_CALLS",
+          "NO_COMMAND_MUTATION",
+          "REASON",
+          "CLEANUP"
+        ],
+        "iteratorReturnCalls": 1,
+        "publicRuntimeBarrierClaim": false
+      },
+      "schedule": [
+        {
+          "at": "iterator.return pending",
+          "assert": "direct handler not settled"
+        },
+        {
+          "at": "release return-release",
+          "fulfill": true
+        }
+      ]
+    },
+    {
+      "id": "S80",
+      "name": "Multiple registered cleanup failures aggregate after numeric success",
+      "execution": "NOT_RUN",
+      "independence": "Distinct challenger fixture frozen without candidate inspection; not inferred from candidate output.",
+      "invocation": {
+        "route": "actual Shell host-owned middleware registers two independent cleanup probes",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: a\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "reject-aggregate",
+          "membersByIdentity": [
+            "cleanup-one",
+            "cleanup-two"
+          ],
+          "memberOrder": "not asserted; no cleanup registration-order dependency",
+          "boundary": "public exec"
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "x\n"
+          }
+        },
+        "absent": [],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nA a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "REASON",
+          "CLEANUP"
+        ],
+        "allCleanupsStartedAndSettled": true
+      },
+      "schedule": [
+        {
+          "at": "before respective resource admissions",
+          "registerCleanup": [
+            "reject cleanup-one",
+            "reject cleanup-two"
+          ]
+        }
+      ],
+      "sourceReviewRequired": "Boundary probe only; no arbitrary command resource acquisition is fabricated."
+    }
+  ]
+}

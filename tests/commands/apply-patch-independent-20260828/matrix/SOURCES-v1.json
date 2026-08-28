@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "capturedAtUtc": "2026-08-28T17:15:48.654Z",
+  "localDate": "2026-08-28",
+  "timezone": "America/Chicago",
+  "role": "independent substantive leaf; owns matrix only",
+  "chronology": "Post-profile independent preparation, not falsely pre-candidate-commit. HEAD recorded as repository metadata only, not inspected or certified candidate.",
+  "candidateInspection": "NONE",
+  "sourceRetrieval": "Local pinned Git blobs and current contracts only; no official remote fetch needed.",
+  "pinnedAuthorInputs": [
+    {
+      "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+      "path": "tests/commands/apply-patch-author-20260828/PROFILE-PROPOSAL-v1.md",
+      "gitBlob": "c109beaea3d138270ff84a00a9b81626d61b73a5",
+      "bytes": 17119,
+      "sha256": "a10ed971116193969888f7c18f013871a8c93977bcf19852459fac7e85be4064"
+    },
+    {
+      "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+      "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+      "gitBlob": "9da3c66a433c3d5a0a868a35b5f23046eb8758d0",
+      "bytes": 9459,
+      "sha256": "e13c2ed4ddce65dc0d976a06ba32ddd42f00d7472579cbc30769d007ea42ab61"
+    }
+  ],
+  "currentInputs": [
+    {
+      "path": "../AGENTS.md",
+      "readOnlyAuthority": true,
+      "bytes": 424,
+      "sha256": "a57c7dc70a12ec6f8d26a2c3ac908d81a66b3a268c782f42926c2b7e840b23b7"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 14250,
+      "sha256": "e6a7bca2ab72cc8e4448a67cc315dda84a1823d3b32214360697157a274626e6",
+      "observedHead": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+      "headBlob": "35e03362f6313c2cfc13342d2675100be12a573c",
+      "liveStatus": "",
+      "classification": "authorized instructions or contract, not candidate production"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "observedHead": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+      "headBlob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "liveStatus": "",
+      "classification": "authorized instructions or contract, not candidate production"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "bytes": 9253,
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "observedHead": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+      "headBlob": "ef94adf238122441a66c2232fb3055aaee62d290",
+      "liveStatus": "",
+      "classification": "authorized instructions or contract, not candidate production"
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "bytes": 3897,
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "observedHead": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+      "headBlob": "5c1a59a85e47bc9bc242a2e92b22680d785fcc89",
+      "liveStatus": "",
+      "classification": "authorized instructions or contract, not candidate production"
+    },
+    {
+      "path": "src/contracts/filesystem.md",
+      "bytes": 20876,
+      "sha256": "fb74e8fc3841c06f89e8fa93fad55cdfac20788de4eee13db6b8a8072b963d2a",
+      "observedHead": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+      "headBlob": "574db49cd823e7d662cb6ada5ad4dd0c92a8d192",
+      "liveStatus": "",
+      "classification": "authorized instructions or contract, not candidate production"
+    },
+    {
+      "path": "src/contracts/io.ts",
+      "bytes": 7663,
+      "sha256": "ff792b401508a2ef768aa4f9dd9794e653e1e14f2163e57d137e9cb2b7427809",
+      "observedHead": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+      "headBlob": "6dc0efb87132376763228a845b2e62638898268a",
+      "liveStatus": "",
+      "classification": "authorized instructions or contract, not candidate production"
+    },
+    {
+      "path": "src/contracts/output.ts",
+      "bytes": 4661,
+      "sha256": "5e262bda9541a5b70fcb23d4950e92844d404f9029f02c32c889b90d7c92d83e",
+      "observedHead": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+      "headBlob": "3b1fe9536352a5e13c94ff231ce20ead354aabc8",
+      "liveStatus": "",
+      "classification": "authorized instructions or contract, not candidate production"
+    },
+    {
+      "path": "src/contracts/errors.ts",
+      "bytes": 3457,
+      "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+      "observedHead": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+      "headBlob": "d466866ce93c4feced56e2bd5fe4c41637e62226",
+      "liveStatus": "",
+      "classification": "authorized instructions or contract, not candidate production"
+    },
+    {
+      "path": "src/contracts/path.ts",
+      "bytes": 1675,
+      "sha256": "948a1ceb19fd87fa4931974282ec4d68217dbd2353fac6ce6eabd48d3b5a2f34",
+      "observedHead": "767b6729d3acac0dd17c42dfb9e0b93e6e9c4de5",
+      "headBlob": "4cbf95a4baa405a6fc5438c23511a9059b977201",
+      "liveStatus": "",
+      "classification": "authorized instructions or contract, not candidate production"
+    }
+  ],
+  "officialReference": "Official Codex rust-v0.145.0 commit 25af12f7e61572b0bc18ddb1008be543b91519b0 as cited in pinned author profile; not independently fetched/executed here, not latest/full compatibility.",
+  "notExecuted": [
+    "candidate reads/imports/build",
+    "product/native oracle/comparator/Codex CLI",
+    "network product or real-service calls",
+    "package staging/install",
+    "product tests/typecheck"
+  ]
+}

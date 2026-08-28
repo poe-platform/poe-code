@@ -1,0 +1,1936 @@
+{
+  "version": 1,
+  "execution": "NOT_RUN",
+  "mapping": "One-to-one immutable author literalCases P01-P32; materialized full envelopes and literal expected bytes, no candidate-derived oracle.",
+  "cases": [
+    {
+      "id": "P01",
+      "name": "stdin add",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P01"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: a\n+hello\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "hello\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nA a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P02",
+      "name": "one argument never acquires stdin",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P02"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [
+          "*** Begin Patch\n*** Add File: a\n+one\n*** End Patch\n"
+        ],
+        "stdin": {
+          "acquire": "THROW_IF_ACQUIRED"
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "one\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nA a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P03",
+      "name": "empty add",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P03"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: empty\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/empty": {
+            "utf8": ""
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nA empty\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P04",
+      "name": "update",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P04"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n one\n-two\n+TWO\n three\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "one\ntwo\nthree\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "one\nTWO\nthree\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P05",
+      "name": "delete",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P05"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Delete File: a\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "a\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {},
+        "absent": [
+          "/work/a"
+        ],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nD a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P06",
+      "name": "move with edit",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P06"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n*** Move to: nested/b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/nested/b": {
+            "utf8": "new\n"
+          }
+        },
+        "absent": [
+          "/work/a"
+        ],
+        "directories": [
+          "/",
+          "/work",
+          "/work/nested"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM nested/b\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS",
+          "MOVE"
+        ]
+      }
+    },
+    {
+      "id": "P07",
+      "name": "context-only move preserves no-final-newline",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P07"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n*** Move to: b\n@@\n old\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/b": {
+            "utf8": "old"
+          }
+        },
+        "absent": [
+          "/work/a"
+        ],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM b\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS",
+          "MOVE"
+        ]
+      }
+    },
+    {
+      "id": "P08",
+      "name": "Add overwrites existing regular",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P08"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: a\n+replacement\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "replacement\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nA a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P09",
+      "name": "Move existing destination refusal",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P09"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n*** Move to: b\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "sentinel\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "old\n"
+          },
+          "/work/b": {
+            "utf8": "sentinel\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "P10",
+      "name": "ambiguous exact context chooses first",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P10"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-x\n+y\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "x\nx\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "y\nx\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P11",
+      "name": "named anchor skips earlier equal body",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P11"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@ second\n-x\n+y\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "first\nx\nsecond\nx\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "first\nx\nsecond\ny\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P12",
+      "name": "chained named anchors",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P12"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@ class A\n@@ method\n-x\n+y\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "class A\nother\nmethod\nx\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "class A\nother\nmethod\ny\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      },
+      "originalQualification": "prompt syntax; pinned parser differs"
+    },
+    {
+      "id": "P13",
+      "name": "forward nonoverlapping hunks",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P13"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-a\n+A\n@@\n-c\n+C\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "a\nb\nc\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "A\nb\nC\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P14",
+      "name": "backward hunk fails whole preflight",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P14"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-c\n+C\n@@\n-a\n+A\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "a\nb\nc\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "a\nb\nc\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "P15",
+      "name": "EOF picks only suffix",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P15"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-x\n+y\n*** End of File\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "x\nz\nx\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "x\nz\ny\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P16",
+      "name": "EOF does not fall back",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P16"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-x\n+y\n*** End of File\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "x\nz\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "x\nz\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "P17",
+      "name": "pure additions preserve patch order",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P17"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n+b\n@@\n+c\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "a\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "a\nb\nc\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P18",
+      "name": "no fuzzy indentation",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P18"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-x\n+y\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "  x\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "  x\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "P19",
+      "name": "UTF8 non-BMP literal data",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P19"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-猫🦉\n+é🙂\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "猫🦉\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "é🙂\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P20",
+      "name": "retain unterminated replacement",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P20"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "new"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P21",
+      "name": "CRLF retained",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P21"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-old\n+new\n keep\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "old\r\nkeep\r\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "new\r\nkeep\r\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P22",
+      "name": "mixed endings unchanged outside replacement",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P22"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-b\n+B\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "a\r\nb\nc\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "a\r\nB\r\nc\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P23",
+      "name": "append to unterminated file",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P23"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n+b\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "a"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "a\nb"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P24",
+      "name": "delete every line gives empty file",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P24"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-a\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "a\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/a": {
+            "utf8": ""
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nM a\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P25",
+      "name": "virtual absolute and normalized relative collision",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P25"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: /work/a\n+a\n*** Add File: ./a\n+b\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {},
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION",
+          "ZERO_FS_CALLS"
+        ],
+        "fsCalls": 0
+      }
+    },
+    {
+      "id": "P26",
+      "name": "traversal rejected before stat",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P26"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: ../a\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {},
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION",
+          "ZERO_FS_CALLS"
+        ],
+        "fsCalls": 0
+      }
+    },
+    {
+      "id": "P27",
+      "name": "spaces and percent are literal names",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P27"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: spaced %猫.txt\n+x\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 0
+        },
+        "files": {
+          "/work/spaced %猫.txt": {
+            "utf8": "x\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": "Success. Updated the following files:\nA spaced %猫.txt\n"
+        },
+        "stderr": {
+          "utf8": ""
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "SUCCESS"
+        ]
+      }
+    },
+    {
+      "id": "P28",
+      "name": "late malformed section blocks earlier valid add",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P28"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Add File: a\n+x\n*** Surprise: b\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {},
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION",
+          "ZERO_FS_CALLS"
+        ],
+        "fsCalls": 0
+      }
+    },
+    {
+      "id": "P29",
+      "name": "later target missing blocks earlier update",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P29"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-a\n+A\n*** Delete File: missing\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "a\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "a\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "P30",
+      "name": "missing second context blocks earlier staged result",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P30"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n@@\n-a\n+A\n*** Update File: b\n@@\n-wrong\n+B\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "a\n"
+          },
+          "/work/b": {
+            "utf8": "b\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 1
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "a\n"
+          },
+          "/work/b": {
+            "utf8": "b\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION"
+        ]
+      }
+    },
+    {
+      "id": "P31",
+      "name": "empty envelope is not stub success",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P31"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {},
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {},
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION",
+          "ZERO_FS_CALLS"
+        ],
+        "fsCalls": 0
+      }
+    },
+    {
+      "id": "P32",
+      "name": "move without body is explicitly unsupported",
+      "origin": {
+        "revision": "bf25da0ed51b3d7cddf295a698020c524d4c27a3",
+        "path": "tests/commands/apply-patch-author-20260828/CASES-v1.json",
+        "id": "P32"
+      },
+      "execution": "NOT_RUN",
+      "invocation": {
+        "route": "literal-command",
+        "cwd": "/work",
+        "args": [],
+        "stdin": {
+          "chunks": [
+            {
+              "utf8": "*** Begin Patch\n*** Update File: a\n*** Move to: b\n*** End Patch\n"
+            }
+          ],
+          "eof": true
+        }
+      },
+      "before": {
+        "files": {
+          "/work/a": {
+            "utf8": "a\n"
+          }
+        },
+        "directories": [
+          "/",
+          "/work"
+        ]
+      },
+      "expected": {
+        "outcome": {
+          "kind": "return",
+          "exitCode": 2
+        },
+        "files": {
+          "/work/a": {
+            "utf8": "a\n"
+          }
+        },
+        "absent": [],
+        "directories": [
+          "/",
+          "/work"
+        ],
+        "stdout": {
+          "utf8": ""
+        },
+        "stderr": {
+          "semantic": "preflight-diagnostic"
+        },
+        "constraints": [
+          "GLOBAL",
+          "INITIAL_PREFLIGHT",
+          "NO_COMMAND_MUTATION",
+          "ZERO_FS_CALLS"
+        ],
+        "fsCalls": 0
+      }
+    }
+  ]
+}

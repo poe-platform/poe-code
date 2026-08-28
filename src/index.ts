@@ -24,6 +24,7 @@ export * from "./commands/column/index.js";
 export * from "./commands/html-to-markdown/index.js";
 export * from "./commands/du/index.js";
 export * from "./commands/expr/index.js";
+export * from "./commands/which/index.js";
 export * from "./fs/memory/index.js";
 export * from "./fs/real/index.js";
 export * from "./fs/s3/index.js";

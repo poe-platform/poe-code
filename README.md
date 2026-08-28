@@ -77,7 +77,8 @@ metadata (`chmod`, `stat`, `mktemp`), archives (`tar`), table-text
 stream formatting (`seq`, `nl`, `rev`, `unexpand`), splitting (`split`), and
 time/environment (`date`, `sleep`, `printenv`), tree (`tree`), file (`file`),
 grep aliases (`egrep`, `fgrep`), table layout (`column`), bounded HTML conversion
-(`html-to-markdown`), usage accounting (`du`) and expressions (`expr`), totaling 76 unique registered
+(`html-to-markdown`), usage accounting (`du`), expressions (`expr`) and virtual
+executable lookup (`which`), totaling 77 unique registered
 plugin names. These families have separate scoped evidence;
 name registration is not proof of complete utility semantics.
 Do not also install those families unless you deliberately request replacement.
@@ -111,8 +112,21 @@ agentCommands({
   tree: { limits: { maxEntries: 10000, maxOutputBytes: 1024 * 1024 } },
   file: { limits: { maxSniffBytes: 65536, maxInputBytes: 1024 * 1024 } },
   column: { limits: { maxInputBytes: 1024 * 1024, maxRows: 10000 } },
+  which: { limits: { maxProbes: 4096, maxOutputBytes: 1024 * 1024 } },
 });
 ```
+
+`which` searches invocation PATH/cwd and literal VFS paths using followed regular-
+file `stat`, then delegated `access(X_OK)`; readonly wrappers are supported. It
+does not inspect host PATH, execute files, read file contents or fall back to mode
+bits or shell registry names. Absent PATH is a miss, including slash operands.
+The bounded virtual profile supports leading `-a`, `-s` and `--`; it is not full
+native `which`/`type -aP` parity or a guarantee of later execution permission.
+`createWhichCommand`, `createWhichCommands`, `whichCommands`, `WhichCommandsOptions`
+and `WhichLimits` are available from root and `virtual-bash/commands/which`.
+Aggregate `which` accepts limits only; top-level `replace` remains authoritative.
+The command awaits provider calls/writes with the invocation signal, without
+acquiring stdin or new output ownership, or preempting opaque provider work.
 
 `timeEnv` accepts an optional `clock: () => number` in Unix milliseconds
 (default `Date.now`), virtual timezone (default UTC), sleep scheduler/timer cap,

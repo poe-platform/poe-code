@@ -260,19 +260,26 @@ try {
   const tsc = join(repository, "node_modules/typescript/bin/tsc");
   const tsx = join(repository, "node_modules/tsx/dist/loader.mjs");
   const npm = join(dirname(node), "npm");
+  const typeRoot = join(repository, "node_modules/@types");
   const tools = [node, tsc, tsx, npm, "/usr/bin/git", "/usr/bin/tar"].map(path => {
     const actual = realpathSync(path);
     const stat = lstatSync(actual);
     return { requested: path, realpath: actual, mode: stat.mode & 0o777, bytes: stat.size, sha256: sha256(readFileSync(actual)) };
   });
-  writeFileSync(join(output, "TOOLS.json"), `${JSON.stringify({ schema: "timeout-author-tools/1", tools }, null, 2)}\n`);
+  const nodeTypeFiles = allRegularFiles(join(typeRoot, "node"));
+  const nodeTypeManifest = nodeTypeFiles.map(path => ({ path, sha256: sha256(readFileSync(join(typeRoot, "node", path))) }));
+  writeFileSync(join(output, "TOOLS.json"), `${JSON.stringify({ schema: "timeout-author-tools/1", tools, nodeTypes: {
+    files: nodeTypeManifest.length,
+    manifestSha256: sha256(JSON.stringify(nodeTypeManifest)),
+    package: JSON.parse(readFileSync(join(typeRoot, "node/package.json"), "utf8"))
+  } }, null, 2)}\n`);
 
-  recordRun("build", node, [tsc, "-p", "tsconfig.build.json"], work, 0);
+  recordRun("build", node, [tsc, "-p", "tsconfig.build.json", "--typeRoots", typeRoot], work, 0);
   recordRun("author-runtime", node, ["--import", tsx, "--test", "tests/commands/timeout-author-20260828/timeout.test.ts"], work, 0);
   recordRun("sleep-neighbor", node, ["--import", tsx, "--test", "tests/commands/time-env/sleep.test.ts"], work, 0);
   recordRun("shared-runtime-neighbors", node, ["--import", tsx, "--test", "tests/shell/invocation-cleanup-lifecycle.test.ts", "tests/shell/invocation-cleanup-pipeline.test.ts"], work, 0);
   recordRun("owned-output-neighbor", node, ["--import", tsx, "--test", "tests/integration/owned-output-production-rebase/author/operation.test.ts"], work, 0);
-  recordRun("source-and-harness-types", node, [tsc, "--noEmit", "-p", "tsconfig.json"], work, 0);
+  recordRun("source-and-harness-types", node, [tsc, "--noEmit", "-p", "tsconfig.json", "--typeRoots", typeRoot], work, 0);
 
   const packageRun = recordRun("npm-pack", npm, ["pack", "--json", "--pack-destination", join(output, "package")], work, 0);
   const pack = JSON.parse(packageRun.result.stdout);

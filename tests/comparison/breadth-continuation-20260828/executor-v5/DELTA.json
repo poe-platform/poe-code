@@ -1,0 +1,75 @@
+{
+  "schema": "breadth-v5-explicit-delta",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+  "priorRecipeCommit": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+  "priorRuntimeEvidence": "d40af0d52381a138f2dabb415d343526ad015722",
+  "changedVersionedFiles": [
+    {
+      "path": "projection.mjs",
+      "basedOn": "../executor-v3/projection.mjs",
+      "priorSha256": "13f3363d839f4c3820f5bdd860684564087fb15b7ed2a1d337a10297000b84e1",
+      "sha256": "ee3f76cebbb9fa3905b27eed1232b7c475f362c5bace14a1a178c9ff2cc1763d",
+      "bytes": 8547
+    },
+    {
+      "path": "loader.mjs",
+      "basedOn": "../executor-v3/loader.mjs",
+      "priorSha256": "23a22e044fec40f8408a1af33adfab3e3d2817fb053c132b816591f4da4af3db",
+      "sha256": "b6fd004fd53342d6b2a03a03130e4ea6431b7b48eb41fe0f0636a8e42864917b",
+      "bytes": 3519
+    },
+    {
+      "path": "coordinator.mjs",
+      "basedOn": "../executor-v4/coordinator.mjs",
+      "priorSha256": "491c8bf14b81b2e6318075a2a8618ff7e67858328376decb3b7a6dd06af94e94",
+      "sha256": "87a590e7233d742aa992471fe22ea70061640b9dbe05b876d68ad81895fc37a4",
+      "bytes": 12062
+    },
+    {
+      "path": "worker.mjs",
+      "basedOn": "../executor-v4/worker.mjs",
+      "priorSha256": "b736984578823a0e471f68774343988ba95ce2d1cc15cbc6a92c88f66f976fde",
+      "sha256": "40b176c2e0c7498bd9a055e589eed1637172ca63c752d0f2045a150477a40693",
+      "bytes": 8729
+    },
+    {
+      "path": "synthetic-worker.mjs",
+      "basedOn": "../executor-v4/synthetic-worker.mjs",
+      "priorSha256": "a01380cdbea7d0a6a4b02561a8e8b75b49901a68cc0308e0e6152dcb8001b6fd",
+      "sha256": "4f2f09d61ff806503b12d2e8345bc60e9901ce637ea937d37d9401cbd70be175",
+      "bytes": 5033
+    },
+    {
+      "path": "authorization.mjs",
+      "basedOn": "../executor-v4/authorization.mjs",
+      "priorSha256": "ab3886a11b687df1396fccde02581a685d6193c780aef0cbde82134c4bea685d",
+      "sha256": "4df22f9a9ff19cc08cd796dc80a94ba1646b226258fb7c0029d0473674fefe82",
+      "bytes": 3484
+    }
+  ],
+  "newImplementation": [
+    "consumer-scope.mjs",
+    "CONSUMER-SCOPES.json",
+    "wrappers/target/package.json",
+    "wrappers/target/consumer.mjs",
+    "wrappers/comparator/package.json",
+    "wrappers/comparator/consumer.mjs"
+  ],
+  "controlOnly": [
+    "resolution-controls.mjs",
+    "resolution-worker.mjs",
+    "RESOLUTION-CASES.json"
+  ],
+  "unchangedPlanSha256": "4112bb1cf2da78344f8b20eef82e0709f95b33067d6e07b610d66a22a12c9ff4",
+  "unchangedBehavior": [
+    "all product/comparator package files and exports",
+    "original semantic cases/oracles/schedule",
+    "v4 operations, ledger, supervisor, controls, safety, predicates, adapter",
+    "offline permissions and source URL/hash allowlist",
+    "C11 two empty setup obligations",
+    "W07 comparator unqualified/uncredited disposition"
+  ],
+  "admissionGrantIssued": false,
+  "actualEngineImports": 0
+}

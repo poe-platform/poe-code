@@ -1,0 +1,1364 @@
+{
+  "schema": "breadth-v5-stub-only-package-resolution",
+  "realEngineCalls": 0,
+  "runId": "resolution-01",
+  "attempts": 1,
+  "limits": {
+    "children": 12,
+    "childHeapMiB": 256,
+    "deadlineMs": 30000,
+    "graceMs": 2000,
+    "killMs": 1000,
+    "evidenceBytes": 8388608,
+    "newPerStreamBytes": 65536,
+    "metadataBytes": 262144
+  },
+  "tools": [
+    {
+      "role": "node",
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "role": "git",
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "cases": [
+    {
+      "id": "S01",
+      "ordinal": 1,
+      "engine": "virtual-bash",
+      "profile": "bare-exports-positive",
+      "moved": false,
+      "consumerPath": "consumer-v5/consumer.mjs",
+      "importPath": "consumer-v5/consumer.mjs",
+      "physicalFiles": [
+        {
+          "path": "package.json",
+          "bytes": 84,
+          "sha256": "435c67bcdbd7548b7844a35ee8be5eaf1b4bd39ed9d69d54835d912b7ba6c699",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./trap.mjs\"}}\n"
+        },
+        {
+          "path": "trap.mjs",
+          "bytes": 89,
+          "sha256": "b67869cc12ddf0500e01c1c340b97942b90338c689d2af8418496f8f66eb11ac",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'PARENT_SELF_REFERENCE';\nexport const marker = 'PARENT_TRAP';\n"
+        },
+        {
+          "path": "cwd-decoy/package.json",
+          "bytes": 88,
+          "sha256": "7834258dd43cf33f0ca3e71395cb15bc686d01ba75ccfc39f72c707f780b4a43",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./cwd-trap.mjs\"}}\n"
+        },
+        {
+          "path": "cwd-decoy/cwd-trap.mjs",
+          "bytes": 89,
+          "sha256": "259d11c023d44a740ace687f5b1eddfb0aca3f237f89e174671ec412e10b2cc5",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'CWD_MUST_NOT_SELECT_THIS';\nexport const marker = 'CWD_TRAP';\n"
+        },
+        {
+          "path": "view/consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420,
+          "text": "{\"name\":\"breadth-target-consumer-v5\",\"private\":true,\"type\":\"module\"}\n"
+        },
+        {
+          "path": "view/consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420,
+          "text": "import * as library from 'virtual-bash';\nexport { library };\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"main\":\"./decoy.mjs\",\"exports\":{\".\":{\"import\":\"./entry.mjs\",\"default\":\"./decoy.mjs\"}}}\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420,
+          "text": "globalThis.__breadthEntry = 'OWNED_TARGET_EXPORT';\nexport const marker = 'OWNED_TARGET_EXPORT';\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420,
+          "text": "globalThis.__breadthDecoy = true;\nexport const marker = 'WRONG_EXPORT_CONDITION';\n"
+        }
+      ],
+      "allowedFiles": [
+        {
+          "path": "node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420
+        }
+      ],
+      "expected": {
+        "code": null,
+        "evaluated": true,
+        "marker": "OWNED_TARGET_EXPORT",
+        "sourceCount": 2,
+        "resolvedPath": "view/node_modules/virtual-bash/entry.mjs",
+        "trapAndDecoyNeverEvaluated": true
+      }
+    },
+    {
+      "id": "S02",
+      "ordinal": 2,
+      "engine": "virtual-bash",
+      "profile": "physically-moved-positive",
+      "moved": true,
+      "consumerPath": "consumer-v5/consumer.mjs",
+      "importPath": "consumer-v5/consumer.mjs",
+      "physicalFiles": [
+        {
+          "path": "package.json",
+          "bytes": 84,
+          "sha256": "435c67bcdbd7548b7844a35ee8be5eaf1b4bd39ed9d69d54835d912b7ba6c699",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./trap.mjs\"}}\n"
+        },
+        {
+          "path": "trap.mjs",
+          "bytes": 89,
+          "sha256": "b67869cc12ddf0500e01c1c340b97942b90338c689d2af8418496f8f66eb11ac",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'PARENT_SELF_REFERENCE';\nexport const marker = 'PARENT_TRAP';\n"
+        },
+        {
+          "path": "cwd-decoy/package.json",
+          "bytes": 88,
+          "sha256": "7834258dd43cf33f0ca3e71395cb15bc686d01ba75ccfc39f72c707f780b4a43",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./cwd-trap.mjs\"}}\n"
+        },
+        {
+          "path": "cwd-decoy/cwd-trap.mjs",
+          "bytes": 89,
+          "sha256": "259d11c023d44a740ace687f5b1eddfb0aca3f237f89e174671ec412e10b2cc5",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'CWD_MUST_NOT_SELECT_THIS';\nexport const marker = 'CWD_TRAP';\n"
+        },
+        {
+          "path": "view/consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420,
+          "text": "{\"name\":\"breadth-target-consumer-v5\",\"private\":true,\"type\":\"module\"}\n"
+        },
+        {
+          "path": "view/consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420,
+          "text": "import * as library from 'virtual-bash';\nexport { library };\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"main\":\"./decoy.mjs\",\"exports\":{\".\":{\"import\":\"./entry.mjs\",\"default\":\"./decoy.mjs\"}}}\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420,
+          "text": "globalThis.__breadthEntry = 'OWNED_TARGET_EXPORT';\nexport const marker = 'OWNED_TARGET_EXPORT';\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420,
+          "text": "globalThis.__breadthDecoy = true;\nexport const marker = 'WRONG_EXPORT_CONDITION';\n"
+        }
+      ],
+      "allowedFiles": [
+        {
+          "path": "node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420
+        }
+      ],
+      "expected": {
+        "code": null,
+        "evaluated": true,
+        "marker": "OWNED_TARGET_EXPORT",
+        "sourceCount": 2,
+        "resolvedPath": "view/node_modules/virtual-bash/entry.mjs",
+        "trapAndDecoyNeverEvaluated": true
+      }
+    },
+    {
+      "id": "S03",
+      "ordinal": 3,
+      "engine": "just-bash",
+      "profile": "comparator-shaped-bare-exports-positive",
+      "moved": false,
+      "consumerPath": "benchmarks/consumer-v5/consumer.mjs",
+      "importPath": "benchmarks/consumer-v5/consumer.mjs",
+      "physicalFiles": [
+        {
+          "path": "package.json",
+          "bytes": 81,
+          "sha256": "f71f0a22137181fad3ded0a8d65a878e9c586b4d1576dec4a540aa1e1c50efec",
+          "mode": 420,
+          "text": "{\"name\":\"just-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./trap.mjs\"}}\n"
+        },
+        {
+          "path": "trap.mjs",
+          "bytes": 89,
+          "sha256": "b67869cc12ddf0500e01c1c340b97942b90338c689d2af8418496f8f66eb11ac",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'PARENT_SELF_REFERENCE';\nexport const marker = 'PARENT_TRAP';\n"
+        },
+        {
+          "path": "cwd-decoy/package.json",
+          "bytes": 85,
+          "sha256": "071457515e9ec3e4b46f588b7cfa6a3db171016827b8f56f1a076267d3845da5",
+          "mode": 420,
+          "text": "{\"name\":\"just-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./cwd-trap.mjs\"}}\n"
+        },
+        {
+          "path": "cwd-decoy/cwd-trap.mjs",
+          "bytes": 89,
+          "sha256": "259d11c023d44a740ace687f5b1eddfb0aca3f237f89e174671ec412e10b2cc5",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'CWD_MUST_NOT_SELECT_THIS';\nexport const marker = 'CWD_TRAP';\n"
+        },
+        {
+          "path": "view/benchmarks/consumer-v5/package.json",
+          "bytes": 73,
+          "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a",
+          "mode": 420,
+          "text": "{\"name\":\"breadth-comparator-consumer-v5\",\"private\":true,\"type\":\"module\"}\n"
+        },
+        {
+          "path": "view/benchmarks/consumer-v5/consumer.mjs",
+          "bytes": 58,
+          "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1",
+          "mode": 420,
+          "text": "import * as library from 'just-bash';\nexport { library };\n"
+        },
+        {
+          "path": "view/benchmarks/node_modules/just-bash/package.json",
+          "bytes": 138,
+          "sha256": "5d956790d7305af7a04e12a5dca062f6b369ffcf76aff0dc1bbb35bfe3058fc5",
+          "mode": 420,
+          "text": "{\"name\":\"just-bash\",\"private\":true,\"type\":\"module\",\"main\":\"./decoy.mjs\",\"exports\":{\".\":{\"import\":\"./entry.mjs\",\"default\":\"./decoy.mjs\"}}}\n"
+        },
+        {
+          "path": "view/benchmarks/node_modules/just-bash/entry.mjs",
+          "bytes": 104,
+          "sha256": "88515427b9f3fe5f57c85e3928b565c2e804be05283db4c5a87117b7cc19593f",
+          "mode": 420,
+          "text": "globalThis.__breadthEntry = 'OWNED_COMPARATOR_EXPORT';\nexport const marker = 'OWNED_COMPARATOR_EXPORT';\n"
+        },
+        {
+          "path": "view/benchmarks/node_modules/just-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420,
+          "text": "globalThis.__breadthDecoy = true;\nexport const marker = 'WRONG_EXPORT_CONDITION';\n"
+        }
+      ],
+      "allowedFiles": [
+        {
+          "path": "benchmarks/node_modules/just-bash/package.json",
+          "bytes": 138,
+          "sha256": "5d956790d7305af7a04e12a5dca062f6b369ffcf76aff0dc1bbb35bfe3058fc5",
+          "mode": 420
+        },
+        {
+          "path": "benchmarks/node_modules/just-bash/entry.mjs",
+          "bytes": 104,
+          "sha256": "88515427b9f3fe5f57c85e3928b565c2e804be05283db4c5a87117b7cc19593f",
+          "mode": 420
+        },
+        {
+          "path": "benchmarks/node_modules/just-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420
+        },
+        {
+          "path": "benchmarks/consumer-v5/package.json",
+          "bytes": 73,
+          "sha256": "2c8f2dcd28f18ce0d7151958fd07d2280fcf3d7e994e4d5237c20d89bfcd439a",
+          "mode": 420
+        },
+        {
+          "path": "benchmarks/consumer-v5/consumer.mjs",
+          "bytes": 58,
+          "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1",
+          "mode": 420
+        }
+      ],
+      "expected": {
+        "code": null,
+        "evaluated": true,
+        "marker": "OWNED_COMPARATOR_EXPORT",
+        "sourceCount": 2,
+        "resolvedPath": "view/benchmarks/node_modules/just-bash/entry.mjs",
+        "trapAndDecoyNeverEvaluated": true
+      }
+    },
+    {
+      "id": "S04",
+      "ordinal": 4,
+      "engine": "virtual-bash",
+      "profile": "legacy-self-reference-diagnosis",
+      "moved": false,
+      "consumerPath": "consumer-v5/consumer.mjs",
+      "importPath": "consumer-v5/consumer.mjs",
+      "physicalFiles": [
+        {
+          "path": "package.json",
+          "bytes": 84,
+          "sha256": "435c67bcdbd7548b7844a35ee8be5eaf1b4bd39ed9d69d54835d912b7ba6c699",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./trap.mjs\"}}\n"
+        },
+        {
+          "path": "trap.mjs",
+          "bytes": 89,
+          "sha256": "b67869cc12ddf0500e01c1c340b97942b90338c689d2af8418496f8f66eb11ac",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'PARENT_SELF_REFERENCE';\nexport const marker = 'PARENT_TRAP';\n"
+        },
+        {
+          "path": "cwd-decoy/package.json",
+          "bytes": 88,
+          "sha256": "7834258dd43cf33f0ca3e71395cb15bc686d01ba75ccfc39f72c707f780b4a43",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./cwd-trap.mjs\"}}\n"
+        },
+        {
+          "path": "cwd-decoy/cwd-trap.mjs",
+          "bytes": 89,
+          "sha256": "259d11c023d44a740ace687f5b1eddfb0aca3f237f89e174671ec412e10b2cc5",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'CWD_MUST_NOT_SELECT_THIS';\nexport const marker = 'CWD_TRAP';\n"
+        },
+        {
+          "path": "view/consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420,
+          "text": "import * as library from 'virtual-bash';\nexport { library };\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"main\":\"./decoy.mjs\",\"exports\":{\".\":{\"import\":\"./entry.mjs\",\"default\":\"./decoy.mjs\"}}}\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420,
+          "text": "globalThis.__breadthEntry = 'OWNED_TARGET_EXPORT';\nexport const marker = 'OWNED_TARGET_EXPORT';\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420,
+          "text": "globalThis.__breadthDecoy = true;\nexport const marker = 'WRONG_EXPORT_CONDITION';\n"
+        }
+      ],
+      "allowedFiles": [
+        {
+          "path": "node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420
+        }
+      ],
+      "expected": {
+        "code": "UNBOUND_MODULE",
+        "evaluated": false,
+        "marker": null,
+        "sourceCount": 1,
+        "resolvedPath": "trap.mjs",
+        "trapAndDecoyNeverEvaluated": true
+      }
+    },
+    {
+      "id": "S05",
+      "ordinal": 5,
+      "engine": "virtual-bash",
+      "profile": "missing-boundary",
+      "moved": false,
+      "consumerPath": "consumer-v5/consumer.mjs",
+      "importPath": "consumer-v5/consumer.mjs",
+      "physicalFiles": [
+        {
+          "path": "package.json",
+          "bytes": 84,
+          "sha256": "435c67bcdbd7548b7844a35ee8be5eaf1b4bd39ed9d69d54835d912b7ba6c699",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./trap.mjs\"}}\n"
+        },
+        {
+          "path": "trap.mjs",
+          "bytes": 89,
+          "sha256": "b67869cc12ddf0500e01c1c340b97942b90338c689d2af8418496f8f66eb11ac",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'PARENT_SELF_REFERENCE';\nexport const marker = 'PARENT_TRAP';\n"
+        },
+        {
+          "path": "cwd-decoy/package.json",
+          "bytes": 88,
+          "sha256": "7834258dd43cf33f0ca3e71395cb15bc686d01ba75ccfc39f72c707f780b4a43",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./cwd-trap.mjs\"}}\n"
+        },
+        {
+          "path": "cwd-decoy/cwd-trap.mjs",
+          "bytes": 89,
+          "sha256": "259d11c023d44a740ace687f5b1eddfb0aca3f237f89e174671ec412e10b2cc5",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'CWD_MUST_NOT_SELECT_THIS';\nexport const marker = 'CWD_TRAP';\n"
+        },
+        {
+          "path": "view/consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420,
+          "text": "import * as library from 'virtual-bash';\nexport { library };\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"main\":\"./decoy.mjs\",\"exports\":{\".\":{\"import\":\"./entry.mjs\",\"default\":\"./decoy.mjs\"}}}\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420,
+          "text": "globalThis.__breadthEntry = 'OWNED_TARGET_EXPORT';\nexport const marker = 'OWNED_TARGET_EXPORT';\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420,
+          "text": "globalThis.__breadthDecoy = true;\nexport const marker = 'WRONG_EXPORT_CONDITION';\n"
+        }
+      ],
+      "allowedFiles": [
+        {
+          "path": "node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420
+        }
+      ],
+      "expected": {
+        "code": "CONSUMER_BOUNDARY_MISSING",
+        "evaluated": false,
+        "marker": null,
+        "sourceCount": 0,
+        "resolvedPath": null,
+        "trapAndDecoyNeverEvaluated": true
+      }
+    },
+    {
+      "id": "S06",
+      "ordinal": 6,
+      "engine": "virtual-bash",
+      "profile": "wrong-private-package-name",
+      "moved": false,
+      "consumerPath": "consumer-v5/consumer.mjs",
+      "importPath": "consumer-v5/consumer.mjs",
+      "physicalFiles": [
+        {
+          "path": "package.json",
+          "bytes": 84,
+          "sha256": "435c67bcdbd7548b7844a35ee8be5eaf1b4bd39ed9d69d54835d912b7ba6c699",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./trap.mjs\"}}\n"
+        },
+        {
+          "path": "trap.mjs",
+          "bytes": 89,
+          "sha256": "b67869cc12ddf0500e01c1c340b97942b90338c689d2af8418496f8f66eb11ac",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'PARENT_SELF_REFERENCE';\nexport const marker = 'PARENT_TRAP';\n"
+        },
+        {
+          "path": "cwd-decoy/package.json",
+          "bytes": 88,
+          "sha256": "7834258dd43cf33f0ca3e71395cb15bc686d01ba75ccfc39f72c707f780b4a43",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./cwd-trap.mjs\"}}\n"
+        },
+        {
+          "path": "cwd-decoy/cwd-trap.mjs",
+          "bytes": 89,
+          "sha256": "259d11c023d44a740ace687f5b1eddfb0aca3f237f89e174671ec412e10b2cc5",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'CWD_MUST_NOT_SELECT_THIS';\nexport const marker = 'CWD_TRAP';\n"
+        },
+        {
+          "path": "view/consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "9957ae17c2ebe90995b7fd0a34745c327ac3c959554190dfdae910ac89d83f07",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\"}              \n"
+        },
+        {
+          "path": "view/consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420,
+          "text": "import * as library from 'virtual-bash';\nexport { library };\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"main\":\"./decoy.mjs\",\"exports\":{\".\":{\"import\":\"./entry.mjs\",\"default\":\"./decoy.mjs\"}}}\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420,
+          "text": "globalThis.__breadthEntry = 'OWNED_TARGET_EXPORT';\nexport const marker = 'OWNED_TARGET_EXPORT';\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420,
+          "text": "globalThis.__breadthDecoy = true;\nexport const marker = 'WRONG_EXPORT_CONDITION';\n"
+        }
+      ],
+      "allowedFiles": [
+        {
+          "path": "node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420
+        }
+      ],
+      "expected": {
+        "code": "FILE_HASH",
+        "evaluated": false,
+        "marker": null,
+        "sourceCount": 0,
+        "resolvedPath": null,
+        "trapAndDecoyNeverEvaluated": true
+      }
+    },
+    {
+      "id": "S07",
+      "ordinal": 7,
+      "engine": "virtual-bash",
+      "profile": "wrong-wrapper-hash",
+      "moved": false,
+      "consumerPath": "consumer-v5/consumer.mjs",
+      "importPath": "consumer-v5/consumer.mjs",
+      "physicalFiles": [
+        {
+          "path": "package.json",
+          "bytes": 84,
+          "sha256": "435c67bcdbd7548b7844a35ee8be5eaf1b4bd39ed9d69d54835d912b7ba6c699",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./trap.mjs\"}}\n"
+        },
+        {
+          "path": "trap.mjs",
+          "bytes": 89,
+          "sha256": "b67869cc12ddf0500e01c1c340b97942b90338c689d2af8418496f8f66eb11ac",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'PARENT_SELF_REFERENCE';\nexport const marker = 'PARENT_TRAP';\n"
+        },
+        {
+          "path": "cwd-decoy/package.json",
+          "bytes": 88,
+          "sha256": "7834258dd43cf33f0ca3e71395cb15bc686d01ba75ccfc39f72c707f780b4a43",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./cwd-trap.mjs\"}}\n"
+        },
+        {
+          "path": "cwd-decoy/cwd-trap.mjs",
+          "bytes": 89,
+          "sha256": "259d11c023d44a740ace687f5b1eddfb0aca3f237f89e174671ec412e10b2cc5",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'CWD_MUST_NOT_SELECT_THIS';\nexport const marker = 'CWD_TRAP';\n"
+        },
+        {
+          "path": "view/consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420,
+          "text": "{\"name\":\"breadth-target-consumer-v5\",\"private\":true,\"type\":\"module\"}\n"
+        },
+        {
+          "path": "view/consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "1e4a398c8c22a2a2eebaf4039fcaa92dd340070f29877d59dc98c6b89ce17059",
+          "mode": 420,
+          "text": "import * as library from 'virtual-bash';\nexpOrt { library };\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"main\":\"./decoy.mjs\",\"exports\":{\".\":{\"import\":\"./entry.mjs\",\"default\":\"./decoy.mjs\"}}}\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420,
+          "text": "globalThis.__breadthEntry = 'OWNED_TARGET_EXPORT';\nexport const marker = 'OWNED_TARGET_EXPORT';\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420,
+          "text": "globalThis.__breadthDecoy = true;\nexport const marker = 'WRONG_EXPORT_CONDITION';\n"
+        }
+      ],
+      "allowedFiles": [
+        {
+          "path": "node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420
+        }
+      ],
+      "expected": {
+        "code": "FILE_HASH",
+        "evaluated": false,
+        "marker": null,
+        "sourceCount": 0,
+        "resolvedPath": null,
+        "trapAndDecoyNeverEvaluated": true
+      }
+    },
+    {
+      "id": "S08",
+      "ordinal": 8,
+      "engine": "virtual-bash",
+      "profile": "wrong-boundary-mode",
+      "moved": false,
+      "consumerPath": "consumer-v5/consumer.mjs",
+      "importPath": "consumer-v5/consumer.mjs",
+      "physicalFiles": [
+        {
+          "path": "package.json",
+          "bytes": 84,
+          "sha256": "435c67bcdbd7548b7844a35ee8be5eaf1b4bd39ed9d69d54835d912b7ba6c699",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./trap.mjs\"}}\n"
+        },
+        {
+          "path": "trap.mjs",
+          "bytes": 89,
+          "sha256": "b67869cc12ddf0500e01c1c340b97942b90338c689d2af8418496f8f66eb11ac",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'PARENT_SELF_REFERENCE';\nexport const marker = 'PARENT_TRAP';\n"
+        },
+        {
+          "path": "cwd-decoy/package.json",
+          "bytes": 88,
+          "sha256": "7834258dd43cf33f0ca3e71395cb15bc686d01ba75ccfc39f72c707f780b4a43",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./cwd-trap.mjs\"}}\n"
+        },
+        {
+          "path": "cwd-decoy/cwd-trap.mjs",
+          "bytes": 89,
+          "sha256": "259d11c023d44a740ace687f5b1eddfb0aca3f237f89e174671ec412e10b2cc5",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'CWD_MUST_NOT_SELECT_THIS';\nexport const marker = 'CWD_TRAP';\n"
+        },
+        {
+          "path": "view/consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 292,
+          "text": "{\"name\":\"breadth-target-consumer-v5\",\"private\":true,\"type\":\"module\"}\n"
+        },
+        {
+          "path": "view/consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420,
+          "text": "import * as library from 'virtual-bash';\nexport { library };\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"main\":\"./decoy.mjs\",\"exports\":{\".\":{\"import\":\"./entry.mjs\",\"default\":\"./decoy.mjs\"}}}\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420,
+          "text": "globalThis.__breadthEntry = 'OWNED_TARGET_EXPORT';\nexport const marker = 'OWNED_TARGET_EXPORT';\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420,
+          "text": "globalThis.__breadthDecoy = true;\nexport const marker = 'WRONG_EXPORT_CONDITION';\n"
+        }
+      ],
+      "allowedFiles": [
+        {
+          "path": "node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420
+        }
+      ],
+      "expected": {
+        "code": "FILE_METADATA",
+        "evaluated": false,
+        "marker": null,
+        "sourceCount": 0,
+        "resolvedPath": null,
+        "trapAndDecoyNeverEvaluated": true
+      }
+    },
+    {
+      "id": "S09",
+      "ordinal": 9,
+      "engine": "virtual-bash",
+      "profile": "unbound-target",
+      "moved": false,
+      "consumerPath": "consumer-v5/consumer.mjs",
+      "importPath": "consumer-v5/consumer.mjs",
+      "physicalFiles": [
+        {
+          "path": "package.json",
+          "bytes": 84,
+          "sha256": "435c67bcdbd7548b7844a35ee8be5eaf1b4bd39ed9d69d54835d912b7ba6c699",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./trap.mjs\"}}\n"
+        },
+        {
+          "path": "trap.mjs",
+          "bytes": 89,
+          "sha256": "b67869cc12ddf0500e01c1c340b97942b90338c689d2af8418496f8f66eb11ac",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'PARENT_SELF_REFERENCE';\nexport const marker = 'PARENT_TRAP';\n"
+        },
+        {
+          "path": "cwd-decoy/package.json",
+          "bytes": 88,
+          "sha256": "7834258dd43cf33f0ca3e71395cb15bc686d01ba75ccfc39f72c707f780b4a43",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./cwd-trap.mjs\"}}\n"
+        },
+        {
+          "path": "cwd-decoy/cwd-trap.mjs",
+          "bytes": 89,
+          "sha256": "259d11c023d44a740ace687f5b1eddfb0aca3f237f89e174671ec412e10b2cc5",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'CWD_MUST_NOT_SELECT_THIS';\nexport const marker = 'CWD_TRAP';\n"
+        },
+        {
+          "path": "view/consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420,
+          "text": "{\"name\":\"breadth-target-consumer-v5\",\"private\":true,\"type\":\"module\"}\n"
+        },
+        {
+          "path": "view/consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420,
+          "text": "import * as library from 'virtual-bash';\nexport { library };\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"main\":\"./decoy.mjs\",\"exports\":{\".\":{\"import\":\"./entry.mjs\",\"default\":\"./decoy.mjs\"}}}\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420,
+          "text": "globalThis.__breadthEntry = 'OWNED_TARGET_EXPORT';\nexport const marker = 'OWNED_TARGET_EXPORT';\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420,
+          "text": "globalThis.__breadthDecoy = true;\nexport const marker = 'WRONG_EXPORT_CONDITION';\n"
+        }
+      ],
+      "allowedFiles": [
+        {
+          "path": "node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420
+        }
+      ],
+      "expected": {
+        "code": "UNBOUND_MODULE",
+        "evaluated": false,
+        "marker": null,
+        "sourceCount": 1,
+        "resolvedPath": "view/node_modules/virtual-bash/entry.mjs",
+        "trapAndDecoyNeverEvaluated": true
+      }
+    },
+    {
+      "id": "S10",
+      "ordinal": 10,
+      "engine": "virtual-bash",
+      "profile": "wrong-resolver-parent",
+      "moved": false,
+      "consumerPath": "consumer-v5/consumer.mjs",
+      "importPath": "consumer-v5/other.mjs",
+      "physicalFiles": [
+        {
+          "path": "package.json",
+          "bytes": 84,
+          "sha256": "435c67bcdbd7548b7844a35ee8be5eaf1b4bd39ed9d69d54835d912b7ba6c699",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./trap.mjs\"}}\n"
+        },
+        {
+          "path": "trap.mjs",
+          "bytes": 89,
+          "sha256": "b67869cc12ddf0500e01c1c340b97942b90338c689d2af8418496f8f66eb11ac",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'PARENT_SELF_REFERENCE';\nexport const marker = 'PARENT_TRAP';\n"
+        },
+        {
+          "path": "cwd-decoy/package.json",
+          "bytes": 88,
+          "sha256": "7834258dd43cf33f0ca3e71395cb15bc686d01ba75ccfc39f72c707f780b4a43",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./cwd-trap.mjs\"}}\n"
+        },
+        {
+          "path": "cwd-decoy/cwd-trap.mjs",
+          "bytes": 89,
+          "sha256": "259d11c023d44a740ace687f5b1eddfb0aca3f237f89e174671ec412e10b2cc5",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'CWD_MUST_NOT_SELECT_THIS';\nexport const marker = 'CWD_TRAP';\n"
+        },
+        {
+          "path": "view/consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420,
+          "text": "{\"name\":\"breadth-target-consumer-v5\",\"private\":true,\"type\":\"module\"}\n"
+        },
+        {
+          "path": "view/consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420,
+          "text": "import * as library from 'virtual-bash';\nexport { library };\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"main\":\"./decoy.mjs\",\"exports\":{\".\":{\"import\":\"./entry.mjs\",\"default\":\"./decoy.mjs\"}}}\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420,
+          "text": "globalThis.__breadthEntry = 'OWNED_TARGET_EXPORT';\nexport const marker = 'OWNED_TARGET_EXPORT';\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420,
+          "text": "globalThis.__breadthDecoy = true;\nexport const marker = 'WRONG_EXPORT_CONDITION';\n"
+        },
+        {
+          "path": "view/consumer-v5/other.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420,
+          "text": "import * as library from 'virtual-bash';\nexport { library };\n"
+        }
+      ],
+      "allowedFiles": [
+        {
+          "path": "node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/other.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420
+        }
+      ],
+      "expected": {
+        "code": "CONSUMER_PARENT",
+        "evaluated": false,
+        "marker": null,
+        "sourceCount": 1,
+        "resolvedPath": "view/node_modules/virtual-bash/entry.mjs",
+        "trapAndDecoyNeverEvaluated": true
+      }
+    },
+    {
+      "id": "S11",
+      "ordinal": 11,
+      "engine": "virtual-bash",
+      "profile": "ambient-package-fallback",
+      "moved": false,
+      "consumerPath": "consumer-v5/consumer.mjs",
+      "importPath": "consumer-v5/consumer.mjs",
+      "physicalFiles": [
+        {
+          "path": "package.json",
+          "bytes": 84,
+          "sha256": "435c67bcdbd7548b7844a35ee8be5eaf1b4bd39ed9d69d54835d912b7ba6c699",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./trap.mjs\"}}\n"
+        },
+        {
+          "path": "trap.mjs",
+          "bytes": 89,
+          "sha256": "b67869cc12ddf0500e01c1c340b97942b90338c689d2af8418496f8f66eb11ac",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'PARENT_SELF_REFERENCE';\nexport const marker = 'PARENT_TRAP';\n"
+        },
+        {
+          "path": "cwd-decoy/package.json",
+          "bytes": 88,
+          "sha256": "7834258dd43cf33f0ca3e71395cb15bc686d01ba75ccfc39f72c707f780b4a43",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./cwd-trap.mjs\"}}\n"
+        },
+        {
+          "path": "cwd-decoy/cwd-trap.mjs",
+          "bytes": 89,
+          "sha256": "259d11c023d44a740ace687f5b1eddfb0aca3f237f89e174671ec412e10b2cc5",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'CWD_MUST_NOT_SELECT_THIS';\nexport const marker = 'CWD_TRAP';\n"
+        },
+        {
+          "path": "view/consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420,
+          "text": "{\"name\":\"breadth-target-consumer-v5\",\"private\":true,\"type\":\"module\"}\n"
+        },
+        {
+          "path": "view/consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420,
+          "text": "import * as library from 'virtual-bash';\nexport { library };\n"
+        },
+        {
+          "path": "node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"main\":\"./decoy.mjs\",\"exports\":{\".\":{\"import\":\"./entry.mjs\",\"default\":\"./decoy.mjs\"}}}\n"
+        },
+        {
+          "path": "node_modules/virtual-bash/entry.mjs",
+          "bytes": 87,
+          "sha256": "f7ef3108e27551de982f151da948111d428d593d25966f81425e9be49eedc0d5",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'AMBIENT_PACKAGE';\nexport const marker = 'AMBIENT_PACKAGE';\n"
+        }
+      ],
+      "allowedFiles": [
+        {
+          "path": "consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420
+        }
+      ],
+      "expected": {
+        "code": "UNBOUND_MODULE",
+        "evaluated": false,
+        "marker": null,
+        "sourceCount": 1,
+        "resolvedPath": "node_modules/virtual-bash/entry.mjs",
+        "trapAndDecoyNeverEvaluated": true
+      }
+    },
+    {
+      "id": "S12",
+      "ordinal": 12,
+      "engine": "virtual-bash",
+      "profile": "wrong-consumer-path",
+      "moved": false,
+      "consumerPath": "unbound-consumer.mjs",
+      "importPath": "consumer-v5/consumer.mjs",
+      "physicalFiles": [
+        {
+          "path": "package.json",
+          "bytes": 84,
+          "sha256": "435c67bcdbd7548b7844a35ee8be5eaf1b4bd39ed9d69d54835d912b7ba6c699",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./trap.mjs\"}}\n"
+        },
+        {
+          "path": "trap.mjs",
+          "bytes": 89,
+          "sha256": "b67869cc12ddf0500e01c1c340b97942b90338c689d2af8418496f8f66eb11ac",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'PARENT_SELF_REFERENCE';\nexport const marker = 'PARENT_TRAP';\n"
+        },
+        {
+          "path": "cwd-decoy/package.json",
+          "bytes": 88,
+          "sha256": "7834258dd43cf33f0ca3e71395cb15bc686d01ba75ccfc39f72c707f780b4a43",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"exports\":{\".\":\"./cwd-trap.mjs\"}}\n"
+        },
+        {
+          "path": "cwd-decoy/cwd-trap.mjs",
+          "bytes": 89,
+          "sha256": "259d11c023d44a740ace687f5b1eddfb0aca3f237f89e174671ec412e10b2cc5",
+          "mode": 420,
+          "text": "globalThis.__breadthTrap = 'CWD_MUST_NOT_SELECT_THIS';\nexport const marker = 'CWD_TRAP';\n"
+        },
+        {
+          "path": "view/consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420,
+          "text": "{\"name\":\"breadth-target-consumer-v5\",\"private\":true,\"type\":\"module\"}\n"
+        },
+        {
+          "path": "view/consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420,
+          "text": "import * as library from 'virtual-bash';\nexport { library };\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420,
+          "text": "{\"name\":\"virtual-bash\",\"private\":true,\"type\":\"module\",\"main\":\"./decoy.mjs\",\"exports\":{\".\":{\"import\":\"./entry.mjs\",\"default\":\"./decoy.mjs\"}}}\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420,
+          "text": "globalThis.__breadthEntry = 'OWNED_TARGET_EXPORT';\nexport const marker = 'OWNED_TARGET_EXPORT';\n"
+        },
+        {
+          "path": "view/node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420,
+          "text": "globalThis.__breadthDecoy = true;\nexport const marker = 'WRONG_EXPORT_CONDITION';\n"
+        }
+      ],
+      "allowedFiles": [
+        {
+          "path": "node_modules/virtual-bash/package.json",
+          "bytes": 141,
+          "sha256": "67e2119d78fe494796994e130f7a1d132bed2a110873837b39b8615a80d53925",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/entry.mjs",
+          "bytes": 96,
+          "sha256": "a185269690b04b2c44068e84e045c37e867f41d3585f88cb541eb02b3b25225e",
+          "mode": 420
+        },
+        {
+          "path": "node_modules/virtual-bash/decoy.mjs",
+          "bytes": 82,
+          "sha256": "97e522ceba470d95b05e8dcdc312cd833f9447aa185a28590dd48ca96c40fd74",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/package.json",
+          "bytes": 69,
+          "sha256": "e41794ff60f445d0fd049872c54d3c914e972fca136f642eaead567fee35d4ca",
+          "mode": 420
+        },
+        {
+          "path": "consumer-v5/consumer.mjs",
+          "bytes": 61,
+          "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+          "mode": 420
+        }
+      ],
+      "expected": {
+        "code": "CONSUMER_PATH",
+        "evaluated": false,
+        "marker": null,
+        "sourceCount": 0,
+        "resolvedPath": null,
+        "trapAndDecoyNeverEvaluated": true
+      }
+    }
+  ]
+}

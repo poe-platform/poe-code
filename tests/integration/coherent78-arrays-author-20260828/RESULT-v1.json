@@ -1,0 +1,23 @@
+{
+  "candidate": "d111e5bf1f53aff16c5d4112e9ead2e025d6464f",
+  "status": "FAILED_OR_INCOMPLETE",
+  "phases": [],
+  "failures": [],
+  "setupOrControlFailure": {
+    "message": "The expression evaluated to a falsy value:\n\n  assert.ok(metadata.isFile() && !metadata.isSymbolicLink())\n",
+    "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(metadata.isFile() && !metadata.isSymbolicLink())\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-author-20260828/run.mjs:145:14"
+  },
+  "typeGroups": 0,
+  "typePass": 0,
+  "controls": [],
+  "cleanup": {
+    "directChildren": 1,
+    "closed": 1,
+    "active": 0,
+    "signals": [],
+    "scratchRetained": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-D8kSkX",
+    "noForeignCleanup": true
+  },
+  "elapsedMilliseconds": 751,
+  "rawSha256": "08f6ff8d1dff3533379cd773cfd9df3336f0b26d6604a1602402c811f693aa9a"
+}

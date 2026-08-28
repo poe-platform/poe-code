@@ -13,7 +13,7 @@ assert.deepEqual(manifest, JSON.parse(await fs.readFile(path.join(own, 'SOURCE.j
 assert.equal(process.execPath, seal.tools.nodePath);
 assert.equal(process.version, seal.tools.nodeVersion);
 assert.equal(sha(await fs.readFile(process.execPath)), seal.tools.nodeSha256);
-const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR-v2.json')));
+const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR-v3.json')));
 for (const [name, expected] of Object.entries(executor.files)) assert.equal(sha(await fs.readFile(path.join(own, name))), expected, name);
 const output = await fs.mkdtemp(path.join(os.tmpdir(), 'coherent78-arrays-author-'));
 console.log(JSON.stringify({ output, candidate: manifest.computedTree, sourceSha256: sha(await fs.readFile(path.join(own, 'SOURCE.json'))) }));
@@ -142,6 +142,17 @@ try {
     const destination = name === 'npm' ? path.join(output, 'tools/npm') : path.join(source, 'node_modules', name);
     for (const [relative, mode, length, digest] of tool.originalRows) {
       const filename = path.join(tool.origin, relative), metadata = await fs.lstat(filename);
+      if (mode === 'SYMLINK') {
+        assert.ok(metadata.isSymbolicLink());
+        assert.equal(await fs.readlink(filename), length);
+        assert.ok(tool.omittedInternalBinLinks.some(([name, target]) => name === relative && target === length));
+        const resolved = await fs.realpath(filename), realRoot = await fs.realpath(tool.origin);
+        assert.ok(resolved.startsWith(realRoot + path.sep));
+        const targetRow = tool.originalRows.find(row => row[0] === path.relative(realRoot, resolved));
+        assert.ok(targetRow && targetRow[1] !== 'SYMLINK');
+        assert.equal(sha(await fs.readFile(resolved)), targetRow[3]);
+        continue;
+      }
       assert.ok(metadata.isFile() && !metadata.isSymbolicLink());
       const bytes = await fs.readFile(filename); assert.equal(bytes.length, length); assert.equal(sha(bytes), digest); assert.equal(metadata.mode & 0o777, mode);
       await write(path.join(destination, relative), bytes, mode);
@@ -234,9 +245,9 @@ try {
   const captures = [];
   for (const name of (await fs.readdir(output)).sort()) if (/\.(stdout|stderr|jsonl)$/.test(name)) captures.push({ name, base64: (await fs.readFile(path.join(output, name))).toString('base64') });
   const encoded = gzipSync(Buffer.from(JSON.stringify({ receipt, captures })), { level: 9 }).toString('base64') + '\n';
-  await fs.writeFile(path.join(own, 'RAW-v1.json.gz.base64'), encoded, { flag: 'wx' });
+  await fs.writeFile(path.join(own, 'RAW-v2.json.gz.base64'), encoded, { flag: 'wx' });
   const summary = { candidate: receipt.candidate, status: receipt.status, pack: receipt.pack?.sha256, phases: receipt.phases.map(row => ({ layout: row.layout, script: row.script, summary: row.summary })), failures: receipt.failures, setupOrControlFailure: receipt.setupOrControlFailure, typeGroups: receipt.types.length, typePass: receipt.types.filter(row => row.pass).length, controls: receipt.controls, cleanup: receipt.cleanup, elapsedMilliseconds: receipt.elapsedMilliseconds, rawSha256: sha(Buffer.from(encoded)) };
-  await fs.writeFile(path.join(own, 'RESULT-v1.json'), JSON.stringify(summary, null, 2) + '\n', { flag: 'wx' });
+  await fs.writeFile(path.join(own, 'RESULT-v2.json'), JSON.stringify(summary, null, 2) + '\n', { flag: 'wx' });
   console.log(JSON.stringify(summary));
   if (receipt.status !== 'AUTHOR_SCOPED_PASS') process.exitCode = 1;
 }

@@ -8,20 +8,25 @@ import { own, repo, sha, objectHash } from './prepare.mjs';
 
 assert.deepEqual(process.argv.slice(2), ['--run']);
 const seal = JSON.parse(await fs.readFile(path.join(own, 'PRESEAL.json')));
-const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR.json')));
+const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR-v2.json')));
 for (const row of executor.files) { const bytes = await fs.readFile(path.join(repo, row.path)); assert.equal(bytes.length, row.bytes); assert.equal(sha(bytes), row.sha256); }
-const manifest = JSON.parse(await fs.readFile(path.join(own, 'SOURCE.json')));
-assert.equal(sha(await fs.readFile(path.join(own, 'SOURCE.json'))), executor.source);
+const manifest = JSON.parse(await fs.readFile(path.join(own, 'SOURCE-v2.json')));
+assert.equal(sha(await fs.readFile(path.join(own, 'SOURCE-v2.json'))), executor.source);
 assert.equal(process.execPath, seal.tools.node); assert.equal(process.version, seal.tools.nodeVersion); assert.equal(sha(await fs.readFile(process.execPath)), seal.tools.nodeSha256);
 const baseBytes = await fs.readFile(path.join(repo, 'tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64'));
 assert.equal(sha(baseBytes), seal.baseEvidence);
 const base = JSON.parse(gunzipSync(Buffer.from(baseBytes.toString().trim(), 'base64'), { maxOutputLength: 67108864 }));
 const started = Date.now(), output = await fs.mkdtemp(path.join(os.tmpdir(), 'git-m1b-author-'));
+const prior = JSON.parse(await fs.readFile(path.join(own, 'results-v1/SUMMARY.json')));
+assert.equal(prior.status, 'AUTHOR_ASSERTION_FAILURES'); assert.equal(prior.cleanup.allClosed, true); assert.equal(prior.cleanup.signals.length, 0);
+const campaignStart = (await fs.stat(path.join(prior.root, 'RESULT.json'))).mtimeMs - prior.elapsedMs;
+assert.ok(started - campaignStart < seal.bounds.totalSeconds * 1000);
 console.log(JSON.stringify({ output, source: executor.source, candidate: manifest.computedTree }));
 const receipt = { schema: 'git-m1b-author-result-v1', output, source: manifest, executor, status: 'PREPARING', children: [], cohorts: [], types: [], controls: [], failures: [], tools: {}, nativeRuns: 0, privateRuns: 0 };
+receipt.priorQualification = { root: prior.root, status: prior.status, rawSha256: prior.rawSha256, children: prior.cleanup.directChildren, campaignStart, countsUnchanged: true };
 let captured = 0, written = 0, childCount = 0;
 const save = () => fs.writeFile(path.join(output, 'RESULT.json'), JSON.stringify(receipt, null, 2) + '\n');
-async function write(file, bytes, mode = 0o644) { written += Buffer.byteLength(bytes); assert.ok(written <= seal.bounds.scratchBytes); await fs.mkdir(path.dirname(file), { recursive: true }); await fs.writeFile(file, bytes, { flag: 'wx', mode }); }
+async function write(file, bytes, mode = 0o644) { written += Buffer.byteLength(bytes); assert.ok(written + prior.scratchWriteBytes <= seal.bounds.scratchBytes); await fs.mkdir(path.dirname(file), { recursive: true }); await fs.writeFile(file, bytes, { flag: 'wx', mode }); }
 async function inventory(root) {
   const rows = [];
   const walk = async relative => { for (const name of (await fs.readdir(path.join(root, relative))).sort()) { assert.notEqual(name, 'AGENTS.md'); const filename = path.join(relative, name), target = path.join(root, filename), metadata = await fs.lstat(target); assert.ok(!metadata.isSymbolicLink()); if (metadata.isDirectory()) await walk(filename); else { assert.ok(metadata.isFile()); const bytes = await fs.readFile(target); rows.push({ path: filename, mode: metadata.mode & 0o777, bytes: bytes.length, sha256: sha(bytes) }); } } };
@@ -29,14 +34,14 @@ async function inventory(root) {
 }
 const environment = { PATH: path.dirname(process.execPath), HOME: path.join(output, 'home'), TMPDIR: path.join(output, 'tmp'), npm_config_cache: path.join(output, 'cache'), npm_config_userconfig: path.join(output, 'npmrc'), npm_config_globalconfig: path.join(output, 'global-npmrc'), npm_config_offline: 'true', npm_config_audit: 'false', npm_config_fund: 'false', npm_config_update_notifier: 'false', NO_COLOR: '1' };
 async function child(label, executable, args, cwd, extra = {}, input) {
-  assert.ok(++childCount <= seal.bounds.ownedChildren); assert.ok(Date.now() - started < seal.bounds.totalSeconds * 1000);
+  assert.ok(++childCount + prior.cleanup.directChildren <= seal.bounds.ownedChildren); assert.ok(Date.now() - campaignStart < seal.bounds.totalSeconds * 1000);
   const row = { label, executable, executableSha256: sha(await fs.readFile(executable)), args, cwd, signals: [], closed: false };
   receipt.children.push(row);
   const instance = spawn(executable, args, { cwd, env: { ...environment, ...extra }, stdio: ['pipe', 'pipe', 'pipe'] }); row.pid = instance.pid;
   const out = [], err = []; let size = 0, rescue, spawnError, alarm = false;
   const terminate = () => { if (alarm) return; alarm = true; row.signals.push('SIGTERM'); instance.kill('SIGTERM'); rescue = setTimeout(() => { if (!row.closed) { row.signals.push('SIGKILL'); instance.kill('SIGKILL'); } }, 1000); };
-  const timer = setTimeout(terminate, Math.min(120000, seal.bounds.totalSeconds * 1000 - (Date.now() - started)));
-  for (const [stream, chunks] of [[instance.stdout, out], [instance.stderr, err]]) stream.on('data', bytes => { size += bytes.length; captured += bytes.length; if (size > seal.bounds.childCaptureBytes || captured > seal.bounds.captureBytes) terminate(); else chunks.push(Buffer.from(bytes)); });
+  const timer = setTimeout(terminate, Math.min(120000, seal.bounds.totalSeconds * 1000 - (Date.now() - campaignStart)));
+  for (const [stream, chunks] of [[instance.stdout, out], [instance.stderr, err]]) stream.on('data', bytes => { size += bytes.length; captured += bytes.length; if (size > seal.bounds.childCaptureBytes || captured + prior.captureBytes > seal.bounds.captureBytes) terminate(); else chunks.push(Buffer.from(bytes)); });
   instance.on('error', error => { spawnError = String(error); }); instance.stdin.on('error', () => {}); instance.stdin.end(input);
   const [code, signal] = await new Promise(resolve => instance.once('close', (...values) => resolve(values)));
   row.closed = true; clearTimeout(timer); clearTimeout(rescue);

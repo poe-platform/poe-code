@@ -12,7 +12,7 @@ export const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 export const objectHash = (type, bytes) => createHash('sha1').update(`${type} ${bytes.length}\0`).update(bytes).digest('hex');
 export function inputs() {
   const seal = JSON.parse(fs.readFileSync(path.join(own, 'PRESEAL.json')));
-  const candidate = '35bca33841855e1275e5e6d08bcfbca732b0e029';
+  const candidate = '090291636fba5b4003e5ad9771e83ad9da9e0c03';
   const encoded = fs.readFileSync(path.join(repo, 'tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64'));
   assert.equal(sha(encoded), seal.baseEvidence);
   const base = JSON.parse(gunzipSync(Buffer.from(encoded.toString().trim(), 'base64'), { maxOutputLength: 67108864 }));
@@ -60,10 +60,10 @@ export function inputs() {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   assert.deepEqual(process.argv.slice(2), ['--seal']);
   const { manifest } = inputs();
-  fs.writeFileSync(path.join(own, 'SOURCE.json'), JSON.stringify(manifest, null, 2) + '\n', { flag: 'wx' });
-  const files = ['PRESEAL.json', 'SOURCE.json', 'prepare.mjs', 'run.mjs', 'packs.mjs', 'CROSSWALK.md'];
+  fs.writeFileSync(path.join(own, 'SOURCE-v2.json'), JSON.stringify(manifest, null, 2) + '\n', { flag: 'wx' });
+  const files = ['PRESEAL.json', 'SOURCE-v2.json', 'prepare.mjs', 'run.mjs', 'packs.mjs', 'CROSSWALK.md', 'REVISION-v2.md', 'results-v1/SUMMARY.json'];
   const external = ['tests/commands/git-author-20260828/cases.mjs', 'tests/commands/git-author-20260828/package-loader.mjs', 'tests/commands/git-author-20260828/consumer.ts.fixture', 'tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json', 'tests/commands/git-pack-design-20260828/NEUTRAL-PACKS.json', 'tests/commands/git-pack-independent-20260828/format/CASE-COVERAGE.json', 'tests/commands/git-pack-independent-20260828/resources/CASE-MATRIX.json'];
   const rows = [...files.map(name => path.relative(repo, path.join(own, name))), ...external].map(name => { const bytes = fs.readFileSync(path.join(repo, name)); return { path: name, bytes: bytes.length, sha256: sha(bytes) }; });
-  fs.writeFileSync(path.join(own, 'EXECUTOR.json'), JSON.stringify({ role: 'AUTHOR_PREEXECUTION_BINDING', files: rows, source: sha(fs.readFileSync(path.join(own, 'SOURCE.json'))), productRuns: 0, nativeRuns: 0 }, null, 2) + '\n', { flag: 'wx' });
-  console.log(JSON.stringify({ candidate: manifest.computedTree, module: manifest.moduleCommit, inputs: manifest.inputs.length, source: sha(fs.readFileSync(path.join(own, 'SOURCE.json'))) }));
+  fs.writeFileSync(path.join(own, 'EXECUTOR-v2.json'), JSON.stringify({ role: 'AUTHOR_V2_PREEXECUTION_BINDING', files: rows, source: sha(fs.readFileSync(path.join(own, 'SOURCE-v2.json'))), productRunsThisRevision: 0, nativeRuns: 0 }, null, 2) + '\n', { flag: 'wx' });
+  console.log(JSON.stringify({ candidate: manifest.computedTree, module: manifest.moduleCommit, inputs: manifest.inputs.length, source: sha(fs.readFileSync(path.join(own, 'SOURCE-v2.json'))) }));
 }

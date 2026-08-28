@@ -1,0 +1,185 @@
+{
+  "schema": "expr-v4-preexecution-manifest/1",
+  "authorizationDate": "2026-08-28",
+  "status": "frozen-before-one-invocation; new controls not yet executed",
+  "createdAt": "2026-08-28T01:58:32.847Z",
+  "entries": [
+    {
+      "path": ".gitignore",
+      "bytes": 6,
+      "mode": 420,
+      "sha256": "61f65dd9598c7421870bf4918332637f83f34abe1f9fc7cc095852ef7a1b44f7"
+    },
+    {
+      "path": "OVERLAY.json",
+      "bytes": 7302,
+      "mode": 420,
+      "sha256": "8171e1d0d331efd82d751a744193b090f8e961c05b7daedac699dc8b05c187a3"
+    },
+    {
+      "path": "PINS.json",
+      "bytes": 33881,
+      "mode": 420,
+      "sha256": "de02308e2c25fb05a40705bb74f379d66f4cdb028ac26c16e58e340169a2a9e1"
+    },
+    {
+      "path": "RECIPE.md",
+      "bytes": 6945,
+      "mode": 420,
+      "sha256": "a6be8d9b54df6a735a87758cd3c1954bc3dcb9eb3b3cbd9864eca5a9ae782d3e"
+    },
+    {
+      "path": "admission.mjs",
+      "bytes": 8862,
+      "mode": 420,
+      "sha256": "0f0cbecbfc26f96d014a5292eaf1cd5adf5ddc3a2fb851851536e32bf73676c7"
+    },
+    {
+      "path": "common.mjs",
+      "bytes": 3388,
+      "mode": 420,
+      "sha256": "38063aa2bac52482b6a1df1081f0d642d5d1f79c0d867217ab59041d69b32440"
+    },
+    {
+      "path": "entry.mjs",
+      "bytes": 1782,
+      "mode": 420,
+      "sha256": "7da169cfff200691c9a52224edb0308142e2245cc8f9162a10ac58e263752d37"
+    },
+    {
+      "path": "evidence.mjs",
+      "bytes": 3885,
+      "mode": 420,
+      "sha256": "282a629a51fd65f25224edaf8e1024c02ae6f4798ff5c67527d515148f3a7646"
+    },
+    {
+      "path": "fixture.mjs",
+      "bytes": 472,
+      "mode": 420,
+      "sha256": "cad47bb64c61fb8b0221b09d6da8bce8f200c08f3fa39283ce112e8581f56e57"
+    },
+    {
+      "path": "history.mjs",
+      "bytes": 3197,
+      "mode": 420,
+      "sha256": "12e8f9d392093d827b9a5ff0bf93d7dd5ecab52c49ede442eafd4671bf0b7ee6"
+    },
+    {
+      "path": "launch.mjs",
+      "bytes": 3465,
+      "mode": 420,
+      "sha256": "566a2780704f4a3ab46a80145079c626cbff9e6c7aa857c2dcee3ef498806df5"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 6568,
+      "mode": 420,
+      "sha256": "ef9307135d3abd6299b9f9034af76cbd3a91bfdd2814c6150ad6e46cd461ec78"
+    },
+    {
+      "path": "probe.mjs",
+      "bytes": 2138,
+      "mode": 420,
+      "sha256": "2c3269f17ec4aafa130f1d3538491d7e93a603783b135927eb6b985c9c94201f"
+    },
+    {
+      "path": "repair.mjs",
+      "bytes": 7582,
+      "mode": 420,
+      "sha256": "45f87db8debdc47d61c542c93d3c48fa143e7591548332cb528c3b89cb671939"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 30513,
+      "mode": 420,
+      "sha256": "728ddb1297dfda45fd1ef6ccf4e8f51f0ca9f9f4163a124827dce32b9e94a776"
+    },
+    {
+      "path": "verdict.mjs",
+      "bytes": 4879,
+      "mode": 420,
+      "sha256": "ac22ee97dd1e86029998a48b8180b839fcda5ed5f44c5b1889bca5a8fe75a280"
+    }
+  ],
+  "cases": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v1/cases.json",
+    "sha256": "215f5e8f44ccf8792cfc175437fe9701fa7f176d29081d5d561cd828f1269b16",
+    "bytes": 5911,
+    "regenerated": false
+  },
+  "counts": {
+    "newRepairControls": 28,
+    "permissions": 8,
+    "fixtureControls": 3,
+    "aggregateControls": 17,
+    "contexts": 4,
+    "packageControls": 36,
+    "runtimeAssertions": 104,
+    "types": 40
+  },
+  "controls": [
+    "node22-permission",
+    "node22-wrong-binding",
+    "node22-absent-directory",
+    "node22-positive-emission",
+    "node24-permission",
+    "node24-wrong-binding",
+    "node24-absent-directory",
+    "node24-positive-emission",
+    "cases-positive",
+    "cases-missing",
+    "cases-hash-mismatch",
+    "aggregate-positive",
+    "aggregate-failed-P01",
+    "aggregate-missing-P01",
+    "aggregate-missing-admission",
+    "aggregate-missing-repair",
+    "aggregate-failed-repair",
+    "aggregate-missing-controls",
+    "aggregate-failed-control",
+    "aggregate-missing-types",
+    "aggregate-failed-type",
+    "aggregate-unrun-case",
+    "aggregate-missing-context",
+    "aggregate-missing-finalization",
+    "aggregate-failed-finalization",
+    "aggregate-failed-check",
+    "aggregate-unclosed-child",
+    "aggregate-integrity-held"
+  ],
+  "reader": {
+    "path": "tests/integration/expr-public-independent-20260827/component-execution-v3/stream-reader.mjs",
+    "sha256": "5248d0c33f0a0282d80931c1ee7505bd379b802e377c4f2a7341a3e16df7932b",
+    "previousControls": 16,
+    "newControls": 0,
+    "semanticsChanged": false
+  },
+  "emission": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/expr-public-independent-20260827/component-execution-v4/work/run-001/build/dist",
+    "beforeLaunch": "exclusive mkdir 0755; empty; exact-directory allowlist",
+    "compilerOutDirUnchanged": "dist",
+    "compilerRootDirUnchanged": "src",
+    "broaderWriteGrant": false
+  },
+  "freezeBinding": "Git recipe commit binds this manifest; manifest excludes itself to avoid circular hashing",
+  "execution": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "tests/integration/expr-public-independent-20260827/component-execution-v4/launch.mjs",
+    "EXACT_RECIPE_COMMIT"
+  ],
+  "candidate": "44f00bf84278e3361b52106478d59c707ab7b2bc",
+  "tree": "5905cf8d43233c68ea2bd499275ada2641223d9a",
+  "selectedInputs": 357,
+  "requiredPack": {
+    "sha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+    "bytes": 727526,
+    "members": 834
+  },
+  "preparation": {
+    "syntaxChecks": "passed",
+    "staticOverlayCheck": "passed",
+    "historyPathInventoryCheck": "passed",
+    "controlsExecuted": 0,
+    "productExecutions": 0
+  }
+}

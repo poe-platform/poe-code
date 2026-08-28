@@ -1,0 +1,98 @@
+{
+  "schema": "expr-minimal-repair-overlay-v4/1",
+  "predecessor": "56f550afee7e6fd895b6d700e4cec376b6cf1eaf",
+  "originalSha256": "a23592d7ed2f9d7b7aef6324964523b6fd7900e79c8ed05d2429a7ffafc59ee9",
+  "overlaySha256": "728ddb1297dfda45fd1ef6ccf4e8f51f0ca9f9f4163a124827dce32b9e94a776",
+  "changes": [
+    {
+      "before": "import { admitted } from \"./admission.mjs\";",
+      "after": "import { admitted } from \"./admission.mjs\";\nimport { frozenCases, casesPath, casesSha256 } from \"./fixture.mjs\";\nimport { qualifyRepair, createEmission, compilerFlags } from \"./repair.mjs\";"
+    },
+    {
+      "before": "qualified v3 admission required",
+      "after": "qualified v4 admission required"
+    },
+    {
+      "before": "schema: \"expr-independent-component-v3\"",
+      "after": "schema: \"expr-independent-component-v4\""
+    },
+    {
+      "before": "const save = (name, value)",
+      "after": "let sourceBefore, toolsBefore, buildBefore;\nconst boundConsumers = new Map();\nconst save = (name, value)"
+    },
+    {
+      "before": "  return receipt;",
+      "after": "  if (!receipt.closed || !receipt.naturalSettlement) report.integrityHeld = `${name}: nonnatural or unclosed process`;\n  return receipt;"
+    },
+    {
+      "before": "baselineNames: json(join(directory, \"cases.json\")).baselineNames",
+      "after": "baselineNames: frozenCases().baselineNames"
+    },
+    {
+      "before": "putJson(join(consumer, \"binding.json\"), value); save(`binding-${name}`, value);",
+      "after": "putJson(join(consumer, \"binding.json\"), value); save(`binding-${name}`, value);\n  boundConsumers.set(consumer, { expected, bindingSha256: digest(read(join(consumer, \"binding.json\"))) });"
+    },
+    {
+      "before": "    assert.ok(Date.now() - started < 120000, `${label} context bound exceeded`);",
+      "after": "    assert.equal(report.integrityHeld, undefined, \"integrity failure holds child admission\");\n    assert.ok(Date.now() - started < 120000, `${label} context bound exceeded`);"
+    },
+    {
+      "before": "      assert.ok(Date.now() - started < 120000, \"context deadline before type invocation\");",
+      "after": "      assert.equal(report.integrityHeld, undefined, \"integrity failure holds type admission\");\n      assert.ok(Date.now() - started < 120000, \"context deadline before type invocation\");"
+    },
+    {
+      "before": "  const sourceBefore = selectedView();",
+      "after": "  sourceBefore = selectedView();"
+    },
+    {
+      "before": "  const toolsBefore = inventory(tools), buildBefore = inventory(buildDirectory);",
+      "after": "  toolsBefore = inventory(tools); buildBefore = inventory(buildDirectory);"
+    },
+    {
+      "before": "  const build = await run(\"P01-build\", inputs.runtimes[0].executable, [\"--permission\", `--allow-fs-read=${buildDirectory}`, `--allow-fs-read=${tools}`, `--allow-fs-write=${join(buildDirectory, \"dist\")}`, compiler, \"-p\", \"tsconfig.build.json\"], buildDirectory);",
+      "after": "  report.fixture = { status: \"authenticated\", path: casesPath, sha256: casesSha256, bytes: read(casesPath).length }; frozenCases();\n  report.repair = await qualifyRepair({ run, save, inputs, tools, compiler, runDirectory });\n  console.log(JSON.stringify({ checkpoint: \"v4-repair-controls\", status: report.repair.status, pass: report.repair.pass, planned: report.repair.planned }));\n  assert.equal(report.repair.status, \"qualified\", \"repair-control failure holds P01 and every component case\");\n  assert.equal(report.integrityHeld, undefined);\n  const emission = join(buildDirectory, \"dist\"); createEmission(emission);\n  save(\"P01-emission-prelaunch\", { path: emission, mode: 0o755, fresh: true, files: inventory(emission), flags: compilerFlags(buildDirectory, tools, emission, compiler), cases: report.fixture });\n  console.log(JSON.stringify({ checkpoint: \"v4-qualified-emission-before-P01\", emission, mode: 0o755, grant: `--allow-fs-write=${emission}`, sourceAndToolsWriteDenied: true }));\n  const build = await run(\"P01-build\", inputs.runtimes[0].executable, compilerFlags(buildDirectory, tools, emission, compiler), buildDirectory);"
+    },
+    {
+      "before": "  save(\"build-complete-after\", inventory(buildDirectory));",
+      "after": "  assert.equal(report.integrityHeld, undefined, \"build supervision failure holds dependent runtime\");\n  save(\"build-complete-after\", inventory(buildDirectory));"
+    },
+    {
+      "before": "renameSync(previous, consumer); assert.equal(existsSync(previous), false);",
+      "after": "renameSync(previous, consumer); assert.equal(existsSync(previous), false); boundConsumers.delete(previous);"
+    },
+    {
+      "before": "finally {\n  check(\"original-nine-admission-five-and-tools-readonly-postcheck\", authenticateOriginal);",
+      "after": "finally {\n  check(\"all-bound-packages-harnesses-and-bindings-postcheck\", () => {\n    for (const [consumer, binding] of boundConsumers) {\n      const actual = Object.fromEntries(inventory(consumer).filter(row => row.kind === \"file\" && (row.path.startsWith(\"node_modules/virtual-bash/\") || harnessFiles.includes(row.path))).map(row => [join(consumer, row.path), row.sha256]).sort(([left], [right]) => left.localeCompare(right)));\n      assert.deepEqual(actual, binding.expected); assert.equal(digest(read(join(consumer, \"binding.json\"))), binding.bindingSha256);\n    }\n  });\n  if (sourceBefore) check(\"finally-selected-source-newentry-mode-hash\", () => assert.deepEqual(selectedView(), sourceBefore));\n  if (buildBefore) check(\"finally-build-input-newentry-mode-hash\", () => assert.deepEqual(inventory(buildDirectory).filter(row => row.path !== \"dist\" && !row.path.startsWith(\"dist/\")), buildBefore));\n  if (toolsBefore) check(\"finally-copied-tools-newentry-mode-hash\", () => assert.deepEqual(inventory(tools), toolsBefore));\n  check(\"finally-frozen-cases-binding\", () => frozenCases());\n  check(\"original-nine-admission-five-and-tools-readonly-postcheck\", authenticateOriginal);"
+    },
+    {
+      "before": "report.readerQualification = { status: \"qualified\", controls: 16, receipt: \"ADMISSION.json\" };",
+      "after": "report.readerQualification = { status: \"qualified-evidence-reused\", priorControls: 16, newReaderControls: 0, receipt: \"ADMISSION.json\" };"
+    },
+    {
+      "before": "schema: \"expr-independent-evidence-v3\"",
+      "after": "schema: \"expr-independent-evidence-v4\""
+    }
+  ],
+  "unchanged": [
+    "consumer-component.mjs",
+    "child.mjs",
+    "cases.json",
+    "positive.ts.fixture",
+    "negative.ts.fixture",
+    "observer.mjs",
+    "silent-worker.mjs",
+    "guard.mjs",
+    "worker-guard.mjs"
+  ],
+  "reader": {
+    "path": "../component-execution-v3/stream-reader.mjs",
+    "sha256": "5248d0c33f0a0282d80931c1ee7505bd379b802e377c4f2a7341a3e16df7932b",
+    "semantics": "unchanged; previously qualified controls reauthenticated, not rerun"
+  },
+  "supplementalPreFreezeChanges": [
+    "Authenticate each Node executable immediately before child spawn",
+    "SIGTERM closes adapter child admission; current supervised child settles first",
+    "Finally validates bound packages/harnesses, source and copied tools after failures",
+    "Durable raw/top-level evidence flush before exit through owned common helper"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "schema": "let-native-recipe-seal-v1",
+  "created": "2026-08-28T06:56:10.218Z",
+  "recipes": [
+    {
+      "path": "CASES.json",
+      "bytes": 6114,
+      "mode": 420,
+      "sha256": "103d97293576fb36945871e41b5b130051ee04abd298219af515487e7f1ba44e"
+    },
+    {
+      "path": "PROTOCOL.md",
+      "bytes": 3263,
+      "mode": 420,
+      "sha256": "3f725721d12027250305572ac49fe5336d6bd84693cbe86a12fbebc99051c630"
+    },
+    {
+      "path": "seal.mjs",
+      "bytes": 3324,
+      "mode": 420,
+      "sha256": "91d7a29d5f7d8b33c4cbe368cd69c48671eeeef48ede889f0df7fbfccd68cb7d"
+    },
+    {
+      "path": "native.mjs",
+      "bytes": 6628,
+      "mode": 420,
+      "sha256": "a620de3e71cad0d221bb655d01450eb2386c423845a6e859736176c9cfc2ccb7"
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 4868,
+      "mode": 420,
+      "sha256": "1d548b490fb4312de0e7036edcb518b1d944b3911acdd53e9eaa9296505638b5"
+    }
+  ]
+}

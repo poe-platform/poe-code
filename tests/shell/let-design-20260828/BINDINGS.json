@@ -1,0 +1,129 @@
+{
+  "schema": "let-design-source-and-native-bindings-v1",
+  "created": "2026-08-28T06:56:10.215Z",
+  "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "cd": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+  "composition": "baseline plus only CD runtime.ts; never the full CD tree",
+  "rootAcceptance": "192ab78b (user authoritative, qualification retained)",
+  "tools": [
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+      "bytes": 1395864,
+      "mode": 493,
+      "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c"
+    },
+    {
+      "path": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+      "bytes": 415804,
+      "mode": 420,
+      "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5"
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "bytes": 3704880,
+      "mode": 493,
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "source": [
+    {
+      "path": "src/shell/arithmetic.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "blob": "223101946d13ac9b44f4a898f58fd16004ba86b9",
+      "bytes": 9922,
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd"
+    },
+    {
+      "path": "src/shell/cancellation.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "blob": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+      "bytes": 31986,
+      "sha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2"
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "blob": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "bytes": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+    },
+    {
+      "path": "src/shell/display.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "blob": "ecff8bf185cd542940607a79ee5257f292e844f5",
+      "bytes": 2605,
+      "sha256": "3d372572020a09dc5484acc575891ab1f24c8c9eba263c0a17c49b714611e069"
+    },
+    {
+      "path": "src/shell/getopts.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "blob": "bb502b076063c0fb95766911648dba788000f8b4",
+      "bytes": 9964,
+      "sha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee"
+    },
+    {
+      "path": "src/shell/index.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "blob": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+      "bytes": 275,
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383"
+    },
+    {
+      "path": "src/shell/input.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "blob": "3eec71b72f87dd48ddac572d6e7feb9097d32be4",
+      "bytes": 9881,
+      "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32"
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "blob": "5a2cda6417f2f28af38b33f2d32a56271c0f5a58",
+      "bytes": 207,
+      "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "blob": "f570235d1f65ade0f7279ccacf805ec1333155f7",
+      "bytes": 36304,
+      "sha256": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e"
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "blob": "be8739ee6b6c9e9323c559aff15f2dd27ce8271c",
+      "bytes": 4863,
+      "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "commit": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+      "blob": "d32239c31e5b4cdf11fd7863a407283119a209ec",
+      "bytes": 137389,
+      "sha256": "93c06908aec9d5d61d801657f99ab75122cadb6688f038e1941c587b4a8d4ed3"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "blob": "0b96a82f4ec29da4dbdd447806cca6a2f514311a",
+      "bytes": 15002,
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "bytes": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990"
+    }
+  ],
+  "productExecution": 0,
+  "nativeExecutionBeforeSeal": 0
+}

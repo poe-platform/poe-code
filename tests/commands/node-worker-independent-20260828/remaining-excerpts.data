@@ -1,0 +1,754 @@
+
+=== S3 src/interp/interpreter.ts:284-334 ===
+284: export async function interpret(
+285:   node: ParseResult,
+286:   options: InterpretOptions = {}
+287: ): Promise<InterpreterResult> {
+288:   const budget = options.budget ?? new Budget();
+289:   const scope =
+290:     options.scope === undefined
+291:       ? new Scope(
+292:           options.bindings,
+293:           undefined,
+294:           undefined,
+295:           {
+296:             chargeData: false
+297:           },
+298:           options.snapshot?.bindings
+299:         ).child({}, { functionBoundary: true })
+300:       : options.useScopeDirectly === true && options.bindings === undefined
+301:         ? options.scope
+302:         : options.scope.child(options.bindings ?? {}, {
+303:             functionBoundary: true
+304:           });
+305:   const stats = { nodeVisits: 0 } as InterpreterStats;
+306:   Object.defineProperties(stats, {
+307:     currentDataSize: { enumerable: false, value: 0, writable: true },
+308:     peakDataSize: { enumerable: false, value: 0, writable: true }
+309:   });
+310:   const activeLoopIterations = new Map<number, LoopIterationSnapshot>();
+311:   const jobs = new SandboxJobQueue();
+312:   hoistVarDeclarations(node, scope);
+313:   const context = {
+314:     budget,
+315:     callStack: [],
+316:     onYield: options.onYield,
+317:     captureReplayState: options.captureReplayState,
+318:     rootNode: node,
+319:     scope,
+320:     signal: options.signal,
+321:     stats,
+322:     activeLoopIterations,
+323:     restoredLoopIterations: new Map(
+324:       Object.entries(options.snapshot?.loopIterations ?? {}).map(([nodeId, iteration]) => [
+325:         Number(nodeId),
+326:         iteration
+327:       ])
+328:     ),
+329:     generatorResume: options.generatorResume,
+330:     generatorYield: options.generatorYield,
+331:     resumeTarget: { nodeId: options.snapshot?.resumeNodeId }
+332:   };
+333:   const evaluation = await jobs.run(() => evaluateNode(node, context));
+334:   await jobs.drain();
+
+=== S3 src/interp/interpreter.ts:3352-3391 ===
+3352: async function evaluateResolvedCallExpression(
+3353:   node: CallExpression,
+3354:   callee: InterpreterValue,
+3355:   context: EvaluationContext,
+3356:   thisValue: SandboxValue = undefined
+3357: ): Promise<EvaluationResult> {
+3358:   if (callee === null || callee === undefined) {
+3359:     if (node.optional) {
+3360:       return {
+3361:         kind: "normal",
+3362:         hasValue: true,
+3363:         value: undefined
+3364:       };
+3365:     }
+3366: 
+3367:     throw new TypeError("Attempted to call a non-function value.");
+3368:   }
+3369: 
+3370:   if (!isSandboxClosure(callee)) {
+3371:     throw new TypeError("Attempted to call a non-function value.");
+3372:   }
+3373: 
+3374:   const args = await evaluateCallArguments(node.arguments, context);
+3375:   if (!args.ok) {
+3376:     return args.result;
+3377:   }
+3378: 
+3379:   return {
+3380:     kind: "normal",
+3381:     hasValue: true,
+3382:     value: await invokeSandboxClosure(
+3383:       callee,
+3384:       args.value,
+3385:       context,
+3386:       [...context.callStack, formatStackFrame(node, callee.name)],
+3387:       node.span,
+3388:       thisValue
+3389:     )
+3390:   };
+3391: }
+
+=== S3 src/interp/interpreter.ts:3451-3487 ===
+3451: async function invokeSandboxClosure(
+3452:   callee: Extract<InterpreterValue, { kind: "fn" }>,
+3453:   args: readonly SandboxValue[],
+3454:   context: EvaluationContext,
+3455:   stack: readonly string[],
+3456:   span?: SourceSpan,
+3457:   thisValue: SandboxValue = undefined
+3458: ): Promise<SandboxValue> {
+3459:   const leaveCall = context.budget.enterCall();
+3460: 
+3461:   try {
+3462:     const result = Reflect.apply(callee.call, undefined, [
+3463:       args,
+3464:       {
+3465:         stack,
+3466:         thisValue,
+3467:         ...(span === undefined ? {} : { span })
+3468:       }
+3469:     ]);
+3470: 
+3471:     if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) {
+3472:       await result.synchronousPrefix;
+3473:     }
+3474: 
+3475:     return callee.async === true
+3476:       ? normalizeClosureResult(wrapHostResult(result, stack), context.budget)
+3477:       : await wrapHostResult(result, stack);
+3478:   } catch (error) {
+3479:     if (isFatalSandboxError(error)) {
+3480:       throw error;
+3481:     }
+3482: 
+3483:     throw captureException(error, stack);
+3484:   } finally {
+3485:     leaveCall();
+3486:   }
+3487: }
+
+=== S3 src/interp/interpreter.ts:3660-3693 ===
+3660: function wrapHostResult(
+3661:   result: InterpreterValue | Promise<InterpreterValue> | PromiseLike<InterpreterValue>,
+3662:   stack: readonly string[]
+3663: ): InterpreterValue | Promise<InterpreterValue> {
+3664:   if (!isPromiseLikeResult(result)) {
+3665:     return result;
+3666:   }
+3667: 
+3668:   return Promise.resolve(result).then(
+3669:     (value) => value,
+3670:     (reason) =>
+3671:       Promise.reject(
+3672:         isInterpreterError(reason) || reason instanceof SandboxError || isCapturedException(reason)
+3673:           ? reason
+3674:           : createCapturedException(reason, stack)
+3675:       )
+3676:   );
+3677: }
+3678: 
+3679: function captureException(error: unknown, stack: readonly string[]) {
+3680:   return isCapturedException(error) ? error : createCapturedException(error, stack);
+3681: }
+3682: 
+3683: function isFatalSandboxError(error: unknown): error is SandboxError {
+3684:   return (
+3685:     error instanceof SandboxError && (error.code === "budgetExceeded" || error.code === "reentry")
+3686:   );
+3687: }
+3688: 
+3689: function isPromiseLikeResult(
+3690:   value: InterpreterValue | Promise<InterpreterValue> | PromiseLike<InterpreterValue>
+3691: ): value is PromiseLike<InterpreterValue> {
+3692:   return typeof value === "object" && value !== null && "then" in value;
+3693: }
+
+=== S5 src/interp/promise.ts:1-169 ===
+1: import type { Budget } from "./budget.js";
+2: import { createSubsetErrorValue } from "./exceptions.js";
+3: import { runPromiseJob } from "./jobs.js";
+4: import { observeSandboxPromise } from "./promise-tracker.js";
+5: import {
+6:   createSandboxClosure,
+7:   createSandboxPromise,
+8:   isSandboxClosure,
+9:   isSandboxPromise,
+10:   type SandboxClosure,
+11:   type SandboxObject,
+12:   type SandboxPromise,
+13:   type SandboxValue
+14: } from "./values.js";
+15: 
+16: export type PromiseGlobals = {
+17:   Promise: SandboxObject;
+18: };
+19: 
+20: export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobals {
+21:   return {
+22:     Promise: {
+23:       all: createSandboxClosure({
+24:         async: true,
+25:         call: ([values]) =>
+26:           createSandboxPromise(
+27:             settleIterable(values, (entries) => Promise.all(entries), options.budget)
+28:           ),
+29:         name: "all"
+30:       }),
+31:       race: createSandboxClosure({
+32:         async: true,
+33:         call: ([values]) =>
+34:           createSandboxPromise(
+35:             settleIterable(values, (entries) => Promise.race(entries), options.budget)
+36:           ),
+37:         name: "race"
+38:       }),
+39:       allSettled: createSandboxClosure({
+40:         async: true,
+41:         call: ([values]) =>
+42:           createSandboxPromise(
+43:             settleIterable(
+44:               values,
+45:               (entries) =>
+46:                 Promise.allSettled(entries).then((results) =>
+47:                   budgetSandboxValue(
+48:                     results.map((result) =>
+49:                       result.status === "fulfilled"
+50:                         ? {
+51:                             status: "fulfilled",
+52:                             value: result.value
+53:                           }
+54:                         : {
+55:                             reason: result.reason as SandboxValue,
+56:                             status: "rejected"
+57:                           }
+58:                     ),
+59:                     options.budget
+60:                   )
+61:                 ),
+62:               options.budget
+63:             )
+64:           ),
+65:         name: "allSettled"
+66:       }),
+67:       any: createSandboxClosure({
+68:         async: true,
+69:         call: ([values]) =>
+70:           createSandboxPromise(
+71:             settleIterable(
+72:               values,
+73:               (entries) =>
+74:                 Promise.any(entries).catch((error: AggregateError) => {
+75:                   const aggregate = createSubsetErrorValue(
+76:                     "AggregateError",
+77:                     "All promises were rejected",
+78:                     [],
+79:                     options.budget
+80:                   );
+81:                   aggregate.errors = Array.isArray(error.errors)
+82:                     ? (error.errors as SandboxValue[])
+83:                     : [];
+84:                   throw budgetSandboxValue(aggregate, options.budget);
+85:                 }),
+86:               options.budget
+87:             )
+88:           ),
+89:         name: "any"
+90:       }),
+91:       resolve: createSandboxClosure({
+92:         async: true,
+93:         call: ([value]) =>
+94:           isSandboxPromise(value)
+95:             ? value
+96:             : createSandboxPromise(resolveSandboxValue(value, { budget: options.budget })),
+97:         name: "resolve"
+98:       }),
+99:       reject: createSandboxClosure({
+100:         async: true,
+101:         call: ([reason], context) =>
+102:           createRejectedSandboxPromise(reason, options.budget, context?.span),
+103:         name: "reject"
+104:       })
+105:     }
+106:   };
+107: }
+108: 
+109: export function getPromiseMember(
+110:   target: SandboxPromise,
+111:   property: string | number,
+112:   budget: Budget
+113: ): SandboxValue {
+114:   if (property === "then") {
+115:     return createSandboxClosure({
+116:       async: true,
+117:       call: ([onFulfilled, onRejected]) => {
+118:         observeSandboxPromise(target);
+119:         const chained = createSandboxPromise(
+120:           target.promise.then(
+121:             (value) => runPromiseReaction(onFulfilled, value, "fulfilled", budget, chained),
+122:             (reason: SandboxValue) =>
+123:               runPromiseReaction(onRejected, reason, "rejected", budget, chained)
+124:           )
+125:         );
+126:         return chained;
+127:       },
+128:       name: "then"
+129:     });
+130:   }
+131: 
+132:   if (property === "catch") {
+133:     return createSandboxClosure({
+134:       async: true,
+135:       call: ([onRejected]) => {
+136:         observeSandboxPromise(target);
+137:         const chained = createSandboxPromise(
+138:           target.promise.then(
+139:             (value) => runPromiseReaction(undefined, value, "fulfilled", budget, chained),
+140:             (reason: SandboxValue) =>
+141:               runPromiseReaction(onRejected, reason, "rejected", budget, chained)
+142:           )
+143:         );
+144:         return chained;
+145:       },
+146:       name: "catch"
+147:     });
+148:   }
+149: 
+150:   if (property === "finally") {
+151:     return createSandboxClosure({
+152:       async: true,
+153:       call: ([onFinally]) => {
+154:         observeSandboxPromise(target);
+155:         const chained = createSandboxPromise(
+156:           target.promise.then(
+157:             (value) => runPromiseFinally(onFinally, value, "fulfilled", budget, chained),
+158:             (reason: SandboxValue) =>
+159:               runPromiseFinally(onFinally, reason, "rejected", budget, chained)
+160:           )
+161:         );
+162:         return chained;
+163:       },
+164:       name: "finally"
+165:     });
+166:   }
+167: 
+168:   return undefined;
+169: }
+
+=== S5 src/interp/promise.ts:425-438 ===
+425: function callInPromiseJob(
+426:   handler: SandboxClosure,
+427:   args: readonly SandboxValue[],
+428:   thisValue: SandboxValue = undefined
+429: ): Promise<{ value: SandboxValue | Promise<SandboxValue> }> {
+430:   return runPromiseJob(async () => {
+431:     let result = handler.call(args, { stack: [], thisValue });
+432:     if (handler.async !== true) result = await result;
+433:     if (isSandboxPromise(result) && result.synchronousPrefix !== undefined) {
+434:       await result.synchronousPrefix;
+435:     }
+436:     return { value: result };
+437:   });
+438: }
+
+=== S5 src/interp/values.ts:173-222 ===
+173: export function createSandboxPromise(
+174:   promise: Promise<SandboxValue>,
+175:   metadata: {
+176:     trackReplay?: boolean;
+177:     synchronousPrefix?: Promise<void>;
+178:     hostCall?: import("./host-call.js").HostCallRecord;
+179:     hostCallJournal?: import("./host-call.js").HostCallJournal;
+180:     span?: SandboxCallContext["span"];
+181:   } = {}
+182: ): SandboxPromise {
+183:   const sandboxPromise = {
+184:     kind: "promise" as const,
+185:     promise:
+186:       metadata.trackReplay === false
+187:         ? promise
+188:         : (promiseReplayContext.getStore()?.track(promise) ?? promise)
+189:   } as SandboxPromise;
+190: 
+191:   Object.defineProperty(sandboxPromise, sandboxPromiseBrand, {
+192:     enumerable: false,
+193:     value: true
+194:   });
+195: 
+196:   Object.defineProperty(sandboxPromise, Symbol.toStringTag, { value: "Promise" });
+197: 
+198:   if (metadata.span !== undefined) {
+199:     Object.defineProperty(sandboxPromise, "span", {
+200:       value: metadata.span
+201:     });
+202:   }
+203: 
+204:   if (metadata.synchronousPrefix !== undefined) {
+205:     Object.defineProperty(sandboxPromise, "synchronousPrefix", {
+206:       value: metadata.synchronousPrefix
+207:     });
+208:   }
+209: 
+210:   if (metadata.hostCall !== undefined) {
+211:     Object.defineProperty(sandboxPromise, "hostCall", { value: metadata.hostCall });
+212:   }
+213:   if (metadata.hostCallJournal !== undefined) {
+214:     Object.defineProperty(sandboxPromise, "hostCallJournal", {
+215:       value: metadata.hostCallJournal
+216:     });
+217:   }
+218: 
+219:   trackSandboxPromise(sandboxPromise);
+220: 
+221:   return Object.freeze(sandboxPromise);
+222: }
+
+=== S5 src/interp/promise-tracker.ts:1-94 ===
+1: import { AsyncLocalStorage } from "node:async_hooks";
+2: 
+3: import type { ErrorSourceSpan } from "../error/shape.js";
+4: import type { SandboxPromise, SandboxValue } from "./values.js";
+5: 
+6: type TrackedPromise = {
+7:   observed: boolean;
+8:   promise: SandboxPromise;
+9:   rejectionReason?: SandboxValue;
+10:   rejected: boolean;
+11: };
+12: 
+13: export class SandboxPromiseRejectionTracker {
+14:   private readonly records = new Set<TrackedPromise>();
+15:   private readonly recordsByPromise = new WeakMap<SandboxPromise, TrackedPromise>();
+16: 
+17:   observe(promise: SandboxPromise): void {
+18:     const record = this.recordsByPromise.get(promise);
+19:     if (record !== undefined) {
+20:       record.observed = true;
+21:     }
+22:   }
+23: 
+24:   track(promise: SandboxPromise): void {
+25:     if (this.recordsByPromise.has(promise)) {
+26:       return;
+27:     }
+28: 
+29:     const record: TrackedPromise = {
+30:       observed: false,
+31:       promise,
+32:       rejected: false
+33:     };
+34:     this.records.add(record);
+35:     this.recordsByPromise.set(promise, record);
+36: 
+37:     promise.promise.then(
+38:       () => undefined,
+39:       (reason: SandboxValue) => {
+40:         record.rejected = true;
+41:         record.rejectionReason = reason;
+42:       }
+43:     );
+44:     promise.promise.catch(() => undefined);
+45:   }
+46: 
+47:   async findUnhandledRejection(): Promise<
+48:     | {
+49:         reason: SandboxValue | undefined;
+50:         span: ErrorSourceSpan | undefined;
+51:       }
+52:     | undefined
+53:   > {
+54:     await flushPromiseJobs();
+55: 
+56:     for (const record of this.records) {
+57:       if (record.rejected && !record.observed) {
+58:         return {
+59:           reason: record.rejectionReason,
+60:           span: record.promise.span
+61:         };
+62:       }
+63:     }
+64: 
+65:     return undefined;
+66:   }
+67: }
+68: 
+69: const activePromiseTracker = new AsyncLocalStorage<SandboxPromiseRejectionTracker>();
+70: 
+71: export function createSandboxPromiseRejectionTracker(): SandboxPromiseRejectionTracker {
+72:   return new SandboxPromiseRejectionTracker();
+73: }
+74: 
+75: export function observeSandboxPromise(promise: SandboxPromise): void {
+76:   activePromiseTracker.getStore()?.observe(promise);
+77: }
+78: 
+79: export function trackSandboxPromise(promise: SandboxPromise): void {
+80:   activePromiseTracker.getStore()?.track(promise);
+81: }
+82: 
+83: export function withSandboxPromiseRejectionTracker<TResult>(
+84:   tracker: SandboxPromiseRejectionTracker,
+85:   callback: () => TResult
+86: ): TResult {
+87:   return activePromiseTracker.run(tracker, callback);
+88: }
+89: 
+90: async function flushPromiseJobs(): Promise<void> {
+91:   for (let index = 0; index < 20; index += 1) {
+92:     await Promise.resolve();
+93:   }
+94: }
+
+=== S7 src/interp/exceptions.ts:121-169 ===
+121: export async function evaluateTryStatement<TContext extends ExceptionContext, TError>(
+122:   node: TryStatement,
+123:   context: TContext,
+124:   evaluateNode: EvaluateExceptionNode<TContext, TError>
+125: ): Promise<EvaluationResult<TError>> {
+126:   let fatalBudgetError: SandboxError | undefined;
+127:   let tryResult: EvaluationResult<TError>;
+128: 
+129:   try {
+130:     tryResult = await evaluateBlockCompletion(node.block, context, evaluateNode);
+131:   } catch (error) {
+132:     if (!isBudgetExceeded(error) || node.finalizer === undefined) {
+133:       throw error;
+134:     }
+135: 
+136:     fatalBudgetError = error;
+137:     tryResult = {
+138:       kind: "throw",
+139:       hasValue: true,
+140:       value: undefined
+141:     };
+142:   }
+143: 
+144:   const tryOrCatchResult =
+145:     fatalBudgetError === undefined && tryResult.kind === "throw" && node.handler !== undefined
+146:       ? await evaluateCatchClause(node.handler, tryResult.value, context, evaluateNode)
+147:       : tryResult;
+148: 
+149:   if (node.finalizer === undefined || tryOrCatchResult.kind === "error") {
+150:     return tryOrCatchResult;
+151:   }
+152: 
+153:   const finalizerResult =
+154:     fatalBudgetError?.budget === "deadline"
+155:       ? await evaluateWithoutDeadlineChecks(context, () =>
+156:           evaluateBlockCompletion(node.finalizer as BlockStatement, context, evaluateNode)
+157:         )
+158:       : await evaluateBlockCompletion(node.finalizer, context, evaluateNode);
+159: 
+160:   if (fatalBudgetError !== undefined) {
+161:     throw fatalBudgetError;
+162:   }
+163: 
+164:   if (finalizerResult.kind === "normal") {
+165:     return tryOrCatchResult;
+166:   }
+167: 
+168:   return finalizerResult;
+169: }
+
+=== S7 src/interp/exceptions.ts:186-214 ===
+186: export function coerceThrownValue(
+187:   reason: unknown,
+188:   budget: Budget,
+189:   stackFrames: readonly string[],
+190:   span?: ErrorSourceSpan
+191: ): SandboxValue {
+192:   if (isSubsetErrorValue(reason)) {
+193:     attachErrorSpan(reason, readErrorSpan(reason) ?? span);
+194:     return reason;
+195:   }
+196: 
+197:   if (reason instanceof Error) {
+198:     return createSubsetErrorValue(reason.name || "Error", reason.message, stackFrames, budget, {
+199:       chargeBudget: false,
+200:       cause: readErrorCause(reason),
+201:       span
+202:     });
+203:   }
+204: 
+205:   if (isErrorLikeValue(reason)) {
+206:     return createSubsetErrorValue(reason.name || "Error", reason.message, stackFrames, budget, {
+207:       chargeBudget: false,
+208:       cause: readErrorCause(reason),
+209:       span
+210:     });
+211:   }
+212: 
+213:   return deepCopyToSandbox(reason);
+214: }
+
+=== S8 src/modules/registry.ts:77-154 ===
+77: function bindImportDeclaration(
+78:   declaration: ImportDeclaration,
+79:   registry: NormalizedModuleRegistry,
+80:   wrappedModules: Map<string, Record<string, SandboxValue>>,
+81:   bindings: Record<string, SandboxValue>,
+82:   options: {
+83:     budget: Budget;
+84:     hostCalls?: HostCallJournal;
+85:     signal?: AbortSignal;
+86:     allowMissing?: boolean;
+87:   }
+88: ): void {
+89:   const moduleName = declaration.source.value;
+90:   const moduleExports = registry.get(moduleName);
+91: 
+92:   if (moduleExports === undefined) {
+93:     if (options.allowMissing) return;
+94:     throw createModuleImportError(
+95:       createUnknownModuleMessage(moduleName, [...registry.keys()]),
+96:       declaration.source.span
+97:     );
+98:   }
+99: 
+100:   const wrappedExports =
+101:     wrappedModules.get(moduleName) ??
+102:     wrapCancelableBindings(
+103:       wrapCallerInjectedBindings(Object.fromEntries(moduleExports), {
+104:         budget: options.budget,
+105:         hostCalls: options.hostCalls,
+106:         moduleId: moduleName,
+107:         signal: options.signal
+108:       }),
+109:       options.signal
+110:     );
+111: 
+112:   wrappedModules.set(moduleName, wrappedExports);
+113: 
+114:   for (const specifier of declaration.specifiers) {
+115:     const localName = specifier.local.name;
+116: 
+117:     if (Object.hasOwn(bindings, localName)) {
+118:       throw createModuleImportError(
+119:         `Cannot redeclare imported binding '${localName}'.`,
+120:         specifier.local.span
+121:       );
+122:     }
+123: 
+124:     if (options.allowMissing && specifier.type !== "ImportNamespaceSpecifier") {
+125:       const exportName =
+126:         specifier.type === "ImportDefaultSpecifier" ? "default" : specifier.imported.name;
+127:       if (!Object.hasOwn(wrappedExports, exportName)) continue;
+128:     }
+129:     bindings[localName] = resolveImportSpecifier(moduleName, specifier, wrappedExports);
+130:   }
+131: }
+132: 
+133: function resolveImportSpecifier(
+134:   moduleName: string,
+135:   specifier: ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier,
+136:   wrappedExports: Record<string, SandboxValue>
+137: ): SandboxValue {
+138:   if (specifier.type === "ImportNamespaceSpecifier") {
+139:     return createBindingRecord(wrappedExports);
+140:   }
+141: 
+142:   const exportName =
+143:     specifier.type === "ImportDefaultSpecifier" ? "default" : specifier.imported.name;
+144:   const exportedValue = wrappedExports[exportName];
+145: 
+146:   if (exportedValue !== undefined || Object.hasOwn(wrappedExports, exportName)) {
+147:     return exportedValue;
+148:   }
+149: 
+150:   throw createModuleImportError(
+151:     createUnknownExportMessage(moduleName, exportName, Object.keys(wrappedExports).sort()),
+152:     specifier.span
+153:   );
+154: }
+
+=== S9 src/interp/budget.ts:115-151 ===
+115:   allocateString(value: string): string {
+116:     if (
+117:       this.allChecksSuspended === 0 &&
+118:       this.limits.stringLength !== undefined &&
+119:       value.length > this.limits.stringLength
+120:     ) {
+121:       throw new SandboxError({
+122:         budget: "stringLength",
+123:         current: value.length,
+124:         limit: this.limits.stringLength
+125:       });
+126:     }
+127: 
+128:     return value;
+129:   }
+130: 
+131:   allocateArrayLength(length: number): void {
+132:     if (
+133:       this.allChecksSuspended === 0 &&
+134:       this.limits.arrayLength !== undefined &&
+135:       length > this.limits.arrayLength
+136:     ) {
+137:       throw new SandboxError({
+138:         budget: "arrayLength",
+139:         current: length,
+140:         limit: this.limits.arrayLength
+141:       });
+142:     }
+143:   }
+144: 
+145:   allocateCollectionEntries(count: number): void {
+146:     this.allocateArrayLength(count);
+147:   }
+148: 
+149:   reconcileDataUsage(usage: number): void {
+150:     const total = usage + this.retainedDataSize;
+151:     this.checkDataUsage(total);
+
+=== S9 src/interp/budget.ts:203-215 ===
+203:   reset(): void {
+204:     this.stepsUsed = 0;
+205:     this.peakCallDepth = 0;
+206:     this.currentCallDepth = 0;
+207:     this.currentDataSize = 0;
+208:     this.peakDataSize = 0;
+209:     this.retainedDataSize = 0;
+210:     this.retainedData.clear();
+211:     this.retainedValueSources.clear();
+212:     this.allChecksSuspended = 0;
+213:     this.deadlineChecksSuspended = 0;
+214:     this.visitsUntilDeadlineCheck = DEADLINE_CHECK_INTERVAL;
+215:   }
+
+=== S10 src/core.ts:1-6 ===
+1: export { lint, type Diagnostic, type Fix, type LintFixResult, type LintOptions } from "./lint.js";
+2: export { run } from "./run.js";
+3: export { createReplayableRandom, type ReplayableRandom } from "./random.js";
+4: export type { RunClock, RunClockSnapshot, RunRandom } from "./run.js";
+5: export { Budget } from "./interp/budget.js";
+6: export type { SnapshotValidationCode } from "./snapshot/validation.js";
+
+=== S10 src/index.ts:1-23 ===
+1: export { parse } from "./parse.js";
+2: export { parseModule } from "./parse/parser.js";
+3: export { lint, type Diagnostic, type Fix, type LintFixResult, type LintOptions } from "./lint.js";
+4: export { run } from "./run.js";
+5: export { createReplayableRandom, type ReplayableRandom } from "./random.js";
+6: export type { RunClock, RunClockSnapshot, RunRandom } from "./run.js";
+7: export { noopOtelSink } from "./observability/otel.js";
+8: export type { OtelSink, OtelSpan } from "./observability/otel.js";
+9: export { FileSnapshotBackend } from "./snapshot/backend.js";
+10: export type { Snapshot, SnapshotBackend } from "./snapshot/backend.js";
+11: export { declareHostOperation } from "./interp/host-bridge.js";
+12: export { HostCallResumabilityError } from "./interp/host-call.js";
+13: export type {
+14:   HostCallLifecycle,
+15:   HostCallOutcome,
+16:   HostCallRecord,
+17:   HostCallResumeContext,
+18:   HostCallResumeProof,
+19:   HostCallResumeProvider,
+20:   HostCallResumeRequest
+21: } from "./interp/host-call.js";
+22: export {
+23:   HostOperationResumePolicyError,

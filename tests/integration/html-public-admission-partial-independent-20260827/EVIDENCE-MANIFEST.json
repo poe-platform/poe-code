@@ -1,0 +1,119 @@
+{
+  "schema": "html-partial-evidence/1",
+  "at": "2026-08-28T00:27:29.102Z",
+  "recipeCommit": "bf72a1f9d0eaa843e1e3a33949993a7d4a338d96",
+  "recipeManifestSha256": "1544db33f1f03514be7116740ce8692d158cadbdb832579017c4b7a106ddfd79",
+  "status": "partial-four-plus-full-build-and-scoped-reconstruction-pass",
+  "coveredFiles": 18,
+  "files": {
+    "ADAPTERS.json": {
+      "sha256": "0a9f2bbeea3445474a3fb61ecc1a319b1ec8c21c20d7c34eb744b657f314ab9a",
+      "blob": "a1164a7ee514748c8eb340f2c93a0e43cbc8cced",
+      "bytes": 3758,
+      "mode": "100644"
+    },
+    "COMPACT-CHECK-ATTEMPT-1.json": {
+      "sha256": "00dbfada30f4fa72572527662b8bfc6428b299aee89a06dcc3874cde4d6e8905",
+      "blob": "fa80ef6ff9c89e8eedafba65fb06cd38ef646e4d",
+      "bytes": 7096,
+      "mode": "100644"
+    },
+    "COMPACT-RAW.json": {
+      "sha256": "e349ea4dcea409c7ae2b23810e895dd70fb78b6bd34d9b00989ad78d44696739",
+      "blob": "7e1b11c0a68f7ee0fb7329880d8a8472f1b209c7",
+      "bytes": 5089,
+      "mode": "100644"
+    },
+    "COMPACT-VERIFIED.json": {
+      "sha256": "e28104a1c9593807712c09695a23ff380d0b4f7af34407c525c3e8da3bd87c45",
+      "blob": "f6d4b05dd8d78cb7feb13062eb8a2dcde4d3188e",
+      "bytes": 22734,
+      "mode": "100644"
+    },
+    "PREPARE-AUTH.json": {
+      "sha256": "0fc697062b0422081a1be55005116cca9e2867d720489ff5523df15acc31ce53",
+      "blob": "a01e6c65020d03a9d12f40691468301f7ca8bddc",
+      "bytes": 339516,
+      "mode": "100644"
+    },
+    "README.md": {
+      "sha256": "8d8bdca44faaa893b3d12afacefc4edbfe6fddc1a51a1092a7dab1b56951a999",
+      "blob": "018fc4fad237f8dcc71c7922549b0f787a3bc61f",
+      "bytes": 7039,
+      "mode": "100644"
+    },
+    "RECIPE-MANIFEST.json": {
+      "sha256": "1544db33f1f03514be7116740ce8692d158cadbdb832579017c4b7a106ddfd79",
+      "blob": "d163c09a02f7e36c1313a8039c6d9b6232b86081",
+      "bytes": 2556,
+      "mode": "100644"
+    },
+    "RECIPE.md": {
+      "sha256": "801e950b1f5caf4dabc1b2120c4f306cf87c4e2deab1b1a9484ea111649a728a",
+      "blob": "677cc1e9f2d99185f1e7d6540b552558c72996ed",
+      "bytes": 6135,
+      "mode": "100644"
+    },
+    "RESULT.json": {
+      "sha256": "c55b2e28717cefa7c668d756611753ca80a346f4560e949e720689eff6ef0293",
+      "blob": "724e4bdfc362d4ede41240ea88a3d31a162e5f37",
+      "bytes": 31237,
+      "mode": "100644"
+    },
+    "STATIC-REVIEW.md": {
+      "sha256": "78948fbc19d2b3e0e95d2410922f5fd79e1c7792f5018fe15be429c9b6a45a27",
+      "blob": "d8391ce06e26fb44036c7ae3a9fb60c985fb9738",
+      "bytes": 3507,
+      "mode": "100644"
+    },
+    "adapt.mjs": {
+      "sha256": "9c9807e4aa45beeb2b561c8689d80edeb0ee346b8eef83b8d332c32ba53c9aec",
+      "blob": "41a2cadc7d8fdbdc9a96bdcd7ad4aa98e79e6c6f",
+      "bytes": 1725,
+      "mode": "100644"
+    },
+    "captures.tgz": {
+      "sha256": "04fc9fd4c710507299f66b12f1fb9b886ee9cc1eaeb3eabe1889fd3eebd2f7cf",
+      "blob": "aa0df3385cab379b7cfea6736c91164f811e8158",
+      "bytes": 2226016,
+      "mode": "100644"
+    },
+    "common.mjs": {
+      "sha256": "6c4836dde1eb44c8b2438b55c2ed0b0e57994c616cb355b58bdf206ddbdc3560",
+      "blob": "15b19cc2abf0c77b5e765d7f51ff82b103e38117",
+      "bytes": 11405,
+      "mode": "100644"
+    },
+    "execute.mjs": {
+      "sha256": "108b2590e7b0f04a7656a3b4aed2eb2a0beed3e340c7d199c72e1cf2ee7f4995",
+      "blob": "23b7189f5e44bdbcf640641a108ea546b82ffdda",
+      "bytes": 10391,
+      "mode": "100644"
+    },
+    "freeze.mjs": {
+      "sha256": "f455173e979bbade9ed40ed630f2032cfabe7b3a694833d63f32b121cfc7edbb",
+      "blob": "8d6e326c3165f7c8b23d1cead8ed9a545f805939",
+      "bytes": 1515,
+      "mode": "100644"
+    },
+    "seal-evidence.mjs": {
+      "sha256": "4e208529e65b85f94032b3924b822a29244d39783fccc5a08d4c1f719155c0a2",
+      "blob": "4290691621bf34121dd1ffdcc8e9d37c419505c0",
+      "bytes": 5958,
+      "mode": "100644"
+    },
+    "trace.cjs": {
+      "sha256": "64b9615a9ee3227f8ff5def81c15007d09819536867221dbd129c04656764434",
+      "blob": "0ece16220b3acaab333c1bc6b5602e3b7a8b062c",
+      "bytes": 5696,
+      "mode": "100644"
+    },
+    "verify.mjs": {
+      "sha256": "7face2f7c04efbaaea050dca61e6a4a4f729a15b751ab63d12aeb70f8e31379f",
+      "blob": "f16549df3d0ec482f42f1c7ed634eb6abba9ab66",
+      "bytes": 6673,
+      "mode": "100644"
+    }
+  },
+  "scope": "partial only; no old RSS rescore, v2 global acceptance, HTML34, v3.2 or DU29 execution"
+}

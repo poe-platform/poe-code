@@ -1,0 +1,61 @@
+{
+  "id": "L04",
+  "subjectRow": {
+    "number": 1,
+    "role": "workflow",
+    "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--permission",
+      "--allow-fs-read=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review",
+      "--allow-fs-write=/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/scratch/L04",
+      "--disallow-code-generation-from-strings",
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=64",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/stub.mjs",
+      "hold"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/inert-01/scratch/L04",
+    "stdoutBytes": 6,
+    "stderrBytes": 0,
+    "containment": "OWNED_FAILURE",
+    "naturallyReaped": false,
+    "closeObserved": true,
+    "signalsRequested": [
+      "SIGTERM"
+    ],
+    "pid": 54333,
+    "status": null,
+    "signal": "SIGTERM",
+    "primaryFailure": {
+      "type": "null",
+      "name": null,
+      "code": null,
+      "message": "null",
+      "stack": null
+    },
+    "secondaryFailures": [
+      {
+        "type": "object",
+        "name": "Error",
+        "code": null,
+        "message": "CHILD_CONTAINMENT_OR_SPAWN",
+        "stack": "Error: CHILD_CONTAINMENT_OR_SPAWN\n    at Object.child (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/subject.mjs:64:37)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+      }
+    ]
+  },
+  "enrollment": [
+    "publication-after-enrollment-and-listeners",
+    "clock-after-enrollment-and-listeners"
+  ],
+  "remainingCalls": 2,
+  "fulfilled": false,
+  "reason": {
+    "type": "null",
+    "name": null,
+    "code": null,
+    "message": "null",
+    "stack": null
+  },
+  "exactNullIdentity": true,
+  "status": "PASS"
+}

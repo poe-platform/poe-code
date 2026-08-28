@@ -1,0 +1,13 @@
+{
+  "schema": "independent-bridge-repair-authority-v1",
+  "safeToLaunchEngine": false,
+  "reviewDisposition": "HOLD",
+  "actualEvaluations": 0,
+  "plannedEvaluations": 8,
+  "issuedEngineGrant": false,
+  "issuedEngineToken": false,
+  "authorTemplateOnly": true,
+  "sourceCommit": "7b350bf7472cabfc2e5ed699f19c2a1c8bde2f98",
+  "manifestSha256": "3b4169c6dcb15f5f9d43e08fd417c93a38004604404cebab724cb44dbeae5f8c",
+  "workerProposal": "separate not reviewed"
+}

@@ -1,0 +1,7 @@
+{
+  "id": "N01",
+  "status": "UNSCORED_DIAGNOSTIC",
+  "accepted": true,
+  "scope": "standalone reordered ledger, synthetic terminal; not an actual child emission or composed driver bypass",
+  "changed": "engine-settle before engine-enter, exact counts retained"
+}

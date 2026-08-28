@@ -1,0 +1,14 @@
+{
+  "id": "N03",
+  "status": "UNSCORED_DIAGNOSTIC",
+  "accepted": false,
+  "reason": {
+    "type": "object",
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "message": "Expected values to be strictly equal:\n\n'false' !== true\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n'false' !== true\n\n    at Object.reconcileReceipt (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/subject.mjs:178:54)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/run.mjs:221:33\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+  },
+  "scope": "standalone F05 nativePromise-only counterfactual, not real child output",
+  "nativePromise": "false"
+}

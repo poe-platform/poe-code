@@ -1,0 +1,14 @@
+{
+  "id": "D10",
+  "scope": "composed artifact tamper using prior natural inert result",
+  "caught": true,
+  "reason": {
+    "type": "object",
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "message": "RAW_RECEIPT_BINDING\n+ actual - expected\n\n+ '3279d6dac41f9dc79dc535d1f59270bca8b716ee280f36fcb8ce9a8993c6d842'\n- 'cddefcb2ca4ee35b844e9f3b88a7cc8649dbadeafcc50ff58c12626b1814505b'\n",
+    "stack": "AssertionError [ERR_ASSERTION]: RAW_RECEIPT_BINDING\n+ actual - expected\n\n+ '3279d6dac41f9dc79dc535d1f59270bca8b716ee280f36fcb8ce9a8993c6d842'\n- 'cddefcb2ca4ee35b844e9f3b88a7cc8649dbadeafcc50ff58c12626b1814505b'\n\n    at Object.acceptEvaluation (file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/subject.mjs:258:10)\n    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/node-provider-experiments-independent-20260828/repair-v2-review/run.mjs:202:25\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)"
+  },
+  "getterCalls": 0,
+  "status": "PASS"
+}

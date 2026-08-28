@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "role": "STATIC_SOURCE_DATA_AUTHENTICATION_ONLY",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "versionMetadata": "v22.22.2",
+    "versions": {
+      "node": "22.22.2",
+      "zlib": "1.3.1-e00f703"
+    },
+    "versionCommandExecuted": false
+  },
+  "staticImports": [
+    "node:fs",
+    "node:crypto",
+    "node:child_process"
+  ],
+  "childProcessRestriction": "Only development Git show/ls-tree/rev-parse metadata and apply_patch; no native Git product/oracle/version commands.",
+  "networkReads": "Eight bounded official source-body fetches; source bytes hashed, not imported.",
+  "authoredExecutableModules": [],
+  "formatOrSyntheticProbes": 0,
+  "authorToolImports": 0,
+  "zlibInflations": 0,
+  "noExecutionRecipe": true,
+  "activeOwnedProcessesAfterPreparation": 0
+}

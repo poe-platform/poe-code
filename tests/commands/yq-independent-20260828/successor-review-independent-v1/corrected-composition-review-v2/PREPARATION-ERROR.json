@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "role": "REVIEWER_STATIC_DATA_CHECK_ERROR_NOT_TARGET_FAILURE",
+  "operation": "Validate declared direct-import edge metadata before host syntax-only parsing",
+  "status": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 13, in <module>\nKeyError: 'sha256'\n",
+  "cause": "The reviewer assumed overlay-target import edges carried a sha256 field; they carry only from/specifier/target/kind and resolve through the separately authenticated target entries. Sealed source was not changed.",
+  "correction": "Read the exact edge schema and bind overlay-target edges through their declared postimage and the already authenticated target descriptor.",
+  "sourceFixes": 0,
+  "authoredImportsOrExecutions": 0,
+  "syntaxParsesBeforeThisError": 0,
+  "draftCorrection": "The initial unsealed error note incorrectly named a postimageSha256 edge field; metadata inspection shows no hash field on owned-overlay edges. This note is corrected without changing source or the failed command status.",
+  "targetControlPasses": 0,
+  "history": "This failed preparation command remains failed, separate from subsequent corrected data checks and author SYNTAX-CAPTURE failures."
+}

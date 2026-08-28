@@ -1,0 +1,362 @@
+{
+  "schema": 1,
+  "role": "STATIC_DATA_AUTHENTICATION_NOT_RUNTIME",
+  "criteriaCommit": "b03560dd5a4a896a1d44be0d630ac48bbef2744e",
+  "sourceCommit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+  "sourceRoot": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3",
+  "finalSealSha256": "430af377d11b9a824320bedd7b163e1a314269b4b8ce5229138c7ecc13c0c7c4",
+  "overlaySha256": "397b98ac8c2355541c0a11a5162ea2cb219a64c9a5a31f91d09c67b47b29628e",
+  "sourceFiles": [
+    {
+      "path": "ASSEMBLY-OVERLAY.json",
+      "sha256": "397b98ac8c2355541c0a11a5162ea2cb219a64c9a5a31f91d09c67b47b29628e",
+      "bytes": 11377,
+      "mode": 420,
+      "git": "100644 blob 64b7b53f9264ff2717b76e79b8d6c26dfff1ecbe"
+    },
+    {
+      "path": "DEFERRED-WITNESSES.json",
+      "sha256": "4857cab5fc9fe5a99d68b0e9fe4aa9e922c5372b8b6eea9a757df5759313dacd",
+      "bytes": 10730,
+      "mode": 420,
+      "git": "100644 blob ae83cf0be8c72ebe9f27634c0018055992a60dba"
+    },
+    {
+      "path": "DOC-CHECK-V2.json",
+      "sha256": "3fd413d4d83eff50850388c33eeb95a8e2525c7023fb2297e50ba9b28c8c4940",
+      "bytes": 814,
+      "mode": 420,
+      "git": "100644 blob b2172446271b41e851f14bb0629eb3b037939d62"
+    },
+    {
+      "path": "DOC-CHECK-V3.json",
+      "sha256": "c3a6c03f1f2e49868ecef3285c57f6b46fc5547822d13cf0f557f14e66513c33",
+      "bytes": 850,
+      "mode": 420,
+      "git": "100644 blob 2966d3de56355970457e87467588a85866d3331d"
+    },
+    {
+      "path": "EVIDENCE-ROLES.json",
+      "sha256": "24633158fee14c83d2298978b27e5b0e578eb9a4d55d64dc634188236ef83c0d",
+      "bytes": 7661,
+      "mode": 420,
+      "git": "100644 blob 991b1060f49d9b04b0dfa47bd24debcbfb61fc81"
+    },
+    {
+      "path": "FINAL-SEAL.json",
+      "sha256": "430af377d11b9a824320bedd7b163e1a314269b4b8ce5229138c7ecc13c0c7c4",
+      "bytes": 6327,
+      "mode": 420,
+      "git": "100644 blob 5662c6dfa11f1b46fe4a7c80d88511cd41158377"
+    },
+    {
+      "path": "INPUTS.json",
+      "sha256": "ebf5cd7428b542e2380852dc2f6035e04e977afb5c3ef44ebfd96b15cd823d86",
+      "bytes": 11155,
+      "mode": 420,
+      "git": "100644 blob 539906276e2a8bb4fad2ab4d996d3cf23191be49"
+    },
+    {
+      "path": "INTEGRATION.md",
+      "sha256": "73ff78e28d76e48de418cb6f4c8b2cd62cf71708582626a304c71e145c806662",
+      "bytes": 2823,
+      "mode": 420,
+      "git": "100644 blob 86991a9dd81f6a532356bd27d3ef0776c248d0c3"
+    },
+    {
+      "path": "PREPARATION-HISTORY.md",
+      "sha256": "3be5bda359a82e25a028d214a101090c381bba8d707390329ad867e51ef36157",
+      "bytes": 1447,
+      "mode": 420,
+      "git": "100644 blob 3ef702352bc077ac4951487b363fc613a0039dbc"
+    },
+    {
+      "path": "README.md",
+      "sha256": "9582ef0fcacdfb4e3a5d7cbc3770d98257388bf5352a989feaa4d4ca84617fae",
+      "bytes": 1306,
+      "mode": 420,
+      "git": "100644 blob 69a5c5e3f44735adede793d2c39185f52b93d849"
+    },
+    {
+      "path": "SOURCE-CHANGES.json",
+      "sha256": "3c9674ceaff8fe435c98955d06c59c8f2f8649d3ebeaf0741f55af3aecd3e1d3",
+      "bytes": 1794,
+      "mode": 420,
+      "git": "100644 blob 91cd517b0265ae5bee92aad35ac10e05979cfb98"
+    },
+    {
+      "path": "SOURCE-PRESEAL.json",
+      "sha256": "6da57435bd6819c5973a5b979a688358294531550c2b70eb88091569f406e80c",
+      "bytes": 8344,
+      "mode": 420,
+      "git": "100644 blob 8e98065df92a8df2a4b923e630536304ea9a5dbc"
+    },
+    {
+      "path": "SPECIFICATION.md",
+      "sha256": "c4c40c191a17da1f29696dfc13a4638bce16dc3a29847e31cd751d1e45cc7ded",
+      "bytes": 10610,
+      "mode": 420,
+      "git": "100644 blob 5b45904ebb08da9cad6331335c2e68762da92f17"
+    },
+    {
+      "path": "STATIC-CHECKS.json",
+      "sha256": "9deba97d4d022f70f1a5fef876bbd02ce012d7d39994df2ddb424ebd95ef87a4",
+      "bytes": 4369,
+      "mode": 420,
+      "git": "100644 blob 4cc0ad52940b3b0056e7dcca699af3d6f8c5c397"
+    },
+    {
+      "path": "SYNTAX-CAPTURE.json",
+      "sha256": "468ee2c81c5007ed199519f3824c1e0570ee17d56859ff131721225c2b65ee26",
+      "bytes": 2947,
+      "mode": 420,
+      "git": "100644 blob 8ae308ecec462d0d84fc4d0f55cca0e3dd2aa266"
+    },
+    {
+      "path": "overlay/core/capture-budget-v3.mjs",
+      "sha256": "fac865817f05c8cbe970e1356c565a68468306caada0f251a9f86710df1c0605",
+      "bytes": 6289,
+      "mode": 420,
+      "git": "100644 blob bf75aae9aa2cd16830650bd2e3910ad5f2a6c384"
+    },
+    {
+      "path": "overlay/core/owned-process.mjs",
+      "sha256": "b8fcbc43e1500f058c3dbc1942a438cd6da383135bebe05fcc2f6b175978d7fc",
+      "bytes": 7803,
+      "mode": 420,
+      "git": "100644 blob c27af44d2ed2adda2ceb9dd4b7f5936942bdfe4f"
+    },
+    {
+      "path": "overlay/core/phase-capture.mjs",
+      "sha256": "a5449c12112a341f818154899c10290509e7999d5c48b7b7a3d7d6942fd69335",
+      "bytes": 4240,
+      "mode": 420,
+      "git": "100644 blob c0be82906d6539bee37d2b9966cee5d3fdff0eda"
+    },
+    {
+      "path": "overlay/core/supervisor.mjs",
+      "sha256": "7d33d4e0feba862a3bf3b5da3f6e41bd2217871c01d429207b4a47061682a126",
+      "bytes": 27596,
+      "mode": 420,
+      "git": "100644 blob a0d9fe3e2a2702fcf11936a649adcdb64718e917"
+    }
+  ],
+  "directories": [
+    {
+      "path": "",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": "overlay",
+      "kind": "directory",
+      "mode": 493
+    },
+    {
+      "path": "overlay/core",
+      "kind": "directory",
+      "mode": 493
+    }
+  ],
+  "targets": [
+    {
+      "target": "core/capture-budget-v3.mjs",
+      "operation": "add-only-if-absent",
+      "preimage": {
+        "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/capture-budget-v3.mjs",
+        "kind": "absent",
+        "mustBeAbsent": true
+      },
+      "postimage": {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/capture-budget-v3.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 6289,
+        "sha256": "fac865817f05c8cbe970e1356c565a68468306caada0f251a9f86710df1c0605",
+        "modeAuthority": "Fresh owned regular-file lstat, independently rechecked before and after commit; not inferred from Git100644"
+      }
+    },
+    {
+      "target": "core/owned-process.mjs",
+      "operation": "replace-exact-preimage",
+      "preimage": {
+        "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/owned-process.mjs",
+        "kind": "file",
+        "sha256": "bcb309eed5984baeaf064d89cae892d54e4afe2d8c9dd710ad26ccf516c9d302",
+        "bytes": 5989,
+        "mode": 420,
+        "blob": "2e6fdcedc7ced9509aa18262671de2b805d4a020",
+        "gitMode": "100644",
+        "posixModeAuthority": {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/ASSEMBLY-SEAL.json",
+          "sha256": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+          "pointer": "/manifest/files/core~1owned-process.mjs"
+        }
+      },
+      "postimage": {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/owned-process.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 7803,
+        "sha256": "b8fcbc43e1500f058c3dbc1942a438cd6da383135bebe05fcc2f6b175978d7fc",
+        "modeAuthority": "Fresh owned regular-file lstat, independently rechecked before and after commit; not inferred from Git100644"
+      }
+    },
+    {
+      "target": "core/phase-capture.mjs",
+      "operation": "replace-exact-preimage",
+      "preimage": {
+        "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/phase-capture.mjs",
+        "kind": "file",
+        "sha256": "85702be619115df518ae16a946e1f3810277ca0705f8a2c421268611dfdb7b64",
+        "bytes": 2230,
+        "mode": 420,
+        "blob": "55fd36e6f4f2e097df673b0c617e3fd1f1f2010f",
+        "gitMode": "100644",
+        "posixModeAuthority": {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/ASSEMBLY-SEAL.json",
+          "sha256": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+          "pointer": "/manifest/files/core~1phase-capture.mjs"
+        }
+      },
+      "postimage": {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/phase-capture.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 4240,
+        "sha256": "a5449c12112a341f818154899c10290509e7999d5c48b7b7a3d7d6942fd69335",
+        "modeAuthority": "Fresh owned regular-file lstat, independently rechecked before and after commit; not inferred from Git100644"
+      }
+    },
+    {
+      "target": "core/supervisor.mjs",
+      "operation": "replace-exact-preimage",
+      "preimage": {
+        "revision": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/assembly/core/supervisor.mjs",
+        "kind": "file",
+        "sha256": "c353bf16984a670f07a7414a60ca999c192215bfcccfd98b58b7377e608436ed",
+        "bytes": 25075,
+        "mode": 420,
+        "blob": "197ffe621704ff373cdac3305018450e67c4cc67",
+        "gitMode": "100644",
+        "posixModeAuthority": {
+          "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v2/ASSEMBLY-SEAL.json",
+          "sha256": "de9b45808d9ebb23dd74c950637d9643c9125107c487b3625773f1280d5d8d5e",
+          "pointer": "/manifest/files/core~1supervisor.mjs"
+        }
+      },
+      "postimage": {
+        "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/supervisor.mjs",
+        "kind": "file",
+        "mode": 420,
+        "bytes": 27596,
+        "sha256": "7d33d4e0feba862a3bf3b5da3f6e41bd2217871c01d429207b4a47061682a126",
+        "modeAuthority": "Fresh owned regular-file lstat, independently rechecked before and after commit; not inferred from Git100644"
+      }
+    }
+  ],
+  "sourceMembershipVerified": true,
+  "committedAndCurrentBytesEqual": true,
+  "modeQualification": "Fresh current full modes checked; historical parent full modes referenced to accepted sealed manifest, not inferred from Git class. No change-restore detection.",
+  "authorSyntaxCapture": {
+    "schema": 1,
+    "status": "STATIC_CHECK_FAILURE",
+    "commands": [
+      {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--check",
+          "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/capture-budget-v3.mjs"
+        ],
+        "sourceSha256": "fac865817f05c8cbe970e1356c565a68468306caada0f251a9f86710df1c0605",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": "",
+        "kind": "SYNTAX_ONLY_NO_MODULE_LOAD"
+      },
+      {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--check",
+          "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/owned-process.mjs"
+        ],
+        "sourceSha256": "b8fcbc43e1500f058c3dbc1942a438cd6da383135bebe05fcc2f6b175978d7fc",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": "",
+        "kind": "SYNTAX_ONLY_NO_MODULE_LOAD"
+      },
+      {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--check",
+          "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/phase-capture.mjs"
+        ],
+        "sourceSha256": "a5449c12112a341f818154899c10290509e7999d5c48b7b7a3d7d6942fd69335",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": "",
+        "kind": "SYNTAX_ONLY_NO_MODULE_LOAD"
+      },
+      {
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "--check",
+          "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/supervisor.mjs"
+        ],
+        "sourceSha256": "7d33d4e0feba862a3bf3b5da3f6e41bd2217871c01d429207b4a47061682a126",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": "",
+        "kind": "SYNTAX_ONLY_NO_MODULE_LOAD"
+      },
+      {
+        "executable": "python3",
+        "argv": [
+          "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+          "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/SPECIFICATION.md"
+        ],
+        "checkerSha256": "e866d8f5806a40483cbe25f3250fc583f9a1e45d29a4255af41f6839693430bd",
+        "sourceSha256": "c9f8af697afd936244fde0f67a9e9b01e0b72d2ac08bbaa2c6b8ccd4f3643b4e",
+        "environmentOverride": {
+          "PYTHONDONTWRITEBYTECODE": "1"
+        },
+        "status": 1,
+        "signal": null,
+        "stdout": "ERROR: first line must be an H1 ending in or containing 'Specification'\nERROR: missing required section: Problem Statement\nERROR: missing required section: Test and Validation Matrix\nERROR: missing required section: Conformance Criteria\nFAILED: 4 error(s), 0 warning(s)\n",
+        "stderr": "",
+        "kind": "NORMATIVE_DOCUMENT_LINT_ONLY"
+      }
+    ],
+    "proposedModuleImports": 0,
+    "dynamicControls": 0,
+    "compilerRuns": 0,
+    "rootGo": false
+  },
+  "deferredWitnessMetadata": {
+    "schema": 1,
+    "date": "2026-08-28",
+    "status": "ALL_UNRUN_STATIC_DATA_ONLY",
+    "witnessCount": 20,
+    "actualTargetModuleImports": 0,
+    "actualClockOrTimerExercises": 0,
+    "actualBudgetClassOrGetterExercises": 0,
+    "actualWorkersOrTools": 0,
+    "newCohortSlots": 0,
+    "newYqOrCarryCases": 0,
+    "rootGo": false,
+    "expectedResultsAreNotPasses": true
+  },
+  "liveAgentsSha256": "64fde885fd30edd6751f95603defac1d15defb6a33dedca2049a82f9aace379c",
+  "authoredExecutions": 0,
+  "controlPasses": 0,
+  "rootGO": false
+}

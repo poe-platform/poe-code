@@ -1,0 +1,213 @@
+{
+  "schema": 1,
+  "role": "DIFFERENT_SOURCE_DATA_SYNTAX_ONLY",
+  "sourceCommit": "946c33cfaf02f4120fb636d19b2095ab62746ad4",
+  "authenticatedSourceFiles": 19,
+  "authenticatedDirectories": 3,
+  "fourTargetsInspectedTogether": true,
+  "directImportEdges": 26,
+  "actualParsedImportEdgeSetEqualsDeclared": true,
+  "baselineDependencyReferences": [
+    {
+      "target": "core/primitives.mjs",
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "a8b62e46f4256765810c5ec30010fb618239b7193f83e9151e06ce25a76db506",
+      "bytes": 8044
+    },
+    {
+      "target": "core/primitives.mjs",
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "a8b62e46f4256765810c5ec30010fb618239b7193f83e9151e06ce25a76db506",
+      "bytes": 8044
+    },
+    {
+      "target": "core/primitives.mjs",
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "a8b62e46f4256765810c5ec30010fb618239b7193f83e9151e06ce25a76db506",
+      "bytes": 8044
+    },
+    {
+      "target": "core/primitives.mjs",
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "a8b62e46f4256765810c5ec30010fb618239b7193f83e9151e06ce25a76db506",
+      "bytes": 8044
+    },
+    {
+      "target": "core/admission.mjs",
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "e21f6d31eaca277cb1f2ae81bc4a5e10ba844dad268303e2c34d69e71eccbd94",
+      "bytes": 9159
+    },
+    {
+      "target": "core/tool-bridge.mjs",
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "5837e2f3f36fafdd9c5f935610a9b23601b4353a5302b11cde4983a67308477d",
+      "bytes": 8640
+    },
+    {
+      "target": "core/classification.mjs",
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "299cf023970cdf03657dea80130a0f54e036dd1707dc5fd69999b6da0e78df8c",
+      "bytes": 1107
+    },
+    {
+      "target": "core/tool-profile.mjs",
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "ee9c0db3b961af6d9b2e5cab6172c6200b8ed650f2d8554cc5a361a693900ce2",
+      "bytes": 1583
+    },
+    {
+      "target": "core/coverage.mjs",
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "c4816093400d404c9b804e881b1b928d4c03265d843f43a8e1aacd6c5e757f2a",
+      "bytes": 1856
+    },
+    {
+      "target": "core/build-adapter.mjs",
+      "commit": "b1b8566686769e5e53433048f2058ab09d8c00c3",
+      "sha256": "c6482449fc028b7890955203513991707e42d56e3ad37178e4466c8d69e46a45",
+      "bytes": 12497
+    }
+  ],
+  "hostSyntaxParser": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "rawSyntaxCapturesBeforeAssessment": [
+    {
+      "sourcePath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/capture-budget-v3.mjs",
+      "sourceSha256": "fac865817f05c8cbe970e1356c565a68468306caada0f251a9f86710df1c0605",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--input-type=module",
+        "--check"
+      ],
+      "input": "exact committed source on stdin; syntax only, no authored import/evaluation",
+      "startedUnixNs": 1787928091772871000,
+      "endedUnixNs": 1787928091818098000,
+      "knownOwnedPid": 12969,
+      "returnCode": 0,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "knownOwnedReaped": true
+    },
+    {
+      "sourcePath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/owned-process.mjs",
+      "sourceSha256": "b8fcbc43e1500f058c3dbc1942a438cd6da383135bebe05fcc2f6b175978d7fc",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--input-type=module",
+        "--check"
+      ],
+      "input": "exact committed source on stdin; syntax only, no authored import/evaluation",
+      "startedUnixNs": 1787928091860990000,
+      "endedUnixNs": 1787928091903864000,
+      "knownOwnedPid": 12972,
+      "returnCode": 0,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "knownOwnedReaped": true
+    },
+    {
+      "sourcePath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/phase-capture.mjs",
+      "sourceSha256": "a5449c12112a341f818154899c10290509e7999d5c48b7b7a3d7d6942fd69335",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--input-type=module",
+        "--check"
+      ],
+      "input": "exact committed source on stdin; syntax only, no authored import/evaluation",
+      "startedUnixNs": 1787928091944769000,
+      "endedUnixNs": 1787928091989518000,
+      "knownOwnedPid": 12976,
+      "returnCode": 0,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "knownOwnedReaped": true
+    },
+    {
+      "sourcePath": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/overlay/core/supervisor.mjs",
+      "sourceSha256": "7d33d4e0feba862a3bf3b5da3f6e41bd2217871c01d429207b4a47061682a126",
+      "argv": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--input-type=module",
+        "--check"
+      ],
+      "input": "exact committed source on stdin; syntax only, no authored import/evaluation",
+      "startedUnixNs": 1787928092026008000,
+      "endedUnixNs": 1787928092069527000,
+      "knownOwnedPid": 12985,
+      "returnCode": 0,
+      "signal": null,
+      "stdoutHex": "",
+      "stderrHex": "",
+      "knownOwnedReaped": true
+    }
+  ],
+  "staticArithmeticNotExecutedLedger": {
+    "jobCap": 33554432,
+    "phaseReserve": 4194304,
+    "terminalReserve": 933888,
+    "ordinaryInitial": 28426240,
+    "sumEqualsCap": true,
+    "phaseSeconds": [
+      120,
+      300,
+      180,
+      570,
+      300,
+      6705,
+      13410,
+      1560,
+      900,
+      120
+    ],
+    "globalSeconds": 24165,
+    "cleanupInside": true
+  },
+  "sourceBeforeAfterIdentityAndMembership": "MATCH; not change-restore detection",
+  "authorPreparationHistory": {
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/capture-deadlines-v3/PREPARATION-HISTORY.md",
+    "sha256": "3be5bda359a82e25a028d214a101090c381bba8d707390329ad867e51ef36157",
+    "text": "# Static Preparation History\n\nDate: 2026-08-28\n\nThe initial grouped policy/status read ended with exit127: its zsh loop variable\n`path` changed the shell's special PATH array, so its final `git rev-parse` was\nnot found. Earlier policy/status reads completed. No files or executable targets\nwere changed by that command. A fresh shell without that variable authenticated\nthe requested revisions and confirmed live AGENTS.md equals f5fa0d3f.\n\nSYNTAX-CAPTURE.json preserves the first static-validation attempt unchanged.\nAll four `node --check` calls exited0. The specification checker exited1 because\nthe H1 lacked \u201cSpecification\u201d and three required section headings differed from\nits expected names. The enclosing metadata command then failed its assertion;\nthe full command outputs were already saved. Only those headings were corrected.\nDOC-CHECK-V2.json preserves a second exit1: splitting the original combined\nheading had removed the separately required \u201cGoals and Non-Goals\u201d heading. That\nheading was added without changing the contract. DOC-CHECK-V3.json records the\nnext document check. Neither earlier lint failure is rescored or overwritten.\n\nThese are preparation errors, not compiler, candidate, coordinator, budget-class,\nclock or control executions. All original b1/FC-F02/FC-F03 findings and all older\nfailed captures remain unchanged. There is no dynamic pass, RootGO or retry of\nan actual review attempt in this component.\n"
+  },
+  "authorOriginalSyntaxAggregate": "STATIC_CHECK_FAILURE_RETAINED_NOT_RESCORED",
+  "reviewPreparationFailures": [
+    "PREPARATION-ERROR.json: original KeyError/status1 before syntax parsing; corrected metadata audit is separate"
+  ],
+  "deferredWitnesses": {
+    "count": 20,
+    "allStatus": "UNRUN",
+    "executed": 0,
+    "passes": 0
+  },
+  "unionCheckpoint": {
+    "time": "natural end of four-target source inspection",
+    "handoff": "/tmp/yq-executor-composition-v3-ready.txt",
+    "exists": false,
+    "unionCommit": null,
+    "unionSeal": null,
+    "recipe": "NOT_YET_REVIEWED",
+    "polledAgain": false,
+    "unsealedBodiesRead": false
+  },
+  "counts": {
+    "syntaxParses": 4,
+    "authoredHelpersOrLedgersOrClocks": 0,
+    "authoredModuleImports": 0,
+    "gettersOrProxies": 0,
+    "controls": 0,
+    "workers": 0,
+    "coordinators": 0,
+    "compilers": 0,
+    "loaders": 0,
+    "candidateExecutions": 0,
+    "copiedTools": 0,
+    "controlPasses": 0,
+    "activeOwnedExecutionChildren": 0
+  },
+  "rootGO": false
+}

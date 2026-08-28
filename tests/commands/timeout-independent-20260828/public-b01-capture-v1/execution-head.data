@@ -1,0 +1,19 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { resolve,relative } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { recipe,repository,owned,read,fileHash,sha,save,write,safe,inventory,sameInventory,authenticatePreparation,reason } from './common.mjs';
+import { requireAuthorization,materializeInputs } from './admission.mjs';
+import { supervisor,absent } from './supervisor.mjs';
+import { archiveEvidence } from './archive.mjs';
+import { assertCaptureReceipt } from './capture.mjs';
+const requestFile=process.env.TIMEOUT_PUBLIC_BINDING;assert.ok(requestFile,'EXPLICIT_B01_BINDING_REQUIRED');assert.ok(resolve(requestFile).startsWith(`${recipe}/`));safe(relative(recipe,resolve(requestFile)));assert.ok(fs.lstatSync(requestFile).isFile()&&!fs.lstatSync(requestFile).isSymbolicLink());assert.equal(fs.realpathSync(requestFile),resolve(requestFile));
+const requestBytes=fs.readFileSync(requestFile),requestHash=sha(requestBytes),request=JSON.parse(requestBytes);requireAuthorization(process.argv.slice(2),request,requestHash);
+const {binding,manifest}=authenticatePreparation(request.preparationSha256),continuation=read(resolve(recipe,'CONTINUATION.json')),author=read(resolve(recipe,'../public-candidate-execution-v1/AUTHOR-BINDINGS.json'));
+for(const key of ['candidate','baseline','module','public','packageFiles','mutants'])assert.deepEqual(request[key],author[key],'SEALED_CANDIDATE_FIELD:'+key);
+assert.equal(continuation.candidate,request.candidate);assert.equal(continuation.boundaryControl.id,'B01');assert.equal(continuation.actualProductFamilies,0);assert.equal(continuation.actualNodeChildren,1);
+const run=resolve(recipe,'runs',safe(request.runName)),work=resolve(recipe,'node_modules',request.runName),raw=resolve(run,'raw');assert.equal(fs.existsSync(run),false,'NO_RETRY_EXISTING_RUN');assert.equal(fs.existsSync(work),false,'NO_RETRY_EXISTING_WORK');fs.mkdirSync(raw,{recursive:true});fs.mkdirSync(work,{recursive:true});write(resolve(run,'CANDIDATE.json'),requestBytes);
+const state={schema:'timeout-public-b01-capture-execution/1',candidate:request.candidate,baseline:request.baseline,module:request.module,requestHash,preparationSha256:request.preparationSha256,startedAt:new Date().toISOString(),status:'RUNNING',attempts:1,retries:0,children:[],git:[],guards:[],runtime:[],mutants:[],boundaryControls:[],native:0,safeJS:0,positiveFamiliesExecuted:0,typeConsumersExecuted:0,buildsExecuted:0,packsExecuted:0,productMutantsExecuted:0};
+const guarded=new Map();function guard(label){authenticatePreparation(request.preparationSha256);assert.equal(fileHash(resolve(run,'CANDIDATE.json')),requestHash);for(const [root,expected] of guarded)sameInventory(inventory(root),expected);state.guards.push({label,at:new Date().toISOString(),unchanged:true});}
+const child=supervisor({raw,work,guard,children:state.children});
+function helperLoads(){const loads={};for(const row of [...manifest.files,...manifest.references])if(row.path.endsWith('.mjs')){const filename=row.repositoryRelative?resolve(repository,row.path):resolve(recipe,row.path);loads[filename]=row.sha256;}return loads;}

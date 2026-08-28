@@ -1,0 +1,186 @@
+{
+  "schema": "timeout-public-b01-capture-recipe/1",
+  "at": "2026-08-28T05:58:30.741Z",
+  "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+  "files": [
+    {
+      "path": "common.mjs",
+      "bytes": 4447,
+      "sha256": "317e7796a803443614b63e0191bfd8512f0a6b8cd8bf2b74162eae09d24fbb6e"
+    },
+    {
+      "path": "admission.mjs",
+      "bytes": 7673,
+      "sha256": "3431c94223e68ec8f852029f0b187a57935a2336e8a54a99f8f0fbe90cf4cac6"
+    },
+    {
+      "path": "preload.mjs",
+      "bytes": 3456,
+      "sha256": "80071d9a9e2e2e7162e8891975abb43b618bc064bac95835d77856b3fdb94f18"
+    },
+    {
+      "path": "supervisor.mjs",
+      "bytes": 3246,
+      "sha256": "ac4d3e1be95bf86c394be49347c0d515d14cb282e8d28fdbc550606f26252155"
+    },
+    {
+      "path": "archive.mjs",
+      "bytes": 2546,
+      "sha256": "bdd6fd8c23bf43f53f4216936bf4c37eff94653e61bdb47f85dedf5f99648772"
+    },
+    {
+      "path": "legacy-adapter.mjs",
+      "bytes": 17244,
+      "sha256": "3ef48e5a018a90ae34fe837eb678c37e85d914d543d2379638b13a843dc64a85"
+    },
+    {
+      "path": "boundaries.mjs",
+      "bytes": 2435,
+      "sha256": "ce78b6e53d2a82894856f6d558d35f8ca24aec2c858145410620f4b899c1fb4a"
+    },
+    {
+      "path": "runtime.mjs",
+      "bytes": 33482,
+      "sha256": "de2f89b0587e30ec90c4c5ff46e125e1137b3638cbbcae2271fe0938fc205f55"
+    },
+    {
+      "path": "execute.mjs",
+      "bytes": 12031,
+      "sha256": "6246eaaffef09978c3864bcc529c6b80afe69c7b8446991a523319ea6997e2f7"
+    },
+    {
+      "path": "capture.mjs",
+      "bytes": 1284,
+      "sha256": "d10f19f7cb0f2a3d753977188f13102efb4dc2288a5bc25e09487664ab85a10a"
+    },
+    {
+      "path": "runtime-capture.data",
+      "bytes": 1219,
+      "sha256": "3d76f0c0afb3210087d989ff5505bfba5770f1a58c5af0c7962a77f858a6a5b2"
+    },
+    {
+      "path": "execution-head.data",
+      "bytes": 3142,
+      "sha256": "65177f030df468997ebaea356fa70d014cf21342fa8b1e0b023e7cfa24dcedf5"
+    },
+    {
+      "path": "execution-tail.data",
+      "bytes": 3277,
+      "sha256": "978320bd15756ed8f107d3da27740e7465c0dc6a32198b1fbebbc630d9180c5c"
+    },
+    {
+      "path": "controls.mjs",
+      "bytes": 3470,
+      "sha256": "af65a93f28c2f7e625619f5b8ec98cee8db4dfb03e522e46954e9e343880d40d"
+    },
+    {
+      "path": "seal.mjs",
+      "bytes": 8471,
+      "sha256": "d8b8cb919349a27d6b5e992de44f0fb81885ba1345482ae0e8e2d9e01d6cf8e9"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2211,
+      "sha256": "29ef19ed8d4e195d12e9b6097024e42ed505ff3979bc7fc00182b5db039856ac"
+    },
+    {
+      "path": "CONTINUATION.json",
+      "bytes": 15697,
+      "sha256": "1c729f12f92eac296dea467829c703cfaf7b8288392c01c70bc128e344ce2456"
+    },
+    {
+      "path": "OVERLAY.json",
+      "bytes": 4876,
+      "sha256": "6aceba2023c5763fe9da8fb30b794f1fe8b1c1f0b220c9552c85106cdb8cf047"
+    }
+  ],
+  "references": [
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/MANIFEST.json",
+      "repositoryRelative": true,
+      "sha256": "18e3c23c425065f79c92ff6a17e7853c643e316db3e38d5806c3450a63448991",
+      "bytes": 1734
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/BINDINGS.json",
+      "repositoryRelative": true,
+      "sha256": "7a32cb77fac733116f12e5f08ca38c883ddcda85cfa5c7ac3927c6520362014e",
+      "bytes": 304012
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/cases.mjs",
+      "repositoryRelative": true,
+      "sha256": "e9b6408731e74c9e61523684146f9863d42a9b5e1d5208e4e6f29a055a5966e2",
+      "bytes": 21906
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/types.mjs",
+      "repositoryRelative": true,
+      "sha256": "166ace4eaaa37a6cd7ffdeea615ddc31a01591cf06b354311bf2220e9d4879e1",
+      "bytes": 4613
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/public-integration-freeze-v1/predicates.mjs",
+      "repositoryRelative": true,
+      "sha256": "619f0ad371ad5d7134318bdb63519136b430062be187637f8a463e9a53e55aec",
+      "bytes": 4181
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/repaired-f22-v1/recipe/cases.mjs",
+      "repositoryRelative": true,
+      "sha256": "e8d4c902c7984acd098728a62f72a0e2aa692b030144d9cb439d5d6c96c9ec74",
+      "bytes": 48255
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/repaired-f22-v1/recipe/io.mjs",
+      "repositoryRelative": true,
+      "sha256": "78262115a1350aea9654be67f4b530c11c3639c16a74758cf50ee9e09533f112",
+      "bytes": 4665
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/repaired-f22-v1/recipe/tool-observer.cjs",
+      "repositoryRelative": true,
+      "sha256": "318f0ce280bdeddb86ef49691094b46ddfc4b8d12ba05f6abd04900f7df61967",
+      "bytes": 5913
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/repaired-f22-v1/recipe/borrowed-boundary.mjs",
+      "repositoryRelative": true,
+      "sha256": "57205242ad82f7ee57a59c5c3d8d93769b373f9a3eca1c49a24e3518c0d5f047",
+      "bytes": 2043
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/repaired-f22-v1/recipe/BINDINGS.json",
+      "repositoryRelative": true,
+      "sha256": "1b5604ae518b793f18a0c940a1fb461d0010ea1746cd03ca095bc5b196aaee93",
+      "bytes": 321801
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/clock.mjs",
+      "repositoryRelative": true,
+      "sha256": "86b98eee4ec0b3d2aeb740eb8922b7dcff31a050c52b7088e0878d0e3f08d61d",
+      "bytes": 1987
+    },
+    {
+      "path": "tests/commands/timeout-independent-20260828/review-preparation-v1/recipe/support.mjs",
+      "repositoryRelative": true,
+      "sha256": "cfcdc9008e2b5f8e937a7a3072c1b2980b7ed50d32a73aa3fe91ee05aa15fde0",
+      "bytes": 5730
+    },
+    {
+      "path": "tests/integration/du-public-independent-evidence-20260827/admission-v2/closure.json",
+      "repositoryRelative": true,
+      "sha256": "b4263e32e6b2ea91a7f8eccceb1133a04ef09d614adca2c8021737572dbd0ad7",
+      "bytes": 628683
+    }
+  ],
+  "actualControls": [
+    "B01"
+  ],
+  "focusedControls": 7,
+  "productFamilies": 0,
+  "types": 0,
+  "builds": 0,
+  "packs": 0,
+  "productMutants": 0
+}

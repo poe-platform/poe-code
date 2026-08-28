@@ -1,0 +1,286 @@
+{
+  "schema": "m1b-semantic-integration-closure-v2",
+  "candidate": {
+    "candidate": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+    "evidence": "897e5141b034b59501f576a259d5ea1e7e2673c6",
+    "computedTree": "23074ef0c443ca618c4f26204b5f3d2274b86895",
+    "selectedInputs": 282,
+    "fullPackageMembers": 910,
+    "fullPackageSha256": "cc0e75c2d0d12f713f0458e608ddeae157cf3432b4e0b48277a329a98115aa1a",
+    "sourceManifestSha256": "ce54b742cb00f0df0f14fc6865e73a614334ddfd7ac4aeabcc30f7f4c1eb70d9",
+    "moduleDeltaFrom09029163": "pack.ts only;13 other module hashes unchanged, checked as source data.",
+    "package907Unchanged": "AUTHOR metadata statement; this component does not independently replay/authenticate all910 package members. Runner must do complete admission before load.",
+    "publicExportState": "PUBLIC_EXPORT_GAP"
+  },
+  "originalSemanticCommit": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+  "mechanicalCommit": "856b0a59846ad09680cd32227c686925db882258",
+  "inputs": [
+    {
+      "revision": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/fixtures.mjs",
+      "gitMode": "100644",
+      "blob": "e8d90bc25e364c0bd54a97d595c9fa0488c134f7",
+      "bytes": 12591,
+      "sha256": "4595e425d2c562069d1c4529ad7af9a0c48af11017cc8ce4aa75707a95a65145",
+      "role": "EXECUTION_CODE_FRESH_PROJECTION",
+      "freshProjection": {
+        "path": "semantic/fixtures.mjs",
+        "regularFile": true,
+        "mode": 420
+      }
+    },
+    {
+      "revision": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/CASE-DATA.json",
+      "gitMode": "100644",
+      "blob": "d7b30ae77aa042bc557931b38536f619b1e50094",
+      "bytes": 166027,
+      "sha256": "cdff96c2817366c7506e1cf785f9b4ca9056cfc1d787df232bd1dde95d6f2ff0",
+      "role": "EXECUTION_DATA_FRESH_PROJECTION",
+      "freshProjection": {
+        "path": "semantic/CASE-DATA.json",
+        "regularFile": true,
+        "mode": 420
+      }
+    },
+    {
+      "revision": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/FROZEN-DATA.json",
+      "gitMode": "100644",
+      "blob": "24875b4a409ccb0791d50262aeb637b37e49fc8f",
+      "bytes": 128512,
+      "sha256": "a57c3da7b9354dd5d5cc1af23f5a10160aaafa0a2f05c94ee64d022946b4811d",
+      "role": "EXECUTION_DATA_FRESH_PROJECTION",
+      "freshProjection": {
+        "path": "semantic/FROZEN-DATA.json",
+        "regularFile": true,
+        "mode": 420
+      }
+    },
+    {
+      "revision": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/semantic.mjs",
+      "gitMode": "100644",
+      "blob": "330b0f6101fe83be31b63bbd07caae27e402aea5",
+      "bytes": 18577,
+      "sha256": "016378caa896457d1c4fc2852fe49d6c18b02e65b567dfaad88e6672cf4c64f2",
+      "role": "HISTORICAL_SOURCE_OR_METADATA_NOT_LOADED"
+    },
+    {
+      "revision": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/README.md",
+      "gitMode": "100644",
+      "blob": "2785431431b249e9f0512ab7a1a81b9fa4a738ad",
+      "bytes": 11006,
+      "sha256": "e814758a72ba21c84b541679047176141e0a2e50cb09748399c1b6be97418bcb",
+      "role": "HISTORICAL_SOURCE_OR_METADATA_NOT_LOADED"
+    },
+    {
+      "revision": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/BINDINGS.json",
+      "gitMode": "100644",
+      "blob": "12e3b7ea6e00b09ac24d4e738bfa490efe8c580d",
+      "bytes": 14401,
+      "sha256": "1befe8a62e3cc4dd6b8a0556607f2a3318b7960edcf98b8e7f08e22bcbf0af91",
+      "role": "HISTORICAL_SOURCE_OR_METADATA_NOT_LOADED"
+    },
+    {
+      "revision": "656c49fef410b51b85bd905a7824d80c2a0c7a9e",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic/SEAL.json",
+      "gitMode": "100644",
+      "blob": "516dd3a729d7c2b458a5e2edd322a851099e9209",
+      "bytes": 5762,
+      "sha256": "fcc60cc7cad15d74a1e59443b1cd3a792a02ce4d395de09b1ff30e666fb63c2d",
+      "role": "HISTORICAL_SOURCE_OR_METADATA_NOT_LOADED"
+    },
+    {
+      "revision": "856b0a59846ad09680cd32227c686925db882258",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/MUTANT-PROJECTIONS.json",
+      "gitMode": "100644",
+      "blob": "0b9f329cc7b73ea19fef9d46bae7ad6ab3f49b05",
+      "bytes": 12658,
+      "sha256": "73bf7fc8e653a204ac036d3667da5ddca9e0e2143250c1224b53da3586ba812e",
+      "role": "PARENT_MUTANT_AUTHORITY_REQUIRES_FRESH_ADMITTED_DATA_PROJECTION"
+    },
+    {
+      "revision": "856b0a59846ad09680cd32227c686925db882258",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/PACKAGE-MAP.json",
+      "gitMode": "100644",
+      "blob": "1b3717b90933a402859de68aa424b62a1ef4e3a3",
+      "bytes": 170204,
+      "sha256": "9c9db3bde063d81687d89b339874093154aa59b312c4c8e791abcf3acbd82f22",
+      "role": "PARENT_MUTANT_AUTHORITY_REQUIRES_FRESH_ADMITTED_DATA_PROJECTION"
+    },
+    {
+      "revision": "856b0a59846ad09680cd32227c686925db882258",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/FINAL-SEAL.json",
+      "gitMode": "100644",
+      "blob": "a23477de8e28410fc0891668c956c8e4f6b14aed",
+      "bytes": 8212,
+      "sha256": "3ca5d3fa7176f6552419e1bd2ab440e3e8443d39e44964eabe9442559e89d896",
+      "role": "PARENT_MUTANT_AUTHORITY_REQUIRES_FRESH_ADMITTED_DATA_PROJECTION"
+    },
+    {
+      "revision": "de95161c9de136852884d054612dad1b8ec716e5",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/INTERFACE.md",
+      "gitMode": "100644",
+      "blob": "50178ed6394fcfb805a2540f5068b43d427b6fde",
+      "bytes": 6961,
+      "sha256": "ec7348180748d18490ac873d1078e4585f09dde2f50f10ab2fbfd17acd827a5e",
+      "role": "FROZEN_ABI_WITH_EXPLICIT_NEW_ROOT_CONTINUATION_DELTA"
+    },
+    {
+      "revision": "203f5f0088ea7452ba6bc3b07f38cff63ead838c",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/worker.mjs",
+      "gitMode": "100644",
+      "blob": "bc0ed31b4609d5aff017ada2ca9aa0fef3a1983c",
+      "bytes": 5379,
+      "sha256": "6cf3c1c6474cb423924d48efbe30dbb9a5273b09b644d01870b42ad2e30f4769",
+      "role": "STATIC_OLD_RUNNER_NOT_CURRENT_IMPLEMENTATION_AUTHORITY"
+    },
+    {
+      "revision": "203f5f0088ea7452ba6bc3b07f38cff63ead838c",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/cases.mjs",
+      "gitMode": "100644",
+      "blob": "3b4a6dc89d68b190f02254f788169ceca7e1ed5a",
+      "bytes": 10030,
+      "sha256": "7e960f8bb44a8dadeae50886dee5be1ecf9965db2a09df40b8c386a2347607e2",
+      "role": "STATIC_OLD_RUNNER_NOT_CURRENT_IMPLEMENTATION_AUTHORITY"
+    },
+    {
+      "revision": "203f5f0088ea7452ba6bc3b07f38cff63ead838c",
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/runner/loader.mjs",
+      "gitMode": "100644",
+      "blob": "c8cfbbc7ce97163af9b999379d4986b3b5a05c99",
+      "bytes": 1825,
+      "sha256": "d291c49c5825a5b6b7118da0084b73d76e5ce3ecd421764bf28c7b04e03b9fe5",
+      "role": "STATIC_OLD_RUNNER_NOT_CURRENT_IMPLEMENTATION_AUTHORITY"
+    },
+    {
+      "revision": "897e5141b034b59501f576a259d5ea1e7e2673c6",
+      "path": "tests/commands/git-pack-author-20260828/s01-v3/SOURCE.json",
+      "gitMode": "100644",
+      "blob": "b5674e1588667a9ec9ec52c8026f621f1c56ee9e",
+      "bytes": 109299,
+      "sha256": "ce54b742cb00f0df0f14fc6865e73a614334ddfd7ac4aeabcc30f7f4c1eb70d9",
+      "role": "SELECTED_SOURCE_AUTHORITY_NOT_FULL_CURRENT_COMMIT"
+    },
+    {
+      "revision": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+      "path": "src/commands/git/pack.ts",
+      "gitMode": "100644",
+      "blob": "ed67d2e55de0286dbc8c1e8c96a400ef98397366",
+      "bytes": 12685,
+      "sha256": "42c9d44c1648a139c3c6414228b050923c2280194eb818428676b3cce88627ce",
+      "role": "SELECTED_SOURCE_INSPECTION"
+    },
+    {
+      "revision": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+      "path": "src/commands/git/delta.ts",
+      "gitMode": "100644",
+      "blob": "9fb0eb9704af80e396b381aa11c6d61804215003",
+      "bytes": 2546,
+      "sha256": "c280cdc9d8837db078bd57d6e8322c8af3652af517f98074c90a3f5b2dd944a5",
+      "role": "SELECTED_SOURCE_INSPECTION"
+    },
+    {
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "path": "src/fs/memory/index.ts",
+      "gitMode": "100644",
+      "blob": "29551d4afa95503783f915410fcdafaf518a6786",
+      "bytes": 23533,
+      "sha256": "2ece749f3f22be6a0da76dcd964feb9b1055e742a05c727c43f672e9bc7ec8b4",
+      "role": "SELECTED_BASELINE_SOURCE_MODE_PROOF"
+    },
+    {
+      "revision": "63d811bf1a809b467f47f309f41b1445486e71db",
+      "path": "tests/commands/git-pack-design-20260828/NEUTRAL-PACKS.json",
+      "gitMode": "100644",
+      "blob": "e5cd953534cfbbf8e098c0bafe89b043c87ce2db",
+      "bytes": 370847,
+      "sha256": "eda294f89c61d09319701c50c76e1004d2b4de27fc5d025473a4058fc75a7080",
+      "role": "ORIGINAL_DATA_P12_P13_GRAPH_QUALIFICATION_ONLY"
+    }
+  ],
+  "activeFiles": [
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/loaded.mjs",
+      "projectionPath": "semantic-integration-v2/loaded.mjs",
+      "mode": 420,
+      "regularFile": true,
+      "bytes": 13641,
+      "sha256": "edc0d9d8e5f4f178310f69a0553722564af245769519e2afeaa7a8aa88f0d539",
+      "role": "ACTIVE_EXECUTION_CODE_OR_DATA"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/WITNESSES.json",
+      "projectionPath": "semantic-integration-v2/WITNESSES.json",
+      "mode": 420,
+      "regularFile": true,
+      "bytes": 10543,
+      "sha256": "7131dbdca29346915b4d2e600fd3dc63f30a4965ae80fd7fde67a34999dba3e3",
+      "role": "ACTIVE_EXECUTION_CODE_OR_DATA"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/CASES.json",
+      "projectionPath": "semantic-integration-v2/CASES.json",
+      "mode": 420,
+      "regularFile": true,
+      "bytes": 4546,
+      "sha256": "9fad5b63d02ff2e4961ad6cd6dc4bf84b5333c75ae146acab365a438c1a549e9",
+      "role": "ACTIVE_EXECUTION_CODE_OR_DATA"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/SCHEDULE.json",
+      "projectionPath": "semantic-integration-v2/SCHEDULE.json",
+      "mode": 420,
+      "regularFile": true,
+      "bytes": 8039,
+      "sha256": "7b6b19c71627a03f0e4873f92bdf3d832f7dc347acc83442cf2ac1adadac7ae4",
+      "role": "ACTIVE_EXECUTION_CODE_OR_DATA"
+    },
+    {
+      "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/semantic-integration-v2/README.md",
+      "projectionPath": "semantic-integration-v2/README.md",
+      "mode": 420,
+      "regularFile": true,
+      "bytes": 12697,
+      "sha256": "c02ec053a8a58fafcadbabccc817b86debbd2284a6de766b0b586b82669e19bb",
+      "role": "COORDINATION_REPORT"
+    }
+  ],
+  "builtinImports": [
+    "node:fs/promises",
+    "node:path",
+    "node:crypto",
+    "node:zlib"
+  ],
+  "moduleEdges": [
+    {
+      "from": "semantic-integration-v2/loaded.mjs",
+      "to": "semantic/fixtures.mjs"
+    }
+  ],
+  "dataEdges": [
+    {
+      "from": "semantic-integration-v2/loaded.mjs",
+      "to": "semantic-integration-v2/WITNESSES.json"
+    },
+    {
+      "from": "semantic-integration-v2/loaded.mjs",
+      "to": "semantic/CASE-DATA.json"
+    },
+    {
+      "from": "semantic-integration-v2/loaded.mjs",
+      "to": "semantic/FROZEN-DATA.json"
+    }
+  ],
+  "candidateImports": [
+    "dist/fs/memory/index.js",
+    "dist/commands/git/index.js"
+  ],
+  "candidateEntryAdditionalGuard": "dist/commands/git/pack.js",
+  "actualImportClosure": "Runner exact full910/selected source282, compiled transitive modules, fresh regular modes, complete before/after inventory including additions. Leaf entry hash cannot confer load proof.",
+  "moduleImportExecution": 0,
+  "scope": "Only the named3 original fixture/helper inputs are imported/read by new entry. Historical semantic actor is source inspection only. No private/type/tool/compiler/runtime observer modules."
+}

@@ -1,0 +1,233 @@
+{
+  "schema": "m1b-cases-v1",
+  "cases": [
+    {
+      "id": "L-CRC-STOCK",
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "role": "LOADED",
+      "rows": [
+        "GFP-22"
+      ],
+      "variants": [
+        "crc-inner",
+        "STOCK"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 262144,
+      "workBytes": 2097152,
+      "requires": [
+        "L-CRC",
+        "crc-inner",
+        "FULL910_AUTHENTICATED"
+      ]
+    },
+    {
+      "id": "L-CRC-MUTANT",
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "role": "LOADED",
+      "rows": [
+        "GFP-22"
+      ],
+      "variants": [
+        "crc-inner",
+        "MUTANT"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 262144,
+      "workBytes": 2097152,
+      "requires": [
+        "L-CRC",
+        "crc-inner",
+        "FULL910_AUTHENTICATED",
+        "L-CRC-STOCK"
+      ]
+    },
+    {
+      "id": "L-CRC-RESTORE",
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "role": "LOADED",
+      "rows": [
+        "GFP-22"
+      ],
+      "variants": [
+        "crc-inner",
+        "RESTORE"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 262144,
+      "workBytes": 2097152,
+      "requires": [
+        "L-CRC",
+        "crc-inner",
+        "FULL910_AUTHENTICATED",
+        "L-CRC-MUTANT",
+        "EXACT_SAME_ROOT_RESTORATION"
+      ]
+    },
+    {
+      "id": "L-OID-STOCK",
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "role": "LOADED",
+      "rows": [
+        "GFP-31",
+        "GFP-34"
+      ],
+      "variants": [
+        "oid-inner",
+        "STOCK"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 262144,
+      "workBytes": 2097152,
+      "requires": [
+        "L-OID",
+        "oid-inner",
+        "FULL910_AUTHENTICATED"
+      ]
+    },
+    {
+      "id": "L-OID-MUTANT",
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "role": "LOADED",
+      "rows": [
+        "GFP-31",
+        "GFP-34"
+      ],
+      "variants": [
+        "oid-inner",
+        "MUTANT"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 262144,
+      "workBytes": 2097152,
+      "requires": [
+        "L-OID",
+        "oid-inner",
+        "FULL910_AUTHENTICATED",
+        "L-OID-STOCK"
+      ]
+    },
+    {
+      "id": "L-OID-RESTORE",
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "role": "LOADED",
+      "rows": [
+        "GFP-31",
+        "GFP-34"
+      ],
+      "variants": [
+        "oid-inner",
+        "RESTORE"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 262144,
+      "workBytes": 2097152,
+      "requires": [
+        "L-OID",
+        "oid-inner",
+        "FULL910_AUTHENTICATED",
+        "L-OID-MUTANT",
+        "EXACT_SAME_ROOT_RESTORATION"
+      ]
+    },
+    {
+      "id": "L-DEPTH-STOCK",
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "role": "LOADED",
+      "rows": [
+        "GFP-32"
+      ],
+      "variants": [
+        "P13-depth33",
+        "STOCK"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 262144,
+      "workBytes": 2097152,
+      "requires": [
+        "L-DEPTH",
+        "P13-depth33",
+        "FULL910_AUTHENTICATED"
+      ]
+    },
+    {
+      "id": "L-DEPTH-MUTANT",
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "role": "LOADED",
+      "rows": [
+        "GFP-32"
+      ],
+      "variants": [
+        "P13-depth33",
+        "MUTANT"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 262144,
+      "workBytes": 2097152,
+      "requires": [
+        "L-DEPTH",
+        "P13-depth33",
+        "FULL910_AUTHENTICATED",
+        "L-DEPTH-STOCK"
+      ]
+    },
+    {
+      "id": "L-DEPTH-RESTORE",
+      "entry": "semantic-integration-v2/loaded.mjs",
+      "role": "LOADED",
+      "rows": [
+        "GFP-32"
+      ],
+      "variants": [
+        "P13-depth33",
+        "RESTORE"
+      ],
+      "layouts": [
+        "S",
+        "M"
+      ],
+      "timeoutMs": 30000,
+      "captureBytes": 262144,
+      "workBytes": 2097152,
+      "requires": [
+        "L-DEPTH",
+        "P13-depth33",
+        "FULL910_AUTHENTICATED",
+        "L-DEPTH-MUTANT",
+        "EXACT_SAME_ROOT_RESTORATION"
+      ]
+    }
+  ]
+}

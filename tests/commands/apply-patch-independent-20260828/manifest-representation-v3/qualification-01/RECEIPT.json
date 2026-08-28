@@ -1,0 +1,16 @@
+{
+  "schema": "manifest-qualification-owner-v1",
+  "owner": 96580,
+  "child": 96581,
+  "allOwnedProcesses": 2,
+  "totalPeak": 2,
+  "closed": true,
+  "absent": true,
+  "code": 1,
+  "signal": null,
+  "observedBytes": 2399,
+  "retainedBytes": 2399,
+  "sourceAuthenticated": true,
+  "primary": null,
+  "elapsedMs": 18408
+}

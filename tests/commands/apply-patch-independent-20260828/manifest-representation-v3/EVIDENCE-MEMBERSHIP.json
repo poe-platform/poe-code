@@ -1,0 +1,55 @@
+{
+  "schema": "manifest-evidence-membership-v1",
+  "artifacts": [
+    {
+      "path": "qualification-01/OWNER.jsonl",
+      "bytes": 441,
+      "mode": 384,
+      "sha256": "8544bc97a9edf31839ea3524947a551cdb3d4157d7c9d3d07e8af177030ae997"
+    },
+    {
+      "path": "qualification-01/RECEIPT.json",
+      "bytes": 319,
+      "mode": 420,
+      "sha256": "80137b0c2f18e42733bcd40bbe41926cbac9dd551ac48431dbcaf365abb88fa2"
+    },
+    {
+      "path": "qualification-01/scratch/NORMALIZED-HISTORICAL.json",
+      "bytes": 1013387,
+      "mode": 420,
+      "sha256": "da0ff9218961296cb21bbc127145dba12b60d3f9cec5d3e595b83af56e92438e"
+    },
+    {
+      "path": "qualification-01/scratch/dist/commands/apply-patch/apply.js",
+      "bytes": 108,
+      "mode": 420,
+      "sha256": "24b67c5726afb5b49488967c9b3a07fdd1cb23287a95ef9ce963424f6e73d531"
+    },
+    {
+      "path": "qualification-01/scratch/dist/commands/apply-patch/index.js",
+      "bytes": 108,
+      "mode": 420,
+      "sha256": "24b67c5726afb5b49488967c9b3a07fdd1cb23287a95ef9ce963424f6e73d531"
+    },
+    {
+      "path": "qualification-01/scratch/unbound.js",
+      "bytes": 108,
+      "mode": 420,
+      "sha256": "24b67c5726afb5b49488967c9b3a07fdd1cb23287a95ef9ce963424f6e73d531"
+    },
+    {
+      "path": "qualification-01/stderr.raw",
+      "bytes": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "qualification-01/stdout.raw",
+      "bytes": 2399,
+      "mode": 384,
+      "sha256": "a900e96b60e91801b970a1bf96939b29115d1cc5bd336e957ecfbd6bc84b961c"
+    }
+  ],
+  "totalBytes": 1016870,
+  "note": "Full normalized historical DATA artifact included; not reconstruction of prior missing raw stdout."
+}

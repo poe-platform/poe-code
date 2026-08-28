@@ -1,0 +1,168 @@
+{
+  "schema": "M1A-v13-exact-negative-compiler",
+  "candidate": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+  "base": "8437e4eda904e1248c25eeef0d9d455b1d251495",
+  "priorEvidence": "b94bd13b156320d713d692c11f85f655cda68690",
+  "priorPreseal": "c5af63a2f6b9053ccd1d4b7b0fa2e99f4f74175a",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "compiler": {
+    "version": "5.9.3",
+    "entry": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/typescript.js",
+    "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+    "originalEntry": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
+    "originalEntrySha256": "2cffde0b8c6760dfb0b5b0382bbb7e00ba6a8b2d981b9205b256a700a481d983"
+  },
+  "logicalCwd": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/source",
+  "logicalPackage": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/physically moved app/node_modules/virtual-bash",
+  "packageSha256": "68541722217fb3f88f7317750c8f1a66042ea090f2c769564b9afc14372dfe68",
+  "packageMembers": 898,
+  "work": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/work",
+  "files": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/EXPECTATION.json",
+      "bytes": 1464,
+      "sha256": "85db2ca07608cd22ed94b4774cc42155b6e94f7308eb2d62088ea94124f487dc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/INPUT-BINDINGS.json",
+      "bytes": 1394972,
+      "sha256": "85c0d5baafcacd6579f490737d038a4a7010bd71a0e46747f52a50e7b4b77ac9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/PREPARATION.json",
+      "bytes": 2513,
+      "sha256": "b20c1184f321e724b11272a1394e08a9899d23627e9ce451118ce95d34a73ec9"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/SCOPE.md",
+      "bytes": 4917,
+      "sha256": "c6d96ddb851d843e6b5ba8cf176c8f7f93ff9b2d255d4ee08b866b84966201da"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/compiler.mjs",
+      "bytes": 6388,
+      "sha256": "f2a32b65682ce5f757c5693eaa44be8f482b6369d8b92371dcae16207cbee1d3"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/guard.mjs",
+      "bytes": 2112,
+      "sha256": "7aa0b757d6426fe23bb706083c0e87bffe929d634909960f031310bd8ab15bf4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/outer.mjs",
+      "bytes": 10373,
+      "sha256": "d24a1eb13da80e3ff4a63600c4c468e2d3c9af46e061784174406c3dfe13dcee"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/prepare.py",
+      "bytes": 18353,
+      "sha256": "0bb123fb22e4b76300c9e324f52aead1eb4099b833345e3aec4612f10e4e4757"
+    }
+  ],
+  "roles": [
+    {
+      "id": "positive",
+      "args": [
+        "--noEmit",
+        "--strict",
+        "--exactOptionalPropertyTypes",
+        "--skipLibCheck",
+        "false",
+        "--target",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--types",
+        "node",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/source/node_modules/@types",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/types/positive.ts",
+        "--pretty",
+        "false"
+      ],
+      "consumer": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/types/positive.ts",
+      "consumerSha256": "864908fc03222fbed3631a103dce49eda597c28ac00ad3074696f711895e8648",
+      "exitCode": 0,
+      "diagnostics": [],
+      "formatted": ""
+    },
+    {
+      "id": "negative-public-root",
+      "args": [
+        "--noEmit",
+        "--strict",
+        "--exactOptionalPropertyTypes",
+        "--skipLibCheck",
+        "false",
+        "--target",
+        "ES2023",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--types",
+        "node",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/source/node_modules/@types",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-public-root.ts",
+        "--pretty",
+        "false"
+      ],
+      "consumer": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-public-root.ts",
+      "consumerSha256": "ed9ef7fc39f5d9d2c926d21fabd850fdeb8393a47b9ef37b48876b30b38f1b55",
+      "exitCode": 2,
+      "diagnostics": [
+        {
+          "code": 2724,
+          "category": 1,
+          "file": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/types/negative-public-root.ts",
+          "start": 8,
+          "length": 16,
+          "line": 1,
+          "column": 9,
+          "message": "'\"/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/physically moved app/node_modules/virtual-bash/dist/index.js\"' has no exported member named 'createGitCommand'. Did you mean 'createTarCommand'?",
+          "related": [
+            {
+              "code": 2728,
+              "category": 3,
+              "file": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/physically moved app/node_modules/virtual-bash/dist/commands/archive/index.d.ts",
+              "start": 309,
+              "length": 16,
+              "line": 5,
+              "column": 25,
+              "message": "'createTarCommand' is declared here.",
+              "related": []
+            }
+          ]
+        }
+      ],
+      "formatted": "../../../types/negative-public-root.ts(1,9): error TS2724: '\"/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/RUN-01/work/physically moved app/node_modules/virtual-bash/dist/index.js\"' has no exported member named 'createGitCommand'. Did you mean 'createTarCommand'?\n"
+    }
+  ],
+  "limits": {
+    "milliseconds": 300000,
+    "admissionMilliseconds": 270000,
+    "childMilliseconds": 60000,
+    "controlledProcesses": 6,
+    "peak": 2,
+    "captureBytes": 16777216,
+    "workBytes": 134217728
+  },
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-type-continuation-v13/outer.mjs"
+  ],
+  "censusModule": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/git-independent-20260828/m1a-continuation-v12/census.mjs",
+    "sha256": "62df9336be726a6e18ba261d77f287736b3f0d94d6331eaf7eefc053b8782d84"
+  },
+  "immutableConsumerBytes": true,
+  "compilerEntryDelta": "Public CompilerHost/API rather than CLI; original parseCommandLine arguments and logical paths unchanged",
+  "runtimeReplay": false
+}

@@ -1,0 +1,86 @@
+{
+  "role": "DATA_ONLY_NO_COMPILER_EXECUTION",
+  "startedMonotonicNs": "198019932574375",
+  "elapsedMs": 2519.620291,
+  "metadataCommands": [
+    [
+      "rev-parse",
+      "--show-toplevel"
+    ],
+    [
+      "diff",
+      "--cached",
+      "--raw",
+      "-z"
+    ],
+    [
+      "ls-tree",
+      "-r",
+      "-z",
+      "b94bd13b156320d713d692c11f85f655cda68690",
+      "--",
+      "tests/commands/git-independent-20260828/m1a-review-v5",
+      "tests/commands/git-independent-20260828/m1a-continuation-v11",
+      "tests/commands/git-independent-20260828/m1a-continuation-v12",
+      "tests/commands/git-author-20260828/results-v1/PACKAGE.tgz.base64",
+      "tests/commands/git-author-20260828/results-v1/CANDIDATE.json",
+      "tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64"
+    ],
+    [
+      "cat-file",
+      "--batch-check"
+    ],
+    [
+      "ls-tree",
+      "-r",
+      "-z",
+      "67eab12e315054907ef4ef435c6bbca2f59e0c36"
+    ],
+    [
+      "ls-tree",
+      "-r",
+      "-z",
+      "74361026502d76b8c2b696f9c60e410ac9b78d95"
+    ],
+    [
+      "ls-tree",
+      "-r",
+      "-z",
+      "ca1d33424b94a21ae0f40a36412fd8191611e2df"
+    ],
+    [
+      "ls-tree",
+      "-r",
+      "-z",
+      "d2502aae3c8458e0ac92662f2af07e7f9fc3923a"
+    ],
+    [
+      "ls-tree",
+      "-r",
+      "-z",
+      "9885390fb11454fa194a3e60fdbef198dbfdf633"
+    ]
+  ],
+  "childProcesses": 9,
+  "currentPythonOwner": 1,
+  "priorDataPreparation": [
+    {
+      "outcome": "IsADirectoryError reading TypeScript bin directory as tool file",
+      "elapsedToolSeconds": 0.6152,
+      "knownProcesses": 4,
+      "writes": 0,
+      "compilerExecutions": 0,
+      "correction": "Honor directory records in authenticated TOOLS manifest"
+    },
+    {
+      "outcome": "Incorrectly requested stored commit for historical derived base; batch-check missing row failed unpack",
+      "elapsedToolSeconds": null,
+      "knownProcesses": 5,
+      "writes": "Only owned archive rehydration; subsequently reread and byte/mode verified without overwrite",
+      "compilerExecutions": 0,
+      "correction": "Recompute exact canonical five-component derived base; retain no stored-object claim"
+    }
+  ],
+  "priorInteractiveInspection": "Separate terminal metadata/read-only inspections, including one failed lookup of nonexistent m1a-coherent-v5/PRESEAL.json and failed verify of derived base abbreviation; no subject execution or writes there. Not a universal helper census.",
+  "foreignIndexRawBase64": ""
+}

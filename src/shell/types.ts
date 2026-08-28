@@ -1,6 +1,7 @@
 import type { ByteSink, ByteSource, CommandContext, CommandRegistry, CommandResult, FileSystem } from "../contracts/index.js";
 
 export interface ShellInvokeOptions {
+  readonly signal?: AbortSignal | undefined;
   readonly stdin?: ByteSource;
   readonly stdinIsDefault?: boolean;
   readonly stdout?: ByteSink;

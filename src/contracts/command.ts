@@ -2,6 +2,7 @@ import type { FileSystem } from "./filesystem.js";
 import type { ByteSink, ByteSource } from "./io.js";
 
 export interface CommandInvokeOptions {
+  readonly signal?: AbortSignal | undefined;
   readonly stdin?: ByteSource;
   readonly stdinIsDefault?: boolean;
   readonly stdout?: ByteSink;

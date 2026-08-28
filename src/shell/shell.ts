@@ -6,11 +6,87 @@ import type {
 import { parseShellUnit } from "./parser.js";
 import { ShellInput } from "./input.js";
 import { byteLocale } from "./locale.js";
-import { Budget, Capture, interruptible, resolveLimits, Runtime } from "./runtime.js";
+import { Budget, Capture, interruptible, resolveLimits, Runtime, RuntimeCancellationState } from "./runtime.js";
 import type { State } from "./runtime.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellExecOptions, ShellOptions, ShellResult } from "./types.js";
 import { InvocationScope, invocationScope, throwCleanupFailures } from "./cleanup.js";
+import {
+  createRootCancellationLink, selectRuntimeCancellationOutcome, subscribeCancellation,
+} from "./cancellation.js";
+import type {
+  CancellationBoundary, CancellationOrigin, CancellationSelection, CapturedCancellationOutcome,
+} from "./cancellation.js";
+
+class RootInvocationCancellationOwner {
+  readonly finalized: Promise<void>;
+  #resolveFinalized!: () => void;
+  #admissionOpen = true;
+  #boundary: CancellationBoundary | undefined;
+  #observedOrigin: CancellationOrigin | undefined;
+  #captureCancellation: ((origin: CancellationOrigin) => void) | undefined;
+  #detach: (() => void) | undefined;
+  #finished = false;
+
+  constructor(readonly scope: InvocationScope) {
+    this.finalized = new Promise<void>(resolve => { this.#resolveFinalized = resolve; });
+    scope.register(() => { this.#admissionOpen = false; });
+  }
+
+  activate(boundary: CancellationBoundary): void {
+    if (!this.#admissionOpen) throw new Error("Root cancellation admission is closed");
+    this.#boundary = boundary;
+    this.#detach = subscribeCancellation(boundary, origin => { this.#captureCancellation?.(origin); });
+  }
+
+  assertAdmissionOpen(): void {
+    if (!this.#admissionOpen) throw new Error("Root cancellation admission is closed");
+  }
+
+  capture<Value>(execute: () => Promise<Value>): Promise<CapturedCancellationOutcome<Value>> {
+    return new Promise(resolve => {
+      let settled = false;
+      let raw: Promise<Value> | undefined;
+      let queuedOrigin = false;
+      const settle = (captured: CapturedCancellationOutcome<Value>): void => {
+        if (settled) return;
+        settled = true;
+        this.#captureCancellation = undefined;
+        resolve(captured);
+      };
+      this.#captureCancellation = origin => {
+        if (settled || queuedOrigin) return;
+        queuedOrigin = true;
+        queueMicrotask(() => {
+          if (settled) return;
+          this.#observedOrigin = origin;
+          settle({ kind: "throw", reason: origin.signal.reason });
+          void raw?.catch(() => undefined);
+        });
+      };
+      try { raw = Promise.resolve(execute()); }
+      catch (reason) { settle({ kind: "throw", reason }); return; }
+      void raw.then(
+        value => settle({ kind: "return", value }),
+        reason => settle({ kind: "throw", reason }),
+      );
+      if (settled) void raw.catch(() => undefined);
+    });
+  }
+
+  finish<Value>(captured: CapturedCancellationOutcome<Value>): CancellationSelection<Value> {
+    if (this.#finished) throw new Error("Root cancellation was already finalized");
+    this.#finished = true;
+    this.#admissionOpen = false;
+    try {
+      try { this.#detach?.(); } catch (error) { this.scope.failures.push(error); }
+      this.#detach = undefined;
+      const close = this.#boundary!.close();
+      this.scope.failures.push(...close.failures);
+      return selectRuntimeCancellationOutcome(this.#boundary!, captured, this.#observedOrigin);
+    } finally { this.#resolveFinalized(); }
+  }
+}
 
 export class Shell implements PluginHost {
   readonly commands: CommandRegistry;
@@ -21,7 +97,7 @@ export class Shell implements PluginHost {
   #ready: Promise<void> = Promise.resolve();
   #disposed = false;
   #disposal: Promise<void> | undefined;
-  readonly #active = new Set<{ scope: InvocationScope; budget: Budget }>();
+  readonly #active = new Set<{ scope: InvocationScope; budget: Budget; owner: RootInvocationCancellationOwner }>();
 
   constructor(options: ShellOptions) {
     if (!options?.fs) throw new TypeError("Shell requires an explicit filesystem");
@@ -88,24 +164,42 @@ export class Shell implements PluginHost {
     if (this.#disposed) throw new Error("Shell is disposed");
     const budget = new Budget(resolveLimits(this.#options.limits, options.limits), options.signal);
     const scope = new InvocationScope(options.signal);
-    const active = { scope, budget };
-    this.#active.add(active);
-    let failed = false;
-    let failure: unknown;
-    let result: ShellResult | undefined;
-    try { result = await this.#execute(source, options, scope, budget); }
-    catch (error) { failed = true; failure = error; }
-    finally {
+    const cancellationState = new RuntimeCancellationState();
+    const owner = new RootInvocationCancellationOwner(scope);
+    const boundary = createRootCancellationLink({
+      admission: Runtime.rootCancellationAdmission(budget),
+      callerSignal: options.signal,
+      controls: [{ role: "budget-control", signal: budget.controller.signal }],
+    });
+    try { owner.activate(boundary); }
+    catch (error) {
+      scope.failures.push(...boundary.close().failures);
       await scope.close();
-      this.#active.delete(active);
+      cancellationState.close();
+      throw error;
     }
-    options.signal?.throwIfAborted();
-    if (failed) throw failure;
+    const active = { scope, budget, owner };
+    this.#active.add(active);
+    let captured: CapturedCancellationOutcome<ShellResult>;
+    try { captured = await owner.capture(() => this.#execute(source, options, scope, budget, boundary, cancellationState, owner)); }
+    finally { await scope.close(); }
+    const selection = owner.finish(captured);
+    cancellationState.close();
+    this.#active.delete(active);
+    if (selection.outcome.kind === "throw") throw selection.outcome.reason;
     throwCleanupFailures(scope.failures);
-    return result!;
+    return selection.outcome.value;
   }
 
-  async #execute(source: string, options: ShellExecOptions, scope: InvocationScope, budget: Budget): Promise<ShellResult> {
+  async #execute(
+    source: string,
+    options: ShellExecOptions,
+    scope: InvocationScope,
+    budget: Budget,
+    cancellation: CancellationBoundary,
+    cancellationState: RuntimeCancellationState,
+    owner: RootInvocationCancellationOwner,
+  ): Promise<ShellResult> {
     if (typeof source !== "string") throw new TypeError("Shell source must be a string");
     if (Buffer.byteLength(source) > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
     budget.source(Buffer.byteLength(source));
@@ -152,7 +246,22 @@ export class Shell implements PluginHost {
           cwd, variables, exported, functions: new Map(), positional: [], getopts: { cursor: { index: 0 }, integer: true },
           status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, profile: "bash",
         };
-        const runtime = new Runtime(options.fs ?? this.#options.fs, this.commands, [...this.#middleware], budget, AbortSignal.any([budget.signal, scope.signal]), undefined, undefined, budget.signal);
+        const admission = Runtime.rootCancellationAdmission(budget);
+        const runtime = new Runtime(
+          options.fs ?? this.#options.fs,
+          this.commands,
+          [...this.#middleware],
+          budget,
+          AbortSignal.any([cancellation.deliverySignal, scope.signal]),
+          undefined,
+          undefined,
+          cancellation.deliverySignal,
+          cancellation,
+          cancellationState,
+          owner,
+          0,
+          admission.maxDepth,
+        );
         exitCode = 0;
         while (true) {
           for (const warning of unit.script.warnings ?? []) await writeText(io.stderr, `shell: warning: ${warning}\n`);
@@ -207,8 +316,9 @@ export class Shell implements PluginHost {
     return this.#disposal;
   }
 
-  async #dispose(active: readonly { scope: InvocationScope }[], drains: readonly Promise<void>[]): Promise<void> {
+  async #dispose(active: readonly { scope: InvocationScope; owner: RootInvocationCancellationOwner }[], drains: readonly Promise<void>[]): Promise<void> {
     await Promise.all(drains);
+    await Promise.all(active.map(({ owner }) => owner.finalized));
     let ready: Promise<void>;
     do {
       ready = this.#ready;

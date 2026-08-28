@@ -12,7 +12,7 @@ export attributes and function locals must remain unchanged on success, error
 or cancellation. Cwd resolution remains independent. A child Bash interpreter's
 own initialization is separate from the environment passed to it.
 
-Literal argv, middleware, shared execution/output/depth budgets, signal,
+Literal argv, middleware, shared execution/output/depth budgets,
 stdout/stderr transfer and stdin cursor/origin rules are unchanged. Do not
 implement replacement with a new Shell, new budget or a callback-only bypass.
 
@@ -20,6 +20,27 @@ Core `env COMMAND` explicitly requests replacement for its already-computed
 environment, including plain assignments and `-u`, not just `-i`. With no invoke
 hook, its existing registry/callback fallback still receives that exact map.
 Generic directExecutor/xargs/find callers retain their existing default behavior.
+
+# Child cancellation
+
+`CommandInvokeOptions.signal` is an optional child-cancellation authority. It
+must be a native `AbortSignal`; omitted and explicitly `undefined` signals retain
+the borrowed path. Admission reads the signal option once after checking an
+already-aborted ancestor and before child scope, middleware, stream, filesystem,
+handler or owned-output acquisition. A valid pre-aborted signal rejects with its
+exact stored reason.
+
+Live cancellation flows only into the selected child and its descendants. It
+does not cancel or close the parent, a sibling, another pipeline stage or another
+shell. First delivery is immutable. Settlement ranks the root caller above an
+actual escaping execution/control failure and ranked invoke cancellation. Equal
+rejection values do not establish provenance: an unchanged runtime-owned promise
+route or authenticated descendant report is required. Handler errors already
+mapped to a diagnostic and numeric status remain mapped and discard that report.
+
+Registered child cleanup and cooperative owned work drain before the child link
+detaches and the invoke promise settles. Cancellation cannot undo completed
+effects or terminate opaque host work.
 
 Curie owns the contract/core consumer; Sagan owns runtime/types. The additive
 field and boundary-forwarding tests do not establish runtime support. Acceptance

@@ -17,6 +17,13 @@ import { invocationScope, type InvocationScope } from "./cleanup.js";
 import { executionCommands } from "../commands/execution.js";
 import { cloneGetoptsState, createGetoptsState, GetoptsError, scanGetopts, withGetoptsIndex } from "./getopts.js";
 import type { GetoptsState } from "./getopts.js";
+import {
+  activateChildCancellation, prepareChildCancellation, selectRuntimeCancellationOutcome, subscribeCancellation,
+} from "./cancellation.js";
+import type {
+  CancellationAdmissionSnapshot, CancellationBoundary, CancellationControlOriginInput, CancellationOrigin,
+  CancellationReport, CancellationSelection, CapturedCancellationOutcome, PreparedChildCancellation,
+} from "./cancellation.js";
 
 export const defaultLimits: Required<ShellLimits> = {
   maxOutputBytes: 16 * 1024 * 1024,
@@ -336,6 +343,189 @@ function filesystemDiagnostic(error: unknown, target: string): string | undefine
 const closedSink: ByteSink = { async write() { throw Object.assign(new Error("Bad file descriptor"), { code: "EBADF" }); } };
 const closedSource: ByteSource = { async *[Symbol.asyncIterator]() { throw Object.assign(new Error("Bad file descriptor"), { code: "EBADF" }); } };
 
+interface RuntimeOutcomeFrame {
+  report?: CancellationReport | undefined;
+}
+
+interface InvokeOutcomeRecord {
+  readonly promise: Promise<CommandResult>;
+  readonly boundary: CancellationBoundary;
+  finalized: boolean;
+  consumed: boolean;
+  selection?: CancellationSelection<CommandResult> | undefined;
+}
+
+/** Internal to the shell/runtime pair; it is not exported by the package root. */
+export class RuntimeCancellationState {
+  readonly #records = new Set<InvokeOutcomeRecord>();
+  #closed = false;
+
+  bind(promise: Promise<CommandResult>, boundary: CancellationBoundary): InvokeOutcomeRecord {
+    if (this.#closed) throw new Error("Cancellation outcome admission is closed");
+    const record: InvokeOutcomeRecord = { promise, boundary, finalized: false, consumed: false };
+    this.#records.add(record);
+    return record;
+  }
+
+  finalize(record: InvokeOutcomeRecord, selection: CancellationSelection<CommandResult>): void {
+    if (record.consumed || !this.#records.has(record)) return;
+    record.selection = selection;
+    record.finalized = true;
+  }
+
+  consume(rawReturn: unknown, capturedReason: unknown): CancellationReport | undefined {
+    for (const record of this.#records) {
+      if (record.promise !== rawReturn) continue;
+      record.consumed = true;
+      this.#records.delete(record);
+      const selection = record.selection;
+      if (!record.finalized || selection?.outcome.kind !== "throw"
+        || !Object.is(selection.outcome.reason, capturedReason)) return undefined;
+      return selection.report;
+    }
+    return undefined;
+  }
+
+  discard(record: InvokeOutcomeRecord | undefined): void {
+    if (!record) return;
+    record.consumed = true;
+    this.#records.delete(record);
+  }
+
+  close(): void {
+    this.#closed = true;
+    for (const record of this.#records) record.consumed = true;
+    this.#records.clear();
+  }
+}
+
+interface CancellationAdmissionOwner {
+  assertAdmissionOpen(): void;
+}
+
+class InvocationCancellationOwner implements CancellationAdmissionOwner {
+  readonly finalized: Promise<void>;
+  readonly #failures: unknown[];
+  readonly #outcomes: RuntimeCancellationState;
+  readonly #publicPromise: Promise<CommandResult> | undefined;
+  #resolveFinalized!: () => void;
+  #admissionOpen = true;
+  #boundary: CancellationBoundary | undefined;
+  #boundaryClosed = false;
+  #record: InvokeOutcomeRecord | undefined;
+  #observedOrigin: CancellationOrigin | undefined;
+  #captureCancellation: ((origin: CancellationOrigin) => void) | undefined;
+  #detach: (() => void) | undefined;
+  #finish: Promise<CancellationSelection<CommandResult>> | undefined;
+
+  constructor(
+    parent: InvocationScope,
+    readonly prepared: PreparedChildCancellation,
+    outcomes: RuntimeCancellationState,
+    publicPromise?: Promise<CommandResult>,
+  ) {
+    this.#failures = parent.failures;
+    this.#outcomes = outcomes;
+    this.#publicPromise = publicPromise;
+    this.finalized = new Promise<void>(resolve => { this.#resolveFinalized = resolve; });
+    parent.register(async () => {
+      this.requestClose();
+      await this.finalized;
+    });
+  }
+
+  assertAdmissionOpen(): void {
+    if (!this.#admissionOpen) throw new Error("Cancellation invocation admission is closed");
+  }
+
+  requestClose(): void { this.#admissionOpen = false; }
+
+  activate(): CancellationBoundary {
+    this.assertAdmissionOpen();
+    const boundary = activateChildCancellation(this.prepared);
+    this.#boundary = boundary;
+    try {
+      this.#detach = subscribeCancellation(boundary, origin => { this.#captureCancellation?.(origin); });
+      if (this.#publicPromise) this.#record = this.#outcomes.bind(this.#publicPromise, boundary);
+      return boundary;
+    } catch (error) {
+      this.#closeBoundary();
+      throw error;
+    }
+  }
+
+  capture(
+    execute: () => Promise<CommandResult>,
+    frame: RuntimeOutcomeFrame,
+  ): Promise<CapturedCancellationOutcome<CommandResult>> {
+    return new Promise(resolve => {
+      let settled = false;
+      let raw: Promise<CommandResult> | undefined;
+      let queuedOrigin = false;
+      const settle = (captured: CapturedCancellationOutcome<CommandResult>): void => {
+        if (settled) return;
+        settled = true;
+        this.#captureCancellation = undefined;
+        resolve(captured);
+      };
+      this.#captureCancellation = origin => {
+        if (settled || queuedOrigin) return;
+        queuedOrigin = true;
+        queueMicrotask(() => {
+          if (settled) return;
+          this.#observedOrigin = origin;
+          settle({ kind: "throw", reason: origin.signal.reason });
+          void raw?.catch(() => undefined);
+        });
+      };
+      try { raw = Promise.resolve(execute()); }
+      catch (reason) { settle({ kind: "throw", reason }); return; }
+      void raw.then(
+        value => settle({ kind: "return", value }),
+        reason => settle(frame.report && Object.is(frame.report.origin.signal.reason, reason)
+          ? { kind: "throw", reason, report: frame.report }
+          : { kind: "throw", reason }),
+      );
+      if (settled) void raw.catch(() => undefined);
+    });
+  }
+
+  finish(barrier: Promise<void>, captured: CapturedCancellationOutcome<CommandResult>): Promise<CancellationSelection<CommandResult>> {
+    this.#finish ??= this.#finishOnce(barrier, captured);
+    return this.#finish;
+  }
+
+  async abandon(barrier: Promise<void>): Promise<void> {
+    this.requestClose();
+    try { await barrier; }
+    finally {
+      this.#outcomes.discard(this.#record);
+      this.#closeBoundary();
+      this.#resolveFinalized();
+    }
+  }
+
+  async #finishOnce(barrier: Promise<void>, captured: CapturedCancellationOutcome<CommandResult>): Promise<CancellationSelection<CommandResult>> {
+    this.requestClose();
+    try {
+      await barrier;
+      this.#closeBoundary();
+      const selection = selectRuntimeCancellationOutcome(this.#boundary!, captured, this.#observedOrigin);
+      if (this.#record) this.#outcomes.finalize(this.#record, selection);
+      return selection;
+    } finally { this.#resolveFinalized(); }
+  }
+
+  #closeBoundary(): void {
+    if (!this.#boundary || this.#boundaryClosed) return;
+    this.#boundaryClosed = true;
+    try { this.#detach?.(); } catch (error) { this.#failures.push(error); }
+    this.#detach = undefined;
+    const result = this.#boundary.close();
+    this.#failures.push(...result.failures);
+  }
+}
+
 export class Runtime {
   constructor(
     readonly fs: FileSystem,
@@ -346,7 +536,139 @@ export class Runtime {
     readonly fileWrites = new Map<string, Promise<void>>(),
     readonly outputFiles = new Map<string, OutputFile>(),
     readonly commandSignal: AbortSignal = signal,
+    readonly cancellation: CancellationBoundary,
+    readonly cancellationState: RuntimeCancellationState,
+    readonly cancellationOwner: CancellationAdmissionOwner | undefined,
+    readonly cancellationDepth: number,
+    readonly cancellationMaxDepth: number,
+    readonly outcomeFrame: RuntimeOutcomeFrame | undefined = undefined,
   ) {}
+
+  static rootCancellationAdmission(budget: Budget): CancellationAdmissionSnapshot {
+    const maxDepth = saturatedSum(budget.limits.maxCommands, saturatedSum(budget.limits.maxSubstitutionDepth, 1));
+    return {
+      depth: 0,
+      maxDepth,
+      resourceLimit: Runtime.cancellationResourceLimit(budget, 0, maxDepth, 2),
+    };
+  }
+
+  private static cancellationResourceLimit(budget: Budget, depth: number, maxDepth: number, controls: number): number {
+    const remainingCommands = Math.max(0, budget.limits.maxCommands - budget.commands);
+    const remainingDepth = Math.max(0, maxDepth - depth);
+    return saturatedSum(saturatedSum(4, controls), saturatedSum(remainingCommands, remainingDepth));
+  }
+
+  private cancellationAdmission(depth: number, controls = 0): CancellationAdmissionSnapshot {
+    return {
+      depth,
+      maxDepth: this.cancellationMaxDepth,
+      resourceLimit: Runtime.cancellationResourceLimit(this.budget, depth, this.cancellationMaxDepth, controls),
+    };
+  }
+
+  private observeRuntimeReturn<Value>(
+    rawReturn: Value | PromiseLike<Value>,
+    frame: RuntimeOutcomeFrame,
+    downstream: () => Promise<CommandResult> | undefined = () => undefined,
+  ): Promise<Value> {
+    const raw = rawReturn as unknown;
+    return Promise.resolve(rawReturn).then(
+      value => {
+        if (raw !== downstream()) frame.report = undefined;
+        return value;
+      },
+      reason => {
+        const report = this.cancellationState.consume(raw, reason);
+        if (report) frame.report = report;
+        else if (raw !== downstream()) frame.report = undefined;
+        throw reason;
+      },
+    );
+  }
+
+  private invokeChild(
+    options: ShellInvokeOptions,
+    state: State,
+    parent: InvocationScope,
+    validate: () => void,
+    execute: (runtime: Runtime, scope: InvocationScope) => Promise<CommandResult>,
+  ): Promise<CommandResult> {
+    let publicPromise!: Promise<CommandResult>;
+    publicPromise = Promise.resolve().then(async () => {
+      if (!this.cancellation.deliverySignal.aborted) parent.assertOpen();
+      const childDepth = this.cancellationDepth + 1;
+      const prepared = prepareChildCancellation(
+        this.cancellation,
+        options,
+        this.cancellationAdmission(childDepth),
+      );
+      this.cancellationOwner?.assertAdmissionOpen();
+      validate();
+
+      let scope: InvocationScope | undefined;
+      let boundary: CancellationBoundary;
+      let owner: InvocationCancellationOwner | undefined;
+      try {
+        if (prepared.owned) {
+          owner = new InvocationCancellationOwner(parent, prepared, this.cancellationState, publicPromise);
+          scope = parent.child();
+          boundary = owner.activate();
+        } else {
+          scope = parent.child();
+          boundary = activateChildCancellation(prepared);
+        }
+      } catch (error) {
+        if (owner) await owner.abandon(scope?.close() ?? Promise.resolve());
+        else await scope?.close();
+        throw error;
+      }
+
+      const frame: RuntimeOutcomeFrame = {};
+      const runtime = new Runtime(
+        this.fs,
+        this.commands,
+        this.middleware,
+        this.budget,
+        AbortSignal.any([boundary.deliverySignal, scope.signal]),
+        this.fileWrites,
+        this.outputFiles,
+        boundary.deliverySignal,
+        boundary,
+        this.cancellationState,
+        owner ?? this.cancellationOwner,
+        prepared.owned ? childDepth : this.cancellationDepth,
+        this.cancellationMaxDepth,
+        frame,
+      );
+      let captured: CapturedCancellationOutcome<CommandResult>;
+      if (owner) captured = await owner.capture(() => execute(runtime, scope), frame);
+      else {
+        try { captured = { kind: "return", value: await execute(runtime, scope) }; }
+        catch (reason) {
+          captured = frame.report && Object.is(frame.report.origin.signal.reason, reason)
+            ? { kind: "throw", reason, report: frame.report }
+            : { kind: "throw", reason };
+        }
+      }
+
+      let selection: CancellationSelection<CommandResult>;
+      if (owner) selection = await owner.finish(scope.close(), captured);
+      else {
+        await scope.close();
+        const close = boundary.close();
+        scope.failures.push(...close.failures);
+        selection = selectRuntimeCancellationOutcome(boundary, captured);
+      }
+      if (selection.outcome.kind === "throw") throw selection.outcome.reason;
+      return selection.outcome.value;
+    });
+    return publicPromise;
+  }
+
+  private clearOutcomeReport(): void {
+    if (this.outcomeFrame) this.outcomeFrame.report = undefined;
+  }
 
   diagnostic(io: IO, text: string): Promise<void> {
     return writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${io.diagnosticLine ?? 1}: ${text}\n`);
@@ -426,9 +748,27 @@ export class Runtime {
       const tasks = pipeline.commands.map(async (command, index) => {
         const incoming = pipes[index - 1];
         const outgoing = pipes[index];
-        const signal = AbortSignal.any([this.signal, controllers[index]!.signal]);
-        const commandSignal = AbortSignal.any([this.commandSignal, controllers[index]!.signal]);
-        const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles, commandSignal);
+        const childDepth = this.cancellationDepth + 1;
+        const controls: readonly CancellationControlOriginInput[] = [
+          { role: "pipeline-control", signal: controllers[index]!.signal },
+        ];
+        const prepared = prepareChildCancellation(
+          this.cancellation,
+          undefined,
+          this.cancellationAdmission(childDepth, controls.length),
+          controls,
+        );
+        const owner = new InvocationCancellationOwner(io[invocationScope], prepared, this.cancellationState);
+        let boundary: CancellationBoundary;
+        try { boundary = owner.activate(); }
+        catch (error) { await owner.abandon(Promise.resolve()); throw error; }
+        const signal = AbortSignal.any([boundary.deliverySignal, io[invocationScope].signal]);
+        const frame: RuntimeOutcomeFrame = {};
+        const runtime = new Runtime(
+          this.fs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles,
+          boundary.deliverySignal, boundary, this.cancellationState, owner,
+          childDepth, this.cancellationMaxDepth, frame,
+        );
         const input = new ShellInput(incoming?.readable ?? io.stdin, this.budget, signal);
         const pipeOutput: ByteSink | undefined = outgoing && { ownedOutput: outgoing.writable.ownedOutput!, write: async (chunk) => {
           try {
@@ -444,31 +784,47 @@ export class Runtime {
             throw error;
           }
         } };
-        try {
-          return await interruptible(runtime.runCommandIsolated(command, { ...cloneState(state), isolated: true }, {
-            ...isolateIO(io),
-            stdin: input,
-            ...(incoming ? { stdinIsDefault: false } : {}),
-            stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
-            stderr: signalSink(io.stderr, signal),
-          }), signal);
-        } catch (error) {
-          if (error instanceof PipelineClosed) return 141;
-          throw error;
-        } finally {
-          completed.add(index);
-          if (incoming) {
-            const upstream = index - 1;
-            const close = setImmediate(() => {
-              closing.delete(close);
-              if (written.has(upstream) && !completed.has(upstream)) controllers[upstream]!.abort(new PipelineClosed());
-            });
-            closing.add(close);
-            await incoming.abort();
+        const executeStage = async (): Promise<CommandResult> => {
+          try {
+            let exitCode: number;
+            try {
+              exitCode = await interruptible(runtime.runCommandIsolated(command, { ...cloneState(state), isolated: true }, {
+                ...isolateIO(io),
+                stdin: input,
+                ...(incoming ? { stdinIsDefault: false } : {}),
+                stdout: pipeOutput ? this.budget.sink(pipeOutput, signal) : signalSink(io.stdout, signal),
+                stderr: signalSink(io.stderr, signal),
+              }), signal);
+            } catch (error) {
+              if (!(error instanceof PipelineClosed)) throw error;
+              exitCode = 141;
+            }
+            return { exitCode };
+          } finally {
+            completed.add(index);
+            if (incoming) {
+              const upstream = index - 1;
+              const close = setImmediate(() => {
+                closing.delete(close);
+                if (written.has(upstream) && !completed.has(upstream)) controllers[upstream]!.abort(new PipelineClosed());
+              });
+              closing.add(close);
+              await incoming.abort();
+            }
+            await input.close().catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; });
+            if (outgoing) await outgoing.close().catch(() => undefined);
           }
-          await input.close().catch((error: unknown) => { if (!(error instanceof PipelineClosed)) throw error; });
-          if (outgoing) await outgoing.close().catch(() => undefined);
+        };
+        let captured: CapturedCancellationOutcome<CommandResult>;
+        try { captured = { kind: "return", value: await executeStage() }; }
+        catch (reason) {
+          captured = frame.report && Object.is(frame.report.origin.signal.reason, reason)
+            ? { kind: "throw", reason, report: frame.report }
+            : { kind: "throw", reason };
         }
+        const selection = await owner.finish(Promise.resolve(), captured);
+        if (selection.outcome.kind === "throw") throw selection.outcome.reason;
+        return selection.outcome.value.exitCode;
       });
       try {
         const statuses = await interruptible(Promise.all(tasks), this.signal);
@@ -595,6 +951,7 @@ export class Runtime {
       if (error instanceof ExecutionFailure) { io = error.io; error = error.original; }
       this.signal.throwIfAborted();
       if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
+      this.clearOutcomeReport();
       if (error instanceof HereDocumentSyntaxError) {
         await writeText(io.stderr, error.diagnostic);
         this.errexit(1, state, io);
@@ -889,7 +1246,12 @@ export class Runtime {
 
   async dispatch(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false): Promise<number> {
     const scope = io[invocationScope].child();
-    const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, AbortSignal.any([this.signal, scope.signal]), this.fileWrites, this.outputFiles, this.commandSignal);
+    const runtime = new Runtime(
+      this.fs, this.commands, this.middleware, this.budget,
+      AbortSignal.any([this.signal, scope.signal]), this.fileWrites, this.outputFiles, this.commandSignal,
+      this.cancellation, this.cancellationState, this.cancellationOwner,
+      this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame,
+    );
     try { return await runtime.dispatchScoped(name, args, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions); }
     finally { await scope.close(); }
   }
@@ -903,6 +1265,7 @@ export class Runtime {
       if (value !== undefined) env[key] = value;
     }
     const initialEnv = { ...env };
+    const runtimeFrame: RuntimeOutcomeFrame = {};
     const context: ShellCommandContext = {
       ...publicIO, command: name, args, env, cwd: state.cwd, fs: this.fs, signal: this.commandSignal,
       registerCleanup: (cleanup) => scope.register(cleanup),
@@ -914,7 +1277,12 @@ export class Runtime {
     };
     const middleware = this.middleware.map<Middleware>((handler) => (context, next) => {
       scope.assertOpen();
-      return handler(context, next);
+      let downstream: Promise<CommandResult> | undefined;
+      const raw = handler(context, () => {
+        downstream = next();
+        return downstream;
+      });
+      return this.observeRuntimeReturn(raw, runtimeFrame, () => downstream);
     });
     const execute = composeMiddleware(middleware, async (forwarded) => {
       const context = { ...forwarded, [invocationScope]: scope };
@@ -986,7 +1354,8 @@ export class Runtime {
           await this.diagnostic({ ...io, ...context }, `${context.command}: command not found`);
           return { exitCode: 127 };
         }
-        return await definition.execute(forwarded);
+        const raw = definition.execute(forwarded);
+        return await this.observeRuntimeReturn(raw, runtimeFrame);
       } finally {
         if (context.command !== "cd" && state.cwd === context.cwd) state.cwd = cwd;
         for (const [key, saved] of previous) {
@@ -998,6 +1367,9 @@ export class Runtime {
     try { return validateExitCode((await interruptible(execute(context), this.signal)).exitCode); }
     catch (error) {
       if (builtinFailure && error === builtinFailure.error) throw new ExecutionFailure(error, io, builtinFailure.diagnostic);
+      if (runtimeFrame.report && Object.is(runtimeFrame.report.origin.signal.reason, error) && this.outcomeFrame) {
+        this.outcomeFrame.report = runtimeFrame.report;
+      }
       throw error;
     }
   }
@@ -1260,9 +1632,16 @@ export class Runtime {
     terminal: (runtime: Runtime, context: ShellCommandContext, child: State, childIO: IO) => Promise<CommandResult>,
     prepare?: (runtime: Runtime, context: ShellCommandContext, child: State, childIO: IO) => CommandInvoker,
     replacementInput?: ByteSource,
+    existingScope?: InvocationScope,
   ): Promise<number> {
-    const scope = io[invocationScope].child();
-    const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, AbortSignal.any([this.signal, scope.signal]), this.fileWrites, this.outputFiles, this.commandSignal);
+    const scope = existingScope ?? io[invocationScope].child();
+    const ownsScope = existingScope === undefined;
+    const runtime = new Runtime(
+      this.fs, this.commands, this.middleware, this.budget,
+      AbortSignal.any([this.signal, scope.signal]), this.fileWrites, this.outputFiles, this.commandSignal,
+      this.cancellation, this.cancellationState, this.cancellationOwner,
+      this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame,
+    );
     let input: ShellInput | undefined;
     try {
       scope.register(async () => {
@@ -1285,31 +1664,53 @@ export class Runtime {
       const child = runtime.shebangState(context, state);
       const childIO = { ...io, ...context, [invocationScope]: scope };
       invoke = prepare?.(runtime, context, child, childIO);
+      const runtimeFrame: RuntimeOutcomeFrame = {};
       const middleware = this.middleware.map<Middleware>(handler => (context, next) => {
         scope.assertOpen();
-        return handler(context, next);
+        let downstream: Promise<CommandResult> | undefined;
+        const raw = handler(context, () => {
+          downstream = next();
+          return downstream;
+        });
+        return runtime.observeRuntimeReturn(raw, runtimeFrame, () => downstream);
       });
       const execute = composeMiddleware(middleware, async () => {
         scope.assertOpen();
         const forwarded = runtime.shebangState(context, child);
         context.cwd = forwarded.cwd;
-        return terminal(runtime, context, forwarded, { ...childIO, ...context });
+        const raw = terminal(runtime, context, forwarded, { ...childIO, ...context });
+        return await runtime.observeRuntimeReturn(raw, runtimeFrame);
       });
-      const result = await interruptible(execute(context), runtime.signal);
-      runtime.signal.throwIfAborted();
-      return validateExitCode(result.exitCode);
-    } finally { await scope.close(); }
+      try {
+        const result = await interruptible(execute(context), runtime.signal);
+        runtime.signal.throwIfAborted();
+        return validateExitCode(result.exitCode);
+      } catch (error) {
+        if (runtimeFrame.report && Object.is(runtimeFrame.report.origin.signal.reason, error) && runtime.outcomeFrame) {
+          runtime.outcomeFrame.report = runtimeFrame.report;
+        }
+        throw error;
+      }
+    } finally { if (ownsScope) await scope.close(); }
   }
 
-  private async shebangTarget(context: CommandContext, state: State, io: IO, command: string, args: readonly string[], options: ShellInvokeOptions, target: string, loadedSource: { path: string; source: string }): Promise<CommandResult> {
-    this.signal.throwIfAborted();
-    io[invocationScope].assertOpen();
-    if (typeof command !== "string" || command.includes("\0") || !Array.isArray(args) || args.some(argument => typeof argument !== "string" || argument.includes("\0"))) throw new TypeError("invoke requires a command and literal string arguments without NUL");
-    this.budget.tick();
-    if (args.length + 1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
-    for (const argument of [command, ...args]) {
-      if (Buffer.byteLength(argument) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
-    }
+  private shebangTarget(context: CommandContext, state: State, io: IO, command: string, args: readonly string[], options: ShellInvokeOptions, target: string, loadedSource: { path: string; source: string }): Promise<CommandResult> {
+    return this.invokeChild(options, state, io[invocationScope], () => {
+      this.signal.throwIfAborted();
+      io[invocationScope].assertOpen();
+      if (typeof command !== "string" || command.includes("\0") || !Array.isArray(args)
+        || args.some(argument => typeof argument !== "string" || argument.includes("\0"))) {
+        throw new TypeError("invoke requires a command and literal string arguments without NUL");
+      }
+      this.budget.tick();
+      if (args.length + 1 > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
+      for (const argument of [command, ...args]) {
+        if (Buffer.byteLength(argument) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+      }
+    }, (runtime, scope) => runtime.shebangTargetScoped(context, state, io, command, args, options, target, loadedSource, scope));
+  }
+
+  private async shebangTargetScoped(context: CommandContext, state: State, io: IO, command: string, args: readonly string[], options: ShellInvokeOptions, target: string, loadedSource: { path: string; source: string }, scope: InvocationScope): Promise<CommandResult> {
     const reserved = command === "bash" || command === "sh";
     const direct = command.includes("/");
     const definition = this.commands.get(command);
@@ -1343,7 +1744,7 @@ export class Runtime {
       if (definition) return definition.execute(forwarded);
       await writeText(forwarded.stderr, `env: ${command}: command not found\n`);
       return { exitCode: 127 };
-    }, undefined, options.stdin !== context.stdin ? options.stdin : undefined);
+    }, undefined, options.stdin !== context.stdin ? options.stdin : undefined, scope);
     return { exitCode };
   }
 
@@ -1355,15 +1756,24 @@ export class Runtime {
     }, state, io, async (runtime, forwarded) => {
       let failed = false;
       let failure: unknown;
+      let failureReport: CancellationReport | undefined;
       const result = await interruptible(Promise.resolve(definition.execute({
         ...forwarded,
-        invoke: async (command, arguments_, options) => {
-          try { return await forwarded.invoke(command, arguments_, options); }
-          catch (error) { failed = true; failure = error; return { exitCode: 1 }; }
+        invoke: (command, arguments_, options) => {
+          const raw = forwarded.invoke(command, arguments_, options);
+          return raw.catch(error => {
+            failed = true;
+            failure = error;
+            failureReport = runtime.cancellationState.consume(raw, error);
+            return { exitCode: 1 };
+          });
         },
       })), runtime.signal);
       runtime.signal.throwIfAborted();
-      if (failed) throw failure;
+      if (failed) {
+        if (failureReport && runtime.outcomeFrame) runtime.outcomeFrame.report = failureReport;
+        throw failure;
+      }
       return { exitCode: validateExitCode(result.exitCode) };
     }, (runtime, forwarded, child, childIO) => (command, arguments_, options = {}) =>
       runtime.shebangTarget(forwarded, child, childIO, command, arguments_, options, target, loadedSource));
@@ -1560,17 +1970,18 @@ export class Runtime {
     }
   }
 
-  async invoke(name: string, args: readonly string[], options: ShellInvokeOptions = {}, context: ShellCommandContext, state: State, parent: InvocationScope): Promise<{ exitCode: number }> {
-    const scope = parent.child();
-    const runtime = new Runtime(this.fs, this.commands, this.middleware, this.budget, AbortSignal.any([this.signal, scope.signal]), this.fileWrites, this.outputFiles, this.commandSignal);
-    try { return await runtime.invokeScoped(name, args, options, context, state, scope); }
-    finally { await scope.close(); }
+  invoke(name: string, args: readonly string[], options: ShellInvokeOptions = {}, context: ShellCommandContext, state: State, parent: InvocationScope): Promise<{ exitCode: number }> {
+    return this.invokeChild(options, state, parent, () => {
+      if (typeof name !== "string" || name.includes("\0") || !Array.isArray(args)
+        || args.some((arg) => typeof arg !== "string" || arg.includes("\0"))) {
+        throw new TypeError("invoke requires a command and literal string arguments without NUL");
+      }
+      if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+    }, (runtime, scope) => runtime.invokeScoped(name, args, options, context, state, scope));
   }
 
   private async invokeScoped(name: string, args: readonly string[], options: ShellInvokeOptions, context: ShellCommandContext, state: State, scope: InvocationScope): Promise<{ exitCode: number }> {
     this.signal.throwIfAborted();
-    if (typeof name !== "string" || name.includes("\0") || !Array.isArray(args) || args.some((arg) => typeof arg !== "string" || arg.includes("\0"))) throw new TypeError("invoke requires a command and literal string arguments without NUL");
-    if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
     const child = cloneState(state);
     child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
     for (const key of child.exported) delete child.variables[key];

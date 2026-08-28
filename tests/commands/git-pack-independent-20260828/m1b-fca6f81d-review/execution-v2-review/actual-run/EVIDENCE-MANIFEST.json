@@ -1,0 +1,525 @@
+{
+  "role": "EXACT_RAW_COPY_NOT_REEXECUTION",
+  "files": [
+    {
+      "path": "MATERIALIZED-BEFORE-CLEANUP.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 1529326,
+      "sha256": "c51d6f69b38dd46cd86265c42fd5269d76d89bf615c997c0cc01a08fc11526ea"
+    },
+    {
+      "path": "candidate.tgz",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 806626,
+      "sha256": "cc0e75c2d0d12f713f0458e608ddeae157cf3432b4e0b48277a329a98115aa1a"
+    },
+    {
+      "path": "control",
+      "kind": "directory",
+      "mode": 448
+    },
+    {
+      "path": "control/SEM-S-01-job.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 3446,
+      "sha256": "3b8d7e7604dd15c839d62622565c66368786dc36fb870f31a274c8703864a085"
+    },
+    {
+      "path": "control/SEM-S-01-load.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 68999,
+      "sha256": "fae8c5c5db23bd7859afed476d87db022d6d2cc9310ece8506e974bfd3c48645"
+    },
+    {
+      "path": "outer",
+      "kind": "directory",
+      "mode": 448
+    },
+    {
+      "path": "outer/FINAL.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 571,
+      "sha256": "7a2d1891d0bfb5631d56e377c08e2dc621a44a3f05c70f45c15bd996af706bea"
+    },
+    {
+      "path": "outer/events.raw",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 1766,
+      "sha256": "ad981ec34b896b9327e23f033c7dfe5e9a5af6f5edc30bc1c798ed4bc2dfdc6c"
+    },
+    {
+      "path": "outer/stderr.raw",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "outer/stdout.raw",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 264,
+      "sha256": "40a88f08ba4cc409bc56fcacee3d2116c6c25b63221ffc6bb242a64350095c67"
+    },
+    {
+      "path": "raw",
+      "kind": "directory",
+      "mode": 448
+    },
+    {
+      "path": "raw/000001-root-route.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 1760,
+      "sha256": "7c07445c47d2633ddf758a09851c88d0c2c02c6be8568f0c9492f2a1dcf0345f"
+    },
+    {
+      "path": "raw/000002-phase.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 86,
+      "sha256": "d61442b439a974a3eae8e2aee7265ec96ea7f2ff7c343d069bc602d038a166e0"
+    },
+    {
+      "path": "raw/000003-planned-all-nesting.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 99,
+      "sha256": "cc5ac0dfa86d9eef2af18275ab3bc9ce9a9248bb60201449c840f8f24e7f6596"
+    },
+    {
+      "path": "raw/000004-source-objects-admission.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 668,
+      "sha256": "cf41af668612ae09e4d533908ec8e7bc3a847ed345855b38384e8efcaab80fb0"
+    },
+    {
+      "path": "raw/000005-source-objects-stdout.bin",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 2575085,
+      "sha256": "61250a287c3808cd7b51e891c1c057103f775e49650ee4d0cb74427de0a559f9"
+    },
+    {
+      "path": "raw/000006-source-objects-stderr.bin",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/000007-source-objects-retirement.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 838,
+      "sha256": "81ea5b4096a9e4992789329d9644067ef115233f5725e291c7bdde78c7e9de43"
+    },
+    {
+      "path": "raw/000008-selected-source-proof.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 167,
+      "sha256": "3a2465ec90cd58ab4333f17e45bc97cc4f0f98d6b128d8df0ecfe663202d20b2"
+    },
+    {
+      "path": "raw/000009-package-admission.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 228,
+      "sha256": "dd59881e8650ae214ae57aaccf40feb11947fb346daf9872473e03884f61cd67"
+    },
+    {
+      "path": "raw/000010-phase-end.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 92,
+      "sha256": "6e7962498bc37c161f66e20beb5db0a828a3cd1ffc030e27b9fe8403457479e5"
+    },
+    {
+      "path": "raw/000011-phase.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 88,
+      "sha256": "28158b13530e365116b134c35ded4841c2a25556f2483acca748fa28967e897a"
+    },
+    {
+      "path": "raw/000012-phase-end.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 82,
+      "sha256": "19b9bd139db7c77a9b50edb649f6ec18809e73da3129c9593e37b0f8f13c9930"
+    },
+    {
+      "path": "raw/000013-phase.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 88,
+      "sha256": "60197129142939b048c415941a4ca69cbf5ed8c68dc522e5728729ca912fe7a7"
+    },
+    {
+      "path": "raw/000014-independent-build-admission.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 1699,
+      "sha256": "51764d7ff7b610e49c5c1dd2d949bec6f91f023d0ba20d3330a06368afa364d7"
+    },
+    {
+      "path": "raw/000015-independent-build-stdout.bin",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 41630,
+      "sha256": "bc9cfd4d89a6d44da02ed025f520507bcf00188112f9c3401a0bfa91d90cb7a6"
+    },
+    {
+      "path": "raw/000016-independent-build-stderr.bin",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/000017-independent-build-retirement.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 1210,
+      "sha256": "8b711c38044df599373ebab788537434cccc1ed511c69f5ecb0899b17129ff1b"
+    },
+    {
+      "path": "raw/000018-independent-build-adopted.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 104,
+      "sha256": "9919fae1fca5357115a4c0f9292f259bb3623e4025362279dd1ab1d4b7c94983"
+    },
+    {
+      "path": "raw/000019-phase-end.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 82,
+      "sha256": "73d76a215fe282bae52ee98a44c5cc0255f12a293ee19f7f695ce3e4e6a7fc6a"
+    },
+    {
+      "path": "raw/000020-phase.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 84,
+      "sha256": "57a89e7586412f8941ab3ab2a419692bf1bde6bd3ff003f2e9437bcd71802cb3"
+    },
+    {
+      "path": "raw/000021-offline-install-admission.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 1757,
+      "sha256": "2046d88edeea6f7c55a6e44696f6b1adb4636139b995dfc37ab35a70c284db74"
+    },
+    {
+      "path": "raw/000022-offline-install-stdout.bin",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 23,
+      "sha256": "a941066d38162d18c88ea4b096d8cf11d19b0d46b973f6d916e2f9b8794e1f36"
+    },
+    {
+      "path": "raw/000023-offline-install-stderr.bin",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/000024-offline-install-retirement.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 1258,
+      "sha256": "36a4c52c37be631f73f4dd6b1c951ccfce05f0914100295eec5849d76979ba6a"
+    },
+    {
+      "path": "raw/000025-physical-matrix.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 488,
+      "sha256": "922ec4a6c8e9518ab75c6f41a1ab82cbcaf1958e3ef82c9cbcbd8af8d1db3b17"
+    },
+    {
+      "path": "raw/000026-phase-end.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 84,
+      "sha256": "cb6e36c7965c3ecd4694cc4ff855286977183b7bf899fe264e613f4dff0312a9"
+    },
+    {
+      "path": "raw/000027-phase.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 84,
+      "sha256": "69c1b07fc852d97285e2144f3b1a0b162b11a8f249a3daa0fa101e74f95b16cd"
+    },
+    {
+      "path": "raw/000028-G01-wrong-source-origin-begin.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 152,
+      "sha256": "b42cf2ce8fee66e2c2f340ee3ad3c04c94008155fc1dfde749e46750f6a13f1a"
+    },
+    {
+      "path": "raw/000029-G01-wrong-source-origin-raw.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 46,
+      "sha256": "1c4fdd59112b67a3a9e0f2bda0dd4fee3357b2393f7ec437b11d5ace25953f79"
+    },
+    {
+      "path": "raw/000030-G02-missing-source-path-begin.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 158,
+      "sha256": "3c01b82b93607a81c28cd2336fc4e3eda20115ac18b09f17a84fe06024d70282"
+    },
+    {
+      "path": "raw/000031-G02-missing-source-path-raw.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 44,
+      "sha256": "a2d5a63ba2725687a4b2280bfdee691c31226db9c02a0c469f3faeae4837c60f"
+    },
+    {
+      "path": "raw/000032-G03-extra-source-path-begin.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 150,
+      "sha256": "9b53b5c85a16d7e6fea87996f38aae7cd03d2885b59ef49787e89b38137b3509"
+    },
+    {
+      "path": "raw/000033-G03-extra-source-path-raw.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 44,
+      "sha256": "a2d5a63ba2725687a4b2280bfdee691c31226db9c02a0c469f3faeae4837c60f"
+    },
+    {
+      "path": "raw/000034-G04-package-hash-begin.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 140,
+      "sha256": "8d0d8be376fe8afd9d57880c92ae04049e4996ffac6ecf69ec16931fbbaa7067"
+    },
+    {
+      "path": "raw/000035-G04-package-hash-raw.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 47,
+      "sha256": "a9d807ffcf5d328b6802135dd0196e6f8335cb59e78462f88efbfd3aeccefc13"
+    },
+    {
+      "path": "raw/000036-G05-README-absent-begin.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 147,
+      "sha256": "591d4d20fd0b520bd6561d3febe4b3d62ee37f2112fc2af8f00e54344957ff03"
+    },
+    {
+      "path": "raw/000037-G05-README-absent-raw.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 49,
+      "sha256": "dc2fed18fdd2f5991729b571e142c8d7eb09b001f72cee090545746a18af9861"
+    },
+    {
+      "path": "raw/000038-G06-README-bytes-begin.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 145,
+      "sha256": "cc6b4a7736464ac5364c4862257a070ee04ec738ea871b0f1e68c7ba2b3aade4"
+    },
+    {
+      "path": "raw/000039-G06-README-bytes-raw.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 49,
+      "sha256": "dc2fed18fdd2f5991729b571e142c8d7eb09b001f72cee090545746a18af9861"
+    },
+    {
+      "path": "raw/000040-G07-mode-or-symlink-begin.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 143,
+      "sha256": "8d7a81597ee8331b227145d195d46a2d7de9a86f98d800277be731ea6f89fc14"
+    },
+    {
+      "path": "raw/000041-G07-mode-or-symlink-raw.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 49,
+      "sha256": "dc2fed18fdd2f5991729b571e142c8d7eb09b001f72cee090545746a18af9861"
+    },
+    {
+      "path": "raw/000042-G08-declaration-tamper-begin.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 147,
+      "sha256": "173cc3078926d251faea581ce919df35297012d4ba684dd618c9479e526c3d7c"
+    },
+    {
+      "path": "raw/000043-G08-declaration-tamper-raw.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 49,
+      "sha256": "dc2fed18fdd2f5991729b571e142c8d7eb09b001f72cee090545746a18af9861"
+    },
+    {
+      "path": "raw/000044-G09-import-outside-closure-begin.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 156,
+      "sha256": "cd7bd3ee556e4fa4ed0fd65abdd923a090a8e4a755476baf2215221776f08668"
+    },
+    {
+      "path": "raw/000045-G09-import-outside-closure-raw.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 48,
+      "sha256": "16ed941ccd4e95c2883709d553fc243ed980095e9c50ccca92c8283dacd0945b"
+    },
+    {
+      "path": "raw/000046-G10-installed-not-moved-begin.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 148,
+      "sha256": "cd63d3cf336f68892ef9855345a9ae3d17afb230dec8d732e8e4ef946df194b2"
+    },
+    {
+      "path": "raw/000047-G10-installed-not-moved-raw.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 47,
+      "sha256": "3e91fc0d679e68d9c7b72e289522c0e763eff105a40da1a37b40d5edc9121d86"
+    },
+    {
+      "path": "raw/000048-G11-mutant-in-ordinary-root-begin.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 152,
+      "sha256": "6b64705e474ed07807962150e4b7d3cc214702ce54ab928ccd6c18121bf0dcaa"
+    },
+    {
+      "path": "raw/000049-G11-mutant-in-ordinary-root-raw.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 49,
+      "sha256": "dc2fed18fdd2f5991729b571e142c8d7eb09b001f72cee090545746a18af9861"
+    },
+    {
+      "path": "raw/000050-G12-postrun-new-entry-begin.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 146,
+      "sha256": "6ce898517f7837dfc898f40001d950120e721a345a98b8f4d3474e9553072e05"
+    },
+    {
+      "path": "raw/000051-G12-postrun-new-entry-raw.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 49,
+      "sha256": "dc2fed18fdd2f5991729b571e142c8d7eb09b001f72cee090545746a18af9861"
+    },
+    {
+      "path": "raw/000052-authentication-controls.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 1563,
+      "sha256": "6103fc2073c6f4c10cd04a2efa5877e384e12ac8711cd62d4e286b7a1a84c5fa"
+    },
+    {
+      "path": "raw/000053-phase-end.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 89,
+      "sha256": "2aa859f36eafc0d6e3f720e8efecd345afd6b694d6b24d654217af290ba47f7f"
+    },
+    {
+      "path": "raw/000054-phase.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 83,
+      "sha256": "cc5c3dc87d4491cd7a6527c2940e33f5d0497d34acc79d92e34875fd06d0ae30"
+    },
+    {
+      "path": "raw/000055-SEM-S-01-admission.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 1897,
+      "sha256": "006a2869dac74ece5527a123dac51ba95d0bb3531836fb7d706af2a59c2a0bf9"
+    },
+    {
+      "path": "raw/000056-SEM-S-01-stdout.bin",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "raw/000057-SEM-S-01-stderr.bin",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 1479,
+      "sha256": "9c42131ffe7f67f5f11e4d3c75f5cf2531736473a16696bda41363f01c2d4fb9"
+    },
+    {
+      "path": "raw/000058-SEM-S-01-case-0.frames.bin",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 111,
+      "sha256": "ab019b8ec65ad0c933c2d30f9a2c78064e137eb0a5f3bcdf145ec2c3c97b441f"
+    },
+    {
+      "path": "raw/000059-SEM-S-01-case-begin.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 143,
+      "sha256": "8ec4434f61444e5ab32404ae185e511120c1f36872c31452a20e81c0839218f0"
+    },
+    {
+      "path": "raw/000060-SEM-S-01-case-end.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 372,
+      "sha256": "35fe309bdc17af48c919e5759b3213c6cc76b10add997c86b6319c4f1b74eef4"
+    },
+    {
+      "path": "raw/000061-SEM-S-01-retirement.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 957,
+      "sha256": "1b63e9bdb7f6e552802f488478d04d42e9b6cbbd87385ac1da3b3161dce0e30a"
+    },
+    {
+      "path": "raw/000062-phase-finalization.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 61,
+      "sha256": "57dcb51ed454ef8bf1b0d56774032f723f9ed794c81c5cb61ba2e91c1d15e781"
+    },
+    {
+      "path": "raw/000063-FINAL-RESULT.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 35601,
+      "sha256": "68afcdd06d4147034c303f52f1101a4e19086503b83da9abe77f00df1f6b8cbb"
+    },
+    {
+      "path": "raw/000064-FINAL-ACCOUNTING.json",
+      "kind": "file",
+      "mode": 384,
+      "bytes": 140,
+      "sha256": "3eb5ebcbbde553b8fc43e6876f114f4483db44c285b704491d44fafefbdb1b8a"
+    }
+  ],
+  "selectedRawFiles": 71
+}

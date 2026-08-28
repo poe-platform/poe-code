@@ -36,7 +36,26 @@ zero runtime dependencies, no virtual-command host subprocess/eval/native fallba
 and explicit host capabilities remain requirements. This table does not supply a
 subcommand/flag distribution; recommendations below are engineering judgment.
 
-## Current registration: 10 defaults, 3 missing, curl opt-in
+## Later module-candidate checkpoint — 2026-08-28
+
+This docs-only update supersedes the original audit's implementation-absence
+statements, not its historical observations or user-provided statistics.
+The accepted aggregate remains78; no root/default integration occurred here.
+
+| Priority | Current qualification | Evidence / implementation location |
+| --- | --- | --- |
+| git | M1A module candidate9885390f under Dirac independent review; NOT accepted/default/public-wired. Genuine loose-object/index reader; any packed storage still refuses. | `src/commands/git/index.ts:19`; `tests/commands/git-author-20260828/HANDOFF.md:1`. Author full898-member pack SHA25668541722217fb3f88f7317750c8f1a66042ea090f2c769564b9afc14372dfe68; no fresh execution in this update. |
+| apply_patch | ROOT-reported module candidate58be882 under independent review; NOT accepted/default/public-wired. This identifier is recorded as supplied, not a new stored-commit/package authentication. | `src/commands/apply-patch/index.ts:7` defines createApplyPatchCommand; factories/plugin at13/17. Distinct from diff/patch and the agent's native editing tool. |
+| node | CommonJS contract/provider remain unqualified; no accepted product Node runtime/default integration. | SafeJS and development Node remain separate capabilities, not Node compatibility evidence. |
+| Git M1B | Design/data63d811bf under Sagan independent review; NO implementation GO or packed-readiness acceptance. | `tests/commands/git-pack-design-20260828/HANDOFF.md:1`; bounded pack/index/delta DATA and pending D1–D3 decisions, no product/native executions. |
+
+Curl remains explicit opt-in. The ARRAY acceptance recorded in PROJECT_LEDGER
+is on selected DOTGLOB77, not coherent78-plus-arrays or a current HEAD gate.
+
+## Original registration snapshot: 10 defaults, 3 missing, curl opt-in
+
+The following table and source-line references preserve the original
+HEAD00bb4765459176dafc4b5c77fc97d2630c46a689 audit, before these module candidates.
 
 “Default” means installed by `.use(agentCommands())`, **not** that every name is
 a shell builtin or automatically present in a bare `Shell`. Registry composition
@@ -147,7 +166,10 @@ The old R3 fixed76 result **19425 passes /132 failures /7 skips,6/14 phases,
 integrity/cleanup false** remains unchanged. This audit neither deducts failures
 nor certifies current HEAD. No new just-bash release/version/comparison claim.
 
-## Proposed next work — requires a new implementation grant
+## Original next-work recommendations — historical audit
+
+These were recommendations at the original snapshot. The later checkpoint above
+records subsequent module/design scopes; it does not authorize further implementation.
 
 1. **Highest-frequency absent command: genuine read-only VFS `git`.** Start with
    a declared repository-reader profile: `rev-parse --show-toplevel/--git-dir/

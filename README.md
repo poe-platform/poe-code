@@ -57,8 +57,10 @@ arbitrary-provider support.
 The [user-provided priority table and source audit](docs/COMMAND_PRIORITIES.md)
 distinguish implementation from native compatibility: `sed`, `rg`, `printf`,
 `nl`, `cat`, `head`, `echo`, `find`, `tail` and `ls` are in `agentCommands()`;
-`curl` is an explicit network plugin. Product `git`, `node` and `apply_patch`
-are missing. `safejs` is not Node, and `patch` is not `apply_patch`.
+`curl` is an explicit network plugin. Git and `apply_patch` now have module
+candidates under independent review, not accepted public/default integration;
+the accepted aggregate remains78 commands. The proposed Node CommonJS contract
+and provider remain unqualified. `safejs` is not Node, and `patch` is not `apply_patch`.
 “Without the npm stuff” excludes npm/npx product commands only; npm, Node and
 TypeScript development tooling remain. The counts in that table are supplied by
 the user, not independently verified usage statistics or completeness scores.

@@ -3516,3 +3516,64 @@ that any implementation, command, fixture, or test currently exists.
   No product/native/compiler/build/private/gate execution, dependency/export change,
   historical expectation rewrite or foreign artifact staging/cleanup. R3 remains
   19425P/132F/7skip,6/14 with integrity/cleanup false; no new GO or superiority claim.
+
+## 2026-08-28 — ROOT qualified ARRAY acceptance; selected DOTGLOB77 only
+
+- ROOT accepts the qualified synthesis2037895f0da461176001940b6745e9acd2ea94ca:
+  candidatec0adae539c736db0e4023d401562ce958d9ebb00, selected tree
+  30f88590b66b88dc9694a56c85f1ee690f02218b, full862-member pack SHA256
+  e12ed19882b6722503a8fb962ca88e0d6c40300a7e76acc3f81aef5961e0a3a3,
+  ONLY on accepted DOTGLOB37ad3f94f9fa07037e61d2bd27a4a4b7cddb4d5e/77 defaults.
+  Evidence: `tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/final-synthesis-v1/README.md`
+  and `PROOF-MAP.json`. The report's recommendation is now ROOT-accepted within
+  this scope, not current HEAD, coherent78-plus-arrays or a whole-product gate.
+- Proof composes original14179c5e raw evidence with versioned5fafd41c tail:
+  33 semantic,22 mechanical,16 holdout and P01–P10 obligations, four AST inputs,
+  and10 strict type cases across three layouts are mapped. Mixed/source/overlap
+  mappings are NOT a sum of independent behavioral passes. M21 is SOURCE ONLY;
+  M03/M07/M14/M15/M20 are MIXED. M22 escaping is BRIDGE_CAPTURE: the exact private
+  rejection is captured and public exec fulfills0, not global public escaping
+  rejection proof. P04 aliases M22; P03/M17 and P05/M08 also overlap.
+- Twelve unique U01–U12 mutation families comprise eight old
+  (U01–U07,U10) plus four new (U08,U09,U11,U12), with a separate S06 reversion.
+  Original10/9/8 remains unchanged. U11 has its pre-mutation mixed control;
+  restored-after is P06, not a new post-mutation P11 run. Four-input AST proof
+  and211 nonprivate declaration comparisons are versus old-c7 only, not exhaustive
+  pre-array DOTGLOB compatibility. Cloning/serialization/cross-package or duplicate
+  module WeakMap metadata transfer remain unproved; no WeakMap GC/RSS guarantee.
+- Original14179 HOLD, all harness/report-helper failures and540 losslessly
+  archived raw records remain. ROOT's cleanup recordb507852d removed ONLY437
+  duplicate raw files/116980358 bytes after lossless archive verification;
+  other75310015 bytes plus new tail raw remain, and both owned staging roots
+  remain retained/untracked. This documentation task removed nothing and does
+  not independently recertify a later live-directory census. No historical rescore.
+- Profile gaps remain explicit: associative/computed/negative-index arrays,
+  indexed parameter operators, nameref/declare/mapfile integration and arithmetic
+  fallback are outside the ratified first profile. STACK136-qualified/C06-partial/
+  S13-unsupported qualifications are inherited, not expanded by this acceptance.
+
+## 2026-08-28 — Priority module candidates and M1B design remain unaccepted
+
+- Git M1A9885390fb11454fa194a3e60fdbef198dbfdf633 is under Dirac independent
+  review. Its author full898-member pack is
+  68541722217fb3f88f7317750c8f1a66042ea090f2c769564b9afc14372dfe68 on selected
+  coherent78 plus11 module files; no accepted public/default Git integration or
+  ordinary packed-repository support. Author handoff:
+  `tests/commands/git-author-20260828/HANDOFF.md`.
+- ROOT reports apply_patch module candidate58be882 pending independent review.
+  Current leaf factories exist in `src/commands/apply-patch/index.ts`; recording
+  the supplied candidate shorthand is not a new stored-object/full-package proof
+  (development Git lookup did not resolve that shorthand in this checkout).
+  Node CommonJS contract/provider remain unqualified. Defaults78/root APIs stay
+  unchanged; curl/SafeJS remain opt-in and are not substitutes for these commands.
+- M1B design/data63d811bf1a809b467f47f309f41b1445486e71db is under Sagan
+  independent design review; no implementation GO. Its thirteen valid-format DATA
+  sets include one out-of-profile depth33, plus18 specified malformed-data refusals;
+  these are not product/native passes. D1 eager verification/D2 inert-sidecar
+  allowlist/D3 pinned-cache policy remain proposed. Original B01–B12/24 fixed caps,
+  M1A source and all historical failures are preserved.
+- README and COMMAND_PRIORITIES distinguish the original missing-command audit
+  from these later candidates; exact user counts/shares remain USER-PROVIDED.
+  AGENTS already contains the applicable durable scope/evidence rules and is
+  unchanged. Docs-only checkpoint: no product/native/compiler/build/private/gate
+  execution, source/export/default changes, retained-root cleanup or new gate GO.

@@ -44,7 +44,7 @@ export function resolveInventory(entries) {
     const parent = path.posix.dirname(entry.path);
     assert.ok(parent === '.' || table.get(parent)?.kind === 'directory', 'every physical parent is a directory');
   }
-  return entries.filter(entry => entry.kind === 'link').map(link => {
+  return Array.from(entries).filter(entry => entry.kind === 'link').map(link => {
     const queue = link.path.split('/'), stack = [], seen = new Set();
     let steps = 0;
     while (queue.length) {
@@ -108,9 +108,13 @@ export function captureTool(root, approvedLinks) {
 export function verifyTool(expected) {
   data(expected, ['root', 'rootMode', 'entries', 'links']);
   const links = resolveInventory(expected.entries);
-  assert.deepEqual(links, expected.links, 'link metadata derived from complete inventory');
+  sequence(expected.links); assert.equal(expected.links.length, links.length);
+  for (let index = 0; index < links.length; index++) {
+    data(expected.links[index], Object.keys(links[index]));
+    for (const key of Object.keys(links[index])) assert.equal(expected.links[index][key], links[index][key], 'link metadata derived from complete inventory');
+  }
   const actual = scan(expected.root);
-  assert.deepEqual(actual, { root: expected.root, rootMode: expected.rootMode, entries: expected.entries }, 'exact append-aware npm closure before following');
+  assert.deepEqual(actual, { root: expected.root, rootMode: expected.rootMode, entries: Array.from(expected.entries, entry => ({ ...entry })) }, 'exact append-aware npm closure before following');
   physicalLinks(expected.root, links);
   return expected;
 }

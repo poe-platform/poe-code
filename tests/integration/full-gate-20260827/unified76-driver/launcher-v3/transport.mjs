@@ -83,11 +83,10 @@ export async function extractCommitted({git,repository,candidate,entries,destina
     process.child.stdin.end();await reader.end();const lifecycle=await process.finish();return{...lifecycle,entries:entries.length,bytes:written,transferBytes:reader.transferred,hashes,projection:projectionReceipt(entries,candidate,hashes),method:'All original logical Git blobs streamed and authenticated; exactly pinned instruction bodies hash-discarded without plaintext files; remaining entries extracted without filters'};
   }catch(error){process.kill();process.child.stdin.destroy();process.child.stdout.destroy();await process.finish().catch(()=>{});throw error;}
 }
-export async function transferHistory({git,repository,candidate,destination,environment}){
-  const env=cleanGitEnvironment(environment),producer=managed(git,['--no-replace-objects','pack-objects','--stdout','--revs'],{cwd:repository,env}),consumer=managed(git,['--no-replace-objects','--git-dir',join(destination,'.git'),'index-pack','--stdin'],{cwd:repository,env});
+export async function transferHistory({git,repository,candidate,destination,environment,observer}){
+  const env=cleanGitEnvironment(environment),producer=managed(git,['--no-replace-objects','pack-objects','--stdout','--revs'],{cwd:repository,env,observer}),consumer=managed(git,['--no-replace-objects','--git-dir',join(destination,'.git'),'index-pack','--stdin'],{cwd:repository,env,observer});
   let bytes=0,stdout=0;consumer.child.stdout.on('data',chunk=>{try{stdout=enforceCharge(stdout,chunk.length,BOUNDS.setupStderrBytes);}catch{producer.kill();consumer.kill();}});
-  producer.child.stdin.end(candidate+'\n');
   const charge=new Transform({transform(chunk,encoding,callback){try{bytes=enforceCharge(bytes,chunk.length,BOUNDS.historyTransferBytes);callback(null,chunk);}catch(error){callback(error);}}});
-  try{await pipeline(producer.child.stdout,charge,consumer.child.stdin);const lifecycle=await Promise.all([producer.finish(),consumer.finish()]);return{bytes,stdout,lifecycle,instructionPolicy:'Root-approved original opaque Git objects only; historical instruction blobs remain inert provenance. No checkout or plaintext instruction materialization.',checkoutPerformed:false};}
+  try{await Promise.all([producer.ready,consumer.ready]);producer.child.stdin.end(candidate+'\n');await pipeline(producer.child.stdout,charge,consumer.child.stdin);const lifecycle=await Promise.all([producer.finish(),consumer.finish()]);return{bytes,stdout,lifecycle,instructionPolicy:'Root-approved original opaque Git objects only; historical instruction blobs remain inert provenance. No checkout or plaintext instruction materialization.',checkoutPerformed:false};}
   catch(error){producer.kill();consumer.kill();await Promise.allSettled([producer.finish(),consumer.finish()]);throw error;}
 }

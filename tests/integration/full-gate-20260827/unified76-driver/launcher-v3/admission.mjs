@@ -8,6 +8,7 @@ import {parseArgs} from './policy.mjs';
 
 export const order=['safejs-availability','cold-typecheck','typecheck-all','benchmark-types','env-source-binding','canonical','current-consumers','pack','public-runtime','public-types','negative-types','missing-root','missing-contracts','final-sweep'];
 export const runtimeFiles=['CANDIDATE.json','PROFILE.json.gz.base64','PROFILE-RECEIPT.json','CLEANUP.json','EXTERNAL.json.gz.base64','EXTERNAL-RECEIPT.json','common.mjs','profile.mjs','admission.mjs','inventory.mjs','run.mjs','worker.mjs','supervise.mjs','execute.mjs','policy.mjs','transport.mjs','external.mjs','external-admission.mjs','built-consumers.mjs','consumer-admission.mjs','tap.mjs','public.mjs','consumer.mts.fixture','negative.mts.fixture','build-audit.mjs','build-types.mjs','phase-runner.mjs','process-observer.mjs','review-build-types.mjs','review-build-types-worker.mjs','projection.mjs','INSTRUCTION-PROJECTION.json'];
+runtimeFiles.push('os-instruction-fence.mjs','fenced-supervisor.mjs','OS-INSTRUCTION-FENCE.json');
 export function requireOrdered(completed,next){assert.equal(next,order[completed.length],'phase omitted or reordered');assert.deepEqual(completed,order.slice(0,completed.length));}
 export function canonicalArguments(profile){return ['--import','tsx','--test','--test-reporter=tap',`--test-concurrency=${profile.testConcurrency}`,...profile.canonicalFiles];}
 export function requireCanonicalArguments(args,profile){assert.deepEqual(args,canonicalArguments(profile),'canonical discovery, TAP and concurrency are mandatory');}

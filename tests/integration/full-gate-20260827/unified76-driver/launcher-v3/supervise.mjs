@@ -10,11 +10,12 @@ export function processes() {
   });
 }
 export async function supervise(executable, args, options) {
+  if (options.signal?.aborted) throw options.signal.reason;
   mkdirSync(dirname(options.stdout), { recursive: true });
   const stdout = createWriteStream(options.stdout, { flags: "wx" }), stderr = createWriteStream(options.stderr, { flags: "wx" });
-  const child = spawn(executable, args, { cwd: options.cwd, env: options.env, detached: true, stdio: ["ignore", "pipe", "pipe"] });
+  const child = spawn(executable, args, { cwd: options.cwd, env: options.env, detached: true, stdio: options.ipc ? ["ignore", "pipe", "pipe", "ipc"] : ["ignore", "pipe", "pipe"] });
   const known = new Map(), signals = [], listeners = [];
-  let bytes = 0, timedOut = false, outputExceeded = false, spawnError, closed = false, rootExitedAt, observerError;
+  let bytes = 0, timedOut = false, outputExceeded = false, spawnError, closed = false, rootExitedAt, observerError, interruptedAt;
   const started = Date.now();
   const observe = () => {
     const rows = processes();
@@ -33,9 +34,11 @@ export async function supervise(executable, args, options) {
       try { process.kill(row.pid, signal); signals.push({ pid: row.pid, born: row.born, signal }); } catch (error) { if (error.code !== "ESRCH") observerError = String(error); }
     }
   };
-  const relay = signal => { observerError = `Supervisor received ${signal}`; terminate("SIGTERM"); };
+  const relay = signal => { interruptedAt ??= Date.now(); observerError = `Supervisor received ${signal}`; terminate("SIGTERM"); };
   const onInterrupt = () => relay("SIGINT"), onTerminate = () => relay("SIGTERM");
+  const onAbort = () => relay("owned invocation aborted");
   process.once("SIGINT", onInterrupt); process.once("SIGTERM", onTerminate);
+  options.signal?.addEventListener("abort", onAbort, { once: true });
   for (const output of [stdout, stderr]) output.on("error", error => { observerError = "output stream failure: " + error.message; terminate("SIGKILL"); });
   for (const [input, output] of [[child.stdout, stdout], [child.stderr, stderr]]) input.on("data", chunk => {
     bytes += chunk.length;
@@ -51,6 +54,7 @@ export async function supervise(executable, args, options) {
   const interval = setInterval(() => {
     try {
       const alive = observe(); polls++;
+      if (interruptedAt && Date.now() - interruptedAt > 300 && alive.length) terminate("SIGKILL");
       if (options.setupSentinel && !existsSync(options.setupSentinel) && Date.now() - started > options.setupTimeoutMs) { observerError = "setup deadline exceeded before first phase"; terminate("SIGKILL"); }
       if (rootExitedAt && Date.now() - rootExitedAt > 300 && alive.length) terminate("SIGKILL");
       if (options.observeSockets && polls % 10 === 0 && alive.length) {
@@ -66,9 +70,10 @@ export async function supervise(executable, args, options) {
   }, 100);
   const timeout = setTimeout(() => { timedOut = true; terminate("SIGKILL"); }, options.timeoutMs);
   let result;
-  try { observe(); result = await completion; }
+  try { observe(); options.onSpawn?.(child); if(options.signal?.aborted)onAbort(); result = await completion; }
   finally {
     clearTimeout(timeout); clearInterval(interval); process.removeListener("SIGINT", onInterrupt); process.removeListener("SIGTERM", onTerminate);
+    options.signal?.removeEventListener("abort", onAbort);
     if (observe().length) { terminate("SIGTERM"); await delay(100); if (observe().length) terminate("SIGKILL"); }
     for (let attempt = 0; attempt < 20 && observe().length; attempt++) await delay(50);
     await Promise.all([new Promise(resolve => stdout.end(resolve)), new Promise(resolve => stderr.end(resolve))]);

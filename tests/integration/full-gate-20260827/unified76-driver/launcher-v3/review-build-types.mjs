@@ -12,7 +12,7 @@ import {capture,createTreeGuard,verifyArchive} from './inventory.mjs';
 import {createBuildAudit,runBuildTypes,readBuildAudit} from './build-types.mjs';
 import {createPhaseRunner} from './phase-runner.mjs';
 import {BOUNDS,PRODUCT} from './policy.mjs';
-import {supervise} from './supervise.mjs';
+import {superviseFencedWorker} from './fenced-supervisor.mjs';
 
 export function parseReviewArgs(args){
   assert.equal(args.length,4,'explicit candidate and --review-build-types/output required');
@@ -21,14 +21,14 @@ export function parseReviewArgs(args){
   assert.match(args[3],/^\/tmp\/unified76-build-types-review-[A-Za-z0-9_-]+$/u);
   return{candidate:PRODUCT,output:args[3]};
 }
-export async function reviewBuildTypes(options){
+export async function reviewBuildTypes(options,scope){
   assert.equal(options.candidate,PRODUCT);assert.equal(realpathSync(process.execPath),realpathSync(node24));
   const seal=verifyDriverSeal(),profile=readProfile(),external=await verifyExternal();
-  assert.equal(existsSync(options.output),false);mkdirSync(options.output);
+  assert.ok(scope?.observer&&scope?.supervise,'restricted worker and outer observer required');assert.equal(scope.envelope.output,options.output);
   const output=realpathSync(options.output),temporary=realpathSync(mkdtempSync(join(tmpdir(),'unified76-build-types-'))),source=join(temporary,'source');
   for(const name of ['harness','home','tmp'])mkdirSync(join(temporary,name));
   const report={candidate:PRODUCT,tree:candidate.tree,driverSha256:sha(JSON.stringify(seal)),profileSha256:sha(JSON.stringify(profile)),external,temporary,output,
-    startedAt:new Date().toISOString(),phases:[],driverProductionBuilds:0,fullGateLaunched:false,reviewOnly:true,
+    startedAt:new Date().toISOString(),phases:[],driverProductionBuilds:0,fullGateLaunched:false,reviewOnly:true,osInstructionFence:scope.envelope,
     excluded:['native semantic gate','SafeJS/private engine','canonical tests','runtime consumer programs','package/public runtime phases'],
     qualification:'Actual shared cold/typecheck-all implementation, guards and receipt only; not a full-gate verdict or independent acceptance'};
   let sourceGuard;
@@ -36,7 +36,7 @@ export async function reviewBuildTypes(options){
     const environment=cleanGitEnvironment({PATH:`${dirname(node24)}:/usr/bin:/bin:/usr/sbin:/sbin`,HOME:join(temporary,'home'),TMPDIR:join(temporary,'tmp'),TMP:join(temporary,'tmp'),TEMP:join(temporary,'tmp'),
       LANG:'C',LC_ALL:'C',TZ:'UTC',NO_COLOR:'1',TSX_DISABLE_CACHE:'1',npm_config_cache:join(temporary,'npm-cache'),npm_config_userconfig:join(temporary,'npmrc'),npm_config_globalconfig:join(temporary,'global-npmrc'),npm_config_offline:'true',npm_config_ignore_scripts:'true',npm_config_audit:'false',npm_config_fund:'false',npm_config_registry:'http://127.0.0.1:1'});
     for(const path of [environment.npm_config_userconfig,environment.npm_config_globalconfig])writeFileSync(path,'',{flag:'wx'});
-    report.archiveTransport=await extractCommitted({git:'/Applications/Xcode.app/Contents/Developer/usr/bin/git',repository,candidate:PRODUCT,entries:profile.scopeInputs,destination:source,environment});
+    report.archiveTransport=await extractCommitted({git:'/Applications/Xcode.app/Contents/Developer/usr/bin/git',repository,candidate:PRODUCT,entries:profile.scopeInputs,destination:source,environment,observer:scope.observer});
     report.archive=await verifyArchive(source,profile.scopeInputs,report.archiveTransport);
     const git='/Applications/Xcode.app/Contents/Developer/usr/bin/git';
     execFileSync(git,['init','--quiet','--template=',source],{env:environment,timeout:10000});
@@ -58,7 +58,7 @@ export async function reviewBuildTypes(options){
     };
     const completed=[],order=['cold-typecheck','typecheck-all'];
     const requireOrdered=(previous,next)=>{assert.deepEqual(previous,order.slice(0,previous.length));assert.equal(next,order[previous.length]);};
-    const phase=createPhaseRunner({completed,report,source,output,environment,guard,verify,extraGuards:[harnessGuard],requireOrdered,audit});
+    const phase=createPhaseRunner({completed,report,source,output,environment,guard,verify,extraGuards:[harnessGuard],requireOrdered,audit,supervision:scope.supervise});
     report.audit={preloadSha256:audit.preloadSha256,nonce:audit.nonce};
     save(join(output,'SETUP-COMPLETE.json'),{candidate:PRODUCT,reviewOnly:true,archiveFiles:report.archive.count,logicalArchiveFiles:report.archive.logical.count,instructionProjection:report.archive.projection,dependencyProjection:report.dependencyProjection});
     await runBuildTypes({phase,source,output,report,beforeAuthorizedBuild,tracked:async()=>{if(sourceGuard)assert.deepEqual((await sourceGuard.check()).changes,[]);},freezeSource:guard=>{sourceGuard=guard;},audit});
@@ -74,19 +74,19 @@ export async function reviewMain(args){
   const options=parseReviewArgs(args);verifyDriverSeal();await verifyExternal();
   assert.equal(existsSync(options.output),false);
   const outer=realpathSync(mkdtempSync(join(tmpdir(),'unified76-build-types-outer-')));
-  const result=await supervise(node24,[join(directory,'review-build-types-worker.mjs'),...args],{
-    cwd:directory,env:process.env,stdout:join(outer,'stdout'),stderr:join(outer,'stderr'),
+  const fence=await superviseFencedWorker({output:options.output,outer,script:join(directory,'review-build-types-worker.mjs'),args,cwd:directory,environment:process.env,phases:['cold-typecheck','typecheck-all'],limits:{
     setupSentinel:join(options.output,'SETUP-COMPLETE.json'),setupTimeoutMs:BOUNDS.setupTimeoutMs,
     timeoutMs:BOUNDS.setupTimeoutMs+2*BOUNDS.phaseTimeoutMs+BOUNDS.cleanupTimeoutMs,
     maxOutputBytes:BOUNDS.phaseOutputBytes,observeSockets:true,
-  });
+  }});
+  const result=fence.result;
   let inner;
   try{inner=JSON.parse(readFileSync(join(options.output,'REPORT.json')));}
   catch(error){inner={status:'REVIEW_ONLY_HOLD',error:{message:error.message}};}
-  const success=result.status===0&&result.clean&&result.closed&&!result.signals.length&&!result.survivors.length
+  const success=fence.clean&&result.status===0&&result.clean&&result.closed&&!result.signals.length&&!result.survivors.length
     &&inner.candidate===PRODUCT&&inner.reviewOnly===true&&inner.fullGateLaunched===false
     &&inner.status==='REVIEW_ONLY_BUILD_TYPES_PASS'&&inner.driverProductionBuilds===1&&inner.guardsPassed&&inner.cleanupComplete;
-  const receipt={candidate:PRODUCT,outer,result,innerStatus:inner.status,innerError:inner.error,reviewOnly:true,fullGateLaunched:false,status:success?'REVIEW_ONLY_BUILD_TYPES_PASS':'REVIEW_ONLY_HOLD'};
+  const receipt={candidate:PRODUCT,outer,result,fence,innerStatus:inner.status,innerError:inner.error,reviewOnly:true,fullGateLaunched:false,status:success?'REVIEW_ONLY_BUILD_TYPES_PASS':'REVIEW_ONLY_HOLD'};
   save(join(outer,'REPORT.json'),receipt);console.log(JSON.stringify({outer,output:options.output,status:receipt.status,candidate:PRODUCT,fullGateLaunched:false}));
   return success?0:result.status===78?78:1;
 }

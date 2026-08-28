@@ -6,6 +6,7 @@ import {fileIdentity,directoryIdentity} from './external.mjs';
 import {BOUNDS} from './policy.mjs';
 import {sha,directory,candidate} from './common.mjs';
 import {join} from 'node:path';
+import {verifyInstructionFenceExternal} from './os-instruction-fence.mjs';
 
 export const SYSTEM_REFERENCES=Object.freeze([
   ['/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node','/System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation'],
@@ -48,5 +49,5 @@ export async function verifyExternal(environment=process.env){
   const host=spawnSync('/usr/bin/sw_vers',[],{encoding:'utf8',timeout:10000,maxBuffer:BOUNDS.setupStderrBytes});assert.equal(host.status,0);assert.equal(host.signal,null);assert.equal(host.stdout,report.host.stdout);
   await verifyUnreadableSystemReferences();
   for(const tool of report.linkage){const result=spawnSync('/usr/bin/otool',['-L',tool.origin],{encoding:'utf8',timeout:10000,maxBuffer:BOUNDS.setupStderrBytes});assert.equal(result.status,0);assert.equal(result.signal,null);assert.equal(result.stdout,tool.stdout);}
-  return{sha256:receipt.sha256,tools:report.tools.length,directories:Object.keys(report.directories),native:report.native.assets.length,systemBoundary:validateSystemBoundary(report),readableBindingsVerified:true};
+  return{sha256:receipt.sha256,tools:report.tools.length,directories:Object.keys(report.directories),native:report.native.assets.length,systemBoundary:validateSystemBoundary(report),readableBindingsVerified:true,osInstructionFence:verifyInstructionFenceExternal()};
 }

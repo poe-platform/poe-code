@@ -74,8 +74,9 @@ export function validateInstructionFence(envelope,{initial=false}={}){
   return envelope;
 }
 
-export function instructionFenceInvocation(envelope,executable,args,environment){
+export function instructionFenceInvocation(envelope,executable,args,environment,{preserveEnvironment=false}={}){
   validateInstructionFence(envelope);
   const root=envelope.roots[0].path;
-  return{executable:SANDBOX_EXEC,args:['-p',renderInstructionFence(envelope),executable,...args],env:{...environment,HOME:join(root,'home'),TMPDIR:join(root,'tmp'),TMP:join(root,'tmp'),TEMP:join(root,'tmp')},receipt:{profileSha256:envelope.profileSha256,binary:envelope.external.binary,roots:envelope.roots,stdio:envelope.stdio}};
+  if(preserveEnvironment)for(const name of ['HOME','TMPDIR','TMP','TEMP']){const path=realpathSync(environment[name]);assert.ok(path===root||path.startsWith(root+'/'),'phase environment must retain its bound owned directory');}
+  return{executable:SANDBOX_EXEC,args:['-p',renderInstructionFence(envelope),executable,...args],env:preserveEnvironment?{...environment}:{...environment,HOME:join(root,'home'),TMPDIR:join(root,'tmp'),TMP:join(root,'tmp'),TEMP:join(root,'tmp')},receipt:{profileSha256:envelope.profileSha256,binary:envelope.external.binary,roots:envelope.roots,stdio:envelope.stdio}};
 }

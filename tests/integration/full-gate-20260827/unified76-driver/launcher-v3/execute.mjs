@@ -22,7 +22,7 @@ import {createBuildAudit,runBuildTypes,readBuildAudit} from './build-types.mjs';
 import {createPhaseRunner} from './phase-runner.mjs';
 import {assertNoInstructionCopyTree} from './projection.mjs';
 
-export async function execute(options){
+export async function execute(options,scope){
 let output,report,temporary,source,privateModule,sourceGuard,exitCode=0,totalOutput=0;
 const completed=[];
 const readEvidenceText=path=>{const stat=lstatSync(path);assert.ok(stat.isFile()&&!stat.isSymbolicLink()&&stat.size<=8*1024*1024,'bounded secondary diagnostic/trace input');return readFileSync(path,'utf8');};
@@ -34,11 +34,12 @@ try{
   if(preflight.issues.length)throw Object.assign(new Error('mandatory prerequisite refused before suite'),{exitCode:78});
   if(!options.execute)return 0;
   requireRelease(JSON.parse(readFileSync(options.release)),seal,profile);
-  output=options.output;assert.ok(output.startsWith('/tmp/full-gate-unified76-')&&!existsSync(output),'unique owned external evidence directory required');mkdirSync(output);
+  assert.ok(scope?.observer&&scope?.supervise,'restricted worker and outer observer required');assert.equal(scope.envelope.output,options.output);
+  output=options.output;
   temporary=realpathSync(mkdtempSync(join(tmpdir(),'unified76-execution-')));source=join(temporary,'source');
   for(const name of ['source','harness','home','tmp','native','consumer'])mkdirSync(join(temporary,name));
   report={startedAt:new Date().toISOString(),candidate:candidate.candidate,tree:candidate.tree,sourceTree:candidate.sourceTree,driverSha256:sha(JSON.stringify(seal)),profileSha256:sha(JSON.stringify(profile)),preflight,external,temporary,output,phases:[],driverProductionBuilds:0,bindingComplete:false,guardsPassed:false,cleanupComplete:false,fullGateLaunched:false,scope:'new unified76 profile; not rescore or continuation of historical gates'};
-  save(join(output,'ADMISSION.json'),report);
+  report.osInstructionFence=scope.envelope;save(join(output,'ADMISSION.json'),report);
   const support=join(temporary,'support');mkdirSync(support);
   const supportInputs=copySelection(support,Object.keys(profile.support));for(const entry of supportInputs)assert.equal(entry.sha256,profile.support[entry.path]);
   const supportModule=path=>import(pathToFileURL(join(support,'tests/integration/full-gate-20260827',path)));
@@ -48,11 +49,11 @@ try{
   const environment={PATH:`${join(temporary,'native')}:${dirname(node24)}:/usr/bin:/bin:/usr/sbin:/sbin`,HOME:join(temporary,'home'),TMPDIR:join(temporary,'tmp'),TMP:join(temporary,'tmp'),TEMP:join(temporary,'tmp'),LANG:'C',LC_ALL:'C',TZ:'UTC',NO_COLOR:'1',GIT_OPTIONAL_LOCKS:'0',TSX_DISABLE_CACHE:'1',RIPGREP_CONFIG_PATH:'',npm_config_cache:join(temporary,'npm-cache'),npm_config_userconfig:join(temporary,'npmrc'),npm_config_globalconfig:join(temporary,'global-npmrc'),npm_config_registry:'http://127.0.0.1:1',npm_config_offline:'true',npm_config_ignore_scripts:'true',npm_config_audit:'false',npm_config_fund:'false'};
   writeFileSync(environment.npm_config_userconfig,'');writeFileSync(environment.npm_config_globalconfig,'');
   Object.assign(environment,cleanGitEnvironment(environment));
-  report.archiveTransport=await extractCommitted({git:'/Applications/Xcode.app/Contents/Developer/usr/bin/git',repository,candidate:candidate.candidate,entries:profile.scopeInputs,destination:source,environment});
+  report.archiveTransport=await extractCommitted({git:'/Applications/Xcode.app/Contents/Developer/usr/bin/git',repository,candidate:candidate.candidate,entries:profile.scopeInputs,destination:source,environment,observer:scope.observer});
   report.archive=await verifyArchive(source,profile.scopeInputs,report.archiveTransport);assert.equal(report.archive.logical.count,profile.scopeInputs.length);
   const consumerSelection=await verifyConsumerSelection(source,profile);report.consumerInventory={counts:consumerSelection.counts,selectedTests:consumerSelection.tests.length,qualification:consumerSelection.qualification};
   execFileSync('/Applications/Xcode.app/Contents/Developer/usr/bin/git',['init','--quiet','--template=',source],{env:environment,timeout:10000,maxBuffer:BOUNDS.setupStderrBytes});
-  report.historyTransport=await transferHistory({git:'/Applications/Xcode.app/Contents/Developer/usr/bin/git',repository,candidate:candidate.candidate,destination:source,environment});
+  report.historyTransport=await transferHistory({git:'/Applications/Xcode.app/Contents/Developer/usr/bin/git',repository,candidate:candidate.candidate,destination:source,environment,observer:scope.observer});
   writeFileSync(join(source,'.git/HEAD'),candidate.candidate+'\n');execFileSync('/Applications/Xcode.app/Contents/Developer/usr/bin/git',['read-tree',candidate.candidate],{cwd:source,env:environment,timeout:10000,maxBuffer:BOUNDS.setupStderrBytes});
   assert.equal(execFileSync('/Applications/Xcode.app/Contents/Developer/usr/bin/git',['rev-parse','HEAD'],{cwd:source,env:environment,encoding:'utf8',timeout:10000,maxBuffer:BOUNDS.setupStderrBytes}).trim(),candidate.candidate);
   assert.equal(existsSync(join(source,'.git/objects/info/alternates')),false);
@@ -88,7 +89,7 @@ try{
   const artifactGuard=await createTreeGuard(support);const privateGuard=await createTreeGuard(report.prerequisites.safejs.copiedRoot);
   save(join(output,'SETUP-COMPLETE.json'),{candidate:candidate.candidate,archiveFiles:report.archive.count,logicalArchiveFiles:report.archive.logical.count,instructionProjection:report.archive.projection,dependencyProjection:report.dependencyProjection,external:report.external.sha256});
   const audit=createBuildAudit(source,temporary);
-  const phase=createPhaseRunner({completed,report,source,output,environment,guard,verify,extraGuards:[artifactGuard,privateGuard],requireOrdered,audit});
+  const phase=createPhaseRunner({completed,report,source,output,environment,guard,verify,extraGuards:[artifactGuard,privateGuard],requireOrdered,audit,supervision:scope.supervise});
   await phase('safejs-availability',['--import','tsx','--input-type=module','-e',"import assert from 'node:assert/strict';import {pathToFileURL}from'node:url';const {run}=await import(pathToFileURL(process.env.SAFEJS_LOCAL_ROOT+'/src/run.ts'));const result=await run('1+2');assert.equal(result.ok,true);console.log(JSON.stringify(result));"]);
   const approvedBuild=await runBuildTypes({phase,source,output,report,beforeAuthorizedBuild,tracked,freezeSource:guard=>{sourceGuard=guard;},audit});
   const transformed=renderBuiltConsumerRunner(blob('scripts/verify-current-consumers.mjs').toString(),sha(blob('scripts/verify-current-consumers.mjs')),source);

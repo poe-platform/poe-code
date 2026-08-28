@@ -1,0 +1,458 @@
+{
+  "schema": "unified76-independent-qualified-current-ledger/v5",
+  "priorSealCommit": "4b13eeda0588200b849f2c7fd6863c137ef75c70",
+  "priorOutcomeUnchanged": {
+    "PASS": 19,
+    "HOLD": 3
+  },
+  "currentBoundedGroups": {
+    "inheritedOrNewPASS": 21,
+    "HOLD": 1,
+    "total": 22
+  },
+  "scope": "Additive ledger, not rescoring initial v4 or rerunning passed19. A12 supplemental failure is separately retained and not a successful extension.",
+  "matrix": [
+    {
+      "id": "A01",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "static identity plus dynamic negative admission",
+      "newEvidence": "completion-v5/RESULTS.json"
+    },
+    {
+      "id": "A02",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "intrinsically static patch proof"
+    },
+    {
+      "id": "A03",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "dynamic actual namespace guard"
+    },
+    {
+      "id": "A04",
+      "status": "PASS",
+      "latestEvidence": "FOLLOWUP-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "static declared closure plus actual external verification"
+    },
+    {
+      "id": "A05",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "static membership plus actual profile negatives"
+    },
+    {
+      "id": "A06",
+      "status": "PASS",
+      "latestEvidence": "COMPLETION-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "COMPLETION-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "dynamic actual archive/origin guard"
+    },
+    {
+      "id": "A07",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual tool identity/process"
+    },
+    {
+      "id": "A08",
+      "status": "PASS",
+      "latestEvidence": "FOLLOWUP-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual permission and pinned loader probes"
+    },
+    {
+      "id": "A09",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual argv and streamed TAP"
+    },
+    {
+      "id": "A10",
+      "status": "HOLD",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "HOLD"
+        }
+      ],
+      "criterion": "actual build-seam component plus integration boundary",
+      "qualification": "No exposed narrow integrated executing reuse seam; only full driver or full consumer/typing cohorts"
+    },
+    {
+      "id": "A11",
+      "status": "PASS",
+      "latestEvidence": "FOLLOWUP-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "HOLD"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "intrinsically static package artifact binding",
+      "newEvidence": "completion-v5/RESULTS.json",
+      "qualification": "One independent isolated production build and offline pack reproduce full c109"
+    },
+    {
+      "id": "A12",
+      "status": "PASS",
+      "latestEvidence": "COMPLETION-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "COMPLETION-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual bounded transport",
+      "qualification": "Prior regular transport PASS retained; new positive contained-link lifecycle supplement FAIL/HOLD due sandbox /bin/ps EPERM"
+    },
+    {
+      "id": "A13",
+      "status": "PASS",
+      "latestEvidence": "COMPLETION-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "COMPLETION-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual transport path refusal"
+    },
+    {
+      "id": "A14",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual namespace/build delta guard"
+    },
+    {
+      "id": "A15",
+      "status": "PASS",
+      "latestEvidence": "FOLLOWUP-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "static manifest plus actual readable identities"
+    },
+    {
+      "id": "A16",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual cleanup-envelope validator",
+      "newEvidence": "completion-v5/RESULTS.json"
+    },
+    {
+      "id": "A17",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual supervisor lifecycle"
+    },
+    {
+      "id": "A18",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "HOLD"
+        }
+      ],
+      "criterion": "product cooperative cleanup boundary",
+      "newEvidence": "completion-v5/RESULTS.json",
+      "qualification": "Six real narrow cleanup component/registry controls; not native/public cleanup cohort"
+    },
+    {
+      "id": "A19",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual strict verdict and raw lifecycle"
+    },
+    {
+      "id": "A20",
+      "status": "PASS",
+      "latestEvidence": "COMPLETION-RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "FOLLOWUP-RESULTS.json",
+          "status": "FAIL"
+        },
+        {
+          "file": "COMPLETION-RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual inert import and unreleased CLI"
+    },
+    {
+      "id": "A21",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "actual selected inventory checker"
+    },
+    {
+      "id": "A22",
+      "status": "PASS",
+      "latestEvidence": "RESULTS.json",
+      "history": [
+        {
+          "file": "RESULTS.json",
+          "status": "PASS"
+        }
+      ],
+      "criterion": "intrinsically static provenance/versioning"
+    }
+  ],
+  "newControlSummary": {
+    "pass": 9,
+    "fail": 1
+  },
+  "nestedCleanupControls": [
+    {
+      "name": "registration-before-acquisition; closed admission; shared draining",
+      "status": "PASS"
+    },
+    {
+      "name": "stdout-owned closure leaves caller and sibling output open",
+      "status": "PASS"
+    },
+    {
+      "name": "custom host without hook retains finally disposal",
+      "status": "PASS"
+    },
+    {
+      "name": "real Shell exec waits registered cooperative cleanup",
+      "status": "PASS"
+    },
+    {
+      "name": "real Shell dispose shares root barrier and closes admission",
+      "status": "PASS"
+    },
+    {
+      "name": "unregistered opaque continuation is observed, not forcibly retired",
+      "status": "PASS"
+    }
+  ],
+  "supplementalTransport": {
+    "status": "FAIL_HOLD",
+    "source": "RESULTS.json + contained-link.stderr",
+    "exactFailure": "Frozen transport.mjs groupMembers() -> spawnSync /bin/ps -axo pid=,pgid= -> EPERM inside sandbox; ps is setuid-root",
+    "observedData": [
+      {
+        "path": "tiny-output/fixture-link",
+        "kind": "link",
+        "target": "payload"
+      },
+      {
+        "path": "tiny-output/payload",
+        "kind": "file",
+        "mode": 420,
+        "sha256": "5a37b16fed700d58e52d753dc6159daaaf5c3489a7c6106a9ca6dfc425fa70af",
+        "bytes": 23
+      }
+    ],
+    "notClaimed": "No successful transport lifecycle or post-return verifyArchive; no unsafe retry or observer substitution"
+  },
+  "sevenNew76Proofs": [
+    {
+      "id": "u76.binding-complete",
+      "status": "HOLD",
+      "evidence": "A01,A04,A10,A11,A18",
+      "limit": "A11 independent derivation and A18 narrow cleanup now executed; A10 integrated reuse, full/private pipeline prerequisites and root release remain unestablished"
+    },
+    {
+      "id": "u76.binding-pending-template",
+      "status": "PASS_BOUNDED_REFUSAL",
+      "evidence": "RESULTS:A01/A19; COMPLETION:A20",
+      "limit": "Actual empty/missing authorization and missing-binding rejection; not historical template runner"
+    },
+    {
+      "id": "u76.binding-mutable-head",
+      "status": "PASS_BOUNDED_REFUSAL",
+      "evidence": "completion-v5 literal-HEAD.stdout/stderr + RESULTS.json",
+      "limit": "Exact HEAD token actually rejected by frozen parseArgs; no inspection/gate launch"
+    },
+    {
+      "id": "u76.binding-missing-asset",
+      "status": "PASS_BOUNDED_REFUSAL",
+      "evidence": "RESULTS:A03; FOLLOWUP:A15",
+      "limit": "Actual missing runtime input and readable tool refusal, not full admission"
+    },
+    {
+      "id": "u76.binding-missing-classification",
+      "status": "PASS_BOUNDED_REFUSAL",
+      "evidence": "RESULTS:A05/A21",
+      "limit": "Actual missing/unknown classification validators"
+    },
+    {
+      "id": "u76.binding-missing-cleanup-manifest",
+      "status": "PASS_BOUNDED_REFUSAL",
+      "evidence": "completion-v5 seal-absent.stdout/stderr + RESULTS.json",
+      "limit": "Entire CLEANUP.json absent; actual verifyDriverSeal ENOENT; no recreation; exact restoration passes"
+    },
+    {
+      "id": "u76.binding-skipped-case",
+      "status": "PASS_BOUNDED_REFUSAL",
+      "evidence": "RESULTS:A19",
+      "limit": "Actual nonzero HOLD for explicitly synthetic skipped=1; not measured canonical cohort"
+    }
+  ],
+  "sevenSummary": {
+    "PASS_BOUNDED_REFUSAL": 6,
+    "HOLD": 1,
+    "NOT_EXECUTED_LITERAL_MUTANT": 0
+  },
+  "remainingA10": {
+    "status": "HOLD_TECHNICAL_ENTRYPOINT_COUPLING",
+    "sourceFindings": [
+      {
+        "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+        "sha256": "316320b4c019e116030a9d5cea58b814a981dff5c668041d817a4f51a4d887c9",
+        "reason": "Only execute(options) exports the integrated orchestration. It requires ROOT_RELEASE, private SafeJS availability, full reconstruction, all typechecking and canonical phase before current-consumers (lines98-123). Calling it is expressly excluded."
+      },
+      {
+        "path": "scripts/verify-current-consumers.mjs",
+        "sha256": "09d04680a1dd80059fd31da73068c919bb0402d8bdd31a4d0a971a67d8e1259c",
+        "reason": "Exported currentConsumers(report) always runs whole consumerGroups and negativeGroups plus historical compile/runtime coverage, with no per-group/build-reuse-only API. Rewriting imports or group lists would not be unchanged integrated evidence."
+      },
+      {
+        "path": "scripts/typecheck.mjs",
+        "sha256": "3bd6ead5b5d2141d3adcd708a2e1013e463e27112b097ba444371a329e226ec0",
+        "reason": "Active top-level runner: verifyTypecheckInputs then historical/source/current consumer sets, even --consumers; no exported single build/typing reuse component seam."
+      }
+    ],
+    "decision": "Perform A11 real build/pack and A18 real cleanup separately; neither is misreported as integrated A10 reuse. No API rewrite or stub."
+  },
+  "wholeGateLaunched": false,
+  "rootRelease": "HOLD"
+}

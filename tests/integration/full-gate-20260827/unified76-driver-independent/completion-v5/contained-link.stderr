@@ -1,0 +1,28 @@
+node:internal/child_process:1120
+    result.error = new ErrnoException(result.error, 'spawnSync ' + options.file);
+                   ^
+
+<ref *1> Error: spawnSync /bin/ps EPERM
+    at Object.spawnSync (node:internal/child_process:1120:20)
+    at spawnSync (node:child_process:911:24)
+    at execFileSync (node:child_process:954:15)
+    at groupMembers (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/transport.mjs:28:10)
+    at Object.finish (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/transport.mjs:37:73)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async extractCommitted (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/transport.mjs:70:66)
+    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/component-probe.mjs:20:17 {
+  errno: -1,
+  code: 'EPERM',
+  syscall: 'spawnSync /bin/ps',
+  path: '/bin/ps',
+  spawnargs: [ '-axo', 'pid=,pgid=' ],
+  error: [Circular *1],
+  status: null,
+  signal: null,
+  output: null,
+  pid: 0,
+  stdout: undefined,
+  stderr: undefined
+}
+
+Node.js v24.11.1

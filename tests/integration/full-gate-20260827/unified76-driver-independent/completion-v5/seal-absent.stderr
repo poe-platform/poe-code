@@ -1,0 +1,15 @@
+node:fs:1701
+  const stats = binding.lstat(
+                        ^
+
+Error: ENOENT: no such file or directory, lstat '/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/CLEANUP.json'
+    at lstatSync (node:fs:1701:25)
+    at verifyDriverSeal (file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/admission.mjs:26:101)
+    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/component-probe.mjs:16:71 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'lstat',
+  path: '/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/completion-v5/CLEANUP.json'
+}
+
+Node.js v24.11.1

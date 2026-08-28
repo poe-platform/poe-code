@@ -1,0 +1,63 @@
+{
+  "schema": "timeout-independent-additive-priority-holdouts/1",
+  "sealedAt": "2026-08-28T02:41:24.809Z",
+  "chronology": "post-author-release; timeout source not inspected; pre-source ordering unknown and not claimed; pre-independent-execution",
+  "originalManifests": [
+    {
+      "name": "MANIFEST.json",
+      "commit": "8843c519c23ad529677d51811f3acd370e53dffb",
+      "sha256": "2ca5e729a8f9c1bb4aeee0d3420f55d9a897175be871fc2a8fd587907efae765"
+    },
+    {
+      "name": "EVIDENCE-MANIFEST.json",
+      "commit": "0e83ced9ef58f95dc49e1ecbd5d18a7995d9f35f",
+      "sha256": "48f8fe43b57901023eed1363c5fea9cf8e06dff2bcdb3c017b9af2d86bdf9b73"
+    }
+  ],
+  "originalCounts": {
+    "families": 32,
+    "numeric": 70,
+    "diagnostic": 14,
+    "developmentControls": 16
+  },
+  "additiveHoldouts": 2,
+  "implementationInspections": 0,
+  "productExecutions": 0,
+  "nativeExecutions": 0,
+  "newHelperControlExecutions": 0,
+  "futureActivationUnproved": [
+    "PC01",
+    "PC02"
+  ],
+  "references": [
+    {
+      "commit": "257bf6d7fe51b03c224fbca7e91519e692bfadd3",
+      "path": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/api.json",
+      "bytes": 9074,
+      "sha256": "da0d7dca239420df91a776d3683e44e72a4ce9b5a277be1cab9f2edf98280508"
+    },
+    {
+      "commit": "257bf6d7fe51b03c224fbca7e91519e692bfadd3",
+      "path": "tests/commands/timeout-design-independent-20260827/command-freeze-packet-v1/profile.json",
+      "bytes": 10264,
+      "sha256": "d4101ec53792e2bc7842b8ab6d68d3d50593f561c7829a05d1d4e8d391bde0d5"
+    }
+  ],
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Applications/Xcode.app/Contents/Developer/usr/bin/git",
+      "sha256": "10f9c1df894525ae4c7454258febab6d3d25071062b42cb48dbb1842cdffd2a9"
+    }
+  ],
+  "naturalSynchronousGitReturns": 25,
+  "actualCasesPassing": 0,
+  "files": {
+    "README.md": "8308c7f08686257fc9dc5d256decea847a09880e349b6a864e66bdf0a8fb7626",
+    "holdouts.mjs": "b8c1d29c9c1cb7c19989eff217d32121412bc9efebca35a5eb4208e0366d1716",
+    "seal.mjs": "9c164473aeb239d5a21fc8c1cbef360c8aad9c19c271237919bdf6e5e5ba2006"
+  }
+}

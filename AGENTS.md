@@ -50,6 +50,10 @@
 - agentCommands/createAgentCommands compose command families with a single
   replacement policy and collision preflight. Do not double-register families
   without intentional replacement. Family limits are not one shared shell budget.
+- When default registration changes, synchronize maintained exact inventory
+  assertions and independently declared expected names in the coherent version.
+  Keep sealed historical fixtures/profiles immutable and versioned; never derive
+  expectations from the registry under test or weaken exact counts.
 - Curl and SafeJS are optional explicit plugins, not default aggregate commands.
   SafeJS requires injected legitimate runtime hooks; never install/load a private
   package implicitly, vendor the engine or modify the private poe-code checkout.

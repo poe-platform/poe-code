@@ -2584,3 +2584,42 @@ that any implementation, command, fixture, or test currently exists.
   remains beside the separate private-seam kill; SafeJS follow-up is pending.
   Stage2 stays outside selected76. These are received scoped acceptances, not
   a combined candidate or whole-product gate result.
+
+### 2026-08-28 — Coherent77 + Stage2 author readiness, no gate
+
+- Root-authorized candidate5137a74ec855a32d8a8860eb66b62eb44d11e290 has
+  parent284857d7aa9b0ee0df2b6fdd1a71f41115d7b909, helper57855a02 and exactly
+  five Stage2fd1daa12 runtime/contract/doc blobs. Its other four changed paths
+  are the maintained inventory fixtures in7119f0c084e8d4f50074ca4c47c7311bc48792c8:
+  fifteen predeclared lines, exact77 defaults and78 for one custom registration.
+  No fifth fixture, timeout, TEMP research or unrelated live source was included.
+  Historical76f5e9fc49/driver2713defc and WHICH77's original candidate stay fixed.
+- Source/verifier ef283a6425ab1fa078c1e7cc7d51e2426dd8a5f1; evidence
+  e8ab954d8fa7cc50b0ebccaa5c4e5bea178d892e. A fresh build/fullpack executes
+  all four affected fixture bodies68/68 with zero failures/skips/TODO/cancels.
+  Unchanged WHICH18/18 in each installed/moved Node22/24 context is an author
+  combined replay, not independent combined acceptance. Five strict public
+  consumers and four exact negative-type diagnostics pass in each layout;
+  same-package declaration resolution, source-denial and missing-runtime
+  controls execute. Twelve additional envelope/admission controls pass.
+- Actual rebuilt tgz SHA13fe54de1cf900d587855e276375fdf72ed1ed0d0e0625cf7ef00730f2bb74c9
+  contains846 regular files/844 emitted files. It legitimately differs from the
+  historical WHICH-only49191d09… tarball after Stage2 changes. The distinct,
+  unchanged package.json SHA is64846cc0868630f863fade5119cef195a949aa0ed36ecc341bd9a076d6c363e2.
+  Evidence binds271 committed inputs, complete copied main/npm dependencies,
+  executable identities and unchanged source/package/consumer inventories.
+  All29 captured final commands exit naturally, retaining expected negatives.
+- The initial author attempt remains failed:47 source cases pass, then packed
+  consumers are denied before product execution by a /var versus /private/var
+  permission-path mismatch. Only the new verifier's temporary root is resolved
+  to its physical path. Fences/expectations are unchanged; the subsequent68-case
+  result is a fresh run. The uncommitted initial verifier has no pre-run source
+  hash claim; its reconstructed two-line delta and raw diagnostics are retained.
+- The exact three-commit synthetic chain is reconstructed twice from reachable
+  anchors and sealed raw commit bodies, with candidate objects initially absent
+  and no refs created. Compact evidence contains79 indexed raw files, not product
+  archives/node_modules. Entry point:
+  tests/integration/combined77-stage2-readiness-20260828/README.md.
+  No full gate, global typecheck, native suite, private-engine suite or new77
+  driver runs here. Combined independent acceptance remains pending; scoped
+  readiness does not establish broad parity or the user's superiority objective.

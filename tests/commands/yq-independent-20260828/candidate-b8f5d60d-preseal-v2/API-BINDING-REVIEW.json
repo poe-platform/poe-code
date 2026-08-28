@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "role": "OWN_DATA_SCHEMA_COMPARISON_AGAINST_READ_ONLY_GUARD_TEXT_NOT_GUARD_EXECUTION",
+  "sourceReceipt": {
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-RECEIPT.proposed.json",
+    "sha256": "a501a598f6b6245e5faef02e1aa195a2d664e1fc0627e42ac5349237263385f5",
+    "bytes": 1408,
+    "mode": 420
+  },
+  "fullReceipt": {
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FULL-RECEIPT.proposed.json",
+    "sha256": "4187da231bb328cc2bead131ca67d9527beb0ecf7d8a6cf9b26d4d0b16d34b02",
+    "bytes": 7455,
+    "mode": 420
+  },
+  "sourceAuthority": {
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/SOURCE-AUTHORITY.proposed.json",
+    "sha256": "55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752",
+    "bytes": 3766,
+    "mode": 420
+  },
+  "authorArtifactReceipt": {
+    "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/AUTHOR-ARTIFACT-RECEIPT.json",
+    "sha256": "0bfeeed2c879a882941239506199c07ef6d93bb8d91085c61576af8df3abccb5",
+    "bytes": 1368,
+    "mode": 420
+  },
+  "immutableConsumerReferences": {
+    "SOURCE-AUTHORITY.json": {
+      "revision": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/SOURCE-AUTHORITY.json",
+      "sha256": "718253db9c04fdcd459283362d00d80766c9b5ad3264b931ac127cb9aaa5db5d",
+      "bytes": 3682
+    },
+    "guards.mjs": {
+      "revision": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/guards.mjs",
+      "sha256": "7185edea6beeb17282feb773a49476b76da216b228cc8b2f0f710346e18bda4a",
+      "bytes": 24545
+    },
+    "frozen-v1.mjs": {
+      "revision": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/frozen-v1.mjs",
+      "sha256": "b62e446129ed8936edf381548465bc8cd89660658e5a720cd52a5bd7cc7d2576",
+      "bytes": 838
+    },
+    "verify-recipe.mjs": {
+      "revision": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/verify-recipe.mjs",
+      "sha256": "a4f2bb661d91505a22fa414b83cbba26dd6d4f63fcd5bc08d648e0368b97bba1",
+      "bytes": 2723
+    },
+    "type-worker.mjs": {
+      "revision": "90c4c50070334a34c1b75d78f7da25d302f6bb61",
+      "path": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-v2/type-worker.mjs",
+      "sha256": "5570bd8a754880a7aef0da8f2c48b6524869b46d08f28478f89be296aa53152f",
+      "bytes": 9932
+    }
+  },
+  "sourceReceiptExactKeys": [
+    "acceptedLength",
+    "candidateCommit",
+    "schema",
+    "sourceAdditions",
+    "sourceBase"
+  ],
+  "fullReceiptExactKeys": [
+    "acceptedLength",
+    "allowedBuiltins",
+    "buildReceipt",
+    "candidateCommit",
+    "entries",
+    "packageAdditions",
+    "packageDirectories",
+    "schema",
+    "sourceAdditions",
+    "sourceBase"
+  ],
+  "descriptorKeys": [
+    "bytes",
+    "mode",
+    "sha256"
+  ],
+  "sourceAdditions": 7,
+  "packageAdditions": 24,
+  "entries": {
+    "yq": "dist/commands/yq/index.js",
+    "contracts": "dist/contracts/index.js"
+  },
+  "allowedBuiltins": [
+    "node:path",
+    "node:stream/web",
+    "node:timers/promises",
+    "node:util"
+  ],
+  "receiptRawHashesChecked": true,
+  "buildMapPinsMatch": true,
+  "sourceAuthorityNewOriginPinsMatch": true,
+  "actualGuardRuns": 0,
+  "consumerTypeRuns": 0,
+  "oldGuardRefusal": "Current consumers-v2 selected-origin remains35da and rejects b8 by static reading. It was not invoked, patched or relabeled.",
+  "futureWriteSet": {
+    "proposedUnassignedRoot": "tests/commands/yq-independent-20260828/executor-preparation-v1/consumers-b8f5d60d-v1/",
+    "authorityFile": "SOURCE-AUTHORITY.json bytes from SOURCE-AUTHORITY.proposed.json after independent root routing",
+    "guardBodies": "Existing v2 bodies can remain unchanged in a newly sealed root; no demonstrated policy change. New recipe/hash/location bindings still require owner review.",
+    "newSeals": "New consumer/loader/integration/runtime bindings are separately owned and not supplied as accepted executions here"
+  },
+  "notProof": [
+    "A compatible data schema does not make the receipt root-trusted",
+    "Guard map binding alone does not independently compile the source",
+    "No current installed/moved/public YQ integration was tested"
+  ],
+  "admission": "DENY",
+  "modeAuthorityDenials": [
+    {
+      "revision": "90a633e89d35085183a1d57716451438335b93f3",
+      "scope": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1",
+      "path": "FINAL-SEAL.json",
+      "reason": "MODE_AUTHORITY_MISSING",
+      "goldenPosixModeVerified": false
+    }
+  ]
+}

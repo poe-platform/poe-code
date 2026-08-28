@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "oldToolProof": {
+    "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+    "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INPUTS.json",
+    "blob": "d1961e78d32c0bc11452ce1736211e2f014ebdaa",
+    "sha256": "63eaea01df7f206f0c0d10f9f7b39f4a3c83e1d6d63172582953cc261ba3c83c",
+    "bytes": 116989,
+    "mode": 420
+  },
+  "tools": {
+    "node": {
+      "original": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "copied": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/tools/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "bytes": 112989184,
+      "mode": 493
+    },
+    "typescript": {
+      "path": "node_modules/typescript",
+      "version": "5.9.3",
+      "sha256": "11b47d397f587bd61bda8ebad9e87ed9f11cc95a2503309c88aaceadc3c39410",
+      "entries": 147
+    },
+    "nodeTypes": {
+      "path": "node_modules/@types/node",
+      "sha256": "6eeb16f926819ced24c5dc85a8f6c6c7b03254d56848d2a11113b923469706a9",
+      "entries": 83
+    },
+    "undiciTypes": {
+      "path": "node_modules/undici-types",
+      "sha256": "b54bcdc8b6540ae264924c04ed48eaa7a2ff3c3d6805f978a91232ff3d9331eb",
+      "entries": 41
+    }
+  },
+  "currentToolReauthentication": "NOT_PERFORMED; required before any future build/loader invocation",
+  "reusable": [
+    "Exact tool byte pins and tree-hash algorithms, subject to fresh authentication",
+    "Unchanged selected baseline/configuration identities",
+    "Scoped compiler command and explicitly declared map relocation / archive serialization methods, not old product outcomes"
+  ],
+  "notReusableAsSuccess": [
+    "Old independent35da source-to-output proof",
+    "Any affected source/installed/moved semantic, type, loaded-mutant, lifecycle or cap result",
+    "Historical author claims, CMD22 failure or deadlineUNRUN"
+  ],
+  "buildRecipe": {
+    "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+    "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/RECIPE.md",
+    "blob": "3095dda0391778b2cf7cef4c2fffe4b2713d66c9",
+    "sha256": "c0f5b4c60a94502031cea536a13ce231c1b7468cebeb4ea4c44e44da8ad8f6b1",
+    "bytes": 7880,
+    "mode": 420
+  },
+  "futureBuildCommandTemplate": [
+    "PINNED_NODE",
+    "PINNED_TYPESCRIPT/lib/tsc.js",
+    "--project",
+    "NEW_SELECTED_SOURCE/tsconfig.build.json",
+    "--outDir",
+    "FRESH_OUTPUT/dist",
+    "--typeRoots",
+    "PINNED_TYPES/types"
+  ],
+  "newExpectedOutputs": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/FULL-RECEIPT.proposed.json",
+    "sha256": "4187da231bb328cc2bead131ca67d9527beb0ecf7d8a6cf9b26d4d0b16d34b02",
+    "bytes": 7455,
+    "mode": 420
+  },
+  "configIdentities": {
+    "tsconfig.json": {
+      "sha256": "f7db199a0245ffba2e8468f4d57ec6cb9fb61e6209acbf3e9806d83ea4e22508",
+      "bytes": 2920,
+      "mode": 420
+    },
+    "tsconfig.build.json": {
+      "sha256": "b57d3e5aab1f1f7ab7a70f275183ea6de255e65a2c40a0047c08d97769a1a16e",
+      "bytes": 260,
+      "mode": 420
+    }
+  },
+  "loader": {
+    "entries": {
+      "dist/commands/yq/index.js": {
+        "sha256": "bc2638a9f9b7b0ab9dc164915e73993e2554fc4246779f077086ec1e496b0054",
+        "bytes": 26827,
+        "mode": 420
+      },
+      "dist/commands/yq/index.d.ts": {
+        "sha256": "2d37623cb7dceb666e2e705f0cf5b32f11a24c8d766ac021e53951b65cf6f98e",
+        "bytes": 419,
+        "mode": 420
+      },
+      "dist/contracts/index.js": {
+        "sha256": "f63fcc728dd4e62d6d60408f114c901ad52a9499e46a6f89b2ce97fff3fc680c",
+        "bytes": 235,
+        "mode": 420
+      },
+      "dist/contracts/index.d.ts": {
+        "sha256": "a65d1e367ad65158b11e440e1f4d113659da4afc060a8e9355d0bb7859acbc0c",
+        "bytes": 237,
+        "mode": 420
+      },
+      "dist/commands/structured/query-core.js": {
+        "sha256": "63b447194c3ba3eed8fb9b65eeb09a82aa7a86a071b7052a28b333938529e3e5",
+        "bytes": 23200,
+        "mode": 420
+      },
+      "dist/commands/structured/query-core.d.ts": {
+        "sha256": "1f316b2cc3856e4254c62f3a616b0f03b49249c8f77e4cec6cacea19d8bc949e",
+        "bytes": 1307,
+        "mode": 420
+      }
+    },
+    "allowedBuiltins": [
+      "node:path",
+      "node:stream/web",
+      "node:timers/promises",
+      "node:util"
+    ],
+    "materializedRoots": null,
+    "proofRole": "DIRECT_MODULE_ONLY_NOT_PUBLIC_INTEGRATION",
+    "runtimeTreeHashProfile": "Derived from complete expected maps; no tree was materialized or loaded",
+    "sourceTreeSha256": "7115663d90bda97b29adf26aaaffb4e7f3861df9e8b1c73f5e2115f8b70cd8d3",
+    "compiledTreeSha256": "ab2cdcb1882596a57a463bff3d62cc292b4363fd3abac44db0621acb17856ea1"
+  },
+  "admission": "DENY_PENDING_FRESH_ROOT_GO"
+}

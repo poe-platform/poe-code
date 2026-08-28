@@ -1,0 +1,359 @@
+{
+  "before": [
+    {
+      "revision": "71a16afd5b430175180fc4741531b75c31b25882",
+      "scope": "tests/commands/yq-independent-20260828/candidate-35da1854-v1",
+      "gitTree": "ebc808994beb52d090fbd75aa87b292642794e78",
+      "files": 15,
+      "directories": 1,
+      "bytes": 608498,
+      "completeSnapshotSha256": "6a27863dbbb93aa0b953062ef6c8f521ea5bc77f6f55ca223aae516d50fcb2cd",
+      "addedEntriesChecked": true,
+      "modeAuthority": {
+        "revision": "71a16afd5b430175180fc4741531b75c31b25882",
+        "scope": "tests/commands/yq-independent-20260828/candidate-35da1854-v1",
+        "seal": {
+          "revision": "71a16afd5b430175180fc4741531b75c31b25882",
+          "path": "tests/commands/yq-independent-20260828/candidate-35da1854-v1/FINAL-SEAL.json",
+          "sha256": "979cacf27eae6d3fc46980d35df17f8135274a4441f1d08d1f2768907b4cced3",
+          "bytes": 3017,
+          "blob": "ec1d438ac617b22d4fb4bb42e384b04cbec1931d"
+        },
+        "self": {
+          "kind": "entry",
+          "reference": {
+            "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+            "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INPUTS.json",
+            "sha256": "63eaea01df7f206f0c0d10f9f7b39f4a3c83e1d6d63172582953cc261ba3c83c",
+            "bytes": 116989,
+            "blob": "d1961e78d32c0bc11452ce1736211e2f014ebdaa",
+            "pointer": "/bindings/0"
+          }
+        }
+      },
+      "modeAuthorityDenials": [],
+      "admission": "HISTORICAL_DATA_IDENTITY_BOUND_NOT_EXECUTION_GO"
+    },
+    {
+      "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "scope": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1",
+      "gitTree": "4cf233ede6d49127417b8afe6caabdf6a88c1c82",
+      "files": 21,
+      "directories": 1,
+      "bytes": 925476,
+      "completeSnapshotSha256": "bb3bb04b61893f5093882d287f629a91dd82eaf0f6dd79e9b62e8f951c1c4939",
+      "addedEntriesChecked": true,
+      "modeAuthority": {
+        "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+        "scope": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1",
+        "seal": {
+          "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+          "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/FINAL-SEAL.json",
+          "sha256": "c8c6b98809ddb909c4b93f6e057d67cfd566bbfbeafd7088b2b0eeb4ebafcdb6",
+          "bytes": 4673,
+          "blob": "87fdb02f21e8a64a9b4bf136980c636138ebd54f"
+        },
+        "self": {
+          "kind": "entry",
+          "reference": {
+            "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+            "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/BUILD-PROOF-AUTHENTICATED.json",
+            "sha256": "7d015946d7992ba32d62036a310e607a99ed6fc139e0bb92d7c37c8467915fe5",
+            "bytes": 20068,
+            "blob": "c54e0c5f800fbad4c060f628f3231558edf378a7",
+            "pointer": "/scopeSnapshot/5"
+          }
+        }
+      },
+      "modeAuthorityDenials": [],
+      "admission": "HISTORICAL_DATA_IDENTITY_BOUND_NOT_EXECUTION_GO"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "scope": "tests/commands/yq-independent-20260828/actual-35da1854-v1",
+      "gitTree": "5c6550b4b3af439d6df1037f35c38853b476b0ac",
+      "files": 1719,
+      "directories": 340,
+      "bytes": 6348223,
+      "completeSnapshotSha256": "7b16c68f5a61cfe591dcf1b38cc34106e0899b4e206f32ae8210f97031a07306",
+      "addedEntriesChecked": true,
+      "modeAuthority": {
+        "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+        "scope": "tests/commands/yq-independent-20260828/actual-35da1854-v1",
+        "seal": {
+          "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+          "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/FINAL-SEAL.json",
+          "sha256": "c1d91e34da93ba6ee547e5d6fc9647ca7116bfbbcc731afda51a13790ac07321",
+          "bytes": 549324,
+          "blob": "a2a4cfddfccd83e64e69558cd34be06e4da8d71b"
+        },
+        "self": {
+          "kind": "committed_complete_tree_digest",
+          "reference": {
+            "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+            "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/INDEX.json",
+            "sha256": "8ff8fd648037871238ec1a46df9bdd36559a578d840562fa82eef409a4c59af1",
+            "bytes": 286707,
+            "blob": "2279eba3c2fc4567003f4433ba5cf0df6e9e05fc",
+            "pointer": "/roots/actual"
+          },
+          "serializer": {
+            "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+            "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/extract.mjs",
+            "sha256": "561a63533dfab0f3deaf982d3012be993e2e74b3f450a9f09847d4fb167cd21a",
+            "bytes": 31158,
+            "blob": "f9fe85370460bd0786aad15cdce27d66ffeffe4a"
+          },
+          "mode": 420,
+          "modeProvenance": "Original committed extract.mjs loadRoot explicitly selects0644 for the self seal; authenticate by matching the committed INDEX complete liveTreeDigest with original entries before reading live files. Never execute that extractor."
+        }
+      },
+      "modeAuthorityDenials": [],
+      "admission": "HISTORICAL_DATA_IDENTITY_BOUND_NOT_EXECUTION_GO"
+    },
+    {
+      "revision": "90a633e89d35085183a1d57716451438335b93f3",
+      "scope": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1",
+      "gitTree": "f690e1b7ac55dbdbd19b04e6e9a4b0ebb0e706b5",
+      "files": 13,
+      "directories": 1,
+      "bytes": 75042,
+      "completeSnapshotSha256": "dc2dd75abe910fded6a35015cc67daa9510f019a7eec0c0f00914128ec49bb37",
+      "addedEntriesChecked": true,
+      "modeAuthority": {
+        "revision": "90a633e89d35085183a1d57716451438335b93f3",
+        "scope": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1",
+        "seal": {
+          "revision": "90a633e89d35085183a1d57716451438335b93f3",
+          "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/FINAL-SEAL.json",
+          "sha256": "e569179037058f038e0fc28345af56ae95e06765e153fe0724cc5fbd273019a2",
+          "bytes": 2843,
+          "blob": "97ee9e9035df2ea6025138a899c3074693750180"
+        },
+        "self": {
+          "kind": "MISSING_COMMITTED_POSIX_MODE_AUTHORITY",
+          "mode": null,
+          "action": "DENY, never infer mode from current stat, Git100644 or adjacent entries. Preserve full observed before/after mode membership and independently check Git/raw bytes; no golden-mode PASS for self seal."
+        }
+      },
+      "modeAuthorityDenials": [
+        {
+          "path": "FINAL-SEAL.json",
+          "reason": "MODE_AUTHORITY_MISSING",
+          "goldenPosixModeVerified": false
+        }
+      ],
+      "admission": "DENY_MISSING_MODE_AUTHORITY"
+    }
+  ],
+  "after": [
+    {
+      "revision": "71a16afd5b430175180fc4741531b75c31b25882",
+      "scope": "tests/commands/yq-independent-20260828/candidate-35da1854-v1",
+      "gitTree": "ebc808994beb52d090fbd75aa87b292642794e78",
+      "files": 15,
+      "directories": 1,
+      "bytes": 608498,
+      "completeSnapshotSha256": "6a27863dbbb93aa0b953062ef6c8f521ea5bc77f6f55ca223aae516d50fcb2cd",
+      "addedEntriesChecked": true,
+      "modeAuthority": {
+        "revision": "71a16afd5b430175180fc4741531b75c31b25882",
+        "scope": "tests/commands/yq-independent-20260828/candidate-35da1854-v1",
+        "seal": {
+          "revision": "71a16afd5b430175180fc4741531b75c31b25882",
+          "path": "tests/commands/yq-independent-20260828/candidate-35da1854-v1/FINAL-SEAL.json",
+          "sha256": "979cacf27eae6d3fc46980d35df17f8135274a4441f1d08d1f2768907b4cced3",
+          "bytes": 3017,
+          "blob": "ec1d438ac617b22d4fb4bb42e384b04cbec1931d"
+        },
+        "self": {
+          "kind": "entry",
+          "reference": {
+            "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+            "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/INPUTS.json",
+            "sha256": "63eaea01df7f206f0c0d10f9f7b39f4a3c83e1d6d63172582953cc261ba3c83c",
+            "bytes": 116989,
+            "blob": "d1961e78d32c0bc11452ce1736211e2f014ebdaa",
+            "pointer": "/bindings/0"
+          }
+        }
+      },
+      "modeAuthorityDenials": [],
+      "admission": "HISTORICAL_DATA_IDENTITY_BOUND_NOT_EXECUTION_GO"
+    },
+    {
+      "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+      "scope": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1",
+      "gitTree": "4cf233ede6d49127417b8afe6caabdf6a88c1c82",
+      "files": 21,
+      "directories": 1,
+      "bytes": 925476,
+      "completeSnapshotSha256": "bb3bb04b61893f5093882d287f629a91dd82eaf0f6dd79e9b62e8f951c1c4939",
+      "addedEntriesChecked": true,
+      "modeAuthority": {
+        "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+        "scope": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1",
+        "seal": {
+          "revision": "f7503dc7dce11f9a3072b3670df498d64305d737",
+          "path": "tests/commands/yq-independent-20260828/candidate-35da1854-build-v1/FINAL-SEAL.json",
+          "sha256": "c8c6b98809ddb909c4b93f6e057d67cfd566bbfbeafd7088b2b0eeb4ebafcdb6",
+          "bytes": 4673,
+          "blob": "87fdb02f21e8a64a9b4bf136980c636138ebd54f"
+        },
+        "self": {
+          "kind": "entry",
+          "reference": {
+            "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+            "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/execution/BUILD-PROOF-AUTHENTICATED.json",
+            "sha256": "7d015946d7992ba32d62036a310e607a99ed6fc139e0bb92d7c37c8467915fe5",
+            "bytes": 20068,
+            "blob": "c54e0c5f800fbad4c060f628f3231558edf378a7",
+            "pointer": "/scopeSnapshot/5"
+          }
+        }
+      },
+      "modeAuthorityDenials": [],
+      "admission": "HISTORICAL_DATA_IDENTITY_BOUND_NOT_EXECUTION_GO"
+    },
+    {
+      "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+      "scope": "tests/commands/yq-independent-20260828/actual-35da1854-v1",
+      "gitTree": "5c6550b4b3af439d6df1037f35c38853b476b0ac",
+      "files": 1719,
+      "directories": 340,
+      "bytes": 6348223,
+      "completeSnapshotSha256": "7b16c68f5a61cfe591dcf1b38cc34106e0899b4e206f32ae8210f97031a07306",
+      "addedEntriesChecked": true,
+      "modeAuthority": {
+        "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+        "scope": "tests/commands/yq-independent-20260828/actual-35da1854-v1",
+        "seal": {
+          "revision": "4b219eae180fcd2fd15ea864c9bc5226c54cda04",
+          "path": "tests/commands/yq-independent-20260828/actual-35da1854-v1/FINAL-SEAL.json",
+          "sha256": "c1d91e34da93ba6ee547e5d6fc9647ca7116bfbbcc731afda51a13790ac07321",
+          "bytes": 549324,
+          "blob": "a2a4cfddfccd83e64e69558cd34be06e4da8d71b"
+        },
+        "self": {
+          "kind": "committed_complete_tree_digest",
+          "reference": {
+            "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+            "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/evidence/INDEX.json",
+            "sha256": "8ff8fd648037871238ec1a46df9bdd36559a578d840562fa82eef409a4c59af1",
+            "bytes": 286707,
+            "blob": "2279eba3c2fc4567003f4433ba5cf0df6e9e05fc",
+            "pointer": "/roots/actual"
+          },
+          "serializer": {
+            "revision": "bcfe423bd38fbc4f3f0e9c4c047d2fee7ba5a0f5",
+            "path": "tests/commands/yq-independent-20260828/actual-35da1854-handoff-v1/extract.mjs",
+            "sha256": "561a63533dfab0f3deaf982d3012be993e2e74b3f450a9f09847d4fb167cd21a",
+            "bytes": 31158,
+            "blob": "f9fe85370460bd0786aad15cdce27d66ffeffe4a"
+          },
+          "mode": 420,
+          "modeProvenance": "Original committed extract.mjs loadRoot explicitly selects0644 for the self seal; authenticate by matching the committed INDEX complete liveTreeDigest with original entries before reading live files. Never execute that extractor."
+        }
+      },
+      "modeAuthorityDenials": [],
+      "admission": "HISTORICAL_DATA_IDENTITY_BOUND_NOT_EXECUTION_GO"
+    },
+    {
+      "revision": "90a633e89d35085183a1d57716451438335b93f3",
+      "scope": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1",
+      "gitTree": "f690e1b7ac55dbdbd19b04e6e9a4b0ebb0e706b5",
+      "files": 13,
+      "directories": 1,
+      "bytes": 75042,
+      "completeSnapshotSha256": "dc2dd75abe910fded6a35015cc67daa9510f019a7eec0c0f00914128ec49bb37",
+      "addedEntriesChecked": true,
+      "modeAuthority": {
+        "revision": "90a633e89d35085183a1d57716451438335b93f3",
+        "scope": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1",
+        "seal": {
+          "revision": "90a633e89d35085183a1d57716451438335b93f3",
+          "path": "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v1/FINAL-SEAL.json",
+          "sha256": "e569179037058f038e0fc28345af56ae95e06765e153fe0724cc5fbd273019a2",
+          "bytes": 2843,
+          "blob": "97ee9e9035df2ea6025138a899c3074693750180"
+        },
+        "self": {
+          "kind": "MISSING_COMMITTED_POSIX_MODE_AUTHORITY",
+          "mode": null,
+          "action": "DENY, never infer mode from current stat, Git100644 or adjacent entries. Preserve full observed before/after mode membership and independently check Git/raw bytes; no golden-mode PASS for self seal."
+        }
+      },
+      "modeAuthorityDenials": [
+        {
+          "path": "FINAL-SEAL.json",
+          "reason": "MODE_AUTHORITY_MISSING",
+          "goldenPosixModeVerified": false
+        }
+      ],
+      "admission": "DENY_MISSING_MODE_AUTHORITY"
+    }
+  ],
+  "unchanged": true,
+  "goldenModeAuthorityComplete": false,
+  "modeControls": [
+    {
+      "id": "sealed0600-git100644",
+      "expected": "ACCEPT_DATA_IDENTITY",
+      "actual": "ACCEPT_DATA_IDENTITY"
+    },
+    {
+      "id": "wrong-full-mode",
+      "expected": "POSIX_MODE",
+      "actual": "POSIX_MODE"
+    },
+    {
+      "id": "missing-mode-authority",
+      "expected": "MODE_AUTHORITY_MISSING",
+      "actual": "MODE_AUTHORITY_MISSING"
+    },
+    {
+      "id": "missing-entry-authority",
+      "expected": "MODE_AUTHORITY_MISSING",
+      "actual": "MODE_AUTHORITY_MISSING"
+    },
+    {
+      "id": "missing-actual-entry",
+      "expected": "HISTORICAL_ENTRY_MISSING",
+      "actual": "HISTORICAL_ENTRY_MISSING"
+    },
+    {
+      "id": "wrong-content",
+      "expected": "SEALED_SHA256",
+      "actual": "SEALED_SHA256"
+    },
+    {
+      "id": "wrong-size",
+      "expected": "SEALED_BYTES",
+      "actual": "SEALED_BYTES"
+    },
+    {
+      "id": "wrong-git-blob",
+      "expected": "GIT_BLOB",
+      "actual": "GIT_BLOB"
+    },
+    {
+      "id": "wrong-git-type",
+      "expected": "GIT_REGULAR_CLASS",
+      "actual": "GIT_REGULAR_CLASS"
+    },
+    {
+      "id": "unexpected-executable",
+      "expected": "GIT_EXECUTABLE_CLASS",
+      "actual": "GIT_EXECUTABLE_CLASS"
+    }
+  ],
+  "preservedV1Failure": {
+    "exit": 1,
+    "elapsedMs": 922,
+    "reaped": true,
+    "artifactAuthenticationReached": false,
+    "classification": "IMMUTABLE_V1_FAIL_NOT_RESCORED"
+  },
+  "role": "Byte/mode/membership preservation only; no historical results rescored or invoked",
+  "limitations": "Snapshots detect added entries at observations, not change-and-restore or atomic namespace transactions"
+}

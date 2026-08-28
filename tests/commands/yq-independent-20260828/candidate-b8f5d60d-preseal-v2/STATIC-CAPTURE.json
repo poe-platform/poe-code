@@ -1,0 +1,16 @@
+{
+  "role": "OWN_STATIC_DATA_INSPECTOR_NOT_PRODUCT_OR_PROPOSED_HARNESS_COHORT",
+  "command": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/inspect-data.mjs",
+    "ffaef9992296c1bfc422f0c71da9b584b458be4e4a12d11e355b322a50ff8f83"
+  ],
+  "startedAt": "2026-08-28T11:36:54.400Z",
+  "elapsedMs": 5332,
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "reaped": true,
+  "stdout": "{\n  \"result\": {\n    \"path\": \"/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/RESULT.json\",\n    \"sha256\": \"d3c93c27d5b1a86dff0a9a62426294e6b9b15132e2eb958ab3b614a19ce1d988\",\n    \"bytes\": 8460,\n    \"mode\": 420\n  },\n  \"counts\": {\n    \"authorManifest\": 281,\n    \"source\": 271,\n    \"archive\": 273,\n    \"package\": 870,\n    \"sourceChanged\": 5,\n    \"packageChanged\": 17\n  },\n  \"sourceMapSha256\": \"9b0e0d62ea50eea55ef9ff4bff9e4bcef9cba6b73e416793bee6956666171002\",\n  \"packageMapSha256\": \"aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321\",\n  \"newAuthoritySha256\": \"55bb4e289f13e4ed6df1ab442df5ff7c9c7278c7293f90f72463cd5b6f01b752\",\n  \"packageChanges\": [\n    \"dist/commands/yq/accounting.js\",\n    \"dist/commands/yq/encoder.js\",\n    \"dist/commands/yq/index.js\",\n    \"dist/commands/yq/parser.js\",\n    \"dist/commands/structured/query-core.js\",\n    \"dist/commands/yq/accounting.d.ts.map\",\n    \"dist/commands/yq/accounting.js.map\",\n    \"dist/commands/yq/encoder.d.ts.map\",\n    \"dist/commands/yq/encoder.js.map\",\n    \"dist/commands/yq/index.d.ts.map\",\n    \"dist/commands/yq/index.js.map\",\n    \"dist/commands/yq/parser.d.ts.map\",\n    \"dist/commands/yq/parser.js.map\",\n    \"dist/commands/structured/query-core.d.ts.map\",\n    \"dist/commands/structured/query-core.js.map\",\n    \"dist/commands/yq/accounting.d.ts\",\n    \"dist/commands/yq/parser.d.ts\"\n  ],\n  \"admission\": \"DENY_PENDING_FRESH_ROOT_GO\"\n}\n",
+  "stderr": ""
+}

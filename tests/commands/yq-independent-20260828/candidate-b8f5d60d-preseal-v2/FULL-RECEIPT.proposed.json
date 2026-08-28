@@ -1,0 +1,225 @@
+{
+  "schema": 1,
+  "sourceBase": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+  "candidateCommit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "sourceAdditions": {
+    "src/commands/structured/query-core.ts": {
+      "sha256": "d0582961172c95ce39a4bd999e1c8ee7446761786ecfc374b7d54cfd22f49241",
+      "bytes": 22399,
+      "mode": 420
+    },
+    "src/commands/yq/README.md": {
+      "sha256": "86ee4384987c729d91d9296cf0e40a7ece59a0689149164affa7b5a8554e8ae6",
+      "bytes": 1153,
+      "mode": 420
+    },
+    "src/commands/yq/accounting.ts": {
+      "sha256": "63c68a7c7a7c54fa37276ffbb168faeafeca0ab5b217157557171b689e070509",
+      "bytes": 9767,
+      "mode": 420
+    },
+    "src/commands/yq/encoder.ts": {
+      "sha256": "9e013ee8aadc590ea8aca8e94fb03079eb820b00a76fd05b9fd85ebb4223303f",
+      "bytes": 8394,
+      "mode": 420
+    },
+    "src/commands/yq/errors.ts": {
+      "sha256": "92b24e41a6e83d858f8971975665470e238176053fd3936775e02f843079036b",
+      "bytes": 2728,
+      "mode": 420
+    },
+    "src/commands/yq/index.ts": {
+      "sha256": "212673fa3599fa3a0ead59e781197989cb224939ea19e068a9d8c98c3ab24baf",
+      "bytes": 24198,
+      "mode": 420
+    },
+    "src/commands/yq/parser.ts": {
+      "sha256": "c743319c37aa879a351a3c2caa7f68c3376969ea5fb50a3980635281ced6d008",
+      "bytes": 45581,
+      "mode": 420
+    }
+  },
+  "packageAdditions": {
+    "dist/commands/structured/query-core.d.ts": {
+      "sha256": "1f316b2cc3856e4254c62f3a616b0f03b49249c8f77e4cec6cacea19d8bc949e",
+      "bytes": 1307,
+      "mode": 420
+    },
+    "dist/commands/structured/query-core.d.ts.map": {
+      "sha256": "8fa52ccb5ad9f9af225b32b7f50b9117c9ea19f346a5e8c7d191645fea98cb0b",
+      "bytes": 1355,
+      "mode": 420
+    },
+    "dist/commands/structured/query-core.js": {
+      "sha256": "63b447194c3ba3eed8fb9b65eeb09a82aa7a86a071b7052a28b333938529e3e5",
+      "bytes": 23200,
+      "mode": 420
+    },
+    "dist/commands/structured/query-core.js.map": {
+      "sha256": "a214a63d3cae90387a6ffd9f2f17819b477ab0f0c27e6bfc286cec9576d4f862",
+      "bytes": 22090,
+      "mode": 420
+    },
+    "dist/commands/yq/accounting.d.ts": {
+      "sha256": "1f18a30542f468c7a92d07dc00afa24c0eb5e4efbaa3f79bda6e19b0554f2646",
+      "bytes": 2207,
+      "mode": 420
+    },
+    "dist/commands/yq/accounting.d.ts.map": {
+      "sha256": "c7fabd8ce6ae44426c78d71402aa943ca4452e07acdf16d8d28cd93d80a25132",
+      "bytes": 1538,
+      "mode": 420
+    },
+    "dist/commands/yq/accounting.js": {
+      "sha256": "e3f0f55e5a7d94321a34966fac6205cfa07b9b384b3dba72cb8e19b6f32c5e40",
+      "bytes": 9746,
+      "mode": 420
+    },
+    "dist/commands/yq/accounting.js.map": {
+      "sha256": "a1acc590e96eb6c0f336deaa854f374f87efb3a013a9456f49523b3d04810c92",
+      "bytes": 9943,
+      "mode": 420
+    },
+    "dist/commands/yq/encoder.d.ts": {
+      "sha256": "097e6dbb9f25ca96fec4c9a710427dc509956ac5b3aba76d142ae464880018dc",
+      "bytes": 480,
+      "mode": 420
+    },
+    "dist/commands/yq/encoder.d.ts.map": {
+      "sha256": "37c7f5e56c97af52c30ab13688f4662626d3dce1778b8799fb24ee940ddca8ac",
+      "bytes": 568,
+      "mode": 420
+    },
+    "dist/commands/yq/encoder.js": {
+      "sha256": "8a0b062df225b9c161f469f7f62f46938e7fafc00139db20c480dce00129baec",
+      "bytes": 8804,
+      "mode": 420
+    },
+    "dist/commands/yq/encoder.js.map": {
+      "sha256": "860777df0f36e321a6a1eefd3462ff0dc532cefa542d6c32512fb248fd112f85",
+      "bytes": 10013,
+      "mode": 420
+    },
+    "dist/commands/yq/errors.d.ts": {
+      "sha256": "fbd61e0f606c5a20adadf7714dbe10ca5345cdfbb3e87fcb9391dacfc7edb5ca",
+      "bytes": 2191,
+      "mode": 420
+    },
+    "dist/commands/yq/errors.d.ts.map": {
+      "sha256": "ea8124f5d35c2356670c79c04bdc1ddee302b0abdffd61efbfe8e6ee4ef3ae88",
+      "bytes": 1521,
+      "mode": 420
+    },
+    "dist/commands/yq/errors.js": {
+      "sha256": "130c2a237052dedca918038092fb1dc130295f5cdaab0ca5d94c7dae3e31bd2a",
+      "bytes": 1213,
+      "mode": 420
+    },
+    "dist/commands/yq/errors.js.map": {
+      "sha256": "c0e1cae3dae1061b06e8e0d127965dd3981eb40a77d5d2de921f47912a2c39b4",
+      "bytes": 1183,
+      "mode": 420
+    },
+    "dist/commands/yq/index.d.ts": {
+      "sha256": "2d37623cb7dceb666e2e705f0cf5b32f11a24c8d766ac021e53951b65cf6f98e",
+      "bytes": 419,
+      "mode": 420
+    },
+    "dist/commands/yq/index.d.ts.map": {
+      "sha256": "a56f6541a091926a665da12fa85b76ab21a1cc8f143b8484aea10ae152c716e2",
+      "bytes": 401,
+      "mode": 420
+    },
+    "dist/commands/yq/index.js": {
+      "sha256": "bc2638a9f9b7b0ab9dc164915e73993e2554fc4246779f077086ec1e496b0054",
+      "bytes": 26827,
+      "mode": 420
+    },
+    "dist/commands/yq/index.js.map": {
+      "sha256": "20d34a249efea1a2bc72682ca20f5d8cb39bbdb965808ff64f606769663c5d5c",
+      "bytes": 24955,
+      "mode": 420
+    },
+    "dist/commands/yq/parser.d.ts": {
+      "sha256": "f3d4dae6d3c4ed641de7bb22cd0f10e48507ff514b71f72de4e0170c5f50035c",
+      "bytes": 362,
+      "mode": 420
+    },
+    "dist/commands/yq/parser.d.ts.map": {
+      "sha256": "0dbd7446e607c48c08ae54b3413ae1a30e69e48abdb7189ea5c6a711fceb5bd6",
+      "bytes": 419,
+      "mode": 420
+    },
+    "dist/commands/yq/parser.js": {
+      "sha256": "7455903e2ecc1daf6e082c01146a789c68561ad9cae66de739426d0db25099ed",
+      "bytes": 50395,
+      "mode": 420
+    },
+    "dist/commands/yq/parser.js.map": {
+      "sha256": "293f9639a19d9eed2f5554ced35108127c05b94442a1d1a49fe84d138722499d",
+      "bytes": 56314,
+      "mode": 420
+    }
+  },
+  "packageDirectories": {
+    "": 493,
+    "dist/commands/yq": 493,
+    "dist/commands": 493,
+    "dist": 493,
+    "dist/fs/real": 493,
+    "dist/fs": 493,
+    "dist/commands/network": 493,
+    "dist/commands/du": 493,
+    "dist/commands/tree": 493,
+    "dist/shell": 493,
+    "dist/fs/s3": 493,
+    "dist/commands/text-programs": 493,
+    "dist/commands/bytes/encoding": 493,
+    "dist/commands/bytes": 493,
+    "dist/commands/expr": 493,
+    "dist/commands/html-to-markdown": 493,
+    "dist/commands/time-env": 493,
+    "dist/commands/metadata": 493,
+    "dist/commands/file": 493,
+    "dist/commands/regex-execution": 493,
+    "dist/commands/column": 493,
+    "dist/commands/table-text": 493,
+    "dist/contracts": 493,
+    "dist/fs/mount": 493,
+    "dist/commands/archive": 493,
+    "dist/commands/diff-patch": 493,
+    "dist/commands/stream-inspection": 493,
+    "dist/commands/bytes/compression": 493,
+    "dist/integrations/safejs": 493,
+    "dist/integrations": 493,
+    "dist/commands/search": 493,
+    "dist/commands/bytes/checksums": 493,
+    "dist/commands/grep-aliases": 493,
+    "dist/commands/safejs": 493,
+    "dist/commands/split": 493,
+    "dist/commands/stream-format": 493,
+    "dist/commands/structured": 493,
+    "dist/commands/which": 493,
+    "dist/fs/memory": 493,
+    "dist/fs/overlay": 493,
+    "dist/fs/readonly": 493,
+    "dist/fs/s3/http": 493,
+    "dist/fs/webdav": 493,
+    "dist/plugins": 493
+  },
+  "entries": {
+    "yq": "dist/commands/yq/index.js",
+    "contracts": "dist/contracts/index.js"
+  },
+  "allowedBuiltins": [
+    "node:path",
+    "node:stream/web",
+    "node:timers/promises",
+    "node:util"
+  ],
+  "buildReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/candidate-b8f5d60d-preseal-v2/AUTHOR-ARTIFACT-RECEIPT.json",
+    "sha256": "0bfeeed2c879a882941239506199c07ef6d93bb8d91085c61576af8df3abccb5"
+  }
+}

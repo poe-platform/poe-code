@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "candidateCommit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "sourceMapSha256": "9b0e0d62ea50eea55ef9ff4bff9e4bcef9cba6b73e416793bee6956666171002",
+  "packageMapSha256": "aef2daaca66d3e18487903b79693fbf6a5126b0fda481f1e96ed4e33e08db321",
+  "classification": "BOUND_AUTHOR_BUILD",
+  "proofRole": "AUTHOR_ARTIFACT_BINDING_ONLY",
+  "independentlyCompiled": false,
+  "rootTrustedBuildReceipt": false,
+  "admission": "DENY_PENDING_FRESH_ROOT_GO",
+  "evidenceCommit": "644460b932feb6fa87222b7042d705da1219cf0c",
+  "archive": {
+    "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/SOURCE.tar",
+    "sha256": "fe76de08017859b066ecb8830846e109cdab6fa3953b0317e5fc6f27777fd878",
+    "bytes": 2727936,
+    "mode": 420
+  },
+  "package": {
+    "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/package/virtual-bash-0.0.0.tgz",
+    "sha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+    "bytes": 786778,
+    "mode": 420
+  },
+  "authorReport": {
+    "revision": "644460b932feb6fa87222b7042d705da1219cf0c",
+    "path": "tests/commands/yq-author-20260828/repair-allocation-v1/evidence-v2/REPORT.json",
+    "blob": "da3353c0d42f3e19ff99b8f71390770fe268dc1e",
+    "sha256": "536383aca7dd7024ac851476c3b371c958d2c46926446eb163ba0e0df48f902b",
+    "bytes": 31135,
+    "mode": 420
+  }
+}

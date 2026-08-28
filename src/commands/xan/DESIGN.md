@@ -1,7 +1,14 @@
 # XAN 0.54.0: bounded CSV kernel and four-command design
 
-**Refinement v2:** `design-evidence/PROFILE-V2.md` and
-`design-evidence/BYTE-TABLE-V2.md` supply the current root-decision disposition,
+**Final policy v3:** `design-evidence/PROFILE-V3.md` and
+`design-evidence/BYTE-TABLE-V3.md` supersede conflicting v2 policy below.
+Accepted v2 bytes remain recoverable at b9ce9e61115c7d99dfa6a76591b3dcfdaee9ce21.
+PROFILE-V2, BYTE-TABLE-V2, HANDOFF-V2, REVIEW-BINDING-V2, LOCAL-BINDING and
+RECEIPT are historical, byte-preserved records, not current dispositions.
+Root routes Dirac independently; no reviewer acceptance is claimed.
+
+**Historical refinement v2:** `design-evidence/PROFILE-V2.md` and
+`design-evidence/BYTE-TABLE-V2.md` supplied the historical root-decision disposition,
 exact compact byte table and inspected I/O binding. Original v1 at commit
 `91bcc1c9ec64e8e0bdb5db3055ee4c8609cd27a2` has DESIGN SHA256
 `8e27ec025c8277cf4fe422d19f9582c2a1b0ab9f9a5577200a1e449703b11c75`;
@@ -9,8 +16,8 @@ its original receipt/probes remain immutable. Explicit supersessions below are
 not retrospective corrections to native observations. No implementation approved.
 
 **DESIGN ONLY — not implemented, registered, exported or accepted.** Author leaf,
-August 28 assignment; actual UTC capture date 2026-08-28. Root must decide the
-policy questions below, then route a **different** fixture-freeze reviewer before
+August 28 assignment; actual UTC capture date 2026-08-28. Root must resolve the
+remaining grammar questions, then route **Dirac** for independent freeze before
 implementation. TEMP expr remains held. No timeout/which/pushd/yq work is included.
 
 ## 1. Authority, evidence and stage boundary
@@ -218,12 +225,13 @@ are proposed unsupported with a deterministic selector error; independent freeze
 must identify this boundary rather than treating them as tested parity.
 
 Data emission has two modes. Same-comma data may preserve owned raw lexemes ONLY
-when the exact faithful-reparse criterion in PROFILE-V2 holds. Cross-delimiter
+when the exact faithful-reparse criterion in PROFILE-V3 holds. Cross-delimiter
 output always serializes decoded cells; root approved this explicit native-byte
 deviation. Noncomma input also decodes and serializes, unescaping exactly once.
 Native raw incomplete quotes (original row 21) and moved-BOM loss (additional 13)
-remain evidence, not a safe-copy license. V2 proposes closing unterminated EOF
-quotes and forcing leading-BOM-cell quoting, with remaining choices explicit.
+remain evidence, not a safe-copy license. V3 approves closing unterminated EOF
+quotes and forcing leading-BOM-cell quoting. CR-containing logical cells must
+also be quoted; raw transfer must satisfy writer grammar AND reversibility.
 Zero selected cells emit LF; one empty cell emits `""\n`; two emit `,\n`.
 
 ### Slice
@@ -236,7 +244,7 @@ it conflicts with start/end/len (including a --skip resolved to start). End and
 len conflict; start>end errors. Native start=end and len=0 emit the remainder.
 Root chose compatibility over v1's safe-empty proposal: default-start -l0 emits
 all records. Additional 01/02/03 and primary range/loop source qualify nonzero
-start, equal bounds and zero end separately; PROFILE-V2 gives the exact matrix.
+start, equal bounds and zero end separately; PROFILE-V3 gives the exact matrix.
 Ordinary zero/equal ranges are not early-read stops. V1's correction is withdrawn.
 
 -I accepts a comma-separated nonempty list of unsigned decimal indices; validate
@@ -251,9 +259,10 @@ message only if exact compatibility is selected by root.
 -L N for positive N retains at most N owned decoded records in a bounded ring and emits after
 EOF; no seek optimization or filesystem whole-read is required. Both row count
 and retained byte limits apply. Reject N>maxLastRows before reading. For N=0,
-v2 proposes operand-kind behavior: stdin emits its final data row, file input
-header only, matching additional 04/05. Extension from native regular files to
-all VFS files remains a root portability decision; see PROFILE-V2. Ordinary slice serializes decoded
+v3 requires NO DATA ROWS uniformly for stdin and every VFS file, header only
+when enabled. With -n no input iterator/read is taken. This deliberately differs
+from additional 04 native stdin final-row output; no seekability rule is inferred
+from additional 05 native file evidence. See PROFILE-V3. Ordinary slice serializes decoded
 cells using minimal necessary quoting and LF; it does not preserve redundant
 input quotes. Early finite ranges stop at the last requested logical record.
 
@@ -273,7 +282,7 @@ an explicit command dialect, not conflate these semantics:
 | whitespace | no trim | no trim; display sanitization is separate |
 | UTF-8 | fatal only for header display/--csv | values/header bytes preserved without whole-record decoding |
 | ragged width | header-only reader never validates unread body | count accepts; select/slice reject mismatch with first-record width |
-| unterminated quoted EOF | permissive rust-csv completion, not RFC error | native raw select preserves incomplete quote; v2 candidate repairs via decoded writer (root choice) |
+| unterminated quoted EOF | permissive rust-csv completion, not RFC error | native raw select preserves incomplete quote; v3 approved repair via decoded writer (PROJECT PROFILE) |
 
 Empty input has no logical record; `""` is one record with one empty cell; `,`
 is one record with two empty cells. Header-only files have no data unless -n.
@@ -306,14 +315,14 @@ Select/slice reject quotes embedded in an unquoted field or nonseparator text
 after a closing quote with `xan <subcommand>: unsupported malformed CSV quoting\n`.
 Count still follows quote-state splitting without asserting RFC validity.
 That asymmetric bounded profile is explicit, not a full-malformed-input claim.
-Root must approve it before freeze; broader malformed equivalence is unresolved.
+Root approves this bounded dialect in v3; broader malformed equivalence remains
+unmeasured, not native proof.
 
 Normal writer quotes a cell if it contains output delimiter, quote, CR or LF;
 double every quote byte, surround with quotes. No quoting solely for spaces,
 Unicode or invalid UTF-8. Single-empty-cell rows are quoted, zero cells emit LF;
-all output line terminators are LF, not host native newlines. V2 additionally
-quotes a first output cell beginning EFBBBF at absolute output zero to preserve
-its value. Raw-select mode requires the v2 faithful-reparse criterion. Header display
+all output line terminators are LF, not host native newlines. V3 approves quoting a first output cell beginning EFBBBF at absolute output zero to preserve
+its value. Raw-select mode requires v3 writer grammar AND faithful reparsing. Header display
 is text; header --csv uses original decoded cells. No ambient locale, terminal
 width, color environment or untrusted main-thread RegExp/JS evaluation is used.
 
@@ -333,8 +342,9 @@ line reader as a CSV parser.
 Stop admission before requesting the next source chunk when the required final
 record is already known. Headers stops after its first record, finite slice and
 -I after the highest needed index. Ordinary zero/equal ranges read through EOF.
-The v2 file-operand -L0 proposal needs only a header, or no input with -n;
-stdin -L0 must read through EOF. No universal safe-empty optimization remains.
+V3 -L0 needs only a header for every source, or no input with -n. No body
+parse/tail ring; existing validation, -o alias preflight and cleanup still apply.
+Ordinary zero/equal ranges are not affected by this zero-tail stop.
 Do not issue an extra next() merely to discover EOF. Already received chunks may
 contain unneeded following bytes: acquisition/read-ahead cannot be rolled back.
 Charge the whole delivered chunk to input bytes/chunks, but do not parse beyond
@@ -401,17 +411,17 @@ FsError and return 1; cancellation and escaping execution errors are rethrown.
 Do not serialize errno strings as the diagnostic contract. Cleanup rejection
 selection remains exactly command.md's caller/error/cleanup precedence.
 
-## 6. Proposed accounting defaults and validation
+## 6. Approved accounting defaults and validation
 
-The main defaults maxInputBytes/maxOutputBytes/maxRetainedBytes/maxRecordBytes/
-maxCellBytes/maxRecords/maxWork are now **root-approved logical caps**. All other
-defaults and EVERY hard ceiling below remain proposals, not extra authority.
-Host overrides must be positive safe integers <= the proposed hard ceiling;
+All 18 defaults and all 18 hard ceilings are **root-approved logical caps**
+in v3. Exact values are unchanged from v2; the prior prose count of 19 was an
+error, not an extra limit. No quota bypass or RSS guarantee is granted.
+Host overrides must be positive safe integers <= the approved hard ceiling;
 parent budgets always win and no CLI flag resets limits.
 KiB/MiB/GiB are powers of 1024. Counters start once per invocation, including
 headers across files, selector parse/resolve and output; no per-phase reset.
 
-| XanLimits field | Default | Proposed hard ceiling |
+| XanLimits field | Default | Approved hard ceiling |
 | --- | ---: | ---: |
 | maxArgs | 128 | 4096 |
 | maxArgumentBytes | 64 KiB | 1 MiB |
@@ -483,13 +493,15 @@ unsupported (ENOTSUP), rather than quietly reading the entire input via readFile
 Existing ordinary memory/real adapters must be checked by the implementation
 owner. stdout works independently of VFS streaming-write support.
 
-For -o use the precise PROFILE-V2 existing-contract composition: identity
+For -o use the precise PROFILE-V3 existing-contract composition: identity
 preflight, required-header/selection validation, then fs.writeStream with owned
 bounded ByteSource and signal, wx for missing or w for observed distinct existing.
-The old writeFile(empty)+append speculation is withdrawn. V2 proposes only a
-fully retained-budget-admitted whole-result writeFile fallback with the SAME flag
-when writeStream is absent; no new capability gate or append sequence. Remaining
-fallback approval is explicit. Provider storage is not module retained memory.
+The old writeFile(empty)+append speculation is withdrawn. V3 approves a bounded
+whole-result writeFile fallback with the SAME flag when writeStream is absent,
+admitting simultaneous buffers under retained, output and parent budgets before
+publication. Actual conditional wx is required for new paths; unsupported
+capability refuses. No new capability gate, permission fallback or append
+sequence. Provider storage is not module retained memory.
 Later body parse/cancellation/write failure can leave partial/truncated output;
 there is no rollback or observation-to-open atomicity claim.
 
@@ -544,23 +556,23 @@ Stage K proposed unsupported forms use
 status 1. Unknown/missing argument diagnostics require independent freeze, not a
 blanket relaxed assertion. No numeric native errno serialization is proposed.
 
-Root disposition **before different independent fixture freeze** (v2 supersedes
-the original six-question list; original receipt and Git-bound design retain it):
+Root disposition **v3 before Dirac independent fixture freeze** supersedes the
+v2 decision list. PROFILE-V3 and BYTE-TABLE-V3 are the current normative delta;
+original 28+16 observations and historical receipts remain byte-preserved.
 
-1. Default-start -l0 compatibility approved; related source/probes in PROFILE-V2.
-   Zero-tail source-kind portability rule remains a root decision.
-2. Chunk invariance required. BYTE-TABLE-V2 per-command CR/malformed/EOF dialect
-   proposals remain unapproved; do not copy unsafe SIMD artifacts.
-3. Safe cross-delimiter reserialization approved. Same-comma raw is conditional
-   on value/count preservation; EOF repair and BOM quoting detail remain explicit.
-4. Seven main logical defaults approved. Other defaults/hard ceilings and strict
-   numeric/selector/mixed-mode choices remain declared proposals; parent wins.
-5. Nontransactional -o safety approved; exact existing bindings in PROFILE-V2.
-   No shared API blocker for that scope; bounded whole-result fallback remains
-   a proposal, not the old generic append permission or race-free publication.
-6. Advanced unsupported flags/formats/color/expressions must be rejected.
-   Diagnostics are only the declared subset. Route a DIFFERENT reviewer to freeze
-   independent fixtures; none have been shown to this author.
+1. Preserve ordinary -l0/start/end-zero compatibility; -L0 uniformly emits no
+   data, with headers only when enabled, independent of stdin/VFS kind.
+2. Approve per-command CR/BOM/count-versus-parser dialects, M refusals and
+   valid EOF repair; source-inferred/unmeasured rows remain PROJECT PROFILE.
+3. Approve faithful serialization: quote CR-containing cells and moved first
+   BOM data. Same-comma raw must be writer-valid AND reversible.
+4. Approve all 18 unchanged defaults/hard ceilings; parent budgets always win.
+   Strict numeric/selector/mixed-mode boundaries remain declared proposals,
+   not newly approved grammar or new command breadth.
+5. Approve bounded whole-result writeFile fallback under existing wx/w and
+   alias rules, not append emulation or atomic identity-conditioned open.
+6. Advanced flags/formats/color/expressions remain rejected. Root must route
+   Dirac separately; neither implementation nor independent acceptance exists.
 
 Future freeze coverage must include every chunk split/BOM/CRLF/escaped-quote
 boundary, reused Buffer producer/finalizer mutation, Unicode display/selector

@@ -1,0 +1,496 @@
+{
+  "schema": 1,
+  "observedAt": "2026-08-28T07:08:58-0500",
+  "timezone": "America/Chicago",
+  "initialHead": "4024f790ad4157772b3c5fad862d7b6a3bc38cb4",
+  "scope": "SOURCE_AND_DATA_ONLY_NO_EXECUTION",
+  "acceptedReview": "aea233274c5cdf5cff7bd667cd6c038eb6550ffb",
+  "revisions": {
+    "successor": "e35d83ca97f6aa4f32b2cb8542f5e711458f6aeb",
+    "predecessor": "96daebc077381fb63ab6447a26ab707ce790ff25",
+    "adapterSource": "02a5060019bccdd2a64f9811812104ba09d2aaee",
+    "routes": "fe15f1e406fa1039accddec25c696ae7187f6135"
+  },
+  "prefix": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/",
+  "files": {
+    "execute.mjs": {
+      "successor": {
+        "gitBlob": "c3f6aad5fd5990f777822012807d606bad919c7e",
+        "bytes": 21765,
+        "sha256": "025968a81758ca3b8da8d9c17930ab085c2b55740fe2a600eb9fddd8f12d2189"
+      },
+      "predecessor": {
+        "gitBlob": "abfad1d5c051c070406bd71971966aa9bb8f3387",
+        "bytes": 21106,
+        "sha256": "ca3f2f5379539c9b3c10b22bd90500ba1c10b36d8986b98b7777cdc92fe4f275"
+      },
+      "adapterSource": {
+        "gitBlob": "abfad1d5c051c070406bd71971966aa9bb8f3387",
+        "bytes": 21106,
+        "sha256": "ca3f2f5379539c9b3c10b22bd90500ba1c10b36d8986b98b7777cdc92fe4f275"
+      },
+      "routes": {
+        "gitBlob": "ac336a9683bc3696abb4deb6ba834ffec6204f7e",
+        "bytes": 20764,
+        "sha256": "fadf7b45c9fb628c0f91cf9c0af514733421942bee6c1a9f0e9fd1437f1de040"
+      }
+    },
+    "maintained-prerequisites.mjs": {
+      "successor": {
+        "gitBlob": "a1aae6104a285b999678d2949488c33e9ef0b873",
+        "bytes": 10438,
+        "sha256": "80f0f911d831de243836e5d42c747a25c0d2b6b3cd2babf22eab36a22a87fdd4"
+      },
+      "predecessor": null,
+      "adapterSource": null,
+      "routes": null
+    },
+    "tool-routing.mjs": {
+      "successor": {
+        "gitBlob": "7c5ab250fcc41b71cad174599963242caf278e83",
+        "bytes": 16268,
+        "sha256": "bf8abf7cba221f23fbe79eea143ca718cdc6fa2864d3335e67904504042147f6"
+      },
+      "predecessor": {
+        "gitBlob": "7c5ab250fcc41b71cad174599963242caf278e83",
+        "bytes": 16268,
+        "sha256": "bf8abf7cba221f23fbe79eea143ca718cdc6fa2864d3335e67904504042147f6"
+      },
+      "adapterSource": {
+        "gitBlob": "7c5ab250fcc41b71cad174599963242caf278e83",
+        "bytes": 16268,
+        "sha256": "bf8abf7cba221f23fbe79eea143ca718cdc6fa2864d3335e67904504042147f6"
+      },
+      "routes": {
+        "gitBlob": "58ca434dd543c8a74af4369922a1ffe405060714",
+        "bytes": 11917,
+        "sha256": "b3cbdfb52fdae6067d58a8c1f57d5890a2b0f2755f29c66c6744ec028582cdb6"
+      }
+    },
+    "supervise.mjs": {
+      "successor": {
+        "gitBlob": "bc4db8061db8aafcf0a4f7c926267ff20dc3e83a",
+        "bytes": 6047,
+        "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b"
+      },
+      "predecessor": {
+        "gitBlob": "bc4db8061db8aafcf0a4f7c926267ff20dc3e83a",
+        "bytes": 6047,
+        "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b"
+      },
+      "adapterSource": {
+        "gitBlob": "bc4db8061db8aafcf0a4f7c926267ff20dc3e83a",
+        "bytes": 6047,
+        "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b"
+      },
+      "routes": {
+        "gitBlob": "bc4db8061db8aafcf0a4f7c926267ff20dc3e83a",
+        "bytes": 6047,
+        "sha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b"
+      }
+    },
+    "fenced-supervisor.mjs": {
+      "successor": {
+        "gitBlob": "9f85df10b564b4fc4781ab5a3da9fb60c7fd1ff9",
+        "bytes": 7580,
+        "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+      },
+      "predecessor": {
+        "gitBlob": "9f85df10b564b4fc4781ab5a3da9fb60c7fd1ff9",
+        "bytes": 7580,
+        "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+      },
+      "adapterSource": {
+        "gitBlob": "9f85df10b564b4fc4781ab5a3da9fb60c7fd1ff9",
+        "bytes": 7580,
+        "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+      },
+      "routes": {
+        "gitBlob": "9f85df10b564b4fc4781ab5a3da9fb60c7fd1ff9",
+        "bytes": 7580,
+        "sha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8"
+      }
+    },
+    "process-observer.mjs": {
+      "successor": {
+        "gitBlob": "925f27ff6a40c580414e81bddff2d17480a8be8a",
+        "bytes": 3667,
+        "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12"
+      },
+      "predecessor": {
+        "gitBlob": "925f27ff6a40c580414e81bddff2d17480a8be8a",
+        "bytes": 3667,
+        "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12"
+      },
+      "adapterSource": {
+        "gitBlob": "925f27ff6a40c580414e81bddff2d17480a8be8a",
+        "bytes": 3667,
+        "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12"
+      },
+      "routes": {
+        "gitBlob": "925f27ff6a40c580414e81bddff2d17480a8be8a",
+        "bytes": 3667,
+        "sha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12"
+      }
+    },
+    "worker.mjs": {
+      "successor": {
+        "gitBlob": "ce91b51b3db512d7c7331bd5e108e906b3eea5dc",
+        "bytes": 537,
+        "sha256": "8c3ad0676c804d02b45f9d7b8acfc355966ee23413dca8a8dfb2b2a4e2189e3a"
+      },
+      "predecessor": {
+        "gitBlob": "ce91b51b3db512d7c7331bd5e108e906b3eea5dc",
+        "bytes": 537,
+        "sha256": "8c3ad0676c804d02b45f9d7b8acfc355966ee23413dca8a8dfb2b2a4e2189e3a"
+      },
+      "adapterSource": {
+        "gitBlob": "ce91b51b3db512d7c7331bd5e108e906b3eea5dc",
+        "bytes": 537,
+        "sha256": "8c3ad0676c804d02b45f9d7b8acfc355966ee23413dca8a8dfb2b2a4e2189e3a"
+      },
+      "routes": {
+        "gitBlob": "ce91b51b3db512d7c7331bd5e108e906b3eea5dc",
+        "bytes": 537,
+        "sha256": "8c3ad0676c804d02b45f9d7b8acfc355966ee23413dca8a8dfb2b2a4e2189e3a"
+      }
+    },
+    "run.mjs": {
+      "successor": {
+        "gitBlob": "8664e8129e4ed31baaf6b2cce267d93039d5075f",
+        "bytes": 2938,
+        "sha256": "27e60e8c126a31e097ea2fedbc2c7b58c74d25f7e71f95f7a6c5692156aa72d6"
+      },
+      "predecessor": {
+        "gitBlob": "2b467083dce5c3bf8ff8de08b3b64043bb4bb0bf",
+        "bytes": 2811,
+        "sha256": "a93d31887f2fd363d8747baec1a5cba405fb1c580fbf023cc80a9daa1bc2d1f2"
+      },
+      "adapterSource": {
+        "gitBlob": "2b467083dce5c3bf8ff8de08b3b64043bb4bb0bf",
+        "bytes": 2811,
+        "sha256": "a93d31887f2fd363d8747baec1a5cba405fb1c580fbf023cc80a9daa1bc2d1f2"
+      },
+      "routes": {
+        "gitBlob": "2b467083dce5c3bf8ff8de08b3b64043bb4bb0bf",
+        "bytes": 2811,
+        "sha256": "a93d31887f2fd363d8747baec1a5cba405fb1c580fbf023cc80a9daa1bc2d1f2"
+      }
+    },
+    "common.mjs": {
+      "successor": {
+        "gitBlob": "bb44d03dfe124a336db8964ef138b0c8d698b0e3",
+        "bytes": 6427,
+        "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4"
+      },
+      "predecessor": {
+        "gitBlob": "bb44d03dfe124a336db8964ef138b0c8d698b0e3",
+        "bytes": 6427,
+        "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4"
+      },
+      "adapterSource": {
+        "gitBlob": "bb44d03dfe124a336db8964ef138b0c8d698b0e3",
+        "bytes": 6427,
+        "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4"
+      },
+      "routes": {
+        "gitBlob": "bb44d03dfe124a336db8964ef138b0c8d698b0e3",
+        "bytes": 6427,
+        "sha256": "aa751c0b12d8662df2e02fdea4e8bf1f893663698fa1063f5a1cf187c3303ad4"
+      }
+    },
+    "policy.mjs": {
+      "successor": {
+        "gitBlob": "a1106fabb123a73041b79a03082e93fd33c0467c",
+        "bytes": 5203,
+        "sha256": "0e2946536633ac767414a1ba5b2ddfc813ba4abbd0fdb0cf732546033a16b3b0"
+      },
+      "predecessor": {
+        "gitBlob": "49228227576c2d4e750edd6a00ed3f8611a3e69a",
+        "bytes": 4441,
+        "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+      },
+      "adapterSource": {
+        "gitBlob": "49228227576c2d4e750edd6a00ed3f8611a3e69a",
+        "bytes": 4441,
+        "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+      },
+      "routes": {
+        "gitBlob": "49228227576c2d4e750edd6a00ed3f8611a3e69a",
+        "bytes": 4441,
+        "sha256": "23749abb9716a9b60f5fcb909a4888f538610bdc1e8c502bcf99a2cc8f2baf86"
+      }
+    }
+  },
+  "functionBlocks": [
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "functionOrBlock": "execute",
+      "startLine": 27,
+      "endLine": 155,
+      "sha256": "7914dfd9185d9046b5ffff49ada9a33205f20b3b2652f867354ca17bee5da984",
+      "recipe": "Exact UTF-8 Git blob lines inclusive, original line endings preserved; metadata only, no extracted executable stored"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "functionOrBlock": "primaryCatch",
+      "startLine": 145,
+      "endLine": 145,
+      "sha256": "9efc70348f7e96e1a9336fb82bb037fc6b2519c0929876c4ae6b0bebdb7a083c",
+      "recipe": "Exact UTF-8 Git blob lines inclusive, original line endings preserved; metadata only, no extracted executable stored"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "functionOrBlock": "newPartialBeforeRecovery",
+      "startLine": 147,
+      "endLine": 147,
+      "sha256": "fa1fcddf256caf9920f5c569dd6afa171f33ff682fe9931af0ac57e73e6e669d",
+      "recipe": "Exact UTF-8 Git blob lines inclusive, original line endings preserved; metadata only, no extracted executable stored"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "functionOrBlock": "privateFinallyBranch",
+      "startLine": 148,
+      "endLine": 148,
+      "sha256": "4602e0d9d5f24fef6569716ea58089dfa64febe05ed9806e00ca5ec3f7a82a31",
+      "recipe": "Exact UTF-8 Git blob lines inclusive, original line endings preserved; metadata only, no extracted executable stored"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/execute.mjs",
+      "functionOrBlock": "finalReportTail",
+      "startLine": 149,
+      "endLine": 151,
+      "sha256": "e717edcddf1dfc54e4d3b1a7f3c19120764dbfe49e044778130655c8a7b06076",
+      "recipe": "Exact UTF-8 Git blob lines inclusive, original line endings preserved; metadata only, no extracted executable stored"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/maintained-prerequisites.mjs",
+      "functionOrBlock": "runPrerequisiteStages",
+      "startLine": 15,
+      "endLine": 32,
+      "sha256": "564dab51651f333f84c86dd3c1a148e2af51f775e7ed0c0403660c1cd25a9fa5",
+      "recipe": "Exact UTF-8 Git blob lines inclusive, original line endings preserved; metadata only, no extracted executable stored"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/maintained-prerequisites.mjs",
+      "functionOrBlock": "prerequisites",
+      "startLine": 72,
+      "endLine": 135,
+      "sha256": "e334b4ecba1c2fe3c41ef118ed1cdfe141a38ae96c9926a9ab33b4c507a1ae8e",
+      "recipe": "Exact UTF-8 Git blob lines inclusive, original line endings preserved; metadata only, no extracted executable stored"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/tool-routing.mjs",
+      "functionOrBlock": "createInheritedHelperRoute",
+      "startLine": 228,
+      "endLine": 290,
+      "sha256": "bdae1289e8e0b71a0c6b104cf9a5f58a07cf0687e3dc2aa423323421393eca1a",
+      "recipe": "Exact UTF-8 Git blob lines inclusive, original line endings preserved; metadata only, no extracted executable stored"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/supervise.mjs",
+      "functionOrBlock": "supervise",
+      "startLine": 12,
+      "endLine": 86,
+      "sha256": "64fa0482f19a22154909aac8d21753ff6e457b8daa2210084763e06221ba2704",
+      "recipe": "Exact UTF-8 Git blob lines inclusive, original line endings preserved; metadata only, no extracted executable stored"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/fenced-supervisor.mjs",
+      "functionOrBlock": "attachPhaseSupervisor",
+      "startLine": 13,
+      "endLine": 47,
+      "sha256": "4a8d1eb26d559430bab57d89a12b95f67254c7a1e11d69afa54e28274900b751",
+      "recipe": "Exact UTF-8 Git blob lines inclusive, original line endings preserved; metadata only, no extracted executable stored"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/fenced-supervisor.mjs",
+      "functionOrBlock": "superviseFencedWorker",
+      "startLine": 49,
+      "endLine": 58,
+      "sha256": "e628c385b6fd4475151f8899b237dd65f2bf88ea59acbca7c50f424a18358977",
+      "recipe": "Exact UTF-8 Git blob lines inclusive, original line endings preserved; metadata only, no extracted executable stored"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/fenced-supervisor.mjs",
+      "functionOrBlock": "openFencedWorker",
+      "startLine": 60,
+      "endLine": 76,
+      "sha256": "67a0056f432eda203b32d59cabeb3ffb7d6daed33bbf4aee5eab1bfc8771691d",
+      "recipe": "Exact UTF-8 Git blob lines inclusive, original line endings preserved; metadata only, no extracted executable stored"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/process-observer.mjs",
+      "functionOrBlock": "attachProcessObserver",
+      "startLine": 5,
+      "endLine": 36,
+      "sha256": "8632cd8c527294bd537bead687b98008a6de7bfcf144ef26a7cb573a0f612326",
+      "recipe": "Exact UTF-8 Git blob lines inclusive, original line endings preserved; metadata only, no extracted executable stored"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/process-observer.mjs",
+      "functionOrBlock": "createObserverClient",
+      "startLine": 38,
+      "endLine": 50,
+      "sha256": "d0fc83fff286c7e7b48cac0b5b1e2258ecd806c8f24ed5f24a4d6c8920ef0389",
+      "recipe": "Exact UTF-8 Git blob lines inclusive, original line endings preserved; metadata only, no extracted executable stored"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/run.mjs",
+      "functionOrBlock": "main",
+      "startLine": 3,
+      "endLine": 20,
+      "sha256": "ea35ce504e654dfbba777ecece5a66311cd3eee7c9f19a116b1f570da5993afd",
+      "recipe": "Exact UTF-8 Git blob lines inclusive, original line endings preserved; metadata only, no extracted executable stored"
+    },
+    {
+      "path": "tests/integration/full-gate-20260827/unified76-driver/launcher-v3/worker.mjs",
+      "functionOrBlock": "entry",
+      "startLine": 3,
+      "endLine": 10,
+      "sha256": "399d366581c3418f4441d48ac0b296a98391a2c421e05d74c09624d64cef83bb",
+      "recipe": "Exact UTF-8 Git blob lines inclusive, original line endings preserved; metadata only, no extracted executable stored"
+    }
+  ],
+  "inheritedExecuteFragments": {
+    "primaryCatch": {
+      "newLine": 145,
+      "predecessorLine": 140,
+      "byteIdentical": true,
+      "sha256": "9efc70348f7e96e1a9336fb82bb037fc6b2519c0929876c4ae6b0bebdb7a083c"
+    },
+    "privateFinallyBranch": {
+      "newLine": 148,
+      "predecessorLine": 142,
+      "byteIdentical": true,
+      "sha256": "4602e0d9d5f24fef6569716ea58089dfa64febe05ed9806e00ca5ec3f7a82a31"
+    },
+    "finalReportTailStart": {
+      "newLine": 149,
+      "predecessorLine": 143,
+      "byteIdentical": true,
+      "sha256": "276a5810e2b79db294055135067f7450ebef06946c7402a54cb6f553d78896e8"
+    }
+  },
+  "priorProofs": [
+    {
+      "acceptedProof": "97c081ec7c7f180889d3640c29d1cd5fd1b10752",
+      "source": "fe15f1e406fa1039accddec25c696ae7187f6135",
+      "bindingPath": "tests/integration/full-gate-20260827/unified76-driver-independent/tool-routes-v10/BINDINGS.json",
+      "bindingBlob": {
+        "gitBlob": "3202293bb43c3eaf01eb755dbbc1e811ed4ef175",
+        "bytes": 123457,
+        "sha256": "fb3fc4e54159eda8856cc5a18dea19c28bc104653716143ed857d2f487df50b3"
+      },
+      "relevantFiles": {
+        "supervise.mjs": {
+          "proofBoundSha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b",
+          "equalsCurrent": true
+        },
+        "fenced-supervisor.mjs": {
+          "proofBoundSha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8",
+          "equalsCurrent": true
+        },
+        "process-observer.mjs": {
+          "proofBoundSha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
+          "equalsCurrent": true
+        },
+        "execute.mjs": {
+          "proofBoundSha256": "fadf7b45c9fb628c0f91cf9c0af514733421942bee6c1a9f0e9fd1437f1de040",
+          "equalsCurrent": false
+        }
+      },
+      "qualification": "Prior scoped A10/observer/fence results only; not full execute/private-finally or injected observer-failure/timeout proof"
+    },
+    {
+      "acceptedProof": "38a4e7b08f47139328f3a4ac5b4b50d83a6544b3",
+      "source": "86038b27d1bee03333f13560e374ad407db417b8",
+      "bindingPath": "tests/integration/full-gate-20260827/unified76-driver-independent/resolved-write-v9/BINDINGS.json",
+      "bindingBlob": {
+        "gitBlob": "b0730e1fabd601397f6749db6792199e96375f9d",
+        "bytes": 94122,
+        "sha256": "445d14293f926f166b542ab9382e6b82eb7c9531185e2f18882d3c2ea1f18840"
+      },
+      "relevantFiles": {
+        "supervise.mjs": {
+          "proofBoundSha256": "87837c2ff91182fc7b1b45f3d0b0ae54b7e1af66f289bd581d20a6cb5938773b",
+          "equalsCurrent": true
+        },
+        "fenced-supervisor.mjs": {
+          "proofBoundSha256": "644b94da6339cee42c2ff0ccaaa0fc4a6d12746a39c0683fea339aea51f7a6f8",
+          "equalsCurrent": true
+        },
+        "process-observer.mjs": {
+          "proofBoundSha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
+          "equalsCurrent": true
+        },
+        "execute.mjs": {
+          "proofBoundSha256": "73bf29dcc718f13c8d023fd6d2d978e351ae4d8126798b42f30c5b0f33d35a8c",
+          "equalsCurrent": false
+        }
+      },
+      "qualification": "Prior scoped A10/observer/fence results only; not full execute/private-finally or injected observer-failure/timeout proof"
+    },
+    {
+      "acceptedProof": "e584515f6826a9e45b5286f8d3d3e3677194190f",
+      "source": "fb376b3a0bd390598038494235bec321a694383d",
+      "bindingPath": "tests/integration/full-gate-20260827/unified76-driver-independent/projection-v7/BINDINGS.json",
+      "bindingBlob": {
+        "gitBlob": "5dc65628790d39e09389c1d5bf334fe02037efd8",
+        "bytes": 14785,
+        "sha256": "bdcf8f7d9e5cfe33e30cc760a622a7c28f8b1db0692c69c83649c8459ebdcb45"
+      },
+      "relevantFiles": {
+        "supervise.mjs": {
+          "proofBoundSha256": "0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55",
+          "equalsCurrent": false
+        },
+        "process-observer.mjs": {
+          "proofBoundSha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
+          "equalsCurrent": true
+        },
+        "execute.mjs": {
+          "proofBoundSha256": "77c52b1becfb4175a9324f31e95813dd6ab84337bd94eb779f238002bc8a92b7",
+          "equalsCurrent": false
+        }
+      },
+      "qualification": "Prior scoped A10/observer/fence results only; not full execute/private-finally or injected observer-failure/timeout proof"
+    },
+    {
+      "acceptedProof": "5c32f061c36081919a21cbc7e77b2865f0c49c0a",
+      "source": "e062bcc1c79bf626541cc13ce35bad89e28dfe0a",
+      "bindingPath": "tests/integration/full-gate-20260827/unified76-driver-independent/shared-v6/BINDINGS.json",
+      "bindingBlob": {
+        "gitBlob": "da417fcb1dd2d5d882b81bcc3a8f1adb1887f9b3",
+        "bytes": 17489,
+        "sha256": "d023f99081ee22f227b922d6cf025b0f418f5a928586c9704af283f631810842"
+      },
+      "relevantFiles": {
+        "supervise.mjs": {
+          "proofBoundSha256": "0367e28e03606ca0ecb1d8f89cb04aa4eba2a5f11aed927a2fb8b2ef58a47a55",
+          "equalsCurrent": false
+        },
+        "process-observer.mjs": {
+          "proofBoundSha256": "b295e635e643a1a236c61a7344f23921bfbd374b9b0158b1c1244f6acbd72e12",
+          "equalsCurrent": true
+        },
+        "execute.mjs": {
+          "proofBoundSha256": "b43c65b692d24dafccabd8be386eb9298df70a0d5112ebed32b6078626f4b9c7",
+          "equalsCurrent": false
+        }
+      },
+      "qualification": "Prior scoped A10/observer/fence results only; not full execute/private-finally or injected observer-failure/timeout proof"
+    }
+  ],
+  "privateState": {
+    "source": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "path": "tests/integration/full-gate-20260827/combined-8670ebe8/prerequisites.mjs",
+    "gitBlob": "086108cffbc4e299e9ceb9fa018a9c7b0d43e636",
+    "bytes": 5589,
+    "sha256": "60ae62f6bab6e0348288cd04a6f69c551ce13769bd7ea9e47fb251b9a9dfa2db",
+    "startLine": 13,
+    "endLine": 16,
+    "functionSha256": "5ec606fb17eeaa10d6a3cb459b7aaa01b6ac2aef7212853b67248daf6557a98e"
+  },
+  "metadataCommandQualification": "Abbreviation5c32 was ambiguous (commit and blob); read-only rev-parse failed128 and was resolved to5c32f061. No executable source imports, controls or probes occurred."
+}

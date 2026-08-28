@@ -5,8 +5,11 @@ import {copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpath
 import {dirname, join} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {gunzipSync} from 'node:zlib';
+import childProcess from 'node:child_process';
+import fileSystem from 'node:fs';
+import {syncBuiltinESMExports} from 'node:module';
 import {createToolPath, inspectLinkage, prepareInspection, rejectToolSelection, toolRoutes, verifyGitClosure, verifyToolFile, verifyToolPath} from '../tool-routing.mjs';
-import {createInstructionFence, instructionFenceInvocation, renderInstructionFence} from '../os-instruction-fence.mjs';
+import {createInstructionFence, instructionFenceInvocation, renderInstructionFence, validateInstructionFence} from '../os-instruction-fence.mjs';
 import {verifyDriverSeal} from '../admission.mjs';
 import {supervise} from '../supervise.mjs';
 import {cleanGitEnvironment} from '../transport.mjs';
@@ -67,7 +70,10 @@ try {
     const route = join(binding.path, 'git'); unlinkSync(route); symlinkSync('/usr/bin/git', route);
     try { assert.throws(() => verifyToolPath(binding, environment)); } finally { unlinkSync(route); symlinkSync(toolRoutes().git, route); }
     verifyToolPath(binding, environment);
-    return {negativeChecks: 5, replacementInvocations: 0};
+    for (const mutate of [copy => { copy.external.inspection.invocation.receipt.binary.sha256 = '0'.repeat(64); }, copy => { copy.external.inspection.invocation.args[0] = '--not-approved'; }]) {
+      const copy = structuredClone(envelope); mutate(copy); assert.throws(() => validateInstructionFence(copy));
+    }
+    return {negativeChecks: 7, qualification: 'Hash/missing/route negatives do not execute a replacement; two envelope negatives freshly inspect the approved binary before rejecting altered stable bindings.'};
   });
   await test('R03', () => {
     assert.throws(() => prepareInspection('/bin/sh', {}), /unlisted inspection target/);
@@ -107,7 +113,12 @@ try {
     const program = `import assert from'node:assert/strict';const{verifyInspector}=await import(${JSON.stringify(pathToFileURL(join(copy, 'tool-routing.mjs')).href)});assert.throws(()=>verifyInspector({}),error=>error.exitCode===78&&error.cause?.code==='ERR_ASSERTION');console.log('extra-reference refused before host/inspector execution');`;
     const probe = await run('extra-reference', program);
     assert.equal(external.linkage.flatMap(row => row.dependencies).length, 11);
-    return {originalReferences: 11, sandboxReferences: 2, inspectorReferences: 2, ...probe};
+    const original = fileSystem.lstatSync;
+    fileSystem.lstatSync = function(path, ...args) { return original.call(this, path === '/usr/lib/libc++.1.dylib' ? toolRoutes().inspector.physical : path, ...args); };
+    syncBuiltinESMExports();
+    try { assert.throws(() => prepareInspection('/usr/bin/tar', {}), /new readable library/); }
+    finally { fileSystem.lstatSync = original; syncBuiltinESMExports(); }
+    return {originalReferences: 11, sandboxReferences: 2, inspectorReferences: 2, injectedReadableReferenceRefused: true, qualification: 'Readable-path fault is injected in this test process; no system library was created or edited.', ...probe};
   });
   await test('R08', () => {
     const observed = rows.find(row => row.id === 'R01').evidence;
@@ -115,7 +126,18 @@ try {
       assert.throws(() => assert.equal(row.stdout, row.stdout.replace(/\n\t[^\n]+/, '')));
       assert.throws(() => assert.equal('', row.stdout));
     }
-    return {actualOutputs: observed.length, missingOrChangedOutputControls: observed.length * 2, qualification: 'Controls use actual R01 outputs; no additional tool invocation or weakened expected linkage.'};
+    const original = childProcess.spawnSync;
+    let corrupted = 0;
+    childProcess.spawnSync = function(file, args, options) {
+      const result = original.call(this, file, args, options);
+      if (file === toolRoutes().inspector.physical) { corrupted++; return {...result, stdout: ''}; }
+      return result;
+    };
+    syncBuiltinESMExports();
+    try { assert.throws(() => inspectLinkage('/usr/bin/tar', {}), /linkage output changed or missing/); }
+    finally { childProcess.spawnSync = original; syncBuiltinESMExports(); }
+    assert.equal(corrupted, 1);
+    return {actualOutputs: observed.length, missingOrChangedOutputControls: observed.length * 2, actualInspectorOutputFaults: corrupted, qualification: 'One additional approved inspector executes; test-process transport then discards stdout. The shipping inspection seam must refuse, with unchanged pinned expected linkage.'};
   });
   await test('R09', async () => {
     const program = `import assert from'node:assert/strict';import{spawnSync}from'node:child_process';import{writeFileSync,mkdirSync,readFileSync}from'node:fs';const root=${JSON.stringify(join(envelope.roots[0].path, 'ordinary-git'))};mkdirSync(root);const invoke=args=>{const r=spawnSync('git',args,{cwd:root,env:process.env,encoding:null,timeout:5000});assert.equal(r.status,0,r.stderr.toString());return r.stdout;};invoke(['init','--quiet','--template=']);writeFileSync(root+'/ordinary.txt','ordinary\\n');invoke(['add','ordinary.txt']);const tree=invoke(['write-tree']).toString().trim();const archive=invoke(['archive','--format=tar',tree]);assert.ok(archive.includes(Buffer.from('ordinary.txt')));assert.ok(!archive.includes(Buffer.from('AGENTS.md')));console.log(JSON.stringify({tree,bytes:archive.length,content:readFileSync(root+'/ordinary.txt','utf8')}));`;

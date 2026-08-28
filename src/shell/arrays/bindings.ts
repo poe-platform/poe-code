@@ -96,7 +96,7 @@ export class IndexedBinding {
         const slot = copy.owner.reserve({ slots: 1, metadata: 32, work: 5 });
         const text = element.text.retain();
         const cloned = { text, slot };
-        slot.cleanup = () => { copy.values.delete(index); text.release(); };
+        slot.cleanup = () => { if (copy.values.get(index) === cloned) copy.values.delete(index); text.release(); };
         copy.values.set(index, cloned);
         if (index > copy.maximum) copy.maximum = index;
         await copy.owner.ledger.checkpoint(signal, 2);
@@ -138,6 +138,7 @@ interface Watch {
   generation: number;
   version: number;
   observers: number;
+  typedVersion: number;
   readonly admission: Admission;
   readonly name: OwnedText;
 }
@@ -146,10 +147,12 @@ export class BindingWatch {
   #closed = false;
   readonly generation: number;
   readonly version: number;
+  readonly typedVersion: number;
 
   constructor(readonly store: BindingStore, readonly name: string, readonly watch: Watch, readonly admission: Admission) {
     this.generation = watch.generation;
     this.version = watch.version;
+    this.typedVersion = watch.typedVersion;
   }
 
   valid(): boolean { return this.watch.generation === this.generation && this.watch.version === this.version; }
@@ -189,7 +192,7 @@ export class BindingStore {
       const token = await textToken(this.owner, name, signal);
       try {
         const admission = this.owner.reserve({ slots: 1, metadata: 96, generation: true, version: true, work: 9 });
-        watch = { generation: admission.generation, version: admission.version, observers: 0, admission, name: token };
+        watch = { generation: admission.generation, version: admission.version, typedVersion: 0, observers: 0, admission, name: token };
         this.watches.set(name, watch);
       } catch (error) { token.release(); throw error; }
     }
@@ -242,6 +245,8 @@ export class BindingStore {
       this.bindings.set(name, { binding, name: prepared.name, admission: prepared.admission });
     }
     this.changed(tickets, name);
+    const watch = this.watches.get(name);
+    if (watch) watch.typedVersion = tickets.version;
     return displaced?.release();
   }
 

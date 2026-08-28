@@ -9,9 +9,9 @@ export interface Charge {
   readonly metadata?: number;
   readonly allocatedSlots?: number;
   readonly work?: number;
-  readonly generation?: boolean;
-  readonly version?: boolean;
-  readonly epoch?: boolean;
+  readonly generation?: boolean | number;
+  readonly version?: boolean | number;
+  readonly epoch?: boolean | number;
 }
 
 export interface Tickets {
@@ -56,7 +56,10 @@ export class ArrayLedger {
   #lastIssued = 0;
   #checkpoint = 0;
 
-  constructor(readonly bytes: number, readonly fields: number) {}
+  constructor(readonly bytes: number, readonly fields: number, initialTicket = 0) {
+    if (!Number.isSafeInteger(initialTicket) || initialTicket < 0) throw new RangeError("Invalid private initial ticket");
+    this.#lastIssued = initialTicket;
+  }
 
   get active(): boolean { return this.#caps !== undefined; }
 
@@ -67,10 +70,12 @@ export class ArrayLedger {
   reserve(charge: Charge = {}): Admission {
     const caps = this.#caps ?? this.derive();
     let cursor = this.#lastIssued;
-    const ticket = (requested: boolean | undefined, label: string): number => {
+    const ticket = (requested: boolean | number | undefined, label: string): number => {
       if (!requested) return 0;
-      if (cursor === Number.MAX_SAFE_INTEGER) throw new ArrayFailure(`${label} identity exhausted`);
-      return ++cursor;
+      const count = requested === true ? 1 : requested;
+      if (!Number.isSafeInteger(count) || count < 0 || count > Number.MAX_SAFE_INTEGER - cursor) throw new ArrayFailure(`private ${label} capacity exhausted`);
+      cursor += count;
+      return cursor;
     };
     const generation = ticket(charge.generation, "generation");
     const version = ticket(charge.version, "version");

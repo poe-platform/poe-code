@@ -12,6 +12,8 @@ interface Session {
 
 const sessions = new WeakMap<object, Session>();
 const monitors = new WeakMap<State, StateMonitor>();
+const overlayNext = Symbol("array overlay parent");
+type OverlayMap = Map<string, { superseded?: boolean }> & { [overlayNext]?: OverlayMap };
 
 export function trackState(state: State, budget: { readonly limits: { readonly maxExpansionBytes: number; readonly maxExpansionFields: number } }, scope: InvocationScope): State {
   const existing = monitors.get(state);
@@ -43,6 +45,8 @@ export class StateMonitor {
   epoch = 0;
   #publication = false;
   readonly #wrapped = new WeakMap<object, object>();
+  #restorations: Restoration | undefined;
+  #overlays: OverlayMap | undefined;
 
   constructor(readonly raw: State, readonly session: Session) {
     this.proxy = this.wrap(raw, "state") as State;
@@ -54,9 +58,67 @@ export class StateMonitor {
     if (this.store) return this.store;
     this.session.scope.assertOpen();
     this.session.owner ??= ArrayOwner.create(this.session.ledger);
+    let pending = 0;
+    for (let entry = this.#restorations; entry; entry = entry.next) if (!entry.epoch) pending++;
+    if (pending) {
+      const admission = this.session.owner.reserve({ epoch: pending, metadata: pending * 64, work: pending * 8 });
+      let ticket = admission.epoch - pending;
+      for (let entry = this.#restorations; entry; entry = entry.next) if (!entry.epoch) entry.epoch = ++ticket;
+    }
     this.store = BindingStore.create(this.session.owner);
     this.store.epoch = this.epoch;
     return this.store;
+  }
+
+  restoration(): Restoration {
+    const admission = this.session.ledger.active ? this.session.owner!.reserve({ epoch: true, metadata: 64, work: 8 }) : undefined;
+    const permit = new Restoration(this, admission);
+    permit.next = this.#restorations;
+    if (this.#restorations) this.#restorations.previous = permit;
+    this.#restorations = permit;
+    return permit;
+  }
+
+  openOverlay(frame: OverlayMap): void {
+    if (this.#overlays) frame[overlayNext] = this.#overlays;
+    this.#overlays = frame;
+  }
+
+  closeOverlay(frame: OverlayMap): void {
+    if (this.#overlays !== frame) throw new Error("Indexed-array overlay dependency order violated");
+    this.#overlays = frame[overlayNext];
+    delete frame[overlayNext];
+  }
+
+  async prepareTypedPublication(name: string, owner: ArrayOwner, signal: AbortSignal): Promise<() => void> {
+    owner.reserve({ metadata: 128, work: 7 });
+    const saved: { superseded?: boolean }[] = [];
+    for (let frame = this.#overlays; frame; frame = frame[overlayNext]) {
+      owner.reserve({ work: 2 }).release();
+      const entry = frame.get(name);
+      if (entry) {
+        owner.reserve({ metadata: 32, allocatedSlots: 1, work: 3 });
+        saved.push(entry);
+      }
+      await owner.ledger.checkpoint(signal, 2);
+    }
+    return () => { for (const entry of saved) entry.superseded = true; };
+  }
+
+  retire(permit: Restoration): void {
+    if (permit.previous) permit.previous.next = permit.next;
+    else this.#restorations = permit.next;
+    if (permit.next) permit.next.previous = permit.previous;
+  }
+
+  restore(permit: Restoration, action: () => void): void {
+    this.#publication = true;
+    try { action(); }
+    finally { this.#publication = false; }
+    if (permit.epoch) {
+      this.epoch = permit.epoch;
+      if (this.store) this.store.epoch = permit.epoch;
+    }
   }
 
   mutation(name?: string): Admission | undefined {
@@ -143,6 +205,28 @@ export class StateMonitor {
     this.#wrapped.set(value, proxy);
     this.#wrapped.set(proxy, proxy);
     return proxy;
+  }
+}
+
+export class Restoration {
+  next: Restoration | undefined;
+  previous: Restoration | undefined;
+  epoch: number;
+  #closed = false;
+
+  constructor(readonly monitor: StateMonitor, readonly admission: Admission | undefined) { this.epoch = admission?.epoch ?? 0; }
+
+  apply(action: () => void): void {
+    if (this.#closed) throw new Error("Indexed-array restoration already consumed");
+    try { this.monitor.restore(this, action); }
+    finally { this.close(); }
+  }
+
+  close(): void {
+    if (this.#closed) return;
+    this.#closed = true;
+    this.monitor.retire(this);
+    this.admission?.release();
   }
 }
 

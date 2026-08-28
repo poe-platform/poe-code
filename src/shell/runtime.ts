@@ -169,6 +169,7 @@ interface SavedVariable {
   exported: boolean;
   readOnly?: boolean;
   getopts?: GetoptsBinding;
+  superseded?: boolean;
 }
 
 interface TypedSavedVariable {
@@ -177,6 +178,7 @@ interface TypedSavedVariable {
   readonly tickets: Admission;
   readonly prepared: { readonly name: OwnedText; readonly admission: Admission };
   readonly watch: BindingWatch;
+  overlayVersion?: number;
 }
 
 const typedSavedVariables = new WeakMap<SavedVariable, TypedSavedVariable>();
@@ -1030,6 +1032,50 @@ export class Runtime {
     } catch (error) { await binding?.release(); await owner.close(); throw error; }
   }
 
+  async discardVariable(saved: SavedVariable): Promise<void> {
+    const typed = typedSavedVariables.get(saved);
+    if (!typed) return;
+    typedSavedVariables.delete(saved);
+    typed.watch.close();
+    await typed.binding?.release();
+    await typed.owner.close();
+  }
+
+  async indexedEnvironment(state: State, env: Readonly<Record<string, string>>): Promise<void> {
+    const store = requireArrays(state);
+    const operation = ArrayOwner.create(store.owner.ledger, store.owner);
+    const epoch = stateMonitor(state)!.epoch;
+    try {
+      const keys = Object.keys(env);
+      operation.reserve({ metadata: 128 + keys.length * 64, allocatedSlots: keys.length * 2, work: keys.length * 5 + 8 });
+      for (const key of keys) {
+        const value = env[key];
+        if (key.includes("\0") || key.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid invoke environment entry");
+        if (state.readonlyVariables?.has(key)) throw new ArrayFailure("readonly environment collision");
+      }
+      const publications = new Map<string, Admission>();
+      for (const key of keys) {
+        await textToken(store.owner, key, this.signal);
+        await textToken(store.owner, env[key]!, this.signal);
+        publications.set(key, operation.reserve({ generation: true, version: true, epoch: true, work: 8 }));
+      }
+      const controls = operation.reserve({ epoch: true, work: state.exported.size + keys.length + 5 });
+      this.signal.throwIfAborted();
+      if (stateMonitor(state)!.epoch !== epoch) throw new ArrayFailure("stale state snapshot");
+      stateMonitor(state)!.publish(controls, undefined, () => {
+        for (const key of state.exported) delete state.variables[key];
+        state.exported = new Set(keys);
+      });
+      for (const key of keys) {
+        const tickets = publications.get(key)!;
+        stateMonitor(state)!.publish(tickets, key, () => {
+          void store.remove(key, tickets);
+          state.variables[key] = env[key]!;
+        });
+      }
+    } finally { await operation.close(); }
+  }
+
   async unsetIndexed(state: State, name: string, index?: number | "members"): Promise<void> {
     const store = requireArrays(state);
     const operation = ArrayOwner.create(store.owner.ledger, store.owner);
@@ -1085,11 +1131,13 @@ export class Runtime {
       const value = append ? this.arrayJoin(operation, [current.get(0) ?? "", expanded], "") : expanded;
       const token = await textToken(staged.owner, value, this.signal);
       try { staged.insert(0, token); } catch (error) { token.release(); throw error; }
+      const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);
       this.signal.throwIfAborted();
       if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
       if (!watch.valid()) throw new ArrayFailure("stale binding");
       let released: Promise<void> | undefined;
       stateMonitor(state)!.publish(tickets, name, () => {
+        supersede();
         released = store.publish(name, staged!, tickets);
         if (freeze) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
       });
@@ -1132,14 +1180,20 @@ export class Runtime {
           if (index === undefined) throw new ArrayFailure("index outside 0..2147483647");
           planned = index + 1;
         } else {
-          const certain = entry.value.parts.every(part => part.kind === "text" && (part.quoted || !/[*?[]/u.test(part.value)));
+          const quotedScalar = (part: WordPart): boolean => {
+            const selector = getArraySelector(part);
+            return part.quoted && !(part.kind === "variable" && (part.name === "@" || selector?.kind === "members" && selector.separator === "@"));
+          };
+          const certain = entry.value.parts.every(part => part.kind === "text" ? part.quoted || !/[*?[]/u.test(part.value) : quotedScalar(part));
+          const demanded = entry.value.parts.some(part => part.kind === "text" ? part.quoted || part.value.length > 0 : quotedScalar(part));
+          if (demanded && planned !== null && planned > 2147483647) throw new ArrayFailure("index outside 0..2147483647");
           if (certain && planned !== null) {
-            if (planned > 2147483647) throw new ArrayFailure("index outside 0..2147483647");
             planned++;
           } else planned = null;
         }
         await operation.ledger.checkpoint(this.signal, entry.value.parts.length + 2);
       }
+      const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);
       const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
       const prepared = await store.prepareName(name, operation, this.signal);
       const preserve = assignment.kind === "element" || assignment.append;
@@ -1176,6 +1230,7 @@ export class Runtime {
       if (!(assignment.kind === "compound" && assignment.append && writes === 0)) {
         let released: Promise<void> | undefined;
         stateMonitor(state)!.publish(tickets, name, () => {
+          supersede();
           delete state.variables[name];
           released = store.publish(name, staged!, tickets, prepared);
         });
@@ -1206,7 +1261,12 @@ export class Runtime {
         if ((operator === "&&" && state.status !== 0) || (operator === "||" && state.status === 0)) continue;
         const pipeline = list.pipelines[index]!;
         const ignored = io.execution?.ignoreErrexit || index < list.pipelines.length - 1 || pipeline.negate;
-        state.status = await this.pipeline(pipeline, state, ignored ? { ...io, execution: { ignoreErrexit: true } } : io);
+        const completion = stateMonitor(state)?.restoration();
+        try {
+          const status = await this.pipeline(pipeline, state, ignored ? { ...io, execution: { ignoreErrexit: true } } : io);
+          if (completion) completion.apply(() => { state.status = status; });
+          else state.status = status;
+        } finally { completion?.close(); }
       }
     }
     return script.lists.length ? state.status : 0;
@@ -1405,6 +1465,7 @@ export class Runtime {
         return status;
       }
       let status = 0;
+      const loopRestoration = stateMonitor(state)?.restoration();
       state.loopDepth++;
       try {
         if (command.kind === "for") {
@@ -1426,7 +1487,10 @@ export class Runtime {
             if (result.stop) break;
           }
         }
-      } finally { state.loopDepth--; }
+      } finally {
+        if (loopRestoration) loopRestoration.apply(() => { state.loopDepth--; });
+        else state.loopDepth--;
+      }
       return status;
     } catch (error) {
       const diagnostic = error instanceof ExecutionFailure ? error.diagnostic : undefined;
@@ -1785,8 +1849,57 @@ export class Runtime {
       const previous = new Map<string, SavedVariable & { overlay: string | undefined }>();
       const cwd = state.cwd;
       const directoryStackCwdPublication = state.directoryStackCwdPublication;
+      const environmentKeys = new Set([...Object.keys(initialEnv), ...Object.keys(context.env)]);
+      const typedEnvironment = [...environmentKeys].some(key => arrayStore(state)?.get(key) && initialEnv[key] !== context.env[key]);
+      const cwdRestoration = stateMonitor(state)?.restoration();
+      if (typedEnvironment) {
+        const store = requireArrays(state);
+        store.owner.reserve({ metadata: 64 + environmentKeys.size * 64, allocatedSlots: environmentKeys.size * 2, work: environmentKeys.size * 4 + 4 });
+        const publications = new Map<string, Admission>();
+        try {
+          for (const key of environmentKeys) {
+            const value: unknown = Object.hasOwn(context.env, key) ? context.env[key] : undefined;
+            if (key.includes("\0") || key.includes("=") || Object.hasOwn(context.env, key) && (typeof value !== "string" || value.includes("\0"))) throw new TypeError("Invalid middleware environment value");
+            if (initialEnv[key] === value) continue;
+            if (state.readonlyVariables?.has(key)) throw new ArrayFailure("readonly environment collision");
+          }
+          for (const key of environmentKeys) {
+            const value = Object.hasOwn(context.env, key) ? context.env[key] : undefined;
+            if (initialEnv[key] === value) continue;
+            const saved = { ...saveVariable(state, key), overlay: value };
+            await this.prepareVariable(state, key, saved);
+            if (value !== undefined) await textToken(store.owner, value, this.signal);
+            previous.set(key, saved);
+            publications.set(key, store.tickets(key));
+          }
+          const cwdPublication = store.tickets();
+          for (const [key, saved] of previous) {
+            if (state.readonlyVariables?.has(key)) throw new ArrayFailure("readonly environment collision");
+            if (!typedSavedVariables.get(saved)!.watch.valid()) throw new ArrayFailure("stale binding");
+          }
+          this.signal.throwIfAborted();
+          stateMonitor(state)!.publish(cwdPublication, undefined, () => { state.cwd = resolvePath("/", context.cwd); });
+          cwdPublication.release();
+          for (const [key, saved] of previous) {
+            const publication = publications.get(key)!;
+            stateMonitor(state)!.publish(publication, key, () => {
+              void store.remove(key, publication);
+              if (saved.overlay === undefined) { delete state.variables[key]; state.exported.delete(key); }
+              else { state.variables[key] = saved.overlay; state.exported.add(key); }
+              if (key === "OPTIND") this.reconcileGetopts(state, saved.value);
+            });
+            typedSavedVariables.get(saved)!.overlayVersion = publication.version;
+            publication.release();
+          }
+        } catch (error) {
+          for (const saved of previous.values()) await this.discardVariable(saved);
+          for (const publication of publications.values()) publication.release();
+          cwdRestoration?.close();
+          throw error;
+        }
+      } else {
       state.cwd = resolvePath("/", context.cwd);
-      for (const key of new Set([...Object.keys(initialEnv), ...Object.keys(context.env)])) {
+      for (const key of environmentKeys) {
         if (Object.hasOwn(context.env, key) && typeof context.env[key] !== "string") throw new TypeError("Invalid middleware environment value");
         if (initialEnv[key] === context.env[key]) continue;
         const value = context.env[key];
@@ -1796,6 +1909,8 @@ export class Runtime {
         else { state.variables[key] = value; state.exported.add(key); }
         if (key === "OPTIND") this.reconcileGetopts(state, previous.get(key)!.value);
       }
+      }
+      stateMonitor(state)?.openOverlay(previous);
       try {
         const selected = this.internalDiscovery(context.command, state, bypassFunctions)[0];
         const body = selected?.kind === "function" ? state.functions.get(context.command) : undefined;
@@ -1804,6 +1919,7 @@ export class Runtime {
           const positional = state.positional;
           const positionalSetVersion = state.positionalSetVersion ?? 0;
           const getoptsEntry = cloneGetoptsBinding(state);
+          const functionRestoration = stateMonitor(state)?.restoration();
           state.positional = [...context.args];
           state.functionDepth++;
           state.depth++;
@@ -1814,11 +1930,15 @@ export class Runtime {
             if (error instanceof Flow && error.kind === "return") return { exitCode: error.status };
             throw error;
           } finally {
-            state.positional = positional;
-            state.positionalSetVersion = positionalSetVersion;
-            state.functionDepth--;
-            state.depth--;
-            state.locals.pop();
+            const restoreControls = () => {
+              state.positional = positional;
+              state.positionalSetVersion = positionalSetVersion;
+              state.functionDepth--;
+              state.depth--;
+              state.locals.pop();
+            };
+            if (functionRestoration) functionRestoration.apply(restoreControls);
+            else restoreControls();
             for (const [name, previous] of locals) {
               await restoreVariable(state, name, previous);
               if (!previous.readOnly) state.readonlyVariables?.delete(name);
@@ -1853,11 +1973,23 @@ export class Runtime {
         const raw = definition.execute(forwarded);
         return await this.observeRuntimeReturn(raw, runtimeFrame);
       } finally {
-        if (context.command !== "cd" && state.cwd === context.cwd && state.directoryStackCwdPublication === directoryStackCwdPublication) state.cwd = cwd;
+        const restoreCwd = () => {
+          if (context.command !== "cd" && state.cwd === context.cwd && state.directoryStackCwdPublication === directoryStackCwdPublication) state.cwd = cwd;
+        };
+        if (cwdRestoration) cwdRestoration.apply(restoreCwd);
+        else restoreCwd();
         for (const [key, saved] of previous) {
-          if (state.variables[key] !== saved.overlay) continue;
+          const typed = typedSavedVariables.get(saved);
+          if (typed) {
+            const owned = typed.binding ? typed.watch.watch.version === typed.overlayVersion : state.variables[key] === saved.overlay && typed.watch.watch.typedVersion === typed.watch.typedVersion;
+            if (owned) await restoreVariable(state, key, saved);
+            else await this.discardVariable(saved);
+            continue;
+          }
+          if (saved.superseded || state.variables[key] !== saved.overlay) continue;
           await restoreVariable(state, key, saved);
         }
+        stateMonitor(state)?.closeOverlay(previous);
       }
     });
     try { return validateExitCode((await interruptible(execute(context), this.signal)).exitCode); }
@@ -2115,6 +2247,11 @@ export class Runtime {
   private async shebangState(context: CommandContext, state: State): Promise<State> {
     const child = await cloneState(state, this.signal);
     child.cwd = resolvePath("/", context.cwd);
+    if (arrayStore(child)) {
+      await this.indexedEnvironment(child, context.env);
+      this.reconcileGetopts(child, state.variables.OPTIND);
+      return child;
+    }
     for (const key of child.exported) delete child.variables[key];
     for (const [key, value] of Object.entries(context.env)) {
       if (key.includes("\0") || key.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid middleware environment value");
@@ -2482,13 +2619,16 @@ export class Runtime {
     this.signal.throwIfAborted();
     const child = await cloneState(state, this.signal);
     child.cwd = resolvePath(context.cwd, options.cwd ?? ".");
-    for (const key of child.exported) delete child.variables[key];
     const env = options.replaceEnv ? { ...options.env } : { ...context.env, ...options.env, PWD: child.cwd };
+    if (arrayStore(child)) await this.indexedEnvironment(child, env);
+    else {
+    for (const key of child.exported) delete child.variables[key];
     for (const [key, value] of Object.entries(env)) {
       if (key.includes("\0") || key.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid invoke environment entry");
       child.variables[key] = value;
     }
     child.exported = new Set(Object.keys(env));
+    }
     this.reconcileGetopts(child, state.variables.OPTIND);
     child.depth++;
     child.loopDepth = 0;

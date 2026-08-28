@@ -5,6 +5,9 @@ import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { basicCommands } from "../../../src/commands/basic.js";
 import { ArrayLedger, ArrayOwner } from "../../../src/shell/arrays/ledger.js";
 import { BindingStore } from "../../../src/shell/arrays/bindings.js";
+import { arrayStore, requireArrays, snapshotState, trackState } from "../../../src/shell/arrays/state.js";
+import { InvocationScope } from "../../../src/shell/cleanup.js";
+import type { State } from "../../../src/shell/runtime.js";
 
 function shell(): Shell {
   const result = new Shell({ fs: new MemoryFileSystem() });
@@ -88,6 +91,66 @@ test("private ledger: seven formulas, atomic refusal and cumulative nonrefund", 
   assert.deepEqual(ledger.snapshot().used.slice(0, 4), [0, 0, 0, 0]);
   assert.deepEqual(ledger.snapshot().used.slice(4), before.used.slice(4));
   assert.equal(ledger.snapshot().lastIssued, 3);
+});
+
+test("private ledger: shared near-end ticket cursor commits atomically", () => {
+  const ledger = new ArrayLedger(100, 10, Number.MAX_SAFE_INTEGER - 2);
+  const before = ledger.snapshot();
+  assert.throws(() => ledger.reserve({ generation: true, version: true, epoch: true }), /private epoch capacity exhausted/u);
+  assert.deepEqual(ledger.snapshot(), before);
+  const admitted = ledger.reserve({ generation: true, version: true });
+  assert.equal(admitted.generation, Number.MAX_SAFE_INTEGER - 1);
+  assert.equal(admitted.version, Number.MAX_SAFE_INTEGER);
+  assert.throws(() => ledger.reserve({ epoch: true }), /private epoch capacity exhausted/u);
+});
+
+test("foundation: typed middleware shadows and scalar restoration remain distinct", { timeout: 5000 }, async () => {
+  for (const write of [false, true]) {
+    const instance = shell();
+    instance.use(async (context, next) => {
+      if (context.command === "f") context.env.a = "overlay";
+      return next();
+    });
+    try {
+      const result = await instance.exec(`a=([3]=outer); f() { printf "%s/" "$a"; ${write ? "a=overlay;" : ""} }; f; printf "%s/%s" "$a" "${'${a[3]-missing}'}"`);
+      assert.equal(result.exitCode, 2);
+      const valid = await instance.exec(`a=([3]=outer); f() { printf "%s/" "$a"; ${write ? "a=overlay;" : ""} }; f; printf "%s/%s" "$a" "${'${a[3]}'}"`);
+      assert.equal(valid.stderr, "");
+      assert.equal(valid.stdout, write ? "overlay/overlay/" : "overlay//outer");
+    } finally { await instance.dispose(); }
+  }
+  const instance = shell();
+  instance.use(async (context, next) => { if (context.command === "f") context.env.a = "B"; return next(); });
+  try { assert.equal((await instance.exec('a=A; f() { a=B; }; f; printf "%s" "$a"')).stdout, "A"); }
+  finally { await instance.dispose(); }
+});
+
+test("foundation: internal invoke keeps arrays unless explicit scalar env shadows them", { timeout: 5000 }, async () => {
+  const instance = shell();
+  instance.register({ name: "nested", async execute(context) {
+    await context.invoke!("eval", ['printf "<%s>" "${a[@]}"']);
+    await context.invoke!("eval", ['printf "<%s>" "$a"'], { env: { a: "shadow" }, replaceEnv: true });
+    return { exitCode: 0 };
+  } });
+  try {
+    const result = await instance.exec('a=(outer tail); nested; printf "<%s>" "${a[@]}"');
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "<outer><tail><shadow><outer><tail>");
+  } finally { await instance.dispose(); }
+});
+
+test("private state: whole-state epoch rejects interleaved dotglob snapshot", { timeout: 2000 }, async () => {
+  const scope = new InvocationScope();
+  const raw: State = { cwd: "/", variables: Object.assign(Object.create(null) as Record<string, string>, { long: "x".repeat(300) }), exported: new Set(), functions: new Map(), positional: [], status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false };
+  const state = trackState(raw, { limits: { maxExpansionBytes: 10000, maxExpansionFields: 1000 } }, scope);
+  requireArrays(state);
+  const before = arrayStore(state)!.epoch;
+  const pending = snapshotState(state, () => ({ ...state, variables: { ...state.variables } }), new AbortController().signal);
+  state.dotglob = true;
+  assert.notEqual(arrayStore(state)!.epoch, before);
+  await assert.rejects(pending, /stale state snapshot/u);
+  await scope.close();
+  assert.deepEqual(scope.failures, []);
 });
 
 test("private ledger: last observer retires, ABA gets fresh tickets, overlapping close single-flights", { timeout: 2000 }, async () => {

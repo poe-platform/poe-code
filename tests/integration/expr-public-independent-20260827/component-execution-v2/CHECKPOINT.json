@@ -1,0 +1,23 @@
+{
+  "schema": "expr-stream-reader-interrupted-draft-checkpoint/1",
+  "observedAt": "2026-08-28T01:00:57Z",
+  "status": "incomplete-unqualified-draft-priority-pause",
+  "priorSession": "01a045dd-e7e9-7913-ae47-d7a10fb8b98f",
+  "interruption": "Root-reported SIGINT during preparation, exit 1 turn interrupted; priority interruption, not product failure.",
+  "verification": "Directory inspection found exactly three draft files before this checkpoint; no work directory, execution receipts or additional draft files. Process inspection found no expr runner beyond the inspection command. This cannot prove absence of an unrecorded historical process.",
+  "files": {
+    ".gitignore": "61f65dd9598c7421870bf4918332637f83f34abe1f9fc7cc095852ef7a1b44f7",
+    "control-producer.mjs": "c5eb025b5d8194a5980d661d04077f40e05f649893c4c808fe2076f4351ec8c7",
+    "stream-reader.mjs": "d54cc0f1d745d4eafb7f16c62b17ac5c3962c570f3ccc7cedc9612db0201d6a6"
+  },
+  "executedThisCheckpoint": { "readerControls": 0, "build": 0, "packageControls": 0, "P01": 0, "expr104": 0, "types": 0 },
+  "qualification": "No reader qualification, implementation completion, recipe freeze or execution authorization is asserted. Drafts are retained byte-for-byte without repair.",
+  "history": {
+    "originalNine": "f8b982f09",
+    "componentGateHeld": "a0142c77",
+    "priorRecipe": "eaca395fd0f90051676798971750515d04b0c005",
+    "preflightAbort": "4a091ba091413a6466034a8d1f9b84033517f913",
+    "preflightReason": "4,644,868-byte LAYOUTS exceeded 4 MiB ENOBUFS; separate writer failure retained; no candidate execution."
+  },
+  "resume": "Do not execute this draft, controls or expr104 now. Later root coordination must authorize completion, qualification and a separate pre-run recipe seal. HTML actual34 has priority."
+}

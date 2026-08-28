@@ -1,5 +1,9 @@
 # Minimal fixture correction v2, frozen before continuation
 
+Pre-execution v2.1 clarification: beb75cdf was never executed. Its reviewer-only
+rename operations are ordered before inserting carried filenames so original
+CAPTURE-01/RECEIPT-01 integrity bindings cannot be renamed. No case/source change.
+
 Original recipe/cases/harness remain at1c6d0983760d81c6dad2303b8cba96ccd74ac709.
 The first host completed31 cases (30 predicates pass, one framework miss) before
 its own lazy stdout initialization hit the network constructor denial. It wrote

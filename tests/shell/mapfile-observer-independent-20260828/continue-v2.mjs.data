@@ -34,12 +34,12 @@ function replace(before, after, expected = 1) {
   assert.equal(source.split(before).length - 1, expected, before); source = source.split(before).join(after);
 }
 replace("const cases = JSON.parse(bytesByName.get('CASES.json'));", "const allCases = JSON.parse(bytesByName.get('CASES.json')); const cases = { ...allCases, originalSix: [], observer: allCases.observer.slice(31) };");
-replace("const frozenFiles =", `const correctionFreeze = ${JSON.stringify(correctionFreeze)}; const carried = ${JSON.stringify(carried)}; const initialNames = carried.map(item => item.name).sort();\nconst frozenFiles =`);
-replace('assert.deepEqual(listHost(owned).sort(), frozenFiles);', 'assert.deepEqual(listHost(owned).sort(), initialNames);', 2);
-replace('function integrity() {', 'function integrity() { for (const item of carried) { assert.equal(digest(readHost(path.join(owned, item.name))), item.sha256); assert.equal(statHost(path.join(owned, item.name)).mode & 0o7777, 0o644); }');
 replace("[...frozenFiles, 'CAPTURE-01.json', 'RECEIPT-01.json']", "[...initialNames, 'CAPTURE-01.json', 'RECEIPT-01.json']");
 replace('CAPTURE-01.json', 'CAPTURE-02.json', 2);
 replace('RECEIPT-01.json', 'RECEIPT-02.json', 3);
+replace("const frozenFiles =", `const correctionFreeze = ${JSON.stringify(correctionFreeze)}; const carried = ${JSON.stringify(carried)}; const initialNames = carried.map(item => item.name).sort();\nconst frozenFiles =`);
+replace('assert.deepEqual(listHost(owned).sort(), frozenFiles);', 'assert.deepEqual(listHost(owned).sort(), initialNames);', 2);
+replace('function integrity() {', 'function integrity() { for (const item of carried) { assert.equal(digest(readHost(path.join(owned, item.name))), item.sha256); assert.equal(statHost(path.join(owned, item.name)).mode & 0o7777, 0o644); }');
 replace("const capture = { schema:", "const capture = { correctionFreeze, effectiveHarnessSha256: process.env.EFFECTIVE_REVIEW_HASH, carried, schema:");
 replace('const receipt = { freeze,', 'const receipt = { correctionFreeze, freeze,');
 process.env.EFFECTIVE_REVIEW_HASH = hash(source);

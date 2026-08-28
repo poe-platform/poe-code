@@ -2,10 +2,10 @@ import type { CommandContext, CommandDefinition, CommandResult } from "../../con
 import { FsError } from "../../contracts/errors.js";
 import { createOutputOperation } from "../../contracts/output.js";
 import type { VirtualShellPlugin } from "../../contracts/plugin.js";
-import { inferDelimiter, parseArguments } from "./argv.js";
+import { DeserializationError, inferDelimiter, parseArguments } from "./argv.js";
 import { Budget, LimitError, XanError } from "./budget.js";
 import { prepareRows } from "./commands.js";
-import { EscapingFailure, InputScope, outputOperation, preflight, publish } from "./io.js";
+import { EscapingFailure, InputScope, managedOutput, outputOperation, preflight, publish } from "./io.js";
 import { validateOptions, type XanCommandsOptions, type XanLimits } from "./options.js";
 import { parseSelection } from "./selector.js";
 import { Writer } from "./writer.js";
@@ -31,7 +31,7 @@ async function execute(context: CommandContext, limits: XanLimits): Promise<Comm
     scope = new InputScope(context, budget);
     const destination = args.help ? undefined : await preflight(context, args, budget);
     const writer = new Writer(inferDelimiter(args.output ?? "-"), budget);
-    source = await prepareRows(args, selection, scope, budget, writer);
+    source = managedOutput(await prepareRows(args, selection, scope, budget, writer), scope, budget);
     await publish(context, destination, source, operation, budget);
   } catch (error) {
     if (context.signal.aborted) { failed = true; failure = context.signal.reason; }
@@ -40,7 +40,7 @@ async function execute(context: CommandContext, limits: XanLimits): Promise<Comm
     else if (operation?.signal.aborted) { failed = true; failure = operation.signal.reason; }
     else {
       result = { exitCode: 1 };
-      const diagnostic = `xan${command ? ` ${command}` : ""}: ${error.message}\n`;
+      const diagnostic = error instanceof DeserializationError ? `${error.message}\n` : `xan${command ? ` ${command}` : ""}: ${error.message}\n`;
       const stderr = createOutputOperation(context, context.stderr);
       let bytes: Uint8Array | undefined;
       try {

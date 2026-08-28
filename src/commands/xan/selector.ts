@@ -21,7 +21,7 @@ export async function parseSelection(text: string, budget: Budget): Promise<Sele
   const complement = text.startsWith("!");
   if (complement) { node(); offset++; }
   const clauses: Clause[] = [];
-  if (offset === text.length) { node(); clauses.push({ kind: "all" }); return { complement, clauses }; }
+  if (offset === text.length) { budget.bound("maxSelectorDepth", 2); node(); clauses.push({ kind: "all" }); return { complement, clauses }; }
   const endpoint = async (): Promise<Endpoint> => {
     node();
     const begin = offset;

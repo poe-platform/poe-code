@@ -84,6 +84,9 @@ never returned/cancelled. Cleanup registers before input acquisition; repeated
 close calls share completion. Output ownership is destination-specific; file and
 stderr are independent of stdout closure. Opaque host work is observed with
 cancellation and late rejection handlers, not universally drained or preempted.
+Owned VFS iterator returns are enrolled as cooperative resource cleanup; an
+uncooperative registered return can delay settlement. Pending opaque `next`,
+metadata or write promises are not themselves cleanup barriers.
 
 Output preflight rejects same paths, same/unknown identities, dangling destination
 links and borrowed stdin with existing output. `compareObservedEntries` supplies

@@ -47,7 +47,22 @@ export class Budget {
   async encode(text: string): Promise<Uint8Array> {
     const size = await this.textSize(text);
     this.hold(size);
-    try { this.work(size); await this.checkpoint(); return new TextEncoder().encode(text); }
+    try {
+      const result = new Uint8Array(size);
+      let offset = 0;
+      for (let cursor = 0; cursor < text.length; cursor++) {
+        let code = text.charCodeAt(cursor);
+        if (code >= 0xd800 && code <= 0xdbff) code = 0x10000 + ((code - 0xd800) << 10) + text.charCodeAt(++cursor) - 0xdc00;
+        const begin = offset;
+        if (code < 128) result[offset++] = code;
+        else if (code < 2048) { result[offset++] = 192 | (code >> 6); result[offset++] = 128 | (code & 63); }
+        else if (code < 65536) { result[offset++] = 224 | (code >> 12); result[offset++] = 128 | ((code >> 6) & 63); result[offset++] = 128 | (code & 63); }
+        else { result[offset++] = 240 | (code >> 18); result[offset++] = 128 | ((code >> 12) & 63); result[offset++] = 128 | ((code >> 6) & 63); result[offset++] = 128 | (code & 63); }
+        this.work(offset - begin);
+        if ((cursor & 1023) === 0) await this.checkpoint();
+      }
+      return result;
+    }
     catch (error) { this.release(size); throw error; }
   }
 }
@@ -59,14 +74,16 @@ export class Bytes {
   get capacity(): number { return this.storage.byteLength; }
   at(index: number): number | undefined { return this.storage[index]; }
   view(): Uint8Array { return this.storage.subarray(0, this.length); }
-  push(value: number): void {
+  async push(value: number): Promise<void> {
     if (this.length === this.storage.length) {
       const capacity = Math.max(1, this.storage.length * 2);
       this.budget.hold(capacity);
       try {
-        this.budget.work(this.length);
         const next = new Uint8Array(capacity);
-        next.set(this.storage);
+        for (let offset = 0; offset < this.length; offset += 4096) {
+          const fragment = this.storage.subarray(offset, Math.min(this.length, offset + 4096));
+          this.budget.work(fragment.length); next.set(fragment, offset); await this.budget.checkpoint();
+        }
         this.budget.release(this.storage.length);
         this.storage = next;
       } catch (error) { this.budget.release(capacity); throw error; }

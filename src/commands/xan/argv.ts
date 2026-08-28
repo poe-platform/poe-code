@@ -1,5 +1,6 @@
 import { resolvePath } from "../../contracts/path.js";
 import { Budget, XanError } from "./budget.js";
+import { boundedSort } from "./sort.js";
 
 export type Subcommand = "headers" | "count" | "select" | "slice";
 export interface Arguments {
@@ -18,10 +19,20 @@ export interface Arguments {
   last?: number;
 }
 const unsignedMax = (1n << 64n) - 1n;
-export function unsigned(text: string, option: string): bigint {
-  if (!/^\+?[0-9]+$/u.test(text) || text.length > 21) throw new XanError(`Could not deserialize '${text}' to u64 for '${option}'.`);
-  const value = BigInt(text);
-  if (value > unsignedMax) throw new XanError(`Could not deserialize '${text}' to u64 for '${option}'.`);
+export class DeserializationError extends XanError {}
+export async function unsigned(text: string, option: string, budget: Budget): Promise<bigint> {
+  let offset = text.startsWith("+") ? 1 : 0;
+  let value = 0n;
+  const invalid = (): never => { throw new DeserializationError(`Could not deserialize '${text}' to u64 for '${option}'.`); };
+  if (offset === text.length) invalid();
+  for (; offset < text.length; offset++) {
+    budget.work();
+    const digit = text.charCodeAt(offset) - 48;
+    if (digit < 0 || digit > 9) invalid();
+    value = value * 10n + BigInt(digit);
+    if (value > unsignedMax) invalid();
+    if ((offset & 1023) === 0) await budget.checkpoint();
+  }
   return value;
 }
 export function checkedAdd(left: bigint, right: bigint): bigint {
@@ -114,7 +125,7 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
   }
   if (values.has("color") && !["auto", "never"].includes(values.get("color")!)) throw new XanError("unsupported in bounded CSV profile: color");
   const numbers = new Map<string, bigint>();
-  for (const name of ["start", "skip", "end", "len", "index", "last"]) if (values.has(name)) numbers.set(name, unsigned(values.get(name)!, `--${name}`));
+  for (const name of ["start", "skip", "end", "len", "index", "last"]) if (values.has(name)) numbers.set(name, await unsigned(values.get(name)!, `--${name}`, budget));
   const range = ["start", "skip", "end", "len", "index"].some(name => values.has(name));
   if ((values.has("last") && (values.has("indices") || range)) || (values.has("indices") && range)) throw new XanError("conflicting slice modes");
   if (values.has("index") && ["start", "skip", "end", "len"].some(name => values.has(name))) throw new XanError("conflicting index/range options");
@@ -136,11 +147,11 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
       budget.work();
       if (offset === text.length || text[offset] === ",") {
         budget.add("maxSelectorNodes", 1); budget.hold(8);
-        indices.push(unsigned(text.slice(begin, offset), "-I/--indices")); begin = offset + 1;
+        indices.push(await unsigned(text.slice(begin, offset), "-I/--indices", budget)); begin = offset + 1;
       }
       if ((offset & 1023) === 0) await budget.checkpoint();
     }
-    indices.sort((left, right) => { budget.work(8); return left < right ? -1 : left > right ? 1 : 0; });
+    await boundedSort(indices, 8, budget, (left, right) => { budget.work(8); return left < right ? -1 : left > right ? 1 : 0; });
     let count = 0;
     for (const value of indices) if (count === 0 || indices[count - 1] !== value) indices[count++] = value;
     budget.release((indices.length - count) * 8); indices.length = count;

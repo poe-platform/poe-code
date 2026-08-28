@@ -23,20 +23,58 @@ export async function observe<Value>(start: () => Value | PromiseLike<Value>, si
 }
 export class InputScope {
   private readonly scanners = new Set<Scanner>();
+  private readonly resources: (() => void | Promise<void>)[] = [];
+  private readonly controller = new AbortController();
+  private readonly signal: AbortSignal;
   private closed = false;
   private closing?: Promise<void>;
   readonly close = (): Promise<void> => {
     if (this.closing) return this.closing;
     this.closed = true;
+    this.controller.abort(new Error("xan input scope closed"));
     this.closing = Promise.resolve().then(async () => {
-      const outcomes = await Promise.allSettled([...this.scanners].map(scanner => scanner.close()));
+      const outcomes = await Promise.allSettled([...this.scanners].map(scanner => scanner.close()).concat(this.resources.map(async close => close())));
       const failures = outcomes.filter((outcome): outcome is PromiseRejectedResult => outcome.status === "rejected").map(outcome => outcome.reason);
       if (failures.length === 1) throw failures[0];
       if (failures.length > 1) throw new AggregateError(failures, "xan input cleanup failed");
     });
     return this.closing;
   };
-  constructor(readonly context: CommandContext, readonly budget: Budget) { context.registerCleanup?.(this.close); }
+  constructor(readonly context: CommandContext, readonly budget: Budget) {
+    this.signal = AbortSignal.any([budget.signal, this.controller.signal]);
+    context.registerCleanup?.(this.close);
+  }
+  own(close: () => void | Promise<void>): void {
+    if (this.closed) throw new Error("xan input admission closed");
+    this.resources.push(close);
+  }
+  private manage(source: ByteSource): ByteSource {
+    let iterator: AsyncIterator<Uint8Array> | undefined;
+    let finished = false;
+    let closing: Promise<void> | undefined;
+    const close = (): Promise<void> => {
+      closing ??= Promise.resolve().then(async () => {
+        const resource = finished ? undefined : iterator;
+        finished = true;
+        await resource?.return?.();
+      });
+      return closing;
+    };
+    this.own(close);
+    return { [Symbol.asyncIterator]: () => ({
+      next: async () => {
+        this.signal.throwIfAborted();
+        if (this.closed || finished) return { done: true, value: undefined };
+        iterator ??= source[Symbol.asyncIterator]();
+        const next = await iterator.next();
+        if (next.done) finished = true;
+        this.signal.throwIfAborted();
+        if (this.closed) return { done: true, value: undefined };
+        return next;
+      },
+      return: async () => { await close(); return { done: true, value: undefined }; },
+    }) };
+  }
   open(path: string, args: Arguments): Scanner {
     this.budget.check();
     if (this.closed) throw new Error("xan input admission closed");
@@ -49,10 +87,12 @@ export class InputScope {
       } };
     } else {
       if (!this.context.fs.readStream) throw new FsError("ENOTSUP", { path, message: "xan requires streaming input" });
-      source = this.context.fs.readStream(resolvePath(this.context.cwd, path), { signal: this.budget.signal });
+      source = this.manage(this.context.fs.readStream(resolvePath(this.context.cwd, path), { signal: this.signal }));
     }
-    const scanner = new Scanner(source, args.delimiter ?? inferDelimiter(path), args.command, this.budget);
+    this.budget.hold(32);
+    const scanner = new Scanner(source, args.delimiter ?? inferDelimiter(path), args.command, this.budget, this.signal);
     this.scanners.add(scanner);
+    this.own(() => { this.budget.release(32); });
     return scanner;
   }
 }
@@ -95,6 +135,26 @@ export async function preflight(context: CommandContext, args: Arguments, budget
 }
 export function outputOperation(context: CommandContext, file: boolean): OutputOperation {
   return createOutputOperation(context, file ? { async write() { throw new Error("file operation has no stdout sink"); } } : context.stdout);
+}
+export function managedOutput(source: ByteSource, scope: InputScope, budget: Budget): ByteSource {
+  let iterator: AsyncIterator<Uint8Array> | undefined;
+  let closed = false;
+  let closing: Promise<void> | undefined;
+  const close = (): Promise<void> => {
+    closed = true;
+    closing ??= Promise.resolve().then(async () => { await iterator?.return?.(); });
+    return closing;
+  };
+  scope.own(close);
+  return { [Symbol.asyncIterator]: () => ({
+    next: async () => {
+      budget.check();
+      if (closed) return { done: true, value: undefined };
+      iterator ??= source[Symbol.asyncIterator]();
+      return iterator.next();
+    },
+    return: async () => { await close(); return { done: true, value: undefined }; },
+  }) };
 }
 export async function publish(context: CommandContext, destination: Destination | undefined, source: ByteSource, operation: OutputOperation, budget: Budget): Promise<void> {
   if (!destination) {

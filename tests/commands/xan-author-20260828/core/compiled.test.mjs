@@ -176,6 +176,7 @@ test('slice ordinary post-write zero ranges, indices, tail ring, and uniform L0'
   await good(['slice', '-I3,1,1,0'], input, 'a\n0\n1\n3\n');
   await good(['slice', '-L2'], input, 'a\n2\n3\n');
   await good(['slice', '--skip=2', '-l1'], input, 'a\n2\n');
+  await good(['slice', '-s+00000000000000000000000000000000000002', '-l1'], input, 'a\n2\n');
   await good(['slice', '-s1', '--skip=3', '-l1'], input, 'a\n1\n');
   let acquired = 0;
   const stdin = { [Symbol.asyncIterator]() { acquired++; throw new Error('L0 must not acquire'); } };
@@ -222,8 +223,8 @@ test('all eighteen limit boundaries: pure ledgers and command refusal recipes', 
     if (result.err) assert.match(result.err, new RegExp(name));
   }
   const budget = new Budget({ ...defaultLimits, maxRetainedBytes: 5 }, new AbortController().signal);
-  const store = new Bytes(budget); store.push(1); store.push(2);
-  assert.equal(budget.retained, 2); assert.throws(() => store.push(3), /maxRetainedBytes/u); store.free(); assert.equal(budget.retained, 0);
+  const store = new Bytes(budget); await store.push(1); await store.push(2);
+  assert.equal(budget.retained, 2); await assert.rejects(store.push(3), /maxRetainedBytes/u); store.free(); assert.equal(budget.retained, 0);
   const fs = new MemoryFileSystem(); await fs.writeFile('/a', bytes('a\n')); await fs.writeFile('/b', bytes('b\n'));
   const cumulative = await run(['headers', '/a', '/b'], '', { fs, factory: { limits: { maxRecords: 1 } } });
   assert.equal(cumulative.exitCode, 1); assert.match(cumulative.err, /maxRecords/u);
@@ -307,6 +308,90 @@ test('actual baseline Shell registry pipeline and parent output budget', async (
   const fs = new MemoryFileSystem(); await fs.writeFile('/input', bytes(ordinary));
   const shell = new Shell({ fs, commands: new CommandRegistry(createXanCommands()) });
   const result = await shell.exec('xan select 1 /input | xan count'); assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, '2\n');
-  const limited = await shell.exec('xan select 0 /input', { limits: { maxOutputBytes: 1 } }); assert.notEqual(limited.exitCode, 0);
+  await assert.rejects(shell.exec('xan select 0 /input', { limits: { maxOutputBytes: 1 } }), { name: 'ShellLimitError', limit: 'maxOutputBytes' });
   await shell.dispose();
+});
+
+test('registered owned cooperative return drains on abort without waiting opaque next', async () => {
+  const fs = new MemoryFileSystem();
+  const controller = new AbortController();
+  const reason = { abort: true };
+  let started;
+  const acquired = new Promise(resolve => { started = resolve; });
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  let returned = 0;
+  let settled = false;
+  let rejectNext;
+  fs.readStream = () => ({ [Symbol.asyncIterator]() { return {
+    next() { started(); return new Promise((resolve, reject) => { rejectNext = reject; }); },
+    async return() { returned++; await gate; return { done: true }; },
+  }; } });
+  const pending = run(['headers', '/input'], '', { fs, signal: controller.signal });
+  const checked = assert.rejects(pending, error => error === reason).then(() => { settled = true; });
+  await acquired; controller.abort(reason);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(returned, 1); assert.equal(settled, false);
+  release(); await checked;
+  rejectNext(new Error('observed late opaque next failure'));
+  await new Promise(resolve => setImmediate(resolve));
+});
+
+test('cleanup failure beats ordinary status but never original sink/caller rejection', async () => {
+  for (const mode of ['success', 'ordinary', 'sink', 'caller']) {
+    const fs = new MemoryFileSystem();
+    const cleanup = new Error('cleanup'); const sink = new Error('sink'); const caller = new Error('caller');
+    const controller = new AbortController();
+    let returns = 0;
+    fs.readStream = () => ({ [Symbol.asyncIterator]() { return {
+      async next() { return { done: false, value: bytes('a,b\n') }; },
+      async return() { returns++; throw cleanup; },
+    }; } });
+    const args = mode === 'ordinary' ? ['select', 'missing', '/input'] : ['slice', '-L0', '/input'];
+    const options = { fs, signal: controller.signal,
+      ...(mode === 'sink' || mode === 'caller' ? { stdout: { async write() { if (mode === 'caller') controller.abort(caller); throw sink; } } } : {}),
+    };
+    await assert.rejects(run(args, '', options), error => error === (mode === 'caller' ? caller : mode === 'sink' ? sink : cleanup));
+    assert.equal(returns, 1);
+  }
+});
+
+test('cooperative work yields, aborts before full scan and preserves exact reason', async () => {
+  const controller = new AbortController(); const reason = { work: 'abort' };
+  const pending = run(['count'], 'a\n' + 'x'.repeat(200000), { signal: controller.signal });
+  setImmediate(() => controller.abort(reason));
+  await assert.rejects(pending, error => error === reason);
+});
+
+test('whole-result fallback checks simultaneous staging before publication', async () => {
+  const fs = new MemoryFileSystem();
+  const fallback = Object.create(fs); fallback.writeStream = undefined; fallback.lstat = fs.lstat.bind(fs);
+  let publications = 0;
+  fallback.writeFile = async (...args) => { publications++; return fs.writeFile(...args); };
+  const input = 'a\n' + 'x\n'.repeat(50);
+  const streamed = await run(['select', '*', '-o', '/stream'], input, { fs, factory: { limits: { maxRetainedBytes: 650 } } });
+  assert.equal(streamed.exitCode, 0, streamed.err);
+  const result = await run(['select', '*', '-o', '/fallback-limit'], input, { fs: fallback, factory: { limits: { maxRetainedBytes: 650 } } });
+  assert.equal(result.exitCode, 1); assert.equal(publications, 0);
+  await assert.rejects(fs.stat('/fallback-limit'), error => error.code === 'ENOENT');
+  const { publish, outputOperation } = await load('commands/xan/io.js');
+  const context = { signal: new AbortController().signal, fs: fallback, stdout: { async write() {} } };
+  const budget = new Budget({ ...defaultLimits, maxRetainedBytes: 230 }, context.signal);
+  const operation = outputOperation(context, true);
+  const chunks = { async *[Symbol.asyncIterator]() { yield new Uint8Array(100); yield new Uint8Array(100); } };
+  await assert.rejects(publish(context, { path: '/staging', flag: 'wx' }, chunks, operation, budget), /maxRetainedBytes/u);
+  assert.equal(publications, 0); await operation.close();
+});
+
+test('delimiter inference, independent output inference, literal leading-dash paths and help', async () => {
+  const fs = new MemoryFileSystem(); await fs.writeFile('/in.tsv', bytes('a\tb\n1\t2\n'));
+  await good(['select', '1,0', '/in.tsv', '-o', '/out.psv'], '', '', { fs }); assert.equal(decoder.decode(await fs.readFile('/out.psv')), 'b|a\n2|1\n');
+  await fs.writeFile('/-file', bytes('x;y\n1;2\n'));
+  await good(['select', '-d;', '--', '1,0', '-file'], '', 'y,x\n2,1\n', { fs });
+  const overflow = await run(['slice', '--start', '18446744073709551616'], '');
+  assert.equal(overflow.err, "Could not deserialize '18446744073709551616' to u64 for '--start'.\n");
+  for (const args of [['--help'], ['headers', '-h'], ['count', '-h'], ['select', '-h'], ['slice', '-h']]) {
+    const result = await run(args, '', { stdin: { [Symbol.asyncIterator]() { throw new Error('help acquired input'); } } });
+    assert.equal(result.exitCode, 0); assert.match(result.out, /unsupported/u);
+  }
 });

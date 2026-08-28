@@ -7,6 +7,7 @@ import type { InputScope } from "./io.js";
 import type { Selection } from "./selector.js";
 import { resolveSelection } from "./selector.js";
 import { Writer } from "./writer.js";
+import { boundedSort } from "./sort.js";
 
 async function* emitted(bytes: Uint8Array, budget: Budget): ByteSource {
   try { if (bytes.length) yield bytes; } finally { budget.release(bytes.length); }
@@ -26,9 +27,15 @@ export async function prepareRows(args: Arguments, selection: Selection | undefi
     return emitted(await writer.text(`${Math.max(0, count - (args.noHeaders ? 0 : 1))}\n`), budget);
   }
   const first = await scanner.next();
+  if (first) scope.own(first.free);
   let positions: number[] | undefined;
   try {
-    if (selection) positions = await resolveSelection(selection, first?.cells.map(cell => cell.decoded.view()) ?? [], args.noHeaders, budget);
+    if (selection) {
+      const metadata = (first?.width ?? 0) * 32;
+      budget.hold(metadata);
+      try { positions = await resolveSelection(selection, first?.cells.map(cell => cell.decoded.view()) ?? [], args.noHeaders, budget); }
+      finally { budget.release(metadata); }
+    }
   } catch (error) { first?.free(); throw error; }
   return rows(args, scanner, first, positions, budget, writer);
 }
@@ -107,6 +114,7 @@ async function prepareHeaders(args: Arguments, scope: InputScope, budget: Budget
     for (const path of args.inputs) {
       const scanner = scope.open(path, args);
       const row = await scanner.next();
+      if (row) scope.own(row.free);
       const header: Header = { ...(row ? { row } : {}), names: [], display: [] };
       budget.hold(32); headers.push(header);
       for (let index = 0; index < (row?.cells.length ?? 0); index++) {
@@ -163,8 +171,8 @@ async function* headerOutput(args: Arguments, headers: Header[], budget: Budget,
       else {
         budget.hold(counts.size * 32);
         const divergent = [...counts.values()].filter(value => value.count < headers.length);
-        divergent.sort((left, right) => {
-          for (let offset = 0; offset < Math.min(left.bytes.length, right.bytes.length); offset++) { budget.work(); const difference = left.bytes[offset]! - right.bytes[offset]!; if (difference) return difference; }
+        await boundedSort(divergent, 32, budget, async (left, right) => {
+          for (let offset = 0; offset < Math.min(left.bytes.length, right.bytes.length); offset++) { budget.work(); const difference = left.bytes[offset]! - right.bytes[offset]!; if (difference) return difference; if ((offset & 1023) === 0) await budget.checkpoint(); }
           return left.bytes.length - right.bytes.length;
         });
         yield* emitted(await writer.text("\nAll files don't have the same headers!\nDiverging headers: "), budget);

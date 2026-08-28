@@ -1,0 +1,205 @@
+{
+  "schema": "cd-ratification-binding/v1",
+  "capturedAt": "2026-08-28T05:20:42.427Z",
+  "controlSeal": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+  "policy": {
+    "commit": "ef833fd2cbf006993b1f94d7f3a0d3254e0ad3de",
+    "path": "tests/shell/cd-prerequisite-20260828/ROOT-RATIFICATION-v3.md",
+    "blob": "37ecdd0c187896ab7583c3631c4d6fea262f4c29",
+    "bytes": 4812,
+    "sha256": "1a88dd6c82a82803bd0c5b1aa2939f394ecb1486626bd074c7a1f6455a8fe60e"
+  },
+  "profiles": [
+    {
+      "commit": "882085678862a23cfeef6505fa41a03891743439",
+      "path": "tests/shell/cd-prerequisite-20260828/AUTHOR-POLICY-v2.md",
+      "blob": "c00b94bf0e3e9341942a4708753a5b39ed109f33",
+      "bytes": 12128,
+      "sha256": "bbc2024017c6476b2f8c43af4a1088367303c86a4d894cd3ce6e57fda6bbc9ff"
+    },
+    {
+      "commit": "7728401ccb7bfa8f1961ffe100ca5617f3a6b553",
+      "path": "tests/shell/cd-prerequisite-20260828/AUTHOR-POLICY-v3-DETAILS.md",
+      "blob": "357ce4e084224154d32ed72f7adde9f1bddc44cc",
+      "bytes": 7730,
+      "sha256": "5268aeafff4878926931c8ccf80cf2234134ae0d1fc594b00e44b6d157211489"
+    }
+  ],
+  "profileHashChecks": {
+    "originalCommits": true,
+    "atControlSeal": true,
+    "atRatificationCommit": true,
+    "liveFiles": true
+  },
+  "controlDirectoryMode": 493,
+  "originalFiles": [
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/DECLARED-CONTRACT-v1.md",
+      "blob": "f4329b64fde5ebd10676ea104b3a55ccef71f9a5",
+      "bytes": 11197,
+      "sha256": "cdac52ba488a5dfdada963072fad6db01087f5d09efe9b5d380cc9f08f26d1a3",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/EXPOSURES-v1.json",
+      "blob": "0ff9feaf138f80726333ec3a1bfef6fcf941ff29",
+      "bytes": 23333,
+      "sha256": "a505094e08de897a349dace2e1d6d2741e033e2ea81403e1f7c9c84adf425721",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/INPUTS-v1.json",
+      "blob": "ac386225e2f9f100006392d2638a2a4991a4b170",
+      "bytes": 10334,
+      "sha256": "28d3d799e7e2b59a43f8e51bf5a94757df795f10fa8080513ca28a78289027a3",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/MANIFEST-v1.json",
+      "blob": "543476cd34a78b9971907a2e4219a2baac0419ee",
+      "bytes": 4332,
+      "sha256": "1993e999c01b9729feb22af17cc9fbf973ae2df22a6189bb0b6874fa16a3f68a",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/PROTECTED-AFTER-v1.json",
+      "blob": "b06fc452f30c2510c34ec153f41366dd26a78ad1",
+      "bytes": 53342,
+      "sha256": "7bb9b9e5911be7ddd4d85767c2da98715b9d4d9134fe09f0d686a70bf2fab79b",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/PROTECTED-BEFORE-v1.json",
+      "blob": "194b2a7f5f70d13f13613eba7586fdf39daf9e22",
+      "bytes": 54179,
+      "sha256": "301ddcc818f490ddb200f68dfd118dc0ee070e6d19aedac60a0d53bb138afb50",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/PROTOCOL-v1.md",
+      "blob": "ac467087235dab17aef4cae1b405437ed4281efa",
+      "bytes": 14356,
+      "sha256": "7938c8471bfe40972989126f3a31fa4281505b094068e711ac8515014aed600d",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/README.md",
+      "blob": "e1f9c3dc1d8f1352f8443214981b44ecbf5e4df9",
+      "bytes": 2131,
+      "sha256": "b6d1d9b27dce731cdc1ec096478161cba40a915c09adfd6ceb5a6f4d477e2f17",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/STATIC-ATTEMPTS-v1.md",
+      "blob": "ba846364a1c59e96aa7b3a24a3aa10e79ba04d8d",
+      "bytes": 2901,
+      "sha256": "71e57e0751f16024bb083e4c1c9157a15c819ea406ec9d1d19cbf6b9bbaf8d23",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/TYPE-BINDING-v1.json",
+      "blob": "789ef9d809ad9e25330edb1e2089f7f82edc44da",
+      "bytes": 71210,
+      "sha256": "2dfe1a79575f96e2d157fcfe89cce19f185863f272b6085ecf5569c2330fd69f",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/VALIDATION-v1.json",
+      "blob": "c68f2031eda4cb2c35e511c287396e4f514c6f81",
+      "bytes": 1946,
+      "sha256": "c241c2acaabd2a1f50fb4555deb5c7fa164638fad7554187461576c8be39e160",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/VALIDATION-v2.json",
+      "blob": "54a1a9923e219daa3bbf540a5ae04ee2ee3c868c",
+      "bytes": 3379,
+      "sha256": "7a597989ab71a7ef164541eca8c84717cc11451ca08bc58490fda0a8da905cd6",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/audit.mjs",
+      "blob": "096e83e65e61d8455e28fded0c19ba0ed48defe0",
+      "bytes": 9944,
+      "sha256": "bbea5b42e581adc80a523d32c684817ad5eb7a4a88cf40a4b0b402b477f77417",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/cases-v1.mjs",
+      "blob": "24aaeaf0390355c70c9ce48fcaf54289aac04951",
+      "bytes": 23390,
+      "sha256": "a04ee5ea49742b08d05370c5eca28fbd1ea4d1ed3f02a7cb534f56540bfdae7a",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/typecheck-v1.mjs",
+      "blob": "939fee261d34725fe5b4e0bf2f1e8ff762a56a3a",
+      "bytes": 7631,
+      "sha256": "1a820fb0fac8f04c6f6431cff4b39a329c834e4d766b1e22374cbd16d283fd67",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/types-negative-v1.mts.fixture",
+      "blob": "0b3a0f655df9aad33c8b96b4aca298e0ec66e7a3",
+      "bytes": 923,
+      "sha256": "a7dcdc1a60467b91b7295f9640bc8d0e279c56f465538ed4f234c49abba17fb7",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/types-positive-v1.mts.fixture",
+      "blob": "7642f19b20bbb7b3c638bb3b18c4532c4a930b10",
+      "bytes": 1698,
+      "sha256": "aa36091715072992ae4bb7ab70bce06f3cc96188a9bd2dbee5fd39c293bcc8c4",
+      "mode": 420
+    },
+    {
+      "commit": "beeda1a96bb25c846cd6df0cf0f7a0fff06bcf6e",
+      "path": "tests/shell/cd-prerequisite-independent-20260828/validate-v1.mjs",
+      "blob": "6d483bd8853a61974832dac639f96d94a91a1696",
+      "bytes": 10314,
+      "sha256": "e20fc187d117e1d21775bcc47b77fc884ace1aaaf6309a2f9a32805a51fb2045",
+      "mode": 420
+    }
+  ],
+  "counts": {
+    "originalFiles": 18,
+    "commandCases": 82,
+    "diagnosticCases": 4,
+    "positiveTypes": 10,
+    "negativeTypes": 10,
+    "invariants": 12,
+    "futureControls": 7
+  },
+  "comparison": {
+    "consistent": true,
+    "authority": "ROOT-ratification-v3 formally seals decisions already used in the original independent contract",
+    "newPolicyQuestion": false
+  },
+  "behavioralAssertionsChanged": false,
+  "newCases": 0,
+  "newCohorts": 0,
+  "productExecutions": 0,
+  "nativeOrProviderProbes": 0,
+  "typeCompilations": 0,
+  "additionalSourceInspection": false,
+  "originalMembershipSoleExclusion": "tests/shell/cd-prerequisite-independent-20260828/ratification-v3/",
+  "implementationAuthorization": false,
+  "qualification": "Explicit additive normative binding; beeda original artifacts did not explicitly bind ef833. No old file/audit/manifest is edited."
+}

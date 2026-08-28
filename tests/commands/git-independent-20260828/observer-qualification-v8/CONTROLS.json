@@ -1,0 +1,28 @@
+{
+  "schema": "frozen-observer-controls-v8.1",
+  "real": [
+    {"id":"R01","kind":"success","constant":"blob 5\u0000hello","expected":"PASS"},
+    {"id":"R02","kind":"invalid","constant":"not-zlib","expected":"PASS"},
+    {"id":"R03","kind":"truncated","constant":"blob 5\u0000hello","removeTailBytes":3,"expected":"PASS"},
+    {"id":"R04","kind":"framing","constant":"blob 5\u0000hello","xorLastByte":255,"expected":"PASS"},
+    {"id":"R05","kind":"header-cap","constant":"blob 8388609\u0000","expected":"PASS"},
+    {"id":"R06","kind":"idle-destroy","constant":"","expected":"PASS","settlement":"NOTIFICATION_PENDING"}
+  ],
+  "synthetic": [
+    {"id":"S01","kind":"delayed-notification","expected":"PASS","settlement":"NOTIFICATION_PENDING"},
+    {"id":"S02","kind":"destroyed-not-closed","expected":"HOLD","settlement":"HOLD"},
+    {"id":"S03","kind":"open","expected":"HOLD","settlement":"HOLD"},
+    {"id":"S04","kind":"pending-write","expected":"HOLD","settlement":"HOLD"},
+    {"id":"S05","kind":"pending-end","expected":"HOLD","settlement":"HOLD"},
+    {"id":"S06","kind":"pending-cleanup","expected":"HOLD","settlement":"HOLD"},
+    {"id":"S07","kind":"late-error","expected":"HOLD","settlement":"NOTIFICATION_PENDING","variants":["unowned-late-abort","owned-cause-plus-secondary","destroy-hook-tamper"]},
+    {"id":"S08","kind":"cleanup-reject-undefined","expected":"HOLD","settlement":"HOLD"},
+    {"id":"S09","kind":"falsy-primary-cleanup-null","expected":"HOLD","settlement":"HOLD"},
+    {"id":"S10","kind":"unknown-state","expected":"HOLD","settlement":"UNKNOWN"},
+    {"id":"S11","kind":"close-fallback-then-raw-callback","expected":"PASS","settlement":"CLEAR"}
+  ],
+  "data": [
+    {"id":"D01","kind":"original-H09-remains-unknown","expected":"HOLD"},
+    {"id":"D02","kind":"frozen-source-cleanup-order","expected":"MATCH"}
+  ]
+}

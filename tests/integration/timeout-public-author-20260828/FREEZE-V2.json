@@ -1,0 +1,357 @@
+{
+  "createdAt": "2026-08-28T04:42:20.466Z",
+  "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "acceptedModule": "a23867d6a42e1cb2f2e7278cf22061737a4bea9d",
+  "independentFreeze": "031d4ddfed2fd88e2747bcf1d69242384096b754",
+  "independentManifest": "18e3c23c425065f79c92ff6a17e7853c643e316db3e38d5806c3450a63448991",
+  "preWiringHead": "ac4132c06fce9c62cb8dec70e719aaa177d6ca7c",
+  "publicPaths": [
+    "src/index.ts",
+    "src/plugins/index.ts",
+    "package.json"
+  ],
+  "api": {
+    "factories": [
+      "createTimeoutCommand",
+      "createTimeoutCommands",
+      "timeoutCommands"
+    ],
+    "types": [
+      "TimeoutCommandOptions",
+      "TimeoutCommandsOptions",
+      "TimeoutScheduler"
+    ],
+    "subpath": "virtual-bash/commands/timeout",
+    "aggregate": "timeout?: Omit<TimeoutCommandsOptions, \"replace\">",
+    "policy": "Forward module invoke/scheduler/maxTimerMilliseconds unchanged; top-level replace authoritative including unknown runtime nested replace. Existing context.invoke precedence and receiver semantics unchanged. Curl/SafeJS optional, getopts builtin excluded."
+  },
+  "expectedNames": [
+    "[",
+    "awk",
+    "base32",
+    "base64",
+    "basename",
+    "cat",
+    "chmod",
+    "cksum",
+    "column",
+    "comm",
+    "cp",
+    "cut",
+    "date",
+    "diff",
+    "dirname",
+    "du",
+    "echo",
+    "egrep",
+    "env",
+    "expand",
+    "expr",
+    "false",
+    "fgrep",
+    "file",
+    "find",
+    "fold",
+    "grep",
+    "gunzip",
+    "gzip",
+    "head",
+    "html-to-markdown",
+    "join",
+    "jq",
+    "ln",
+    "ls",
+    "md5sum",
+    "mkdir",
+    "mktemp",
+    "mv",
+    "nl",
+    "od",
+    "paste",
+    "patch",
+    "printenv",
+    "printf",
+    "pwd",
+    "readlink",
+    "realpath",
+    "rev",
+    "rg",
+    "rm",
+    "rmdir",
+    "sed",
+    "seq",
+    "sha1sum",
+    "sha256sum",
+    "sleep",
+    "sort",
+    "split",
+    "stat",
+    "strings",
+    "tac",
+    "tail",
+    "tar",
+    "tee",
+    "test",
+    "timeout",
+    "touch",
+    "tr",
+    "tree",
+    "true",
+    "unexpand",
+    "uniq",
+    "wc",
+    "which",
+    "xargs",
+    "xxd",
+    "zcat"
+  ],
+  "fixtures": [
+    {
+      "path": "tests/plugins/agent-commands.test.ts",
+      "role": "Maintained canonical direct current-source aggregate test; not sealed history. Existing 76 literal list omits accepted which.",
+      "replacements": [
+        [
+          "\"html-to-markdown\", \"du\", \"expr\",",
+          "\"html-to-markdown\", \"du\", \"expr\", \"which\", \"timeout\",",
+          1
+        ],
+        [
+          "assert.equal(expected.length, 76);",
+          "assert.equal(expected.length, 78);",
+          1
+        ],
+        [
+          "assert.equal(new Set(expected).size, 76);",
+          "assert.equal(new Set(expected).size, 78);",
+          1
+        ],
+        [
+          "assert.equal(target.commands.list().length, 77);",
+          "assert.equal(target.commands.list().length, 79);",
+          1
+        ]
+      ],
+      "hunks": [
+        {
+          "from": "\"html-to-markdown\", \"du\", \"expr\",",
+          "to": "\"html-to-markdown\", \"du\", \"expr\", \"which\", \"timeout\",",
+          "count": 1
+        },
+        {
+          "from": "assert.equal(expected.length, 76);",
+          "to": "assert.equal(expected.length, 78);",
+          "count": 1
+        },
+        {
+          "from": "assert.equal(new Set(expected).size, 76);",
+          "to": "assert.equal(new Set(expected).size, 78);",
+          "count": 1
+        },
+        {
+          "from": "assert.equal(target.commands.list().length, 77);",
+          "to": "assert.equal(target.commands.list().length, 79);",
+          "count": 1
+        }
+      ],
+      "beforeSha256": "545abe3256596949f0c6e0bf4aac0d218b425cf0bd568187430ae2366df9dd92",
+      "afterSha256": "03ff459fcf2ab8ad73a4016dc5bb05eccc431bf1fc7f2693d7c5be6951f1327f",
+      "beforeBlob": "47b84cbe36c30009f4eb840efbaca02a997e90e4"
+    },
+    {
+      "path": "tests/commands/split/integration.test.ts",
+      "role": "Maintained canonical source consumer; default exact78",
+      "replacements": [
+        [
+          "contains 77 including split",
+          "contains 78 including split",
+          1
+        ],
+        [
+          "assert.equal(createAgentCommands().length, 77);",
+          "assert.equal(createAgentCommands().length, 78);",
+          1
+        ],
+        [
+          "assert.equal(shell.commands.list().length, 77);",
+          "assert.equal(shell.commands.list().length, 78);",
+          1
+        ]
+      ],
+      "hunks": [
+        {
+          "from": "contains 77 including split",
+          "to": "contains 78 including split",
+          "count": 1
+        },
+        {
+          "from": "assert.equal(createAgentCommands().length, 77);",
+          "to": "assert.equal(createAgentCommands().length, 78);",
+          "count": 1
+        },
+        {
+          "from": "assert.equal(shell.commands.list().length, 77);",
+          "to": "assert.equal(shell.commands.list().length, 78);",
+          "count": 1
+        }
+      ],
+      "beforeSha256": "4b26e93acfe8ff5b178f3a529519cb5db941157b3c6dd1ab8a0fe4779431f957",
+      "afterSha256": "e81cdd80c614fb1d4f91b3ceb24a0bbc0d3f9c4fe382f9e9a508a929eabe9677",
+      "beforeBlob": "4dc071248f05a803e2434535623df38a8d4db235"
+    },
+    {
+      "path": "tests/commands/stream-format-author-stress/contracts.test.ts",
+      "role": "Maintained canonical source consumer; default exact78",
+      "replacements": [
+        [
+          "contains77 and standalone",
+          "contains78 and standalone",
+          1
+        ],
+        [
+          "assert.equal(createAgentCommands().length, 77);",
+          "assert.equal(createAgentCommands().length, 78);",
+          1
+        ],
+        [
+          "assert.equal(instance.commands.list().length, 77);",
+          "assert.equal(instance.commands.list().length, 78);",
+          1
+        ]
+      ],
+      "hunks": [
+        {
+          "from": "contains77 and standalone",
+          "to": "contains78 and standalone",
+          "count": 1
+        },
+        {
+          "from": "assert.equal(createAgentCommands().length, 77);",
+          "to": "assert.equal(createAgentCommands().length, 78);",
+          "count": 1
+        },
+        {
+          "from": "assert.equal(instance.commands.list().length, 77);",
+          "to": "assert.equal(instance.commands.list().length, 78);",
+          "count": 1
+        }
+      ],
+      "beforeSha256": "c9174c37590ca02e367e5674bee185965a4530b3ef1edaa94a5cc483807ea4ab",
+      "afterSha256": "da291fed298d325451216204ead362ee0120053699efe9638cf356a9eac3a5da",
+      "beforeBlob": "a9ffb762f0a4953830d8317d2965418cefe8bfef"
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+      "role": "Maintained canonical source consumer; default78, one unrelated custom makes79",
+      "replacements": [
+        [
+          "in the 77-command aggregate",
+          "in the 78-command aggregate",
+          1
+        ],
+        [
+          "assert.equal(definitions.length, 77);",
+          "assert.equal(definitions.length, 78);",
+          1
+        ],
+        [
+          "assert.equal(new Set(definitions).size, 77);",
+          "assert.equal(new Set(definitions).size, 78);",
+          1
+        ],
+        [
+          "assert.equal(target.commands.list().length, 78);",
+          "assert.equal(target.commands.list().length, 79);",
+          2
+        ]
+      ],
+      "hunks": [
+        {
+          "from": "in the 77-command aggregate",
+          "to": "in the 78-command aggregate",
+          "count": 1
+        },
+        {
+          "from": "assert.equal(definitions.length, 77);",
+          "to": "assert.equal(definitions.length, 78);",
+          "count": 1
+        },
+        {
+          "from": "assert.equal(new Set(definitions).size, 77);",
+          "to": "assert.equal(new Set(definitions).size, 78);",
+          "count": 1
+        },
+        {
+          "from": "assert.equal(target.commands.list().length, 78);",
+          "to": "assert.equal(target.commands.list().length, 79);",
+          "count": 2
+        }
+      ],
+      "beforeSha256": "9431438e95b088146bc9c56b7e24c87e0ab333b26de97205b4da424e67c0a928",
+      "afterSha256": "adcb35fe82ab64d717856377dd7db36f91363becff81786184ab0f91e26c2722",
+      "beforeBlob": "96727c36b1099e121bafef3a85784ddc76f5e410"
+    },
+    {
+      "path": "tests/plugins/stream-five-public/consumer.mjs",
+      "role": "Maintained installed-package consumer; default78",
+      "replacements": [
+        [
+          "assert.equal(names.length, 77);",
+          "assert.equal(names.length, 78);",
+          1
+        ],
+        [
+          "assert.equal(new Set(names).size, 77);",
+          "assert.equal(new Set(names).size, 78);",
+          1
+        ],
+        [
+          "assert.equal(commands.list().length, 77);",
+          "assert.equal(commands.list().length, 78);",
+          1
+        ]
+      ],
+      "hunks": [
+        {
+          "from": "assert.equal(names.length, 77);",
+          "to": "assert.equal(names.length, 78);",
+          "count": 1
+        },
+        {
+          "from": "assert.equal(new Set(names).size, 77);",
+          "to": "assert.equal(new Set(names).size, 78);",
+          "count": 1
+        },
+        {
+          "from": "assert.equal(commands.list().length, 77);",
+          "to": "assert.equal(commands.list().length, 78);",
+          "count": 1
+        }
+      ],
+      "beforeSha256": "3e840eefb1f1bfd3b14b7168bcb5b89116679d6dbd28f8784c988e40dcecf221",
+      "afterSha256": "ea2e09c7f4fd1089e50ccb380a45a0249878fa4627f189ff5a8a08585bfc8020",
+      "beforeBlob": "669e0ba7bb8e123f5e06a60198ecc6baeb99028f"
+    }
+  ],
+  "productWrites": [
+    "src/index.ts",
+    "src/plugins/index.ts",
+    "package.json"
+  ],
+  "moduleWrites": false,
+  "docsSeparate": true,
+  "candidateComposition": "Exactly baseline plus four accepted timeout module files and three public blobs. Maintained fixture and root documentation deltas separately bound; no live WebDAV/XAN/source overlays.",
+  "authorChecks": [
+    "Exact78 names/root+subpath factory identities",
+    "Direct/aggregate options and replacement authority",
+    "Scheduler/invoker receiver and zero-duration resource behavior",
+    "Actual Shell deadline/caller/budget/pipeline/cleanup cases",
+    "Strict positive/negative public types and resolution",
+    "Full pack/install/move/source-denial/missing-export controls",
+    "Full affected maintained fixture bodies"
+  ],
+  "fullGateLaunched": false,
+  "productExecuted": false,
+  "version": 2,
+  "amendment": "FIXTURE-AMENDMENT-V2.json",
+  "fixtureRevision": "bcb6481e354361764face7b2c8a1cc61786f0988"
+}

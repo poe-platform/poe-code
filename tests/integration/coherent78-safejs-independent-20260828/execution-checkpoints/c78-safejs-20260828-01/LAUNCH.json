@@ -1,0 +1,32 @@
+{
+  "classification": "tool-observed-launch-receipt-authored-after-exit-not-supervisor-generated",
+  "date": "2026-08-28",
+  "grantCommit": "5b4649ddd643a631b7c92b1520a415baa35200be",
+  "grantRecord": "authorizations/c78-safejs-20260828-01/ROOT-GO.json",
+  "grantRecordSha256": "ab9420d9082947f7ff598bae58119cc2abe194ce2a707d56fd998b53c5d4c099",
+  "token": "C78-SAFEJS-GO:6d7159e35a1cd92b0ede967d3fe428d54a74d4bd:0ffa1480e60780534394fab152a870873b37e46dab687013362f79ee5249c44e:G01,G02,G03:installed,moved:6:c78-safejs-20260828-01",
+  "command": "C78_ROOT_GO='C78-SAFEJS-GO:6d7159e35a1cd92b0ede967d3fe428d54a74d4bd:0ffa1480e60780534394fab152a870873b37e46dab687013362f79ee5249c44e:G01,G02,G03:installed,moved:6:c78-safejs-20260828-01' /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node --input-type=module < tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/supervisor.mjs.data",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "activationsGranted": 1,
+  "activationsLaunched": 1,
+  "retries": 0,
+  "extraEnvironmentFlags": [],
+  "runtimePatches": 0,
+  "toolSessionId": 85467,
+  "toolLaunchChunk": "3600bb",
+  "toolExitChunk": "6cb420",
+  "exitCode": 0,
+  "capturedOutput": "{\"allPass\":true,\"archiveSha256\":\"37d7c5437ffcbbad2af95074a755de071851a2384afbf0cf5134381e6f0c3336\",\"removedScratch\":true,\"runRoot\":\"/Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/runs/c78-safejs-20260828-01\",\"directChildren\":11,\"guestEvaluations\":6}\n",
+  "observedTimesUTC": {
+    "reviewCompleteBeforeActivation": "2026-08-28T13:27:50Z",
+    "ownedRunDirectoryBirthAfterActivation": "2026-08-28T13:28:13.940Z",
+    "archiveBirth": "2026-08-28T13:28:31.551Z",
+    "closureBirth": "2026-08-28T13:28:32.308Z",
+    "firstPostExitDataAuthentication": "2026-08-28T13:29:05.099Z"
+  },
+  "timeQualification": "Exact process-start/exit timestamps were not recorded by the sealed supervisor. Activation is bracketed by review completion and run-directory birth; exit is bracketed by closure birth and post-exit data authentication. Filesystem timestamps are metadata, not a latency benchmark. The frozen executor was not changed or rerun to add timestamps.",
+  "preflight": "Read applicable instructions, skill, frozen README/CONTROL and all three runner sources. Both old payload seals matched, and Git show of the named revision's manifest matched the GO. No runs directory or matching live executor was observed; process-name search is not a universal process census. No activation blocker identified.",
+  "metadataFailurePreserved": "The first read-only shell inspection exited127 after a zsh loop variable named path replaced that command's PATH, preventing cat/find. Repeated only metadata reads with filename instead. No executor, private write, source import, install or guest ran in that failed metadata command.",
+  "authoritySpent": true,
+  "continuationAuthorized": false
+}

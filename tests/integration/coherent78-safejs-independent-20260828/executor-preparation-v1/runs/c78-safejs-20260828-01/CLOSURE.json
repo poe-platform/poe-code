@@ -1,0 +1,8 @@
+{
+  "archiveSha256": "37d7c5437ffcbbad2af95074a755de071851a2384afbf0cf5134381e6f0c3336",
+  "rawSha256": "8a2f4ea7b7cf2a2d33cbaa8c0756f4359f35429d625476f69b91b03f474b51c3",
+  "allPass": true,
+  "removedScratch": true,
+  "scope": "Read-only private packages/safejs/src and .git/refs inventories include path/type/mode/size/mtime/ctime and hashes, root-directory metadata, additions/removals; exact metadata files listed separately. Selected external tool files and public sealed references are guarded. Excludes other private packages, dist, node_modules, caches, logs/reflogs, object-store membership and atime; selected-tool sibling additions are not checked. No clean-state assumption, no whole-private unchanged or transactional/ABA guarantee; preexisting dirtiness remains untouched. Guards run before every child/copy stage and after children/final cleanup only on later GO, never as preparation proof.",
+  "finalOriginalGuardSha256": "d303f8931a6795d6f3313a081d27655ee988fbd6d98c5d1a12ed7f1ce0154a1b"
+}

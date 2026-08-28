@@ -1,0 +1,406 @@
+{
+  "schema": "REPORT_REPAIR_ACTUAL_SYNTHETIC_EVIDENCE",
+  "candidateCommit": "4d5d28b62c3253a613fd19cde11d7f2df0f98b1d",
+  "diagnosisCommit": "096c204c38fd7f1b6c096b9cb09e0ea877737fec",
+  "sealSha256": "2b1dfbf24d2251a1b2edf4617a97d737c21bfd99cfcb9115c1b2423eaacee3b4",
+  "attempts": 1,
+  "pass": 16,
+  "fail": 0,
+  "unrun": 0,
+  "dataOverlayApplications": 3,
+  "engineExecutions": 0,
+  "builtinPolicyImplemented": false,
+  "actualAdmissionAuthorized": false,
+  "stubChildren": [
+    {
+      "kind": "synthetic-positive",
+      "pid": 20737,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "persisted": true,
+      "errors": []
+    },
+    {
+      "kind": "synthetic-post-summary-nonzero",
+      "pid": 20746,
+      "exit": {
+        "code": 7,
+        "signal": null
+      },
+      "close": {
+        "code": 7,
+        "signal": null
+      },
+      "reaped": true,
+      "persisted": true,
+      "errors": []
+    },
+    {
+      "kind": "synthetic-stdout-failure",
+      "pid": 20762,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "reaped": true,
+      "persisted": true,
+      "errors": []
+    },
+    {
+      "kind": "intentional-persistence-fault",
+      "pid": 20767,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "reaped": true,
+      "persisted": false,
+      "errors": [
+        {
+          "phase": "persist",
+          "error": {
+            "name": "Error",
+            "code": "CAPTURE_PERSISTENCE",
+            "message": "CAPTURE_PERSISTENCE",
+            "stack": "Error: CAPTURE_PERSISTENCE\n    at codeError (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/coordinator-report-v1/controls.mjs:34:41)\n    at persist (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/coordinator-report-v1/controls.mjs:154:359)\n    at launchTracked (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/launch-ledger.mjs:73:30)\n    at async Object.R15 (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/coordinator-report-v1/controls.mjs:154:11)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/coordinator-report-v1/controls.mjs:173:19",
+            "original": null
+          }
+        }
+      ]
+    }
+  ],
+  "controlsDriver": {
+    "pid": 20730,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    },
+    "reaped": true,
+    "stdoutBytes": 220,
+    "stderrBytes": 0,
+    "beforeBindings": true,
+    "afterBindings": true
+  },
+  "postBindings": 22,
+  "nodeUnchanged": true,
+  "allFivePidGroupsAbsent": true,
+  "rawResultSha256": "c46a7f892c32d4fa9c97d33a1b873e97c2abb59e0b4a6207b22b916b0ce1c4bb",
+  "launchSha256": "d4ffc709be4e5cf242036287ef8e7464b96640a9187b48238c465d8776447e59",
+  "archive": {
+    "path": "raw-synthetic-evidence.json.gz",
+    "bytes": 25740,
+    "sha256": "c19a60edf107ea6444636724591a6607bbd1aeb791d1a24b065f7616e84dfe4d",
+    "expandedBytes": 3252025,
+    "memberCount": 39,
+    "rawBytes": 2433183,
+    "members": [
+      {
+        "path": "runs/ATTEMPT.lock",
+        "bytes": 65,
+        "mode": 420,
+        "sha256": "b138e72efed682d1ca519321d3a2df43dc0ac68fa0755c226dc52dd663bb78e1",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/LAUNCH.json",
+        "bytes": 1069,
+        "mode": 420,
+        "sha256": "d4ffc709be4e5cf242036287ef8e7464b96640a9187b48238c465d8776447e59",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/LAUNCHED.json",
+        "bytes": 419,
+        "mode": 420,
+        "sha256": "903ed64c0dfdea4b9be9586f3083e528331e31bbdfd1edea9d623f4f762e84d6",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R01/RESULT.json",
+        "bytes": 408,
+        "mode": 420,
+        "sha256": "1cd1a54bd7b5abb3376ee309162aa435e2182e2c031abac9a54dc3341fb6250c",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R02/RESULT.json",
+        "bytes": 973,
+        "mode": 420,
+        "sha256": "e6f8d28eec4b8f3f5d235845556d28cf0cd14eb2e7c36012e415fda8fe8f5782",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R02/RESULT.json.part-0000.data",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "26fc14c59c5934d7453c4aff25d12fd950d4cd1aff2d67da574d621b9d3a564c",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R02/RESULT.json.part-0001.data",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "29fd375bf0fb16f2c192d46c2d5e76741452170590e77c6d410db160b4b8288e",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R02/RESULT.json.part-0002.data",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "5eb7778b78184125c455cd1649cec3868c976611da25418bb431ce4b480451ad",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R02/RESULT.json.part-0003.data",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "6042d52c7ca42f0e16a11da86bf03159035b855f0f8810d3dd005fc70b89690e",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R02/RESULT.json.part-0004.data",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "29fd375bf0fb16f2c192d46c2d5e76741452170590e77c6d410db160b4b8288e",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R02/RESULT.json.part-0005.data",
+        "bytes": 9832,
+        "mode": 420,
+        "sha256": "6065de82a1507009f466bc0168fa8631f078e9ac388e33401ce245a1bc143c91",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R05/PUBLICATION-FAILURE.json",
+        "bytes": 2053,
+        "mode": 420,
+        "sha256": "2a3e4c65e7d8168dad3d4d9e76514f611f8338dbb5cd79b218c3a85d16c941ed",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R06/one.json",
+        "bytes": 703,
+        "mode": 420,
+        "sha256": "320c42749f5d0a522bda7748cc99b8f4a7a1eb47fea7e3ed300c549e0272c9b8",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R07/both.json",
+        "bytes": 0,
+        "mode": 420,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R07/null/both.json",
+        "bytes": 0,
+        "mode": 420,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R07/undefined/both.json",
+        "bytes": 0,
+        "mode": 420,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R08/PUBLICATION-FAILURE.json",
+        "bytes": 1623,
+        "mode": 420,
+        "sha256": "f8dc14d97d96466c631cd6369a4a8afcfe049c9608270e7c20e1d4d7521cc3fc",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R08/RESULT.json.part-0000.data",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "a205fd1383c66a062cac65bb48d27c487111d744d5b8e3d68eb7d5c7a7304a40",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R09/RESULT.json",
+        "bytes": 490,
+        "mode": 420,
+        "sha256": "41ad7fe0794e2820bce5ed9df2934b605a0f39b28ccee009008de4097762f43e",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R09/TERMINAL-FAILURE.json",
+        "bytes": 1524,
+        "mode": 420,
+        "sha256": "1e8f0c835bbb2b0ea32c75569a1c6e1291ade99d9b06314a8543ae2f77d8b829",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R10/bad.json",
+        "bytes": 398,
+        "mode": 420,
+        "sha256": "d27112c6c50753e402619fe4a97168a09dfbc38235ef860cb4c2e37759745e77",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R10/bound.json",
+        "bytes": 411,
+        "mode": 420,
+        "sha256": "50506397be6d146be7695b2db3e363118f1f0177416516069499a20dd88a6b45",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R10/bound.json.part-0000.data",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "f317dd9d6ba01c465d82e4c4d55d01d270dda69db4a01a64c587a5593ac6084d",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R10/bound.json.part-0001.data",
+        "bytes": 37871,
+        "mode": 420,
+        "sha256": "fb32bbd23110c0d916c3e2f67f0043005d3a11a743abc3e955b47f0387e127de",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R10/missing-root/bound.json",
+        "bytes": 411,
+        "mode": 420,
+        "sha256": "50506397be6d146be7695b2db3e363118f1f0177416516069499a20dd88a6b45",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R10/mode.json",
+        "bytes": 3,
+        "mode": 384,
+        "sha256": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R10/oversize.json",
+        "bytes": 262145,
+        "mode": 420,
+        "sha256": "b27a032984ea8a6bec700c3d6f63f8fcfbf8ff8ef87e972891feda4eea4aad0c",
+        "role": "INTENTIONAL_OVERSIZE_INPUT_NOT_QUALIFIED_RECORD"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R11/exact.json",
+        "bytes": 262144,
+        "mode": 420,
+        "sha256": "2ad559180cf5b8854058152908bd778829664477ecea47beb5c775b84e4867b9",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R12/RESULT.json",
+        "bytes": 412,
+        "mode": 420,
+        "sha256": "0659caac536ef5915efb74334b3923795b05bc98df5ba16cdfec2fe7980061fe",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R13/RESULT.json",
+        "bytes": 424,
+        "mode": 420,
+        "sha256": "947ec6e7203737e8dfebd5b60ff8aa6728aa92be49c8ebeb13dd955b04c51a33",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R14/RESULT.json",
+        "bytes": 418,
+        "mode": 420,
+        "sha256": "108473904dbfdd3d4768ec52f7e16a29d0d3af5023e734a2ca5bd3448e8737ee",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R14/TERMINAL-FAILURE.json",
+        "bytes": 1371,
+        "mode": 420,
+        "sha256": "bb89d613d6b60c9941929545a8664ec4c46f50a9b898176dd990873cf307bdf3",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R15/RESULT.json",
+        "bytes": 3420,
+        "mode": 420,
+        "sha256": "223b1c0e13d1148fd8a4abe69ba50f8693276f58d85edf80d2dfd71d3271435d",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/R16/RESULT.json",
+        "bytes": 415,
+        "mode": 420,
+        "sha256": "57940a146d75c76358ec1908178db1929fd730f87b2806df7536924dbd560ac5",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/RESULT.json",
+        "bytes": 4898,
+        "mode": 420,
+        "sha256": "c46a7f892c32d4fa9c97d33a1b873e97c2abb59e0b4a6207b22b916b0ce1c4bb",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/driver-1.json",
+        "bytes": 1258,
+        "mode": 420,
+        "sha256": "35e0e92599653b4a080f316520d5e9b47195d9ac9e2ffc7a536d9e039fcd2424",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/driver-2.json",
+        "bytes": 1303,
+        "mode": 420,
+        "sha256": "c1d1a98980b5a294d3f5bd4ce3a41f97c6f18f19ee300daed09e7c923074f103",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/driver-3.json",
+        "bytes": 1342,
+        "mode": 420,
+        "sha256": "4dea10f57c17421836b598dc5c493e6ce7ada15536abdabe42811a0058fd7a35",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      },
+      {
+        "path": "runs/synthetic-v1-01/intentional-failed-persistence-receipt.json",
+        "bytes": 372,
+        "mode": 420,
+        "sha256": "3b77455507b63281976d1e097870d85c62374a82eae549a299934e23a9999760",
+        "role": "RAW_SYNTHETIC_ARTIFACT"
+      }
+    ]
+  },
+  "originalV6": {
+    "resultBytes": 531954,
+    "resultExceedsRecordCap": true,
+    "stdoutObserved": 359581,
+    "stdoutRetained": 65536,
+    "stdoutIrrecoverable": 294045,
+    "reconstructed": false,
+    "rescore": false
+  },
+  "remaining": [
+    "No builtin capability adjudication or implementation",
+    "No complete successor recipe, authorization interface or real engine composition",
+    "Out-of-store evidence accounting and pre-tail failure boundaries require successor full-recipe review",
+    "No semantic cohort authority"
+  ]
+}

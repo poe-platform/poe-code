@@ -3249,3 +3249,55 @@ that any implementation, command, fixture, or test currently exists.
   acceptance does not authorize arrays (design unratified); ROOT will separately
   assign coherent78+DAV/CD/LET/STACK/DOTGLOB/length composition verification.
   YQ/XAN are not integrated or accepted here; XAN execution hold/no retry remains.
+
+### 2026-08-28T12:37Z — H11.2 bounded supervisor author repair
+
+- ROOT authorizes the narrow inherited observer-fault repair after mapping
+  77f80adc35877da619ff16881b6155d9bb9d17cb. Independent aea23327 remains
+  38PASS/0FAIL/2UNEXECUTED; no real survivor was observed in that source finding.
+  Preseal0f41d342 precedes sourcef03c260269dfd8ee10666f7fd2560655f8e14a38.
+  Shipping changes are only launcher-v3/supervise.mjs and DRIVER reseal.
+- Source captures primary/secondary observer and capture failures, including
+  null/undefined, without bypassing bounded known-owned teardown. Unknown final
+  observability remains explicit/nonclean, not a fake empty survivor result.
+  Raw cause identity is in-process only; serialized receipts use typed records.
+  Terminal persistence and arbitrary process-tree cleanup are not guaranteed.
+- First author execution passed13/13 whole-module SYNTHETIC groups, then exited1
+  before any real child because the harness counted Node's executable and MachO
+  inspection records as duplicate tools. Original capture is sealed by b7da0ec2;
+  its pre-execution amendment and harness63aae753 select exact EXTERNAL.tools.
+  No source/tool/permission change or actual-child retry followed that defect.
+- Evidence89c735fc records the remaining3/3 actual harmless owned-child controls
+  plus1positive/4negative tool-role controls. Thirteen synthetic passes are
+  authenticated carry-forward, not rerun. R01 natural0 is clean; R02 receives
+  owned SIGTERM, closes both captures and preserves null/undefined observation
+  faults as UNKNOWN/nonclean; R03 natural0 stays UNKNOWN/nonclean after final
+  observation faults. All three identities were absent at outer completion,
+  outer rescue unused. This is not shipping OS-fence or hard kernel-drain proof.
+- Normalized driveraca88337d644351888659e4364f0610da0219eb3697de45fa808b509bfbc3424
+  binds41 shipping files. Effective historical eligibility profilefa6731ee,
+  fixedf5/c109 and all632 canonical paths remain unchanged. No native chmod,
+  private copy/checkpoint, setup, build, package or gate ran; failed roots remain.
+  Different Dirac H11 review and fresh release are pending. Consumed c222/55db
+  and earlier attempts stay0/14; historical unsupported obligations stay nonzero.
+- H06.3 ROOT disposition is SOURCEQUALIFIED, actual dual-private-error UNEXECUTED:
+  report.error A and report.privateGuardError B are preserved IF terminal save
+  succeeds. No durable capture if save fails is promised; no private proof or
+  H06 source change. Prior A10/protection results remain bound-only, not rerun.
+  Handoff: `tests/integration/full-gate-20260827/unified76-driver/supervisor-fault-v1/HANDOFF.md`.
+
+### 2026-08-28 — ROOT accepts scoped coherent78 composition
+
+- ROOT acceptance633f6c82 binds selected8437e4eda904e1248c25eeef0d9d455b1d251495,
+  whole858 package6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e
+  (759089 bytes), installed evidence484c1dd7. Reported scope:28 positive
+  identities/85 executions including H07 repeat plus3 surrogate refusals;
+  36 types,86 reached of214,210 loads,6 controls/1 actual mutant,136 children
+  and95 Shells. These are distinct denominators, not a full214-case pass claim.
+- Prior822a1528/4024f790 and original16/18 are preserved. This is not currentHEAD,
+  whole-gate, native or private integration acceptance. Exact SafeJS follow-up
+  is assigned to Locke; fixed76f5/c109 is not rebased by this composition.
+- ROOT now authorizes Faraday's first-profile arrays implementation under
+  selected37ad; it is not yet an integrated candidate. This updates the earlier
+  unratified-design status prospectively without rewriting historical evidence.
+  YQ remains under different review; XAN execution hold/unaccepted status remains.

@@ -1,0 +1,17 @@
+import { createRootCancellationLink, prepareChildCancellation, activateChildCancellation, selectRuntimeCancellationOutcome, subscribeCancellation } from './cancellation.js';
+import type { PreparedChildCancellation, CancellationBoundary, CancellationControlOriginInput, CancellationOrigin, CancellationSelection, CapturedCancellationOutcome } from './cancellation.js';
+const controller = new AbortController();
+const root = createRootCancellationLink({ admission: { depth: 0, maxDepth: 8, resourceLimit: 8 } });
+const controls = [{ role: 'pipeline-control', signal: controller.signal }] as const satisfies readonly CancellationControlOriginInput[];
+const prepared: PreparedChildCancellation = prepareChildCancellation(root, { signal: undefined }, { depth: 1, maxDepth: 8, resourceLimit: 8 }, controls);
+const owned: boolean = prepared.owned;
+const child: CancellationBoundary = activateChildCancellation(prepared);
+const borrowed = activateChildCancellation(prepareChildCancellation(root, undefined, undefined, undefined));
+let observed: CancellationOrigin | undefined;
+const detach: () => void = subscribeCancellation(child, origin => { observed = origin; });
+const captured: CapturedCancellationOutcome<number> = { kind: 'throw', reason: undefined, report: undefined };
+const selected: CancellationSelection<number> = selectRuntimeCancellationOutcome(child, captured, observed);
+const omitted: CancellationSelection<number> = selectRuntimeCancellationOutcome(child, { kind: 'return', value: 7 }, undefined);
+if (omitted.outcome.kind === 'return') { const value: number = omitted.outcome.value; void value; }
+if (selected.report) { const original: AbortSignal = selected.report.origin.signal; void original; }
+void owned; detach(); borrowed.close(); child.close(); root.close();

@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "capturedAt": "2026-08-28T00:03:17.321Z",
+  "observedParent": "80c402da10314ccbca5fdd4a3832ef32049e3950",
+  "authorFreeze": "88d91975e4a718fb3c1b55322e44492cf4059391",
+  "candidate": "373437cf84424939e1792470805cdd9e60bd3898",
+  "candidateHelperSha256": "f628801379acd1c86c247a778e973f4cb89f8bbe2c3089f8192c31f3c5b273a5",
+  "timing": "post-candidate-commit/pre-candidate-implementation-inspection/pre-helper-execution",
+  "executableGroups": 12,
+  "oldCohorts": {
+    "original": 12,
+    "nearby": 4
+  },
+  "types": {
+    "extensionPositive": 1,
+    "extensionNegative": 8,
+    "originalPositive": 1,
+    "originalNegative": 6
+  },
+  "counterfactuals": [
+    "premature-preparation-acquisition",
+    "activation-recheck",
+    "runtime-reason-equality",
+    "activation-rollback"
+  ],
+  "files": {
+    "FREEZE-v1.md": "dae78ebb2e54eefa5dfb6a3fdaec91fc724c55a19f32e331f401abf341963613",
+    "extension-v1.mjs": "4f4499b6ff9fca5f8a354056c8af6483b707ef2e2d07ccd2d2c8dcf5e7106dbc",
+    "positive-v1.ts.data": "49211525cd597eaae6502fc35a06df95af513eded429f9cf48b54d43a119bc62",
+    "negative-v1.ts.data": "2a5c400b3e8332b847b601935e1bca64d6b16b6155ed7b0289fe5a620d30f72e",
+    "PREPARATION-ATTEMPTS-v1.md": "86f3eef9df64249c81058cfed57726b7125d8d9f9842eff720406cf836178622"
+  },
+  "inputs": [
+    {
+      "commit": "88d91975e4a718fb3c1b55322e44492cf4059391",
+      "path": "tests/shell/cancellation-stage1-20260827/extension-v1/POLICY.md",
+      "blob": "63d1b7bf9ad4aad46c02e730cc837ba7eb6837cc",
+      "sha256": "94d2aeb99d7c21985ff76d1e319757e23adb1d34017840997f4ea15f44171726"
+    },
+    {
+      "commit": "88d91975e4a718fb3c1b55322e44492cf4059391",
+      "path": "tests/shell/cancellation-stage1-20260827/extension-v1/identity.json",
+      "blob": "09370ab4df311db30d49182d8ae1a2e4d186df88",
+      "sha256": "a1cb5640f578a7c4298f49c826b95eabbbda0397cce35ec420a8fdb9c46f9521"
+    },
+    {
+      "commit": "88d91975e4a718fb3c1b55322e44492cf4059391",
+      "path": "tests/shell/cancellation-stage1-20260827/extension-v1/freeze-manifest.json",
+      "blob": "b7efe864b8e4f5204f7f0181beb49ecdd2aa20c7",
+      "sha256": "4de91596d9f4234a169f8df074f8b0d2d0f01d1c78c427222718fc28145543ef"
+    },
+    {
+      "commit": "efa819f79516b27690e7b2a362cea1231c6b7fef",
+      "path": "tests/shell/cancellation-stage1-20260827/extension-v1/evidence-v1/RESULTS.md",
+      "blob": "5dc8715301adb93e5ae7e79769433a9c1581b85e",
+      "sha256": "6ed023a5c29bd70d77f1904d456909bb9b625402d52e0470b0e8c8744ca878f0"
+    },
+    {
+      "commit": "88d91975e4a718fb3c1b55322e44492cf4059391",
+      "path": "tests/shell/cancellation-stage1-20260827/README.md",
+      "blob": "02a7a3f791addbda98f4bafdd0016883af9a55ff",
+      "sha256": "b2a99646f6a0ad1fe11f7e033186921aa518beb9a9ef9385b0a15332b9f5affc"
+    },
+    {
+      "commit": "88d91975e4a718fb3c1b55322e44492cf4059391",
+      "path": "tests/shell/cancellation-stage1-20260827/repair-v1/POLICY.md",
+      "blob": "ab379624dba6fc1d82072d54b0589188abcddd0c",
+      "sha256": "89b93b92f1f7b46bf2c958f559680c079ab5e563ecd3993c9de42bc648a4f541"
+    },
+    {
+      "commit": "647f42b9abf9f5abc4de3e36c74410b3bb63df3c",
+      "path": "tests/shell/cancellation-stage1-independent-20260827/cohort-v1.mjs",
+      "blob": "298b19cde110a63b013ee1717e9874dbde8462d3",
+      "sha256": "b195fe6ac3d547235835311bc95b259f60bbe767592a13056ea85cbcf5cd59e1"
+    },
+    {
+      "commit": "647f42b9abf9f5abc4de3e36c74410b3bb63df3c",
+      "path": "tests/shell/cancellation-stage1-independent-20260827/positive-v1.ts.data",
+      "blob": "046e70483858fb851f9ab839260ab68ef8b6da92",
+      "sha256": "508ae8d6c2277845f3477e20a5ba95cce62c19201ad5d9c80614a4f85607a03f"
+    },
+    {
+      "commit": "647f42b9abf9f5abc4de3e36c74410b3bb63df3c",
+      "path": "tests/shell/cancellation-stage1-independent-20260827/negative-v1.ts.data",
+      "blob": "3904ca90cbeaf0d7642794d2abb35b082c2cf112",
+      "sha256": "43a63f7795344ea6ad8b840954320a55241b916c592c6fa9bc1a6396bdf4fc9f"
+    },
+    {
+      "commit": "61092847acc8d2c54af109a5bbeefe22146488d3",
+      "path": "tests/shell/cancellation-stage1-independent-20260827/repair-fbbe1ef7/nearby-v1.mjs",
+      "blob": "ed326d0f5cf5c98e721ee73969b194527f831665",
+      "sha256": "f71d8ff006545946f8c4aea9c5775ffec2b70ab19381e9d802ba81b36d773f2d"
+    }
+  ],
+  "indexBeforeSha256": "6b66b086d4367b84f8fde7e7de11e1260345037d173ccab31568401ad22c5c65",
+  "statusBefore": "?? src/commands/which/index.ts\n?? src/commands/which/options.ts\n?? src/commands/which/which.ts\n?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/\n?? tests/commands/search-stress/.native-1m4O1e/\n?? tests/commands/which/\n?? tests/integration/du-public-independent-evidence-20260827/admission-v3/\n?? tests/integration/full-gate-20260827/unified76-driver/CANDIDATE.json\n?? tests/integration/full-gate-20260827/unified76-driver/assemble.mjs\n?? tests/integration/full-gate-20260827/unified76-driver/reconstruct.mjs\n?? tests/shell/cancellation-extension-independent-20260827/\n",
+  "candidateInspected": false,
+  "helperExecuted": false,
+  "authorFixturesInspected": false,
+  "integrationClaim": false
+}

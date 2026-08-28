@@ -1,0 +1,144 @@
+{
+  "schema": "R3_DATA_PREPARATION_NOT_EXECUTION",
+  "recipeSha256": "bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c",
+  "reference": {
+    "path": "FIXTURES.json",
+    "bytes": 238443,
+    "sha256": "b1f2b738f21482114d154e1b94b4d8d29565d7394692b46cea4dbb0586d65413",
+    "mode": 420
+  },
+  "fixtures": 8,
+  "helperClosure": 40,
+  "workerExecutions": 0,
+  "metadataStubExecutions": 0,
+  "realEngines": 0,
+  "realGitAuthority": 0,
+  "cases": [
+    {
+      "id": "S01",
+      "bodySha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f",
+      "fixtureSealSha256": "1da99fe88da0194e6b2222408b77b78de7ce4ae759827e556ce44adcfa9e724b",
+      "configSha256": "0a05c2aeeab9f063a389c90b8df5a9a8caf41446efbb17038f57d3936b30143e",
+      "initialFiles": 63,
+      "adapted": [
+        {
+          "path": "executor-v7-r1/bootstrap.mjs",
+          "reason": "only profile data changed to authenticated harmless sources; ALL function bodies byte-identical",
+          "originalSha256": "5104b893860638beb026acac1526f677eb2861a6a2c354e58818cdf51bc04ffd",
+          "fixtureSha256": "68acf0374ead0b74c9294688f7720a8df0f024795000b9c1a7fdd83cf2e2134f"
+        }
+      ]
+    },
+    {
+      "id": "S02",
+      "bodySha256": "5ed04fba1c4507329a53f3da1633d296774d9ff14e81f3497169d27c208a08d8",
+      "fixtureSealSha256": "f5cc579609852638d3f2501e3ae140ee1a5bc21fd861d269cf232221aa843f65",
+      "configSha256": "d4a0a20f00d483973ed3e6fb817388d71dd26a71100ca5a39117b1e93ed3b8c6",
+      "initialFiles": 63,
+      "adapted": [
+        {
+          "path": "executor-v7-r3/worker.mjs",
+          "reason": "exact immutable old r2 worker reversion",
+          "originalSha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f",
+          "fixtureSha256": "5ed04fba1c4507329a53f3da1633d296774d9ff14e81f3497169d27c208a08d8"
+        },
+        {
+          "path": "executor-v7-r1/bootstrap.mjs",
+          "reason": "only profile data changed to authenticated harmless sources; ALL function bodies byte-identical",
+          "originalSha256": "5104b893860638beb026acac1526f677eb2861a6a2c354e58818cdf51bc04ffd",
+          "fixtureSha256": "3bcd284b5a4d3a5d0a6795ea2b4a48adca5b3608e254d8fa4839d81401aa6b56"
+        }
+      ]
+    },
+    {
+      "id": "S03",
+      "bodySha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f",
+      "fixtureSealSha256": "6429c37d8bd28b95da275f0c3ff27ec3fe7762aab5549dfba3e803a7879d4dd4",
+      "configSha256": "9eb0e45c0549f79db2b01dd4cba3597a40f0913f54076aaf224901b606eb590b",
+      "initialFiles": 63,
+      "adapted": [
+        {
+          "path": "executor-v7-r1/bootstrap.mjs",
+          "reason": "only profile data changed to authenticated harmless sources; ALL function bodies byte-identical",
+          "originalSha256": "5104b893860638beb026acac1526f677eb2861a6a2c354e58818cdf51bc04ffd",
+          "fixtureSha256": "58acf2656db218cd50844adfc2c913a38612599ecc020217bcacf088e4962eb0"
+        }
+      ]
+    },
+    {
+      "id": "S04",
+      "bodySha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f",
+      "fixtureSealSha256": "e4425d1e5b1f792a9bb896a70b849f424d226cc696f43c08e7628368445e58f6",
+      "configSha256": "2193e365965f4538872cbde5e6442923996ff5491cc5fc2d849d022b6bf5958f",
+      "initialFiles": 63,
+      "adapted": [
+        {
+          "path": "executor-v7-r1/bootstrap.mjs",
+          "reason": "only profile data changed to authenticated harmless sources; ALL function bodies byte-identical",
+          "originalSha256": "5104b893860638beb026acac1526f677eb2861a6a2c354e58818cdf51bc04ffd",
+          "fixtureSha256": "b3f011322888e082da3738f69ba3d61ae8e68f6c774aec3eb01c3057d7760c7c"
+        }
+      ]
+    },
+    {
+      "id": "S05",
+      "bodySha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f",
+      "fixtureSealSha256": "c36eb3bb43eca4ed041380920c90c1689144587acfaf8c88b50c3915cfbf747f",
+      "configSha256": "2198fdaa16713b770fbfa144473242ad0f499519b44e443610cfffd8bf306c39",
+      "initialFiles": 63,
+      "adapted": [
+        {
+          "path": "executor-v7-r1/bootstrap.mjs",
+          "reason": "only profile data changed to authenticated harmless sources; ALL function bodies byte-identical",
+          "originalSha256": "5104b893860638beb026acac1526f677eb2861a6a2c354e58818cdf51bc04ffd",
+          "fixtureSha256": "5b192d153fc57371590f8654a101ace7cb16533a3525b89aa27c98b51466db78"
+        }
+      ]
+    },
+    {
+      "id": "S06",
+      "bodySha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f",
+      "fixtureSealSha256": "669356820aa4a618f22358a4f27e17ffae8cf51e6ef3ec1b03b3185cc3874594",
+      "configSha256": "5867b6112f1fb6758757c0c5a94f88f4ad0bcd7081fdc136a4e94c5cbbc29192",
+      "initialFiles": 63,
+      "adapted": [
+        {
+          "path": "executor-v7-r1/bootstrap.mjs",
+          "reason": "only profile data changed to authenticated harmless sources; ALL function bodies byte-identical",
+          "originalSha256": "5104b893860638beb026acac1526f677eb2861a6a2c354e58818cdf51bc04ffd",
+          "fixtureSha256": "eec66687f003cce93049931b9f30b21d2c0c49aa5c1da68e4d7a51465012e7c6"
+        }
+      ]
+    },
+    {
+      "id": "S07",
+      "bodySha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f",
+      "fixtureSealSha256": "0e9daa1fd753deed43ac9d3c40a6717390f9258cd8630d9be6bcce3a91aa8ed4",
+      "configSha256": "92e8b95f7b4bd001c9cbc78dc3d66bbddf2f34399ee58b4435082b19d5ea416f",
+      "initialFiles": 63,
+      "adapted": [
+        {
+          "path": "executor-v7-r1/bootstrap.mjs",
+          "reason": "only profile data changed to authenticated harmless sources; ALL function bodies byte-identical",
+          "originalSha256": "5104b893860638beb026acac1526f677eb2861a6a2c354e58818cdf51bc04ffd",
+          "fixtureSha256": "ef50b4ec4da331b7e701fc341956000590c94e3c348a924da8ad70b3b58ae5b3"
+        }
+      ]
+    },
+    {
+      "id": "S08",
+      "bodySha256": "6621ba59c5b3d5a1da519a29e3a095cca1dd189da6915e1290a6ff5ca35c984f",
+      "fixtureSealSha256": "abe454e43e9c696179303f51370e921b8d82306fa8d439e8546f65a8aea65408",
+      "configSha256": "9e53be2a7d69da8652e7396e2ec4e0a005d0941b0c89e5778a8cbb65f32c7add",
+      "initialFiles": 63,
+      "adapted": [
+        {
+          "path": "executor-v7-r1/bootstrap.mjs",
+          "reason": "only profile data changed to authenticated harmless sources; ALL function bodies byte-identical",
+          "originalSha256": "5104b893860638beb026acac1526f677eb2861a6a2c354e58818cdf51bc04ffd",
+          "fixtureSha256": "8510934c30a5b32f53a71660c9617d3e03170f90e816cd1edd1c12b8890ae828"
+        }
+      ]
+    }
+  ]
+}

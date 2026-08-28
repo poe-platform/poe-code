@@ -1,0 +1,396 @@
+{
+  "classification": "PREEXECUTION_EXPECTATIONS_NOT_REVIEWRECEIPT_OR_GRANT",
+  "families": [
+    {
+      "id": "F01",
+      "route": "Original A01/A02 same JSON through reader and authority header; both slots reject arrays/objects/extras without coercion; foreign own-data accepted",
+      "expected": "All negative references stop before read/observe; primitive references reach context-only refusal; helper inert positives accept"
+    },
+    {
+      "id": "F02",
+      "route": "Exact writer LF and common worker readers at 2097150/2097151/2097152 bytes",
+      "expected": "Writer and both shared reader stubs accept first two, refuse one-over; writer refusal has zero writes"
+    },
+    {
+      "id": "F03",
+      "route": "Actual body/ledger/store/publisher + two inert metadata children + zero probe/status7 control",
+      "expected": "Synthetic terminal ADMISSION_ACCEPTED; two real closed children; no actual admission"
+    },
+    {
+      "id": "F04",
+      "route": "Typed nullable finite exit/close on actual seed ledger plus foreign data, hooks and roles",
+      "expected": "Finite null-signal pair shapes only; malformed scalars/NaN reject; status7 only control"
+    },
+    {
+      "id": "F05",
+      "route": "Actual outer/supervisor positive replay of actual body seed",
+      "expected": "qualified true"
+    },
+    {
+      "id": "F06",
+      "route": "Authenticated final report extra field with unchanged valid RESULT",
+      "expected": "qualified false"
+    },
+    {
+      "id": "F07",
+      "route": "Authenticated final child count mismatch",
+      "expected": "qualified false"
+    },
+    {
+      "id": "F08",
+      "route": "Authority observer order reversed with repaired wire sequence numbers",
+      "expected": "qualified false"
+    },
+    {
+      "id": "F09",
+      "route": "Repeated observer record with valid sequence numbers",
+      "expected": "qualified false"
+    },
+    {
+      "id": "F10",
+      "route": "Absent second observer with valid sequence numbers",
+      "expected": "qualified false"
+    },
+    {
+      "id": "F11",
+      "route": "RESULT authority byte count differs, RESULT and all reference hashes rebound",
+      "expected": "qualified false"
+    },
+    {
+      "id": "F12",
+      "route": "Boolean and string child codes matched across terminal and authenticated RESULT",
+      "expected": "both qualified false"
+    },
+    {
+      "id": "F13",
+      "route": "Actual status7 control recategorized probe only in authenticated RESULT",
+      "expected": "qualified false"
+    },
+    {
+      "id": "F14",
+      "route": "Setup undefined/null/false/0/empty string identity; tail0 after real known child",
+      "expected": "UNSAFE_STOP, exact falsy identity, known child exit/close/reaped"
+    },
+    {
+      "id": "F15",
+      "route": "Object setup primary + cleanup false + stdout undefined publication failure",
+      "expected": "primary identity unchanged; false and undefined preserved; stderr fallback"
+    },
+    {
+      "id": "F16",
+      "route": "Late positive twin and outer status7 with otherwise valid seed",
+      "expected": "positive qualified true, nonzero outer qualified false"
+    }
+  ],
+  "limits": {
+    "families": 16,
+    "childProcesses": 19,
+    "nodeProcessesIncludingDriver": 20,
+    "absoluteNodeBudget": 24,
+    "oldSpaceMiB": 128,
+    "physicalRecord": 262144,
+    "eachStream": 65536,
+    "totalGeneratedInputAndEvidence": 33554432,
+    "childrenAtOnce": 1,
+    "childDeadlineMs": 10000,
+    "fullResourceBounds": "STATIC_ONLY"
+  },
+  "driver": {
+    "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "args": [
+      "--unhandled-rejections=strict",
+      "--max-old-space-size=128",
+      "--import",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/driver.mjs"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+  },
+  "children": [
+    {
+      "id": "metadata-review",
+      "role": "metadata",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "metadata",
+        "metadata-review"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "metadata-grant",
+      "role": "metadata",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "metadata",
+        "metadata-grant"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "reader-engine-shared",
+      "role": "config",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "config",
+        "reader-engine-shared"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "reader-control-shared",
+      "role": "config",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "config",
+        "reader-control-shared"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "worker-zero",
+      "role": "worker",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "worker",
+        "worker-zero"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "worker-status",
+      "role": "worker",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "worker",
+        "worker-status"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "positive-before",
+      "role": "replay",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "replay",
+        "positive-before"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "final-extra",
+      "role": "replay",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "replay",
+        "final-extra"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "final-count",
+      "role": "replay",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "replay",
+        "final-count"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "authority-reversed",
+      "role": "replay",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "replay",
+        "authority-reversed"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "authority-repeated",
+      "role": "replay",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "replay",
+        "authority-repeated"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "authority-absent",
+      "role": "replay",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "replay",
+        "authority-absent"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "metadata-bytes",
+      "role": "replay",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "replay",
+        "metadata-bytes"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "child-boolean",
+      "role": "replay",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "replay",
+        "child-boolean"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "child-string",
+      "role": "replay",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "replay",
+        "child-string"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "status-role",
+      "role": "replay",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "replay",
+        "status-role"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "worker-tail",
+      "role": "worker",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "worker",
+        "worker-tail"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "positive-after",
+      "role": "replay",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "replay",
+        "positive-after"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    },
+    {
+      "id": "outer-status",
+      "role": "replay",
+      "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "--unhandled-rejections=strict",
+        "--max-old-space-size=128",
+        "--import",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/guard.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed/stub.mjs",
+        "replay",
+        "outer-status"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-independent-20260828/executor-v7-r2-review/composed"
+    }
+  ]
+}

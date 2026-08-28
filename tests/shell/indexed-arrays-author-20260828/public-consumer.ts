@@ -12,7 +12,12 @@ shell.register({ name: "emit", async execute(context) {
   return { exitCode: 0 };
 } });
 shell.register({ name: "copy", async execute(context) {
-  await writeBytes(context.stdout, await readBytes(context.stdin, { signal: context.signal, maxBytes: 128 }), context.signal);
+  let bytes = 0;
+  for await (const chunk of readBytes(context.stdin, context.signal)) {
+    bytes += chunk.byteLength;
+    assert(bytes <= 128);
+    await writeBytes(context.stdout, chunk, context.signal);
+  }
   return { exitCode: 0 };
 } });
 shell.register({ name: "nested", async execute(context) {

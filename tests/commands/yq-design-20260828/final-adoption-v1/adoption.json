@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-08-28",
+  "status": "root-final-additive-adoption-awaiting-different-yaml-pre-code-freeze",
+  "implementationAuthorized": false,
+  "authority": {
+    "precedence": [
+      "b311c2364ceca13daab4086dfb21157b9b8ae856",
+      "5783b8e03912f7774d2a86ba1dae9de778121273",
+      "this final-adoption-v1 additive seal"
+    ],
+    "rule": "Prior immutable choices remain effective except where this adoption expressly resolves or supersedes a pending condition.",
+    "finalContract": {
+      "commit": "5783b8e03912f7774d2a86ba1dae9de778121273",
+      "readme": {
+        "path": "tests/commands/yq-design-20260828/final-contract-v1/README.md",
+        "sha256": "14cee48cac1803f92432b4f7df8f3311514b12277357805945bd11156e8646ff"
+      },
+      "contract": {
+        "path": "tests/commands/yq-design-20260828/final-contract-v1/contract.json",
+        "sha256": "1b2cf2740586d6847286d5a28788beb748d09e8b2181f02e6476d3b7634cefb8"
+      },
+      "authentication": "Both artifact bytes match the stated SHA-256 values and the full stated commit revision."
+    },
+    "initialProfileCommit": "b311c2364ceca13daab4086dfb21157b9b8ae856",
+    "fixedSourceBaseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "separateLengthProtocol": "debfdd8b42930d8c5f1c0301897e4eeaa68e0979",
+    "separateLengthState": "unchanged; awaits Plato"
+  },
+  "rootDecisionQuotes": [
+    "alignquotedcontent with YAML1.2.2 broader nb-json production, NOT blanketnarrowquotedprintablefilter.",
+    "Permitanchor-nameREUSE withmost-recent-precedingresolution; countALLanchordefinitions includingreuses toward1024/doc.",
+    "A newpendingdefinition shadowsoldercompleteddefinition: alias tocurrentpendinganchor remains refused, neverfallbackoldbinding tohidecycle; completedearlieraliasesdeepcopiesretainoldvalues.",
+    "Rootapproves3factory/replace-onlyplugin/no-publiclimitsDIshape andprivate-sessionAPIrole from5783, exactdetails subjectdifferentreview againstsettledcontract.",
+    "Approveversionexact'virtual-bash restricted YAML profile\n';501-bytehelpmustaccuratelylistonlysupportedcommands/flags/restrictions, no nativeparity claims (differentreviewwillcheckbytes).",
+    "Adopt54codecatalogue asfinitebinding withinapprovedstatus/framing/reserve rules, notlicensefornewbehavior; numericliteral/depth/Budgetmapping mustindependentlyverify.",
+    "SealONLYthesefinaladditivedeltas+finalhandoff, noimplementation."
+  ],
+  "resolvedGrammar": {
+    "quotedNbJson": {
+      "decision": "Y1_QUOTED_NB_JSON_A_QUALIFIED",
+      "acceptedRawDomain": "TAB plus U+0020-U+10FFFF, subject to the actual single-quoted/double-quoted and escape grammar",
+      "notBlanketRejectedInsideQuotes": ["DEL", "C1", "U+FFFE", "U+FFFF"],
+      "retainedSafety": [
+        "fatal UTF-8 decoding",
+        "well-formed Unicode scalar validity",
+        "no unpaired surrogates",
+        "malformed and out-of-range escapes fail"
+      ],
+      "qualification": "This is intentional qualified alignment, not a claim of literal unmodified nb-json support. No new reject list or escape production is created; exact escaped-code-point distinctions require independent freeze review.",
+      "outsideQuotedContent": "all prior grammar restrictions unchanged"
+    },
+    "anchorReuse": {
+      "decision": "Y2_DUPLICATE_ANCHOR_A_WITH_PENDING_SHADOW_RULE",
+      "limit": {
+        "name": "maxAnchorsPerDocument",
+        "value": 1024,
+        "inclusive": true,
+        "unit": "all anchor definition events including reused names",
+        "notUnit": "distinct-name map size",
+        "failureCode": "LIMIT_MAX_ANCHORS_PER_DOCUMENT"
+      },
+      "binding": [
+        "Each definition event creates a new record and immediately assigns it as the name's active most-recent-preceding binding.",
+        "Completion marks that record only and never restores an older record or overwrites a newer binding.",
+        "Alias lookup uses only the active record; a pending active record is refused under existing current-node/cycle rules without fallback to an older completed record.",
+        "Earlier completed alias deep copies retain their earlier copied values."
+      ],
+      "unchanged": [
+        "completed-anchor validation",
+        "recursive deep-copy semantics",
+        "forward/current/cycle refusals",
+        "cross-document isolation",
+        "cumulative maxAliasReferences accounting",
+        "all other node/value/depth/work limits"
+      ],
+      "noBroadening": "No broader alias cycles, graph identity sharing, or fallback binding is adopted."
+    }
+  },
+  "approvedShape": {
+    "state": "ROOT_APPROVED_ROLE_AND_SHAPE_DETAILS_REQUIRE_DIFFERENT_REVIEW",
+    "binding": "final-contract-v1/contract.json#/publicApi and #/privateAdapter",
+    "threeFactories": ["createYqCommand", "createYqCommands", "yqCommands"],
+    "pluginOption": "replace only",
+    "publicLimitsOrDependencyInjection": false,
+    "publicQueryOrSessionApi": false,
+    "qualification": "Exact signatures, validation, lifecycle, accounting, and settled-contract binding require different review."
+  },
+  "exactInformation": {
+    "version": {
+      "state": "ROOT_APPROVED_EXACT",
+      "value": "virtual-bash restricted YAML profile\n",
+      "utf8Bytes": 37,
+      "sha256": "68ebf73287a74c37f4f2c532cb8f3e53a697b07982fbf2293bebb5e0e5b2b5bb"
+    },
+    "help": {
+      "state": "ROOT_ADOPTED_EXACT_BYTES_ACCURACY_REVIEW_PENDING",
+      "binding": "final-contract-v1/contract.json#/exactInformation/help",
+      "utf8Bytes": 501,
+      "sha256": "97238372eed5e2358540baadbb7e5eac1c81d14dde163a1b7fd05d9048521f65",
+      "reviewRequirement": "A different reviewer must confirm the unchanged bytes accurately list only supported commands, flags, and restrictions."
+    },
+    "claims": "Profile identity only; no native, Mike Farah, package parity, or version parity claim."
+  },
+  "diagnostics": {
+    "state": "ROOT_ADOPTED_FINITE_BINDING_DIFFERENT_RECONCILIATION_REVIEW_PENDING",
+    "catalogueBinding": "final-contract-v1/contract.json#/diagnostics/catalogue",
+    "catalogueEntries": 54,
+    "preservedRules": [
+      "selection",
+      "status",
+      "frame",
+      "4096-byte reserve",
+      "DIAGNOSTIC_TRUNCATED fallback",
+      "raw-failure and cleanup precedence"
+    ],
+    "notLicenseForNewBehavior": true,
+    "reservedConflict": {
+      "code": "ALIAS_DUPLICATE_ANCHOR",
+      "category": "alias",
+      "status": 5,
+      "state": "RESERVED_UNREACHABLE_UNDER_ADOPTED_REUSE_PROFILE",
+      "reason": "Root-adopted anchor-name reuse makes the former duplicate-anchor failure condition obsolete.",
+      "action": "Retain without removal, renumbering, repurposing, or emission until different review reconciles the condition."
+    },
+    "quotedSyntaxCode": "INPUT_YAML_SYNTAX remains available for genuinely malformed quote, escape, or character grammar, not as a narrow quoted-printable filter.",
+    "otherEntries": "No other entry is removed, repurposed, or newly activated."
+  },
+  "differentReviewRequired": {
+    "route": "different YAML pre-code freeze",
+    "items": [
+      "quoted grammar and exact escaped-scalar cases under retained scalar-validity rules",
+      "anchor definition-record shadowing, completion, deep-copy, and exact counter boundary cases",
+      "three-factory/plugin and private-session exact details against the settled contract",
+      "501-byte help accuracy",
+      "ALIAS_DUPLICATE_ANCHOR reserved/unreachable catalogue reconciliation",
+      "numeric literal and Decimal range binding",
+      "depth binding",
+      "Budget mapping"
+    ],
+    "numericSourceReferenceOnly": "final-contract-v1/contract.json#/numericAmendments/baselineBinding and #/fixedSourceReferences; author reading is not independent proof",
+    "leafReviewerLaunched": false,
+    "codeGo": false
+  },
+  "scope": {
+    "onlyNewArtifacts": [
+      "tests/commands/yq-design-20260828/final-adoption-v1/README.md",
+      "tests/commands/yq-design-20260828/final-adoption-v1/adoption.json"
+    ],
+    "oldArtifactsEdited": false,
+    "sourceOrInterpreterEdited": false,
+    "testsAddedOrEdited": false,
+    "dependenciesChanged": false
+  },
+  "execution": {
+    "sourceImplementationRuns": 0,
+    "testsRun": 0,
+    "productRuns": 0,
+    "nativeOrReferenceRuns": 0,
+    "dependenciesChanged": 0
+  },
+  "qualification": "Final additive user-decision record and handoff only; no implementation, code freeze, compatibility, parity, performance, or completion claim."
+}

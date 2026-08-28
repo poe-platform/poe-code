@@ -1,0 +1,80 @@
+{
+  "schema": "chronology-v4-post-source-pre-execution",
+  "candidate": "3d3a0371729b88ced47b6e37376676746b638ad9",
+  "evidence": "b9d681d9c25d4054ab6a9bf2d5470d88b39eed67",
+  "prior": "b1485454a25fb09c283e6b53627bc9ef74ac17f9",
+  "moduleSealSha256": "b0006cdbbad9f3a0e75f48588e3e0d9ea6557924ae7aeb687ad6b88e7f27df14",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "canonical": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "dev": 16777232,
+    "ino": 3707231,
+    "mtimeMs": 1774313550000,
+    "ctimeMs": 1776794488519.6758,
+    "version": "v22.22.2",
+    "platform": "darwin",
+    "arch": "arm64",
+    "binaryHashStatus": "metadata-only now; inherited hash 5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011 is provenance, not fresh attestation"
+  },
+  "git": {
+    "path": "/usr/bin/git",
+    "canonical": "/usr/bin/git",
+    "bytes": 118928,
+    "mode": 493,
+    "dev": 16777232,
+    "ino": 1152921500312570900,
+    "mtimeMs": 1775463057000,
+    "ctimeMs": 1775463057000
+  },
+  "artifactCount": 28,
+  "completeModules": [
+    "admission.mjs",
+    "cli.mjs",
+    "data.mjs",
+    "lifecycle.mjs",
+    "node-driver.mjs",
+    "observer.mjs",
+    "storage.mjs",
+    "synthetic.mjs"
+  ],
+  "sourceTransform": "none on subjects; deterministic reviewer-only derivation in prepare.mjs.data",
+  "files": {
+    "ADDITIONS.json": {
+      "bytes": 1070,
+      "sha256": "cc027f73c136d983ce38afda6044cdfe9dc01e919f35672a61c6e3ef22193650",
+      "mode": 420
+    },
+    "BUNDLE.json": {
+      "bytes": 273180,
+      "sha256": "6b101e315bc37ae538945172e14c3ba78920cbe86414905b5455c2ae0a2b0728",
+      "mode": 420
+    },
+    "CASES.json": {
+      "bytes": 4414,
+      "sha256": "73272b57ca96f861574d259aafd97ee0028ae50cbfd6e58a7b3085fda6bab904",
+      "mode": 420
+    },
+    "MODEL-ADDITIONS.mjs.data": {
+      "bytes": 3488,
+      "sha256": "4eb47a4a85561fb0df264299dd1cbf91411d10f1a022f570b0254c24c3c8da41",
+      "mode": 420
+    },
+    "RECIPE.md": {
+      "bytes": 4120,
+      "sha256": "547616d235f158e4550c2921dd5a79e61972f5d29e0b99c6143fd555bfbce7c4",
+      "mode": 420
+    },
+    "prepare.mjs.data": {
+      "bytes": 9390,
+      "sha256": "ba1412325d476134e7920e94a4ee99844864654951c035d0199834387930a646",
+      "mode": 420
+    },
+    "review.mjs.data": {
+      "bytes": 38866,
+      "sha256": "361bf20aa705ef62f0f0af98a85e0fd909e9b2a844b5581b0c8281b56aea9e3c",
+      "mode": 420
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema": "chronology-v4-independent-additions",
+  "replayedFrom": "b1485454a25fb09c283e6b53627bc9ef74ac17f9",
+  "reusedControls": 49,
+  "newControls": [
+    ["v4-duplicate-spawn", false],
+    ["v4-duplicate-exit", false],
+    ["v4-duplicate-close", false],
+    ["v4-sync-error-close-no-pid", false],
+    ["v4-first-falsy-error", false],
+    ["v4-current-closure-mode", false]
+  ],
+  "holdoutRationale": "Three irreversible duplicate transitions; special no-PID error/close-before-start-return branch; first falsy error versus later host object; post-publication mode drift in newest nonloaded but actively sealed chronology-controls module. Existing49 already cover asynchronous no-PID/no-spawn, post-exit/close errors, publication, cleanup, VM own-data/refusals, actual host reason identity and S1-S5.",
+  "tracePolicy": "New duplicate traces keep modeled group alive through signals until explicitly scheduled absence; not an OS promise. Original49 signal response/schedules unchanged.",
+  "classification": "frozen synthetic input data, no real qualification"
+}

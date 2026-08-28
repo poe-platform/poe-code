@@ -1,0 +1,66 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+
+const root = '/Users/kjopek/Workspace/safe-bash';
+const parent = 'tests/shell/mapfile-observer-independent-20260828', owned = `${parent}/chronology-v4`;
+const packet = 'tests/shell/mapfile-design-20260828';
+const candidate = '3d3a0371729b88ced47b6e37376676746b638ad9', evidence = 'b9d681d9c25d4054ab6a9bf2d5470d88b39eed67';
+const prior = 'b1485454a25fb09c283e6b53627bc9ef74ac17f9';
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+const git = (...args) => execFileSync('/usr/bin/git', args, { cwd: root, timeout: 10000, maxBuffer: 4194304 });
+const bundle = { schema: 'chronology-v4-immutable-data', candidate, evidence, prior, inputs: [], history: [] };
+function bind(commit, filename, retain = true) {
+  const bytes = git('show', `${commit}:${filename}`), blob = git('rev-parse', `${commit}:${filename}`).toString().trim();
+  assert.equal(createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex'), blob);
+  const mode = git('ls-tree', commit, '--', filename).toString().split(' ')[0]; assert.equal(mode, '100644');
+  const entry = { commit, path: filename, blob, mode: 0o644, sha256: digest(bytes), bytes: bytes.length };
+  if (retain) entry.base64 = bytes.toString('base64'); bundle.inputs.push(entry); return bytes;
+}
+const sealBytes = bind(candidate, `${packet}/observer-v1/MODULE-SEAL.json`), seal = JSON.parse(sealBytes);
+assert.equal(digest(sealBytes), 'b0006cdbbad9f3a0e75f48588e3e0d9ea6557924ae7aeb687ad6b88e7f27df14');
+assert.deepEqual(Object.keys(seal.artifacts).sort(), Object.keys(seal.artifactModes).sort());
+for (const [filename, expected] of Object.entries(seal.artifacts)) { assert.equal(seal.artifactModes[filename], 0o644); assert.equal(digest(bind(candidate, `${packet}/${filename}`)), expected); }
+assert.deepEqual(git('ls-tree', '--name-only', `${candidate}:${packet}/observer-v1/modules`).toString().trim().split('\n'), seal.moduleFiles);
+bind(evidence, `${packet}/observer-v1/HANDOFF-CHRONOLOGY-v4.md`);
+bind(candidate, `${packet}/observer-v1/CHRONOLOGY-BASELINE-v4.md`);
+for (const line of git('ls-tree', '-r', prior, '--', parent).toString().trim().split('\n')) {
+  const match = /^100644 blob ([a-f0-9]{40})\t(.+)$/u.exec(line); assert.ok(match);
+  const bytes = git('show', `${prior}:${match[2]}`);
+  assert.equal(digest(fs.readFileSync(path.join(root, match[2]))), digest(bytes));
+  bundle.history.push({ path: match[2], blob: match[1], sha256: digest(bytes), bytes: bytes.length, mode: 0o644 });
+}
+assert.equal(bundle.history.length, 18);
+assert.deepEqual(fs.readdirSync(path.join(root, parent)).sort(), [...bundle.history.map(item => path.basename(item.path)), 'chronology-v4'].sort());
+for (const name of seal.moduleFiles.filter(name => name !== 'lifecycle.mjs')) assert.equal(digest(git('show', `${candidate}:${packet}/observer-v1/modules/${name}`)), digest(git('show', `de9dae6d52fa5066646731b01e5811c6d3108555:${packet}/observer-v1/modules/${name}`)));
+const originalCasesBytes = git('show', `${prior}:${parent}/CASES.json`), originalCases = JSON.parse(originalCasesBytes);
+const additions = JSON.parse(fs.readFileSync(path.join(root, owned, 'ADDITIONS.json')));
+const cases = { ...originalCases, observer: [...originalCases.observer, ...additions.newControls], replayIdentity: { casesBlob: git('rev-parse', `${prior}:${parent}/CASES.json`).toString().trim(), casesSha256: digest(originalCasesBytes), reused: 49, added: 6, historicalScore: '47/49 unchanged' } };
+let source = git('show', `${prior}:${parent}/review.mjs.data`).toString();
+function replace(before, after, count = 1) { assert.equal(source.split(before).length - 1, count, before); source = source.split(before).join(after); }
+replace(`const owned = path.join(root, '${parent}');`, `void process.stdout; void process.stderr;\nconst owned = path.join(root, '${owned}');`);
+const filenames = ['ADDITIONS.json', 'BUNDLE.json', 'CASES.json', 'MANIFEST.json', 'MODEL-ADDITIONS.mjs.data', 'RECIPE.md', 'prepare.mjs.data', 'review.mjs.data'].sort();
+replace("const frozenFiles = ['BUNDLE.json', 'CASES.json', 'MANIFEST.json', 'RECIPE.md', 'prepare.mjs.data', 'review.mjs.data'].sort();", `const frozenFiles = ${JSON.stringify(filenames)};`);
+replace('class Model {', fs.readFileSync(path.join(root, owned, 'MODEL-ADDITIONS.mjs.data'), 'utf8') + '\nclass Model {');
+replace("for (const name of ['config', 'SEAL', 'ADMITTED']) this.put(`/controls/${name}`, 'file', Buffer.from(`BOUND_${name}`));", "for (const name of ['config', 'SEAL', 'ADMITTED']) this.put(`/controls/${name}`, 'file', Buffer.from(`BOUND_${name}`));\n    for (const [relative, expected] of Object.entries(seal.artifacts)) {\n      if (relative.startsWith('observer-v1/modules/')) continue;\n      const filename = '/controls/packet/' + relative; const parents = []; let directory = path.dirname(filename);\n      while (!this.files.has(directory)) { parents.unshift(directory); directory = path.dirname(directory); }\n      for (const name of parents) this.put(name, 'directory');\n      const bytes = inputs.get(`${packet}/${relative}`); assert.equal(digest(bytes), expected); this.put(filename, 'file', bytes, seal.artifactModes[relative]);\n    }\n    this.files.get('/controls/SEAL').bytes = Buffer.from(inputs.get(`${packet}/observer-v1/MODULE-SEAL.json`));");
+replace('this.child = child; this.alive = true;', 'this.child = child; this.alive = true;\n    if (installV4(this, child)) return child;');
+replace("if (signal !== 0) { this.signals.push(signal);", "if (signal !== 0 && this.scenario.startsWith('v4-') && this.scenario !== 'v4-current-closure-mode') { this.signals.push(signal); return true; }\n    if (signal !== 0) { this.signals.push(signal);");
+replace("if (filename.endsWith('/final.json')) {", "if (filename.endsWith('/final.json')) {\n        if (this.scenario === 'v4-current-closure-mode') this.files.get('/controls/packet/observer-v1/chronology-controls.mjs').mode = 0o600;");
+replace('verifyObserver(active, report, expected); result.pass = true;', 'verifyObserver(active, report, expected); verifyV4(active, report); result.pass = true;');
+replace('function integrity() {', `function integrity() {\n  assert.deepEqual(listHost(path.dirname(owned)).sort(), [...bundle.history.map(item => path.basename(item.path)), 'chronology-v4'].sort());\n  for (const item of bundle.history) { assert.equal(digest(readHost(path.join(root, item.path))), item.sha256); assert.equal(statHost(path.join(root, item.path)).mode & 0o7777, item.mode); }`);
+replace("assert.ok(statHost(path.join(owned, name)).isFile());", "assert.ok(statHost(path.join(owned, name)).isFile()); assert.equal(statHost(path.join(owned, name)).mode & 0o7777, 0o644);");
+replace('let safetyFailure;\ntry {', 'let safetyFailure;\ntry {\n  integrity();');
+replace("schema: 'independent-whole-module-synthetic-review-v1'", "schema: 'independent-chronology-v4-whole-module', replayIdentity: cases.replayIdentity, closure: { moduleFiles: seal.moduleFiles, artifacts: seal.artifacts, modes: seal.artifactModes }, history: bundle.history");
+source += '\n//# sourceURL=chronology-v4-review.mjs.data\n';
+const metadata = filename => { const canonical = fs.realpathSync(filename), stat = fs.lstatSync(canonical); return { path: filename, canonical, bytes: stat.size, mode: stat.mode & 0o7777, dev: stat.dev, ino: stat.ino, mtimeMs: stat.mtimeMs, ctimeMs: stat.ctimeMs }; };
+const texts = { 'BUNDLE.json': JSON.stringify(bundle) + '\n', 'CASES.json': JSON.stringify(cases, null, 2) + '\n', 'review.mjs.data': source };
+assert.ok(Buffer.byteLength(texts['BUNDLE.json']) <= 4194304);
+const manifest = { schema: 'chronology-v4-post-source-pre-execution', candidate, evidence, prior, moduleSealSha256: digest(sealBytes), node: { ...metadata(process.execPath), version: process.version, platform: process.platform, arch: process.arch, binaryHashStatus: 'metadata-only now; inherited hash 5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011 is provenance, not fresh attestation' }, git: metadata('/usr/bin/git'), artifactCount: Object.keys(seal.artifacts).length, completeModules: seal.moduleFiles, sourceTransform: 'none on subjects; deterministic reviewer-only derivation in prepare.mjs.data', files: {} };
+for (const filename of filenames.filter(name => name !== 'MANIFEST.json')) { const bytes = texts[filename] === undefined ? fs.readFileSync(path.join(root, owned, filename)) : Buffer.from(texts[filename]); manifest.files[filename] = { bytes: bytes.length, sha256: digest(bytes), mode: 0o644 }; }
+texts['MANIFEST.json'] = JSON.stringify(manifest, null, 2) + '\n';
+let patch = '*** Begin Patch\n';
+for (const [filename, text] of Object.entries(texts)) { assert.equal(fs.existsSync(path.join(root, owned, filename)), false); patch += `*** Add File: ${owned}/${filename}\n` + text.trimEnd().split('\n').map(line => '+' + line).join('\n') + '\n'; }
+patch += '*** End Patch\n'; execFileSync('apply_patch', [], { cwd: root, input: patch, timeout: 10000, maxBuffer: 1048576 });
+console.log(JSON.stringify({ dataPreparationOnly: true, subjectExecutions: 0, artifacts: manifest.artifactCount, modules: seal.moduleFiles.length, replay: 49, new: 6, total: 55, bundleBytes: Buffer.byteLength(texts['BUNDLE.json']) }));

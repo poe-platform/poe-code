@@ -1,0 +1,151 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "packet": "git-pack-independent-20260828/resources",
+  "status": "DESIGN_REVIEW_DELIVERED_NOT_ACCEPTED_PREPARATION_CHECK_FAILED",
+  "sourceCommit": "234f1454945da77781e8ab668b5a272d67adc337",
+  "provisionalCommit": "ed6a952f6a7c0caee3b411492d7b7883c6f9d5af",
+  "authorCommit": "63d811bf1a809b467f47f309f41b1445486e71db",
+  "m1aCommit": "9885390fb11454fa194a3e60fdbef198dbfdf633",
+  "authorFixtureSha256": "eda294f89c61d09319701c50c76e1004d2b4de27fc5d025473a4058fc75a7080",
+  "payload": [
+    {
+      "name": "CASE-MATRIX.json",
+      "bytes": 26495,
+      "mode": 420,
+      "sha256": "c3b242c93037c359be5303e7cd2687a59c13c077cccf2d9aaa2aad22915daf7b"
+    },
+    {
+      "name": "CHECK.process.json",
+      "bytes": 1739,
+      "mode": 420,
+      "sha256": "9a2bd767375913eff8bf4805d333539e81850b21c9462c2ea585a25936262b48"
+    },
+    {
+      "name": "CHECK.result.json",
+      "bytes": 843,
+      "mode": 420,
+      "sha256": "6a8df9ba06e73f15da4d69924670ca2e92422bc05f0180f2b8674011f0347e2c"
+    },
+    {
+      "name": "CHECK.stderr.txt",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "CHECK.stdout.txt",
+      "bytes": 118,
+      "mode": 420,
+      "sha256": "7ea071f2ea23b55daf29945bab141d2efa84195c87ce7c6a06f127bb7f220f39"
+    },
+    {
+      "name": "DOCUMENT-CHECK-PRESEAL.json",
+      "bytes": 9195,
+      "mode": 420,
+      "sha256": "77d89d136f45ee29c073597688652c1153fb6db87ed4ab4fd659616b2fc8ff75"
+    },
+    {
+      "name": "FINDINGS.json",
+      "bytes": 7304,
+      "mode": 420,
+      "sha256": "561f814a6b6961032ec44177f83b79cd69d94ff4e4adb6b30e9052ccf22263ab"
+    },
+    {
+      "name": "INPUTS.json",
+      "bytes": 9736,
+      "mode": 420,
+      "sha256": "c62ba9f02e1c6fd7eacb57913f34602ef5b27f0a604cf174f68bf15433c6a1aa"
+    },
+    {
+      "name": "LIMIT-REVIEW.json",
+      "bytes": 12169,
+      "mode": 420,
+      "sha256": "0c15b3052a09202aae3d7d7d629146e68623711d98232fc7feaf142cc19347f4"
+    },
+    {
+      "name": "PEER-NOTE.json",
+      "bytes": 974,
+      "mode": 420,
+      "sha256": "59d9db2a3c01bf9019c9e8fd9cca90d6459f503b68b9a17257027a7eecff097f"
+    },
+    {
+      "name": "PROVISIONAL.md",
+      "bytes": 3965,
+      "mode": 420,
+      "sha256": "f1b6b5719ba1cc6707d8643a51aaeeaf33f90e213d0c207f3b33b280944013ed"
+    },
+    {
+      "name": "RESULT.md",
+      "bytes": 3926,
+      "mode": 420,
+      "sha256": "74eb6c21fdc2ea794e9681500a2051ff6a17cc2e94140872521ecdc29313b415"
+    },
+    {
+      "name": "REVIEW.md",
+      "bytes": 16594,
+      "mode": 420,
+      "sha256": "e6169130ac9be68c21192cea987a70d58ef91c0e38af6bdafe5d13a1cd5d721a"
+    },
+    {
+      "name": "SOURCES.md",
+      "bytes": 3097,
+      "mode": 420,
+      "sha256": "d84dedec94e82cb4d473dc149cd101ea696e7190f8914132a52798176581804b"
+    }
+  ],
+  "directoryMode": 493,
+  "manifestRole": "Exact all-owned regular file content/mode/size closure excluding this final seal; no stored Git tree is implied by a computed digest.",
+  "counts": {
+    "filesIncludingSeal": 15,
+    "findings": 2,
+    "pendingRootDecisions": 3,
+    "fixedNumericLimits": 24,
+    "originalFamilies": 12,
+    "futureResourceRows": 32,
+    "namedVariants": 108,
+    "originalWorkflowsUnrun": 6,
+    "documentCheckerChildren": 1,
+    "checkerExit": 0,
+    "checkerWarnings": 0,
+    "aggregatePreparationCheck": "FAIL_GLOBAL_DEADLINE",
+    "failedPreparationAttempts": 1,
+    "retries": 0,
+    "productExecutions": 0,
+    "nativeGitOracleOrVersionExecutions": 0,
+    "compilerExecutions": 0,
+    "buildExecutions": 0,
+    "zlibExecutions": 0,
+    "authorToolExecutions": 0,
+    "privateExecutions": 0,
+    "YQExecutions": 0,
+    "activeOwnedChildren": 0
+  },
+  "check": {
+    "result": {
+      "path": "tests/commands/git-pack-independent-20260828/resources/CHECK.result.json",
+      "bytes": 843,
+      "mode": 420,
+      "sha256": "6a8df9ba06e73f15da4d69924670ca2e92422bc05f0180f2b8674011f0347e2c"
+    },
+    "rawCaptureFirst": true,
+    "afterIntegrity": true,
+    "knownReap": true,
+    "globalDeadlineMs": 15000,
+    "observedMs": 23772.693624999956,
+    "reason": "Parent post-check guard/classification crossed tool-call boundary; failure preserved, no cap reset or waiver."
+  },
+  "peerFormat": {
+    "commit": "c1982fce204f65b228863c873ba6ee279525fb88",
+    "sealSha256": "f232c59aa1f3b50dfedc3135e4d26ad880256e09ec99e656b3d5d911e0da16b4",
+    "independentReproduction": false
+  },
+  "authority": {
+    "implementationGo": false,
+    "targetExecutionGo": false,
+    "authorDesignAccepted": false,
+    "productReadiness": false,
+    "foreignScopeEdited": false,
+    "decisions": "D1/D2/D3 remain pending ROOT; R01/R02 are author design clarifications only."
+  }
+}

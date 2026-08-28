@@ -10,9 +10,7 @@
    const largeCount = extra / 8;
    const rows = [];
    const usedLarge = new Set();
-@@ -69,6 +70,7 @@
- };
- 
+@@ -71,4 +72,5 @@
  const reconstruct = (base, program) => {
 +  requireData(program.length >= 4, 'DELTA_MINIMUM');
    let cursor = 0;

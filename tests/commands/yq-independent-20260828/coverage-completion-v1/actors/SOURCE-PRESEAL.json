@@ -1,0 +1,392 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "status": "SOURCE_TOOL_IMPORT_AND_SYNTHETIC_RECIPE_PRESEAL_NO_TARGET_GO",
+  "scope": "tests/commands/yq-independent-20260828/coverage-completion-v1/actors",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "whole870packSha256": "1d06350cdef1a5f6c7d70c7d55a19b63537037bd97b2de5a5d8b8b8f722229ca",
+  "entries": [
+    {
+      "path": "ACTOR-INVENTORY.json",
+      "sha256": "f9cf8309875526f2e749723736c8187636b1baf1e448fbd7c3cac44a4c1533de",
+      "bytes": 33803,
+      "mode": 420
+    },
+    {
+      "path": "BINDINGS.json",
+      "sha256": "1d427a022f89cb7a4176513b2a00f04fc47dddffd7d62985e92586614b763131",
+      "bytes": 19079,
+      "mode": 420
+    },
+    {
+      "path": "CONTRIBUTION.json",
+      "sha256": "1de4ac2180de81e3f09444f0749fc4c00de9df3ffbfc900a8685b487ea1b855f",
+      "bytes": 4022,
+      "mode": 420
+    },
+    {
+      "path": "COST-PROPOSAL.json",
+      "sha256": "261b79aadb23f2c668cff807a9d0dfd346d1af51407e6f3630774daaa953df7c",
+      "bytes": 1925,
+      "mode": 420
+    },
+    {
+      "path": "INPUTS.json",
+      "sha256": "b7a5dd890034fe05f282262c7e244d5b855e5161893670930b44f6373a225df1",
+      "bytes": 2949,
+      "mode": 420
+    },
+    {
+      "path": "PREPARATION-HISTORY.json",
+      "sha256": "dd4ab5277e89ce3571213e76b6e399ec1841f44ee7c9599d902a4cba7f80e0b6",
+      "bytes": 677,
+      "mode": 420
+    },
+    {
+      "path": "SPECIFICATION.md",
+      "sha256": "f8beabe88ddb7f90820ecd9fbb7f0cdfa781af7ab48b3c809a007d26ac41e540",
+      "bytes": 8042,
+      "mode": 420
+    },
+    {
+      "path": "TRANCHE-SCOPE.json",
+      "sha256": "9c11bcefe49d3a2731ee730d84f8e7131bbc3a700e1947dc9c7f54dfec978a99",
+      "bytes": 2513,
+      "mode": 420
+    },
+    {
+      "path": "UTF22-OBSERVER-PROPOSAL.json",
+      "sha256": "63f79ae56025eed3d8a9fdc750fb82a26441183d16eba9776ac3c51d33dae0c7",
+      "bytes": 4593,
+      "mode": 420
+    },
+    {
+      "path": "capture-actor.mjs",
+      "sha256": "b649e0b8da6271747116895f1eece0e14aa248431bb0eff61960f36231d19f57",
+      "bytes": 6888,
+      "mode": 420
+    },
+    {
+      "path": "capture-host.mjs",
+      "sha256": "1045aab5ae37de1a05a41a71b44e7d8a51ef034d2dc7cbf972c689db6c3c341f",
+      "bytes": 9340,
+      "mode": 420
+    },
+    {
+      "path": "catalogue.mjs",
+      "sha256": "f95588ec82c00a42885e9f6e6d2a9891cf49281f34977a19a635864459f581c6",
+      "bytes": 50106,
+      "mode": 420
+    },
+    {
+      "path": "fixtures.mjs",
+      "sha256": "3c191fc2b1fdc6e9e5582ccbcd9c957e5e96b4175fb294cc2679896d02cf6e04",
+      "bytes": 3104,
+      "mode": 420
+    },
+    {
+      "path": "own-data.mjs",
+      "sha256": "79e4d86008164e6da1dfec22ac72b9cc07cfb191bc3be1dda51e743f4219ab4d",
+      "bytes": 2714,
+      "mode": 420
+    },
+    {
+      "path": "private-actors.mjs",
+      "sha256": "c1b8c04919272cad7b00fb9a21dfb0e9362e691346a281e2cdefaaabbd693754",
+      "bytes": 6661,
+      "mode": 420
+    },
+    {
+      "path": "run-stubs.mjs",
+      "sha256": "8230c0b0457e521741b5df3d5c92fa18e2012253d4d76f877d854d8683b76cf7",
+      "bytes": 4525,
+      "mode": 420
+    },
+    {
+      "path": "synthetic-driver.mjs",
+      "sha256": "606657c23ddcd23cd8eb796f19168654feab1ddffa71d818fead3f1dd59c3f78",
+      "bytes": 9184,
+      "mode": 420
+    }
+  ],
+  "rootMode": 493,
+  "sourceModeAuthority": "Fresh declared0644/0755 lstat, not inferred from Git100644; no chmod.",
+  "imports": [
+    {
+      "from": "capture-actor.mjs",
+      "specifier": "node:buffer",
+      "role": "builtin"
+    },
+    {
+      "from": "capture-actor.mjs",
+      "specifier": "node:crypto",
+      "role": "builtin"
+    },
+    {
+      "from": "capture-actor.mjs",
+      "specifier": "node:perf_hooks",
+      "role": "builtin"
+    },
+    {
+      "from": "capture-actor.mjs",
+      "specifier": "./catalogue.mjs",
+      "role": "exact-owned-local"
+    },
+    {
+      "from": "capture-actor.mjs",
+      "specifier": "./own-data.mjs",
+      "role": "exact-owned-local"
+    },
+    {
+      "from": "capture-actor.mjs",
+      "specifier": "./fixtures.mjs",
+      "role": "exact-owned-local"
+    },
+    {
+      "from": "capture-actor.mjs",
+      "specifier": "./capture-host.mjs",
+      "role": "exact-owned-local"
+    },
+    {
+      "from": "capture-actor.mjs",
+      "specifier": "./private-actors.mjs",
+      "role": "exact-owned-local"
+    },
+    {
+      "from": "capture-host.mjs",
+      "specifier": "node:buffer",
+      "role": "builtin"
+    },
+    {
+      "from": "capture-host.mjs",
+      "specifier": "node:crypto",
+      "role": "builtin"
+    },
+    {
+      "from": "capture-host.mjs",
+      "specifier": "node:path",
+      "role": "builtin"
+    },
+    {
+      "from": "capture-host.mjs",
+      "specifier": "node:perf_hooks",
+      "role": "builtin"
+    },
+    {
+      "from": "capture-host.mjs",
+      "specifier": "node:util",
+      "role": "builtin"
+    },
+    {
+      "from": "capture-host.mjs",
+      "specifier": "./own-data.mjs",
+      "role": "exact-owned-local"
+    },
+    {
+      "from": "fixtures.mjs",
+      "specifier": "node:buffer",
+      "role": "builtin"
+    },
+    {
+      "from": "private-actors.mjs",
+      "specifier": "./own-data.mjs",
+      "role": "exact-owned-local"
+    },
+    {
+      "from": "run-stubs.mjs",
+      "specifier": "node:assert/strict",
+      "role": "builtin"
+    },
+    {
+      "from": "run-stubs.mjs",
+      "specifier": "node:crypto",
+      "role": "builtin"
+    },
+    {
+      "from": "run-stubs.mjs",
+      "specifier": "node:fs",
+      "role": "builtin"
+    },
+    {
+      "from": "run-stubs.mjs",
+      "specifier": "node:path",
+      "role": "builtin"
+    },
+    {
+      "from": "run-stubs.mjs",
+      "specifier": "node:child_process",
+      "role": "builtin"
+    },
+    {
+      "from": "run-stubs.mjs",
+      "specifier": "node:url",
+      "role": "builtin"
+    },
+    {
+      "from": "synthetic-driver.mjs",
+      "specifier": "node:assert/strict",
+      "role": "builtin"
+    },
+    {
+      "from": "synthetic-driver.mjs",
+      "specifier": "node:buffer",
+      "role": "builtin"
+    },
+    {
+      "from": "synthetic-driver.mjs",
+      "specifier": "node:fs",
+      "role": "builtin"
+    },
+    {
+      "from": "synthetic-driver.mjs",
+      "specifier": "node:path",
+      "role": "builtin"
+    },
+    {
+      "from": "synthetic-driver.mjs",
+      "specifier": "node:url",
+      "role": "builtin"
+    },
+    {
+      "from": "synthetic-driver.mjs",
+      "specifier": "node:vm",
+      "role": "builtin"
+    },
+    {
+      "from": "synthetic-driver.mjs",
+      "specifier": "./capture-actor.mjs",
+      "role": "exact-owned-local"
+    },
+    {
+      "from": "synthetic-driver.mjs",
+      "specifier": "./catalogue.mjs",
+      "role": "exact-owned-local"
+    }
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "role": "Existing host Node for presealed own synthetic helpers only, not candidate compiler/tool proof"
+  },
+  "synthetic": {
+    "command": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/run-stubs.mjs",
+      "EXACT_SHA256_OF_THIS_COMMITTED_PRESEAL"
+    ],
+    "childCommand": [
+      "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/synthetic-driver.mjs",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/runs/stub-v1/"
+    ],
+    "caseIds": [
+      "S01",
+      "S02",
+      "S03",
+      "S04",
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10"
+    ],
+    "timeoutMs": 60000,
+    "streamBufferBytes": 262144,
+    "outputTreeBytes": 16777216,
+    "maximumParentProcesses": 1,
+    "maximumActiveChildren": 1,
+    "descendants": 0,
+    "childEnvironment": {
+      "PATH": "/usr/bin:/bin",
+      "NODE_OPTIONS": "",
+      "NODE_PATH": ""
+    },
+    "outputDirectory": "runs/stub-v1",
+    "directoryMode": 448,
+    "fileMode": 384,
+    "sourceGuard": "Exact entries/hash/size/mode and flat root membership before/after; exclusive new runs root; bounded declared raw output members after. Same hashes remain authoritative after helper failure.",
+    "rawBeforeAssertions": "Driver writes each raw case before checking it. Parent persists raw stdout/stderr/status/timing/known-reap/integrity before aggregate evaluation. Unexpected child nonzero/signal/error/unknown reap =>FAIL, no rerun.",
+    "stubs": "Explicit fake commands/streams/no-op query session and no-op factory only. No product parser/query/accounting/Budget implementation copied or executed."
+  },
+  "staticChecksAllowedAfterCommit": {
+    "nodeSyntax": [
+      [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/capture-actor.mjs"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/capture-host.mjs"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/catalogue.mjs"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/fixtures.mjs"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/own-data.mjs"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/private-actors.mjs"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/run-stubs.mjs"
+      ],
+      [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "--check",
+        "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/synthetic-driver.mjs"
+      ]
+    ],
+    "documentLint": [
+      "python3",
+      "/Users/kjopek/.codex/skills/write-spec/scripts/check_spec.py",
+      "/Users/kjopek/Workspace/safe-bash/tests/commands/yq-independent-20260828/coverage-completion-v1/actors/SPECIFICATION.md"
+    ],
+    "perCommandTimeoutMs": 30000,
+    "maxBufferBytes": 1048576
+  },
+  "budgetSourceAuthority": {
+    "commit": "0e8ee2900e7810b911f1335b0d3f05f23ce740c5",
+    "path": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/composition-v4/assembly/core/supervisor.mjs",
+    "bytes": 27700,
+    "sha256": "49c7c7050769e2c2edf71a27edd26790ac786e05dc6afbc02c93eba372d361a0",
+    "lines": [
+      32,
+      33
+    ],
+    "role": "Read-only original disk-reservation source, no target execution or new active code dependency"
+  },
+  "allowedLaterOwnedEvidence": [
+    "runs/stub-v1/** within declared member/cap checks",
+    "runs/STATIC-CHECKS.json",
+    "FINAL-SEAL.json",
+    "HANDOFF.json"
+  ],
+  "executionsAtSeal": {
+    "actorImports": 0,
+    "stubChecks": 0,
+    "candidate": 0,
+    "compiler": 0,
+    "instrumentedProjection": 0,
+    "targetMutants": 0
+  },
+  "rootTargetGO": false
+}

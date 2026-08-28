@@ -1,0 +1,585 @@
+{
+  "schema": 1,
+  "status": "IMPLEMENTED_MECHANISMS_PARTIAL_OBSERVATION_SCOPE_NOT_COVERAGE_ACCEPTANCE",
+  "abi": {
+    "commit": "96d48ee4d2690c8ce474460d57ce0362656ddd6f",
+    "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/ABI.json",
+    "sha256": "4d5e2ca14a50965daaf08218ea1ecc26838f9376868d8ab5b929bfef2e7178f1"
+  },
+  "allocation": {
+    "commit": "96d48ee4d2690c8ce474460d57ce0362656ddd6f",
+    "path": "tests/commands/yq-independent-20260828/coverage-completion-v1/core/ALLOCATION.json",
+    "sha256": "2cd020b25855987f9d7af02d9e6e215f867f99d10c402c34d5e80513f92b0545"
+  },
+  "implementedProfileCount": 45,
+  "implementedRecordIds": [
+    "WRK-01",
+    "WRK-02",
+    "WRK-03",
+    "WRK-04",
+    "WRK-09",
+    "WRK-10",
+    "WRK-19",
+    "WRK-25",
+    "WRK-06",
+    "WRK-07",
+    "WRK-13",
+    "LIF-01",
+    "LIF-02",
+    "LIF-03",
+    "LIF-05",
+    "LIF-08",
+    "LIF-10",
+    "LIF-04",
+    "UTF-22",
+    "WRK-22",
+    "WRK-26",
+    "TYP-05",
+    "TYP-06",
+    "TYP-07"
+  ],
+  "previouslyUnassigned": [
+    {
+      "id": "WRK-01",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "WRK-01::missing/0",
+        "WRK-01::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "WRK-01/at-cap",
+        "WRK-01/above-cap"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "WRK-02",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "WRK-02::missing/0",
+        "WRK-02::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "WRK-02/at-cap",
+        "WRK-02/above-cap"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "WRK-03",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "WRK-03::missing/0",
+        "WRK-03::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "WRK-03/at-cap",
+        "WRK-03/above-cap"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "WRK-04",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "WRK-04::missing/0",
+        "WRK-04::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "WRK-04/at-cap",
+        "WRK-04/above-cap"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "WRK-09",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "WRK-09::missing/0",
+        "WRK-09::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "WRK-09/at-cap",
+        "WRK-09/above-cap"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "WRK-10",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "WRK-10::missing/0",
+        "WRK-10::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "WRK-10/at-cap",
+        "WRK-10/above-cap"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "WRK-19",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "WRK-19::missing/0",
+        "WRK-19::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "WRK-19/at-cap",
+        "WRK-19/above-cap"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "WRK-25",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "WRK-25::missing/0",
+        "WRK-25::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "WRK-25/plain-at-cap",
+        "WRK-25/plain-above-cap",
+        "WRK-25/explicit-above-cap"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "LIF-01",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "LIF-01::missing/0",
+        "LIF-01::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "LIF-01/host-observation"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "LIF-02",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "LIF-02::missing/0",
+        "LIF-02::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "LIF-02/host-observation"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "LIF-03",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "LIF-03::missing/0",
+        "LIF-03::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "LIF-03/host-observation"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "LIF-04",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "LIF-04::missing/0",
+        "LIF-04::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "LIF-04/zero",
+        "LIF-04/prefix",
+        "LIF-04/all"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "LIF-05",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "LIF-05::missing/0",
+        "LIF-05::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "LIF-05/host-observation"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "LIF-06",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "LIF-06::missing/0",
+        "LIF-06::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": false,
+      "profiles": [],
+      "status": "EXPLICIT_MISSING_ACTOR_OR_DEPENDENCY",
+      "dependency": "Legitimate normal-cleanup fault or sibling-output-resource enrollment actor still missing."
+    },
+    {
+      "id": "LIF-07",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "LIF-07::missing/0",
+        "LIF-07::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": false,
+      "profiles": [],
+      "status": "EXPLICIT_MISSING_ACTOR_OR_DEPENDENCY",
+      "dependency": "Legitimate normal-cleanup fault or sibling-output-resource enrollment actor still missing."
+    },
+    {
+      "id": "LIF-08",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "LIF-08::missing/0",
+        "LIF-08::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "LIF-08/host-observation"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "LIF-09",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "LIF-09::missing/0",
+        "LIF-09::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": false,
+      "profiles": [],
+      "status": "EXPLICIT_MISSING_ACTOR_OR_DEPENDENCY",
+      "dependency": "Authenticated actual Shell/resource/registry namespace and disposal host seam."
+    },
+    {
+      "id": "LIF-10",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "LIF-10::missing/0",
+        "LIF-10::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "LIF-10/host-observation"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "FS-02",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "FS-02::missing/0",
+        "FS-02::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": false,
+      "profiles": [],
+      "status": "EXPLICIT_MISSING_ACTOR_OR_DEPENDENCY",
+      "dependency": "Authenticated typed FsError or actual Memory+configured adapter dependency, unavailable in the single Yq index namespace ABI."
+    },
+    {
+      "id": "FS-03",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "FS-03::missing/0",
+        "FS-03::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": false,
+      "profiles": [],
+      "status": "EXPLICIT_MISSING_ACTOR_OR_DEPENDENCY",
+      "dependency": "Authenticated typed FsError or actual Memory+configured adapter dependency, unavailable in the single Yq index namespace ABI."
+    },
+    {
+      "id": "FS-04",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "FS-04::missing/0",
+        "FS-04::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": false,
+      "profiles": [],
+      "status": "EXPLICIT_MISSING_ACTOR_OR_DEPENDENCY",
+      "dependency": "Authenticated typed FsError or actual Memory+configured adapter dependency, unavailable in the single Yq index namespace ABI."
+    },
+    {
+      "id": "FS-06",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "FS-06::missing/0",
+        "FS-06::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": false,
+      "profiles": [],
+      "status": "EXPLICIT_MISSING_ACTOR_OR_DEPENDENCY",
+      "dependency": "Authenticated typed FsError or actual Memory+configured adapter dependency, unavailable in the single Yq index namespace ABI."
+    },
+    {
+      "id": "TYP-05",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "TYP-05::missing/0",
+        "TYP-05::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "TYP-05/options"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "TYP-06",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "TYP-06::missing/0",
+        "TYP-06::missing/1"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": true,
+      "profiles": [
+        "TYP-06/collision"
+      ],
+      "status": "ACTOR_SOURCE_SUPPLIED_TARGET_UNRUN_NOT_FULL_ASSERTION_PROOF",
+      "dependency": null
+    },
+    {
+      "id": "NEG-05",
+      "primaryOwner": "actors",
+      "gapIds": [
+        "NEG-05::missing/0"
+      ],
+      "executionReservation": "UNASSIGNED_FUTURE_RECONCILIATION_NOT_AUTOMATIC_NEW_SLOT",
+      "actorBodyPresent": false,
+      "profiles": [],
+      "status": "EXPLICIT_MISSING_ACTOR_OR_DEPENDENCY",
+      "dependency": "Exact approved loaded reset/undercount mutation and existing witness route; no target mutation here."
+    }
+  ],
+  "actorOwnedBindingIds": [
+    "WRK-01::missing/0",
+    "WRK-01::missing/1",
+    "WRK-02::missing/0",
+    "WRK-02::missing/1",
+    "WRK-03::missing/0",
+    "WRK-03::missing/1",
+    "WRK-04::missing/0",
+    "WRK-04::missing/1",
+    "WRK-09::missing/0",
+    "WRK-09::missing/1",
+    "WRK-10::missing/0",
+    "WRK-10::missing/1",
+    "WRK-19::missing/0",
+    "WRK-19::missing/1",
+    "WRK-25::missing/0",
+    "WRK-25::missing/1",
+    "LIF-01::missing/0",
+    "LIF-01::missing/1",
+    "LIF-02::missing/0",
+    "LIF-02::missing/1",
+    "LIF-03::missing/0",
+    "LIF-03::missing/1",
+    "LIF-05::missing/0",
+    "LIF-05::missing/1",
+    "LIF-08::missing/0",
+    "LIF-08::missing/1",
+    "LIF-10::missing/0",
+    "LIF-10::missing/1",
+    "LIF-04::missing/0",
+    "LIF-04::missing/1",
+    "WRK-22::missing/0",
+    "WRK-22::missing/1",
+    "TYP-05::missing/0",
+    "TYP-05::missing/1",
+    "TYP-06::missing/0",
+    "TYP-06::missing/1",
+    "TYP-07::missing/1"
+  ],
+  "remainingActorOwnedGapIds": [
+    "LIF-06::missing/0",
+    "LIF-06::missing/1",
+    "LIF-07::missing/0",
+    "LIF-07::missing/1",
+    "LIF-09::missing/0",
+    "LIF-09::missing/1",
+    "FS-02::missing/0",
+    "FS-02::missing/1",
+    "FS-03::missing/0",
+    "FS-03::missing/1",
+    "FS-04::missing/0",
+    "FS-04::missing/1",
+    "FS-06::missing/0",
+    "FS-06::missing/1",
+    "NEG-03::missing/0",
+    "NEG-04::missing/0",
+    "NEG-05::missing/0"
+  ],
+  "remainingActorOwnedGaps": [
+    {
+      "id": "LIF-06::missing/0",
+      "recordId": "LIF-06",
+      "frozenNeed": "direct execute; normal result, cleanup rejects, no earlier raw failure",
+      "dependency": "See exact per-ID actor dependency above."
+    },
+    {
+      "id": "LIF-06::missing/1",
+      "recordId": "LIF-06",
+      "frozenNeed": "Await cooperative cleanup before settling instead of returning successful numeric status.",
+      "dependency": "See exact per-ID actor dependency above."
+    },
+    {
+      "id": "LIF-07::missing/0",
+      "recordId": "LIF-07",
+      "frozenNeed": "owned stdout consumer closes while independent stderr scope and VFS work are admitted",
+      "dependency": "See exact per-ID actor dependency above."
+    },
+    {
+      "id": "LIF-07::missing/1",
+      "recordId": "LIF-07",
+      "frozenNeed": "Close stdout destination scope only; borrowed caller signal, stderr, input/VFS sibling scope and whole context are not canceled merely by that close; no ownership from wrapping alone.",
+      "dependency": "See exact per-ID actor dependency above."
+    },
+    {
+      "id": "LIF-09::missing/0",
+      "recordId": "LIF-09",
+      "frozenNeed": "actual Shell/registry invocation with cooperative registered resource acquired before delayed release; invoke dispose during execution",
+      "dependency": "See exact per-ID actor dependency above."
+    },
+    {
+      "id": "LIF-09::missing/1",
+      "recordId": "LIF-09",
+      "frozenNeed": "Public exec/dispose settlement waits admitted resource work and root cleanup barrier; preserve authentic Shell pipeline/downstream numeric selection instead of asserting every EPIPE rejects outer exec.",
+      "dependency": "See exact per-ID actor dependency above."
+    },
+    {
+      "id": "FS-02::missing/0",
+      "recordId": "FS-02",
+      "frozenNeed": "readStream throws typed FsError('ENOENT') before returning an iterator, signal not aborted",
+      "dependency": "See exact per-ID actor dependency above."
+    },
+    {
+      "id": "FS-02::missing/1",
+      "recordId": "FS-02",
+      "frozenNeed": "Source location is escaped literal operand only; no invented line/column or serialized errno message.",
+      "dependency": "See exact per-ID actor dependency above."
+    },
+    {
+      "id": "FS-03::missing/0",
+      "recordId": "FS-03",
+      "frozenNeed": "readStream returns iterator; next rejects typed FsError('EIO'), signal not aborted",
+      "dependency": "See exact per-ID actor dependency above."
+    },
+    {
+      "id": "FS-03::missing/1",
+      "recordId": "FS-03",
+      "frozenNeed": "Return iterator and await registered cooperative cleanup.",
+      "dependency": "See exact per-ID actor dependency above."
+    },
+    {
+      "id": "FS-04::missing/0",
+      "recordId": "FS-04",
+      "frozenNeed": "fallback readFile rejects typed FsError('ENOENT'), signal not aborted",
+      "dependency": "See exact per-ID actor dependency above."
+    },
+    {
+      "id": "FS-04::missing/1",
+      "recordId": "FS-04",
+      "frozenNeed": "Fallback read failure maps READ, not OPEN; forwarded maxBytes is not proof of provider preallocation safety.",
+      "dependency": "See exact per-ID actor dependency above."
+    },
+    {
+      "id": "FS-06::missing/0",
+      "recordId": "FS-06",
+      "frozenNeed": "replay FS-01/05 through MemoryFileSystem and one explicitly configured real or remote adapter; snapshot exact file bytes/namespace before and after",
+      "dependency": "See exact per-ID actor dependency above."
+    },
+    {
+      "id": "FS-06::missing/1",
+      "recordId": "FS-06",
+      "frozenNeed": "Same virtual effects, no inferred credentials or implicit host files; mock success alone is not deployed-provider acceptance.",
+      "dependency": "See exact per-ID actor dependency above."
+    },
+    {
+      "id": "NEG-03::missing/0",
+      "recordId": "NEG-03",
+      "frozenNeed": "Assign ALIAS_DUPLICATE_ANCHOR as an expected normal failure to ALS-02.",
+      "dependency": "Reserved ALIAS_DUPLICATE_ANCHOR on ALS02 exact synthetic/control route is not implemented here."
+    },
+    {
+      "id": "NEG-04::missing/0",
+      "recordId": "NEG-04",
+      "frozenNeed": "Replace retained-fragment copying by Buffer.subarray and complete producer reuse.",
+      "dependency": "UTF22 ownership observer remains proposal-only; retained loaded slots unchanged."
+    },
+    {
+      "id": "NEG-05::missing/0",
+      "recordId": "NEG-05",
+      "frozenNeed": "Reset Budget/alias counters on every document or count distinct anchor names only.",
+      "dependency": "See exact per-ID actor dependency above."
+    }
+  ],
+  "sourcePrimarySupplementaryRecords": [
+    "WRK-06",
+    "WRK-07",
+    "WRK-13"
+  ],
+  "sourceOnlyRemaining": [
+    "WRK-17 fixed public capture/encoder source argument; internal7/8 proofcontrol not public cap"
+  ],
+  "captureAssertionRule": "All observation facts carry obligationComplete:false. OBSERVED input bindings indicate actual local capture only, not matching final expected behavior; private assertions/ownership remain UNOBSERVED.",
+  "allActualTargetObservations": "UNRUN",
+  "rootTargetGO": false
+}

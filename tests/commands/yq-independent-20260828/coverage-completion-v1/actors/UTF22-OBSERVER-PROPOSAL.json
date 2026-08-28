@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "id": "UTF22-PRIVATE-RETENTION-OBSERVER-PROPOSAL",
+  "status": "PROPOSAL_ONLY_NO_INSTRUMENTED_SOURCE_CREATED_OR_EXECUTED",
+  "candidate": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "originalInput": {
+    "id": "UTF-22",
+    "chunksHex": [
+      "5b31",
+      "2c32",
+      "5d0a"
+    ],
+    "producer": "same Uint8Array overwritten before each next and on return"
+  },
+  "stockFeasibility": {
+    "source": {
+      "commit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+      "path": "src/commands/yq/index.ts",
+      "bytes": 24198,
+      "sha256": "212673fa3599fa3a0ead59e781197989cb224939ea19e068a9d8c98c3ab24baf",
+      "role": "POST_CANDIDATE_STATIC_READ_NOT_PRECODE_HOLDOUT"
+    },
+    "lexicalLocations": [
+      "collectSource:319 chunks is a local array",
+      "collectSource:337 owned=new Uint8Array(chunk)",
+      "collectSource:339 chunks.push(owned)",
+      "collectSource:343-350 concatenate retained chunks after producer terminal next"
+    ],
+    "exports": [
+      "createYqCommand",
+      "createYqCommands",
+      "yqCommands"
+    ],
+    "conclusion": "No inspected exported stock module/host callback exposes retained chunks or their backing-buffer relation. Source-byte inspection plus output/reuse events is not an actual retention identity observation. No claim of a universal impossibility beyond inspected module seams."
+  },
+  "proposedIsolatedDelta": {
+    "target": "src/commands/yq/index.ts in a NEW separately authenticated instrumented review projection, never the exact870 production package",
+    "preimageSha256": "212673fa3599fa3a0ead59e781197989cb224939ea19e068a9d8c98c3ab24baf",
+    "edits": [
+      {
+        "anchor": "import { parseYamlDocuments } from \"./parser.js\";",
+        "operation": "Add one exact review-only helper import after this line",
+        "proposedText": "import { observeRetainedInput, observeRetainedEnd } from \"./review-retention-observer.js\";"
+      },
+      {
+        "anchor": "    chunks.push(owned);",
+        "operation": "Insert immediately after",
+        "proposedText": "    observeRetainedInput(chunk, owned, chunks.length - 1);"
+      },
+      {
+        "anchor": "  const bytes = new Uint8Array(size);",
+        "operation": "Insert immediately before this unique collectSource allocation",
+        "proposedText": "  observeRetainedEnd(chunks);"
+      }
+    ],
+    "helperRole": "New separately sealed review-only fixed helper, not provided or injected through GO receipt; exact source/body/hash/compiled map requires subsequent proposal approval and preseal.",
+    "helperBound": "Exactly three retained observations of at most two bytes plus one end snapshot; synchronous no-await/no-timer/no-product-callback/no-budget operations, finite own-data output. Record actual borrowed/owned buffer identity and span plus immediate bytes and end bytes. No function pointers or product counters exposed.",
+    "actualIdentityQualification": "Backing-buffer identity is the property under observation, not a prototype/identity shortcut for validating cross-realm harness records. Validate transport via exact own-data schema. Do not retain/copy arbitrary candidate graphs."
+  },
+  "semanticNoninterferenceProofRequired": [
+    "Exact source diff contains only fixed observer import and read-only calls; all guards/admissions/new Uint8Array/chunks.push/publication order retained.",
+    "Helper never writes input, owned buffers, chunks, session or ledger; return values ignored; no catches around original product exceptions.",
+    "Helper must not throw into product control flow on ordinary bounded observation; observer failure produces separate incomplete evidence, never product PASS. Any inability to establish this is a blocker.",
+    "Only finite additional observation allocations/reference access; no claims of identical timing/RSS, allocation-free observation or universal noninterference under OOM/host failure.",
+    "Original exact870 candidate is separately built/loaded and remains the semantic authority. Instrumented projection has distinct source/build/maps/hash/mode/entry identity, not byte-equal candidate or general public ownership proof.",
+    "Fresh Root approval, concrete helper source preseal, different review and separately authorized instrumented execution are required before any use."
+  ],
+  "currentHistory": {
+    "positiveIncomplete": 2,
+    "retainedPreOuterUnrun": 2,
+    "rescored": false
+  },
+  "currentImplementedObserver": false,
+  "currentExecutions": 0,
+  "rawPrimitiveFallbackIsOwnershipProof": false,
+  "rootTargetGO": false
+}

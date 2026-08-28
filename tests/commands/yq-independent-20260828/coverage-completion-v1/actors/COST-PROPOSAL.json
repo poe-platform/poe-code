@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "status": "FINITE_COST_REQUEST_NOT_ADOPTED_RECIPE",
+  "old": {
+    "runtimeProfilesPerEnvironment": 149,
+    "outerSlots": 336,
+    "compilerMaximum": 18,
+    "globalWallMs": 24165000,
+    "globalLogicalDiskBytes": 25769803776,
+    "originalStaticReservationBytes": 24964497408
+  },
+  "tranche": {
+    "profilesPerEnvironment": 45,
+    "existingUtf22ReplacementPerEnvironment": 1,
+    "newProfilesPerEnvironment": 44,
+    "newOuterSlotsForTwoEnvironments": 88,
+    "newCompilerCalls": 0,
+    "requestedAddedWallMs": 2640000,
+    "requestedAdditionalEvidenceStorageBytes": 1107296256,
+    "perProfileCostSource": "catalogue.mjs#/profiles/*/costs",
+    "fixtureDiskWrites": 0,
+    "maxGeneratedInputBytes": 8388609
+  },
+  "conditionalMinimumUnion": {
+    "outerSlots": 424,
+    "compilerMaximum": 18,
+    "globalWallMs": 26805000,
+    "globalLogicalDiskBytes": 25769803776,
+    "unchangedReservationPlusRequestedActorStorage": 26071793664,
+    "excessOverUnchangedDiskCeiling": 301989888
+  },
+  "qualification": "These numbers are a lower-bound reconciliation request only. UTF22 replaces an existing projection; loaded control slots are not counted again. Final bridge/setup/guard/protocol accounting must fit the same declared slot absolute deadline. The unchanged old static disk reservation plus this actor request exceeds24GiB: no ready claim, cap increase, dedup waiver or silently omitted artifacts. Core must reconcile a truly bounded final schedule/reservation before targetGO. Remaining missing actors are not costed as complete.",
+  "syntheticOnly": {
+    "driverCases": 10,
+    "activeParentProcesses": 1,
+    "activeChildren": 1,
+    "childDescendants": 0,
+    "childWallMs": 60000,
+    "childStreamBufferBytes": 262144,
+    "outputTreeBytes": 16777216,
+    "sourceMode": 420,
+    "captureFileMode": 384,
+    "captureDirectoryMode": 448,
+    "targetExecutions": 0
+  },
+  "rootTargetGO": false
+}

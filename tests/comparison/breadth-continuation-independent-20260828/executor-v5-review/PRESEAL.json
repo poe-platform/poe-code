@@ -1,0 +1,143 @@
+{
+  "kind": "INDEPENDENT_EXPECTATIONS_SOURCE_PRESEAL",
+  "sealedAt": "2026-08-28T11:47:33.893Z",
+  "priorRecipe": "b993d26cd6777567ab6de45c617f1b073dd0d1de",
+  "failedAdmission": "d40af0d52381a138f2dabb415d343526ad015722",
+  "successorContentsRead": false,
+  "successorAlreadyPresent": true,
+  "claimPreSuccessorAppearance": false,
+  "executionBeforeSeal": 0,
+  "syntheticChildrenPlanned": 15,
+  "sourceCommit": "Supply immutable commit containing this file to run.mjs; seal is not self-referential.",
+  "sources": [
+    {
+      "path": "FIXTURES.json",
+      "bytes": 1320,
+      "sha256": "284c08b24ebca74fa2dbced570dfa46c3b1e5a5ed09409337b5f271821ebeb7b",
+      "mode": 420
+    },
+    {
+      "path": "EXPECTATIONS.json",
+      "bytes": 3773,
+      "sha256": "e04320d003a19e1a4a3011d48545e7d1c96681cca58a53dfe88630330a1fa6d6",
+      "mode": 420
+    },
+    {
+      "path": "worker.mjs",
+      "bytes": 7959,
+      "sha256": "027493c30177e9d1a0e3730b1424d36c096b905d80d7ec747eff255cff09de62",
+      "mode": 420
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 8510,
+      "sha256": "d72d7bf057a646b9b8b83bd990e2cfd93a0727fa8f3047762d41c7302ce9c178",
+      "mode": 420
+    },
+    {
+      "path": "PRE-SUCCESSOR.md",
+      "bytes": 11831,
+      "sha256": "373fabc452a2aa7d5efa3e3754748a2882896bdfd727502534964dc424619f7a",
+      "mode": 420
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 21825,
+      "sha256": "7cbbf4af08698e7375db2f795c1b4d825b059efd8b5f044855f20edc548a437a",
+      "mode": 420
+    },
+    {
+      "path": "SCOPE-BEFORE.json",
+      "bytes": 2725,
+      "sha256": "0aa05a911a769f5529833721f5dda4a30b4991765b772da1c5790cf2a91b2f83",
+      "mode": 420
+    }
+  ],
+  "fixtures": [
+    {
+      "name": "wrapper",
+      "bytes": 77,
+      "sha256": "3e46acb281e826bed6c5fdbeaccc90c8744312a54021adb3fbffe7ba389e444f",
+      "mode": 420
+    },
+    {
+      "name": "outer",
+      "bytes": 87,
+      "sha256": "86bc6c0ef1c632209c42f8c667eef0d60cb15ce2d52d7e5fda74e94978af69b4",
+      "mode": 420
+    },
+    {
+      "name": "selfReferenceWrapper",
+      "bytes": 84,
+      "sha256": "435c67bcdbd7548b7844a35ee8be5eaf1b4bd39ed9d69d54835d912b7ba6c699",
+      "mode": 420
+    },
+    {
+      "name": "wrongBaselineWrapper",
+      "bytes": 52,
+      "sha256": "b4016f8de227f12c987f765546049cd38801ac33fd117e2922d7fd5de6bc49d7",
+      "mode": 420
+    },
+    {
+      "name": "targetPackage",
+      "bytes": 81,
+      "sha256": "d54e79b9b5e8e0e4bf6bb9b8e5c79e2e5fb19053e635cf07590782fd61737dc3",
+      "mode": 420
+    },
+    {
+      "name": "baselinePackage",
+      "bytes": 78,
+      "sha256": "7b17294f1771988b43b3e5835a9f540f620bbe16bc744f54884ad91034fefc76",
+      "mode": 420
+    },
+    {
+      "name": "targetConsumer",
+      "bytes": 61,
+      "sha256": "2c8baf95aacda393a4d4f347f49ee5527749a377ce72d6e1dbe0d5a624bcbd2c",
+      "mode": 420
+    },
+    {
+      "name": "baselineConsumer",
+      "bytes": 58,
+      "sha256": "aa607a53a64e71658fd0c7ca39a6c5e14c311242433c0d41efbccdc15816edd1",
+      "mode": 420
+    },
+    {
+      "name": "targetModule",
+      "bytes": 89,
+      "sha256": "db00c0b99b02fba5d20f24178e41592590e40e59717f2a5a3026c137fa596b0d",
+      "mode": 420
+    },
+    {
+      "name": "baselineModule",
+      "bytes": 93,
+      "sha256": "77fc0ec8768161bdbdc3e3738e0bf6837c14fa580a7b02e66139f58211d0e316",
+      "mode": 420
+    },
+    {
+      "name": "trapModule",
+      "bytes": 85,
+      "sha256": "1998d2f44b17e8217e94a95e0b4337516fc14886760aafc43f630b2ce3548cdc",
+      "mode": 420
+    },
+    {
+      "name": "ambientModule",
+      "bytes": 91,
+      "sha256": "fecf8775601e54fe420def8964a294e8ba28b3ec11390dbf62a8ffa50428680d",
+      "mode": 420
+    }
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "authority": {
+    "productImports": false,
+    "comparatorImports": false,
+    "nativeOracles": false,
+    "archiveStaging": false,
+    "grant": false,
+    "candidateAcceptance": false
+  }
+}

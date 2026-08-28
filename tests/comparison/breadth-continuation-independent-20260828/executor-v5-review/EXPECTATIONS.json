@@ -1,0 +1,23 @@
+{
+  "kind": "INDEPENDENT_PRE_SUCCESSOR_SYNTHETIC_EXPECTATIONS_NOT_AUTHORIZATION",
+  "caseCount": 15,
+  "positiveCount": 4,
+  "negativeCount": 11,
+  "cases": [
+    {"id":"bareexports-target","action":"normal","library":"virtual-bash","cwd":"own","expectedCode":null,"expectedIdentity":"target-stub","expectedEvaluations":["target"],"expectedLoads":2,"expectedBarePath":"consumer/node_modules/virtual-bash/index.mjs"},
+    {"id":"bareexports-baseline","action":"normal","library":"just-bash","cwd":"own","expectedCode":null,"expectedIdentity":"baseline-stub","expectedEvaluations":["baseline"],"expectedLoads":2,"expectedBarePath":"consumer/node_modules/just-bash/index.mjs"},
+    {"id":"cwd-independent-target","action":"normal","library":"virtual-bash","cwd":"foreign","expectedCode":null,"expectedIdentity":"target-stub","expectedEvaluations":["target"],"expectedLoads":2,"expectedBarePath":"consumer/node_modules/virtual-bash/index.mjs"},
+    {"id":"selfref-trap","action":"selfref","library":"virtual-bash","cwd":"own","diagnosticBoundaryBypass":true,"expectedCode":"UNBOUND_MODULE","expectedIdentity":null,"expectedEvaluations":[],"expectedLoads":1,"expectedBarePath":"consumer/trap.mjs"},
+    {"id":"missingboundary-resolver","action":"missing","library":"virtual-bash","cwd":"own","diagnosticBoundaryBypass":true,"expectedCode":"UNBOUND_MODULE","expectedIdentity":null,"expectedEvaluations":[],"expectedLoads":1,"expectedBarePath":"ambient.mjs"},
+    {"id":"missingboundary-preflight","action":"missing","library":"virtual-bash","cwd":"own","expectedCode":"BOUNDARY_MISSING","expectedIdentity":null,"expectedEvaluations":[],"expectedLoads":0,"expectedBarePath":null},
+    {"id":"wrongname-target","action":"wrong-target","library":"virtual-bash","cwd":"own","expectedCode":"BOUNDARY_NAME","expectedIdentity":null,"expectedEvaluations":[],"expectedLoads":0,"expectedBarePath":null},
+    {"id":"wrongname-baseline","action":"wrong-baseline","library":"virtual-bash","cwd":"own","expectedCode":"BOUNDARY_NAME","expectedIdentity":null,"expectedEvaluations":[],"expectedLoads":0,"expectedBarePath":null},
+    {"id":"unboundtarget","action":"unbound","library":"virtual-bash","cwd":"own","expectedCode":"UNBOUND_MODULE","expectedIdentity":null,"expectedEvaluations":[],"expectedLoads":1,"expectedBarePath":"consumer/node_modules/virtual-bash/index.mjs"},
+    {"id":"movedoriginabsence","action":"move","library":"virtual-bash","cwd":"foreign","expectedCode":null,"expectedIdentity":"target-stub","expectedEvaluations":["target"],"expectedLoads":2,"expectedBarePath":"relocated/node_modules/virtual-bash/index.mjs"},
+    {"id":"hash-beforeload","action":"hash","library":"virtual-bash","cwd":"own","expectedCode":"LOAD_HASH","expectedIdentity":null,"expectedEvaluations":[],"expectedLoads":1,"expectedBarePath":"consumer/node_modules/virtual-bash/index.mjs"},
+    {"id":"mode-beforeload","action":"mode","library":"virtual-bash","cwd":"own","expectedCode":"LOAD_METADATA","expectedIdentity":null,"expectedEvaluations":[],"expectedLoads":1,"expectedBarePath":"consumer/node_modules/virtual-bash/index.mjs"},
+    {"id":"wrapper-hash-beforeload","action":"wrapper-hash","library":"virtual-bash","cwd":"own","expectedCode":"BOUNDARY_HASH","expectedIdentity":null,"expectedEvaluations":[],"expectedLoads":0,"expectedBarePath":null},
+    {"id":"wrapper-mode-beforeload","action":"wrapper-mode","library":"virtual-bash","cwd":"own","expectedCode":"BOUNDARY_METADATA","expectedIdentity":null,"expectedEvaluations":[],"expectedLoads":0,"expectedBarePath":null},
+    {"id":"entry-parent-denied","action":"entry-parent","library":"virtual-bash","cwd":"own","expectedCode":"ENTRY_PARENT","expectedIdentity":null,"expectedEvaluations":[],"expectedLoads":0,"expectedBarePath":null}
+  ]
+}

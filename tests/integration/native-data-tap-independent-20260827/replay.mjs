@@ -137,7 +137,9 @@ try {
     check(`${variant.name}: authenticated actual child runtime and npm CLI`, () => {
       const starts = result.events.filter(event => event.event === 'start');
       assert.ok(starts.some(event => event.argv.includes(npmCli)));
-      assert.ok(starts.some(event => event.execArgv.includes('--test-reporter=tap')));
+      const forwarded = result.events.filter(event => event.event === 'spawn-before' && event.command === variant.executable && event.args.includes('--test'));
+      assert.equal(forwarded.length, 1);
+      assert.equal(forwarded[0].args.includes('--test-reporter=tap'), variant.name !== 'remove-current-tap-node24');
       for (const event of starts) { assert.equal(realpathSync(event.executable), realpathSync(variant.executable)); assert.equal(event.version, prepared.runtimeVersions.find(tool => tool.path === variant.executable).version); assert.equal(event.nodeOptions, env.NODE_OPTIONS); }
     });
     check(`${variant.name}: actual nested fixtures remain original bytes`, () => {

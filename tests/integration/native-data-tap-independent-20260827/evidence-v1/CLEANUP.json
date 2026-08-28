@@ -1,0 +1,32 @@
+{
+  "at": "2026-08-28T00:06:01.395Z",
+  "directory": "/private/tmp/native-data-tap-independent-oNL4bW",
+  "removed": true,
+  "observedGroups": [
+    36678,
+    36941,
+    37196,
+    37399,
+    37632
+  ],
+  "noGroupsRemainingBeforeRemoval": true,
+  "originalCaptureChildrenAllNatural": true,
+  "killTimeoutOutputLeakCount": 0,
+  "removedOnlyOwnedTemporaryDirectory": true,
+  "rawEvidencePreserved": [
+    "REPORT.json",
+    "AUDIT.json",
+    "history-bindings.json",
+    "candidate-node22.json.gz",
+    "candidate-node24.json.gz",
+    "remove-current-tap-node24.json.gz",
+    "historical-tap-after-glob-node24.json.gz",
+    "historical-forced-spec-node24.json.gz",
+    "guard-controls.json.gz",
+    "tool-guards.json.gz",
+    "audit-attempt-01.json.gz",
+    "executed-replay.mjs",
+    "executed-observe.mjs"
+  ],
+  "noFixtureRerun": true
+}

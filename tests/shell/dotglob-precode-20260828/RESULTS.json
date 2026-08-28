@@ -1,0 +1,1088 @@
+{
+  "protocolCommit": "f01b393b32cf624f6a832c591a6a84f1c5e7a407",
+  "nativeCalls": 24,
+  "rows": [
+    {
+      "id": "01-default",
+      "start": "2026-08-28T08:11:03.063Z",
+      "end": "2026-08-28T08:11:03.086Z",
+      "sourceSha256": "ea3d5e175e3a9558dba4588d4b27323f99b25aefa21bc01a1661518aca339dab",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67258,
+      "groupAbsent": true,
+      "capturedBytes": 1517,
+      "stdout": "array_expand_once   \toff\nassoc_expand_once   \toff\nautocd              \toff\nbash_source_fullpath\toff\ncdable_vars         \toff\ncdspell             \toff\ncheckhash           \toff\ncheckjobs           \toff\ncheckwinsize        \ton\ncmdhist             \ton\ncompat31            \toff\ncompat32            \toff\ncompat40            \toff\ncompat41            \toff\ncompat42            \toff\ncompat43            \toff\ncompat44            \toff\ncomplete_fullquote  \ton\ndirexpand           \toff\ndirspell            \toff\ndotglob             \toff\nexecfail            \toff\nexpand_aliases      \toff\nextdebug            \toff\nextglob             \toff\nextquote            \ton\nfailglob            \toff\nforce_fignore       \ton\nglobasciiranges     \ton\nglobskipdots        \ton\nglobstar            \toff\ngnu_errfmt          \toff\nhistappend          \toff\nhistreedit          \toff\nhistverify          \toff\nhostcomplete        \ton\nhuponexit           \toff\ninherit_errexit     \toff\ninteractive_comments\ton\nlastpipe            \toff\nlithist             \toff\nlocalvar_inherit    \toff\nlocalvar_unset      \toff\nlogin_shell         \toff\nmailwarn            \toff\nno_empty_cmd_completion\toff\nnocaseglob          \toff\nnocasematch         \toff\nnoexpand_translation\toff\nnullglob            \toff\npatsub_replacement  \ton\nprogcomp            \ton\nprogcomp_alias      \toff\npromptvars          \ton\nrestricted_shell    \toff\nshift_verbose       \toff\nsourcepath          \ton\nvarredir_close      \toff\nxpg_echo            \toff\n\u001estatus:0=0\nshopt -u dotglob\n\u001eend:0\n",
+      "stderr": "\u001ebegin:0\n\u001eend:0\n",
+      "stdoutBase64": "YXJyYXlfZXhwYW5kX29uY2UgICAJb2ZmCmFzc29jX2V4cGFuZF9vbmNlICAgCW9mZgphdXRvY2QgICAgICAgICAgICAgIAlvZmYKYmFzaF9zb3VyY2VfZnVsbHBhdGgJb2ZmCmNkYWJsZV92YXJzICAgICAgICAgCW9mZgpjZHNwZWxsICAgICAgICAgICAgIAlvZmYKY2hlY2toYXNoICAgICAgICAgICAJb2ZmCmNoZWNram9icyAgICAgICAgICAgCW9mZgpjaGVja3dpbnNpemUgICAgICAgIAlvbgpjbWRoaXN0ICAgICAgICAgICAgIAlvbgpjb21wYXQzMSAgICAgICAgICAgIAlvZmYKY29tcGF0MzIgICAgICAgICAgICAJb2ZmCmNvbXBhdDQwICAgICAgICAgICAgCW9mZgpjb21wYXQ0MSAgICAgICAgICAgIAlvZmYKY29tcGF0NDIgICAgICAgICAgICAJb2ZmCmNvbXBhdDQzICAgICAgICAgICAgCW9mZgpjb21wYXQ0NCAgICAgICAgICAgIAlvZmYKY29tcGxldGVfZnVsbHF1b3RlICAJb24KZGlyZXhwYW5kICAgICAgICAgICAJb2ZmCmRpcnNwZWxsICAgICAgICAgICAgCW9mZgpkb3RnbG9iICAgICAgICAgICAgIAlvZmYKZXhlY2ZhaWwgICAgICAgICAgICAJb2ZmCmV4cGFuZF9hbGlhc2VzICAgICAgCW9mZgpleHRkZWJ1ZyAgICAgICAgICAgIAlvZmYKZXh0Z2xvYiAgICAgICAgICAgICAJb2ZmCmV4dHF1b3RlICAgICAgICAgICAgCW9uCmZhaWxnbG9iICAgICAgICAgICAgCW9mZgpmb3JjZV9maWdub3JlICAgICAgIAlvbgpnbG9iYXNjaWlyYW5nZXMgICAgIAlvbgpnbG9ic2tpcGRvdHMgICAgICAgIAlvbgpnbG9ic3RhciAgICAgICAgICAgIAlvZmYKZ251X2VycmZtdCAgICAgICAgICAJb2ZmCmhpc3RhcHBlbmQgICAgICAgICAgCW9mZgpoaXN0cmVlZGl0ICAgICAgICAgIAlvZmYKaGlzdHZlcmlmeSAgICAgICAgICAJb2ZmCmhvc3Rjb21wbGV0ZSAgICAgICAgCW9uCmh1cG9uZXhpdCAgICAgICAgICAgCW9mZgppbmhlcml0X2VycmV4aXQgICAgIAlvZmYKaW50ZXJhY3RpdmVfY29tbWVudHMJb24KbGFzdHBpcGUgICAgICAgICAgICAJb2ZmCmxpdGhpc3QgICAgICAgICAgICAgCW9mZgpsb2NhbHZhcl9pbmhlcml0ICAgIAlvZmYKbG9jYWx2YXJfdW5zZXQgICAgICAJb2ZmCmxvZ2luX3NoZWxsICAgICAgICAgCW9mZgptYWlsd2FybiAgICAgICAgICAgIAlvZmYKbm9fZW1wdHlfY21kX2NvbXBsZXRpb24Jb2ZmCm5vY2FzZWdsb2IgICAgICAgICAgCW9mZgpub2Nhc2VtYXRjaCAgICAgICAgIAlvZmYKbm9leHBhbmRfdHJhbnNsYXRpb24Jb2ZmCm51bGxnbG9iICAgICAgICAgICAgCW9mZgpwYXRzdWJfcmVwbGFjZW1lbnQgIAlvbgpwcm9nY29tcCAgICAgICAgICAgIAlvbgpwcm9nY29tcF9hbGlhcyAgICAgIAlvZmYKcHJvbXB0dmFycyAgICAgICAgICAJb24KcmVzdHJpY3RlZF9zaGVsbCAgICAJb2ZmCnNoaWZ0X3ZlcmJvc2UgICAgICAgCW9mZgpzb3VyY2VwYXRoICAgICAgICAgIAlvbgp2YXJyZWRpcl9jbG9zZSAgICAgIAlvZmYKeHBnX2VjaG8gICAgICAgICAgICAJb2ZmCh5zdGF0dXM6MD0wCnNob3B0IC11IGRvdGdsb2IKHmVuZDowCg==",
+      "stderrBase64": "HmJlZ2luOjAKHmVuZDowCg=="
+    },
+    {
+      "id": "02-off",
+      "start": "2026-08-28T08:11:03.087Z",
+      "end": "2026-08-28T08:11:03.103Z",
+      "sourceSha256": "c7e17387655dfe75ca636dec670cc2b53870a2d1f745c4788bf111562016fadb",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67259,
+      "groupAbsent": true,
+      "capturedBytes": 198,
+      "stdout": "dotglob             \toff\n\u001estatus:0=1\nshopt -u dotglob\n\u001eend:0\n\u001estatus:1=1\nshopt -u dotglob\n\u001eend:1\nshopt -u dotglob\n\u001estatus:2=1\nshopt -u dotglob\n\u001eend:2\n",
+      "stderr": "\u001ebegin:0\n\u001eend:0\n\u001ebegin:1\n\u001eend:1\n\u001ebegin:2\n\u001eend:2\n",
+      "stdoutBase64": "ZG90Z2xvYiAgICAgICAgICAgICAJb2ZmCh5zdGF0dXM6MD0xCnNob3B0IC11IGRvdGdsb2IKHmVuZDowCh5zdGF0dXM6MT0xCnNob3B0IC11IGRvdGdsb2IKHmVuZDoxCnNob3B0IC11IGRvdGdsb2IKHnN0YXR1czoyPTEKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjIK",
+      "stderrBase64": "HmJlZ2luOjAKHmVuZDowCh5iZWdpbjoxCh5lbmQ6MQoeYmVnaW46MgoeZW5kOjIK"
+    },
+    {
+      "id": "03-set",
+      "start": "2026-08-28T08:11:03.104Z",
+      "end": "2026-08-28T08:11:03.118Z",
+      "sourceSha256": "e7ee7c8e2489369df6230ce6d70237b77566a5575dddf92e4a2ec2cccbe58b19",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67260,
+      "groupAbsent": true,
+      "capturedBytes": 249,
+      "stdout": "\u001estatus:0=0\nshopt -s dotglob\n\u001eend:0\ndotglob             \ton\n\u001estatus:1=0\nshopt -s dotglob\n\u001eend:1\n\u001estatus:2=0\nshopt -s dotglob\n\u001eend:2\nshopt -s dotglob\n\u001estatus:3=0\nshopt -s dotglob\n\u001eend:3\n",
+      "stderr": "\u001ebegin:0\n\u001eend:0\n\u001ebegin:1\n\u001eend:1\n\u001ebegin:2\n\u001eend:2\n\u001ebegin:3\n\u001eend:3\n",
+      "stdoutBase64": "HnN0YXR1czowPTAKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjAKZG90Z2xvYiAgICAgICAgICAgICAJb24KHnN0YXR1czoxPTAKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjEKHnN0YXR1czoyPTAKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjIKc2hvcHQgLXMgZG90Z2xvYgoec3RhdHVzOjM9MApzaG9wdCAtcyBkb3RnbG9iCh5lbmQ6Mwo=",
+      "stderrBase64": "HmJlZ2luOjAKHmVuZDowCh5iZWdpbjoxCh5lbmQ6MQoeYmVnaW46MgoeZW5kOjIKHmJlZ2luOjMKHmVuZDozCg=="
+    },
+    {
+      "id": "04-unset",
+      "start": "2026-08-28T08:11:03.119Z",
+      "end": "2026-08-28T08:11:03.129Z",
+      "sourceSha256": "033db50c4dfe8c5b0987e53dd897e7178c822efa3e2025ee2eadf5cc5c5eb211",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67261,
+      "groupAbsent": true,
+      "capturedBytes": 129,
+      "stdout": "\u001estatus:0=0\nshopt -u dotglob\n\u001eend:0\ndotglob             \toff\n\u001estatus:1=1\nshopt -u dotglob\n\u001eend:1\n",
+      "stderr": "\u001ebegin:0\n\u001eend:0\n\u001ebegin:1\n\u001eend:1\n",
+      "stdoutBase64": "HnN0YXR1czowPTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjAKZG90Z2xvYiAgICAgICAgICAgICAJb2ZmCh5zdGF0dXM6MT0xCnNob3B0IC11IGRvdGdsb2IKHmVuZDoxCg==",
+      "stderrBase64": "HmJlZ2luOjAKHmVuZDowCh5iZWdpbjoxCh5lbmQ6MQo="
+    },
+    {
+      "id": "05-conflict",
+      "start": "2026-08-28T08:11:03.130Z",
+      "end": "2026-08-28T08:11:03.142Z",
+      "sourceSha256": "3269a08b46dc40659993fc618e3ea875c2728ae042a0e80ad0d5345e6d3a9a4d",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67262,
+      "groupAbsent": true,
+      "capturedBytes": 546,
+      "stdout": "\u001estatus:0=1\nshopt -u dotglob\n\u001eend:0\n\u001estatus:1=1\nshopt -u dotglob\n\u001eend:1\n\u001estatus:2=1\nshopt -u dotglob\n\u001eend:2\n\u001estatus:3=1\nshopt -u dotglob\n\u001eend:3\n",
+      "stderr": "\u001ebegin:0\ndotglob-reference: line 3: shopt: cannot set and unset shell options simultaneously\n\u001eend:0\n\u001ebegin:1\ndotglob-reference: line 9: shopt: cannot set and unset shell options simultaneously\n\u001eend:1\n\u001ebegin:2\ndotglob-reference: line 15: shopt: cannot set and unset shell options simultaneously\n\u001eend:2\n\u001ebegin:3\ndotglob-reference: line 21: shopt: cannot set and unset shell options simultaneously\n\u001eend:3\n",
+      "stdoutBase64": "HnN0YXR1czowPTEKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjAKHnN0YXR1czoxPTEKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjEKHnN0YXR1czoyPTEKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjIKHnN0YXR1czozPTEKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjMK",
+      "stderrBase64": "HmJlZ2luOjAKZG90Z2xvYi1yZWZlcmVuY2U6IGxpbmUgMzogc2hvcHQ6IGNhbm5vdCBzZXQgYW5kIHVuc2V0IHNoZWxsIG9wdGlvbnMgc2ltdWx0YW5lb3VzbHkKHmVuZDowCh5iZWdpbjoxCmRvdGdsb2ItcmVmZXJlbmNlOiBsaW5lIDk6IHNob3B0OiBjYW5ub3Qgc2V0IGFuZCB1bnNldCBzaGVsbCBvcHRpb25zIHNpbXVsdGFuZW91c2x5Ch5lbmQ6MQoeYmVnaW46Mgpkb3RnbG9iLXJlZmVyZW5jZTogbGluZSAxNTogc2hvcHQ6IGNhbm5vdCBzZXQgYW5kIHVuc2V0IHNoZWxsIG9wdGlvbnMgc2ltdWx0YW5lb3VzbHkKHmVuZDoyCh5iZWdpbjozCmRvdGdsb2ItcmVmZXJlbmNlOiBsaW5lIDIxOiBzaG9wdDogY2Fubm90IHNldCBhbmQgdW5zZXQgc2hlbGwgb3B0aW9ucyBzaW11bHRhbmVvdXNseQoeZW5kOjMK"
+    },
+    {
+      "id": "06-repeat",
+      "start": "2026-08-28T08:11:03.142Z",
+      "end": "2026-08-28T08:11:03.153Z",
+      "sourceSha256": "60aff4c0b970626574d977891627c56c3e56c52b59318d25fde54e78ad6daff8",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67263,
+      "groupAbsent": true,
+      "capturedBytes": 225,
+      "stdout": "\u001estatus:0=0\nshopt -s dotglob\n\u001eend:0\n\u001estatus:1=0\nshopt -s dotglob\n\u001eend:1\nshopt -s dotglob\n\u001estatus:2=0\nshopt -s dotglob\n\u001eend:2\n\u001estatus:3=0\nshopt -u dotglob\n\u001eend:3\n",
+      "stderr": "\u001ebegin:0\n\u001eend:0\n\u001ebegin:1\n\u001eend:1\n\u001ebegin:2\n\u001eend:2\n\u001ebegin:3\n\u001eend:3\n",
+      "stdoutBase64": "HnN0YXR1czowPTAKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjAKHnN0YXR1czoxPTAKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjEKc2hvcHQgLXMgZG90Z2xvYgoec3RhdHVzOjI9MApzaG9wdCAtcyBkb3RnbG9iCh5lbmQ6Mgoec3RhdHVzOjM9MApzaG9wdCAtdSBkb3RnbG9iCh5lbmQ6Mwo=",
+      "stderrBase64": "HmJlZ2luOjAKHmVuZDowCh5iZWdpbjoxCh5lbmQ6MQoeYmVnaW46MgoeZW5kOjIKHmJlZ2luOjMKHmVuZDozCg=="
+    },
+    {
+      "id": "07-set-quiet",
+      "start": "2026-08-28T08:11:03.154Z",
+      "end": "2026-08-28T08:11:03.164Z",
+      "sourceSha256": "8bad3885f87980dcfcdac84dd9beeb8feac6bb100d94f12b06d2898ed5745ea1",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67264,
+      "groupAbsent": true,
+      "capturedBytes": 156,
+      "stdout": "\u001estatus:0=0\nshopt -s dotglob\n\u001eend:0\n\u001estatus:1=0\nshopt -u dotglob\n\u001eend:1\n\u001estatus:2=0\nshopt -s dotglob\n\u001eend:2\n",
+      "stderr": "\u001ebegin:0\n\u001eend:0\n\u001ebegin:1\n\u001eend:1\n\u001ebegin:2\n\u001eend:2\n",
+      "stdoutBase64": "HnN0YXR1czowPTAKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjAKHnN0YXR1czoxPTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjEKHnN0YXR1czoyPTAKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjIK",
+      "stderrBase64": "HmJlZ2luOjAKHmVuZDowCh5iZWdpbjoxCh5lbmQ6MQoeYmVnaW46MgoeZW5kOjIK"
+    },
+    {
+      "id": "08-unset-quiet",
+      "start": "2026-08-28T08:11:03.164Z",
+      "end": "2026-08-28T08:11:03.175Z",
+      "sourceSha256": "0f01d4c178144cb6cc3a3c858d079c38339a0bc0ad6f51f9c114f835d8e83038",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67265,
+      "groupAbsent": true,
+      "capturedBytes": 156,
+      "stdout": "\u001estatus:0=0\nshopt -u dotglob\n\u001eend:0\n\u001estatus:1=0\nshopt -s dotglob\n\u001eend:1\n\u001estatus:2=0\nshopt -u dotglob\n\u001eend:2\n",
+      "stderr": "\u001ebegin:0\n\u001eend:0\n\u001ebegin:1\n\u001eend:1\n\u001ebegin:2\n\u001eend:2\n",
+      "stdoutBase64": "HnN0YXR1czowPTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjAKHnN0YXR1czoxPTAKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjEKHnN0YXR1czoyPTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjIK",
+      "stderrBase64": "HmJlZ2luOjAKHmVuZDowCh5iZWdpbjoxCh5lbmQ6MQoeYmVnaW46MgoeZW5kOjIK"
+    },
+    {
+      "id": "09-set-print",
+      "start": "2026-08-28T08:11:03.176Z",
+      "end": "2026-08-28T08:11:03.188Z",
+      "sourceSha256": "e72d7300a7e6b5bd7f6dd6120babbe4cf1f2358eb7a2f5693f67a8afdbc63b62",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67266,
+      "groupAbsent": true,
+      "capturedBytes": 156,
+      "stdout": "\u001estatus:0=0\nshopt -s dotglob\n\u001eend:0\n\u001estatus:1=0\nshopt -u dotglob\n\u001eend:1\n\u001estatus:2=0\nshopt -s dotglob\n\u001eend:2\n",
+      "stderr": "\u001ebegin:0\n\u001eend:0\n\u001ebegin:1\n\u001eend:1\n\u001ebegin:2\n\u001eend:2\n",
+      "stdoutBase64": "HnN0YXR1czowPTAKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjAKHnN0YXR1czoxPTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjEKHnN0YXR1czoyPTAKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjIK",
+      "stderrBase64": "HmJlZ2luOjAKHmVuZDowCh5iZWdpbjoxCh5lbmQ6MQoeYmVnaW46MgoeZW5kOjIK"
+    },
+    {
+      "id": "10-unset-print",
+      "start": "2026-08-28T08:11:03.189Z",
+      "end": "2026-08-28T08:11:03.199Z",
+      "sourceSha256": "02c71fb85bb564cb01aea210c743d9b5a8416efb042e53f64221381ad8f455ff",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67267,
+      "groupAbsent": true,
+      "capturedBytes": 156,
+      "stdout": "\u001estatus:0=0\nshopt -u dotglob\n\u001eend:0\n\u001estatus:1=0\nshopt -s dotglob\n\u001eend:1\n\u001estatus:2=0\nshopt -u dotglob\n\u001eend:2\n",
+      "stderr": "\u001ebegin:0\n\u001eend:0\n\u001ebegin:1\n\u001eend:1\n\u001ebegin:2\n\u001eend:2\n",
+      "stdoutBase64": "HnN0YXR1czowPTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjAKHnN0YXR1czoxPTAKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjEKHnN0YXR1czoyPTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjIK",
+      "stderrBase64": "HmJlZ2luOjAKHmVuZDowCh5iZWdpbjoxCh5lbmQ6MQoeYmVnaW46MgoeZW5kOjIK"
+    },
+    {
+      "id": "11-quiet-print",
+      "start": "2026-08-28T08:11:03.199Z",
+      "end": "2026-08-28T08:11:03.210Z",
+      "sourceSha256": "25061fe6997d4d98e1813fa29a827a236c4b3a42210650d9fc5fec61bad41a64",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67268,
+      "groupAbsent": true,
+      "capturedBytes": 156,
+      "stdout": "\u001estatus:0=1\nshopt -u dotglob\n\u001eend:0\n\u001estatus:1=0\nshopt -s dotglob\n\u001eend:1\n\u001estatus:2=0\nshopt -s dotglob\n\u001eend:2\n",
+      "stderr": "\u001ebegin:0\n\u001eend:0\n\u001ebegin:1\n\u001eend:1\n\u001ebegin:2\n\u001eend:2\n",
+      "stdoutBase64": "HnN0YXR1czowPTEKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjAKHnN0YXR1czoxPTAKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjEKHnN0YXR1czoyPTAKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjIK",
+      "stderrBase64": "HmJlZ2luOjAKHmVuZDowCh5iZWdpbjoxCh5lbmQ6MQoeYmVnaW46MgoeZW5kOjIK"
+    },
+    {
+      "id": "12-filtered",
+      "start": "2026-08-28T08:11:03.211Z",
+      "end": "2026-08-28T08:11:03.222Z",
+      "sourceSha256": "a0a0593ce0083bef808b1c40eedc99a40f767508880ee88dc36a9f9e03f5722a",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67269,
+      "groupAbsent": true,
+      "capturedBytes": 3076,
+      "stdout": "checkwinsize        \ton\ncmdhist             \ton\ncomplete_fullquote  \ton\nextquote            \ton\nforce_fignore       \ton\nglobasciiranges     \ton\nglobskipdots        \ton\nhostcomplete        \ton\ninteractive_comments\ton\npatsub_replacement  \ton\nprogcomp            \ton\npromptvars          \ton\nsourcepath          \ton\n\u001estatus:0=0\nshopt -u dotglob\n\u001eend:0\narray_expand_once   \toff\nassoc_expand_once   \toff\nautocd              \toff\nbash_source_fullpath\toff\ncdable_vars         \toff\ncdspell             \toff\ncheckhash           \toff\ncheckjobs           \toff\ncompat31            \toff\ncompat32            \toff\ncompat40            \toff\ncompat41            \toff\ncompat42            \toff\ncompat43            \toff\ncompat44            \toff\ndirexpand           \toff\ndirspell            \toff\ndotglob             \toff\nexecfail            \toff\nexpand_aliases      \toff\nextdebug            \toff\nextglob             \toff\nfailglob            \toff\nglobstar            \toff\ngnu_errfmt          \toff\nhistappend          \toff\nhistreedit          \toff\nhistverify          \toff\nhuponexit           \toff\ninherit_errexit     \toff\nlastpipe            \toff\nlithist             \toff\nlocalvar_inherit    \toff\nlocalvar_unset      \toff\nlogin_shell         \toff\nmailwarn            \toff\nno_empty_cmd_completion\toff\nnocaseglob          \toff\nnocasematch         \toff\nnoexpand_translation\toff\nnullglob            \toff\nprogcomp_alias      \toff\nrestricted_shell    \toff\nshift_verbose       \toff\nvarredir_close      \toff\nxpg_echo            \toff\n\u001estatus:1=0\nshopt -u dotglob\n\u001eend:1\nshopt -s checkwinsize\nshopt -s cmdhist\nshopt -s complete_fullquote\nshopt -s extquote\nshopt -s force_fignore\nshopt -s globasciiranges\nshopt -s globskipdots\nshopt -s hostcomplete\nshopt -s interactive_comments\nshopt -s patsub_replacement\nshopt -s progcomp\nshopt -s promptvars\nshopt -s sourcepath\n\u001estatus:2=0\nshopt -u dotglob\n\u001eend:2\nshopt -u array_expand_once\nshopt -u assoc_expand_once\nshopt -u autocd\nshopt -u bash_source_fullpath\nshopt -u cdable_vars\nshopt -u cdspell\nshopt -u checkhash\nshopt -u checkjobs\nshopt -u compat31\nshopt -u compat32\nshopt -u compat40\nshopt -u compat41\nshopt -u compat42\nshopt -u compat43\nshopt -u compat44\nshopt -u direxpand\nshopt -u dirspell\nshopt -u dotglob\nshopt -u execfail\nshopt -u expand_aliases\nshopt -u extdebug\nshopt -u extglob\nshopt -u failglob\nshopt -u globstar\nshopt -u gnu_errfmt\nshopt -u histappend\nshopt -u histreedit\nshopt -u histverify\nshopt -u huponexit\nshopt -u inherit_errexit\nshopt -u lastpipe\nshopt -u lithist\nshopt -u localvar_inherit\nshopt -u localvar_unset\nshopt -u login_shell\nshopt -u mailwarn\nshopt -u no_empty_cmd_completion\nshopt -u nocaseglob\nshopt -u nocasematch\nshopt -u noexpand_translation\nshopt -u nullglob\nshopt -u progcomp_alias\nshopt -u restricted_shell\nshopt -u shift_verbose\nshopt -u varredir_close\nshopt -u xpg_echo\n\u001estatus:3=0\nshopt -u dotglob\n\u001eend:3\n\u001estatus:4=0\nshopt -u dotglob\n\u001eend:4\n\u001estatus:5=0\nshopt -u dotglob\n\u001eend:5\n\u001estatus:6=0\nshopt -u dotglob\n\u001eend:6\n",
+      "stderr": "\u001ebegin:0\n\u001eend:0\n\u001ebegin:1\n\u001eend:1\n\u001ebegin:2\n\u001eend:2\n\u001ebegin:3\n\u001eend:3\n\u001ebegin:4\n\u001eend:4\n\u001ebegin:5\n\u001eend:5\n\u001ebegin:6\n\u001eend:6\n",
+      "stdoutBase64": "Y2hlY2t3aW5zaXplICAgICAgICAJb24KY21kaGlzdCAgICAgICAgICAgICAJb24KY29tcGxldGVfZnVsbHF1b3RlICAJb24KZXh0cXVvdGUgICAgICAgICAgICAJb24KZm9yY2VfZmlnbm9yZSAgICAgICAJb24KZ2xvYmFzY2lpcmFuZ2VzICAgICAJb24KZ2xvYnNraXBkb3RzICAgICAgICAJb24KaG9zdGNvbXBsZXRlICAgICAgICAJb24KaW50ZXJhY3RpdmVfY29tbWVudHMJb24KcGF0c3ViX3JlcGxhY2VtZW50ICAJb24KcHJvZ2NvbXAgICAgICAgICAgICAJb24KcHJvbXB0dmFycyAgICAgICAgICAJb24Kc291cmNlcGF0aCAgICAgICAgICAJb24KHnN0YXR1czowPTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjAKYXJyYXlfZXhwYW5kX29uY2UgICAJb2ZmCmFzc29jX2V4cGFuZF9vbmNlICAgCW9mZgphdXRvY2QgICAgICAgICAgICAgIAlvZmYKYmFzaF9zb3VyY2VfZnVsbHBhdGgJb2ZmCmNkYWJsZV92YXJzICAgICAgICAgCW9mZgpjZHNwZWxsICAgICAgICAgICAgIAlvZmYKY2hlY2toYXNoICAgICAgICAgICAJb2ZmCmNoZWNram9icyAgICAgICAgICAgCW9mZgpjb21wYXQzMSAgICAgICAgICAgIAlvZmYKY29tcGF0MzIgICAgICAgICAgICAJb2ZmCmNvbXBhdDQwICAgICAgICAgICAgCW9mZgpjb21wYXQ0MSAgICAgICAgICAgIAlvZmYKY29tcGF0NDIgICAgICAgICAgICAJb2ZmCmNvbXBhdDQzICAgICAgICAgICAgCW9mZgpjb21wYXQ0NCAgICAgICAgICAgIAlvZmYKZGlyZXhwYW5kICAgICAgICAgICAJb2ZmCmRpcnNwZWxsICAgICAgICAgICAgCW9mZgpkb3RnbG9iICAgICAgICAgICAgIAlvZmYKZXhlY2ZhaWwgICAgICAgICAgICAJb2ZmCmV4cGFuZF9hbGlhc2VzICAgICAgCW9mZgpleHRkZWJ1ZyAgICAgICAgICAgIAlvZmYKZXh0Z2xvYiAgICAgICAgICAgICAJb2ZmCmZhaWxnbG9iICAgICAgICAgICAgCW9mZgpnbG9ic3RhciAgICAgICAgICAgIAlvZmYKZ251X2VycmZtdCAgICAgICAgICAJb2ZmCmhpc3RhcHBlbmQgICAgICAgICAgCW9mZgpoaXN0cmVlZGl0ICAgICAgICAgIAlvZmYKaGlzdHZlcmlmeSAgICAgICAgICAJb2ZmCmh1cG9uZXhpdCAgICAgICAgICAgCW9mZgppbmhlcml0X2VycmV4aXQgICAgIAlvZmYKbGFzdHBpcGUgICAgICAgICAgICAJb2ZmCmxpdGhpc3QgICAgICAgICAgICAgCW9mZgpsb2NhbHZhcl9pbmhlcml0ICAgIAlvZmYKbG9jYWx2YXJfdW5zZXQgICAgICAJb2ZmCmxvZ2luX3NoZWxsICAgICAgICAgCW9mZgptYWlsd2FybiAgICAgICAgICAgIAlvZmYKbm9fZW1wdHlfY21kX2NvbXBsZXRpb24Jb2ZmCm5vY2FzZWdsb2IgICAgICAgICAgCW9mZgpub2Nhc2VtYXRjaCAgICAgICAgIAlvZmYKbm9leHBhbmRfdHJhbnNsYXRpb24Jb2ZmCm51bGxnbG9iICAgICAgICAgICAgCW9mZgpwcm9nY29tcF9hbGlhcyAgICAgIAlvZmYKcmVzdHJpY3RlZF9zaGVsbCAgICAJb2ZmCnNoaWZ0X3ZlcmJvc2UgICAgICAgCW9mZgp2YXJyZWRpcl9jbG9zZSAgICAgIAlvZmYKeHBnX2VjaG8gICAgICAgICAgICAJb2ZmCh5zdGF0dXM6MT0wCnNob3B0IC11IGRvdGdsb2IKHmVuZDoxCnNob3B0IC1zIGNoZWNrd2luc2l6ZQpzaG9wdCAtcyBjbWRoaXN0CnNob3B0IC1zIGNvbXBsZXRlX2Z1bGxxdW90ZQpzaG9wdCAtcyBleHRxdW90ZQpzaG9wdCAtcyBmb3JjZV9maWdub3JlCnNob3B0IC1zIGdsb2Jhc2NpaXJhbmdlcwpzaG9wdCAtcyBnbG9ic2tpcGRvdHMKc2hvcHQgLXMgaG9zdGNvbXBsZXRlCnNob3B0IC1zIGludGVyYWN0aXZlX2NvbW1lbnRzCnNob3B0IC1zIHBhdHN1Yl9yZXBsYWNlbWVudApzaG9wdCAtcyBwcm9nY29tcApzaG9wdCAtcyBwcm9tcHR2YXJzCnNob3B0IC1zIHNvdXJjZXBhdGgKHnN0YXR1czoyPTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjIKc2hvcHQgLXUgYXJyYXlfZXhwYW5kX29uY2UKc2hvcHQgLXUgYXNzb2NfZXhwYW5kX29uY2UKc2hvcHQgLXUgYXV0b2NkCnNob3B0IC11IGJhc2hfc291cmNlX2Z1bGxwYXRoCnNob3B0IC11IGNkYWJsZV92YXJzCnNob3B0IC11IGNkc3BlbGwKc2hvcHQgLXUgY2hlY2toYXNoCnNob3B0IC11IGNoZWNram9icwpzaG9wdCAtdSBjb21wYXQzMQpzaG9wdCAtdSBjb21wYXQzMgpzaG9wdCAtdSBjb21wYXQ0MApzaG9wdCAtdSBjb21wYXQ0MQpzaG9wdCAtdSBjb21wYXQ0MgpzaG9wdCAtdSBjb21wYXQ0MwpzaG9wdCAtdSBjb21wYXQ0NApzaG9wdCAtdSBkaXJleHBhbmQKc2hvcHQgLXUgZGlyc3BlbGwKc2hvcHQgLXUgZG90Z2xvYgpzaG9wdCAtdSBleGVjZmFpbApzaG9wdCAtdSBleHBhbmRfYWxpYXNlcwpzaG9wdCAtdSBleHRkZWJ1ZwpzaG9wdCAtdSBleHRnbG9iCnNob3B0IC11IGZhaWxnbG9iCnNob3B0IC11IGdsb2JzdGFyCnNob3B0IC11IGdudV9lcnJmbXQKc2hvcHQgLXUgaGlzdGFwcGVuZApzaG9wdCAtdSBoaXN0cmVlZGl0CnNob3B0IC11IGhpc3R2ZXJpZnkKc2hvcHQgLXUgaHVwb25leGl0CnNob3B0IC11IGluaGVyaXRfZXJyZXhpdApzaG9wdCAtdSBsYXN0cGlwZQpzaG9wdCAtdSBsaXRoaXN0CnNob3B0IC11IGxvY2FsdmFyX2luaGVyaXQKc2hvcHQgLXUgbG9jYWx2YXJfdW5zZXQKc2hvcHQgLXUgbG9naW5fc2hlbGwKc2hvcHQgLXUgbWFpbHdhcm4Kc2hvcHQgLXUgbm9fZW1wdHlfY21kX2NvbXBsZXRpb24Kc2hvcHQgLXUgbm9jYXNlZ2xvYgpzaG9wdCAtdSBub2Nhc2VtYXRjaApzaG9wdCAtdSBub2V4cGFuZF90cmFuc2xhdGlvbgpzaG9wdCAtdSBudWxsZ2xvYgpzaG9wdCAtdSBwcm9nY29tcF9hbGlhcwpzaG9wdCAtdSByZXN0cmljdGVkX3NoZWxsCnNob3B0IC11IHNoaWZ0X3ZlcmJvc2UKc2hvcHQgLXUgdmFycmVkaXJfY2xvc2UKc2hvcHQgLXUgeHBnX2VjaG8KHnN0YXR1czozPTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjMKHnN0YXR1czo0PTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjQKHnN0YXR1czo1PTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjUKHnN0YXR1czo2PTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjYK",
+      "stderrBase64": "HmJlZ2luOjAKHmVuZDowCh5iZWdpbjoxCh5lbmQ6MQoeYmVnaW46MgoeZW5kOjIKHmJlZ2luOjMKHmVuZDozCh5iZWdpbjo0Ch5lbmQ6NAoeYmVnaW46NQoeZW5kOjUKHmJlZ2luOjYKHmVuZDo2Cg=="
+    },
+    {
+      "id": "13-end-options",
+      "start": "2026-08-28T08:11:03.223Z",
+      "end": "2026-08-28T08:11:03.233Z",
+      "sourceSha256": "e11fc758ed79c1c0840543aaee2cfe259d2edda3bd5c737d3db4b91db7e49182",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67270,
+      "groupAbsent": true,
+      "capturedBytes": 246,
+      "stdout": "dotglob             \toff\n\u001estatus:0=1\nshopt -u dotglob\n\u001eend:0\n\u001estatus:1=0\nshopt -s dotglob\n\u001eend:1\n\u001estatus:2=1\nshopt -s dotglob\n\u001eend:2\n",
+      "stderr": "\u001ebegin:0\n\u001eend:0\n\u001ebegin:1\n\u001eend:1\n\u001ebegin:2\ndotglob-reference: line 15: shopt: -s: invalid shell option name\n\u001eend:2\n",
+      "stdoutBase64": "ZG90Z2xvYiAgICAgICAgICAgICAJb2ZmCh5zdGF0dXM6MD0xCnNob3B0IC11IGRvdGdsb2IKHmVuZDowCh5zdGF0dXM6MT0wCnNob3B0IC1zIGRvdGdsb2IKHmVuZDoxCh5zdGF0dXM6Mj0xCnNob3B0IC1zIGRvdGdsb2IKHmVuZDoyCg==",
+      "stderrBase64": "HmJlZ2luOjAKHmVuZDowCh5iZWdpbjoxCh5lbmQ6MQoeYmVnaW46Mgpkb3RnbG9iLXJlZmVyZW5jZTogbGluZSAxNTogc2hvcHQ6IC1zOiBpbnZhbGlkIHNoZWxsIG9wdGlvbiBuYW1lCh5lbmQ6Mgo="
+    },
+    {
+      "id": "14-unsupported-flags",
+      "start": "2026-08-28T08:11:03.233Z",
+      "end": "2026-08-28T08:11:03.241Z",
+      "sourceSha256": "9d88407ae4914d4e3c6f79f3393c3acb73812854ab2381e43be2382db852b8b2",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67271,
+      "groupAbsent": true,
+      "capturedBytes": 267,
+      "stdout": "\u001estatus:0=2\nshopt -u dotglob\n\u001eend:0\n\u001estatus:1=1\nshopt -u dotglob\n\u001eend:1\n",
+      "stderr": "\u001ebegin:0\ndotglob-reference: line 3: shopt: -z: invalid option\nshopt: usage: shopt [-pqsu] [-o] [optname ...]\n\u001eend:0\n\u001ebegin:1\ndotglob-reference: line 9: shopt: dotglob: invalid option name\n\u001eend:1\n",
+      "stdoutBase64": "HnN0YXR1czowPTIKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjAKHnN0YXR1czoxPTEKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjEK",
+      "stderrBase64": "HmJlZ2luOjAKZG90Z2xvYi1yZWZlcmVuY2U6IGxpbmUgMzogc2hvcHQ6IC16OiBpbnZhbGlkIG9wdGlvbgpzaG9wdDogdXNhZ2U6IHNob3B0IFstcHFzdV0gWy1vXSBbb3B0bmFtZSAuLi5dCh5lbmQ6MAoeYmVnaW46MQpkb3RnbG9iLXJlZmVyZW5jZTogbGluZSA5OiBzaG9wdDogZG90Z2xvYjogaW52YWxpZCBvcHRpb24gbmFtZQoeZW5kOjEK"
+    },
+    {
+      "id": "15-nonoption-order",
+      "start": "2026-08-28T08:11:03.242Z",
+      "end": "2026-08-28T08:11:03.252Z",
+      "sourceSha256": "effc97488e43cdb3ccf125bb7f0b4d35a1a46940eb4d296e39165da77a5028e7",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67272,
+      "groupAbsent": true,
+      "capturedBytes": 257,
+      "stdout": "dotglob             \toff\n\u001estatus:0=1\nshopt -u dotglob\n\u001eend:0\n\u001estatus:1=1\nshopt -s dotglob\n\u001eend:1\n",
+      "stderr": "\u001ebegin:0\ndotglob-reference: line 3: shopt: -s: invalid shell option name\n\u001eend:0\n\u001ebegin:1\ndotglob-reference: line 9: shopt: -u: invalid shell option name\n\u001eend:1\n",
+      "stdoutBase64": "ZG90Z2xvYiAgICAgICAgICAgICAJb2ZmCh5zdGF0dXM6MD0xCnNob3B0IC11IGRvdGdsb2IKHmVuZDowCh5zdGF0dXM6MT0xCnNob3B0IC1zIGRvdGdsb2IKHmVuZDoxCg==",
+      "stderrBase64": "HmJlZ2luOjAKZG90Z2xvYi1yZWZlcmVuY2U6IGxpbmUgMzogc2hvcHQ6IC1zOiBpbnZhbGlkIHNoZWxsIG9wdGlvbiBuYW1lCh5lbmQ6MAoeYmVnaW46MQpkb3RnbG9iLXJlZmVyZW5jZTogbGluZSA5OiBzaG9wdDogLXU6IGludmFsaWQgc2hlbGwgb3B0aW9uIG5hbWUKHmVuZDoxCg=="
+    },
+    {
+      "id": "16-partial-set",
+      "start": "2026-08-28T08:11:03.252Z",
+      "end": "2026-08-28T08:11:03.267Z",
+      "sourceSha256": "e61298c559d3cc0eb646baf251acdfc576f86af7da11ca7e702eb52e2656999a",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67274,
+      "groupAbsent": true,
+      "capturedBytes": 311,
+      "stdout": "\u001estatus:0=1\nshopt -s dotglob\n\u001eend:0\n\u001estatus:1=0\nshopt -u dotglob\n\u001eend:1\n\u001estatus:2=1\nshopt -s dotglob\n\u001eend:2\n",
+      "stderr": "\u001ebegin:0\ndotglob-reference: line 3: shopt: unknown_dotglob: invalid shell option name\n\u001eend:0\n\u001ebegin:1\n\u001eend:1\n\u001ebegin:2\ndotglob-reference: line 15: shopt: unknown_dotglob: invalid shell option name\n\u001eend:2\n",
+      "stdoutBase64": "HnN0YXR1czowPTEKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjAKHnN0YXR1czoxPTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjEKHnN0YXR1czoyPTEKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjIK",
+      "stderrBase64": "HmJlZ2luOjAKZG90Z2xvYi1yZWZlcmVuY2U6IGxpbmUgMzogc2hvcHQ6IHVua25vd25fZG90Z2xvYjogaW52YWxpZCBzaGVsbCBvcHRpb24gbmFtZQoeZW5kOjAKHmJlZ2luOjEKHmVuZDoxCh5iZWdpbjoyCmRvdGdsb2ItcmVmZXJlbmNlOiBsaW5lIDE1OiBzaG9wdDogdW5rbm93bl9kb3RnbG9iOiBpbnZhbGlkIHNoZWxsIG9wdGlvbiBuYW1lCh5lbmQ6Mgo="
+    },
+    {
+      "id": "17-partial-unset",
+      "start": "2026-08-28T08:11:03.267Z",
+      "end": "2026-08-28T08:11:03.279Z",
+      "sourceSha256": "753fee1761c56c2a8658e2aa5e76f2eeb3953bc67fd583e4b7f611065cab01e9",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67275,
+      "groupAbsent": true,
+      "capturedBytes": 129,
+      "stdout": "\u001estatus:0=1\nshopt -u dotglob\n\u001eend:0\n",
+      "stderr": "\u001ebegin:0\ndotglob-reference: line 3: shopt: unknown_dotglob: invalid shell option name\n\u001eend:0\n",
+      "stdoutBase64": "HnN0YXR1czowPTEKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjAK",
+      "stderrBase64": "HmJlZ2luOjAKZG90Z2xvYi1yZWZlcmVuY2U6IGxpbmUgMzogc2hvcHQ6IHVua25vd25fZG90Z2xvYjogaW52YWxpZCBzaGVsbCBvcHRpb24gbmFtZQoeZW5kOjAK"
+    },
+    {
+      "id": "18-mixed-list",
+      "start": "2026-08-28T08:11:03.280Z",
+      "end": "2026-08-28T08:11:03.291Z",
+      "sourceSha256": "0c576b430b787354e734e88449366621d93aa0ec9bd63bf4e1eee811621c3f72",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67276,
+      "groupAbsent": true,
+      "capturedBytes": 395,
+      "stdout": "dotglob             \toff\ndotglob             \toff\n\u001estatus:0=1\nshopt -u dotglob\n\u001eend:0\n\u001estatus:1=0\nshopt -s dotglob\n\u001eend:1\nshopt -s dotglob\nshopt -s dotglob\n\u001estatus:2=1\nshopt -s dotglob\n\u001eend:2\n",
+      "stderr": "\u001ebegin:0\ndotglob-reference: line 3: shopt: unknown_dotglob: invalid shell option name\n\u001eend:0\n\u001ebegin:1\n\u001eend:1\n\u001ebegin:2\ndotglob-reference: line 15: shopt: unknown_dotglob: invalid shell option name\n\u001eend:2\n",
+      "stdoutBase64": "ZG90Z2xvYiAgICAgICAgICAgICAJb2ZmCmRvdGdsb2IgICAgICAgICAgICAgCW9mZgoec3RhdHVzOjA9MQpzaG9wdCAtdSBkb3RnbG9iCh5lbmQ6MAoec3RhdHVzOjE9MApzaG9wdCAtcyBkb3RnbG9iCh5lbmQ6MQpzaG9wdCAtcyBkb3RnbG9iCnNob3B0IC1zIGRvdGdsb2IKHnN0YXR1czoyPTEKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjIK",
+      "stderrBase64": "HmJlZ2luOjAKZG90Z2xvYi1yZWZlcmVuY2U6IGxpbmUgMzogc2hvcHQ6IHVua25vd25fZG90Z2xvYjogaW52YWxpZCBzaGVsbCBvcHRpb24gbmFtZQoeZW5kOjAKHmJlZ2luOjEKHmVuZDoxCh5iZWdpbjoyCmRvdGdsb2ItcmVmZXJlbmNlOiBsaW5lIDE1OiBzaG9wdDogdW5rbm93bl9kb3RnbG9iOiBpbnZhbGlkIHNoZWxsIG9wdGlvbiBuYW1lCh5lbmQ6Mgo="
+    },
+    {
+      "id": "19-quiet-error",
+      "start": "2026-08-28T08:11:03.292Z",
+      "end": "2026-08-28T08:11:03.303Z",
+      "sourceSha256": "972536481f09b24b243180b5a89c5b26f8f2f3375470930ed367942a3efce7aa",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67277,
+      "groupAbsent": true,
+      "capturedBytes": 258,
+      "stdout": "\u001estatus:0=1\nshopt -u dotglob\n\u001eend:0\n\u001estatus:1=1\nshopt -s dotglob\n\u001eend:1\n",
+      "stderr": "\u001ebegin:0\ndotglob-reference: line 3: shopt: unknown_dotglob: invalid shell option name\n\u001eend:0\n\u001ebegin:1\ndotglob-reference: line 9: shopt: unknown_dotglob: invalid shell option name\n\u001eend:1\n",
+      "stdoutBase64": "HnN0YXR1czowPTEKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjAKHnN0YXR1czoxPTEKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjEK",
+      "stderrBase64": "HmJlZ2luOjAKZG90Z2xvYi1yZWZlcmVuY2U6IGxpbmUgMzogc2hvcHQ6IHVua25vd25fZG90Z2xvYjogaW52YWxpZCBzaGVsbCBvcHRpb24gbmFtZQoeZW5kOjAKHmJlZ2luOjEKZG90Z2xvYi1yZWZlcmVuY2U6IGxpbmUgOTogc2hvcHQ6IHVua25vd25fZG90Z2xvYjogaW52YWxpZCBzaGVsbCBvcHRpb24gbmFtZQoeZW5kOjEK"
+    },
+    {
+      "id": "20-native-alias-option",
+      "start": "2026-08-28T08:11:03.304Z",
+      "end": "2026-08-28T08:11:03.316Z",
+      "sourceSha256": "fd281a076645447d28458968672e86298a39ae5bdb9080a8a6e909e2e586fe63",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67279,
+      "groupAbsent": true,
+      "capturedBytes": 208,
+      "stdout": "\u001estatus:0=0\nshopt -u dotglob\n\u001eend:0\n\u001estatus:1=0\nshopt -u dotglob\n\u001eend:1\n\u001estatus:2=0\nshopt -u dotglob\n\u001eend:2\n\u001estatus:3=1\nshopt -u dotglob\n\u001eend:3\n",
+      "stderr": "\u001ebegin:0\n\u001eend:0\n\u001ebegin:1\n\u001eend:1\n\u001ebegin:2\n\u001eend:2\n\u001ebegin:3\n\u001eend:3\n",
+      "stdoutBase64": "HnN0YXR1czowPTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjAKHnN0YXR1czoxPTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjEKHnN0YXR1czoyPTAKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjIKHnN0YXR1czozPTEKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjMK",
+      "stderrBase64": "HmJlZ2luOjAKHmVuZDowCh5iZWdpbjoxCh5lbmQ6MQoeYmVnaW46MgoeZW5kOjIKHmJlZ2luOjMKHmVuZDozCg=="
+    },
+    {
+      "id": "21-name-validation",
+      "start": "2026-08-28T08:11:03.317Z",
+      "end": "2026-08-28T08:11:03.329Z",
+      "sourceSha256": "b3fc2c786c82a0345c63933e126ec26ffcfb4824a48bcbb79ece49fb727b65a6",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67280,
+      "groupAbsent": true,
+      "capturedBytes": 468,
+      "stdout": "\u001estatus:0=1\nshopt -u dotglob\n\u001eend:0\n\u001estatus:1=1\nshopt -u dotglob\n\u001eend:1\n\u001estatus:2=1\nshopt -u dotglob\n\u001eend:2\n\u001estatus:3=1\nshopt -u dotglob\n\u001eend:3\n",
+      "stderr": "\u001ebegin:0\ndotglob-reference: line 3: shopt: : invalid shell option name\n\u001eend:0\n\u001ebegin:1\ndotglob-reference: line 9: shopt: -: invalid shell option name\n\u001eend:1\n\u001ebegin:2\ndotglob-reference: line 15: shopt: +s: invalid shell option name\n\u001eend:2\n\u001ebegin:3\ndotglob-reference: line 21: shopt: Dotglob: invalid shell option name\n\u001eend:3\n",
+      "stdoutBase64": "HnN0YXR1czowPTEKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjAKHnN0YXR1czoxPTEKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjEKHnN0YXR1czoyPTEKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjIKHnN0YXR1czozPTEKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjMK",
+      "stderrBase64": "HmJlZ2luOjAKZG90Z2xvYi1yZWZlcmVuY2U6IGxpbmUgMzogc2hvcHQ6IDogaW52YWxpZCBzaGVsbCBvcHRpb24gbmFtZQoeZW5kOjAKHmJlZ2luOjEKZG90Z2xvYi1yZWZlcmVuY2U6IGxpbmUgOTogc2hvcHQ6IC06IGludmFsaWQgc2hlbGwgb3B0aW9uIG5hbWUKHmVuZDoxCh5iZWdpbjoyCmRvdGdsb2ItcmVmZXJlbmNlOiBsaW5lIDE1OiBzaG9wdDogK3M6IGludmFsaWQgc2hlbGwgb3B0aW9uIG5hbWUKHmVuZDoyCh5iZWdpbjozCmRvdGdsb2ItcmVmZXJlbmNlOiBsaW5lIDIxOiBzaG9wdDogRG90Z2xvYjogaW52YWxpZCBzaGVsbCBvcHRpb24gbmFtZQoeZW5kOjMK"
+    },
+    {
+      "id": "22-parse-before-mutation",
+      "start": "2026-08-28T08:11:03.330Z",
+      "end": "2026-08-28T08:11:03.341Z",
+      "sourceSha256": "6453c1334bb75bdbab6faf8134c420d46f1a28536070d6c77a8dc152d5eb30d0",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67281,
+      "groupAbsent": true,
+      "capturedBytes": 281,
+      "stdout": "\u001estatus:0=2\nshopt -u dotglob\n\u001eend:0\n\u001estatus:1=1\nshopt -s dotglob\n\u001eend:1\n",
+      "stderr": "\u001ebegin:0\ndotglob-reference: line 3: shopt: -z: invalid option\nshopt: usage: shopt [-pqsu] [-o] [optname ...]\n\u001eend:0\n\u001ebegin:1\ndotglob-reference: line 9: shopt: unknown_dotglob: invalid shell option name\n\u001eend:1\n",
+      "stdoutBase64": "HnN0YXR1czowPTIKc2hvcHQgLXUgZG90Z2xvYgoeZW5kOjAKHnN0YXR1czoxPTEKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjEK",
+      "stderrBase64": "HmJlZ2luOjAKZG90Z2xvYi1yZWZlcmVuY2U6IGxpbmUgMzogc2hvcHQ6IC16OiBpbnZhbGlkIG9wdGlvbgpzaG9wdDogdXNhZ2U6IHNob3B0IFstcHFzdV0gWy1vXSBbb3B0bmFtZSAuLi5dCh5lbmQ6MAoeYmVnaW46MQpkb3RnbG9iLXJlZmVyZW5jZTogbGluZSA5OiBzaG9wdDogdW5rbm93bl9kb3RnbG9iOiBpbnZhbGlkIHNoZWxsIG9wdGlvbiBuYW1lCh5lbmQ6MQo="
+    },
+    {
+      "id": "23-full-print-restrict",
+      "start": "2026-08-28T08:11:03.342Z",
+      "end": "2026-08-28T08:11:03.353Z",
+      "sourceSha256": "4e50bdacff8df4d512deb62aae69b0f555f0e425c69dc21e1c7f03c5c9cf7b14",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67282,
+      "groupAbsent": true,
+      "capturedBytes": 1541,
+      "stdout": "shopt -u array_expand_once\nshopt -u assoc_expand_once\nshopt -u autocd\nshopt -u bash_source_fullpath\nshopt -u cdable_vars\nshopt -u cdspell\nshopt -u checkhash\nshopt -u checkjobs\nshopt -s checkwinsize\nshopt -s cmdhist\nshopt -u compat31\nshopt -u compat32\nshopt -u compat40\nshopt -u compat41\nshopt -u compat42\nshopt -u compat43\nshopt -u compat44\nshopt -s complete_fullquote\nshopt -u direxpand\nshopt -u dirspell\nshopt -u dotglob\nshopt -u execfail\nshopt -u expand_aliases\nshopt -u extdebug\nshopt -u extglob\nshopt -s extquote\nshopt -u failglob\nshopt -s force_fignore\nshopt -s globasciiranges\nshopt -s globskipdots\nshopt -u globstar\nshopt -u gnu_errfmt\nshopt -u histappend\nshopt -u histreedit\nshopt -u histverify\nshopt -s hostcomplete\nshopt -u huponexit\nshopt -u inherit_errexit\nshopt -s interactive_comments\nshopt -u lastpipe\nshopt -u lithist\nshopt -u localvar_inherit\nshopt -u localvar_unset\nshopt -u login_shell\nshopt -u mailwarn\nshopt -u no_empty_cmd_completion\nshopt -u nocaseglob\nshopt -u nocasematch\nshopt -u noexpand_translation\nshopt -u nullglob\nshopt -s patsub_replacement\nshopt -s progcomp\nshopt -u progcomp_alias\nshopt -s promptvars\nshopt -u restricted_shell\nshopt -u shift_verbose\nshopt -s sourcepath\nshopt -u varredir_close\nshopt -u xpg_echo\n\u001estatus:0=0\nshopt -u dotglob\n\u001eend:0\n\u001estatus:1=0\nshopt -s dotglob\n\u001eend:1\n\u001estatus:2=0\nshopt -s dotglob\n\u001eend:2\n\u001estatus:3=0\nshopt -s dotglob\n\u001eend:3\nshopt -s dotglob\nshopt -s dotglob\n\u001estatus:4=0\nshopt -s dotglob\n\u001eend:4\n",
+      "stderr": "\u001ebegin:0\n\u001eend:0\n\u001ebegin:1\n\u001eend:1\n\u001ebegin:2\n\u001eend:2\n\u001ebegin:3\n\u001eend:3\n\u001ebegin:4\n\u001eend:4\n",
+      "stdoutBase64": "c2hvcHQgLXUgYXJyYXlfZXhwYW5kX29uY2UKc2hvcHQgLXUgYXNzb2NfZXhwYW5kX29uY2UKc2hvcHQgLXUgYXV0b2NkCnNob3B0IC11IGJhc2hfc291cmNlX2Z1bGxwYXRoCnNob3B0IC11IGNkYWJsZV92YXJzCnNob3B0IC11IGNkc3BlbGwKc2hvcHQgLXUgY2hlY2toYXNoCnNob3B0IC11IGNoZWNram9icwpzaG9wdCAtcyBjaGVja3dpbnNpemUKc2hvcHQgLXMgY21kaGlzdApzaG9wdCAtdSBjb21wYXQzMQpzaG9wdCAtdSBjb21wYXQzMgpzaG9wdCAtdSBjb21wYXQ0MApzaG9wdCAtdSBjb21wYXQ0MQpzaG9wdCAtdSBjb21wYXQ0MgpzaG9wdCAtdSBjb21wYXQ0MwpzaG9wdCAtdSBjb21wYXQ0NApzaG9wdCAtcyBjb21wbGV0ZV9mdWxscXVvdGUKc2hvcHQgLXUgZGlyZXhwYW5kCnNob3B0IC11IGRpcnNwZWxsCnNob3B0IC11IGRvdGdsb2IKc2hvcHQgLXUgZXhlY2ZhaWwKc2hvcHQgLXUgZXhwYW5kX2FsaWFzZXMKc2hvcHQgLXUgZXh0ZGVidWcKc2hvcHQgLXUgZXh0Z2xvYgpzaG9wdCAtcyBleHRxdW90ZQpzaG9wdCAtdSBmYWlsZ2xvYgpzaG9wdCAtcyBmb3JjZV9maWdub3JlCnNob3B0IC1zIGdsb2Jhc2NpaXJhbmdlcwpzaG9wdCAtcyBnbG9ic2tpcGRvdHMKc2hvcHQgLXUgZ2xvYnN0YXIKc2hvcHQgLXUgZ251X2VycmZtdApzaG9wdCAtdSBoaXN0YXBwZW5kCnNob3B0IC11IGhpc3RyZWVkaXQKc2hvcHQgLXUgaGlzdHZlcmlmeQpzaG9wdCAtcyBob3N0Y29tcGxldGUKc2hvcHQgLXUgaHVwb25leGl0CnNob3B0IC11IGluaGVyaXRfZXJyZXhpdApzaG9wdCAtcyBpbnRlcmFjdGl2ZV9jb21tZW50cwpzaG9wdCAtdSBsYXN0cGlwZQpzaG9wdCAtdSBsaXRoaXN0CnNob3B0IC11IGxvY2FsdmFyX2luaGVyaXQKc2hvcHQgLXUgbG9jYWx2YXJfdW5zZXQKc2hvcHQgLXUgbG9naW5fc2hlbGwKc2hvcHQgLXUgbWFpbHdhcm4Kc2hvcHQgLXUgbm9fZW1wdHlfY21kX2NvbXBsZXRpb24Kc2hvcHQgLXUgbm9jYXNlZ2xvYgpzaG9wdCAtdSBub2Nhc2VtYXRjaApzaG9wdCAtdSBub2V4cGFuZF90cmFuc2xhdGlvbgpzaG9wdCAtdSBudWxsZ2xvYgpzaG9wdCAtcyBwYXRzdWJfcmVwbGFjZW1lbnQKc2hvcHQgLXMgcHJvZ2NvbXAKc2hvcHQgLXUgcHJvZ2NvbXBfYWxpYXMKc2hvcHQgLXMgcHJvbXB0dmFycwpzaG9wdCAtdSByZXN0cmljdGVkX3NoZWxsCnNob3B0IC11IHNoaWZ0X3ZlcmJvc2UKc2hvcHQgLXMgc291cmNlcGF0aApzaG9wdCAtdSB2YXJyZWRpcl9jbG9zZQpzaG9wdCAtdSB4cGdfZWNobwoec3RhdHVzOjA9MApzaG9wdCAtdSBkb3RnbG9iCh5lbmQ6MAoec3RhdHVzOjE9MApzaG9wdCAtcyBkb3RnbG9iCh5lbmQ6MQoec3RhdHVzOjI9MApzaG9wdCAtcyBkb3RnbG9iCh5lbmQ6Mgoec3RhdHVzOjM9MApzaG9wdCAtcyBkb3RnbG9iCh5lbmQ6MwpzaG9wdCAtcyBkb3RnbG9iCnNob3B0IC1zIGRvdGdsb2IKHnN0YXR1czo0PTAKc2hvcHQgLXMgZG90Z2xvYgoeZW5kOjQK",
+      "stderrBase64": "HmJlZ2luOjAKHmVuZDowCh5iZWdpbjoxCh5lbmQ6MQoeYmVnaW46MgoeZW5kOjIKHmJlZ2luOjMKHmVuZDozCh5iZWdpbjo0Ch5lbmQ6NAo="
+    },
+    {
+      "id": "24-glob-timing",
+      "start": "2026-08-28T08:11:03.356Z",
+      "end": "2026-08-28T08:11:03.380Z",
+      "sourceSha256": "203a7265f84d9492da57249d62596d1728343e2f9735416611b220e904947779",
+      "before": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        },
+        {
+          "path": ".hidden",
+          "type": "file",
+          "mode": 384,
+          "bytes": 2,
+          "sha256": "91ee5e9f42ba3d34e414443b36a27b797a56a47aad6bb1e4c1769e69c77ce0ca"
+        },
+        {
+          "path": ".nest",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        },
+        {
+          "path": ".nest/plain",
+          "type": "file",
+          "mode": 384,
+          "bytes": 2,
+          "sha256": "fd6641673e7f3bf6e80e4bc5401fcb2821a1e117206c8e1c65cef23a58dc37ff"
+        },
+        {
+          "path": "nest",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        },
+        {
+          "path": "nest/.inner",
+          "type": "file",
+          "mode": 384,
+          "bytes": 2,
+          "sha256": "50c393f158c3de2db92fa9661bfb00eda5b67c3a777c88524ed3417509631625"
+        },
+        {
+          "path": "nest/plain",
+          "type": "file",
+          "mode": 384,
+          "bytes": 2,
+          "sha256": "fd6641673e7f3bf6e80e4bc5401fcb2821a1e117206c8e1c65cef23a58dc37ff"
+        },
+        {
+          "path": "visible",
+          "type": "file",
+          "mode": 384,
+          "bytes": 2,
+          "sha256": "73324e1ab1db72ee9eb4fdf1c90a586d67e00ab58330d1cbfea26ecd0a77fa4d"
+        }
+      ],
+      "after": [
+        {
+          "path": ".",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        },
+        {
+          "path": ".hidden",
+          "type": "file",
+          "mode": 384,
+          "bytes": 2,
+          "sha256": "91ee5e9f42ba3d34e414443b36a27b797a56a47aad6bb1e4c1769e69c77ce0ca"
+        },
+        {
+          "path": ".nest",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        },
+        {
+          "path": ".nest/plain",
+          "type": "file",
+          "mode": 384,
+          "bytes": 2,
+          "sha256": "fd6641673e7f3bf6e80e4bc5401fcb2821a1e117206c8e1c65cef23a58dc37ff"
+        },
+        {
+          "path": "nest",
+          "type": "directory",
+          "mode": 448,
+          "bytes": null
+        },
+        {
+          "path": "nest/.inner",
+          "type": "file",
+          "mode": 384,
+          "bytes": 2,
+          "sha256": "50c393f158c3de2db92fa9661bfb00eda5b67c3a777c88524ed3417509631625"
+        },
+        {
+          "path": "nest/plain",
+          "type": "file",
+          "mode": 384,
+          "bytes": 2,
+          "sha256": "fd6641673e7f3bf6e80e4bc5401fcb2821a1e117206c8e1c65cef23a58dc37ff"
+        },
+        {
+          "path": "visible",
+          "type": "file",
+          "mode": 384,
+          "bytes": 2,
+          "sha256": "73324e1ab1db72ee9eb4fdf1c90a586d67e00ab58330d1cbfea26ecd0a77fa4d"
+        }
+      ],
+      "status": 0,
+      "signal": null,
+      "fault": null,
+      "pid": 67284,
+      "groupAbsent": true,
+      "capturedBytes": 282,
+      "stdout": "<nest>\n<visible>\n<.hidden>\n<.nest>\n<.>\n<..>\n<.hidden>\n<.nest>\n<nest>\n<visible>\n<.nest/plain>\n<nest/.inner>\n<nest/plain>\n<.hidden>\n<.hidden>\n<.nest>\n<visible>\n<*>\n<missing*>\n<.>\n<..>\n<nest>\n<visible>\n<nest/plain>\n<.hidden>\n<.nest>\n\u001estatus:0=0\nshopt -u dotglob\n\u001eend:0\n",
+      "stderr": "\u001ebegin:0\n\u001eend:0\n",
+      "stdoutBase64": "PG5lc3Q+Cjx2aXNpYmxlPgo8LmhpZGRlbj4KPC5uZXN0Pgo8Lj4KPC4uPgo8LmhpZGRlbj4KPC5uZXN0Pgo8bmVzdD4KPHZpc2libGU+CjwubmVzdC9wbGFpbj4KPG5lc3QvLmlubmVyPgo8bmVzdC9wbGFpbj4KPC5oaWRkZW4+CjwuaGlkZGVuPgo8Lm5lc3Q+Cjx2aXNpYmxlPgo8Kj4KPG1pc3NpbmcqPgo8Lj4KPC4uPgo8bmVzdD4KPHZpc2libGU+CjxuZXN0L3BsYWluPgo8LmhpZGRlbj4KPC5uZXN0Pgoec3RhdHVzOjA9MApzaG9wdCAtdSBkb3RnbG9iCh5lbmQ6MAo=",
+      "stderrBase64": "HmJlZ2luOjAKHmVuZDowCg=="
+    }
+  ],
+  "fixtureCensus": [
+    {
+      "path": ".",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "01-default",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "02-off",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "03-set",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "04-unset",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "05-conflict",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "06-repeat",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "07-set-quiet",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "08-unset-quiet",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "09-set-print",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "10-unset-print",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "11-quiet-print",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "12-filtered",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "13-end-options",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "14-unsupported-flags",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "15-nonoption-order",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "16-partial-set",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "17-partial-unset",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "18-mixed-list",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "19-quiet-error",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "20-native-alias-option",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "21-name-validation",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "22-parse-before-mutation",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "23-full-print-restrict",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "24-glob-timing",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "24-glob-timing/.hidden",
+      "type": "file",
+      "mode": 384,
+      "bytes": 2,
+      "sha256": "91ee5e9f42ba3d34e414443b36a27b797a56a47aad6bb1e4c1769e69c77ce0ca"
+    },
+    {
+      "path": "24-glob-timing/.nest",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "24-glob-timing/.nest/plain",
+      "type": "file",
+      "mode": 384,
+      "bytes": 2,
+      "sha256": "fd6641673e7f3bf6e80e4bc5401fcb2821a1e117206c8e1c65cef23a58dc37ff"
+    },
+    {
+      "path": "24-glob-timing/nest",
+      "type": "directory",
+      "mode": 448,
+      "bytes": null
+    },
+    {
+      "path": "24-glob-timing/nest/.inner",
+      "type": "file",
+      "mode": 384,
+      "bytes": 2,
+      "sha256": "50c393f158c3de2db92fa9661bfb00eda5b67c3a777c88524ed3417509631625"
+    },
+    {
+      "path": "24-glob-timing/nest/plain",
+      "type": "file",
+      "mode": 384,
+      "bytes": 2,
+      "sha256": "fd6641673e7f3bf6e80e4bc5401fcb2821a1e117206c8e1c65cef23a58dc37ff"
+    },
+    {
+      "path": "24-glob-timing/visible",
+      "type": "file",
+      "mode": 384,
+      "bytes": 2,
+      "sha256": "73324e1ab1db72ee9eb4fdf1c90a586d67e00ab58330d1cbfea26ecd0a77fa4d"
+    }
+  ],
+  "completed": "2026-08-28T08:11:03.440Z",
+  "groupAbsenceConfirmed": true,
+  "summary": {
+    "nativeCalls": 24,
+    "probeObservations": 72,
+    "probeStatusCounts": {
+      "0": 43,
+      "1": 27,
+      "2": 2
+    },
+    "processStatusCounts": {
+      "0": 24
+    },
+    "fixtureChanges": [],
+    "maxCapturedBytes": 3076,
+    "groupAbsenceConfirmed": true,
+    "started": "2026-08-28T08:11:03.063Z",
+    "ended": "2026-08-28T08:11:03.440Z",
+    "passCount": null,
+    "qualification": "Observations, including expected positive/error cases, not product passes or parity."
+  }
+}

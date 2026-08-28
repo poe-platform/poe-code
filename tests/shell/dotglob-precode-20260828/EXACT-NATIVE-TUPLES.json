@@ -1,0 +1,599 @@
+{
+  "summary": {
+    "nativeCalls": 24,
+    "probeObservations": 72,
+    "probeStatusCounts": {
+      "0": 43,
+      "1": 27,
+      "2": 2
+    },
+    "processStatusCounts": {
+      "0": 24
+    },
+    "fixtureChanges": [],
+    "maxCapturedBytes": 3076,
+    "groupAbsenceConfirmed": true,
+    "started": "2026-08-28T08:11:03.063Z",
+    "ended": "2026-08-28T08:11:03.440Z",
+    "passCount": null,
+    "qualification": "Observations, including expected positive/error cases, not product passes or parity."
+  },
+  "tuples": [
+    {
+      "id": "01-default:0",
+      "command": "shopt",
+      "stdout": "array_expand_once   \toff\nassoc_expand_once   \toff\nautocd              \toff\nbash_source_fullpath\toff\ncdable_vars         \toff\ncdspell             \toff\ncheckhash           \toff\ncheckjobs           \toff\ncheckwinsize        \ton\ncmdhist             \ton\ncompat31            \toff\ncompat32            \toff\ncompat40            \toff\ncompat41            \toff\ncompat42            \toff\ncompat43            \toff\ncompat44            \toff\ncomplete_fullquote  \ton\ndirexpand           \toff\ndirspell            \toff\ndotglob             \toff\nexecfail            \toff\nexpand_aliases      \toff\nextdebug            \toff\nextglob             \toff\nextquote            \ton\nfailglob            \toff\nforce_fignore       \ton\nglobasciiranges     \ton\nglobskipdots        \ton\nglobstar            \toff\ngnu_errfmt          \toff\nhistappend          \toff\nhistreedit          \toff\nhistverify          \toff\nhostcomplete        \ton\nhuponexit           \toff\ninherit_errexit     \toff\ninteractive_comments\ton\nlastpipe            \toff\nlithist             \toff\nlocalvar_inherit    \toff\nlocalvar_unset      \toff\nlogin_shell         \toff\nmailwarn            \toff\nno_empty_cmd_completion\toff\nnocaseglob          \toff\nnocasematch         \toff\nnoexpand_translation\toff\nnullglob            \toff\npatsub_replacement  \ton\nprogcomp            \ton\nprogcomp_alias      \toff\npromptvars          \ton\nrestricted_shell    \toff\nshift_verbose       \toff\nsourcepath          \ton\nvarredir_close      \toff\nxpg_echo            \toff\n",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "02-off:0",
+      "command": "shopt dotglob",
+      "stdout": "dotglob             \toff\n",
+      "stderr": "",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "02-off:1",
+      "command": "shopt -q dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "02-off:2",
+      "command": "shopt -p dotglob",
+      "stdout": "shopt -u dotglob\n",
+      "stderr": "",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "03-set:0",
+      "command": "shopt -s dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "03-set:1",
+      "command": "shopt dotglob",
+      "stdout": "dotglob             \ton\n",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "03-set:2",
+      "command": "shopt -q dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "03-set:3",
+      "command": "shopt -p dotglob",
+      "stdout": "shopt -s dotglob\n",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "04-unset:0",
+      "command": "shopt -u dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "04-unset:1",
+      "command": "shopt dotglob",
+      "stdout": "dotglob             \toff\n",
+      "stderr": "",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "05-conflict:0",
+      "command": "shopt -su dotglob",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 3: shopt: cannot set and unset shell options simultaneously\n",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "05-conflict:1",
+      "command": "shopt -us dotglob",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 9: shopt: cannot set and unset shell options simultaneously\n",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "05-conflict:2",
+      "command": "shopt -s -u dotglob",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 15: shopt: cannot set and unset shell options simultaneously\n",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "05-conflict:3",
+      "command": "shopt -u -s dotglob",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 21: shopt: cannot set and unset shell options simultaneously\n",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "06-repeat:0",
+      "command": "shopt -ss -s dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "06-repeat:1",
+      "command": "shopt -qq -q dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "06-repeat:2",
+      "command": "shopt -pp -p dotglob",
+      "stdout": "shopt -s dotglob\n",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "06-repeat:3",
+      "command": "shopt -uu -u dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "07-set-quiet:0",
+      "command": "shopt -sq dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "07-set-quiet:1",
+      "command": "shopt -u dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "07-set-quiet:2",
+      "command": "shopt -qs dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "08-unset-quiet:0",
+      "command": "shopt -uq dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "08-unset-quiet:1",
+      "command": "shopt -s dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "08-unset-quiet:2",
+      "command": "shopt -qu dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "09-set-print:0",
+      "command": "shopt -sp dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "09-set-print:1",
+      "command": "shopt -u dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "09-set-print:2",
+      "command": "shopt -ps dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "10-unset-print:0",
+      "command": "shopt -up dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "10-unset-print:1",
+      "command": "shopt -s dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "10-unset-print:2",
+      "command": "shopt -pu dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "11-quiet-print:0",
+      "command": "shopt -qp dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "11-quiet-print:1",
+      "command": "shopt -s dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "11-quiet-print:2",
+      "command": "shopt -pq dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "12-filtered:0",
+      "command": "shopt -s",
+      "stdout": "checkwinsize        \ton\ncmdhist             \ton\ncomplete_fullquote  \ton\nextquote            \ton\nforce_fignore       \ton\nglobasciiranges     \ton\nglobskipdots        \ton\nhostcomplete        \ton\ninteractive_comments\ton\npatsub_replacement  \ton\nprogcomp            \ton\npromptvars          \ton\nsourcepath          \ton\n",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "12-filtered:1",
+      "command": "shopt -u",
+      "stdout": "array_expand_once   \toff\nassoc_expand_once   \toff\nautocd              \toff\nbash_source_fullpath\toff\ncdable_vars         \toff\ncdspell             \toff\ncheckhash           \toff\ncheckjobs           \toff\ncompat31            \toff\ncompat32            \toff\ncompat40            \toff\ncompat41            \toff\ncompat42            \toff\ncompat43            \toff\ncompat44            \toff\ndirexpand           \toff\ndirspell            \toff\ndotglob             \toff\nexecfail            \toff\nexpand_aliases      \toff\nextdebug            \toff\nextglob             \toff\nfailglob            \toff\nglobstar            \toff\ngnu_errfmt          \toff\nhistappend          \toff\nhistreedit          \toff\nhistverify          \toff\nhuponexit           \toff\ninherit_errexit     \toff\nlastpipe            \toff\nlithist             \toff\nlocalvar_inherit    \toff\nlocalvar_unset      \toff\nlogin_shell         \toff\nmailwarn            \toff\nno_empty_cmd_completion\toff\nnocaseglob          \toff\nnocasematch         \toff\nnoexpand_translation\toff\nnullglob            \toff\nprogcomp_alias      \toff\nrestricted_shell    \toff\nshift_verbose       \toff\nvarredir_close      \toff\nxpg_echo            \toff\n",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "12-filtered:2",
+      "command": "shopt -sp",
+      "stdout": "shopt -s checkwinsize\nshopt -s cmdhist\nshopt -s complete_fullquote\nshopt -s extquote\nshopt -s force_fignore\nshopt -s globasciiranges\nshopt -s globskipdots\nshopt -s hostcomplete\nshopt -s interactive_comments\nshopt -s patsub_replacement\nshopt -s progcomp\nshopt -s promptvars\nshopt -s sourcepath\n",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "12-filtered:3",
+      "command": "shopt -up",
+      "stdout": "shopt -u array_expand_once\nshopt -u assoc_expand_once\nshopt -u autocd\nshopt -u bash_source_fullpath\nshopt -u cdable_vars\nshopt -u cdspell\nshopt -u checkhash\nshopt -u checkjobs\nshopt -u compat31\nshopt -u compat32\nshopt -u compat40\nshopt -u compat41\nshopt -u compat42\nshopt -u compat43\nshopt -u compat44\nshopt -u direxpand\nshopt -u dirspell\nshopt -u dotglob\nshopt -u execfail\nshopt -u expand_aliases\nshopt -u extdebug\nshopt -u extglob\nshopt -u failglob\nshopt -u globstar\nshopt -u gnu_errfmt\nshopt -u histappend\nshopt -u histreedit\nshopt -u histverify\nshopt -u huponexit\nshopt -u inherit_errexit\nshopt -u lastpipe\nshopt -u lithist\nshopt -u localvar_inherit\nshopt -u localvar_unset\nshopt -u login_shell\nshopt -u mailwarn\nshopt -u no_empty_cmd_completion\nshopt -u nocaseglob\nshopt -u nocasematch\nshopt -u noexpand_translation\nshopt -u nullglob\nshopt -u progcomp_alias\nshopt -u restricted_shell\nshopt -u shift_verbose\nshopt -u varredir_close\nshopt -u xpg_echo\n",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "12-filtered:4",
+      "command": "shopt -sq",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "12-filtered:5",
+      "command": "shopt -uq",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "12-filtered:6",
+      "command": "shopt -q",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "13-end-options:0",
+      "command": "shopt -- dotglob",
+      "stdout": "dotglob             \toff\n",
+      "stderr": "",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "13-end-options:1",
+      "command": "shopt -s -- dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "13-end-options:2",
+      "command": "shopt -- -s",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 15: shopt: -s: invalid shell option name\n",
+      "status": 1,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "14-unsupported-flags:0",
+      "command": "shopt -z dotglob",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 3: shopt: -z: invalid option\nshopt: usage: shopt [-pqsu] [-o] [optname ...]\n",
+      "status": 2,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "14-unsupported-flags:1",
+      "command": "shopt -o dotglob",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 9: shopt: dotglob: invalid option name\n",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "15-nonoption-order:0",
+      "command": "shopt dotglob -s",
+      "stdout": "dotglob             \toff\n",
+      "stderr": "dotglob-reference: line 3: shopt: -s: invalid shell option name\n",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "15-nonoption-order:1",
+      "command": "shopt -s dotglob -u",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 9: shopt: -u: invalid shell option name\n",
+      "status": 1,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "16-partial-set:0",
+      "command": "shopt -s dotglob unknown_dotglob dotglob",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 3: shopt: unknown_dotglob: invalid shell option name\n",
+      "status": 1,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "16-partial-set:1",
+      "command": "shopt -u dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "16-partial-set:2",
+      "command": "shopt -s unknown_dotglob dotglob",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 15: shopt: unknown_dotglob: invalid shell option name\n",
+      "status": 1,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "17-partial-unset:0",
+      "command": "shopt -u dotglob unknown_dotglob dotglob",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 3: shopt: unknown_dotglob: invalid shell option name\n",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "18-mixed-list:0",
+      "command": "shopt dotglob unknown_dotglob dotglob",
+      "stdout": "dotglob             \toff\ndotglob             \toff\n",
+      "stderr": "dotglob-reference: line 3: shopt: unknown_dotglob: invalid shell option name\n",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "18-mixed-list:1",
+      "command": "shopt -s dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "18-mixed-list:2",
+      "command": "shopt -p dotglob unknown_dotglob dotglob",
+      "stdout": "shopt -s dotglob\nshopt -s dotglob\n",
+      "stderr": "dotglob-reference: line 15: shopt: unknown_dotglob: invalid shell option name\n",
+      "status": 1,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "19-quiet-error:0",
+      "command": "shopt -q dotglob unknown_dotglob dotglob",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 3: shopt: unknown_dotglob: invalid shell option name\n",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "19-quiet-error:1",
+      "command": "shopt -sq dotglob unknown_dotglob dotglob",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 9: shopt: unknown_dotglob: invalid shell option name\n",
+      "status": 1,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "20-native-alias-option:0",
+      "command": "shopt -s expand_aliases",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "20-native-alias-option:1",
+      "command": "shopt -q expand_aliases",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "20-native-alias-option:2",
+      "command": "shopt -u expand_aliases",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "20-native-alias-option:3",
+      "command": "shopt -q expand_aliases",
+      "stdout": "",
+      "stderr": "",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "21-name-validation:0",
+      "command": "shopt ''",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 3: shopt: : invalid shell option name\n",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "21-name-validation:1",
+      "command": "shopt -",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 9: shopt: -: invalid shell option name\n",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "21-name-validation:2",
+      "command": "shopt +s",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 15: shopt: +s: invalid shell option name\n",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "21-name-validation:3",
+      "command": "shopt Dotglob",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 21: shopt: Dotglob: invalid shell option name\n",
+      "status": 1,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "22-parse-before-mutation:0",
+      "command": "shopt -s -z dotglob",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 3: shopt: -z: invalid option\nshopt: usage: shopt [-pqsu] [-o] [optname ...]\n",
+      "status": 2,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "22-parse-before-mutation:1",
+      "command": "shopt -s -- dotglob unknown_dotglob dotglob",
+      "stdout": "",
+      "stderr": "dotglob-reference: line 9: shopt: unknown_dotglob: invalid shell option name\n",
+      "status": 1,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "23-full-print-restrict:0",
+      "command": "shopt -p",
+      "stdout": "shopt -u array_expand_once\nshopt -u assoc_expand_once\nshopt -u autocd\nshopt -u bash_source_fullpath\nshopt -u cdable_vars\nshopt -u cdspell\nshopt -u checkhash\nshopt -u checkjobs\nshopt -s checkwinsize\nshopt -s cmdhist\nshopt -u compat31\nshopt -u compat32\nshopt -u compat40\nshopt -u compat41\nshopt -u compat42\nshopt -u compat43\nshopt -u compat44\nshopt -s complete_fullquote\nshopt -u direxpand\nshopt -u dirspell\nshopt -u dotglob\nshopt -u execfail\nshopt -u expand_aliases\nshopt -u extdebug\nshopt -u extglob\nshopt -s extquote\nshopt -u failglob\nshopt -s force_fignore\nshopt -s globasciiranges\nshopt -s globskipdots\nshopt -u globstar\nshopt -u gnu_errfmt\nshopt -u histappend\nshopt -u histreedit\nshopt -u histverify\nshopt -s hostcomplete\nshopt -u huponexit\nshopt -u inherit_errexit\nshopt -s interactive_comments\nshopt -u lastpipe\nshopt -u lithist\nshopt -u localvar_inherit\nshopt -u localvar_unset\nshopt -u login_shell\nshopt -u mailwarn\nshopt -u no_empty_cmd_completion\nshopt -u nocaseglob\nshopt -u nocasematch\nshopt -u noexpand_translation\nshopt -u nullglob\nshopt -s patsub_replacement\nshopt -s progcomp\nshopt -u progcomp_alias\nshopt -s promptvars\nshopt -u restricted_shell\nshopt -u shift_verbose\nshopt -s sourcepath\nshopt -u varredir_close\nshopt -u xpg_echo\n",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    },
+    {
+      "id": "23-full-print-restrict:1",
+      "command": "shopt -s dotglob",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "23-full-print-restrict:2",
+      "command": "shopt -sq",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "23-full-print-restrict:3",
+      "command": "shopt -uq",
+      "stdout": "",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "23-full-print-restrict:4",
+      "command": "shopt -p dotglob dotglob",
+      "stdout": "shopt -s dotglob\nshopt -s dotglob\n",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -s dotglob\n"
+    },
+    {
+      "id": "24-glob-timing:0",
+      "command": "printf '<%s>\\n' * .* . ..; shopt -s dotglob; printf '<%s>\\n' * */* [.]hidden [.v]* '*' missing* . ..; shopt -u dotglob; printf '<%s>\\n' * */* .*",
+      "stdout": "<nest>\n<visible>\n<.hidden>\n<.nest>\n<.>\n<..>\n<.hidden>\n<.nest>\n<nest>\n<visible>\n<.nest/plain>\n<nest/.inner>\n<nest/plain>\n<.hidden>\n<.hidden>\n<.nest>\n<visible>\n<*>\n<missing*>\n<.>\n<..>\n<nest>\n<visible>\n<nest/plain>\n<.hidden>\n<.nest>\n",
+      "stderr": "",
+      "status": 0,
+      "poststate": "shopt -u dotglob\n"
+    }
+  ]
+}

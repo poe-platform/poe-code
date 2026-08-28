@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "createdAt": "2026-08-28T01:57:35.922Z",
+  "candidate": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+  "tree": "48e5ae39ce98e1c8e416bae77da40d88b75e1db5",
+  "sourceTree": "2922ffbc540b0f114905b3d3d9b80a508de23aed",
+  "base": "284857d7aa9b0ee0df2b6fdd1a71f41115d7b909",
+  "fixtureSource": "7119f0c084e8d4f50074ca4c47c7311bc48792c8",
+  "freezeSha256": "afa209c6f4718fa54b95ff02fc325939919c92a53334093c7bd82483e4994c89",
+  "changes": [
+    {
+      "path": "src/shell/cancellation.ts",
+      "revision": "57855a0293edb83bff98113123806497b4427416",
+      "blob": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+      "sha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2",
+      "bytes": 31986,
+      "role": "accepted source/doc blob"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+      "blob": "ef94adf238122441a66c2232fb3055aaee62d290",
+      "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+      "bytes": 9253,
+      "role": "accepted source/doc blob"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+      "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "bytes": 2968,
+      "role": "accepted source/doc blob"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+      "blob": "bf41b4a97de4c20a0206abfd7b235cefd0aee1db",
+      "sha256": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169",
+      "bytes": 132362,
+      "role": "accepted source/doc blob"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+      "blob": "0b96a82f4ec29da4dbdd447806cca6a2f514311a",
+      "sha256": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24",
+      "bytes": 15002,
+      "role": "accepted source/doc blob"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "revision": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "bytes": 2223,
+      "role": "accepted source/doc blob"
+    },
+    {
+      "path": "tests/commands/split/integration.test.ts",
+      "revision": "7119f0c084e8d4f50074ca4c47c7311bc48792c8",
+      "blob": "4dc071248f05a803e2434535623df38a8d4db235",
+      "sha256": "4b26e93acfe8ff5b178f3a529519cb5db941157b3c6dd1ab8a0fe4779431f957",
+      "bytes": 5201,
+      "role": "authorized maintained inventory fixture"
+    },
+    {
+      "path": "tests/commands/stream-format-author-stress/contracts.test.ts",
+      "revision": "7119f0c084e8d4f50074ca4c47c7311bc48792c8",
+      "blob": "a9ffb762f0a4953830d8317d2965418cefe8bfef",
+      "sha256": "c9174c37590ca02e367e5674bee185965a4530b3ef1edaa94a5cc483807ea4ab",
+      "bytes": 8978,
+      "role": "authorized maintained inventory fixture"
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+      "revision": "7119f0c084e8d4f50074ca4c47c7311bc48792c8",
+      "blob": "96727c36b1099e121bafef3a85784ddc76f5e410",
+      "sha256": "9431438e95b088146bc9c56b7e24c87e0ab333b26de97205b4da424e67c0a928",
+      "bytes": 9815,
+      "role": "authorized maintained inventory fixture"
+    },
+    {
+      "path": "tests/plugins/stream-five-public/consumer.mjs",
+      "revision": "7119f0c084e8d4f50074ca4c47c7311bc48792c8",
+      "blob": "669e0ba7bb8e123f5e06a60198ecc6baeb99028f",
+      "sha256": "3e840eefb1f1bfd3b14b7168bcb5b89116679d6dbd28f8784c988e40dcecf221",
+      "bytes": 7809,
+      "role": "authorized maintained inventory fixture"
+    }
+  ],
+  "rawCommitBase64": "dHJlZSA0OGU1YWUzOWNlOThlMWM4ZTQxNmJhZTc3ZGE0MGQ4OGI3NWUxZGI1CnBhcmVudCAyODQ4NTdkN2FhOWIwZWUwZGYyYjZmZGQxYTcxZjQxMTE1ZDdiOTA5CmF1dGhvciBLYW1pbCBKb3BlayA8a2pvcGVrQHF1b3JhLmNvbT4gMTc4Nzg4MjI1NSAtMDUwMApjb21taXR0ZXIgS2FtaWwgSm9wZWsgPGtqb3Bla0BxdW9yYS5jb20+IDE3ODc4ODIyNTUgLTA1MDAKCkNvaGVyZW50NzcgcmVhZGluZXNzOiBhY2NlcHRlZCBXSElDSDc3ICsgaGVscGVyNTc4ICsgZXhhY3QgU3RhZ2UyIGZpdmUgYmxvYnMgKyBmb3VyIG1haW50YWluZWQgaW52ZW50b3JpZXMK",
+  "rawCommitSha256": "285999c1e01e52076a2ae9075db6cafd26c791a73a7c5af24cd9ce02e1039f59",
+  "packageManifestSha256": "64846cc0868630f863fade5119cef195a949aa0ed36ecc341bd9a076d6c363e2",
+  "basePackageSha256": "49191d098e1e9f5b946f24dd898377144062110047cf6975d3cbf5d2c71214c0",
+  "packageQualification": "The accepted base tarball is historical; a new package hash must be observed after the Stage2 rebuild.",
+  "defaultCount": 77,
+  "customCount": 78,
+  "wholeGateLaunched": false,
+  "independentCombinedAcceptance": false
+}

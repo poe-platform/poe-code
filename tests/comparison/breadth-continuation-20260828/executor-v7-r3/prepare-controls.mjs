@@ -1,0 +1,21 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import { helperClosure, buildFixture } from './fixture.mjs';
+import { authenticatePacket } from './authorization.mjs';
+import { createStore } from './records.mjs';
+
+const root = path.dirname(fileURLToPath(import.meta.url));
+const recipe = authenticatePacket(root);
+const plan = JSON.parse(fs.readFileSync(path.join(root, 'PLAN.json')));
+const output = path.join(root, 'runs', plan.runId);
+fs.mkdirSync(output, { mode: 0o755 });
+const closure = helperClosure();
+const cases = plan.cases.map(specimen => buildFixture(path.join(output, specimen.id), specimen, closure));
+const store = createStore(output);
+const reference = store.save('FIXTURES.json', { recipe, cases, helpers: closure.size, permission: 'EIGHT_WHOLE_WORKER_STUBS_ONLY_NO_REAL_AUTHORITY' });
+const receipt = { schema: 'R3_DATA_PREPARATION_NOT_EXECUTION', recipeSha256: recipe, reference, fixtures: cases.length, helperClosure: closure.size, workerExecutions: 0, metadataStubExecutions: 0, realEngines: 0, realGitAuthority: 0, cases: cases.map(item => ({ id: item.specimen.id, bodySha256: item.bodySha256, fixtureSealSha256: item.recipe, configSha256: item.configSha256, initialFiles: item.initial.length, adapted: item.changed })) };
+const bytes = Buffer.from(`${JSON.stringify(receipt, null, 2)}\n`);
+fs.writeFileSync(path.join(output, 'PREPARATION.json'), bytes, { flag: 'wx', mode: 0o644 });
+process.stdout.write(`${JSON.stringify({ ...receipt, cases: undefined, preparationBytes: bytes.length, preparationSha256: createHash('sha256').update(bytes).digest('hex') })}\n`);

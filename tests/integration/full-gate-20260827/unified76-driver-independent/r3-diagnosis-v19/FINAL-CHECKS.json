@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "checkedAt": "2026-08-28T10:01:21.352324-05:00",
+  "freezeCommit": "09cc890407adabb2ce9d501b299c49b6751d7ee7",
+  "commands": [
+    {
+      "command": "python3 tests/integration/full-gate-20260827/unified76-driver-independent/r3-diagnosis-v19/verify-data.py",
+      "exit": 0,
+      "scope": "bounded source/data only, no subject imports or execution"
+    },
+    {
+      "command": "python3 tests/integration/full-gate-20260827/unified76-driver-independent/r3-diagnosis-v19/complete-mapping.py",
+      "exit": 0,
+      "scope": "source/data classification only"
+    }
+  ],
+  "parserBeforeUseSyntaxSourceChecked": true,
+  "retainedCaptureFilesPostHashVerified": 928,
+  "retainedRawBytesPostHashVerified": 114734734,
+  "retained286EntriesPostMetadataVerified": true,
+  "oldDiagnosisAndR3LiveBlobsStillEqualPinned": 943,
+  "priorArtifactsNotModified": true,
+  "indexBeforeAndAfterEmpty": true,
+  "trackedForeignDiffEmpty": true,
+  "noWorkersOrScratchTreesCreated": true,
+  "newSubjectExecutions": 0,
+  "newProcessSignals": 0,
+  "newPrivateReads": 0,
+  "retainedRootsModified": false,
+  "queryErrorsPreserved": [
+    "Source filename instruction-fence.mjs absent; corrected readonly lookup to os-instruction-fence.mjs.",
+    "Ad-hoc JSON directories list indexed as dict: TypeError; used authenticated EXTERNAL object instead.",
+    "Ad-hoc instructionEntries integer passed to len: TypeError; printed captured integer0 only. No private content read."
+  ],
+  "files": [
+    {
+      "path": "CRITERIA.md",
+      "bytes": 2324,
+      "sha256": "ebb8f8ab5a50994c98a0af717fa7c6b2378467da9beed127c7b15c56e4f6e671"
+    },
+    {
+      "path": "verify-data.py",
+      "bytes": 15331,
+      "sha256": "61ed3329b731ea9ce9eda2fbce624cd551bfc0747232859023a792b87e0b40da"
+    },
+    {
+      "path": "complete-mapping.py",
+      "bytes": 19372,
+      "sha256": "6a723840a381484f8213995f6a86014cb3a322b6df7eb156f1e089872c0dc95f"
+    },
+    {
+      "path": "BINDINGS.json",
+      "bytes": 475081,
+      "sha256": "4f0702428ecfd593d9acbadae698d43efad64408c9abd373c907199cbe652372"
+    },
+    {
+      "path": "CROSSWALK.json",
+      "bytes": 282883,
+      "sha256": "a259fbde6f2c8d247c29e08abc44fcde46239a8624d44d207cd5711077fb79f8"
+    },
+    {
+      "path": "FILESYSTEM.json",
+      "bytes": 157831,
+      "sha256": "ab71bc47d8b1e620c81b00f967103da484f5879e26b905e6d3f6039351658e95"
+    },
+    {
+      "path": "ASSESSMENT.json",
+      "bytes": 15431,
+      "sha256": "ddd1199f9b2c817aa2a4af387c37b78328929e69e77e98a7df01bd8f5f9da403"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 14382,
+      "sha256": "22cda7d46da98ae464ec2c5fab3d89cd3c45bb1c9c167d049affea7abbab66c7"
+    }
+  ],
+  "finalDataWordingCuration": {
+    "ids": [
+      "tap-line-1498",
+      "tap-line-1516"
+    ],
+    "change": "Clarify per-row Python skip wording (two Python rows, plus separate tiny-xxd row); no identity/status/count/classification change; no subject execution or parser rerun."
+  }
+}

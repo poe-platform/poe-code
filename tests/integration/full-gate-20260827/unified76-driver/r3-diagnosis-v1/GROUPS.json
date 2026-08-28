@@ -1,0 +1,122 @@
+[
+  {
+    "id": "G01",
+    "expectedFailures": 4,
+    "category": "native-route",
+    "route": "diff-patch fixtures / gate tool-route owner",
+    "observed": "Explicit /usr/bin/git spawn returns EPERM before the requested native operation.",
+    "qualification": "The path is an explicitly denied selector in TOOL-ROUTES.json; syscall-level denial origin is not traced. Do not claim virtual diff/patch failed."
+  },
+  {
+    "id": "G02",
+    "expectedFailures": 68,
+    "category": "native-scratch-authority",
+    "route": "diff-patch fixture owner",
+    "observed": "Pinned GNU patch reports inability to create /tmp/pp* temporary files, status 2.",
+    "qualification": "Native prerequisites/effect comparators fail. Some virtual invocations executed, but this failure does not establish a semantic defect against a valid live oracle."
+  },
+  {
+    "id": "G03",
+    "expectedFailures": 5,
+    "category": "native-calibration-authority",
+    "route": "diff-patch fixture owner",
+    "observed": "Apple patch --version identity probe reports /tmp/patcho* creation denied, before the reverse-corruption replay.",
+    "qualification": "These are Apple alternate calibration cases, not five GNU product failures. The later replay already sets TMPDIR; the earlier identity probe does not."
+  },
+  {
+    "id": "G04",
+    "expectedFailures": 6,
+    "category": "unresolved-structural-signal-boundary",
+    "route": "expr / regex-execution / contracts owners",
+    "observed": "RegexSession constructor rejects the test StructuralSignal at AbortSignal.any before the intended third Budget.yield cancellation checkpoint.",
+    "qualification": "Verified direct-handler input rejection, not yet a verified ordinary Shell/native-AbortSignal defect or authorized fixture migration. Public structural-vs-branded signal contract requires adjudication."
+  },
+  {
+    "id": "G05",
+    "expectedFailures": 2,
+    "category": "native-fixture-precondition",
+    "route": "metadata fixture owner",
+    "observed": "qualifyModeFixtures.setMode cannot establish the initial directory mode.",
+    "qualification": "Wrapped cause is absent from TAP. Do not infer errno or generalize the two historical file 2755/6755 observations to directory/Node operations."
+  },
+  {
+    "id": "G06",
+    "expectedFailures": 1,
+    "category": "unresolved-host-mode-differential",
+    "route": "metadata / Real filesystem owners",
+    "observed": "384-transition comparator records directory setid status/mode differences (native status 1 versus virtual status 0).",
+    "qualification": "The test preserves its mismatch list. Native stderr/cause is not in this assertion; host permission/profile mismatch is plausible, not a proven product fix or NA-2755/6755 waiver."
+  },
+  {
+    "id": "G07",
+    "expectedFailures": 2,
+    "category": "frozen-runtime-profile",
+    "route": "metadata characterization owner / gate profile owner",
+    "observed": "Node22.22.2-only Darwin characterization rejects the actual Node24.11.1 runtime.",
+    "qualification": "Do not edit the original Node22 capture or call Node24 equivalent. A new qualified profile/control is separate work."
+  },
+  {
+    "id": "G08",
+    "expectedFailures": 5,
+    "category": "native-pipeline-path",
+    "route": "search fixture / gate route owners",
+    "observed": "Native Bash cannot find cut/sort/tee/xargs/cat on its inherited finite PATH.",
+    "qualification": "Native reference commands did not execute correctly. No virtual rg failure is established by the exit/output comparison."
+  },
+  {
+    "id": "G09",
+    "expectedFailures": 2,
+    "category": "fixture-reporter-protocol",
+    "route": "search fixture owner",
+    "observed": "Nested Node24 test runs print non-TAP summaries while wrappers require # pass N.",
+    "qualification": "Captured children report 10/10 and 6/6; original two wrapper failures remain failures. Explicit TAP is a prospective fixture correction, not a rescore."
+  },
+  {
+    "id": "G10",
+    "expectedFailures": 1,
+    "category": "native-scratch-authority",
+    "route": "stream-inspection oracle fixture owner",
+    "observed": "Live tac rows report /var/tmp/cutmp* creation denied; exact observation-array comparison fails.",
+    "qualification": "The explicit child environment omits TMPDIR. Frozen native-vector product tests are separate; no native-success credit here."
+  },
+  {
+    "id": "G11",
+    "expectedFailures": 1,
+    "category": "unresolved-host-socket-setup",
+    "route": "Real filesystem fixture / gate namespace owners",
+    "observed": "server.listen rejects EINVAL on the 110-byte retained socket pathname before filesystem assertions.",
+    "qualification": "Long pathname is a concrete suspect, not a proven kernel cause. No new socket/native probe is authorized."
+  },
+  {
+    "id": "G12",
+    "expectedFailures": 1,
+    "category": "native-route",
+    "route": "S3 HTTP public-consumer fixture owner / gate route owner",
+    "observed": "Nested packed verifier resets PATH and bare git rev-parse returns EPERM at source-revision resolution.",
+    "qualification": "The failed test does not run its build/package/export assertions; do not classify it as S3 HTTP behavior failure."
+  },
+  {
+    "id": "G13",
+    "expectedFailures": 1,
+    "category": "fixture-command-route",
+    "route": "root native-data fixture / gate route owner",
+    "observed": "Script-positional smoke cannot spawn bare npm (ENOENT).",
+    "qualification": "The later TAP assertion is not reached. The outer driver uses an admitted explicit npm CLI; this child uses a missing bare alias."
+  },
+  {
+    "id": "G14",
+    "expectedFailures": 1,
+    "category": "stale-supported-shebang-expectation",
+    "route": "script-entrypoint fixture owner",
+    "observed": "Old strict-header loop expects status126 but selected runtime accepts env -S bash and returns0.",
+    "qualification": "Source locates the last header as the supported case; raw loop assertion does not label the header. Preserve the original failure and validate any narrowly proposed migration independently."
+  },
+  {
+    "id": "G15",
+    "expectedFailures": 32,
+    "category": "native-temp-effect-fixture",
+    "route": "shell native-reference fixture owner",
+    "observed": "Native runBash returns an additional sh-thd-* file in its snapshotted cwd for expansion failures.",
+    "qualification": "The helper sets TMPDIR equal to the observed cwd. Expected/native file assertion runs first; later virtual effect assertions are unreached. Why native Bash retains the file is not established by these captures."
+  }
+]

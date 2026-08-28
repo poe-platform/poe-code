@@ -1,0 +1,3686 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-08-28T14:27:44.534Z",
+  "mode": "read-only-source-and-captured-data-analysis",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driverSha256": "aca88337d644351888659e4364f0610da0219eb3697de45fa808b509bfbc3424",
+  "profileSha256": "fa6731eec6b41915f3f56affa9cdf29e7352a10e939bb0f1fe1b9d675caa7510",
+  "previousEvidenceCommit": "c23a8de855f4f51423ee21c35ef5bbcc4d2d56a5",
+  "oldResultSealSha256": "f0f835a538242164440516e5c46499a4a5d58d46b0a95fa75ba93fc16bd33782",
+  "rawFilesAuthenticated": 928,
+  "rawBytes": 114734734,
+  "canonicalRawUnchanged": {
+    "pass": 19425,
+    "fail": 132,
+    "skipped": 7,
+    "todo": 0,
+    "cancelled": 0
+  },
+  "phasesExecuted": 6,
+  "phasesDeclared": 14,
+  "newProductTestNativeBuildPrivateExecutions": 0,
+  "newPassCredit": 0,
+  "sourceBindings": [
+    {
+      "path": "benchmarks/package-lock.json",
+      "bytes": 38701,
+      "mode": 420,
+      "gitBlob": "f49cac340e453afd7c83d875bd84d87b0adb7250",
+      "sha256": "6aad93176a9f7fc2578dd720802ce93a1e71b3be9dd9052ef0a54fab8bdc7d70"
+    },
+    {
+      "path": "benchmarks/package.json",
+      "bytes": 266,
+      "mode": 420,
+      "gitBlob": "e9c64b248cc7f590f61c8c94654f75f03889c3bc",
+      "sha256": "acd6d0930859b5fb4bd6d4d34a066bbde720d8629e10778989214a7bf61a6dc4"
+    },
+    {
+      "path": "benchmarks/tsconfig.json",
+      "bytes": 106,
+      "mode": 420,
+      "gitBlob": "a617b7990ea30090407c7a7b77e6bc0f198453e8",
+      "sha256": "3cb329117bf1a4130954c26ffaae486e24b399aee08f6ffe3de6e8e9f8c5f511"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 16734,
+      "mode": 420,
+      "gitBlob": "5d6562da663aa1b363c5ce5f101ed8469cece4da",
+      "sha256": "9c04bb7d2c7d1894479f0c37ce367987c2130256e5bfbf426cfa1bd2729d740b"
+    },
+    {
+      "path": "package.json",
+      "bytes": 4707,
+      "mode": 420,
+      "gitBlob": "1e6bfc1e602dd0f22b8e0a3f064067d411c57e52",
+      "sha256": "513f26e135e7f499b8fb92b7981b2e82a2e91d512db88518f48daf81c1bbf74a"
+    },
+    {
+      "path": "src/commands/expr/index.ts",
+      "bytes": 5041,
+      "mode": 420,
+      "gitBlob": "1031dd28c5dda297d35914dbff4c99f8844c8981",
+      "sha256": "e7cf6a0077a291578f4c669fe41da37188be8cebcb19bdb574838fd7fae2eb8e"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "bytes": 15319,
+      "mode": 420,
+      "gitBlob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc"
+    },
+    {
+      "path": "src/contracts/command.md",
+      "bytes": 8066,
+      "mode": 420,
+      "gitBlob": "16371126acaccd07a8db2505b53a0625eb9b4592",
+      "sha256": "8a5426b1e7a30a03dc62f74b28c6eb7bf9b008b78cb7b521eb7de0bc5c59a3f8"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "bytes": 2923,
+      "mode": 420,
+      "gitBlob": "671327d43c48c5964658ad8c630578fe889421e2",
+      "sha256": "9c2f8ecf50def7250b01152a31a45c449109c3ae4d30878252cffe985c6e9df8"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "bytes": 116814,
+      "mode": 420,
+      "gitBlob": "b826b1f3d8cb8a0f3703c949bda5003cce06f326",
+      "sha256": "c746e4cee0f5245d94bba2082ce72b62fdc3b251fd400ee247371fa44dfed722"
+    },
+    {
+      "path": "tests/commands/bytes-stress/encoding.test.ts",
+      "bytes": 6845,
+      "mode": 420,
+      "gitBlob": "03948485b11595f3ee3ac994c42db3c356df1379",
+      "sha256": "c6afcd9aaf73e655af36cc622159600897cb9c24dc028202bea8800187799bbc"
+    },
+    {
+      "path": "tests/commands/bytes-stress/helpers.ts",
+      "bytes": 7519,
+      "mode": 420,
+      "gitBlob": "cfb1f2f61f285da3d78a1223a76f59ead1ac87ee",
+      "sha256": "866c8a3618d3875a76dd495e33206cf42f71c334c5302001cc1b89066b58030c"
+    },
+    {
+      "path": "tests/commands/bytes/checksums/native.test.ts",
+      "bytes": 5229,
+      "mode": 420,
+      "gitBlob": "01e9fe2fcd20c79ec7b672863e7c3969e76988d6",
+      "sha256": "b11c70dcf7f268ea29149a8717a774e79a0e96971abc59e1e52e6c093562e0f5"
+    },
+    {
+      "path": "tests/commands/bytes/encoding/oracle.test.ts",
+      "bytes": 4294,
+      "mode": 420,
+      "gitBlob": "853e8c38d7cd2b6fa6f57de20bdf039d4050552f",
+      "sha256": "73f90ffa9b25024f64a8aa09c889c20956bddd2e9197d25728851798808a22a7"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/editflows/helpers.ts",
+      "bytes": 3851,
+      "mode": 420,
+      "gitBlob": "10a4ea4bad48ad68d2f2b4fd5ddf97bdba6a3a9a",
+      "sha256": "b444f194bca7b32612c4770314c5ad34075bcf63702e9a423920fc95d234228c"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/editflows/oracles.test.ts",
+      "bytes": 1917,
+      "mode": 420,
+      "gitBlob": "7d98d9e363abc29628a8741c78bf1740d6ee43bc",
+      "sha256": "c32be8917d29821f26ae3eabacb48d440977a420b0bdcad70a853874a45e8e9d"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/formats/helpers.ts",
+      "bytes": 5463,
+      "mode": 420,
+      "gitBlob": "621b404f9be6297d7b5624216627615b71abb11b",
+      "sha256": "693ef5c95f4495ba2619cef05114daaa37678c982e1a3cd744f676e073a60261"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-auxiliary/authorization.test.ts",
+      "bytes": 959,
+      "mode": 420,
+      "gitBlob": "e4d5e4974946d61b603109905a964f8a352e17e1",
+      "sha256": "c379b53d9b818fc4aeaf32829c993d370a71348c0e01a7af894313d0ab4e83c5"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-auxiliary/helpers.ts",
+      "bytes": 8655,
+      "mode": 420,
+      "gitBlob": "61ac7e70942a7f72d062a45b42652604ba984d15",
+      "sha256": "5b778681b523a7b0e5d55c8796a177a15037f727796e30585d0e0abb9aabffa3"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target-followup/evidence.ts",
+      "bytes": 1878,
+      "mode": 420,
+      "gitBlob": "be877a5b2ecc72392e2878fec6fdf10a6a3f2695",
+      "sha256": "d7f27a3a151fc00ce292a3b324c1daa0af96a62a21033b6a1b7b515b63f5cb1c"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target-followup/helpers.ts",
+      "bytes": 4382,
+      "mode": 420,
+      "gitBlob": "2517dba57b47cb86086cb3033545d9e37e2d90ad",
+      "sha256": "4aa2380cdb73984442b1e3db0c44adc0580029db618027ffd9d58bc31c9ba454"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target-followup/native-controls.test.ts",
+      "bytes": 2855,
+      "mode": 420,
+      "gitBlob": "edf46a060f72b1abd07b2a53a8550cd91954b386",
+      "sha256": "d40336ea4f059a0aeaba037d8a6fef6fcd6876675de2f8902a8f5700fb05aedd"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target-followup/overlap-default.test.ts",
+      "bytes": 303,
+      "mode": 420,
+      "gitBlob": "1add2a5a8219384dbf1a7499fb15b4695ab4557e",
+      "sha256": "718addc0eb5879d06e956528e3e1b1647ef76b52f090a16c38e7582ac6f0a566"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target/calibration.test.ts",
+      "bytes": 4226,
+      "mode": 420,
+      "gitBlob": "bd932fa831a4a9fdf4fce18fd296bc2305d65f81",
+      "sha256": "e54e8b202f86005293b24d6fddc7318efc17d0ee84ebca439ced9d16c9442c2f"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/gnu-target/oracle.ts",
+      "bytes": 3049,
+      "mode": 420,
+      "gitBlob": "ffc3617ce5d95d980144df0aa170726908ca684d",
+      "sha256": "ad9920197aa38291dfff5d04170c5e1b87cd225bf590c8073a8ebba8c68181cc"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/path-regressions/envelopes.test.ts",
+      "bytes": 2894,
+      "mode": 420,
+      "gitBlob": "4ae4bca6d4380346b9038925dcfc303d4f017fdc",
+      "sha256": "37f384b9e4b4e3c980f2682bd3f30e3249466a09696fee7dab10969753d851b9"
+    },
+    {
+      "path": "tests/commands/diff-patch-stress/safety/paths.test.ts",
+      "bytes": 9431,
+      "mode": 420,
+      "gitBlob": "af3cf6f51b330db6b7415605bc00fa273daea0b9",
+      "sha256": "944b94310ee093bf4694483776274d0438933dbdc1230a916bbfa4175df72041"
+    },
+    {
+      "path": "tests/commands/expr/inactive-prefix.test.ts",
+      "bytes": 11923,
+      "mode": 420,
+      "gitBlob": "cc648d4a39dff3e2b04a7e404489e546317a5dfe",
+      "sha256": "52e079b8bc89f1b8e4f2b256baab11f8388a5f54d23c174d64d8a4de9c194c3e"
+    },
+    {
+      "path": "tests/commands/grep-aliases/native.test.ts",
+      "bytes": 3702,
+      "mode": 420,
+      "gitBlob": "1fd4922f88fa1c6a14a0bea67f102ce7fb46692a",
+      "sha256": "3660d9c3d24ecf46c730df51be32e9eec78275b6e49eef9a6b199e5a2daac49e"
+    },
+    {
+      "path": "tests/commands/metadata-stress/chmod-controls.test.ts",
+      "bytes": 3737,
+      "mode": 420,
+      "gitBlob": "051736d3cd116eb546508bc3828025f3568c9c83",
+      "sha256": "f93d92ce384307a5226ad85b27cdf74da1d2026125d14e575109e661eb56c02c"
+    },
+    {
+      "path": "tests/commands/metadata-stress/native-differential.test.ts",
+      "bytes": 6698,
+      "mode": 420,
+      "gitBlob": "42cbf702a90b0736c295dd10c8e2389155a126a0",
+      "sha256": "eb0c185f1ccef217971faeac4394150695b8f47c4906d01c0367f7094b16b999"
+    },
+    {
+      "path": "tests/commands/metadata-stress/permission-profile/darwin-profile.test.ts",
+      "bytes": 8581,
+      "mode": 420,
+      "gitBlob": "69b032f15f8e391f5e04b075651bbbcf0fb89d23",
+      "sha256": "33290f649220fa0affd8b1f2e3d290c1f857c0f0e739531d5665c09b288dfa52"
+    },
+    {
+      "path": "tests/commands/metadata-stress/permission-profile/fixtures.ts",
+      "bytes": 4232,
+      "mode": 420,
+      "gitBlob": "ee702209611b41448e01b30742ad84f568ecbca6",
+      "sha256": "659652208d50a185f52ecb5c220c296a2056e07cd686da39db79ba30771b856b"
+    },
+    {
+      "path": "tests/commands/metadata-stress/permission-profile/qualification.test.ts",
+      "bytes": 5012,
+      "mode": 420,
+      "gitBlob": "b3d7557f1479f0e673660e88ff3d43a96ac73511",
+      "sha256": "182f4e56f18a20414811589d91d4cd25db7196101d063353942df38158c50084"
+    },
+    {
+      "path": "tests/commands/search-stress/harness.ts",
+      "bytes": 3916,
+      "mode": 420,
+      "gitBlob": "f3d35ec00766263a804fc4b52abfb4ce8c0c45e7",
+      "sha256": "4e431d4e46096c75d34c759ff0ba7674cc0067cd93df89a3e480fabe0e0279d1"
+    },
+    {
+      "path": "tests/commands/search-stress/pipelines.test.ts",
+      "bytes": 1125,
+      "mode": 420,
+      "gitBlob": "6b949c63f57f0f8596447d099fd5a96a5cd7d9e3",
+      "sha256": "d28a72f4a1bfb7a6ea600c2698d544ea7e5e375ae99f0d301ed0cde65261f2c6"
+    },
+    {
+      "path": "tests/commands/search-stress/safety.test.ts",
+      "bytes": 2611,
+      "mode": 420,
+      "gitBlob": "c59d9bb12f06d37bfd44c9afb3fb103c8196f814",
+      "sha256": "7ee399edec15bc490577738d10050ea00cdb7cbe468b76a3ff3ffab2d74ef3c9"
+    },
+    {
+      "path": "tests/commands/search-stress/streaming.test.ts",
+      "bytes": 662,
+      "mode": 420,
+      "gitBlob": "f4470f2f955b60c5fd8d8458b75d34bc7d429d44",
+      "sha256": "8df0258324e0694a1712ac9e614f1fea690aa9581180b4bed3a1ac9455c2fa80"
+    },
+    {
+      "path": "tests/commands/stream-inspection/native.test.ts",
+      "bytes": 2376,
+      "mode": 420,
+      "gitBlob": "cb26dff9b18684a5debc57809f9aa01d22d6030a",
+      "sha256": "7c1e58afbf4a98934c358fe0a5624d85f572dd154af0aeccdf604d6580ccc8ed"
+    },
+    {
+      "path": "tests/commands/stream-inspection/oracle.ts",
+      "bytes": 3924,
+      "mode": 420,
+      "gitBlob": "ad8efbeab3e79c65a52d078cbdcc8caf95ec19d7",
+      "sha256": "7e6b128a0f52c42f45ac3b43edbda9b7bed71671d0fc584069bb692ebb8e35c5"
+    },
+    {
+      "path": "tests/commands/table-text-stress/corpus.test.ts",
+      "bytes": 1584,
+      "mode": 420,
+      "gitBlob": "9cc66d46136a0d47dfb574385007756d7fad0d05",
+      "sha256": "1d5c823f6e3c9a0cad43f3a58295700e82ce5392d2250a90a67663a20f4a9e93"
+    },
+    {
+      "path": "tests/commands/table-text-stress/frozen-corpus.json",
+      "bytes": 68660,
+      "mode": 420,
+      "gitBlob": "a75ee5c4a12f9c83ffb92841365191a9de34f5b5",
+      "sha256": "65702ba5bb31442e24f4c0b00ce9ec052bf64f37c48d8a428a68c45fed82a166"
+    },
+    {
+      "path": "tests/commands/table-text-stress/shared-stdin-fix/acceptance216.test.ts",
+      "bytes": 1630,
+      "mode": 420,
+      "gitBlob": "454f5f588f459f03c6dd3da3595ff40536b0f717",
+      "sha256": "44925af57f01d7c7f269807f6325223a4dead02875be6f29a474f65128c1332d"
+    },
+    {
+      "path": "tests/commands/table-text-stress/shared-stdin-fix/support.ts",
+      "bytes": 6158,
+      "mode": 420,
+      "gitBlob": "e7f9b750688328a3e6378c89292e53d333ff3109",
+      "sha256": "bdc050aa3f6b82622c770a72112a9f212d30a9a4896d5782da011f83a88189be"
+    },
+    {
+      "path": "tests/commands/table-text-stress/support.ts",
+      "bytes": 6646,
+      "mode": 420,
+      "gitBlob": "17fa003fa095a3c2648349941bfb26a3ecaa8e7f",
+      "sha256": "54cc1fc805761d2a78985609b6af521dfdd487c69259490d9147834b8eb2dadc"
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts",
+      "bytes": 12928,
+      "mode": 420,
+      "gitBlob": "cd9d3f9fd9ecc03c8632de7ca0fd3dcf4a35dc3c",
+      "sha256": "5863faba4a084160d64a3990cc8cc0b33f8b43251e26ca41ea11af071145137a"
+    },
+    {
+      "path": "tests/fs/real/adversarial.test.ts",
+      "bytes": 12556,
+      "mode": 420,
+      "gitBlob": "9883b7a29ba920897696531f17a58c2c1b7885e4",
+      "sha256": "a04ce637795b184e7ac636d137579e87ee11a4c1bd937a0cf918ce23be8b55b0"
+    },
+    {
+      "path": "tests/integration/s3-http-exports/exports.test.ts",
+      "bytes": 1290,
+      "mode": 420,
+      "gitBlob": "d8c5845c61f09c6e9703504c6c2fccacc01f167e",
+      "sha256": "31c211160547b70628ac18bb9263c7dca7a6d60a2b228b209e5d5d5af1053854"
+    },
+    {
+      "path": "tests/integration/s3-http-exports/verify.mjs",
+      "bytes": 10055,
+      "mode": 420,
+      "gitBlob": "dd02b9cc0e19feac47bdf11dc92fe9020bac3565",
+      "sha256": "b2795a02f4da644e1a2d2c9b2e3096f7cff899ef50a6d5d970cbeba8435d9131"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release-native-data/controls.test.ts",
+      "bytes": 15745,
+      "mode": 420,
+      "gitBlob": "6b74276b312d8ae3da194efcfb007adb878d7f1f",
+      "sha256": "f1a94e3a45750bd66ce3118a27664922599124abca0a303279b5143fa8b9dc92"
+    },
+    {
+      "path": "tests/plugins/qualified-current-release-native-data/helpers.ts",
+      "bytes": 2145,
+      "mode": 420,
+      "gitBlob": "0054247216915edb1207224a5113329dd50d61e9",
+      "sha256": "87f899c204d96b6aec5cd6f3f804222ac995678f0efdffd4672c1ab7dec609af"
+    },
+    {
+      "path": "tests/shell-stress/helpers.ts",
+      "bytes": 5784,
+      "mode": 420,
+      "gitBlob": "7f66aeb82fe897acf1704d1e8af785b4682eae1c",
+      "sha256": "fac158c5440cca46fc6b35ab8e9598ce8b37b9cfaa0f19033c182e4a8ebe1ac6"
+    },
+    {
+      "path": "tests/shell-stress/script-entrypoint/cases.ts",
+      "bytes": 14019,
+      "mode": 420,
+      "gitBlob": "a3d6ed2df47bacfe530e37bff55775a9b3d5f7d6",
+      "sha256": "d4bc2f83da4bb3924b11f8ad13cd1a16d11e1ad807ce4318a2684c51656ca00d"
+    },
+    {
+      "path": "tests/shell-stress/script-entrypoint/holdout.test.ts",
+      "bytes": 1408,
+      "mode": 420,
+      "gitBlob": "b7b7cbe0d2375cc0db465d0ec844b8743916d3f1",
+      "sha256": "c22f2c16e0ca822f4e1cffbfab2b5ae8a0de996ac13df30b1bf1021fd967ad05"
+    },
+    {
+      "path": "tests/shell-stress/script-entrypoint/probe.ts",
+      "bytes": 263,
+      "mode": 420,
+      "gitBlob": "15ff641451378725f5c716eb698cc5503f162073",
+      "sha256": "266c42c9b3615f77259ef5470c197afc94c58a7bfe3a79b9828bd946cbe9391d"
+    },
+    {
+      "path": "tests/shell/heredoc.test.ts",
+      "bytes": 9973,
+      "mode": 420,
+      "gitBlob": "b80f76fbd8d9eb03f9fb4a4c925b1a1c17a580ac",
+      "sha256": "769b452ba51a3c0a42665751607d9b39c5e8e1becddad061ad6bbb032c2518b6"
+    },
+    {
+      "path": "tests/shell/inline-input-fatal-scope.test.ts",
+      "bytes": 3468,
+      "mode": 420,
+      "gitBlob": "b9e0f3342300c3b619c30469b7b516b844a0e748",
+      "sha256": "75b0f753f73134911e789562942fed56d516b4dd3bcd9f6846c16b9265960d1a"
+    }
+  ],
+  "addedEntries": [
+    {
+      "path": "tests/commands/table-text-stress/.native-0BLCzJ",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-0BLCzJ/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8,
+      "sha256": "c95297b6a9f20a2f5e64caea1a7402f0898436ead38bb3abf21244befdf72d24"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-0BLCzJ/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-0BLCzJ/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-13HAvI",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-13HAvI/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6,
+      "sha256": "10f026c03b291fdec592b10715a6bb7333beb84b76d287a0678c32cff5582697"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-13HAvI/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 16,
+      "sha256": "d5a05d295295dc70a2dbf1fb15a87d8fe3e15c81affc96e0a64bb5550c322ee2"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-13HAvI/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-2ByTXf",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-2ByTXf/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-2ByTXf/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-2ByTXf/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-3uYkpn",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-3uYkpn/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8,
+      "sha256": "c95297b6a9f20a2f5e64caea1a7402f0898436ead38bb3abf21244befdf72d24"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-3uYkpn/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-3uYkpn/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-3yKMZS",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-3yKMZS/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1,
+      "sha256": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-3yKMZS/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2,
+      "sha256": "ffe9aaeaa2a2d5048174df0b80599ef0197ec024c4b051bc9860cff58ef7f9f3"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-3yKMZS/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-3z2wMZ",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-3z2wMZ/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6,
+      "sha256": "8343c620dc64d81af0c8daeace4af0101db18d4aff1873faa297ac9b8d772987"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-3z2wMZ/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-3z2wMZ/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-4ACaDy",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-4ACaDy/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8,
+      "sha256": "c95297b6a9f20a2f5e64caea1a7402f0898436ead38bb3abf21244befdf72d24"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-4ACaDy/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4,
+      "sha256": "7dc52b681e7284e53cc5bc8b5584a949a0d11cc6a36984b851290a6c53a380ca"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-4ACaDy/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-52nn8U",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-52nn8U/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 15,
+      "sha256": "f00118472657f8105b7f9da0fd176e57f120cf1b09148ed246ef1c05736cc50b"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-52nn8U/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 40,
+      "sha256": "4453ef533653620d28858c20a8a1019faef12373094404854f32d4d9e279dfcf"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-52nn8U/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-5405uF",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-5405uF/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4,
+      "sha256": "aea8a04c2f293417e499bf5de2def8ebb1ed40264d128a67180ea56fbe4600ff"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-5405uF/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2,
+      "sha256": "c865f6c5ab8d1b0bcd383a5e1e3879d22681c96bf462c269b7581d523fbe70ab"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-5405uF/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-5LB6fe",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-5LB6fe/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7,
+      "sha256": "69080fd460d57320989bc06db789bb7e143b14fc513cfb36b6e8356c25e27a30"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-5LB6fe/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10,
+      "sha256": "c2da132fb0e02d9544386fd4c7945b776a0e69ccc03e64ae7edb00c9282abcf7"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-5LB6fe/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-6kGkNP",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-6kGkNP/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6,
+      "sha256": "2cf1b92d162e678e5960774c9c8ddf72d3a3ad43a10f859336f7fd5bedb94ca3"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-6kGkNP/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6,
+      "sha256": "3e073bd829613172a7cda918202d99c1d1a3d22eb7f3bee8353cdb09bcfc490d"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-6kGkNP/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-7eh8gd",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-7eh8gd/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11,
+      "sha256": "ef176763019c4086b683bf61a29b4aa278b891838a3c1c5c30128f42f467a2db"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-7eh8gd/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1,
+      "sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-7eh8gd/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-88uRLO",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-88uRLO/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4,
+      "sha256": "aea8a04c2f293417e499bf5de2def8ebb1ed40264d128a67180ea56fbe4600ff"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-88uRLO/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2,
+      "sha256": "c865f6c5ab8d1b0bcd383a5e1e3879d22681c96bf462c269b7581d523fbe70ab"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-88uRLO/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-9AwTI2",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-9AwTI2/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8,
+      "sha256": "c334265dfbff597fb0aee59d9f568cf494bbcd8bf9cf2dcbe6109cda529cf127"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-9AwTI2/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6,
+      "sha256": "c74f9ee7d42d4d6d89e9ff9f7d1593011198a6099029569fed65c1ab6bded3df"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-9AwTI2/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-9vi4Sr",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-9vi4Sr/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4,
+      "sha256": "bce6d26f247247d8ac9dded31d18e8b508b6948e3477511537ace6bc8298cd0e"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-9vi4Sr/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4,
+      "sha256": "661d92d347014ef171d3d757be81daa0d51bb6a0f5bace5a208598eb253b4c96"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-9vi4Sr/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-A4qxRl",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-A4qxRl/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10,
+      "sha256": "490f74bf2b666d409e9063f0336f877966d5d6a2f925a7920db536e8dc01545f"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-A4qxRl/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9,
+      "sha256": "f2c15d0ffb142618735af281fcfe2728bc4649b5df69d86c1b7b6fa1565163eb"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-A4qxRl/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-AeEVeA",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-AeEVeA/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 3,
+      "sha256": "7fa54a42524916a1648ec76ce75d295024840b7a3a4f4bbaf3e43155d0014767"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-AeEVeA/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-AeEVeA/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-Agnuhn",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-Agnuhn/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 15,
+      "sha256": "1689e72f77ceee751c0262c8133ed56c91521ac7c2ab532890d34c207380bb4d"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-Agnuhn/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 18,
+      "sha256": "8b7589b13271672ec400ac3ed99b9562121653a0dd3cea835d086414a5456a46"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-Agnuhn/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-BvD6Ll",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-BvD6Ll/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9,
+      "sha256": "12d05a2895b59d4ff2e3d28d6d7d5b343a0ed4761567f6d55aa9e8ce39a96ac2"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-BvD6Ll/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2,
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-BvD6Ll/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-Cqee82",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-Cqee82/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 15,
+      "sha256": "53d3b8b139c989fb01ef977cb2c367584068c8cdf946b1fef1caf81a12ede5d6"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-Cqee82/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 18,
+      "sha256": "8b7589b13271672ec400ac3ed99b9562121653a0dd3cea835d086414a5456a46"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-Cqee82/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-CrbshR",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-CrbshR/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 200,
+      "sha256": "645647a730ead06e2204d97023c1ae7bfc271acbd509972e87779ce23c183e85"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-CrbshR/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 176,
+      "sha256": "aa4cf6961b9cfc987a2b011e5c7c206bae95da9cc56871073565886bdd830735"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-CrbshR/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-E4IQZu",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-E4IQZu/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10,
+      "sha256": "8e513a891839456fd9b3b644883fb6016fa44983ab892cd742f45687550f337c"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-E4IQZu/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7,
+      "sha256": "d57d8b102fb3ff5424dec2721f44716220ad931676a84bf14a44a889f712114a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-E4IQZu/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-EEu73u",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-EEu73u/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8,
+      "sha256": "02bd27f38ce378a2150049e3a8edbf4cff9bf2ed4d1f1c3f1acdb0b53f8a0c33"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-EEu73u/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5,
+      "sha256": "a8629902c8ea2c79753fd9b91ea09987bc95749485c98802e588b0944561c256"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-EEu73u/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-FoLUso",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-FoLUso/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 20,
+      "sha256": "9f163cefd6a69aaa4303e91cbce2fb1671f45a7b45fa72737d2604f046356a53"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-FoLUso/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 29,
+      "sha256": "84cf7acee8d1fee84c20a4419fde87d700a41932a102936c3e8a7f466c8e6dd0"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-FoLUso/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-HJjUns",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-HJjUns/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1,
+      "sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-HJjUns/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11,
+      "sha256": "bae093434561d2ea8f1db2619a9c989b39118903c42b1233eb65ec2bc14ce216"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-HJjUns/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-HYYTy0",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-HYYTy0/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "cd2ef1e45322257bebfa05d5f3df95d5e5f7a67f6e1d3fa240311df27feaffa5"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-HYYTy0/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24,
+      "sha256": "0517ed0be266feac2ae2f35b23bb9b90ff570f4fc81cb66179463c13ff8c820d"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-HYYTy0/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-IAv87y",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-IAv87y/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5,
+      "sha256": "92a11eea982c4db96c25cb582f0f12fdd0fa7f4b9506a3f16ab9f46a8eaf1d26"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-IAv87y/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5,
+      "sha256": "545add05afdcec751a87b377008b8aaaf96b5aa7f76d8ad944becf583141c4d2"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-IAv87y/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-JFCUi7",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-JFCUi7/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7,
+      "sha256": "80ed476c5929c5db3a633a2359778c3943b369732beae89bee2f70c0d2ca458f"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-JFCUi7/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7,
+      "sha256": "ae882e932ef9959a7c0720c5355a470db63e41910e10f353441fbf6c982dd281"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-JFCUi7/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-JP3Vka",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-JP3Vka/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7,
+      "sha256": "69080fd460d57320989bc06db789bb7e143b14fc513cfb36b6e8356c25e27a30"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-JP3Vka/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10,
+      "sha256": "c2da132fb0e02d9544386fd4c7945b776a0e69ccc03e64ae7edb00c9282abcf7"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-JP3Vka/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-K5dZ7i",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-K5dZ7i/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10,
+      "sha256": "2d504401d775953ba7056df9c514613fdbd6034a4d91dd44f2700738b1017bdc"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-K5dZ7i/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6,
+      "sha256": "2c9ced9599a417985a4bf43305de3dc8dfe38545e2322eddf71ee1b36b2a764e"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-K5dZ7i/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-KJvlrh",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-KJvlrh/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5,
+      "sha256": "df2e534c14038350e7a0be70e28e418d8a9dbe0cddc255735c72edb8beec2a1f"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-KJvlrh/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6,
+      "sha256": "3e073bd829613172a7cda918202d99c1d1a3d22eb7f3bee8353cdb09bcfc490d"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-KJvlrh/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-MIOcjk",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-MIOcjk/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-MIOcjk/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 29,
+      "sha256": "dd68f7d9c5242a2d9bd3312a95747e2c4381900d13b57dd79c4705033625b0ae"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-MIOcjk/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-MSBJzS",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-MSBJzS/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8,
+      "sha256": "c95297b6a9f20a2f5e64caea1a7402f0898436ead38bb3abf21244befdf72d24"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-MSBJzS/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4,
+      "sha256": "7dc52b681e7284e53cc5bc8b5584a949a0d11cc6a36984b851290a6c53a380ca"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-MSBJzS/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-OYthzm",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-OYthzm/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1,
+      "sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-OYthzm/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11,
+      "sha256": "bae093434561d2ea8f1db2619a9c989b39118903c42b1233eb65ec2bc14ce216"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-OYthzm/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-OiaX5T",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-OiaX5T/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4,
+      "sha256": "aea8a04c2f293417e499bf5de2def8ebb1ed40264d128a67180ea56fbe4600ff"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-OiaX5T/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2,
+      "sha256": "c865f6c5ab8d1b0bcd383a5e1e3879d22681c96bf462c269b7581d523fbe70ab"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-OiaX5T/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-RKFJEh",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-RKFJEh/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 29,
+      "sha256": "8c1f6ba657b85a70b55e10ba096c0ba609ea68eda33eebb6c7bfb010f114ace8"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-RKFJEh/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 15,
+      "sha256": "e59258db981bdfb396770ce4d42209a721cd0a43851f5274f6af6d5e5ab151dd"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-RKFJEh/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-RZfYHV",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-RZfYHV/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5,
+      "sha256": "c9f090c22e931b109795e5351d46ea38ff857397d0e1b7489a115b9878618c2d"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-RZfYHV/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5,
+      "sha256": "33f8316698b00648107380ad8f112bb849f780f7b1f3cd2b5f9735ff5c457f71"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-RZfYHV/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-TPltYT",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-TPltYT/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5,
+      "sha256": "6d421ec4b623af3bdd47ad1d61a629eab8c11f7bf19a1e59576b5f2eede7befc"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-TPltYT/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-TPltYT/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-UVc1Yq",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-UVc1Yq/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6,
+      "sha256": "10f026c03b291fdec592b10715a6bb7333beb84b76d287a0678c32cff5582697"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-UVc1Yq/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 16,
+      "sha256": "d5a05d295295dc70a2dbf1fb15a87d8fe3e15c81affc96e0a64bb5550c322ee2"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-UVc1Yq/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-VKsz3N",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-VKsz3N/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 29,
+      "sha256": "43188a865feb18ca21edda92b409e384bcf53c4d815b244950b3aad5496eb4f4"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-VKsz3N/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-VKsz3N/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-W9gN1s",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-W9gN1s/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5,
+      "sha256": "8281003838767ecadb3338f3b040705fd8715497c334cb09998e03e321537e40"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-W9gN1s/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7,
+      "sha256": "a6fd1f843f10bf97379ccfa11f5b6255160a3710265c338133fc2ef744fa54d1"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-W9gN1s/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-WFElo4",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-WFElo4/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 39,
+      "sha256": "5873b37be03d5752f9fa8140da36c927c9b1a49730c4403eec33db3fd71b4e22"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-WFElo4/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24,
+      "sha256": "681f434383d35fa10a2c89304fbde70691d1f653f79696e02cc82b886c0160be"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-WFElo4/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-WUmVN5",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-WUmVN5/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6,
+      "sha256": "a9ae42356530fd5c82a9abe5a561caa78ba0515af068e46e01dfb1bd741149cf"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-WUmVN5/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 15,
+      "sha256": "eb8d88f1f096da4a4a258541d5433a505989701f639000ad82dbdd879d278b92"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-WUmVN5/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-XmX4D6",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-XmX4D6/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6,
+      "sha256": "a9ae42356530fd5c82a9abe5a561caa78ba0515af068e46e01dfb1bd741149cf"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-XmX4D6/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 15,
+      "sha256": "eb8d88f1f096da4a4a258541d5433a505989701f639000ad82dbdd879d278b92"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-XmX4D6/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-Y2RzM5",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-Y2RzM5/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8,
+      "sha256": "4f25090e0cc6e45c2c43de260db13bf4383f0ad00a388bb9f1af3d666d494b8d"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-Y2RzM5/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2,
+      "sha256": "66f99a5dae4e1c00a3b222fea7fb86e81232d12b9697c92428746f5262e50dcc"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-Y2RzM5/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-YqET0F",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-YqET0F/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 15,
+      "sha256": "e3f809b54de3f4e8baff5d2f355d2d83e0618c5bd70971b7470c8dd374264fbb"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-YqET0F/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 19,
+      "sha256": "3781d4387a13c3d00f7ead814b0d8601e51eaccdbd9dd3100ec2fb3875b2bf0c"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-YqET0F/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ZCl3sr",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ZCl3sr/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 15,
+      "sha256": "433a255373ea11131d6ef6cc39f3bd3acb8b1ab18201bcc04d0b112775518ca7"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ZCl3sr/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5,
+      "sha256": "2844542825eeda536a907845ef5cf9246c7689107b30893c43814f6dd95123b8"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ZCl3sr/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ZluCty",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ZluCty/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10,
+      "sha256": "490f74bf2b666d409e9063f0336f877966d5d6a2f925a7920db536e8dc01545f"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ZluCty/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9,
+      "sha256": "f2c15d0ffb142618735af281fcfe2728bc4649b5df69d86c1b7b6fa1565163eb"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ZluCty/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-b0Qw3G",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-b0Qw3G/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10,
+      "sha256": "2d504401d775953ba7056df9c514613fdbd6034a4d91dd44f2700738b1017bdc"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-b0Qw3G/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6,
+      "sha256": "2c9ced9599a417985a4bf43305de3dc8dfe38545e2322eddf71ee1b36b2a764e"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-b0Qw3G/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-bkj6VB",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-bkj6VB/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 19,
+      "sha256": "0e46a2a309f191f9cc61bfd803c98fa22b1022e12414ccea50b2753f0f052cdc"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-bkj6VB/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 19,
+      "sha256": "7fc6820662b0cbe4ab63699f113d0f44dd14abbfb55ba67041982953b85c629f"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-bkj6VB/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-bwcy61",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-bwcy61/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 25,
+      "sha256": "12eb8d2afddbae118bc85adc359141a1f760982a6d42e6a46d49ecb66a5ea541"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-bwcy61/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 22,
+      "sha256": "f34d26a37e1ac9e323866ecbf4f13fddf862dea9b0df7fdf58cce4f7d67a694f"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-bwcy61/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-dS3igc",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-dS3igc/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 15,
+      "sha256": "42963f4103f51cfbd3be0c1ac163361f4d581e9562ec5de0d6f0ae26dc2fd9f3"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-dS3igc/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8,
+      "sha256": "1ebeef77890498303f8919fc901c12541eecef9cd3bd7371610ed7160095c6ee"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-dS3igc/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-g7xuED",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-g7xuED/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5,
+      "sha256": "ea7fb08b7a2dc4619ffb7c7bb38d95a2047935fa165d71b12efd3852a2e6d0cc"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-g7xuED/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1,
+      "sha256": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-g7xuED/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-i8RnJl",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-i8RnJl/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11,
+      "sha256": "7fd3b5f7873dfc08595c556ff3b7d04610eadba0a55ff352c1261aeaa395f1b3"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-i8RnJl/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 12,
+      "sha256": "a16970ca4a3ea3eedf2dd680cfb10b29c4faabf5475924d2afa88b509327796d"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-i8RnJl/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ixxnWb",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ixxnWb/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1,
+      "sha256": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ixxnWb/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2,
+      "sha256": "ffe9aaeaa2a2d5048174df0b80599ef0197ec024c4b051bc9860cff58ef7f9f3"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ixxnWb/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-jG1hxe",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-jG1hxe/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 10,
+      "sha256": "8e513a891839456fd9b3b644883fb6016fa44983ab892cd742f45687550f337c"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-jG1hxe/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7,
+      "sha256": "d57d8b102fb3ff5424dec2721f44716220ad931676a84bf14a44a889f712114a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-jG1hxe/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-khlCI1",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-khlCI1/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6,
+      "sha256": "2cf1b92d162e678e5960774c9c8ddf72d3a3ad43a10f859336f7fd5bedb94ca3"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-khlCI1/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6,
+      "sha256": "3e073bd829613172a7cda918202d99c1d1a3d22eb7f3bee8353cdb09bcfc490d"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-khlCI1/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-l2WScw",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-l2WScw/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5,
+      "sha256": "8281003838767ecadb3338f3b040705fd8715497c334cb09998e03e321537e40"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-l2WScw/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7,
+      "sha256": "a6fd1f843f10bf97379ccfa11f5b6255160a3710265c338133fc2ef744fa54d1"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-l2WScw/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-mqCGQ5",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-mqCGQ5/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 24,
+      "sha256": "2aeeae6987a2aa6ac79ec1ea68989d24bc5a0cb2327d0937eccb944b2a65cf46"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-mqCGQ5/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5,
+      "sha256": "c05118d2b584db3d056dd155ab8500fc178fec4dba1022915ff7ad9825d8b52a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-mqCGQ5/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-oh297B",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-oh297B/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8,
+      "sha256": "c95297b6a9f20a2f5e64caea1a7402f0898436ead38bb3abf21244befdf72d24"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-oh297B/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 4,
+      "sha256": "7dc52b681e7284e53cc5bc8b5584a949a0d11cc6a36984b851290a6c53a380ca"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-oh297B/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-s1cGSw",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-s1cGSw/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 15,
+      "sha256": "d0540aeb390dac890d056a342d6796c75a1585c2d7b2c52a1196a2300162133b"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-s1cGSw/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 40,
+      "sha256": "7d634c534ad291bf144d884ac2b66c74849d6c7f3a9029e1367b23f6eb24fb49"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-s1cGSw/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-tZQyfL",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-tZQyfL/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6,
+      "sha256": "e6e5a406ad96186528a7feedd95de1c6871989b518cda30a252fe238acc38d75"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-tZQyfL/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5,
+      "sha256": "3b5cd0027c7f5a8ed4457c3a98a5198997d9444ae4ac611bec1afa63bd132850"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-tZQyfL/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-uSkRCr",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-uSkRCr/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7,
+      "sha256": "80ed476c5929c5db3a633a2359778c3943b369732beae89bee2f70c0d2ca458f"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-uSkRCr/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 7,
+      "sha256": "ae882e932ef9959a7c0720c5355a470db63e41910e10f353441fbf6c982dd281"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-uSkRCr/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ujNEub",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ujNEub/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ujNEub/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ujNEub/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-uxxkzW",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-uxxkzW/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5,
+      "sha256": "ea7fb08b7a2dc4619ffb7c7bb38d95a2047935fa165d71b12efd3852a2e6d0cc"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-uxxkzW/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1,
+      "sha256": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-uxxkzW/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-vXbxGd",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-vXbxGd/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 5,
+      "sha256": "df2e534c14038350e7a0be70e28e418d8a9dbe0cddc255735c72edb8beec2a1f"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-vXbxGd/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 6,
+      "sha256": "3e073bd829613172a7cda918202d99c1d1a3d22eb7f3bee8353cdb09bcfc490d"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-vXbxGd/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-wHkrTT",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-wHkrTT/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 25,
+      "sha256": "cc0f5a2e8c550f5e317ab95ed14cf2ea255763dfed18a3213a95516a822b2802"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-wHkrTT/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 18,
+      "sha256": "3795b2df93512c8d4f0da2c1ea494db4f339923f92d5b6f7be61813378d7730c"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-wHkrTT/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-wfsx3z",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-wfsx3z/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 15,
+      "sha256": "42963f4103f51cfbd3be0c1ac163361f4d581e9562ec5de0d6f0ae26dc2fd9f3"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-wfsx3z/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8,
+      "sha256": "1ebeef77890498303f8919fc901c12541eecef9cd3bd7371610ed7160095c6ee"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-wfsx3z/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-xP3i3z",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-xP3i3z/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 9,
+      "sha256": "12d05a2895b59d4ff2e3d28d6d7d5b343a0ed4761567f6d55aa9e8ce39a96ac2"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-xP3i3z/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 2,
+      "sha256": "0263829989b6fd954f72baaf2fc64bc2e2f01d692d4de72986ea808f6e99813f"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-xP3i3z/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-yM94z9",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-yM94z9/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 11,
+      "sha256": "ef176763019c4086b683bf61a29b4aa278b891838a3c1c5c30128f42f467a2db"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-yM94z9/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 1,
+      "sha256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-yM94z9/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-zUSIda",
+      "kind": "directory",
+      "mode": 448,
+      "children": [
+        "left",
+        "right",
+        "sentinel"
+      ]
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-zUSIda/left",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 8,
+      "sha256": "c95297b6a9f20a2f5e64caea1a7402f0898436ead38bb3abf21244befdf72d24"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-zUSIda/right",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-zUSIda/sentinel",
+      "kind": "file",
+      "mode": 420,
+      "bytes": 28,
+      "sha256": "a6cf7e9763adaa4c8259666777f2adf7799c763e4afd7fc5ef1cb1dca29c111a"
+    },
+    {
+      "path": "tests/commands/table-text-stress/shared-stdin-fix/.runtime",
+      "kind": "directory",
+      "mode": 493,
+      "children": []
+    },
+    {
+      "path": "tests/fs/mount/identity-authority-review/implementation/.runs",
+      "kind": "directory",
+      "mode": 493,
+      "children": []
+    }
+  ],
+  "nativeRoots": [
+    {
+      "path": "tests/commands/table-text-stress/.native-0BLCzJ",
+      "compatibleInputRows": [
+        {
+          "index": 11,
+          "name": "join empty opposite inversion "
+        },
+        {
+          "index": 14,
+          "name": "join empty opposite inversion --check-order"
+        },
+        {
+          "index": 17,
+          "name": "join empty opposite inversion --nocheck-order"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-13HAvI",
+      "compatibleInputRows": [
+        {
+          "index": 26,
+          "name": "paste seed 1"
+        },
+        {
+          "index": 27,
+          "name": "comm seed 1"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-2ByTXf",
+      "compatibleInputRows": [
+        {
+          "index": 0,
+          "name": "comm shared original"
+        },
+        {
+          "index": 5,
+          "name": "paste empty serial files"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-3uYkpn",
+      "compatibleInputRows": [
+        {
+          "index": 11,
+          "name": "join empty opposite inversion "
+        },
+        {
+          "index": 14,
+          "name": "join empty opposite inversion --check-order"
+        },
+        {
+          "index": 17,
+          "name": "join empty opposite inversion --nocheck-order"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-3yKMZS",
+      "compatibleInputRows": [
+        {
+          "index": 32,
+          "name": "paste seed 3"
+        },
+        {
+          "index": 33,
+          "name": "comm seed 3"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-3z2wMZ",
+      "compatibleInputRows": [
+        {
+          "index": 1,
+          "name": "paste shared alternating empty EOF"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-4ACaDy",
+      "compatibleInputRows": [
+        {
+          "index": 10,
+          "name": "join first unpaired inversion "
+        },
+        {
+          "index": 13,
+          "name": "join first unpaired inversion --check-order"
+        },
+        {
+          "index": 16,
+          "name": "join first unpaired inversion --nocheck-order"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-52nn8U",
+      "compatibleInputRows": [
+        {
+          "index": 28,
+          "name": "join seed 1"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-5405uF",
+      "compatibleInputRows": [
+        {
+          "index": 9,
+          "name": "comm order "
+        },
+        {
+          "index": 12,
+          "name": "comm order --check-order"
+        },
+        {
+          "index": 15,
+          "name": "comm order --nocheck-order"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-5LB6fe",
+      "compatibleInputRows": [
+        {
+          "index": 59,
+          "name": "paste seed 12"
+        },
+        {
+          "index": 60,
+          "name": "comm seed 12"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-6kGkNP",
+      "compatibleInputRows": [
+        {
+          "index": 29,
+          "name": "paste seed 2"
+        },
+        {
+          "index": 30,
+          "name": "comm seed 2"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-7eh8gd",
+      "compatibleInputRows": [
+        {
+          "index": 62,
+          "name": "paste seed 13"
+        },
+        {
+          "index": 63,
+          "name": "comm seed 13"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-88uRLO",
+      "compatibleInputRows": [
+        {
+          "index": 9,
+          "name": "comm order "
+        },
+        {
+          "index": 12,
+          "name": "comm order --check-order"
+        },
+        {
+          "index": 15,
+          "name": "comm order --nocheck-order"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-9AwTI2",
+      "compatibleInputRows": [
+        {
+          "index": 7,
+          "name": "comm duplicate multiplicity totals"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-9vi4Sr",
+      "compatibleInputRows": [
+        {
+          "index": 22,
+          "name": "join repeated format and delimiter"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-A4qxRl",
+      "compatibleInputRows": [
+        {
+          "index": 38,
+          "name": "paste seed 5"
+        },
+        {
+          "index": 39,
+          "name": "comm seed 5"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-AeEVeA",
+      "compatibleInputRows": [
+        {
+          "index": 3,
+          "name": "paste NUL shared invalid bytes"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-Agnuhn",
+      "compatibleInputRows": [
+        {
+          "index": 31,
+          "name": "join seed 2"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-BvD6Ll",
+      "compatibleInputRows": [
+        {
+          "index": 53,
+          "name": "paste seed 10"
+        },
+        {
+          "index": 54,
+          "name": "comm seed 10"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-Cqee82",
+      "compatibleInputRows": [
+        {
+          "index": 43,
+          "name": "join seed 6"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-CrbshR",
+      "compatibleInputRows": [
+        {
+          "index": 21,
+          "name": "join large Cartesian"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-E4IQZu",
+      "compatibleInputRows": [
+        {
+          "index": 65,
+          "name": "paste seed 14"
+        },
+        {
+          "index": 66,
+          "name": "comm seed 14"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-EEu73u",
+      "compatibleInputRows": [
+        {
+          "index": 6,
+          "name": "comm C byte collation"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-FoLUso",
+      "compatibleInputRows": [
+        {
+          "index": 61,
+          "name": "join seed 12"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-HJjUns",
+      "compatibleInputRows": [
+        {
+          "index": 56,
+          "name": "paste seed 11"
+        },
+        {
+          "index": 57,
+          "name": "comm seed 11"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-HYYTy0",
+      "compatibleInputRows": [
+        {
+          "index": 40,
+          "name": "join seed 5"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-IAv87y",
+      "compatibleInputRows": [
+        {
+          "index": 20,
+          "name": "join whole record empty key"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-JFCUi7",
+      "compatibleInputRows": [
+        {
+          "index": 44,
+          "name": "paste seed 7"
+        },
+        {
+          "index": 45,
+          "name": "comm seed 7"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-JP3Vka",
+      "compatibleInputRows": [
+        {
+          "index": 59,
+          "name": "paste seed 12"
+        },
+        {
+          "index": 60,
+          "name": "comm seed 12"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-K5dZ7i",
+      "compatibleInputRows": [
+        {
+          "index": 50,
+          "name": "paste seed 9"
+        },
+        {
+          "index": 51,
+          "name": "comm seed 9"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-KJvlrh",
+      "compatibleInputRows": [
+        {
+          "index": 41,
+          "name": "paste seed 6"
+        },
+        {
+          "index": 42,
+          "name": "comm seed 6"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-MIOcjk",
+      "compatibleInputRows": [
+        {
+          "index": 58,
+          "name": "join seed 11"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-MSBJzS",
+      "compatibleInputRows": [
+        {
+          "index": 10,
+          "name": "join first unpaired inversion "
+        },
+        {
+          "index": 13,
+          "name": "join first unpaired inversion --check-order"
+        },
+        {
+          "index": 16,
+          "name": "join first unpaired inversion --nocheck-order"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-OYthzm",
+      "compatibleInputRows": [
+        {
+          "index": 56,
+          "name": "paste seed 11"
+        },
+        {
+          "index": 57,
+          "name": "comm seed 11"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-OiaX5T",
+      "compatibleInputRows": [
+        {
+          "index": 9,
+          "name": "comm order "
+        },
+        {
+          "index": 12,
+          "name": "comm order --check-order"
+        },
+        {
+          "index": 15,
+          "name": "comm order --nocheck-order"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-RKFJEh",
+      "compatibleInputRows": [
+        {
+          "index": 52,
+          "name": "join seed 9"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-RZfYHV",
+      "compatibleInputRows": [
+        {
+          "index": 34,
+          "name": "join seed 3"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-TPltYT",
+      "compatibleInputRows": [
+        {
+          "index": 2,
+          "name": "paste serial shared cursor"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-UVc1Yq",
+      "compatibleInputRows": [
+        {
+          "index": 26,
+          "name": "paste seed 1"
+        },
+        {
+          "index": 27,
+          "name": "comm seed 1"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-VKsz3N",
+      "compatibleInputRows": [
+        {
+          "index": 64,
+          "name": "join seed 13"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-W9gN1s",
+      "compatibleInputRows": [
+        {
+          "index": 68,
+          "name": "paste seed 15"
+        },
+        {
+          "index": 69,
+          "name": "comm seed 15"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-WFElo4",
+      "compatibleInputRows": [
+        {
+          "index": 37,
+          "name": "join seed 4"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-WUmVN5",
+      "compatibleInputRows": [
+        {
+          "index": 47,
+          "name": "paste seed 8"
+        },
+        {
+          "index": 48,
+          "name": "comm seed 8"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-XmX4D6",
+      "compatibleInputRows": [
+        {
+          "index": 47,
+          "name": "paste seed 8"
+        },
+        {
+          "index": 48,
+          "name": "comm seed 8"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-Y2RzM5",
+      "compatibleInputRows": [
+        {
+          "index": 4,
+          "name": "paste CR invalid bytes"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-YqET0F",
+      "compatibleInputRows": [
+        {
+          "index": 70,
+          "name": "join seed 15"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ZCl3sr",
+      "compatibleInputRows": [
+        {
+          "index": 25,
+          "name": "join seed 0"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ZluCty",
+      "compatibleInputRows": [
+        {
+          "index": 38,
+          "name": "paste seed 5"
+        },
+        {
+          "index": 39,
+          "name": "comm seed 5"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-b0Qw3G",
+      "compatibleInputRows": [
+        {
+          "index": 50,
+          "name": "paste seed 9"
+        },
+        {
+          "index": 51,
+          "name": "comm seed 9"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-bkj6VB",
+      "compatibleInputRows": [
+        {
+          "index": 46,
+          "name": "join seed 7"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-bwcy61",
+      "compatibleInputRows": [
+        {
+          "index": 67,
+          "name": "join seed 14"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-dS3igc",
+      "compatibleInputRows": [
+        {
+          "index": 35,
+          "name": "paste seed 4"
+        },
+        {
+          "index": 36,
+          "name": "comm seed 4"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-g7xuED",
+      "compatibleInputRows": [
+        {
+          "index": 23,
+          "name": "paste seed 0"
+        },
+        {
+          "index": 24,
+          "name": "comm seed 0"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-i8RnJl",
+      "compatibleInputRows": [
+        {
+          "index": 19,
+          "name": "join NUL newline fields invalid bytes"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ixxnWb",
+      "compatibleInputRows": [
+        {
+          "index": 32,
+          "name": "paste seed 3"
+        },
+        {
+          "index": 33,
+          "name": "comm seed 3"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-jG1hxe",
+      "compatibleInputRows": [
+        {
+          "index": 65,
+          "name": "paste seed 14"
+        },
+        {
+          "index": 66,
+          "name": "comm seed 14"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-khlCI1",
+      "compatibleInputRows": [
+        {
+          "index": 29,
+          "name": "paste seed 2"
+        },
+        {
+          "index": 30,
+          "name": "comm seed 2"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-l2WScw",
+      "compatibleInputRows": [
+        {
+          "index": 68,
+          "name": "paste seed 15"
+        },
+        {
+          "index": 69,
+          "name": "comm seed 15"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-mqCGQ5",
+      "compatibleInputRows": [
+        {
+          "index": 55,
+          "name": "join seed 10"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-oh297B",
+      "compatibleInputRows": [
+        {
+          "index": 10,
+          "name": "join first unpaired inversion "
+        },
+        {
+          "index": 13,
+          "name": "join first unpaired inversion --check-order"
+        },
+        {
+          "index": 16,
+          "name": "join first unpaired inversion --nocheck-order"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-s1cGSw",
+      "compatibleInputRows": [
+        {
+          "index": 49,
+          "name": "join seed 8"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-tZQyfL",
+      "compatibleInputRows": [
+        {
+          "index": 8,
+          "name": "comm NUL empty delimiter"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-uSkRCr",
+      "compatibleInputRows": [
+        {
+          "index": 44,
+          "name": "paste seed 7"
+        },
+        {
+          "index": 45,
+          "name": "comm seed 7"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-ujNEub",
+      "compatibleInputRows": [
+        {
+          "index": 0,
+          "name": "comm shared original"
+        },
+        {
+          "index": 5,
+          "name": "paste empty serial files"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-uxxkzW",
+      "compatibleInputRows": [
+        {
+          "index": 23,
+          "name": "paste seed 0"
+        },
+        {
+          "index": 24,
+          "name": "comm seed 0"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-vXbxGd",
+      "compatibleInputRows": [
+        {
+          "index": 41,
+          "name": "paste seed 6"
+        },
+        {
+          "index": 42,
+          "name": "comm seed 6"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-wHkrTT",
+      "compatibleInputRows": [
+        {
+          "index": 18,
+          "name": "join header auto empty fields"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-wfsx3z",
+      "compatibleInputRows": [
+        {
+          "index": 35,
+          "name": "paste seed 4"
+        },
+        {
+          "index": 36,
+          "name": "comm seed 4"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-xP3i3z",
+      "compatibleInputRows": [
+        {
+          "index": 53,
+          "name": "paste seed 10"
+        },
+        {
+          "index": 54,
+          "name": "comm seed 10"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-yM94z9",
+      "compatibleInputRows": [
+        {
+          "index": 62,
+          "name": "paste seed 13"
+        },
+        {
+          "index": 63,
+          "name": "comm seed 13"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    },
+    {
+      "path": "tests/commands/table-text-stress/.native-zUSIda",
+      "compatibleInputRows": [
+        {
+          "index": 11,
+          "name": "join empty opposite inversion "
+        },
+        {
+          "index": 14,
+          "name": "join empty opposite inversion --check-order"
+        },
+        {
+          "index": 17,
+          "name": "join empty opposite inversion --nocheck-order"
+        }
+      ],
+      "qualification": "Input matches are not invocation-order telemetry; repeated input pairs need not identify a unique case."
+    }
+  ],
+  "retainedRoot": "/private/tmp/unified76-os-write-9hZxpj/tmp/unified76-execution-FQM0aw/source",
+  "retainedRootsNotChangedOrRemoved": true,
+  "scratchAttribution": {
+    "tableNative": {
+      "roots": 71,
+      "entries": 284,
+      "caller": "tests/commands/table-text-stress/corpus.test.ts:27",
+      "creator": "tests/commands/table-text-stress/support.ts:52",
+      "disposal": "none in native(); snapshot/manual review cleanup is not canonical cleanup"
+    },
+    "tableRuntime": {
+      "entries": 1,
+      "creator": "tests/commands/table-text-stress/shared-stdin-fix/support.ts:49",
+      "disposal": "child native-* removed in finally; .runtime parent remains"
+    },
+    "mountRuns": {
+      "entries": 1,
+      "creator": "tests/fs/mount/identity-authority-review/implementation/public-comparison.test.ts:38",
+      "disposal": "context.after removes mkdtemp child, not .runs parent"
+    },
+    "timing": "Absent from post-setup baseline; observed after canonical. Native-71 corpus caller and fixture inputs agree with survivors. No syscall write/PID attribution trace; no retroactive clean sweep."
+  },
+  "benchmark": {
+    "phaseStatus": 1,
+    "checkerExecuted": false,
+    "requestedCompiler": "/private/tmp/unified76-os-write-9hZxpj/tmp/unified76-execution-FQM0aw/source/benchmarks/node_modules/typescript/bin/tsc",
+    "observedError": "ENOENT in build-audit.mjs:8 while realpath-ing missing benchmark-local compiler",
+    "benchmarkTypeScriptEntries": 0,
+    "mainCompiler": {
+      "path": "typescript/bin/tsc",
+      "kind": "file",
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+      "physical": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+      "bytes": 45,
+      "mode": 493,
+      "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+    },
+    "dependencyProjection": [
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/node_modules",
+        "logical": {
+          "files": 314,
+          "bytes": 48179371,
+          "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+        },
+        "physical": {
+          "files": 314,
+          "bytes": 48179371,
+          "sha256": "0c089fa7dbb7a1f6e2df743bbba82f1eba79c3ac093304bef45be3e1b34fe8ca"
+        },
+        "metadataOnly": [],
+        "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+      },
+      {
+        "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+        "logical": {
+          "files": 3497,
+          "bytes": 75292558,
+          "sha256": "101679a28f9b302d6d17553344cbc427807a0510c66246fff3162cb86e033b3e"
+        },
+        "physical": {
+          "files": 3496,
+          "bytes": 75283327,
+          "sha256": "60a11cf540097d742ec2d916414e6b392bf4aa1fa9862919c9ae69138e1e8137"
+        },
+        "metadataOnly": [
+          {
+            "role": "benchmark",
+            "origin": "/Users/kjopek/Workspace/safe-bash/benchmarks/node_modules",
+            "path": "just-bash/dist/AGENTS.md",
+            "mode": "100644",
+            "bytes": 9231,
+            "sha256": "1269340457d3ce77dff98082a4270125ff362c9ee7a4eee66574c280d8319979"
+          }
+        ],
+        "qualification": "Original dependency bodies hash-authenticated; exact declared metadata-only omission; .bin wrappers retain existing separate setup policy"
+      }
+    ],
+    "manifest": {
+      "name": "virtual-bash-comparison",
+      "version": "0.0.0",
+      "private": true,
+      "type": "module",
+      "scripts": {
+        "compare": "node --import tsx run.ts",
+        "typecheck": "tsc --noEmit -p tsconfig.json"
+      },
+      "devDependencies": {
+        "just-bash": "3.4.2"
+      }
+    },
+    "proposal": "Use the already authenticated source/node_modules/typescript/bin/tsc with benchmarks cwd and unchanged benchmark tsconfig. Preserve build audit; prove --noEmit does not count as a second production build. No execution or dependency staging performed."
+  },
+  "routeNames": [
+    "node",
+    "git",
+    "sh",
+    "tar",
+    "ps",
+    "lsof",
+    "sw_vers",
+    "bsdtar",
+    "gzip",
+    "gunzip",
+    "bash",
+    "sed",
+    "awk",
+    "jq",
+    "curl",
+    "rev",
+    "expand",
+    "fold"
+  ],
+  "nativeTopLevelEntries": [
+    "bytes",
+    "rg",
+    "stream",
+    "tree"
+  ],
+  "hostSocketPathBytes": 110,
+  "integrityCleanupStillUnqualified": true,
+  "historicalConsumedAttemptsUnchanged": true,
+  "qualifications": [
+    "No raw failure removed/reclassified as a pass. Category is attribution, not score.",
+    "No source execution/import or OS/native probe; no private reads or state refresh.",
+    "All downstream eight phases remain unexecuted. No new packed artifact or package success."
+  ]
+}

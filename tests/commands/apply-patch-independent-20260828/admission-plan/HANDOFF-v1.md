@@ -17,7 +17,7 @@ Preseal: `b58b372661f5b0b714e44cfb9349063c77f23949` (eight explicit owned files)
   author DATA documents and six executable/compiler entries, with exact current
   bytes/modes/SHA256 and available committed blob provenance. These are NOT a
   candidate or complete compiler/npm/runtime tool closure.
-- `BINDING-v1.json`: all24 candidate and six authority fields remain null;
+- `BINDING-v1.json`: all candidate and six authority fields remain null;
   product-related execution/inspection counters remain zero.
 - `MATRIX-INTERFACE-v1.json`: exact P01..P32 and A01..A12 integration interface,
   ten extra coverage slots (not ten tests), ordered receipt/expectation fields,

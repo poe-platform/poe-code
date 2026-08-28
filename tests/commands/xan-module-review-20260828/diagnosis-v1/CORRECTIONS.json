@@ -1,0 +1,137 @@
+{
+  "classification": "VERSIONED_MECHANICAL_PROPOSAL_NOT_INSTALLED_OR_PRODUCT_QUALIFIED",
+  "equivalentRows": [
+    "X4-R04",
+    "X4-R05",
+    "X4-R06",
+    "X4-R07",
+    "X4-R08",
+    "B01-R1-repeat",
+    "B01-R3-space",
+    "B01-R7-invalid-plural"
+  ],
+  "heldRows": [
+    "X4-S01",
+    "X4-S02",
+    "X4-S03",
+    "X4-S04",
+    "X4-S05",
+    "B01-R4-start-length",
+    "B01-R4-index-one",
+    "B01-R4-header-column",
+    "B01-R5-interior",
+    "B01-R6-L-range",
+    "B01-R6-I-range",
+    "B01-R6-L-I"
+  ],
+  "transforms": {
+    "tests/commands/xan-module-review-20260828/actual-review-v2/adapter.mjs": {
+      "changes": [
+        {
+          "family": "filephase",
+          "before": "[...row.argv, 'input.csv', '-o', 'out.csv']",
+          "after": "[...row.argv.slice(0, row.argv.indexOf('--')), '-o', 'out.csv', ...row.argv.slice(row.argv.indexOf('--')), 'input.csv']"
+        },
+        {
+          "family": "middleware",
+          "before": "shell.use(async (context, next) => { origins.push(context.stdinIsDefault); await next(); });",
+          "after": "shell.use((context, next) => { origins.push(context.stdinIsDefault); return next(); });"
+        },
+        {
+          "family": "middleware",
+          "before": "shell.use(async (context, next) => { seen.push(context.args[0]); await next(); });",
+          "after": "shell.use((context, next) => { seen.push(context.args[0]); return next(); });"
+        },
+        {
+          "family": "middleware",
+          "before": "shell.use(async (context, next) => { if (context.command === 'xan') contexts.push({ env: { ...context.env }, stdinIsDefault: context.stdinIsDefault }); await next(); });",
+          "after": "shell.use((context, next) => { if (context.command === 'xan') contexts.push({ env: { ...context.env }, stdinIsDefault: context.stdinIsDefault }); return next(); });"
+        }
+      ],
+      "beforeSha256": "2431b7ce8e6b7328445f6636a1c1210ccae417525bfe5a1750fda6eeb5319ff2",
+      "afterSha256": "cf0cc367278937fad747b673d78eab12c1fec2a30143d424ba3640b8850dac81"
+    },
+    "tests/commands/xan-module-review-20260828/actual-review-v1/extra.mjs": {
+      "changes": [
+        {
+          "family": "middleware",
+          "before": "await next(); middleware.push(`${context.args[0]}:after`);",
+          "after": "const result = await next(); middleware.push(`${context.args[0]}:after`); return result;"
+        }
+      ],
+      "beforeSha256": "ffedea32823b92647bebf0fde3c244797dd7ca40d0abe103a2f0e75a400f2627",
+      "afterSha256": "190759365d914e78dde34eb7dd5c0d8874afabe2abe4c2e742b7b77cf46b6162"
+    },
+    "tests/commands/xan-module-review-20260828/actual-review-v2/lifecycle.mjs": {
+      "changes": [
+        {
+          "family": "provenance",
+          "before": "shell.use(async (context, next) => {",
+          "after": "shell.use((context, next) => {"
+        },
+        {
+          "family": "middleware/provenance",
+          "before": "    await next();",
+          "after": "    return next();"
+        },
+        {
+          "family": "provenance",
+          "before": "name: 'review-bridge', async execute(context)",
+          "after": "name: 'review-bridge', execute(context)"
+        }
+      ],
+      "beforeSha256": "ba907b8fd588116f7fddd0e4fe038c25eb99a64b332a3a88525edfd52a2bc2cc",
+      "afterSha256": "fe5073685ba15f3bfab0ee3b144215613ae00af48a440a2ad121cc816536ccbb"
+    },
+    "tests/commands/xan-module-review-20260828/preparation-v2/diagnostics.mjs": {
+      "changes": [
+        {
+          "family": "diagmatcher-equivalent-only",
+          "before": "  'X4-R04': [/prefix|z\\*/i, /missing|not found|no .*match/i],",
+          "after": "  'X4-R04': [/prefix|z\\*/i, /missing|not found|no .*match|selected nothing/i],"
+        },
+        {
+          "family": "diagmatcher-equivalent-only",
+          "before": "  'X4-R05': [/suffix|\\*z/i, /missing|not found|no .*match/i],",
+          "after": "  'X4-R05': [/suffix|\\*z/i, /missing|not found|no .*match|selected nothing/i],"
+        },
+        {
+          "family": "diagmatcher-equivalent-only",
+          "before": "  'X4-R06': [/name|named/i, /-n\\b|no.headers|without.*header/i, /forbid|unsupported|cannot|not allowed|invalid/i],",
+          "after": "  'X4-R06': [/name|named/i, /-n\\b|no.headers|without.*header/i, /forbid|unsupported|cannot|not allowed|invalid|requires headers/i],"
+        },
+        {
+          "family": "diagmatcher-equivalent-only",
+          "before": "  'X4-R07': [/\\*/, /missing|unknown|not found|no .*match/i, /name|header|endpoint/i],",
+          "after": "  'X4-R07': [/\\*/, /missing|unknown|not found|no .*match|does not exist/i, /name|header|endpoint/i],"
+        },
+        {
+          "family": "diagmatcher-equivalent-only",
+          "before": "  'X4-R08': [/9223372036854775808/, /name|header/i, /missing|unknown|not found|no .*match/i],",
+          "after": "  'X4-R08': [/9223372036854775808/, /name|header/i, /missing|unknown|not found|no .*match|does not exist/i],"
+        },
+        {
+          "family": "diagmatcher-equivalent-only",
+          "before": "  'B01-R1-repeat': [/repeat|duplicate|multiple/i, /(?:^|[\\s'\"`(:])-n(?=$|[\\s'\"`):,;.])/],",
+          "after": "  'B01-R1-repeat': [/repeat|duplicate|multiple/i, /(?:^|[\\s'\"`(:])(?:-n|--no-headers)(?=$|[\\s'\"`):,;.])/],"
+        },
+        {
+          "family": "diagmatcher-equivalent-only",
+          "before": "  'B01-R3-space': [/length|number|integer|numeric|-l\\b/i, /invalid|digit|empty|space|positive|unsigned/i],",
+          "after": "  'B01-R3-space': [/(?:length|number|integer|numeric|-l\\b)|^Could not deserialize ' ' to u64 for '--len'\\.$/i, /(?:invalid|digit|empty|space|positive|unsigned)|^Could not deserialize ' ' to u64 for '--len'\\.$/i],"
+        },
+        {
+          "family": "diagmatcher-equivalent-only",
+          "before": "  'B01-R7-invalid-plural': [/invalid|number|integer|index|indices/i, /(?:^|[\\s'\"`(:])-I(?=$|[\\s'\"`):,;.])/],",
+          "after": "  'B01-R7-invalid-plural': [/invalid|number|integer|index|indices|Could not deserialize/i, /(?:^|[\\s'\"`(:])(?:-I|-I\\/--indices)(?=$|[\\s'\"`):,;.])/],"
+        }
+      ],
+      "beforeSha256": "2fe49b9294e8c0a14f6eb04b54883142fe8898e4f22d8ac53c47514762a5d215",
+      "afterSha256": "e5154552864b7db34e19ae0e382d2bb044f042e385c3b23e10b2df0732224ee7"
+    }
+  },
+  "admissionChanges": [],
+  "productChanges": [],
+  "expectedStatusChanges": [],
+  "f11MatcherChanges": []
+}

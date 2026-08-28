@@ -1,0 +1,11 @@
+{
+  "scope": "Own sealed metadata/capture static integrity only; no product/driver/control import or rerun",
+  "original": "validate.mjs",
+  "originalStatus": 1,
+  "originalReason": "Expected start marker, received file: AssertionError 'file' !== 'end'",
+  "diagnosis": "seal.mjs emits {kind:'start',id,...file}; the metadata kind overwrites start with file or generated-raw-report. Original raw bytes/index/sealer preserved. This is an encoding-label/documentation defect, not dropped capture data or a driver-control failure.",
+  "actualHeaderKinds": ["file", "generated-raw-report"],
+  "unchangedDataKinds": ["chunk", "end"],
+  "followup": "validate-v2.mjs recognizes the exact actual header kinds and still checks ordered IDs, metadata identity, every decoded chunk/file hash/length and compressed/decompressed stream hashes",
+  "timing": "Recorded after first static validator failure, before corrected static validator execution. No new runtime control cohort."
+}

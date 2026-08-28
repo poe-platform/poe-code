@@ -1,0 +1,1 @@
+{"at":"2026-08-28T07:18:43.681Z","roots":["/private/tmp/unified76-independent-write-v9-Tel2Zh","/private/tmp/unified76-os-write-LXd7cE","/private/tmp/unified76-build-types-review-resolved-write-v9-a10-51780"],"bytes":3119666284,"files":45089,"ceiling":8589934592,"qualification":"Cooperative metadata sample; concurrent growth possible, not atomic snapshot/hard disk or RSS cap"}

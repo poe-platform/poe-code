@@ -1,0 +1,404 @@
+{
+  "startedAt": "2026-08-28T07:17:03.805Z",
+  "source": "86038b27d1bee03333f13560e374ad407db417b8",
+  "policySha256": "0c131a44099205aa3cf85adf4836738b41b111616fae0d8f7c7f198277c04d6e",
+  "preconditions": {
+    "hardlink": true,
+    "directoryRename": true
+  },
+  "canary": {
+    "path": "/private/tmp/unified76-independent-write-v9-Tel2Zh/archive-followup-outside-canary",
+    "parentDescriptor": 12,
+    "before": "89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d",
+    "after": "89dfb3740e8f173199ccdf6ac65abd368f1122f58dc28fb60067adfe5275067d"
+  },
+  "sentinel": {
+    "pid": 51638,
+    "survived": true,
+    "close": {
+      "code": null,
+      "signal": "SIGTERM"
+    }
+  },
+  "controls": [
+    {
+      "id": "historical-tar",
+      "status": 0,
+      "stdout": "{\"status\":\"HISTORICAL_NATIVE_TAR_INSTRUCTION_DENIAL\",\"archive\":{\"bytes\":2181120,\"sha256\":\"34d4bf578ae39593025e39866a5d87771aab8ba8b5a4d07c848bbc8b8d98433a\",\"stored\":false},\"instruction\":{\"path\":\"AGENTS.md\",\"mode\":\"100644\",\"type\":\"blob\",\"blob\":\"c6842fcf96700eb14d2292f7907a33c335ac8eaf\",\"bytes\":10300,\"sha256\":\"938b306e73310b2d9b99270dc9f95a25b69985a30a2b87f2bf03d43702504104\"},\"ordinaryPublished\":216,\"tarStatus\":1}\n",
+      "stderr": ""
+    }
+  ],
+  "fullGate": false,
+  "shipping": {
+    "envelope": {
+      "schema": "unified76-os-instruction-fence/1",
+      "createdAt": "2026-08-28T07:17:03.860Z",
+      "launcherPid": 51636,
+      "roots": [
+        {
+          "path": "/private/tmp/unified76-os-write-Svw0ad",
+          "device": 16777232,
+          "inode": 180650243,
+          "mode": 448,
+          "uid": 501
+        },
+        {
+          "path": "/private/tmp/unified76-build-types-review-resolved-write-v9-archive-followup-51636",
+          "device": 16777232,
+          "inode": 180650244,
+          "mode": 448,
+          "uid": 501
+        }
+      ],
+      "output": "/tmp/unified76-build-types-review-resolved-write-v9-archive-followup-51636",
+      "external": {
+        "manifestSha256": "fe1a7f720959472bdd8e39b4cb3c9e80e27a9be43961dd5558d69bb61560096f",
+        "binary": {
+          "path": "/usr/bin/sandbox-exec",
+          "bytes": 102560,
+          "mode": 493,
+          "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+        },
+        "host": "ProductName:\t\tmacOS\nProductVersion:\t\t26.4.1\nBuildVersion:\t\t25E253\n",
+        "systemReferences": [
+          [
+            "/usr/bin/sandbox-exec",
+            "/usr/lib/libsandbox.1.dylib"
+          ],
+          [
+            "/usr/bin/sandbox-exec",
+            "/usr/lib/libSystem.B.dylib"
+          ]
+        ],
+        "qualification": "Root approved exactly two additional sandbox-exec/tool system-reference pairs on pinned macOS26.4.1/25E253; physical library paths ENOENT, not file-hash/full-OS attestation. Original eleven-pair receipt unchanged. No non-system or ambient-loader exception."
+      },
+      "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor",
+      "profileSha256": "3d6ceedac3a090c40648530fc4d348ddb49fda8023456cf1d064c1892a92ff5c"
+    },
+    "result": {
+      "executable": "/usr/bin/sandbox-exec",
+      "args": [
+        "-p",
+        "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-Svw0ad\") (subpath \"/private/tmp/unified76-build-types-review-resolved-write-v9-archive-followup-51636\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n",
+        "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+        "/Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/resolved-write-v9/worker.mjs",
+        "/private/tmp/unified76-independent-write-v9-Tel2Zh/archive-followup-input.json"
+      ],
+      "cwd": "/private/tmp/unified76-independent-write-v9-Tel2Zh",
+      "pid": 51648,
+      "status": 0,
+      "signal": null,
+      "timedOut": false,
+      "outputExceeded": false,
+      "closed": true,
+      "elapsedMs": 1124,
+      "timeoutMs": 180000,
+      "outputBytes": 0,
+      "observed": [
+        {
+          "pid": 51648,
+          "parent": 51636,
+          "group": 51648,
+          "born": "Fri Aug 28 07:17:03 2026",
+          "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/resolved-write-v9/worker.mjs /private/tmp/unified76-independent-write-v9-Tel2Zh/archive-followup-input.json"
+        },
+        {
+          "pid": 51652,
+          "parent": 51648,
+          "group": 51648,
+          "born": "Fri Aug 28 07:17:04 2026",
+          "command": "/usr/bin/otool -L /usr/bin/sandbox-exec"
+        },
+        {
+          "pid": 51653,
+          "parent": 51652,
+          "group": 51648,
+          "born": "Fri Aug 28 07:17:04 2026",
+          "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -license check"
+        }
+      ],
+      "signals": [],
+      "survivors": [],
+      "listeners": [],
+      "cleanupRequired": false,
+      "clean": true
+    },
+    "phaseReceipt": {
+      "root": {
+        "pid": 51648,
+        "parent": 51636,
+        "group": 51648,
+        "born": "Fri Aug 28 07:17:03 2026",
+        "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/resolved-write-v9/worker.mjs /private/tmp/unified76-independent-write-v9-Tel2Zh/archive-followup-input.json"
+      },
+      "events": [
+        {
+          "label": "historical-tar",
+          "result": {
+            "executable": "/usr/bin/sandbox-exec",
+            "args": [
+              "-p",
+              "(version 1)\n(allow default)\n(deny file-write* file-link)\n(allow file-write* file-link (subpath \"/private/tmp/unified76-os-write-Svw0ad\") (subpath \"/private/tmp/unified76-build-types-review-resolved-write-v9-archive-followup-51636\"))\n(allow file-write-data (literal \"/dev/null\"))\n(deny file-write* file-link (regex #\"(^|/)[Aa][Gg][Ee][Nn][Tt][Ss][.][Mm][Dd]($|/)\"))\n",
+              "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node",
+              "/private/tmp/unified76-os-write-Svw0ad/probe.mjs",
+              "/private/tmp/unified76-os-write-Svw0ad/input.json",
+              "historical-tar"
+            ],
+            "cwd": "/private/tmp/unified76-os-write-Svw0ad",
+            "pid": 51667,
+            "status": 0,
+            "signal": null,
+            "timedOut": false,
+            "outputExceeded": false,
+            "closed": true,
+            "elapsedMs": 507,
+            "timeoutMs": 20000,
+            "outputBytes": 416,
+            "observed": [
+              {
+                "pid": 51667,
+                "parent": 51636,
+                "group": 51667,
+                "born": "Fri Aug 28 07:17:04 2026",
+                "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-Svw0ad/probe.mjs /private/tmp/unified76-os-write-Svw0ad/input.json historical-tar"
+              },
+              {
+                "pid": 51674,
+                "parent": 51667,
+                "group": 51667,
+                "born": "Fri Aug 28 07:17:04 2026",
+                "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects archive --format=tar 656ee2b04aa91b1cc40da865173be1b472a2c4ce src package.json tsconfig.json tsconfig.build.json README.md AGENTS.md"
+              },
+              {
+                "pid": 51675,
+                "parent": 51667,
+                "group": 51667,
+                "born": "Fri Aug 28 07:17:04 2026",
+                "command": "/usr/bin/tar -xf - -C /private/tmp/unified76-os-write-Svw0ad/historical-extraction"
+              }
+            ],
+            "signals": [],
+            "survivors": [],
+            "listeners": [],
+            "cleanupRequired": false,
+            "clean": true
+          },
+          "osFence": {
+            "profileSha256": "3d6ceedac3a090c40648530fc4d348ddb49fda8023456cf1d064c1892a92ff5c",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-Svw0ad",
+                "device": 16777232,
+                "inode": 180650243,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-resolved-write-v9-archive-followup-51636",
+                "device": 16777232,
+                "inode": 180650244,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          }
+        }
+      ],
+      "expectedPhases": [
+        "historical-tar"
+      ],
+      "completed": 1,
+      "clean": true
+    },
+    "observerReceipt": {
+      "root": {
+        "pid": 51648,
+        "parent": 51636,
+        "group": 51648,
+        "born": "Fri Aug 28 07:17:03 2026",
+        "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /Users/kjopek/Workspace/safe-bash/tests/integration/full-gate-20260827/unified76-driver-independent/resolved-write-v9/worker.mjs /private/tmp/unified76-independent-write-v9-Tel2Zh/archive-followup-input.json"
+      },
+      "groups": [],
+      "events": [],
+      "survivors": [],
+      "qualification": "Trusted outer read-only ps observer; exact requester PID/birth and admitted child PID/group/birth. No signals or target sandbox policy changes."
+    },
+    "clean": true,
+    "qualification": "Trusted outer owns and observes each restricted worker/phase. Phase targets are sibling process groups with the identical OS profile, never unfenced executions. IPC passes no writable file descriptors."
+  },
+  "worker": {
+    "report": {
+      "phases": [
+        {
+          "executable": "/usr/bin/sandbox-exec",
+          "args": [
+            "/private/tmp/unified76-os-write-Svw0ad/probe.mjs",
+            "/private/tmp/unified76-os-write-Svw0ad/input.json",
+            "historical-tar"
+          ],
+          "cwd": "/private/tmp/unified76-os-write-Svw0ad",
+          "pid": 51667,
+          "status": 0,
+          "signal": null,
+          "timedOut": false,
+          "outputExceeded": false,
+          "closed": true,
+          "elapsedMs": 507,
+          "timeoutMs": 20000,
+          "outputBytes": 416,
+          "observed": [
+            {
+              "pid": 51667,
+              "parent": 51636,
+              "group": 51667,
+              "born": "Fri Aug 28 07:17:04 2026",
+              "command": "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node /private/tmp/unified76-os-write-Svw0ad/probe.mjs /private/tmp/unified76-os-write-Svw0ad/input.json historical-tar"
+            },
+            {
+              "pid": 51674,
+              "parent": 51667,
+              "group": 51667,
+              "born": "Fri Aug 28 07:17:04 2026",
+              "command": "/Applications/Xcode.app/Contents/Developer/usr/bin/git --no-replace-objects archive --format=tar 656ee2b04aa91b1cc40da865173be1b472a2c4ce src package.json tsconfig.json tsconfig.build.json README.md AGENTS.md"
+            },
+            {
+              "pid": 51675,
+              "parent": 51667,
+              "group": 51667,
+              "born": "Fri Aug 28 07:17:04 2026",
+              "command": "/usr/bin/tar -xf - -C /private/tmp/unified76-os-write-Svw0ad/historical-extraction"
+            }
+          ],
+          "signals": [],
+          "survivors": [],
+          "listeners": [],
+          "cleanupRequired": false,
+          "clean": true,
+          "osFence": {
+            "profileSha256": "3d6ceedac3a090c40648530fc4d348ddb49fda8023456cf1d064c1892a92ff5c",
+            "binary": {
+              "path": "/usr/bin/sandbox-exec",
+              "bytes": 102560,
+              "mode": 493,
+              "sha256": "d1ee30dbde955aaa75c7f801fdfea4df05b10129454d7982eb6453f771436d42"
+            },
+            "roots": [
+              {
+                "path": "/private/tmp/unified76-os-write-Svw0ad",
+                "device": 16777232,
+                "inode": 180650243,
+                "mode": 448,
+                "uid": 501
+              },
+              {
+                "path": "/private/tmp/unified76-build-types-review-resolved-write-v9-archive-followup-51636",
+                "device": 16777232,
+                "inode": 180650244,
+                "mode": 448,
+                "uid": 501
+              }
+            ],
+            "stdio": "ignored stdin; stdout/stderr pipes only; no inherited writable regular-file descriptor"
+          },
+          "label": "historical-tar",
+          "expectedStatus": 0,
+          "loaderPolicy": "outer authenticated source guard and production-build invocation audit; child harnesses with explicit environments retain their separately declared fences",
+          "observedNodeExecutables": [
+            "/Users/kjopek/.nvm/versions/node/v24.11.1/bin/node"
+          ]
+        }
+      ]
+    },
+    "descriptors": [
+      {
+        "descriptor": 0,
+        "regular": false,
+        "device": 18446744073409750000,
+        "inode": 336
+      },
+      {
+        "descriptor": 1,
+        "regular": false,
+        "device": 18446744073709552000,
+        "inode": 2096867
+      },
+      {
+        "descriptor": 2,
+        "regular": false,
+        "device": 18446744073709552000,
+        "inode": 2096868
+      },
+      {
+        "descriptor": 3,
+        "regular": false,
+        "device": 18446744073709552000,
+        "inode": 2096896
+      },
+      {
+        "descriptor": 4,
+        "regular": false,
+        "device": 0,
+        "inode": 0
+      },
+      {
+        "descriptor": 5,
+        "regular": false,
+        "device": 0,
+        "inode": 14561127570051957000
+      },
+      {
+        "descriptor": 6,
+        "regular": false,
+        "device": 0,
+        "inode": 4298591347588664000
+      },
+      {
+        "descriptor": 7,
+        "regular": false,
+        "device": 16777232,
+        "inode": 2
+      },
+      {
+        "descriptor": 8,
+        "regular": false,
+        "device": 0,
+        "inode": 0
+      },
+      {
+        "descriptor": 9,
+        "regular": false,
+        "device": 16777232,
+        "inode": 2
+      },
+      {
+        "descriptor": 10,
+        "regular": false,
+        "device": 0,
+        "inode": 0
+      },
+      {
+        "descriptor": 11,
+        "regular": false,
+        "device": 16777232,
+        "inode": 2
+      },
+      {
+        "descriptor": 12,
+        "regular": false,
+        "device": 18446744073409750000,
+        "inode": 336
+      }
+    ],
+    "componentOnly": true,
+    "fullGate": false
+  },
+  "status": "HISTORICAL_TAR_DENIAL_PASS",
+  "finishedAt": "2026-08-28T07:17:05.128Z"
+}

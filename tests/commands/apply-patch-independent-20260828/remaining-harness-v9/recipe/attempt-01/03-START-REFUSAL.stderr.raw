@@ -1,0 +1,25 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: V6_INTENTIONAL_STARTUP_REFUSAL
++ actual - expected
+
+  {
++   __CF_USER_TEXT_ENCODING: '0x1F5:0x0:0x0'
+-   __CF_USER_TEXT_ENCODING: '0x1F5:0x0:0x0!V6-INTENTIONAL-MISMATCH'
+  }
+
+    at file:///Users/kjopek/Workspace/safe-bash/tests/commands/apply-patch-independent-20260828/remaining-harness-v9/recipe/child.mjs:16:10
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: { __CF_USER_TEXT_ENCODING: '0x1F5:0x0:0x0' },
+  expected: { __CF_USER_TEXT_ENCODING: '0x1F5:0x0:0x0!V6-INTENTIONAL-MISMATCH' },
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.2

@@ -2623,3 +2623,44 @@ that any implementation, command, fixture, or test currently exists.
   No full gate, global typecheck, native suite, private-engine suite or new77
   driver runs here. Combined independent acceptance remains pending; scoped
   readiness does not establish broad parity or the user's superiority objective.
+
+### 2026-08-28 — Bounded user-facing README smoke on combined5137
+
+- Documentation/smoke source b37cf57280dcdfc8495aba6d5fb974c228ed0f6e and evidence
+  e7690860f56b18052375c4f24eda82628bb321fb exercise fixed product
+  5137a74ec855a32d8a8860eb66b62eb44d11e290. The previously built full tarball
+  13fe54de1cf900d587855e276375fdf72ed1ed0d0e0625cf7ef00730f2bb74c9 is reused,
+  not rebuilt/repackaged. All846 regular package files authenticate before/after
+  extraction into a fresh consumer. Current README is a separately bound input;
+  neither this package's README nor frozen76's documentation is overwritten.
+- All13 TypeScript snippets plus the explicit staged workflow template compile
+  under strict public-package types. Node22.22.2 and24.11.1 each pass15 checks:
+  nine exact standalone examples, three contextual table/tar/HTML workflows,
+  and three network/API controls. Default77, optional curl/SafeJS exclusion and
+  builtin getopts exclusion are asserted. MemoryFS/pipes/stdin/getopts/which,
+  mock curl per-hop authorization, denied redirects, binary stdin/VFS transfers
+  and response cleanup execute. The external HTML snippet is typechecked and
+  its workflow runs with an injected mock, not against an external service.
+- Actual forbidden-source reads fail under both runtime permission fences;
+  three direct network-trap controls per runtime reject before sockets open.
+  Complete consumer/package/development-dependency inventories remain unchanged.
+  SafeJS factory types compile, but no engine/guest/private checkout is used.
+  This tests zero-runtime-dependency package usage, not absence of development
+  tooling or optional host-engine requirements, or an OS/opaque-CPU sandbox.
+- The initial author harness compiles the snippets but records two node:test
+  file-launch permission failures before product bodies. Direct module imports
+  with explicit TAP replace the harness's child-spawning discovery; no process
+  permission is added. Its raw verifier/errors remain preserved. A fresh second
+  run passes15 per runtime, followed by a fresh third pass after strengthening
+  the existing API control with the literal77/optional/builtin checks.
+- README fixes one stale76 count, makes the options import self-contained,
+  supplies an offline typed curl transport and explicit stdin/getopts/which
+  example, and states trusted-host/cooperative-cleanup limits. Existing AGENTS
+  rules already cover these boundaries, so no duplicate rule was added.
+  Entry point: tests/integration/readme-combined77-smoke-20260828/README.md.
+  No full gate, native suite, product build, global typecheck, publication/latest
+  claim or new independent combined acceptance is implied by this smoke.
+- Received root's separate scoped acceptance of dc7ed138 actual SafeJS fd1
+  regression:25/25,204 packed plus63 engine copies and private guards. It is
+  not rerun here and is not new guest-signal proof. The prior component and
+  original failure qualifications remain separate from README usability.

@@ -10,7 +10,7 @@ import {accountFile} from '../full-gate-20260827/unified76-driver/launcher-v3/ta
 
 const reportPath=resolve(process.argv[2]);
 const author=JSON.parse(readFileSync(reportPath));
-assert.equal(author.status,'AUTHOR_TIMEOUT78_PUBLIC_PASS');
+assert.equal(author.status,'AUTHOR_TIMEOUT78_PACKAGE_FOLLOWUP_PASS');
 assert.equal(author.candidate,'67eab12e315054907ef4ef435c6bbca2f59e0c36');
 assert.equal(sha(readFileSync(author.package.origin)),author.package.sha256);
 const packageRoot=join(author.root,'moved consumer/node_modules/virtual-bash');

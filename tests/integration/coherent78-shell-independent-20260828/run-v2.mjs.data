@@ -1,0 +1,325 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import { gzipSync, gunzipSync } from 'node:zlib';
+
+const repository = fs.realpathSync(process.cwd());
+const own = path.join(repository, 'tests/integration/coherent78-shell-independent-20260828');
+const author = 'tests/integration/coherent78-shell-author-20260828/';
+const sha = bytes => createHash('sha256').update(bytes).digest('hex');
+const objectHash = (kind, bytes) => createHash('sha1').update(`${kind} ${bytes.length}\0`).update(bytes).digest('hex');
+const readJson = filename => JSON.parse(fs.readFileSync(filename, 'utf8'));
+const writeJson = (filename, value) => fs.writeFileSync(filename, JSON.stringify(value, null, 2) + '\n', { flag: 'wx' });
+const preseal = readJson(path.join(own, 'PRESEAL.json'));
+const executor = readJson(path.join(own, 'EXECUTOR-v2.json'));
+const git = (...args) => {
+  const result = spawnSync('/usr/bin/git', args, { cwd: repository, timeout: 20000, maxBuffer: 16 * 1024 * 1024 });
+  assert.equal(result.status, 0, result.stderr?.toString()); assert.equal(result.signal, null); return result.stdout;
+};
+assert.equal(git('rev-parse', '--show-toplevel').toString().trim(), repository);
+for (const [name, digest] of Object.entries(executor.artifacts)) assert.equal(sha(fs.readFileSync(path.join(own, name))), digest, name);
+assert.deepEqual(git('show', `${executor.presealCommit}:tests/integration/coherent78-shell-independent-20260828/PRESEAL.json`), fs.readFileSync(path.join(own, 'PRESEAL.json')));
+const priorBytes = fs.readFileSync(path.join(own, 'RAW-v1.json.gz.base64'));
+assert.equal(sha(priorBytes), executor.previousArchiveSha256);
+const prior = JSON.parse(gunzipSync(Buffer.from(priorBytes.toString().trim(), 'base64')));
+assert.equal(prior.childCount, 29); assert.equal(prior.safetyStops.length, 1);
+assert.ok(prior.commands.every(row => row.naturallyReaped));
+const scratch = path.join(own, '.scratch-review-v2');
+assert.equal(fs.existsSync(scratch), false, 'Existing owned execution must not be duplicated');
+assert.equal(fs.existsSync(path.join(own, 'REVIEW-v2.json')), false, 'Completed review must not be repeated');
+fs.mkdirSync(scratch);
+const startedAt = Date.now();
+const evidence = { version: 1, role: 'independent bounded review; exact author-profile dependency distinguished', startedAt: new Date(startedAt).toISOString(), presealCommit: executor.presealCommit, executor, candidate: preseal.candidate, commands: [], layouts: [], types: [], controls: [], failures: [], safetyStops: [], tools: {}, source: {}, cleanup: {}, scope: preseal.qualifications };
+const beforeIndex = git('diff', '--cached', '--name-status').toString();
+evidence.foreignIndexBefore = beforeIndex;
+const directories = ['tools', 'source', 'outside', 'home', 'tmp', 'cache', 'receipts', 'admissions', 'logs', 'packs'];
+for (const name of directories) fs.mkdirSync(path.join(scratch, name));
+for (const name of ['npmrc', 'global-npmrc']) fs.writeFileSync(path.join(scratch, name), '');
+const source = path.join(scratch, 'source');
+const outside = path.join(scratch, 'outside');
+const tools = path.join(scratch, 'tools');
+const node = path.join(tools, 'node');
+const compiler = path.join(tools, 'typescript/bin/tsc');
+const npm = path.join(tools, 'npm/bin/npm-cli.js');
+const environment = { PATH: `${tools}:/usr/bin:/bin`, HOME: path.join(scratch, 'home'), TMPDIR: path.join(scratch, 'tmp'), npm_config_cache: path.join(scratch, 'cache'), npm_config_userconfig: path.join(scratch, 'npmrc'), npm_config_globalconfig: path.join(scratch, 'global-npmrc'), npm_config_offline: 'true', npm_config_audit: 'false', npm_config_fund: 'false', npm_config_update_notifier: 'false', NO_COLOR: '1' };
+let childCount = prior.childCount;
+evidence.priorReview = { archiveSha256: executor.previousArchiveSha256, children: prior.childCount, status: prior.status, elapsedMs: prior.elapsedMs };
+let protectedRoots = [];
+function inventory(root) {
+  const output = {};
+  const walk = relative => {
+    for (const name of fs.readdirSync(path.join(root, relative)).sort()) {
+      const key = relative ? `${relative}/${name}` : name, filename = path.join(root, key), stat = fs.lstatSync(filename);
+      assert.ok(!stat.isSymbolicLink(), `SYMLINK:${filename}`);
+      if (stat.isDirectory()) { output[key + '/'] = { kind: 'directory', mode: stat.mode & 511 }; walk(key); }
+      else { assert.ok(stat.isFile()); const bytes = fs.readFileSync(filename); output[key] = { kind: 'file', bytes: bytes.length, mode: stat.mode & 511, sha256: sha(bytes) }; }
+    }
+  };
+  walk(''); return output;
+}
+function diskUsage(root) {
+  let total = 0;
+  const walk = directory => { for (const name of fs.readdirSync(directory)) { const filename = path.join(directory, name), stat = fs.lstatSync(filename); assert.ok(!stat.isSymbolicLink(), filename); if (stat.isDirectory()) walk(filename); else { assert.ok(stat.isFile()); total += stat.size; } } };
+  walk(root); return total;
+}
+function command(label, args, cwd = outside, extraEnv = {}, mutates = []) {
+  assert.ok(++childCount <= preseal.execution.bounds.maxChildren, 'CHILD_BOUND');
+  assert.ok(Date.now() - startedAt + prior.elapsedMs < preseal.execution.bounds.maxWholeReviewMs, 'WHOLE_TIME_BOUND');
+  assert.ok(diskUsage(scratch) < preseal.execution.bounds.maxOwnedScratchBytes, 'SCRATCH_BOUND');
+  const guards = protectedRoots.filter(root => !mutates.includes(root)).map(root => [root, inventory(root)]);
+  const time = label.includes('runtime') || label.startsWith('K') ? preseal.execution.bounds.runtimeWallMs : preseal.execution.bounds.buildTypePackWallMs;
+  const begin = Date.now();
+  const result = spawnSync(node, args, { cwd, env: { ...environment, ...extraEnv }, encoding: 'utf8', timeout: time, killSignal: 'SIGKILL', maxBuffer: preseal.execution.bounds.maxOutputBytesPerChild });
+  const row = { child: childCount, label, args, cwd, pid: result.pid, status: result.status, signal: result.signal, error: result.error?.message, elapsedMs: Date.now() - begin, stdout: result.stdout, stderr: result.stderr };
+  writeJson(path.join(scratch, 'receipts', `${String(childCount).padStart(3, '0')}.json`), row);
+  evidence.commands.push(row);
+  console.log(JSON.stringify({ child: childCount, label, status: row.status, signal: row.signal }));
+  assert.equal(row.signal, null, 'CHILD_ABNORMAL_SETTLEMENT'); assert.equal(row.error, undefined, 'CHILD_RUNNER_ERROR'); assert.notEqual(row.status, null, 'CHILD_UNREAPED');
+  let alive = false; try { process.kill(row.pid, 0); alive = true; } catch (error) { assert.equal(error.code, 'ESRCH'); }
+  assert.equal(alive, false, 'CHILD_STILL_ALIVE'); row.naturallyReaped = true;
+  for (const [root, before] of guards) assert.deepEqual(inventory(root), before, `INTEGRITY:${root}`);
+  row.protectedRoots = guards.map(([root, before]) => ({ root, entries: Object.keys(before).length, sha256: sha(JSON.stringify(before)), appendDetected: true }));
+  assert.ok(diskUsage(scratch) < preseal.execution.bounds.maxOwnedScratchBytes, 'POST_SCRATCH_BOUND');
+  return row;
+}
+const success = row => assert.equal(row.status, 0, `${row.label}\n${row.stdout}\n${row.stderr}`);
+const treeCache = new Map();
+function treeEntries(oid) {
+  if (treeCache.has(oid)) return treeCache.get(oid).entries;
+  const bytes = git('cat-file', 'tree', oid); assert.equal(objectHash('tree', bytes), oid);
+  const entries = []; let offset = 0;
+  while (offset < bytes.length) {
+    const space = bytes.indexOf(32, offset), zero = bytes.indexOf(0, space);
+    entries.push({ mode: bytes.subarray(offset, space).toString(), name: bytes.subarray(space + 1, zero).toString(), oid: bytes.subarray(zero + 1, zero + 21).toString('hex') }); offset = zero + 21;
+  }
+  treeCache.set(oid, { oid, base64: bytes.toString('base64'), entries }); return entries;
+}
+function overlay(tree, overrides, prefix = '') {
+  const entries = treeEntries(tree).map(entry => {
+    const name = prefix + entry.name;
+    if (overrides.has(name)) return { ...entry, oid: overrides.get(name) };
+    if (entry.mode === '40000' && [...overrides.keys()].some(key => key.startsWith(name + '/'))) return { ...entry, oid: overlay(entry.oid, overrides, name + '/') };
+    return entry;
+  });
+  const payload = Buffer.concat(entries.map(entry => Buffer.concat([Buffer.from(`${entry.mode} ${entry.name}\0`), Buffer.from(entry.oid, 'hex')])));
+  const oid = objectHash('tree', payload);
+  evidence.source.reconstructedTrees ??= [];
+  evidence.source.reconstructedTrees.push({ oid, base64: payload.toString('base64') }); return oid;
+}
+function toolRows(root) {
+  const rows = [];
+  const walk = relative => { for (const name of fs.readdirSync(path.join(root, relative)).sort()) { const key = relative ? `${relative}/${name}` : name, filename = path.join(root, key), stat = fs.lstatSync(filename); if (stat.isDirectory()) walk(key); else if (stat.isSymbolicLink()) rows.push([key, 'SYMLINK', fs.readlinkSync(filename)]); else { assert.ok(stat.isFile()); const bytes = fs.readFileSync(filename); rows.push([key, stat.mode & 511, bytes.length, sha(bytes)]); } } };
+  walk(''); return rows;
+}
+function copyTools(name, origin, destination) {
+  const rows = toolRows(origin), pin = preseal.tools[name]; assert.equal(sha(JSON.stringify(rows)), pin.manifest, name);
+  assert.equal(readJson(path.join(origin, 'package.json')).version, pin.version);
+  const omitted = [];
+  for (const [relative, mode, bytes, digest] of rows) {
+    if (mode === 'SYMLINK') { assert.ok(relative.includes('/.bin/')); assert.ok(fs.realpathSync(path.join(origin, relative)).startsWith(origin + path.sep)); omitted.push([relative, bytes]); continue; }
+    const target = path.join(destination, relative); fs.mkdirSync(path.dirname(target), { recursive: true }); fs.copyFileSync(path.join(origin, relative), target); fs.chmodSync(target, mode); assert.equal(sha(fs.readFileSync(target)), digest);
+  }
+  const copied = toolRows(destination); assert.deepEqual(copied, rows.filter(row => row[1] !== 'SYMLINK'));
+  evidence.tools[name] = { origin, destination, version: pin.version, originalRows: rows, omittedInternalBinLinks: omitted, copiedSha256: sha(JSON.stringify(copied)) };
+}
+function copyRegular(origin, destination) {
+  assert.equal(fs.existsSync(destination), false); fs.mkdirSync(destination, { recursive: true });
+  for (const [relative, entry] of Object.entries(inventory(origin))) {
+    const target = path.join(destination, relative);
+    if (entry.kind === 'directory') fs.mkdirSync(target, { recursive: true, mode: entry.mode });
+    else { fs.mkdirSync(path.dirname(target), { recursive: true }); fs.copyFileSync(path.join(origin, relative), target); fs.chmodSync(target, entry.mode); }
+  }
+  assert.deepEqual(inventory(destination), inventory(origin));
+}
+function installTypes(root) {
+  copyRegular(path.join(tools, '@types/node'), path.join(root, 'node_modules/@types/node'));
+  copyRegular(path.join(tools, 'undici-types'), path.join(root, 'node_modules/undici-types'));
+}
+let metadata, manifest, packageBytes, selected;
+const frozenHelpers = {};
+function harness(root) {
+  for (const [name, bytes] of Object.entries(frozenHelpers)) fs.writeFileSync(path.join(root, name), bytes, { flag: 'wx' });
+  for (const name of ['loader', 'guard', 'holdout']) fs.copyFileSync(path.join(own, `${name}.mjs.data`), path.join(root, `${name}.mjs`));
+  fs.copyFileSync(path.join(own, 'HOLDOUTS.json'), path.join(root, 'HOLDOUTS.json'));
+  fs.writeFileSync(path.join(root, 'fallback.mjs'), "await import(process.env.FALLBACK_PATH);\n");
+}
+function admission(root, product, tag) {
+  const files = {};
+  const productInventory = inventory(product);
+  for (const [relative, entry] of Object.entries(productInventory)) if (entry.kind === 'file' && relative.startsWith('dist/') && relative.endsWith('.js')) files[path.join(product, relative)] = { sha256: entry.sha256, relative, role: 'product' };
+  for (const name of ['probe.mjs', 'names.mjs', 'holdout.mjs', 'guard.mjs', 'fallback.mjs']) files[path.join(root, name)] = { sha256: sha(fs.readFileSync(path.join(root, name))), relative: name, role: 'harness' };
+  const filename = path.join(scratch, 'admissions', `${tag}.json`); writeJson(filename, { product, root, files }); return filename;
+}
+function runtime(layout, root, product, id, admitted, kind = 'ordinary', entry) {
+  const log = path.join(scratch, 'logs', `${layout}-${id}.jsonl`);
+  assert.equal(fs.existsSync(log), false);
+  const selectedEntry = entry ?? (id.startsWith('H') ? 'holdout.mjs' : 'probe.mjs');
+  const row = command(`${layout}-runtime-${id}`, ['--loader', path.join(root, 'loader.mjs'), '--import', path.join(root, 'guard.mjs'), path.join(root, selectedEntry)], outside, { ADMISSION: admitted, LOAD_LOG: log, PRODUCT_ROOT: product, RUN_ROOT: root, CASE_IDS: id, LAYOUT: layout, FALLBACK_PATH: path.join(source, 'src/index.ts') });
+  row.loads = fs.existsSync(log) ? fs.readFileSync(log, 'utf8').trim().split('\n').filter(Boolean).map(line => JSON.parse(line)) : [];
+  row.records = row.stdout.split('\n').filter(line => line.startsWith('{')).map(line => JSON.parse(line));
+  if (kind !== 'ordinary') return row;
+  const observation = row.records.find(item => item.id === id);
+  assert.ok(observation, `MISSING_OBSERVATION:${layout}:${id}`);
+  assert.equal(observation.created, observation.disposed, 'OWNED_SHELL_LEAK'); assert.equal(observation.cleanupError, undefined, 'CLEANUP_FAILURE');
+  if (id.startsWith('H')) assert.equal(observation.clean, true, 'HOLDOUT_RESOURCE_LEAK');
+  if (!id.startsWith('H') && observation.detail?.network) { assert.equal(observation.detail.network.pending, 0); assert.equal(observation.detail.network.listeners, 0); }
+  const pass = row.status === 0 && observation.pass === true;
+  row.accepted = pass;
+  if (!pass) {
+    const failure = { layout, id, status: row.status, observation }; evidence.failures.push(failure);
+    console.log(JSON.stringify({ ROOT_INTERMEDIATE_FAILURE: failure }));
+  }
+  return row;
+}
+function typeCases(layout, root, product) {
+  const data = readJson(path.join(own, 'TYPES.json'));
+  const tests = [...data.positive.map(row => ({ ...row, expected: 0 })), ...data.negative.flatMap(row => [{ ...row, expected: 2 }, { ...row, id: row.id + '-inversion', body: row.inversion, expected: 0 }])];
+  const productInventory = inventory(product);
+  for (const test of tests) {
+    const filename = path.join(root, 'consumer.mts'); fs.writeFileSync(filename, data.prefix + test.body + '\n', { flag: 'wx' });
+    const row = command(`${layout}-type-${test.id}`, [compiler, '--noEmit', '--listFiles', '--strict', '--exactOptionalPropertyTypes', '--module', 'NodeNext', '--moduleResolution', 'NodeNext', '--target', 'ES2023', '--types', 'node', '--typeRoots', path.join(root, 'node_modules/@types'), filename]);
+    const diagnostics = row.stdout.split('\n').filter(line => /error TS\d+:/u.test(line));
+    const forbidden = /TS2307|TS2688|TS7016|TS1479|TS2835/u;
+    const matched = row.status === test.expected && !forbidden.test(row.stdout + row.stderr) && (test.expected === 0 ? diagnostics.length === 0 : diagnostics.length === 1 && diagnostics[0].includes(test.code) && diagnostics[0].includes(test.term));
+    const listed = row.stdout.split('\n').filter(line => path.isAbsolute(line) && line.endsWith('.d.ts'));
+    const declarations = listed.filter(name => name.startsWith(product + '/dist/')).map(name => { const relative = path.relative(product, name), digest = sha(fs.readFileSync(name)); assert.equal(productInventory[relative]?.sha256, digest); return { relative, sha256: digest }; });
+    assert.ok(declarations.some(row => row.relative === 'dist/index.d.ts')); assert.ok(declarations.some(row => row.relative === 'dist/commands/timeout/index.d.ts'));
+    assert.equal(listed.some(name => name.startsWith(repository + '/src/')), false);
+    assert.equal(row.stdout.split('\n').some(name => path.isAbsolute(name) && name.endsWith('.ts') && !name.endsWith('.d.ts') && name !== filename), false);
+    evidence.types.push({ layout, id: test.id, expected: test.expected, actual: row.status, matched, diagnostics, declarations, payloadSha256: sha(fs.readFileSync(filename)) });
+    fs.unlinkSync(filename);
+    if (!matched) { evidence.failures.push({ layout, id: test.id, role: 'type', diagnostics, actual: row.status }); console.log(JSON.stringify({ ROOT_INTERMEDIATE_TYPE_FAILURE: { layout, id: test.id, diagnostics } })); }
+  }
+}
+function layout(label, root, product) {
+  const admitted = admission(root, product, label);
+  const holdouts = readJson(path.join(own, 'HOLDOUTS.json')).cases.map(row => row.id);
+  const rows = [];
+  const ids = label === 'source-build-continuation' ? ['H07', 'H08', 'H09', 'H10'] : [...preseal.execution.replayIds, ...holdouts];
+  for (const id of ids) rows.push(runtime(label, root, product, id, admitted));
+  const loads = new Map(); for (const row of rows) for (const load of row.loads.filter(item => item.role === 'product')) loads.set(load.relative, load.sha256);
+  for (const name of ['dist/index.js', 'dist/shell/runtime.js', 'dist/shell/shell.js', 'dist/commands/timeout/index.js', 'dist/commands/structured/interpreter.js', 'dist/fs/webdav/webdav.js', 'dist/commands/network/curl.js']) assert.ok(loads.has(name), name);
+  evidence.layouts.push({ layout: label, root, product, caseIdentities: rows.length, positiveExecutions: rows.filter(row => row.records.some(item => item.id && item.id !== 'R15')).length, positivePass: rows.filter(row => row.accepted && row.records.some(item => item.id && item.id !== 'R15')).length, refusalExecutions: rows.filter(row => row.records.some(item => item.id === 'R15')).length, refusalPass: rows.filter(row => row.accepted && row.records.some(item => item.id === 'R15')).length, created: rows.reduce((sum, row) => sum + row.records.find(item => item.id).created, 0), disposed: rows.reduce((sum, row) => sum + row.records.find(item => item.id).disposed, 0), loadedCount: loads.size, loads: [...loads].sort().map(([relative, sha256]) => ({ relative, sha256 })) });
+  typeCases(label, root, product); return admitted;
+}
+try {
+  const sealBytes = git('show', `${preseal.authorFinal}:${author}FINAL-SEAL.json`), authorSeal = JSON.parse(sealBytes);
+  evidence.authorSeal = authorSeal;
+  const dataFiles = ['CANDIDATE.json', 'MANIFEST.json', 'CASES.json', 'CASES-v2-overlay.json', 'HANDOFF-v2.md'];
+  evidence.authorData = {};
+  for (const name of dataFiles) { const bytes = git('show', `${preseal.authorFinal}:${author}${name}`); assert.equal(sha(bytes), authorSeal.artifacts[name]); evidence.authorData[name] = bytes.toString(); }
+  metadata = JSON.parse(evidence.authorData['CANDIDATE.json']); manifest = JSON.parse(evidence.authorData['MANIFEST.json']);
+  assert.equal(sha(evidence.authorData['CANDIDATE.json']), preseal.metadata.candidateSha256); assert.equal(sha(evidence.authorData['MANIFEST.json']), preseal.metadata.manifestSha256);
+  assert.equal(manifest.composedTree, preseal.candidate); assert.equal(manifest.inputs.length, 268);
+  evidence.source.commits = [];
+  for (const revision of [...new Set([manifest.base, manifest.dotglobBase, preseal.authorFinal, preseal.authorPreseal, preseal.authorCheckpoint, preseal.authorCorrectedProfile, ...manifest.inputs.map(row => row.revision)])]) {
+    const bytes = git('cat-file', 'commit', revision); assert.equal(objectHash('commit', bytes), revision);
+    const tree = /^tree ([a-f0-9]{40})$/mu.exec(bytes.toString())[1]; treeEntries(tree);
+    evidence.source.commits.push({ revision, tree, base64: bytes.toString('base64') });
+  }
+  selected = new Map();
+  for (const input of manifest.inputs) {
+    assert.ok(input.path.startsWith('src/') || ['README.md', 'package.json', 'tsconfig.json', 'tsconfig.build.json'].includes(input.path)); assert.ok(!input.path.split('/').includes('AGENTS.md'));
+    const entry = git('ls-tree', input.revision, '--', input.path).toString().trim();
+    assert.equal(entry, `${input.mode} blob ${input.blob}\t${input.path}`); assert.equal(input.mode, '100644');
+    const bytes = git('show', `${input.revision}:${input.path}`); assert.equal(objectHash('blob', bytes), input.blob); assert.equal(sha(bytes), input.sha256); assert.equal(bytes.length, input.bytes); assert.equal(selected.has(input.path), false); selected.set(input.path, bytes);
+  }
+  const overrides = new Map(metadata.overrides.map(row => [row.path, row.blob])); assert.equal(overrides.size, 5);
+  assert.equal(overlay(manifest.baseTree, new Map()), manifest.baseTree); assert.equal(overlay(manifest.baseTree, overrides), manifest.composedTree);
+  const dotTree = evidence.source.commits.find(row => row.revision === manifest.dotglobBase).tree;
+  assert.equal(overlay(dotTree, new Map([...overrides].filter(([name]) => name !== 'src/commands/structured/interpreter.ts'))), manifest.acceptedDotglobTree);
+  evidence.source.reachableTrees = [...treeCache.values()]; evidence.source.componentTable = metadata.overrides; evidence.source.inputs = manifest.inputs;
+  evidence.source.selectedBytes = Object.fromEntries([...selected].map(([name, bytes]) => [name, bytes.toString('base64')]));
+  evidence.priorSourceRefusal = prior.controls.find(row => row.id === 'K1'); assert.equal(evidence.priorSourceRefusal.pass, true);
+  for (const [name, digest] of Object.entries(preseal.execution.replayDependency)) { const bytes = git('show', `${preseal.authorFinal}:${author}${name}`); assert.equal(sha(bytes), digest); frozenHelpers[name] = bytes; }
+  for (const [relative, bytes] of selected) { const filename = path.join(source, relative); fs.mkdirSync(path.dirname(filename), { recursive: true }); fs.writeFileSync(filename, bytes, { flag: 'wx', mode: 420 }); }
+  assert.equal(sha(fs.readFileSync(process.execPath)), preseal.tools.node.sha256); fs.copyFileSync(process.execPath, node); fs.chmodSync(node, 493); assert.equal(sha(fs.readFileSync(node)), preseal.tools.node.sha256);
+  evidence.tools.node = { origin: process.execPath, copied: node, version: process.version, sha256: preseal.tools.node.sha256, platform: process.platform, arch: process.arch };
+  copyTools('typescript', path.join(repository, 'node_modules/typescript'), path.join(tools, 'typescript'));
+  copyTools('npm', path.resolve(path.dirname(process.execPath), '../lib/node_modules/npm'), path.join(tools, 'npm'));
+  copyTools('@types/node', path.join(repository, 'node_modules/@types/node'), path.join(tools, '@types/node'));
+  copyTools('undici-types', path.join(repository, 'node_modules/undici-types'), path.join(tools, 'undici-types'));
+  installTypes(source); protectedRoots = [tools];
+  success(command('fresh-build', [compiler, '-p', path.join(source, 'tsconfig.build.json')], source));
+  for (const [name, bytes] of selected) assert.deepEqual(fs.readFileSync(path.join(source, name)), bytes);
+  protectedRoots = [tools, source];
+  const pack = command('full-npm-pack', [npm, 'pack', '--offline', '--ignore-scripts', '--json', '--pack-destination', path.join(scratch, 'packs')], source); success(pack);
+  const packResult = JSON.parse(pack.stdout); assert.equal(packResult.length, 1); assert.equal(packResult[0].files.length, preseal.package.regularFiles);
+  const tarball = path.join(scratch, 'packs', packResult[0].filename); packageBytes = fs.readFileSync(tarball);
+  assert.equal(packageBytes.length, preseal.package.bytes); assert.equal(sha(packageBytes), preseal.package.wholeSha256);
+  evidence.pack = { ...packResult[0], wholeSha256: sha(packageBytes), base64: packageBytes.toString('base64') };
+  evidence.source.emitted = inventory(path.join(source, 'dist'));
+  assert.equal(Object.keys(evidence.source.emitted).filter(name => name.endsWith('.d.ts')).length, 214);
+  const packageJson = readJson(path.join(source, 'package.json'));
+  for (const key of ['dependencies', 'optionalDependencies', 'peerDependencies']) assert.deepEqual(Object.keys(packageJson[key] ?? {}), []);
+  evidence.publicExports = packageJson.exports;
+  const consumer = path.join(scratch, 'consumer'); fs.mkdirSync(consumer); fs.writeFileSync(path.join(consumer, 'package.json'), '{"private":true,"type":"module"}\n');
+  success(command('genuine-offline-install', [npm, 'install', '--offline', '--ignore-scripts', '--no-audit', '--no-fund', '--package-lock=false', tarball], consumer));
+  const installed = path.join(consumer, 'node_modules/virtual-bash');
+  evidence.fullInstalledBefore = inventory(installed);
+  evidence.installedManifestSha256 = sha(JSON.stringify(evidence.fullInstalledBefore)); assert.equal(evidence.installedManifestSha256, preseal.package.installedManifestSha256);
+  assert.equal(Object.values(evidence.fullInstalledBefore).filter(row => row.kind === 'file').length, 858);
+  for (const [name, entry] of Object.entries(evidence.source.emitted)) assert.deepEqual(evidence.fullInstalledBefore['dist/' + name], entry);
+  harness(source); harness(consumer); installTypes(consumer); protectedRoots = [tools, source, consumer];
+  layout('source-build-continuation', source, source);
+  layout('offline-installed', consumer, installed);
+  const moved = path.join(scratch, 'physically moved consumer'); fs.renameSync(consumer, moved); assert.equal(fs.existsSync(consumer), false);
+  const product = path.join(moved, 'node_modules/virtual-bash'); protectedRoots = [tools, source, moved];
+  evidence.move = { original: consumer, moved, oldAbsent: !fs.existsSync(consumer) };
+  const movedAdmission = layout('physically-moved', moved, product);
+  const runtimeFile = path.join(product, 'dist/shell/runtime.js'), runtimeOriginal = fs.readFileSync(runtimeFile);
+  fs.appendFileSync(runtimeFile, '\n');
+  try { const control = runtime('K2', moved, product, 'C01', movedAdmission, 'control'); const pass = control.status !== 0 && control.stderr.includes('LOAD_HASH_REFUSED:') && !control.records.some(row => row.id); evidence.controls.push({ id: 'K2', role: 'artifact-tamper refusal', pass, child: control.child }); assert.ok(pass); }
+  finally { fs.writeFileSync(runtimeFile, runtimeOriginal); }
+  assert.deepEqual(inventory(product), evidence.fullInstalledBefore);
+  const fallback = runtime('K3', moved, product, 'C01', movedAdmission, 'control', 'fallback.mjs');
+  const fallbackPass = fallback.status !== 0 && /SOURCE_FALLBACK_REFUSED|OUTSIDE_ADMISSION/u.test(fallback.stderr); evidence.controls.push({ id: 'K3', role: 'source-fallback refusal', pass: fallbackPass, child: fallback.child }); assert.ok(fallbackPass);
+  const timeoutEntry = path.join(product, 'dist/commands/timeout/index.js'), held = path.join(scratch, 'held-timeout.js'); fs.renameSync(timeoutEntry, held);
+  try { const control = runtime('K4', moved, product, 'C01', movedAdmission, 'control'); const pass = control.status !== 0 && control.stderr.includes('ERR_MODULE_NOT_FOUND') && !control.records.some(row => row.id); evidence.controls.push({ id: 'K4', role: 'import refusal', pass, child: control.child }); assert.ok(pass); }
+  finally { fs.renameSync(held, timeoutEntry); }
+  assert.deepEqual(inventory(product), evidence.fullInstalledBefore);
+  const preload = path.join(outside, 'all-pass-exit7.mjs'); fs.writeFileSync(preload, "console.log(JSON.stringify({summary:{pass:29,cases:29,created:1,disposed:1}}));process.exit(7);\n");
+  const nonzero = command('K5-preload-admission', ['--import', preload, '--input-type=module', '-e', "throw new Error('must not execute');"]);
+  assert.equal(nonzero.status, 7); assert.ok(nonzero.stdout.includes('"pass":29')); assert.throws(() => success(nonzero)); evidence.controls.push({ id: 'K5', role: 'admission only; not mutation', pass: true, child: nonzero.child });
+  const mutant = path.join(scratch, 'mutant-source'); fs.mkdirSync(mutant);
+  for (const [relative, bytes] of selected) { const target = path.join(mutant, relative); fs.mkdirSync(path.dirname(target), { recursive: true }); fs.writeFileSync(target, bytes); }
+  const mutationPath = path.join(mutant, 'src/commands/structured/interpreter.ts');
+  const original = fs.readFileSync(mutationPath, 'utf8'); const needle = '        let length = 0;\n        for (const _ of input) length++;\n        yield length;';
+  assert.equal(original.split(needle).length, 2, 'MUTANT_SETUP_NEEDLE'); const mutated = original.replace(needle, '        yield input.length;'); fs.writeFileSync(mutationPath, mutated);
+  evidence.mutation = { path: 'src/commands/structured/interpreter.ts', before: sha(original), after: sha(mutated), needle, replacement: '        yield input.length;', sourceBase64: Buffer.from(mutated).toString('base64') };
+  installTypes(mutant); success(command('M1-valid-mutant-build', [compiler, '-p', path.join(mutant, 'tsconfig.build.json')], mutant));
+  harness(mutant); protectedRoots.push(mutant); const mutantAdmission = admission(mutant, mutant, 'mutant');
+  const killed = runtime('M1', mutant, mutant, 'H10', mutantAdmission, 'control');
+  const mutantObservation = killed.records.find(row => row.id === 'H10'), mutantLoad = killed.loads.find(row => row.relative === 'dist/commands/structured/interpreter.js');
+  const semanticPass = killed.status === 1 && mutantObservation?.error?.code === 'ERR_ASSERTION' && mutantObservation?.detail?.result?.stdout === '[2,2,5,1]\n' && mutantObservation?.clean === true && Boolean(mutantLoad) && mutantLoad.sha256 !== evidence.source.emitted['commands/structured/interpreter.js'].sha256;
+  evidence.controls.push({ id: 'M1', role: 'valid actual semantic mutant', pass: semanticPass, child: killed.child, loaded: mutantLoad, observed: mutantObservation, admittedMutantHash: sha(JSON.stringify(inventory(mutant))) }); assert.ok(semanticPass, 'MUTANT_NOT_SEMANTICALLY_KILLED');
+  assert.deepEqual(inventory(product), evidence.fullInstalledBefore); assert.equal(fs.existsSync(consumer), false);
+  for (const [name, bytes] of selected) assert.deepEqual(fs.readFileSync(path.join(source, name)), bytes);
+  evidence.finishedAt = new Date().toISOString(); evidence.status = evidence.failures.length ? 'scoped-defects' : 'coherent-scoped-acceptance';
+} catch (error) {
+  evidence.safetyStops.push({ name: error?.name, code: error?.code, message: error?.message, stack: error?.stack }); evidence.status = 'stopped-safety-or-setup-blocker';
+  console.log(JSON.stringify({ ROOT_SAFETY_STOP: evidence.safetyStops.at(-1) }));
+} finally {
+  evidence.childCount = childCount; evidence.continuationChildren = evidence.commands.length; evidence.elapsedMs = Date.now() - startedAt;
+  evidence.foreignIndexAfter = git('diff', '--cached', '--name-status').toString();
+  evidence.foreignIndexUnchanged = evidence.foreignIndexAfter === beforeIndex;
+  evidence.cleanup.before = inventory(scratch); evidence.cleanup.bytes = diskUsage(scratch);
+  evidence.cleanup.enumeratedRoot = scratch;
+  evidence.cleanup.archivePolicy = 'Raw outcomes, selected original inputs, full original npm tarball, mutant source, source/tree/tool/load/declaration receipts archived. Audited regular tool copies are reconstructible from pinned original inventories; no authored original or raw outcome is discarded. No general descendant or opaque-work claim.';
+  evidence.cleanup.originals = {};
+  for (const [relative, entry] of Object.entries(evidence.cleanup.before)) {
+    if (entry.kind !== 'file') continue;
+    if (relative.startsWith('receipts/') || relative.startsWith('admissions/') || relative.startsWith('logs/') || relative.endsWith('.mjs') && !relative.includes('/node_modules/') && !relative.startsWith('tools/') && !relative.includes('/dist/')) evidence.cleanup.originals[relative] = fs.readFileSync(path.join(scratch, relative)).toString('base64');
+  }
+  const archive = path.join(own, 'RAW-v2.json.gz.base64');
+  const compressed = gzipSync(Buffer.from(JSON.stringify(evidence)), { level: 9 }); fs.writeFileSync(archive, compressed.toString('base64') + '\n', { flag: 'wx' });
+  const verified = Buffer.from(fs.readFileSync(archive, 'utf8').trim(), 'base64'); assert.deepEqual(verified, compressed); assert.deepEqual(JSON.parse(gunzipSync(verified)), JSON.parse(JSON.stringify(evidence)));
+  assert.deepEqual(inventory(scratch), evidence.cleanup.before, 'PRE_REMOVAL_APPEND_DETECTING_INTEGRITY');
+  const summary = { version: 1, status: evidence.status, candidate: preseal.candidate, presealCommit: executor.presealCommit, executorCommit: git('log', '-1', '--format=%H', '--', 'tests/integration/coherent78-shell-independent-20260828/EXECUTOR-v2.json').toString().trim(), rawArchive: 'RAW-v2.json.gz.base64', archiveSha256: sha(fs.readFileSync(archive)), decodedGzipSha256: sha(compressed), children: childCount, naturallyReaped: evidence.commands.filter(row => row.naturallyReaped).length, layouts: evidence.layouts, typeExecutions: evidence.types.length, typeMatched: evidence.types.filter(row => row.matched).length, controlResults: evidence.controls, failures: evidence.failures, safetyStops: evidence.safetyStops, components: evidence.source.componentTable, package: evidence.pack ? { bytes: packageBytes.length, sha256: sha(packageBytes), files: evidence.pack.files.length, installedManifestSha256: evidence.installedManifestSha256 } : null, elapsedMs: evidence.elapsedMs, foreignIndexUnchanged: evidence.foreignIndexUnchanged, cleanup: { explicitlyEnumeratedRoot: scratch, archivedBeforeRemoval: true, appendDetectingPrecheck: true, bytes: evidence.cleanup.bytes, policy: evidence.cleanup.archivePolicy } };
+  fs.rmSync(scratch, { recursive: true }); summary.cleanup.removed = !fs.existsSync(scratch);
+  writeJson(path.join(own, 'REVIEW-v2.json'), summary);
+  console.log(JSON.stringify({ final: { status: summary.status, children: summary.children, types: summary.typeMatched, failures: summary.failures.length, safetyStops: summary.safetyStops.length, cleanup: summary.cleanup.removed } }));
+  if (evidence.safetyStops.length || evidence.failures.length) process.exitCode = 1;
+}

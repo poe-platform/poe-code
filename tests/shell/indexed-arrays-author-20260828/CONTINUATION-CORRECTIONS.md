@@ -35,3 +35,11 @@ captures are rewritten; these are author development outcomes, not acceptance.
   Update only that exact expected diagnostic from private metadata to private Map
   slot. This follows the unchanged seven-counter refusal order and is not a blanket
   diagnostic relaxation. Preserve the original failing capture.
+- Uw3rbK / c7dae6e8: 28/28 groups, 50 source public exec calls; all ten loaded
+  mutants and both strict installed/moved six-flow layouts met expectations.
+- jcgWOz / 9813f231: build/strict passed; 31/32 groups, 56 public exec calls before
+  the first control-name assertion ended its loop. The generic success helper
+  incorrectly required empty stderr after an intentionally refused control-name
+  conversion followed by successful printf. The replacement explicitly asserts
+  the exact control-refusal diagnostic, status and retained RHS absence for each
+  of thirteen independently listed names. No production behavior changed.

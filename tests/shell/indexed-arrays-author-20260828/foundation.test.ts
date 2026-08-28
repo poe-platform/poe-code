@@ -59,7 +59,15 @@ test("foundation: supported lazy bare operators preserve scalar behavior", { tim
 
 test("foundation: exact thirteen controls refuse conversion before RHS effects", { timeout: 5000 }, async () => {
   const names = ["PATH", "PWD", "OLDPWD", "HOME", "CDPATH", "IFS", "OPTIND", "OPTERR", "OPTARG", "REPLY", "LANG", "LC_ALL", "LC_CTYPE"];
-  for (const name of names) await output(`${name}=(${'${side:=bad}'}) ; printf "%s/%s" "$?" "${'${side-unset}'}"`, "1/unset");
+  const instance = shell();
+  try {
+    for (const name of names) {
+      const result = await instance.exec(`${name}=(${'${side:=bad}'}) ; printf "%s/%s" "$?" "${'${side-unset}'}"`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, "1/unset", name);
+      assert.equal(result.stderr, "shell: line 1: indexed array: control binding cannot be indexed\n", name);
+    }
+  } finally { await instance.dispose(); }
   await output('DIRSTACK=(ordinary); printf "%s" "$DIRSTACK"', "ordinary");
 });
 

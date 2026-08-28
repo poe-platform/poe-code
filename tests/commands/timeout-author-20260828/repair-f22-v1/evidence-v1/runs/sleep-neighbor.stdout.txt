@@ -1,0 +1,172 @@
+TAP version 13
+# Subtest: sleep summed fractional intervals 0.125
+ok 1 - sleep summed fractional intervals 0.125
+  ---
+  duration_ms: 0.936375
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals .001s 0.002
+ok 2 - sleep summed fractional intervals .001s 0.002
+  ---
+  duration_ms: 0.170542
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals 1e-3m
+ok 3 - sleep summed fractional intervals 1e-3m
+  ---
+  duration_ms: 0.103083
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals +0.0001h
+ok 4 - sleep summed fractional intervals +0.0001h
+  ---
+  duration_ms: 0.058125
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals 0.00001d
+ok 5 - sleep summed fractional intervals 0.00001d
+  ---
+  duration_ms: 0.197625
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals 0.02
+ok 6 - sleep summed fractional intervals 0.02
+  ---
+  duration_ms: 0.055167
+  type: 'test'
+  ...
+# Subtest: sleep summed fractional intervals 1. 0.5s
+ok 7 - sleep summed fractional intervals 1. 0.5s
+  ---
+  duration_ms: 0.091375
+  type: 'test'
+  ...
+# Subtest: sleep never finishes early and chunks intervals above timer range
+ok 8 - sleep never finishes early and chunks intervals above timer range
+  ---
+  duration_ms: 0.290833
+  type: 'test'
+  ...
+# Subtest: sleep configurable timer quantum and submillisecond durations do not spin
+ok 9 - sleep configurable timer quantum and submillisecond durations do not spin
+  ---
+  duration_ms: 0.291084
+  type: 'test'
+  ...
+# Subtest: sleep abort before/during clears listeners and pending timers
+ok 10 - sleep abort before/during clears listeners and pending timers
+  ---
+  duration_ms: 0.479292
+  type: 'test'
+  ...
+# Subtest: sleep handles abort synchronously triggered by a trusted scheduler setup without leaking its handle
+ok 11 - sleep handles abort synchronously triggered by a trusted scheduler setup without leaking its handle
+  ---
+  duration_ms: 0.092209
+  type: 'test'
+  ...
+# Subtest: sleep rejects nonmonotonic scheduler time and cleans the subscription
+ok 12 - sleep rejects nonmonotonic scheduler time and cleans the subscription
+  ---
+  duration_ms: 0.067208
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: []
+ok 13 - sleep validates all operands before waiting: []
+  ---
+  duration_ms: 0.148584
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["-1"]
+ok 14 - sleep validates all operands before waiting: ["-1"]
+  ---
+  duration_ms: 0.052125
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["1ms"]
+ok 15 - sleep validates all operands before waiting: ["1ms"]
+  ---
+  duration_ms: 0.106458
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["NaN"]
+ok 16 - sleep validates all operands before waiting: ["NaN"]
+  ---
+  duration_ms: 0.083084
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["Infinity"]
+ok 17 - sleep validates all operands before waiting: ["Infinity"]
+  ---
+  duration_ms: 0.045292
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["1e999"]
+ok 18 - sleep validates all operands before waiting: ["1e999"]
+  ---
+  duration_ms: 0.420958
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["0x1"]
+ok 19 - sleep validates all operands before waiting: ["0x1"]
+  ---
+  duration_ms: 0.073375
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["1","bad"]
+ok 20 - sleep validates all operands before waiting: ["1","bad"]
+  ---
+  duration_ms: 0.054333
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["1,2"]
+ok 21 - sleep validates all operands before waiting: ["1,2"]
+  ---
+  duration_ms: 0.079417
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["1D"]
+ok 22 - sleep validates all operands before waiting: ["1D"]
+  ---
+  duration_ms: 0.049625
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["--invalid"]
+ok 23 - sleep validates all operands before waiting: ["--invalid"]
+  ---
+  duration_ms: 0.037792
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["--","0"]
+ok 24 - sleep validates all operands before waiting: ["--","0"]
+  ---
+  duration_ms: 0.069542
+  type: 'test'
+  ...
+# Subtest: sleep validates all operands before waiting: ["-0.00"]
+ok 25 - sleep validates all operands before waiting: ["-0.00"]
+  ---
+  duration_ms: 0.036667
+  type: 'test'
+  ...
+# Subtest: sleep zero does not consume stdin or write either channel
+ok 26 - sleep zero does not consume stdin or write either channel
+  ---
+  duration_ms: 0.058875
+  type: 'test'
+  ...
+# Subtest: sleep default scheduler waits against monotonic elapsed time
+ok 27 - sleep default scheduler waits against monotonic elapsed time
+  ---
+  duration_ms: 17.593208
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 211.601041

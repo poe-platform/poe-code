@@ -3491,3 +3491,28 @@ that any implementation, command, fixture, or test currently exists.
   implementation. Declaration P1–P4 ratification7719f39e has no implementation GO;
   arrayS06 successorc0adae53 remains author-only awaiting complete independent review.
   Curl confirmationb795 remains unchanged. None of these enter fixedf5 or this repair.
+
+## 2026-08-28 — User-priority command inventory, source/data only
+
+- Exact user counts/shares and “without the npm stuff” are preserved in
+  `docs/COMMAND_PRIORITIES.md` / `.json` as USER-PROVIDED, not verified statistics.
+  Exclusion is npm/npx product commands only; requested node and prior curl remain.
+  Development npm/Node/TypeScript/oracle dependencies are unchanged.
+- Actual registration/source inspection: ten requested defaults (sed,rg,printf,nl,
+  cat,head,echo,find,tail,ls), optional curl; product git,node,apply_patch missing.
+  SafeJS is not Node; diff/patch and the agent's patch tool are not apply_patch.
+  Report records source start lines, real subsets, gaps and scoped evidence, not
+  name-count parity. Recommended next absent tool is a bounded genuine read-only
+  VFS Git reader, with explicit format limits and independent review before wiring;
+  no implementation grant or host-Git fallback is implied.
+- Observed HEAD00bb4765459176dafc4b5c77fc97d2630c46a689;14 selected current
+  command/registration files match the authenticated268-input table of accepted
+  coherent78/8437e4eda904e1248c25eeef0d9d455b1d251495, proof633f6c82/full858
+  pack6b5863d5. Current runtime.ts differs. Metadata comparison is not reconstruction,
+  a full dependency closure, new flag execution or current whole-runtime acceptance.
+  Existing source search README's host-glob paragraph is stale against the current
+  worker-dispatched glob source; no module source/document changes made here.
+- AGENTS adds only durable priority/exclusion distinctions; README links the audit.
+  No product/native/compiler/build/private/gate execution, dependency/export change,
+  historical expectation rewrite or foreign artifact staging/cleanup. R3 remains
+  19425P/132F/7skip,6/14 with integrity/cleanup false; no new GO or superiority claim.

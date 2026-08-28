@@ -52,6 +52,17 @@ arbitrary-provider support.
 
 ## Use the command bundle
 
+### User-priority coverage
+
+The [user-provided priority table and source audit](docs/COMMAND_PRIORITIES.md)
+distinguish implementation from native compatibility: `sed`, `rg`, `printf`,
+`nl`, `cat`, `head`, `echo`, `find`, `tail` and `ls` are in `agentCommands()`;
+`curl` is an explicit network plugin. Product `git`, `node` and `apply_patch`
+are missing. `safejs` is not Node, and `patch` is not `apply_patch`.
+“Without the npm stuff” excludes npm/npx product commands only; npm, Node and
+TypeScript development tooling remain. The counts in that table are supplied by
+the user, not independently verified usage statistics or completeness scores.
+
 After `npm ci` and `npm run build`, package-root imports expose the aggregate:
 
 ```ts

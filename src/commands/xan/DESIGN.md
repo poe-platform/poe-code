@@ -1,5 +1,13 @@
 # XAN 0.54.0: bounded CSV kernel and four-command design
 
+**Refinement v2:** `design-evidence/PROFILE-V2.md` and
+`design-evidence/BYTE-TABLE-V2.md` supply the current root-decision disposition,
+exact compact byte table and inspected I/O binding. Original v1 at commit
+`91bcc1c9ec64e8e0bdb5db3055ee4c8609cd27a2` has DESIGN SHA256
+`8e27ec025c8277cf4fe422d19f9582c2a1b0ab9f9a5577200a1e449703b11c75`;
+its original receipt/probes remain immutable. Explicit supersessions below are
+not retrospective corrections to native observations. No implementation approved.
+
 **DESIGN ONLY — not implemented, registered, exported or accepted.** Author leaf,
 August 28 assignment; actual UTC capture date 2026-08-28. Root must decide the
 policy questions below, then route a **different** fixture-freeze reviewer before
@@ -209,28 +217,27 @@ malformed wildcard/range combinations that exploit parser cursor-skipping quirks
 are proposed unsupported with a deterministic selector error; independent freeze
 must identify this boundary rather than treating them as tested parity.
 
-Data emission has two modes. For comma input (standard CSV), preserve each
-selected raw field lexeme including unnecessary quotes/escaped quotes, join with
-the output delimiter, terminate with LF. This is actual `write_record_no_quoting`,
-even if output delimiter differs: it can produce ambiguous output when a field
-contains the new delimiter. Proposed safety policy is to reserialize selected
-decoded cells when input/output delimiters differ; this is a deliberate deviation
-requiring approval. For noncomma input, decode CSV quoting and reserialize cells.
-Same-delimiter comma selection preserves raw incomplete quotes (row 21) rather
-than falsely promising normalized valid CSV. Zero selected cells emit LF per
-record; one empty cell emits `""\n`; two empty cells emit `,\n` for comma output.
+Data emission has two modes. Same-comma data may preserve owned raw lexemes ONLY
+when the exact faithful-reparse criterion in PROFILE-V2 holds. Cross-delimiter
+output always serializes decoded cells; root approved this explicit native-byte
+deviation. Noncomma input also decodes and serializes, unescaping exactly once.
+Native raw incomplete quotes (original row 21) and moved-BOM loss (additional 13)
+remain evidence, not a safe-copy license. V2 proposes closing unterminated EOF
+quotes and forcing leading-BOM-cell quoting, with remaining choices explicit.
+Zero selected cells emit LF; one empty cell emits `""\n`; two emit `,\n`.
 
 ### Slice
 
 Default range is [0, unbounded), indexing **data records**, excluding header.
-Emit the parsed header once in header mode, even for a safe empty slice; an empty
+Emit the parsed header once in header mode; an empty
 input's zero-column header serializes as LF as specified below. --skip supplies start
 only if --start is absent. End is exclusive. -i N means start N, length 1;
 it conflicts with start/end/len (including a --skip resolved to start). End and
-len conflict; start>end errors. Native start=end and len=0 fall through a loop
-and emit the remainder instead of empty. Rows 23/24 prove len=0 emits all.
-**Proposed correction:** empty ranges emit header only, or no bytes with -n, and
-do not read data. Do not adopt this correction without root policy approval.
+len conflict; start>end errors. Native start=end and len=0 emit the remainder.
+Root chose compatibility over v1's safe-empty proposal: default-start -l0 emits
+all records. Additional 01/02/03 and primary range/loop source qualify nonzero
+start, equal bounds and zero end separately; PROFILE-V2 gives the exact matrix.
+Ordinary zero/equal ranges are not early-read stops. V1's correction is withdrawn.
 
 -I accepts a comma-separated nonempty list of unsigned decimal indices; validate
 all tokens, sort and deduplicate under the selector-node/work budgets, then emit
@@ -241,11 +248,12 @@ silently honoring native precedence. Common -n/-d/-o remain valid with every mod
 The native -I invalid-index message mistakenly says `-i/--index`; preserve the
 message only if exact compatibility is selected by root.
 
--L N retains at most N owned decoded records in a bounded ring and emits after
+-L N for positive N retains at most N owned decoded records in a bounded ring and emits after
 EOF; no seek optimization or filesystem whole-read is required. Both row count
 and retained byte limits apply. Reject N>maxLastRows before reading. For N=0,
-propose safe header-only/no-input-data behavior; native zero-tail corner remains
-source-only and must not be labeled qualified. Ordinary slice serializes decoded
+v2 proposes operand-kind behavior: stdin emits its final data row, file input
+header only, matching additional 04/05. Extension from native regular files to
+all VFS files remains a root portability decision; see PROFILE-V2. Ordinary slice serializes decoded
 cells using minimal necessary quoting and LF; it does not preserve redundant
 input quotes. Early finite ranges stop at the last requested logical record.
 
@@ -265,7 +273,7 @@ an explicit command dialect, not conflate these semantics:
 | whitespace | no trim | no trim; display sanitization is separate |
 | UTF-8 | fatal only for header display/--csv | values/header bytes preserved without whole-record decoding |
 | ragged width | header-only reader never validates unread body | count accepts; select/slice reject mismatch with first-record width |
-| unterminated quoted EOF | permissive rust-csv completion, not RFC error | permissive EOF; raw select preserves incomplete quote (observed) |
+| unterminated quoted EOF | permissive rust-csv completion, not RFC error | native raw select preserves incomplete quote; v2 candidate repairs via decoded writer (root choice) |
 
 Empty input has no logical record; `""` is one record with one empty cell; `,`
 is one record with two empty cells. Header-only files have no data unless -n.
@@ -300,11 +308,12 @@ Count still follows quote-state splitting without asserting RFC validity.
 That asymmetric bounded profile is explicit, not a full-malformed-input claim.
 Root must approve it before freeze; broader malformed equivalence is unresolved.
 
-Normal writer quotes a cell iff it contains output delimiter, quote, CR or LF;
+Normal writer quotes a cell if it contains output delimiter, quote, CR or LF;
 double every quote byte, surround with quotes. No quoting solely for spaces,
 Unicode or invalid UTF-8. Single-empty-cell rows are quoted, zero cells emit LF;
-all output line terminators are LF, not host native newlines. Raw-select mode
-preserves field lexemes but still normalizes record terminators. Header display
+all output line terminators are LF, not host native newlines. V2 additionally
+quotes a first output cell beginning EFBBBF at absolute output zero to preserve
+its value. Raw-select mode requires the v2 faithful-reparse criterion. Header display
 is text; header --csv uses original decoded cells. No ambient locale, terminal
 width, color environment or untrusted main-thread RegExp/JS evaluation is used.
 
@@ -323,8 +332,9 @@ line reader as a CSV parser.
 
 Stop admission before requesting the next source chunk when the required final
 record is already known. Headers stops after its first record, finite slice and
--I after the highest needed index; safe empty -n slice needs neither first-byte
-read nor iterator acquisition. With headers, safe empty slice needs only header.
+-I after the highest needed index. Ordinary zero/equal ranges read through EOF.
+The v2 file-operand -L0 proposal needs only a header, or no input with -n;
+stdin -L0 must read through EOF. No universal safe-empty optimization remains.
 Do not issue an extra next() merely to discover EOF. Already received chunks may
 contain unneeded following bytes: acquisition/read-ahead cannot be rolled back.
 Charge the whole delivered chunk to input bytes/chunks, but do not parse beyond
@@ -393,8 +403,11 @@ selection remains exactly command.md's caller/error/cleanup precedence.
 
 ## 6. Proposed accounting defaults and validation
 
-All values below are **proposed, not root-approved**. Host overrides must be
-positive safe integers <= the proposed hard ceiling; no CLI flag resets limits.
+The main defaults maxInputBytes/maxOutputBytes/maxRetainedBytes/maxRecordBytes/
+maxCellBytes/maxRecords/maxWork are now **root-approved logical caps**. All other
+defaults and EVERY hard ceiling below remain proposals, not extra authority.
+Host overrides must be positive safe integers <= the proposed hard ceiling;
+parent budgets always win and no CLI flag resets limits.
 KiB/MiB/GiB are powers of 1024. Counters start once per invocation, including
 headers across files, selector parse/resolve and output; no per-phase reset.
 
@@ -470,14 +483,15 @@ unsupported (ENOTSUP), rather than quietly reading the entire input via readFile
 Existing ordinary memory/real adapters must be checked by the implementation
 owner. stdout works independently of VFS streaming-write support.
 
-For -o, choose fs.writeStream if available, supplying an owned bounded ByteSource
-and signal; backpressure connects CSV production to the writer. If unavailable,
-propose a bounded chunked publication path using writeFile(empty, flag) once then
-awaited appendFile per output chunk; this is not atomic, may be inefficient for
-remote adapters, and follows their documented append semantics. Do not pretend
-an eager whole-file-buffering adapter is streaming or has a memory bound equal
-to the module's retained counter. Output existence/truncation can precede later
-parse failure; cancellation can leave a truncated/partial file, never rollback.
+For -o use the precise PROFILE-V2 existing-contract composition: identity
+preflight, required-header/selection validation, then fs.writeStream with owned
+bounded ByteSource and signal, wx for missing or w for observed distinct existing.
+The old writeFile(empty)+append speculation is withdrawn. V2 proposes only a
+fully retained-budget-admitted whole-result writeFile fallback with the SAME flag
+when writeStream is absent; no new capability gate or append sequence. Remaining
+fallback approval is explicit. Provider storage is not module retained memory.
+Later body parse/cancellation/write failure can leave partial/truncated output;
+there is no rollback or observation-to-open atomicity claim.
 
 Before acquiring any potentially eager input or destructive output, resolve all
 file paths and stat/identity observations with context.signal. Reject same
@@ -498,8 +512,9 @@ borrowed stdin, because distinctness cannot be proven; don't silently refuse all
 specific safety deviation. Host/provider guarantees could enable future guarded
 overwrite, but no such contract is invented now.
 
-Permissions follow the chosen VFS. New files request normal mode 0o666 subject to
-adapter policy; existing modes remain provider-defined. permissions:false is not
+Permissions follow the chosen VFS. V2 omits explicit mode (WebDAV rejects it);
+backend defaults apply, not a universal 0o666 request. Existing modes remain
+provider-defined. permissions:false is not
 a privacy guarantee. Do not chmod, create missing parent directories, delete a
 partial destination, or remove a temporary path on failure. Native -o behavior
 is evidence only for separate owned temp files, not safe alias handling.
@@ -529,22 +544,23 @@ Stage K proposed unsupported forms use
 status 1. Unknown/missing argument diagnostics require independent freeze, not a
 blanket relaxed assertion. No numeric native errno serialization is proposed.
 
-Root decisions required **before independent fixture freeze**:
+Root disposition **before different independent fixture freeze** (v2 supersedes
+the original six-question list; original receipt and Git-bound design retain it):
 
-1. Approve/refuse the corrected zero-length/equal-end slice behavior and zero-tail
-   stop rule; retain native bug rows either way. Do not call correction parity.
-2. Approve the explicit malformed-quoting boundary, per-command CR dialect and
-   chunk-invariant safety policy rather than copying SIMD boundary artifacts.
-3. Decide safe cross-delimiter select reserialization versus native raw-lexeme
-   transfer; retain same-comma raw quote behavior and incomplete-quote evidence.
-4. Approve module API, all default/hard caps, deterministic accounting and no
-   repeated flags/mixed slice modes; no host override can bypass a hard cap.
-5. Approve bounded nontransactional -o with alias preflight, unknown-identity
-   refusal, missing-output exclusive creation and stdin-existing-output refusal.
-6. Approve unsupported advanced flags/formats/color/pathological delimiters and
-   the declared exact-vs-unqualified diagnostic inventory; then have the different
-   reviewer freeze independent public-consumer fixtures without showing hidden
-   fixtures to this author.
+1. Default-start -l0 compatibility approved; related source/probes in PROFILE-V2.
+   Zero-tail source-kind portability rule remains a root decision.
+2. Chunk invariance required. BYTE-TABLE-V2 per-command CR/malformed/EOF dialect
+   proposals remain unapproved; do not copy unsafe SIMD artifacts.
+3. Safe cross-delimiter reserialization approved. Same-comma raw is conditional
+   on value/count preservation; EOF repair and BOM quoting detail remain explicit.
+4. Seven main logical defaults approved. Other defaults/hard ceilings and strict
+   numeric/selector/mixed-mode choices remain declared proposals; parent wins.
+5. Nontransactional -o safety approved; exact existing bindings in PROFILE-V2.
+   No shared API blocker for that scope; bounded whole-result fallback remains
+   a proposal, not the old generic append permission or race-free publication.
+6. Advanced unsupported flags/formats/color/expressions must be rejected.
+   Diagnostics are only the declared subset. Route a DIFFERENT reviewer to freeze
+   independent fixtures; none have been shown to this author.
 
 Future freeze coverage must include every chunk split/BOM/CRLF/escaped-quote
 boundary, reused Buffer producer/finalizer mutation, Unicode display/selector

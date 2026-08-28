@@ -1,0 +1,277 @@
+{
+  "schema": "m1b-mechanical-final-seal-v1",
+  "sourceCommit": "2add02bdb0b1170ead2fe0290b63cf068049ab11",
+  "status": "STATIC_COMPONENT_ONLY_ALL_TARGET_OBSERVATIONS_UNRUN",
+  "directories": [
+    {
+      "path": ".",
+      "mode": 493
+    },
+    {
+      "path": "static-captures",
+      "mode": 493
+    },
+    {
+      "path": "types",
+      "mode": 493
+    }
+  ],
+  "entries": [
+    {
+      "path": "ADAPTER-CRITERIA.json",
+      "mode": 420,
+      "bytes": 4799,
+      "sha256": "9a93e35b78fb18937e94b7f126a07d01f051ae2a025e2865ac2261463656562a"
+    },
+    {
+      "path": "CASES.json",
+      "mode": 420,
+      "bytes": 10465,
+      "sha256": "6d5978dfa645398511dcf37e147398d77a43fa3ab1e8d8bf4ee9978190cda2de"
+    },
+    {
+      "path": "CLOSURE.json",
+      "mode": 420,
+      "bytes": 10118,
+      "sha256": "5cb5c784522f97a4b32b766d4fb13c8fdb93c6a22d81c7e451b70cda1bd8a308"
+    },
+    {
+      "path": "COSTS.json",
+      "mode": 420,
+      "bytes": 6436,
+      "sha256": "5b6af7cd0bfea587e784939ad70bf986e3c38f644f964088e1f70f129607d84b"
+    },
+    {
+      "path": "FIXTURE-DATA.json",
+      "mode": 420,
+      "bytes": 2404,
+      "sha256": "07648780a389a9e29803e315097a05b3d5f1a6fb839ced65295fa4d90b711637"
+    },
+    {
+      "path": "HANDOFF.json",
+      "mode": 420,
+      "bytes": 9722,
+      "sha256": "6e264b33d5d88042b6527e8f3b51f06ef90c6d3ba87547f720be73f693c042ff"
+    },
+    {
+      "path": "INPUTS.json",
+      "mode": 420,
+      "bytes": 2464,
+      "sha256": "1a3451a74f0d8afd25ab7369613b4147b1bf07ce912d5f6e109596cf032d8f5d"
+    },
+    {
+      "path": "MUTANT-PROJECTIONS.json",
+      "mode": 420,
+      "bytes": 12658,
+      "sha256": "73bf7fc8e653a204ac036d3667da5ddca9e0e2143250c1224b53da3586ba812e"
+    },
+    {
+      "path": "PACKAGE-DELTA.json",
+      "mode": 420,
+      "bytes": 1832,
+      "sha256": "9b7e409f6c69e85ae139fedf05f777dd9b6d925d2107e4cd99688c888fb87933"
+    },
+    {
+      "path": "PACKAGE-MAP.json",
+      "mode": 420,
+      "bytes": 170204,
+      "sha256": "9c9db3bde063d81687d89b339874093154aa59b312c4c8e791abcf3acbd82f22"
+    },
+    {
+      "path": "PREPARATION-FAILURE-02.json",
+      "mode": 420,
+      "bytes": 805,
+      "sha256": "c90389cd640c09e7024f6e798b676df59860e4e75692c7c39c37b1b6ad46483c"
+    },
+    {
+      "path": "PREPARATION-FAILURE-03.json",
+      "mode": 420,
+      "bytes": 699,
+      "sha256": "ebf74543f840c177b1c9444112c78e1e474aaefaefc725ce6cb1bc451feb99b7"
+    },
+    {
+      "path": "PREPARATION-FAILURES.json",
+      "mode": 420,
+      "bytes": 1345,
+      "sha256": "f0549b14d91b4af10f5c7eb93354d5cc68b894d0278282455b3967c43ba53467"
+    },
+    {
+      "path": "RESOURCE-MAP.json",
+      "mode": 420,
+      "bytes": 58986,
+      "sha256": "df33fcbd78bc633ad4f9e4f3ecf69b8aacf583f249b5d008b88fc8e3b0dff955"
+    },
+    {
+      "path": "SOURCE-BINDINGS.json",
+      "mode": 420,
+      "bytes": 102003,
+      "sha256": "2e7643690c3a43c810b79e047630112d63e26550b91a68086d41b13a9a326fdd"
+    },
+    {
+      "path": "SOURCE-PRESEAL.json",
+      "mode": 420,
+      "bytes": 6838,
+      "sha256": "1df976f486d9c66388b79dffba48e1a1bb1ce467f0c55605ce1fa275f1e9f532"
+    },
+    {
+      "path": "SOURCE-SITES.json",
+      "mode": 420,
+      "bytes": 5573,
+      "sha256": "a2b9224e305a8ec5ef0a7d00f1e7289a1919840f794e4068b5c179494d22784a"
+    },
+    {
+      "path": "SPECIFICATION.md",
+      "mode": 420,
+      "bytes": 8958,
+      "sha256": "03a25b46bfda12613897140d8644d2f9f5c986a354bd6711adf94dbf2c3b7c48"
+    },
+    {
+      "path": "STATIC-CHECK-PLAN.json",
+      "mode": 420,
+      "bytes": 3177,
+      "sha256": "594dcecffb6fa8984ec94abd35efd69931dc409e8501df253b83afd83cfab557"
+    },
+    {
+      "path": "STATIC-CHECKS.json",
+      "mode": 420,
+      "bytes": 2051,
+      "sha256": "79f24850b831de2be121cf58036171aa553aaba873a4eb67b90b4831bf0bdbfd"
+    },
+    {
+      "path": "TYPES.json",
+      "mode": 420,
+      "bytes": 4577,
+      "sha256": "39b7f5558944cf8e8e0027efb1d90f15fb8d4aa9898f963885055ac1a7f22f57"
+    },
+    {
+      "path": "checkpoints.mjs",
+      "mode": 420,
+      "bytes": 3536,
+      "sha256": "c2d14cba023194cee68f3692370fd137f9e19ddf66618585a95a47ae8d0fa28b"
+    },
+    {
+      "path": "counter.mjs",
+      "mode": 420,
+      "bytes": 1395,
+      "sha256": "f376fc1322132af4308825f79dec3abb231474d1584740f33d420e4fe438f575"
+    },
+    {
+      "path": "fixture-data.mjs",
+      "mode": 420,
+      "bytes": 1729,
+      "sha256": "a7005b60f913bf395094bd4bea0df971052be7da265384992b702cddd0695677"
+    },
+    {
+      "path": "ownership.mjs",
+      "mode": 420,
+      "bytes": 5919,
+      "sha256": "abdb7c32441578a5b2415bd484c2bdf244dba723d555afaa021210ef7264ad84"
+    },
+    {
+      "path": "session-observation.mjs",
+      "mode": 420,
+      "bytes": 3368,
+      "sha256": "1161e5091ba13f0fc880244202b10778dd0ac7692a32c8b60d5595c03b6f3b14"
+    },
+    {
+      "path": "static-captures/STATIC-01.json",
+      "mode": 420,
+      "bytes": 829,
+      "sha256": "46c18206ca4385b38123f6627f8df7aeb7facbf786a23e3988d6c3e860aead57"
+    },
+    {
+      "path": "static-captures/STATIC-02.json",
+      "mode": 420,
+      "bytes": 825,
+      "sha256": "802eeae705e004ca7d7151549e114aef865da32ba334848296f7fd7bf34107e8"
+    },
+    {
+      "path": "static-captures/STATIC-03.json",
+      "mode": 420,
+      "bytes": 830,
+      "sha256": "b95e7bc3cc3caa887a6a3746e817135806cefb3d7d392ef5a8b38745e9604aff"
+    },
+    {
+      "path": "static-captures/STATIC-04.json",
+      "mode": 420,
+      "bytes": 827,
+      "sha256": "1e5dae16382e9f70f61420e1addefcbc776758f1de2c1702500dec1f0a95a5ba"
+    },
+    {
+      "path": "static-captures/STATIC-05.json",
+      "mode": 420,
+      "bytes": 837,
+      "sha256": "a832b118cf182f9f06d1a1f9da13bb4ea440587d7cbd5e540f36fbed8973958e"
+    },
+    {
+      "path": "static-captures/STATIC-06.json",
+      "mode": 420,
+      "bytes": 823,
+      "sha256": "7ab377adb17c30634a0d6b282b505254869f7577fffa72280c8d84b91bd0b698"
+    },
+    {
+      "path": "static-captures/STATIC-07.json",
+      "mode": 420,
+      "bytes": 1068,
+      "sha256": "b0bdb44d97a85478906520fab5814bd416c99477de8fc62c14fae7a3a5d98261"
+    },
+    {
+      "path": "static-captures/STATIC-08.json",
+      "mode": 420,
+      "bytes": 789,
+      "sha256": "9eb47f2f2314a2d46e8a96397e4991b1c3653f4cd19ba09c77d9c21f867bb4c2"
+    },
+    {
+      "path": "types/T01-positive.mts.data",
+      "mode": 420,
+      "bytes": 460,
+      "sha256": "c31d31f589ea3c923be1e4b70630cb8c94a86320d2a288fdbbfa94bf0af26cd5"
+    },
+    {
+      "path": "types/T02-limits.mts.data",
+      "mode": 420,
+      "bytes": 84,
+      "sha256": "74db8bee8a71490437b8857041423fba674cdd23211f938e12681b36d696d058"
+    },
+    {
+      "path": "types/T03-spawn.mts.data",
+      "mode": 420,
+      "bytes": 86,
+      "sha256": "3c7b02c308b1a99cf8a8874ce67a71fe059c35a19ec49f6a3c9d6ebc0535c668"
+    },
+    {
+      "path": "types/T04-boundary.mts.data",
+      "mode": 420,
+      "bytes": 96,
+      "sha256": "9d90ba44f8598b763c8ff0e03d2f36ee2335cdc2a2991a27365dfd8e832a8aff"
+    },
+    {
+      "path": "types/T05-replace.mts.data",
+      "mode": 420,
+      "bytes": 78,
+      "sha256": "ba3ddb82b49dc2676d151cfbd55381f772bde481f20016290abe401272d56fc7"
+    },
+    {
+      "path": "types.mjs",
+      "mode": 420,
+      "bytes": 1967,
+      "sha256": "dcf5f30373989dcddc6f87ca3a04c790381f54cfba12c5084e694d7d7391a892"
+    }
+  ],
+  "inventorySha256": "b14745d656f9d80774c35c2a128c0e182b7a53b983fba156c3418fd442d9d045",
+  "sourceEntriesUnchanged": 29,
+  "appendProof": "Exact full owned membership equals source-preseal entries plus named static captures/hand-off and preseal; FINAL-SEAL excluded only self-reference, later exact Git commit binds it.",
+  "activeSourcePreseal": {
+    "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/SOURCE-PRESEAL.json",
+    "mode": 420,
+    "bytes": 6838,
+    "sha256": "1df976f486d9c66388b79dffba48e1a1bb1ce467f0c55605ce1fa275f1e9f532"
+  },
+  "handoff": {
+    "path": "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/HANDOFF.json",
+    "mode": 420,
+    "bytes": 9722,
+    "sha256": "6e264b33d5d88042b6527e8f3b51f06ef90c6d3ba87547f720be73f693c042ff"
+  },
+  "noTargetExecution": true
+}

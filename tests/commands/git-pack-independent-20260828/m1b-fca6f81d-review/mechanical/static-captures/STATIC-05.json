@@ -1,0 +1,29 @@
+{
+  "id": "STATIC-05",
+  "role": "NO_EVAL_SYNTAX_OR_TEXT_LINT_NOT_COMPONENT_CONTROL",
+  "sourceCommit": "2add02bdb0b1170ead2fe0290b63cf068049ab11",
+  "argv": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--check",
+    "tests/commands/git-pack-independent-20260828/m1b-fca6f81d-review/mechanical/session-observation.mjs"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "startNs": "194326297075166",
+  "endNs": "194326340480083",
+  "elapsedNs": "43404917",
+  "pid": 24615,
+  "exit": 0,
+  "signal": null,
+  "errorCode": null,
+  "knownReap": true,
+  "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "base64": ""
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "base64": ""
+  }
+}

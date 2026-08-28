@@ -1,0 +1,23 @@
+{
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-sV8JXd/restored/node_modules/typescript/bin/tsc",
+    "-p",
+    "tsconfig.build.json",
+    "--skipLibCheck",
+    "false"
+  ],
+  "cwd": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/let-independent-sV8JXd/restored",
+  "started": "2026-08-28T08:07:41.082Z",
+  "finished": "2026-08-28T08:07:45.142Z",
+  "pid": 36532,
+  "code": 0,
+  "signal": null,
+  "spawnError": null,
+  "failure": null,
+  "groupAbsent": true,
+  "closeObserved": true,
+  "stdout": "",
+  "stderr": "",
+  "bytes": 0
+}

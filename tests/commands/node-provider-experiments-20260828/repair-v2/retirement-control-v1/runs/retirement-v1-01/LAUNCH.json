@@ -1,0 +1,31 @@
+{
+  "schema": "node-repair-inert-launch-v2",
+  "presealCommit": "8754a6ddc72979c7293682f14a2da7a978fce19c",
+  "planSha256": "10bb0138b41abd1584edd83923ac44d4f9687475c44e8d984798af2ebe664ae9",
+  "startedAt": "2026-08-28T18:39:32.127070+00:00",
+  "elapsedMs": 332.963,
+  "launcherPid": 12645,
+  "nodePid": 12648,
+  "nodeArgs": [
+    "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "--input-type=module"
+  ],
+  "environment": {
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "NODE_DISABLE_COMPILE_CACHE": "1",
+    "NP_REPAIR_CONTROL_GO": "retirement-control-v1:retirement-v1-01:10bb0138b41abd1584edd83923ac44d4f9687475c44e8d984798af2ebe664ae9"
+  },
+  "stdinSha256": "399efe2a44678221ca7c94638c6075d1cc52c10d487886920fad1eb436a85bc8",
+  "stdoutUtf8": "{\"runId\":\"retirement-v1-01\",\"expectedObserved\":1,\"unexpectedFailures\":0,\"children\":1,\"natural\":1,\"sigterm\":0,\"subjectRetirementCredit\":true,\"unsafe\":false,\"allExpected\":true,\"engineEvaluations\":0}\n",
+  "stderrUtf8": "",
+  "stdoutHex": "7b2272756e4964223a227265746972656d656e742d76312d3031222c2265787065637465644f62736572766564223a312c22756e65787065637465644661696c75726573223a302c226368696c6472656e223a312c226e61747572616c223a312c227369677465726d223a302c227375626a6563745265746972656d656e74437265646974223a747275652c22756e73616665223a66616c73652c22616c6c4578706563746564223a747275652c22656e67696e654576616c756174696f6e73223a307d0a",
+  "stderrHex": "",
+  "status": 0,
+  "nodeReaped": true,
+  "launcherSignals": [],
+  "captureExceeded": false,
+  "captureLimitPerStream": 16384,
+  "outerDeadlineMs": 75000,
+  "engineExecutionsByLauncher": 0
+}

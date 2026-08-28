@@ -1,0 +1,40 @@
+{
+  "schema": "timeout-public-b01-capture-controls/1",
+  "at": "2026-08-28T05:59:01.591Z",
+  "manifestSha256": "f0c032a7d6d65edec3416ddb793c0b182ce1e3d0eb909784122f2a0c25d2a5f2",
+  "requestSha256": "e263e6d2230f797147ffd7f68d1a7f87404d7bd084160c40cf0de15317074a5a",
+  "results": [
+    {
+      "id": "C01-normal-return-no-capture",
+      "status": "PASS"
+    },
+    {
+      "id": "C02-synchronous-order-and-identity",
+      "status": "PASS"
+    },
+    {
+      "id": "C03-actual-raw-probe-counters",
+      "status": "PASS"
+    },
+    {
+      "id": "C04-missing-capture-rejected",
+      "status": "PASS"
+    },
+    {
+      "id": "C05-late-capture-rejected",
+      "status": "PASS"
+    },
+    {
+      "id": "C06-same-message-replacement-rejected",
+      "status": "PASS"
+    },
+    {
+      "id": "C07-wrong-counter-rejected",
+      "status": "PASS"
+    }
+  ],
+  "passed": 7,
+  "failed": 0,
+  "productExecutions": 0,
+  "children": 0
+}

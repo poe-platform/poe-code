@@ -192,3 +192,14 @@ new source/contract/runtime commits do not retroactively change frozen
 not whole-package lifecycle acceptance, release readiness, superiority, full
 native parity or fulfillment of the requested72 hours. See retained current
 run reports for the actual candidate and outcomes, not historical counts.
+
+## August 28 maintained inventory delta
+
+The seven later `.mts` additions are individually classified in
+`inventory-maintenance-20260828/REPORT.md`. Six exact sealed timeout/XAN inputs
+retain authenticated history; the unchanged WebDAV public declaration consumer
+gets a current strict type-only route. A maintained timeout options counterpart
+preserves the sealed source-local assertions with only the public import changed.
+The new200-entry census retains all192 previous entries. Metadata admission
+checks do not establish compilation/runtime success, retry XAN, or change the
+fixed76 gate's historical192-entry profile. Unknown neighbors still fail closed.

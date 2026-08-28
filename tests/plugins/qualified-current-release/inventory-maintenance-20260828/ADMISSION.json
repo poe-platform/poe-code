@@ -1,0 +1,19 @@
+{
+  "at": "2026-08-28T09:04:57.685Z",
+  "source": "96ed7733a0d454a5074ca2e3b79418430b43e952",
+  "function": "scripts/typecheck-inputs.mjs:verifyTypecheckInputs",
+  "capturedData": 5,
+  "stagedInputs": 14,
+  "currentSourceConsumerGroups": 3,
+  "counts": {
+    "frozen-evidence": 153,
+    "current": 36,
+    "declaration": 7,
+    "frozen-oracle": 1,
+    "negative-types": 3
+  },
+  "status": "metadata-admission-pass",
+  "builds": 0,
+  "compilerExecutions": 0,
+  "productExecutions": 0
+}

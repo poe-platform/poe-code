@@ -1,0 +1,18 @@
+{
+  "action": "ROOT_RELEASE_UNIFIED76",
+  "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+  "driverSha256": "aca88337d644351888659e4364f0610da0219eb3697de45fa808b509bfbc3424",
+  "profileSha256": "fa6731eec6b41915f3f56affa9cdf29e7352a10e939bb0f1fe1b9d675caa7510",
+  "packageSha256": "c109372f90b1bd19bcf756cf993bb2976fb52b75fe0c92a1cf96dab4c229b5cd",
+  "public74": true,
+  "public75": true,
+  "public76": true,
+  "independentDriverAccepted": true,
+  "eligibilityProfile": "unified76-historical-file-authority-20260828-v1",
+  "historicalEligibilitySha256": "519ac40f0239bf363586c5144bbe7f0f3c72c786f42abbc2d1d9ffb004ba2cf6",
+  "acceptsUnqualifiedHistoricalNative": true,
+  "packetSha256": "d236cc7723dfaf860e3e70cda1d04bff2f46950c54c845d8ac0184e969296b00",
+  "authorization": "ROOT-2026-08-28-UNIFIED76-QUALIFIED-H11-R3-ONE-ATTEMPT",
+  "independentEvidence": "e5ed3ecb87d0914e6967ece3da890ad8de7c844f metadata review;652b76f4af9a03ba1fe0d8f90ca5128463f9e34b scoped H11; all35 packet evidence bindings and retained historical qualifications.",
+  "qualification": "H06.3 SOURCEQUALIFIED; actual dual-private-error UNEXECUTED, conditional on terminal persistence. One fresh qualified attempt; historical unsupported eligibility forces NONZERO. No retries, wider permissions, mutable overlay, deductions or historical rescore."
+}

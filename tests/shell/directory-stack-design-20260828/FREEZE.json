@@ -1,0 +1,56 @@
+{
+  "sealedAt": "2026-08-28T02:17:33.528Z",
+  "inspectedSourceCommit": "4628da200ba3f79f13a07ea8f5881206f70e6819",
+  "sourceBefore": {
+    "src/shell/runtime.ts": "b44d60ed225c2d2add07499b965043d104491edf837cb5cf7f07096230286169",
+    "src/shell/shell.ts": "3e36a27bbf98b384c7351ffa40d396485c788b0aa0bbefb8702e3bd45ce11a24",
+    "src/shell/types.ts": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+    "src/shell/parser.ts": "10d015eb62fd4e4f964666c04e5869ea78afdb76d930181760adecbcf16ab65e",
+    "src/shell/cancellation.ts": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2",
+    "src/shell/getopts.ts": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee"
+  },
+  "fixtures": {
+    "cases.json": "5c4e41915c006d714d23828e9bea5e3ccdc178dd89df6672e59525d4134ee490",
+    "FREEZE.md": "775f950c655bab0be8ae331a6b3e2439be58371ebc566893ad2a16d9481430f8",
+    "run.mjs": "0ebd185483c86e69eb63af4b894d771c3bdc5529b1d3ed4d49be9eb780d37291",
+    "worker.mjs": "8efeda7bfeb3b5719e757e1489a598aaa6c4ab596ae81dce09ba4588325ade48",
+    "guard.mjs": "e36f93449c5a1f458b363ea274900493638c9b72ae4e33d030d6de0e76f4d114"
+  },
+  "binary": {
+    "filename": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/install/bin/bash",
+    "sha256": "8cecb482de24198c23a736b931cb7e8cee1f94eb0b51abd54bd99f1d73d9673c",
+    "bytes": 1395864,
+    "mode": 493,
+    "mtimeMs": 1787777347320.6458,
+    "ctimeMs": 1787777347321.193
+  },
+  "node": {
+    "filename": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "bytes": 112989184,
+    "mode": 493,
+    "mtimeMs": 1774313550000,
+    "ctimeMs": 1776794488519.6758
+  },
+  "primaryManual": {
+    "filename": "/private/tmp/safe-bash-gnu-bash-5.3.Ua5t02/bash-5.3/doc/bashref.texi",
+    "sha256": "f3d37d57a1061e24d266051de9bd47ffa43dc86584afea11576c535ad2be32d5",
+    "bytes": 415804,
+    "mode": 420,
+    "mtimeMs": 1748361379000,
+    "ctimeMs": 1787777277168.5925,
+    "sections": [
+      "6.8 The Directory Stack",
+      "6.8.1 Directory Stack Builtins",
+      "5.2 DIRSTACK",
+      "3.5.2 Tilde Expansion"
+    ],
+    "retrieval": "Local primary GNU Bash5.3 distribution manual; online web tool returned no content, curl HEAD timed out after 15 seconds; no copied GPL source or manual text"
+  },
+  "selectedVirtualOrigin": "fd1daa123298568546d9ea4e95f8c81dde9c52ff",
+  "selectedVirtualReview": "7ca45f2decea9faab958b15577a55aac2be1c40c",
+  "packageSha256": "87c200daf413d9f1ab835b4d1738a1a93946fd3e350427b01accde4e0b23b1af",
+  "cases": 34,
+  "guestRunsBeforeSeal": 0,
+  "capturePolicy": "Observation capture, not guessed semantic acceptance; no retries; new policy requires root approval"
+}

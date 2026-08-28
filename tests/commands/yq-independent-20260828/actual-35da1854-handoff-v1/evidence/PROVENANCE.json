@@ -1,0 +1,296 @@
+{
+  "executionClassification": "AUTHOR_ARTIFACT_BINDING_ONLY",
+  "executionRootEnvelope": {
+    "artifact": "root-envelope",
+    "pointer": ""
+  },
+  "originalFullReceipt": {
+    "artifact": "packet-full-receipt",
+    "pointer": ""
+  },
+  "originalReceiptHash": "acd5644c6f148bd25d16af8c12a3e01b9319f682b3830ec5f8b19a23e6ae4a56",
+  "selectedSource": {
+    "baseline": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "acceptedLength": "74361026502d76b8c2b696f9c60e410ac9b78d95",
+    "sevenNewOrigin": "35da18547ca82a67be9ca22b4adc21e3b8060780",
+    "sourceEvidence": "ef6032b210feb5cf19e6f6f94c40413740bef335",
+    "authorHandoff": "bcec1ead34aee37c8fe574b248a8242ad4f60cfa",
+    "additions": {
+      "src/commands/structured/query-core.ts": {
+        "sha256": "d2501cff9e74757f9e9bd80e1cf78722d321e19a6fb4a5c3e18a29d0e224cf0a",
+        "bytes": 21067,
+        "mode": 420
+      },
+      "src/commands/yq/README.md": {
+        "sha256": "86ee4384987c729d91d9296cf0e40a7ece59a0689149164affa7b5a8554e8ae6",
+        "bytes": 1153,
+        "mode": 420
+      },
+      "src/commands/yq/accounting.ts": {
+        "sha256": "efebacfc42d9ef15ee8d5366b57aeda41f9af96104d76519611a70d5643dccd0",
+        "bytes": 9562,
+        "mode": 420
+      },
+      "src/commands/yq/encoder.ts": {
+        "sha256": "77441f383d339d05d4db92a28dd04cd45eda97ad090b82cba808d322e5a151f5",
+        "bytes": 7057,
+        "mode": 420
+      },
+      "src/commands/yq/errors.ts": {
+        "sha256": "92b24e41a6e83d858f8971975665470e238176053fd3936775e02f843079036b",
+        "bytes": 2728,
+        "mode": 420
+      },
+      "src/commands/yq/index.ts": {
+        "sha256": "ffa76c2b111d915973634ff1238a709a9a90b1a5db000c690649519378afb283",
+        "bytes": 20110,
+        "mode": 420
+      },
+      "src/commands/yq/parser.ts": {
+        "sha256": "ec3c47823eca85730af613f460bf98d28182ea28a68473eb7e596dc780334a79",
+        "bytes": 38547,
+        "mode": 420
+      }
+    },
+    "selectedManifest": {
+      "artifact": "authentication",
+      "pointer": "/sourceRecords"
+    },
+    "consumerMap": {
+      "artifact": "packet-maps",
+      "pointer": "/source"
+    },
+    "archiveMap": {
+      "artifact": "packet-maps",
+      "pointer": "/archive"
+    },
+    "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+    "wholeMutableHead": false,
+    "whole35daTree": false
+  },
+  "sizes": {
+    "fullSourceArchive": 273,
+    "consumerProjection": 271,
+    "fullPackage": 870,
+    "baselinePackage": 846,
+    "emittedAdditions": 24
+  },
+  "archives": {
+    "source": {
+      "path": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/artifacts/SOURCE.tar",
+      "sha256": "e4e6880a3622952b153a8261fec007908e1495584abf705ba2b150e95badcedc"
+    },
+    "package": {
+      "path": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/artifacts/virtual-bash-0.0.0.tgz",
+      "sha256": "2942ba1f6982a2e217350bbbad420e93d43e9336324b6db8a3d1d88b5a7aee4d"
+    }
+  },
+  "wholePackage": {
+    "ref": {
+      "artifact": "packet-maps",
+      "pointer": "/fullPackage"
+    },
+    "sha256": "2942ba1f6982a2e217350bbbad420e93d43e9336324b6db8a3d1d88b5a7aee4d",
+    "packageMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088"
+  },
+  "readme": {
+    "path": "README.md",
+    "sourceRevision": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+    "sourceBlob": "c3df8bd958d07298f5df85e0a81ec73589123742",
+    "sha256": "87e92b73c7339b104212a9fb11006d339694f65575a7b79debfaa902ef9cf9d1",
+    "bytes": 36273,
+    "mode": 420,
+    "proof": {
+      "artifact": "packet-maps",
+      "pointer": "/readme"
+    },
+    "baselineBuildReference": {
+      "artifact": "build-bindings",
+      "pointer": "/baselineReadme"
+    }
+  },
+  "toolchain": {
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "typescript": {
+      "path": "node_modules/typescript",
+      "version": "5.9.3",
+      "sha256": "11b47d397f587bd61bda8ebad9e87ed9f11cc95a2503309c88aaceadc3c39410",
+      "entries": 147
+    },
+    "nodeTypes": {
+      "path": "node_modules/@types/node",
+      "sha256": "6eeb16f926819ced24c5dc85a8f6c6c7b03254d56848d2a11113b923469706a9",
+      "entries": 83
+    },
+    "undiciTypes": {
+      "path": "node_modules/undici-types",
+      "sha256": "b54bcdc8b6540ae264924c04ed48eaa7a2ff3c3d6805f978a91232ff3d9331eb",
+      "entries": 41
+    },
+    "originalAndCopiedBuildTools": {
+      "artifact": "build-bindings",
+      "pointer": "/tools"
+    },
+    "actualGuardedToolTrees": {
+      "artifact": "guard-inputs",
+      "pointer": ""
+    },
+    "newCompilerOrToolCohortRun": false
+  },
+  "actualEntry": {
+    "path": "dist/commands/yq/index.js",
+    "sha256": "c2527c7472fb7889a0583f49c5e0f2556471936489b8becd60b5682a07b86630",
+    "exportName": "createYqCommand",
+    "proofRole": "direct-compiled-factory-handler-not-public-package"
+  },
+  "actualRuntimeBinding": {
+    "artifact": "runtime-authorization",
+    "pointer": ""
+  },
+  "loaderRecipeAndNode": {
+    "recipe": {
+      "root": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/runtime-recipe",
+      "sealSha256": "fc273904cf20f4a717bb7350bb46046bbee16617aee371bcfd03e38d98920f15",
+      "treeSha256": "6a5ca19fef1237091719a4fb7571271f1c37ff02dde4a4c65253d34bd69b2878"
+    },
+    "node": {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "mode": 493
+    }
+  },
+  "loadedProofLevels": {
+    "actualFactoryCalls": 166,
+    "originalEntryHashBound": 149,
+    "movedImportReceipts": 17,
+    "dedicatedLoadedCodeControl": "UNRUN",
+    "dedicatedLoadedMutant": "UNRUN",
+    "scopedTypeControls": "UNRUN",
+    "publicIntegration": "ABSENT_EXPECTED_DIRECT_MODULE_ONLY",
+    "globalTypes": "NOT_RUN; foreign.mts blocker not waived"
+  },
+  "recordedMaterializations": {
+    "observationQualification": "Paths and before/after/current-at-review facts from sealed evidence; no new physical source/package/tool scan or replay in this task.",
+    "archiveSourceRoot": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/source-archive-273",
+    "consumerSourceRoot": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/source-271-original",
+    "originalPackageRoot": "/private/tmp/yq-candidate-admission-35da1854-BAdsoU/package-870-original",
+    "runtimeRecipeRoot": "/private/tmp/yq-actual-independent-35da1854-rUH4X4/runtime-recipe",
+    "guardedOriginalAndPriorMovedTrees": {
+      "artifact": "guard-inputs",
+      "pointer": ""
+    },
+    "oldPostRunIntegrity": {
+      "artifact": "integrity-after",
+      "pointer": ""
+    },
+    "freshMoves": {
+      "count": 17,
+      "ref": {
+        "artifact": "moves",
+        "pointer": ""
+      }
+    },
+    "independentBuildSource": {
+      "root": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/source",
+      "fileCount": 271,
+      "sourceMapSha256": "e01d63d8e782cba59597da7c970cbd364a35582e4956ab04759064c756df1284",
+      "runtimeTree": {
+        "sha256": "62784dcec8eeb324e3260cc9f1962e31bbf22c1d0ff23d771b5206ee1eb2b0a0",
+        "entries": 316,
+        "method": "Accepted runtime/integrity.mjs treeSnapshot JSON shape derived from already verified complete byte/mode/membership maps; no runtime execution"
+      }
+    },
+    "independentBuildPackage": {
+      "root": "/private/tmp/yq-independent-build-35da1854-PJ4uYL/independent-package",
+      "fileCount": 870,
+      "packageMapSha256": "4ce4908953986584ae50f61976796d9ee7c1259e7c0d009afa4b675225496088",
+      "runtimeTree": {
+        "sha256": "782b3b4e92d66339c2f2d037f16b6f55ac281550fd99c440bac5828a04c13742",
+        "entries": 914,
+        "method": "Accepted runtime/integrity.mjs treeSnapshot JSON shape derived from already verified complete byte/mode/membership maps; no runtime execution"
+      },
+      "entries": {
+        "dist/commands/yq/index.js": {
+          "sha256": "c2527c7472fb7889a0583f49c5e0f2556471936489b8becd60b5682a07b86630",
+          "bytes": 22115,
+          "mode": 420
+        },
+        "dist/commands/yq/index.d.ts": {
+          "sha256": "2d37623cb7dceb666e2e705f0cf5b32f11a24c8d766ac021e53951b65cf6f98e",
+          "bytes": 419,
+          "mode": 420
+        },
+        "dist/contracts/index.js": {
+          "sha256": "f63fcc728dd4e62d6d60408f114c901ad52a9499e46a6f89b2ce97fff3fc680c",
+          "bytes": 235,
+          "mode": 420
+        },
+        "dist/contracts/index.d.ts": {
+          "sha256": "a65d1e367ad65158b11e440e1f4d113659da4afc060a8e9355d0bb7859acbc0c",
+          "bytes": 237,
+          "mode": 420
+        }
+      },
+      "proofRole": "direct-compiled-factory-handler-not-public-package"
+    },
+    "independentBuildBeforeAfter": {
+      "artifact": "build-integrity",
+      "pointer": ""
+    }
+  },
+  "independentBuild": {
+    "proof": {
+      "artifact": "build-receipt",
+      "pointer": ""
+    },
+    "receivedAndAuthenticated": {
+      "artifact": "build-authenticated-during-review",
+      "pointer": ""
+    },
+    "independentlyCompiled": true,
+    "rootTrustedBuildReceipt": false,
+    "rawJsDeclarations": 434,
+    "sourceMapsRelocated": 217,
+    "declarationMapsRelocated": 217,
+    "mapsRequireExplicitRelocation": true,
+    "comparisonManifest": {
+      "artifact": "build-comparisons",
+      "pointer": ""
+    },
+    "rawOutputManifest": {
+      "artifact": "build-raw-map",
+      "pointer": ""
+    },
+    "finalPackageManifest": {
+      "artifact": "build-final-map",
+      "pointer": ""
+    },
+    "packageSerialization": {
+      "artifact": "build-packing",
+      "pointer": ""
+    },
+    "compilerProcess": {
+      "artifact": "build-process",
+      "pointer": ""
+    },
+    "compilerRunsByThisWorker": 0,
+    "originalAuthorReceiptRewritten": false
+  },
+  "chronology": {
+    "actualPresealCommit": "7d3423edda8de5f125cabb884d49c3712e5e25d3",
+    "actualPresealCommitTime": "2026-08-28T05:18:31-05:00",
+    "parentStartedAt": "2026-08-28T10:18:45.821Z",
+    "parentElapsedMs": 619594,
+    "buildCompilerStartedAt": "2026-08-28T10:17:29.000Z",
+    "buildCompilerExitedAt": "2026-08-28T10:17:33.813Z",
+    "buildProofReceivedAfterActualPreseal": true,
+    "exactHandoffArrivalTimestamp": "NOT_RECORDED",
+    "executionReceiptNeverSubstituted": true
+  },
+  "noPassInheritanceAcrossRepairedAllocationSemantics": true,
+  "fullAcceptance": false
+}

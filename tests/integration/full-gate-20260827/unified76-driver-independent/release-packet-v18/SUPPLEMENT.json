@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "scope": "Additional pure-data cross-binding, no executable imports or probes",
+  "authorBinding": {
+    "path": "tests/integration/full-gate-20260827/unified76-driver/supervisor-fault-v1/SOURCE-CANDIDATE.json",
+    "revision": "89c735fcdfe6e09bc88bb41535bad421e7e0cbd9",
+    "blob": "7ed865b99ff48f34a72e247a3cb74a39f58fdcd1",
+    "mode": "100644",
+    "bytes": 13144,
+    "sha256": "318c5811d64ea7312fc452d6c808963fdb11a1fc5c9ac512323fb986ef63daf1"
+  },
+  "authorHarness": "63aae753af1ce5d8fa26160b596d6203e264e970",
+  "nativeManifestRecords": 51,
+  "nativeMatchesStrictUsingBoundOriginResolver": true,
+  "readableToolMetadataRecords": 61,
+  "readableToolsMatchExternal": true,
+  "externalDecodedSha256": "23458bf9f68194b0620d73cdbd00a144a3cdb06000144cdb30588c54eb62ba48",
+  "projectionCandidateOmissions": 5,
+  "projectionDependencyOmissions": 1,
+  "projectionExactMetadataMatch": true,
+  "originTransformations": [
+    {
+      "name": "rg",
+      "declaredOrigin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex-path/rg",
+      "originEnv": "RG_NATIVE_BIN",
+      "resolvedOrigin": "/private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/safe-bash-rg-recovered-gsSpuz/rg",
+      "unchangedSha256": "4298efd414836892c913b2e87401d62fdd7c6ec4026d9bad8e3fab10557e411f"
+    },
+    {
+      "name": "tree",
+      "declaredOrigin": null,
+      "originEnv": "TREE_NATIVE_BIN",
+      "resolvedOrigin": "/tmp/safe-bash-tree-external-oracle-TbVJVK/tree",
+      "unchangedSha256": "34a794e5737d4b09a20a58dc0b7231e6300a3d229be5065c3a549969d205f10a"
+    },
+    {
+      "name": "expr",
+      "declaredOrigin": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "originEnv": null,
+      "resolvedOrigin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/expr",
+      "unchangedSha256": "e8a4e2b58a33d2ad6bfa9eb8a4ed5f62775ab9ceac4b9421680c98973fd9109c"
+    },
+    {
+      "name": "du",
+      "declaredOrigin": "tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+      "originEnv": null,
+      "resolvedOrigin": "/Users/kjopek/Workspace/safe-bash/tests/commands/metadata-stress/.oracle/coreutils-9.7/src/du",
+      "unchangedSha256": "f1df033deed07d208d80128568404c1043b283c59f294164f1240789bfadcf2b"
+    }
+  ],
+  "resolverSource": {
+    "candidate": "f5e9fc49b6abb38e180cc9de16c95fced102ff75",
+    "path": "tests/integration/full-gate-20260827/preflight-repair/preflight.mjs",
+    "sha256": "4e328502a8713fe6bba64f231cab846ceb1d2dc5454a8276205de3009d17944e",
+    "lines": "13-28; environment selector16, repository resolution21, unchanged digest26"
+  },
+  "metadataCheckHistory": [
+    "First supplemental literal-origin comparison raised AssertionError: rg uses the declared env selector; expr/du become absolute. No receipt emitted.",
+    "Second supplemental annotation assumed every requirement had origin and raised KeyError for tree (originEnv-only). No receipt emitted.",
+    "Source-faithful data resolution now accounts for both exact RG/TREE selectors and repository-relative expr/du; every other declared field and all51 hashes match. No executable import/probe/control rerun occurred."
+  ],
+  "consumerTimeoutSource": "execute.mjs:121 passes900000; phase-runner.mjs:18 clamps all requests to1800000",
+  "canonicalTimeoutSource": "execute.mjs:114 requests3600000 but phase-runner.mjs:18 clamps to1800000",
+  "qualification": "Expected metadata only; no live binary/version/library/native semantic validation.51 assets are not51 semantic passes."
+}

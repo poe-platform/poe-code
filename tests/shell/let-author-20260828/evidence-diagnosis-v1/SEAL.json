@@ -1,0 +1,17 @@
+{
+  "schema": "let-author-narrow-diagnosis-seal-v1",
+  "created": "2026-08-28T07:36:14.858Z",
+  "candidate": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+  "nodeSHA256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "files": {
+    "diagnose.mjs": "425c25a0757f948348213e68acfe7a9c4264ad2271bf7cfa4ccf1098ebbe1d87",
+    "diagnostic-driver.mjs": "ebe213f3bf575233fe5439d9e0a68e0bd2768115651b823f086355d9f092374b",
+    "DIAGNOSIS-RECIPE.md": "5d12e8defd636552bb65065f22fa03b7e88bdc38accaa2a939581db190dcce8c",
+    "load-hook.mjs": "134ced0dd98fbb5b034d796a3c6edab8b892a00bc8e44dc7e0f25133cbb2c59e",
+    "evidence-diagnosis-v1/accepted464.binding.json": "c305fd76e0441926f443d9211e335e7f9bf566d0393161efb0329740818596c3",
+    "evidence-diagnosis-v1/candidate-moved.binding.json": "d96fc675284ec0905b3bcbc88ac7077ca4e05c6bd4105fdd2abb2908376f4ea6"
+  },
+  "observations": 7,
+  "children": 2,
+  "originalCasesRescored": 0
+}

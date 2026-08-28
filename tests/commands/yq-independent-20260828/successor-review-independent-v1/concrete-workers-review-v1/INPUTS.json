@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "date": "2026-08-28",
+  "role": "DIFFERENT_STATIC_VERIFIER",
+  "workerSourceCommit": "e7472c54d3bacf3431d56e1d7a4458fa7e4b80af",
+  "workerEvidenceCommit": "c0353685540288d504b93f206735fe4c448268ef",
+  "workerRoot": "tests/commands/yq-independent-20260828/executor-b8f5d60d-v1/workers",
+  "sourcePresealSha256": "9319fd64441c728fba358be8b9def804d6990fc2e1042ee21e4939c3b8944dfb",
+  "finalSealSha256": "f5eb6e660f627c6cf1d029682b06f0f9b836b4bc98ccd5bc85c3ec68b811a0e2",
+  "coreInterfaceCommit": "9d582d791336fd66d865f6592b830c39a359d344",
+  "coreInterfaceSha256": "c5e36798741667981f21f002755be3f420fbd6103b8a4b3f8783531a9f6fc412",
+  "acceptedPlanReviewCommit": "49afeb86ddea10acc5dfcb1df9bb7f1e27ae6308",
+  "acceptedDataReviewCommit": "dffc3047c2e06651cde6356338b3f73ec9cfd7af",
+  "candidateSourceCommit": "b8f5d60d75452e1dd181167fb87abd995221f6e3",
+  "globalCeilingMs": 24165000,
+  "permitted": ["committed-source-read", "hash", "JSON-data", "static-arithmetic", "syntax-only"],
+  "coreBuildBodiesExcluded": true,
+  "executionAuthorized": false,
+  "RootGO": false
+}

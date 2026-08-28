@@ -84,8 +84,10 @@ try {
     assert.equal(mode, entry.mode);
     let selected = original;
     if (binding.overrides.includes(entry.path)) {
-      assert.equal(git("diff", "--cached", "--", entry.path).length, 0, "foreign staged source");
-      if (candidateCommit === undefined) assert.equal(git("rev-parse", `HEAD:${entry.path}`).toString().trim(), entry.blob, "foreign committed source");
+      if (candidateCommit === undefined) {
+        assert.equal(git("diff", "--cached", "--", entry.path).length, 0, "foreign staged source");
+        assert.equal(git("rev-parse", `HEAD:${entry.path}`).toString().trim(), entry.blob, "foreign committed source");
+      }
       selected = candidateCommit === undefined ? fs.readFileSync(path.join(repository, entry.path)) : git("show", `${candidateCommit}:${entry.path}`);
       report.sourceBlobs[entry.path] = { base: entry.blob, blob: objectHash("blob", selected), sha256: sha(selected), base64: selected.toString("base64") };
       overrides.set(entry.path, objectHash("blob", selected));

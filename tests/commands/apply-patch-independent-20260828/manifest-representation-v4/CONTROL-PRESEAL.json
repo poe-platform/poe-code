@@ -1,0 +1,176 @@
+{
+  "schema": "AP753-manifest-controls-preseal-v2",
+  "phase": "before qualification and any product build/load",
+  "created": "2026-08-28T23:34:35.735Z",
+  "files": {
+    "AUTHORITY.patch": {
+      "bytes": 3321,
+      "sha256": "c3e4b76c4793e4b329d9c4f721fa72522675ccfd11d6bf81dbac19a5caebad66",
+      "mode": 420
+    },
+    "CONTROL-PLAN.json": {
+      "bytes": 2200,
+      "sha256": "b94ef258c153bc143943dfe2c777ebb996777eee8308fb750ed6229c508d5549",
+      "mode": 420
+    },
+    "INPUT-METADATA.json": {
+      "bytes": 2651,
+      "sha256": "7c86e9604270461fd5161a9c2ee95d6786c5a4500e7e64ec812d75908803c3d3",
+      "mode": 420
+    },
+    "PREPARATION.json": {
+      "bytes": 421,
+      "sha256": "3c488bc0fcfa40fb82fb88e82ab9aacf83fb27943b33f5222bdd6de7913edbac",
+      "mode": 420
+    },
+    "SOURCE.patch": {
+      "bytes": 936562,
+      "sha256": "482377aa95b4bb79ef37a4f6f159e44bf8be2cee47d6c5aa98b365cd5cf1fe27",
+      "mode": 420
+    },
+    "controls.mjs": {
+      "bytes": 14213,
+      "sha256": "a60b890b6dc8945ab0f1d1b377e4366b954773c2a4e6765cd9194100e79aac4d",
+      "mode": 420
+    },
+    "prepare.mjs": {
+      "bytes": 14562,
+      "sha256": "88fdc2f6e88165aa313cd24764d7934a4a19722a435f0a290af9725da3e2993d",
+      "mode": 420
+    },
+    "qualify.mjs": {
+      "bytes": 4953,
+      "sha256": "1faa0288dff3720af2a851f3d395f51265d1bbb0de8a5d5c69b47ede4bdc5a0e",
+      "mode": 420
+    },
+    "seal.mjs": {
+      "bytes": 8861,
+      "sha256": "eb83d1ca10a8efdf695f70064dc5a07416eae29f0619a8732eeffa27cba594bf",
+      "mode": 420
+    }
+  },
+  "executorFiles": {
+    "BINDINGS.json": {
+      "bytes": 165223,
+      "sha256": "066328dcc2a6345ed12e7d3d76d8069da121c08eafffee7e4d3bf72233eb1960",
+      "mode": 420
+    },
+    "JOBS.json": {
+      "bytes": 27639,
+      "sha256": "adffb58983ebcb19b99d79e9ebe73768a40cf8af621b9235a3e3339681ae17e3",
+      "mode": 420
+    },
+    "PACKAGE-INVENTORY.json": {
+      "bytes": 164921,
+      "sha256": "153f6a58cdd0b180499bc6bc377014257e6c8bc8e3f42ab930d66ecf6f0783d8",
+      "mode": 420
+    },
+    "VARIANTS.json": {
+      "bytes": 404120,
+      "sha256": "754bcf5a3f313bbbc9c07d1843c84db6dd39fab8659d36fc24978c177d6b411f",
+      "mode": 420
+    },
+    "VERSIONED-ROWS.json": {
+      "bytes": 7108,
+      "sha256": "b781a86ac4790afabaac2cffb5c066d843c788629f6428f432fedf69e0d1a5d0",
+      "mode": 420
+    },
+    "authority.mjs": {
+      "bytes": 3143,
+      "sha256": "c9311c8a3ea8eff723ef950a9677a17cf2df85359ad5f5838b08cab07cf12631",
+      "mode": 420
+    },
+    "bootstrap.mjs": {
+      "bytes": 1923,
+      "sha256": "254237494d6c95d01daea653b2ade5d279e8085bba27cb7a024c748c45f83b0b",
+      "mode": 420
+    },
+    "build.mjs": {
+      "bytes": 1363,
+      "sha256": "f1b833354daa028ac4483dba21251ef1bf160ce76c686bf36422caada4227cd0",
+      "mode": 420
+    },
+    "common.mjs": {
+      "bytes": 2971,
+      "sha256": "c1362b47011358ae63b6a61e0653106bbc23f93c1a993eaf0b6509b39986407a",
+      "mode": 420
+    },
+    "composition.mjs": {
+      "bytes": 3390,
+      "sha256": "f8aaede3a3bbfb11ef33626a2d0f6447a03cde310248cd94d402d36ad726fbd9",
+      "mode": 420
+    },
+    "controller.mjs": {
+      "bytes": 38657,
+      "sha256": "6ee9ac8c55a20dd70d6b62839440790c8313408519a67e45aa3c991b19c6d808",
+      "mode": 420
+    },
+    "dispatch.mjs": {
+      "bytes": 3652,
+      "sha256": "28e234662c42d55b3323c8dd9b20aeef9788596b8fe6ec838d549d726dbcec65",
+      "mode": 420
+    },
+    "guard.mjs": {
+      "bytes": 2206,
+      "sha256": "bc41fa58ee7c48d588b910b18ff3145246368628c0006bec056a7df2dcd400c7",
+      "mode": 420
+    },
+    "legacy.mjs": {
+      "bytes": 26281,
+      "sha256": "7d2679ec9d1966bf854dea9548f8deb44beb6e2d8615cdd21cd7b45258903baa",
+      "mode": 420
+    },
+    "loader.mjs": {
+      "bytes": 3562,
+      "sha256": "91ccc8214a084220fa02b6600a61211cb27dc7f75d678255a91e8ff82c5f3618",
+      "mode": 420
+    },
+    "manifest.mjs": {
+      "bytes": 16187,
+      "sha256": "7be99704e739a137955121b0d99e30fcc90145fe6c3a20c75d04dc8975779f66",
+      "mode": 420
+    },
+    "package-data.mjs": {
+      "bytes": 2719,
+      "sha256": "9f40c2437c2cb0672886c4d2a4223fa7171c2ba67289c269f7f464f43320cc93",
+      "mode": 420
+    },
+    "path-bytes.mjs": {
+      "bytes": 6056,
+      "sha256": "77d326d80d16be07150722cc589030f09324796c747acaa9f3f83dc08cd04f94",
+      "mode": 420
+    },
+    "s54.mjs": {
+      "bytes": 15863,
+      "sha256": "1ed6df9124971fa61ba4096c5762e9849fe192c5f10fa16c7b2e0c4a7528a9c7",
+      "mode": 420
+    },
+    "variants.mjs": {
+      "bytes": 5809,
+      "sha256": "3e10f438e9e575dcc61f85a1da7802ee0fb9199bec6991268830ced3d3b2513c",
+      "mode": 420
+    }
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": 493
+  },
+  "git": {
+    "path": "/Library/Developer/CommandLineTools/usr/bin/git",
+    "bytes": 7604272,
+    "sha256": "be4afb2b003904725826250de9fb76567bbacf82323457b5a1ec26706b66bcae",
+    "mode": 493
+  },
+  "expectedControls": 31,
+  "qualificationAttempts": 1,
+  "qualificationProcesses": 2,
+  "qualificationPeak": 2,
+  "qualificationTimeoutMs": 120000,
+  "candidate": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+  "selectedTree": "6a59ca403c5411344dea2ee057909ba179bf7043",
+  "packageSha256": "f04afbf9230fd9e3275f83c7dab26837aeb618bd6178f4ac0b794b93302d6d95",
+  "original23": "historical22/23 unchanged;22 bodies retained;D02-v2 exact30+IDs;8 new controls",
+  "conditionalActual": "Only PASS31 plus complete committed full54 PRESEAL and all-source preflight permits the new ROOT-authorized one actual attempt"
+}

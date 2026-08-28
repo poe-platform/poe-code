@@ -1,0 +1,42 @@
+*** Begin Patch
+*** Add File: tests/commands/apply-patch-independent-20260828/candidate-753-review-executor-v2/authority.mjs
++export const authority = Object.freeze({
++  "schema": "AP753-catalogs-v3",
++  "candidate": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
++  "packageId": "e312788eff19011dc46d65a750737ecc9318f504b5c3bdfc8f6c56b25991588e",
++  "inputsId": "144a9477339dd3e50a17a58bf3f076438a0327dd1dfe0b778843f72829165557",
++  "graphs": {
++    "base": "e312788eff19011dc46d65a750737ecc9318f504b5c3bdfc8f6c56b25991588e",
++    "M01-before": "a0ded0c20e846bf6f9931177b38e67bc7ffa73198c3ed8fa8aaf0d94b0b12fe9",
++    "M01-mutant": "c9fba03edaabc89ec13085f8a01d067e02b24165749ce2d4a6277fe1105b47f6",
++    "M01-restored": "753a9f6f7fe48b0ebd52a1a02709b06a0241b574bf9570dcc76c99277ad01101",
++    "M03-before": "ebaf8a30c02260d882c975437a05f0decf408d419ee360b85d88cd555b36ede5",
++    "M03-mutant": "ef1247cb71c44cf8f5e051c30aa5012b5ec4805af97b3efbbf28fecb7e49f114",
++    "M03-restored": "7ea0f00929d8dac3c0cda0f1af65ee84fb514a4e5c26a0fa67de63c1a3ca798c",
++    "M04-before": "a4b25da5ebabb4ee3d9c25dcea96cfd97c41cecb1dff88da06ead7a61ea854cb",
++    "M04-mutant": "e01d36c8cb4fd203e698e1ca18fe84a7cd480eb7cdebffa8977a264371ba85c2",
++    "M04-restored": "fc43d3a123707c7be4b4473c4f7a32f14c321a0f62d9467bd78ba8ea5c18e4d4",
++    "M09-before": "5be3a474adfc4e717ebef2a01c93845407a3b5f052ead7c84eb0c157aee9cb52",
++    "M09-mutant": "33c0c00ec3b9b6b626c8e8c0e22b8f80ce5bd3150d5e9e6a4713ea7798dc526a",
++    "M09-restored": "06b3f165cc839a8d1df9e712a005c90f637ebfeb9ab570aba2b0eb1a42dd823c",
++    "M12-before": "ded2c20d074ef9a3afbb0119acb9eaeadba8718eabedc9fd1dbe7d30b6d73c8a",
++    "M12-mutant": "04d1b283c0ab9a15cc660f98aaf8d08b3aca631862037a9d4e6719b6dc76b827",
++    "M12-restored": "01f2811e8b272ed9f06ef842598eb4638d0eabeae563cb0a12cabef4c197e383",
++    "M18-before": "0e49ecbcd4d6d188b65031f00f45ccc41bf3acb2c1c453967ec54522d51f9a56",
++    "M18-mutant": "909ae27cec73ec78789811e020f356e36cdc429dcf762124343e67f4112c9a15",
++    "M18-restored": "8df9a123d4a10a4f2b1a3291f5e4d8cd52f12669220ac0de53f6c7066e5234a0",
++    "S54-bulk-copy-before": "61b38ecf6d9212f472a162481f7341b9d6b21a1e7607cc409c62e480bb548a51",
++    "S54-bulk-copy-mutant": "aeb0df2ecd093cd58499bca70b66abd3489fd10bc15ffed48032a6d7525ddd15",
++    "S54-bulk-copy-restored": "bf1a4c33fee274ac922919b02e34f8f5680713e4c68a274ec904a865c901691a",
++    "S54-skip-interval-before": "e6d5f1c24e7b54223c8409c5f06051ddfa9b59d5b7de67f1b6e49dbb53a68886",
++    "S54-skip-interval-mutant": "ae16d78f41136a7254f971329e7e4596a572e0a54d1bea3385f6044b38641a4f",
++    "S54-skip-interval-restored": "d0f60e672e5f2412ecb0d4e69eec210ffbb8a05521dc9771c28e4abfb36ebe6c",
++    "S54-bulk-encode-before": "041e4611868310e8d6c613e3b5c76134dab13833817a7cec1871aea714370386",
++    "S54-bulk-encode-mutant": "2f9a64f251535cec4bebaa5ca6b7dd5502b80b496dab2709d3ac3ae0ef391f6e",
++    "S54-bulk-encode-restored": "699cafde846c7cde2fc46c987a84071a51f738e2632a43a62a7a5be2ce32f499",
++    "S54-stage-admit-before": "e60600b42114a1a9bd717320daa20ef6fe8b2ee9cf216208759f58099ee74e0e",
++    "S54-stage-admit-mutant": "1781ee8c46962cfffc7e85d25a3c2f942fcbd7020fb00cf330f01766a906eeb6",
++    "S54-stage-admit-restored": "14fc3c0aca227d707bfc2231239269e3e03917303e34bff719c8e3da64c6f43a"
++  }
++});
+*** End Patch

@@ -1,0 +1,388 @@
+{
+  "status": "AUTHOR_QUALIFIED_COMPOSED_EVIDENCE_REQUIRES_DIFFERENT_REVIEW",
+  "date": "2026-08-28",
+  "candidate": "d111e5bf1f53aff16c5d4112e9ead2e025d6464f",
+  "sourceManifestSha256": "fe906972d6e0d34c99b45930e584b6177c5780e2ceddc83ea48418c64ee4f465",
+  "inputs": 272,
+  "changedSourcePaths": [
+    "src/shell/parser.ts",
+    "src/shell/runtime.ts",
+    "src/shell/arrays/bindings.ts",
+    "src/shell/arrays/ledger.ts",
+    "src/shell/arrays/state.ts",
+    "src/shell/arrays/syntax.ts"
+  ],
+  "defaults": 78,
+  "pack": {
+    "sha256": "f5152eaeaaeb78aff350a86d55f67905c2caab900ba2f45b1869da6498e1e956",
+    "bytes": 795138,
+    "members": 874,
+    "freshProductionBuilds": 1,
+    "freshPacks": 1,
+    "newPackageFiles": [
+      "dist/shell/arrays/bindings.d.ts",
+      "dist/shell/arrays/bindings.d.ts.map",
+      "dist/shell/arrays/bindings.js",
+      "dist/shell/arrays/bindings.js.map",
+      "dist/shell/arrays/ledger.d.ts",
+      "dist/shell/arrays/ledger.d.ts.map",
+      "dist/shell/arrays/ledger.js",
+      "dist/shell/arrays/ledger.js.map",
+      "dist/shell/arrays/state.d.ts",
+      "dist/shell/arrays/state.d.ts.map",
+      "dist/shell/arrays/state.js",
+      "dist/shell/arrays/state.js.map",
+      "dist/shell/arrays/syntax.d.ts",
+      "dist/shell/arrays/syntax.d.ts.map",
+      "dist/shell/arrays/syntax.js",
+      "dist/shell/arrays/syntax.js.map"
+    ],
+    "changedCommon": [
+      "dist/shell/parser.d.ts.map",
+      "dist/shell/parser.js",
+      "dist/shell/parser.js.map",
+      "dist/shell/runtime.d.ts",
+      "dist/shell/runtime.d.ts.map",
+      "dist/shell/runtime.js",
+      "dist/shell/runtime.js.map"
+    ]
+  },
+  "runtime": {
+    "cases": 93,
+    "passed": 93,
+    "layouts": [
+      {
+        "layout": "source-build",
+        "script": "probe.mjs",
+        "summary": {
+          "layout": "source-build-probe.mjs",
+          "profile": "root-approved-v2",
+          "cases": 19,
+          "positives": 18,
+          "positivePass": 18,
+          "refusalControls": 1,
+          "refusalPass": 1,
+          "pass": 19,
+          "failed": [],
+          "created": 21,
+          "disposed": 21,
+          "forbiddenNetwork": 0,
+          "nativeRuns": 0,
+          "privateSafeJsRuns": 0
+        }
+      },
+      {
+        "layout": "source-build",
+        "script": "arrays.mjs",
+        "summary": {
+          "profile": "coherent78-array-author-v1",
+          "cases": 12,
+          "pass": 12,
+          "disposed": 12
+        }
+      },
+      {
+        "layout": "installed",
+        "script": "probe.mjs",
+        "summary": {
+          "layout": "installed-probe.mjs",
+          "profile": "root-approved-v2",
+          "cases": 19,
+          "positives": 18,
+          "positivePass": 18,
+          "refusalControls": 1,
+          "refusalPass": 1,
+          "pass": 19,
+          "failed": [],
+          "created": 21,
+          "disposed": 21,
+          "forbiddenNetwork": 0,
+          "nativeRuns": 0,
+          "privateSafeJsRuns": 0
+        }
+      },
+      {
+        "layout": "installed",
+        "script": "arrays.mjs",
+        "summary": {
+          "profile": "coherent78-array-author-v1",
+          "cases": 12,
+          "pass": 12,
+          "disposed": 12
+        }
+      },
+      {
+        "layout": "moved",
+        "script": "probe.mjs",
+        "summary": {
+          "layout": "moved-probe.mjs",
+          "profile": "root-approved-v2",
+          "cases": 19,
+          "positives": 18,
+          "positivePass": 18,
+          "refusalControls": 1,
+          "refusalPass": 1,
+          "pass": 19,
+          "failed": [],
+          "created": 21,
+          "disposed": 21,
+          "forbiddenNetwork": 0,
+          "nativeRuns": 0,
+          "privateSafeJsRuns": 0
+        }
+      },
+      {
+        "layout": "moved",
+        "script": "arrays.mjs",
+        "summary": {
+          "profile": "coherent78-array-author-v1",
+          "cases": 12,
+          "pass": 12,
+          "disposed": 12
+        }
+      }
+    ],
+    "independentAcceptance": false
+  },
+  "strictTypes": {
+    "groups": 18,
+    "caseOutcomes": 30,
+    "pass": 30,
+    "exactNegatives": 12,
+    "allCapturedDeclarationsMatchPackage": true
+  },
+  "controls": [
+    {
+      "id": "changed-binding",
+      "pass": true
+    },
+    {
+      "id": "missing-entry",
+      "pass": true
+    },
+    {
+      "id": "outside-source",
+      "pass": true
+    },
+    {
+      "id": "loaded-zero-view-mutant",
+      "pass": true,
+      "mutantSha256": "11ae27a8172dd6255c2bd686b8085fe1a465c4f6c4a56b6806a8d095ad5ab460",
+      "observations": [
+        {
+          "id": "A02",
+          "pass": false,
+          "disposed": true,
+          "actual": {
+            "stdout": "__array_mutant__\n<__array_mutant__>\n<one>\n",
+            "stderr": "",
+            "stdoutBytes": {
+              "0": 95,
+              "1": 95,
+              "2": 97,
+              "3": 114,
+              "4": 114,
+              "5": 97,
+              "6": 121,
+              "7": 95,
+              "8": 109,
+              "9": 117,
+              "10": 116,
+              "11": 97,
+              "12": 110,
+              "13": 116,
+              "14": 95,
+              "15": 95,
+              "16": 10,
+              "17": 60,
+              "18": 95,
+              "19": 95,
+              "20": 97,
+              "21": 114,
+              "22": 114,
+              "23": 97,
+              "24": 121,
+              "25": 95,
+              "26": 109,
+              "27": 117,
+              "28": 116,
+              "29": 97,
+              "30": 110,
+              "31": 116,
+              "32": 95,
+              "33": 95,
+              "34": 62,
+              "35": 10,
+              "36": 60,
+              "37": 111,
+              "38": 110,
+              "39": 101,
+              "40": 62,
+              "41": 10
+            },
+            "stderrBytes": {},
+            "exitCode": 0
+          },
+          "error": {
+            "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ '__array_mutant__\\n<__array_mutant__>\\n<one>\\n'\n- 'zero\\n<changed>\\n<one>\\n'\n",
+            "code": "ERR_ASSERTION",
+            "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ '__array_mutant__\\n<__array_mutant__>\\n<one>\\n'\n- 'zero\\n<changed>\\n<one>\\n'\n\n    at file:///private/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-ui2FKQ/physically%20moved%20consumer/arrays.mjs:29:14"
+          }
+        },
+        {
+          "summary": {
+            "profile": "coherent78-array-author-v1",
+            "cases": 1,
+            "pass": 0,
+            "disposed": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "restored-positive",
+      "pass": true
+    }
+  ],
+  "actualLoadedBindings": [
+    {
+      "layout": "source-build",
+      "script": "probe.mjs",
+      "loadedRows": 214,
+      "uniqueModules": 214,
+      "sha256": "a75b1f2cf0a4a1c91f50087523e53c74bfa954d7e2194275f38748c2fecaa08b"
+    },
+    {
+      "layout": "source-build",
+      "script": "arrays.mjs",
+      "loadedRows": 214,
+      "uniqueModules": 214,
+      "sha256": "f5d7398ac7c595d833b8f3450bdbae5a2075bb0bc3ecbe90740757b51659fc57"
+    },
+    {
+      "layout": "installed",
+      "script": "probe.mjs",
+      "loadedRows": 214,
+      "uniqueModules": 214,
+      "sha256": "f71264b5298fe111df1c06e3748a055bf8cb93336f354a1284b4267cc61dbe7a"
+    },
+    {
+      "layout": "installed",
+      "script": "arrays.mjs",
+      "loadedRows": 214,
+      "uniqueModules": 214,
+      "sha256": "bec8eddb7b19086bf54d5743fd898c9764c0df46de02874b7592d19375fdcfb3"
+    },
+    {
+      "layout": "moved",
+      "script": "probe.mjs",
+      "loadedRows": 214,
+      "uniqueModules": 214,
+      "sha256": "3a5513a90ea6e080aeb555bb2c0539d91bdd1bf43b5bbca4b7553a7dda863fec"
+    },
+    {
+      "layout": "moved",
+      "script": "arrays.mjs",
+      "loadedRows": 214,
+      "uniqueModules": 214,
+      "sha256": "1a532319ae54edf9cc03020952d85610069d00bbc910d3912a22920b1faf7117"
+    }
+  ],
+  "shells": {
+    "runtimeCreated": 99,
+    "runtimeDisposed": 99,
+    "mutationAndRestoredAdditional": 2,
+    "note": "Tamper/missing/fallback reject before Shell creation; no universal descendant/opaque cleanup claim."
+  },
+  "resources": {
+    "directChildren": 37,
+    "allClosed": true,
+    "termOrKill": 0,
+    "peakSupervisedChildren": 1,
+    "retained": [
+      {
+        "root": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-D8kSkX",
+        "bytes": 33900784,
+        "files": 903
+      },
+      {
+        "root": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-NGVn8H",
+        "bytes": 59572717,
+        "files": 4919
+      },
+      {
+        "root": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-qiglX1",
+        "bytes": 56831751,
+        "files": 4898
+      },
+      {
+        "root": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-ui2FKQ",
+        "bytes": 56855762,
+        "files": 4907
+      }
+    ],
+    "workingBytes": 207161014,
+    "captureBytes": 5881862,
+    "supervisedCampaignWallMilliseconds": 273952,
+    "sourceChecks": [
+      {
+        "root": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-NGVn8H",
+        "matchingInputs": 272
+      },
+      {
+        "root": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-qiglX1",
+        "matchingInputs": 272
+      },
+      {
+        "root": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-ui2FKQ",
+        "matchingInputs": 272
+      }
+    ],
+    "cleanup": "Owned children and Shell resources settled; four own roots deliberately retained, no foreign cleanup."
+  },
+  "history": [
+    {
+      "rawVersion": 1,
+      "sha256": "08f6ff8d1dff3533379cd773cfd9df3336f0b26d6604a1602402c811f693aa9a",
+      "status": "FAILED_OR_INCOMPLETE",
+      "failure": {
+        "message": "The expression evaluated to a falsy value:\n\n  assert.ok(metadata.isFile() && !metadata.isSymbolicLink())\n",
+        "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(metadata.isFile() && !metadata.isSymbolicLink())\n\n    at file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-author-20260828/run.mjs:145:14"
+      },
+      "children": 1
+    },
+    {
+      "rawVersion": 2,
+      "sha256": "ff6209758d5bf6c5dcfcd4f742299d9d9ec2c72b04e6bfe515fa4e51dc867ecf",
+      "status": "FAILED_OR_INCOMPLETE",
+      "failure": {
+        "message": "Type source fallback or absent public declaration",
+        "stack": "AssertionError [ERR_ASSERTION]: Type source fallback or absent public declaration\n    at types (file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-author-20260828/run.mjs:105:12)\n    at async layout (file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-author-20260828/run.mjs:119:3)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-author-20260828/run.mjs:188:33"
+      },
+      "children": 15
+    },
+    {
+      "rawVersion": 3,
+      "sha256": "7e903844979ab00dd8ee40d420cbe37f9ddba4c37ec6b779bdbca7774aaf5fce",
+      "status": "FAILED_OR_INCOMPLETE",
+      "failure": {
+        "message": "EEXIST: file already exists, open '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-qiglX1/physically moved consumer/consumer-positive.ts'",
+        "stack": "Error: EEXIST: file already exists, open '/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/coherent78-arrays-author-qiglX1/physically moved consumer/consumer-positive.ts'\n    at async open (node:internal/fs/promises:639:25)\n    at async Object.writeFile (node:internal/fs/promises:1219:14)\n    at async write (file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-author-20260828/run.mjs:35:3)\n    at async types (file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-author-20260828/run.mjs:105:5)\n    at async layout (file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-author-20260828/run.mjs:135:3)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/integration/coherent78-arrays-author-20260828/run.mjs:205:3"
+      },
+      "children": 9
+    },
+    {
+      "rawVersion": 4,
+      "sha256": "34e7c1c67e8cd843667fe6d30bad76e8f764b6663173fc1cb674e7e70bc5916f",
+      "status": "AUTHOR_SCOPED_PASS",
+      "children": 12
+    }
+  ],
+  "qualifications": [
+    "Separate metadata preflight failure preserved in PREFLIGHT-v1-FAILURE.md; zero children before raw-v1.",
+    "Original raw-v2 FAILED_OR_INCOMPLETE and raw-v3 FAILED_OR_INCOMPLETE are not rescored; remaining proofs come from versioned continuations.",
+    "Source-build executes fresh compiled output, not raw TypeScript. No whole HEAD/global suite, native, private engine, network or actual SafeJS evidence.",
+    "ARRAY source-only/MIXED/BRIDGE_CAPTURE/AST/cloning qualifications remain; these public composition checks do not close them.",
+    "Working-byte bound is a retained-tree checkpoint plus accounted writes, not an OS quota or hard RSS guarantee."
+  ]
+}

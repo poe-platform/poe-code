@@ -1,9 +1,10 @@
 # User-priority commands — source audit, 2026-08-28
 
 Repository: `/Users/kjopek/Workspace/safe-bash`; package: `virtual-bash`.
-This is a source/data audit, not a new execution or acceptance gate. No product,
-native oracle, compiler, build, private engine or gate was executed. No product
-source, exports, dependencies or historical expectations changed.
+The original source/data audit and later dated status records are distinguished
+below. This documentation update performs no new product, native-oracle, compiler,
+build, private-engine or gate execution. Product source, exports, dependencies
+and historical expectations are unchanged.
 
 ## Authoritative request
 
@@ -36,7 +37,43 @@ zero runtime dependencies, no virtual-command host subprocess/eval/native fallba
 and explicit host capabilities remain requirements. This table does not supply a
 subcommand/flag distribution; recommendations below are engineering judgment.
 
-## Later module-candidate checkpoint — 2026-08-28
+## ROOT-qualified priority workflows and current status — 2026-08-28
+
+ROOT accepts scoped evidence `0a942ed29897a1993ab45e0b374c5d9edd829682` and
+finalization `4cb1745d381a98f83c030f3e7cad0072179e43ad` on exact selected
+composition `8437e4eda904e1248c25eeef0d9d455b1d251495` and full858 package SHA256
+`6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e`.
+The original 15 source passes plus RUN02's 78 passes complete the finite
+31-case × three-layout membership: source31, installed31 and moved31.
+RUN02 contributes source16/installed31/moved31, not a fresh same-packet93-call
+run. The original P16 STOP, historical77 unrun, four withheld and aggregate
+UNKNOWN remain preserved; the later versioned P16 pass does not rescore them.
+
+The cases exercise the ten existing requested defaults, emphasizing sed/rg,
+plus explicitly configured mock curl workflows. RUN02's three setup and four
+admission children are separate from its78 public calls. All85 children plus
+the supervisor and63 product Workers actually retired. The82 loader requests
+are not independent loader-exit observations. Charged capture6124037 and retained
+scratch200067167 bytes are logical accounting, not RSS or global OS guarantees.
+
+RUN02 is CLOSED TO FUTURE CONSUMPTION: retain0 children,249 Worker starts,
+0 loader roles,350391803 capture bytes and336803745 scratch bytes; no release or
+reuse. RUN01 remains closed with its original balances/UNKNOWN unchanged. See
+the [exact ROOT acceptance and closure record](../tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/actual-run02-v1/ROOT-ACCEPTANCE-AND-CLOSURE.md)
+for both balance tables, immutable bindings and remaining observation limits.
+
+Current status, as supplied by ROOT: Git M1A module
+`9885390fb11454fa194a3e60fdbef198dbfdf633` has qualified acceptance but is not
+public/default-integrated. Git M1B `fca6f81d2d96db2bbceabf3247cd57ffe240bde6`
+and ROOT-reported apply_patch candidate `753` await independent review; the
+Node scaffold/provider remain pending. Candidate `753` is ROOT's supplied label,
+not a newly authenticated full commit identifier. These statuses supersede the
+older checkpoint below without rewriting its observations. No arrays, Git,
+apply_patch, Node, YQ or XAN support is added by this workflow proof. The existing
+78-default, TypeScript, zero-runtime-dependency and opt-in-curl status is unchanged;
+no fresh type gate, overall just-bash victory or global-release claim follows.
+
+## Historical module-candidate checkpoint — 2026-08-28
 
 This docs-only update supersedes the original audit's implementation-absence
 statements, not its historical observations or user-provided statistics.

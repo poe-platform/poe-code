@@ -24,6 +24,18 @@ and its linked reports for original failures, later source fixes, fixture/profil
 changes and scoped acceptance. Original reports are preserved; no selected suite
 or command count establishes the full product goal.
 
+**Scoped priority-workflow acceptance (August 28, 2026):** ROOT accepts the
+finite 31-case × three-layout membership on selected `8437e4ed` and its exact
+858-file package `6b5863d5`: 15 original source passes plus 78 RUN02 passes
+(16 source, 31 installed, 31 physically moved). This combines versioned evidence,
+not a fresh 93-call run or a rescore of the original P16 STOP/unknown accounting.
+The [acceptance and reservation closure](tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/actual-run02-v1/ROOT-ACCEPTANCE-AND-CLOSURE.md)
+keeps setup/admission, Worker retirement, loader-request and logical-resource
+qualifications separate. Both reservations are closed without release/reuse.
+No arrays, Git, apply_patch, Node, YQ or XAN support is added by this proof;
+78 defaults, TypeScript and zero runtime dependencies remain, with curl opt-in.
+This is neither an overall just-bash win nor a global-release claim.
+
 **Scoped coherent78 + indexed-array acceptance (August 28, 2026):** ROOT accepts
 fixed composition `d111e5bf1f53aff16c5d4112e9ead2e025d6464f`, with the exact full
 874-member package bound in the
@@ -80,8 +92,10 @@ distinguish implementation from native compatibility: `sed`, `rg`, `printf`,
 `9885390fb11454fa194a3e60fdbef198dbfdf633` has qualified ROOT acceptance;
 `apply_patch` remains a module candidate under independent review. Git acceptance
 does not authorize root exports/default integration or cover later packed-object
-work; the accepted aggregate remains78 commands. The proposed Node CommonJS contract
-and provider remain unqualified. `safejs` is not Node, and `patch` is not `apply_patch`.
+work; the accepted aggregate remains78 commands. M1B candidate `fca6f81d` and
+ROOT-reported apply_patch candidate `753` remain under independent review;
+the Node scaffold/provider remain pending, not accepted product Node support.
+`safejs` is not Node, and `patch` is not `apply_patch`.
 “Without the npm stuff” excludes npm/npx product commands only; npm, Node and
 TypeScript development tooling remain. The counts in that table are supplied by
 the user, not independently verified usage statistics or completeness scores.

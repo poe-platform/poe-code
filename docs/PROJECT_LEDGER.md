@@ -3678,3 +3678,46 @@ that any implementation, command, fixture, or test currently exists.
   install, runtime, private-engine, native-oracle, network or cleanup is executed.
   Full bindings and limitations:
   `tests/commands/git-independent-20260828/m1a-type-adjudication-v15/TYPE-ADJUDICATION.md`.
+
+## 2026-08-28 — ROOT-qualified priority workflows; RUN02 closed
+
+- ROOT accepts scoped actual evidence
+  `0a942ed29897a1993ab45e0b374c5d9edd829682` and finalization
+  `4cb1745d381a98f83c030f3e7cad0072179e43ad`, authorized before execution by
+  `96c0fb58664ce8ab8044f31acdbbaa4fcc9cf486`. Exact selected composition
+  `8437e4eda904e1248c25eeef0d9d455b1d251495` binds268 source inputs and the
+  full858-member package SHA256
+  `6b5863d51ecd6484b79b7141a2004c04b775f9894d5b80bb016a02ffbefed40e`.
+- Original source P01-P15 passes plus RUN02's78 passes complete the finite
+  31-case × three-layout membership: source31, installed31, moved31.
+  RUN02 executed source16/installed31/moved31 once, with0 failures,0 STOPs and
+  0 unrun in its selected78. This is a versioned synthesis, not a fresh93-call
+  execution or a rescore of RUN01's P16 STOP/77 unrun. Original RUN01's15 passes,
+  four withheld and aggregate UNKNOWN remain immutable; source P01-P15 were not
+  replayed. P16's later pass uses the approved exact child-stage trace contract.
+- RUN02 setup3 and admission4 remain separate from78 public calls. All85 direct
+  children plus the supervisor and63 product Workers actually retired, with
+  fulfilled product termination and no emergency/unknown RUN02 retirement.
+  The82 Node-managed loader requests are not independent loader-exit receipts.
+  Actual parent/Worker membership and entry bytes were observed separately.
+  Post-run selected/emitted/full858-moved/tool/seal bindings remained exact.
+- Charged capture6124037 bytes comprises347955 stdout/stderr plus5776082 log
+  bytes. Retained scratch200067167 bytes includes the fixed16MiB terminal:
+  8210629 JSON+LF bytes plus8566587 padding spaces, not truncated evidence.
+  These are logical observations, not RSS/whole-invocation-memory/global OS
+  quotas, transparent instrumentation or hard post-SIGKILL/opaque-work guarantees.
+  Earlier preparation unknown resource history is not retroactively accepted.
+- ROOT closes RUN02 to all future consumption. Retain children0, Worker
+  starts249, loader roles0, capture350391803 and scratch336803745 bytes, without
+  release/reuse. RUN01 remains closed with children77, Worker starts353,
+  loader roles77, capture418174207 and scratch347730492 bytes, four withheld
+  and aggregate UNKNOWN. No refund, balance rewrite, old-raw cleanup or new
+  execution accompanies this documentation/closure record.
+- The existing78 defaults, TypeScript and zero runtime dependencies remain;
+  curl stays opt-in. This proof adds no arrays, Git, apply_patch, Node, YQ or XAN
+  acceptance. Git M1A9885390fb11454fa194a3e60fdbef198dbfdf633 is separately
+  accepted module-only, not public/default; M1Bfca6f81d2d96db2bbceabf3247cd57ffe240bde6
+  and ROOT-reported apply candidate753 await review; Node scaffold/provider remain
+  pending. No overall just-bash win, fresh global type gate or release follows.
+- Exact authority, finite membership, both retained reservations and qualifiers:
+  `tests/integration/priority-command-workflows-20260828/npm-pin-rebinding-v2/p16-trace-repair-v4/actual-run02-v1/ROOT-ACCEPTANCE-AND-CLOSURE.md`.

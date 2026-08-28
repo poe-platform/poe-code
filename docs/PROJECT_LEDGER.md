@@ -3083,3 +3083,30 @@ that any implementation, command, fixture, or test currently exists.
   F11 annotations are adapter static arithmetic, not telemetry. No retry,
   rephrasing, alternate executor/agent bypass or inferred OS-denial/security
   claim is authorized by classification or documentation.
+
+### 2026-08-28T09:24Z — One fresh-root-authorized fixed76 attempt, setup EPERM
+
+- Fresh root authorization8e6b40ec bound accepted packetd9dd698a, driverreview
+  97c081ec and metadatareview7fd7c7ae. Actual receiptSHA
+  f29a198d05e113a2a0b913a57bd7a2b088a7f731d6121947527652c40d2b8e74 passed the
+  real release guard; exactly one CLI --run issued for unchangedf5/fe15/c109.
+  No inherited GO, retry, permission widening or mutable overlay occurred.
+- Terminal exit1/HOLD_OR_QUALIFIED_RED: `spawnSync git EPERM` at frozen support
+  `combined-8670ebe8/prerequisites.mjs:22`, called by launcher execute.mjs:73.
+  The helper accepts the supplied environment but omits it from this Git spawn;
+  the verified local finite PATH is therefore not used by that call. Read-only
+  source diagnosis only; the failed absolute Git path was not dynamically
+  observed and no repair was made.
+- Mandatory51 native identities/tools admitted; logical37,397/physical37,392
+  candidate projection and452,090,184 opaque-history bytes were recorded. The
+  run stopped before the setup sentinel: **0/14 phases,0 builds, no canonical
+  counts or package rebuild**. Internal fullGateLaunched:false means no phase
+  cohort, not no actual CLI invocation. Old whole-suite/scoped scores unchanged.
+- Worker naturally closed with no signals/survivors; aggregate fence/phase
+  cleanliness remains false because expected phases were absent. Private264-file
+  metadata admission occurred, but no privateState/pre-post proof, engine copy
+  or guest execution. Seven raw files/19,036,819 bytes are preserved losslessly;
+  exact failed-attempt roots retained. See
+  `tests/integration/full-gate-20260827/unified76-driver/released-run-v1/HANDOFF.md`.
+  New routing repair/review and fresh root authorization would be needed before
+  any further launch; this failed attempt grants none.

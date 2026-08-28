@@ -1,0 +1,164 @@
+import { PatchError, Work } from "./shared.js";
+async function records(text, work) {
+    const result = [];
+    let start = 0;
+    for (let index = 0; index < text.length; index++) {
+        work.step();
+        if (text[index] === "\n") {
+            const crlf = index > start && text[index - 1] === "\r";
+            work.count("maxLines", 1);
+            result.push({ text: text.slice(start, crlf ? index - 1 : index), ending: crlf ? "\r\n" : "\n" });
+            start = index + 1;
+        }
+        if ((index & 2047) === 0)
+            await work.checkpoint();
+    }
+    if (start < text.length) {
+        work.count("maxLines", 1);
+        result.push({ text: text.slice(start), ending: "" });
+    }
+    await work.checkpoint();
+    return result;
+}
+async function find(lines, pattern, start, eof, work) {
+    const last = lines.length - pattern.length;
+    const first = ((globalThis.reviewMarkers.includes("AP-INDEPENDENT-ACTUAL-v1:M04") || globalThis.reviewMarkers.push("AP-INDEPENDENT-ACTUAL-v1:M04")), start);
+    if (first < start)
+        return -1;
+    for (let candidate = first; candidate <= last; candidate++) {
+        work.step();
+        let matched = true;
+        for (let offset = 0; offset < pattern.length; offset++) {
+            if (!await work.equal(lines[candidate + offset].text, pattern[offset])) {
+                matched = false;
+                break;
+            }
+        }
+        if (matched)
+            return candidate;
+        await work.checkpoint();
+    }
+    return -1;
+}
+async function encode(lines, work) {
+    let bytes = 0;
+    for (const line of lines) {
+        bytes += await work.utf8(line.text, work.limits.maxFileBytes - bytes);
+        if (line.ending.length > work.limits.maxFileBytes - bytes)
+            throw new PatchError("maxFileBytes limit exceeded");
+        bytes += line.ending.length;
+    }
+    work.count("maxStagedBytes", bytes);
+    const result = new Uint8Array(bytes);
+    let offset = 0;
+    for (const line of lines) {
+        work.step(line.text.length + line.ending.length);
+        const encoded = Buffer.from(line.text + line.ending);
+        result.set(encoded, offset);
+        offset += encoded.length;
+        await work.checkpoint();
+    }
+    return result;
+}
+export async function contents(file, original, work) {
+    if (file.kind === "delete")
+        return undefined;
+    if (file.kind === "add") {
+        work.count("maxLines", file.added.length);
+        const added = [];
+        for (const text of file.added) {
+            work.step();
+            added.push({ text, ending: "\n" });
+            await work.checkpoint();
+        }
+        return encode(added, work);
+    }
+    if (!original)
+        throw new PatchError(`missing target: ${file.label}`);
+    const text = await work.text(original, 1);
+    const old = await records(text, work);
+    let ending = "\n";
+    for (const line of old) {
+        work.step();
+        await work.checkpoint();
+        if (line.ending) {
+            ending = line.ending;
+            break;
+        }
+    }
+    const terminated = !original.length || original.at(-1) === 10;
+    const replacements = [];
+    let cursor = 0;
+    for (const hunk of file.hunks) {
+        for (const anchor of hunk.anchors) {
+            const position = await find(old, [anchor], cursor, false, work);
+            if (position < 0)
+                throw new PatchError(`context anchor not found: ${file.label}`);
+            cursor = position + 1;
+        }
+        const pattern = [];
+        for (const line of hunk.lines) {
+            work.step();
+            if (line.kind !== "+")
+                pattern.push(line.text);
+            await work.checkpoint();
+        }
+        const start = pattern.length ? await find(old, pattern, cursor, hunk.eof, work) : old.length;
+        if (start < 0)
+            throw new PatchError(`expected context not found: ${file.label}`);
+        const replacement = [];
+        let matched = start;
+        for (const line of hunk.lines) {
+            work.step();
+            if (line.kind === " ") {
+                work.count("maxLines", 1);
+                replacement.push({ ...old[matched++] });
+            }
+            else if (line.kind === "-")
+                matched++;
+            else {
+                work.count("maxLines", 1);
+                replacement.push({ text: line.text, ending });
+            }
+            await work.checkpoint();
+        }
+        replacements.push({ start, end: start + pattern.length, lines: replacement });
+        cursor = start + pattern.length;
+        await work.checkpoint();
+    }
+    const result = [];
+    let position = 0;
+    for (const replacement of replacements) {
+        if (replacement.start < position)
+            throw new PatchError("overlapping update hunks");
+        while (position < replacement.start) {
+            work.step();
+            work.count("maxLines", 1);
+            result.push({ ...old[position++] });
+            await work.checkpoint();
+        }
+        for (const line of replacement.lines) {
+            work.step();
+            result.push(line);
+            await work.checkpoint();
+        }
+        position = replacement.end;
+    }
+    while (position < old.length) {
+        work.step();
+        work.count("maxLines", 1);
+        result.push({ ...old[position++] });
+        await work.checkpoint();
+    }
+    for (let index = 0; index < result.length; index++) {
+        work.step();
+        const line = result[index];
+        if (index < result.length - 1 && !line.ending)
+            line.ending = ending;
+        else if (index === result.length - 1)
+            line.ending = terminated ? line.ending || ending : "";
+        await work.checkpoint();
+    }
+    return encode(result, work);
+}
+//# sourceMappingURL=matcher.js.map

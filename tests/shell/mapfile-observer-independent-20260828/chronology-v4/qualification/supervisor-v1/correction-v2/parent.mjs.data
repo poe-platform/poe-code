@@ -1,0 +1,169 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { performance } from 'node:perf_hooks';
+
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+export async function main(argumentsList = process.argv.slice(1)) {
+  const [parentPath, parentHash, goPath, goHash, token, ...extra] = argumentsList;
+  assert.equal(extra.length, 0);
+  assert.ok(path.isAbsolute(parentPath) && path.isAbsolute(goPath));
+  for (const value of [parentHash, goHash, token]) assert.match(value, /^[a-f0-9]{64}$/u);
+  const initialRead = (filename, maximum = 1048576) => {
+    assert.equal(fs.realpathSync(filename), filename); const before = fs.lstatSync(filename);
+    assert.ok(before.isFile() && before.size <= maximum && (before.mode & 4095) === 0o644);
+    const descriptor = fs.openSync(filename, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
+    try { const stat = fs.fstatSync(descriptor); assert.equal(stat.dev, before.dev); assert.equal(stat.ino, before.ino); const bytes = Buffer.alloc(before.size); let offset=0; while(offset<bytes.length){const count=fs.readSync(descriptor,bytes,offset,Math.min(65536,bytes.length-offset),null);assert.ok(count>0);offset+=count;} assert.equal(fs.readSync(descriptor,Buffer.alloc(1),0,1,null),0); const after = fs.lstatSync(filename); for (const key of ['dev','ino','mode','size','mtimeMs','ctimeMs']) { assert.equal(after[key], before[key]); assert.equal(fs.fstatSync(descriptor)[key], before[key]); } return bytes; } finally { fs.closeSync(descriptor); }
+  };
+  const goBytes = initialRead(goPath); assert.equal(digest(goBytes), goHash); const go = JSON.parse(goBytes);
+  if (go.kind !== 'ROOT_HARMLESS_OBSERVER_SUPERVISOR_GO') throw new Error('NOT_AUTHORIZED');
+  const ownDataBytes = initialRead(path.resolve(parentPath, '../../controls/observer-v1/modules/data.mjs'));
+  assert.equal(digest(ownDataBytes),'1febd9039ace712a565c13069d92accd67296dfa9790b3dc4849cc9b5461c883');
+  const { assertOwnData, describeReason } = await import('data:text/javascript;base64,'+ownDataBytes.toString('base64'));
+  assertOwnData(Object.keys(go).sort(), ['kind','qualificationCommit','manifestSha256','parentSha256','archiveRoot','evidenceRoot','runId','rootPid','tokenSha256','caseIds','runtime','binary','approvedAtMs','expiresAtMs','zeroNetwork','archiveAuthenticatedAgainstCommit','externalWatchdog','limits'].sort());
+  assert.match(go.qualificationCommit, /^[a-f0-9]{40}$/u); assert.match(go.runId, /^[A-Za-z0-9-]{16,48}$/u);
+  assert.equal(go.rootPid, process.ppid); assert.ok(Number.isSafeInteger(go.rootPid) && go.rootPid > 0); assert.equal(digest(Buffer.from(token)), go.tokenSha256);
+  assert.equal(go.parentSha256, parentHash); assert.equal(digest(initialRead(parentPath)), parentHash);
+  const archiveRoot = path.resolve(parentPath, '../..'); assert.equal(go.archiveRoot, archiveRoot); assert.equal(process.cwd(), archiveRoot);
+  assert.equal(path.basename(path.dirname(parentPath)), 'supervisor');
+  assert.match(archiveRoot, /^\/private\/tmp\/mapfile-observer-hq-archive-[A-Za-z0-9-]{16,48}$/u);
+  assert.equal(go.evidenceRoot, `/private/tmp/mapfile-observer-hq-${go.runId}`);
+  assert.equal(go.zeroNetwork, true); assert.equal(go.archiveAuthenticatedAgainstCommit, true); assert.equal(go.externalWatchdog, 'PARENT_OWNED_BROKER_V1');
+  assert.ok(Number.isSafeInteger(go.approvedAtMs) && Number.isSafeInteger(go.expiresAtMs) && go.approvedAtMs <= Date.now() && Date.now() < go.expiresAtMs && go.expiresAtMs - go.approvedAtMs <= 3600000);
+  assertOwnData(process.env, { PATH:'',ENV:'',BASH_ENV:'',NODE_OPTIONS:'',NODE_PATH:'',HOME:go.evidenceRoot,TMPDIR:go.evidenceRoot,LANG:'C',LC_ALL:'C',TZ:'UTC' });
+  const manifestPath = path.join(archiveRoot, 'supervisor/COMBINED.json'), manifestBytes = initialRead(manifestPath); assert.equal(digest(manifestBytes), go.manifestSha256); const manifest = JSON.parse(manifestBytes);
+  assertOwnData(go.runtime, manifest.runtime); assertOwnData(go.binary, manifest.binary); assertOwnData(go.limits, manifest.limits);
+  assert.equal(process.execPath, manifest.runtime.path); assert.equal(process.version, manifest.runtime.version); assert.equal(process.platform, manifest.runtime.platform); assert.equal(process.arch, manifest.runtime.arch);
+  const bindings = new Map(Object.entries(manifest.files).map(([relative, binding]) => { assert.ok(!path.isAbsolute(relative) && !relative.split('/').includes('..')); return [path.join(archiveRoot, relative), binding]; }));
+  bindings.set(manifestPath, { bytes: manifestBytes.length, mode:0o644, sha256:go.manifestSha256 });
+  const directories = new Set([archiveRoot]); for (const filename of bindings.keys()) { let directory = path.dirname(filename); while (directory !== archiveRoot) { directories.add(directory); directory = path.dirname(directory); } }
+  const frozenIdentities = new Map(); let hashReadBytes = 0;
+  function auditArchive(initial = false) {
+    assert.equal(digest(initialRead(goPath)), goHash);
+    for (const [filename, binding] of bindings) {
+      const bytes = initialRead(filename, 16777216); hashReadBytes += bytes.length; assert.equal(bytes.length, binding.bytes); assert.equal(digest(bytes), binding.sha256);
+      const stat = fs.lstatSync(filename), identity = `${stat.dev}:${stat.ino}`; if (initial) frozenIdentities.set(filename, identity); else assert.equal(identity, frozenIdentities.get(filename));
+    }
+    for (const directory of directories) {
+      const stat = fs.lstatSync(directory); assert.ok(stat.isDirectory() && (stat.mode & 4095) === 0o700 && fs.realpathSync(directory) === directory);
+      const identity = `${stat.dev}:${stat.ino}`; if (initial) frozenIdentities.set(directory, identity); else assert.equal(identity, frozenIdentities.get(directory));
+      const entries = fs.readdirSync(directory); assert.ok(entries.length <= 128);
+      const expected = [...bindings.keys(), ...directories].filter(filename => filename !== directory && path.dirname(filename) === directory).map(filename => path.basename(filename)).sort(); assertOwnData(entries.sort(), expected);
+    }
+    assert.ok(hashReadBytes <= 67108864);
+  }
+  auditArchive(true);
+  const loads = [];
+  async function load(relative) { const filename = path.join(archiveRoot, relative), binding = bindings.get(filename); assert.ok(binding); const bytes = initialRead(filename); assert.equal(digest(bytes), binding.sha256); loads.push({ relative, sha256: binding.sha256, bytes:bytes.length }); return import('data:text/javascript;base64,' + bytes.toString('base64')); }
+  const { createOwner } = await load('supervisor/owner.mjs.data');
+  const { createStore, hashTool, readBound, hash } = await load('supervisor/guard.mjs.data');
+  await load('controls/observer-v1/modules/data.mjs');
+  const cases = JSON.parse(initialRead(path.join(archiveRoot, 'qualification/CASES.json'))); assertOwnData(go.caseIds, [...cases.preflight,...cases.children].map(item => item.id));
+  const toolIdentities = [hashTool(go.runtime), hashTool(go.binary)];
+  assertOwnData(toolIdentities,manifest.authenticatedTools);
+  const run = { runId: go.runId, rootPid: go.rootPid, parentPid: process.pid, goSha256: goHash, tokenSha256: go.tokenSha256 };
+  const parentRoot = `${go.evidenceRoot}-parent`, guardPath = `${go.evidenceRoot}-guard.bin`;
+  const store = createStore(parentRoot, guardPath, run, go.limits.storageBytes); store.initialize();
+  const raw = new Map(), queues = new Map(), armed = new Set(), pendingSends = new Set();
+  let entry, requestBuffer = Buffer.alloc(0), requestSequence = 0, childIndex = 0, complete = false, transportBytes = 0, finished = false, interval, outerTimer;
+  function capture(id, channel, bytes) {
+    const key = `${id}-${channel}`; if (!raw.has(key)) raw.set(key, store.open(path.join(parentRoot, `${key}.raw`), 0o600)); store.append(raw.get(key), Buffer.from(bytes));
+  }
+  function sendEvent(id, name, args) {
+    if (id === 'entry') return;
+    const message = name === 'data' ? { runId:go.runId,id,name,channel:args[0],base64:Buffer.from(args[1]).toString('base64') } : name === 'error' ? { runId:go.runId,id,name,description:describeReason(args[0]) } : { runId:go.runId,id,name,args };
+    const bytes = Buffer.byteLength(JSON.stringify(message)); transportBytes += bytes; if (transportBytes > 2097152 || pendingSends.size >= 64) throw new Error('callback pipe ceiling');
+    if (!armed.has(id)) { const queue = queues.get(id) ?? []; if (queue.length >= 128) throw new Error('pre-arm event ceiling'); queue.push(message); queues.set(id, queue); return; }
+    transmit(message);
+  }
+  function transmit(message) {
+    if (!entry?.handle?.connected) throw new Error('entry callback pipe disconnected');
+    const marker = {}; pendingSends.add(marker); entry.handle.send(message, reason => { pendingSends.delete(marker); if (reason) owner.fail(reason); });
+  }
+  const owner = createOwner({ now:()=>performance.now(), journal:value=>store.journal(value), describe:args=>args.map(value=>value instanceof Error ? describeReason(value) : value), capture, deliver:sendEvent,
+    signal(handle, pid, signal) { assert.equal(handle.pid, pid); try { process.kill(-pid, signal); } catch (reason) { if (reason.code !== 'ESRCH') throw reason; } },
+    groupExists(handle, pid) { assert.equal(handle.pid, pid); try { process.kill(-pid, 0); return true; } catch (reason) { if (reason.code === 'ESRCH') return false; throw reason; } },
+    release(handle) { for (const stream of [handle?.stdin,handle?.stdout,handle?.stderr,handle?.stdio?.[3],handle?.stdio?.[4]]) stream?.destroy(); if(handle?.connected)handle.disconnect(); handle?.unref(); }
+  }, go.limits);
+  function reply(sequence, value, reason) {
+    const frame = Buffer.from(JSON.stringify({ runId:go.runId,sequence,ok:reason === undefined,value: value ?? null,...(reason === undefined ? {} : {reason:describeReason(reason)}) })+'\n');
+    if (frame.length > 16384 || !entry.handle.stdio[4].write(frame)) throw new Error('reply pipe backpressure/size');
+  }
+  function rpc(request) {
+    const common = { runId:go.runId,token,parentPid:process.pid,entryPid:entry.pid,sequence:requestSequence,operation:request.operation };
+    assert.ok(request && typeof request.operation === 'string');
+    if (request.operation === 'spawn') {
+      assert.ok(!complete && Date.now() < go.expiresAtMs && childIndex < 5 && !owner.status().failed);
+      const item = cases.children[childIndex], cwd = `${go.evidenceRoot}-${item.id}/fixture`;
+      const options = { cwd,env:{PATH:'',ENV:'',BASH_ENV:'',HOME:`${cwd}/home`,TMPDIR:`${cwd}/tmp`,LANG:'C',LC_ALL:'C',TZ:'UTC'},detached:true,stdio:['pipe','pipe','pipe'] };
+      assertOwnData(request, { ...common,executable:go.binary.path,args:['--noprofile','--norc','-c',item.script,'mapfile-design-v1'],options });
+      auditArchive(); assertOwnData([hashTool(go.runtime),hashTool(go.binary)],toolIdentities);
+      assert.ok(Date.now() < go.expiresAtMs);
+      const record = owner.acquire(item.id, 'harmless', () => spawn(request.executable, request.args, options)); childIndex++;
+      record.handle.stdin.on('error', reason => { if (reason.code !== 'EPIPE') owner.fail(reason); });
+      return { id:item.id,pid:record.pid };
+    }
+    if (request.operation === 'entry-complete') { assertOwnData(request, common); assert.equal(childIndex,5); assert.ok([...owner.records.values()].filter(record=>record.kind!=='entry').every(record=>record.settled)); complete = true; return true; }
+    const record = owner.records.get(request.id); assert.ok(record && record.kind === 'harmless');
+    if (request.operation === 'arm') {
+      assertOwnData(request, { ...common,id:record.id,stdinHex:cases.children.find(item=>item.id===record.id).stdinHex }); assert.ok(!armed.has(record.id)); armed.add(record.id);
+      for (const message of queues.get(record.id) ?? []) transmit(message); queues.delete(record.id); record.handle.stdin.end(Buffer.from(request.stdinHex,'hex'), reason=>{ if(reason && reason.code!=='EPIPE')owner.fail(reason); }); return true;
+    }
+    if (request.operation === 'signal') { assertOwnData(request,{...common,id:record.id,signal:request.signal}); assert.ok(['SIGTERM','SIGKILL'].includes(request.signal)); owner.requestSignal(record.id,request.signal); return true; }
+    assertOwnData(request, { ...common,id:record.id });
+    if (request.operation === 'group') return !owner.group(record);
+    if (request.operation === 'release') { owner.tick(); assert.ok(record.settled); return true; }
+    throw new Error('unknown RPC');
+  }
+  function incoming(bytes) {
+    try {
+      if (requestBuffer.length + bytes.length > 32768) throw new Error('RPC pipe overflow'); requestBuffer = Buffer.concat([requestBuffer,bytes]);
+      while (true) {
+        const newline = requestBuffer.indexOf(10); if (newline === -1) { if(requestBuffer.length>16384)throw new Error('RPC incomplete ceiling'); break; }
+        assert.ok(newline <= 16384 && requestSequence < 1024); const frame = requestBuffer.subarray(0,newline); requestBuffer = requestBuffer.subarray(newline+1);
+        const request = JSON.parse(frame); const sequence = requestSequence;
+        try { const value = rpc(request); requestSequence++; store.journal({kind:'rpc',sequence,operation:request.operation,id:request.id ?? null}); reply(sequence,value); }
+        catch(reason) { owner.fail(reason); requestSequence++; reply(sequence,null,reason); break; }
+      }
+    } catch(reason) { owner.fail(reason); }
+  }
+  const entryPath = path.join(archiveRoot,'supervisor/entry.mjs.data'), entryBytes = initialRead(entryPath); assert.equal(digest(entryBytes),bindings.get(entryPath).sha256);
+  let resolveDone; const done = new Promise(resolve=>{resolveDone=resolve;});
+  function finish() { if (!finished) { finished = true; clearInterval(interval); clearTimeout(outerTimer); resolveDone(); } }
+  function step() { try { if (Date.now() >= go.expiresAtMs) owner.fail(new Error('expired grant')); const state = owner.tick(); if (state.stopped || (entry?.closed && state.settled)) finish(); } catch(reason) { owner.fail(reason); } }
+  interval = setInterval(step,10); outerTimer = setTimeout(()=>{owner.fail(new Error('external 70s deadline')); owner.tick(); finish();},70000);
+  try {
+    entry = owner.acquire('entry','entry',()=>spawn(go.runtime.path,['--max-old-space-size=256','--input-type=module','--eval',entryBytes.toString('utf8'),entryPath,goPath,goHash,token,String(process.pid)],{cwd:archiveRoot,env:{...process.env},detached:true,stdio:['ignore','pipe','pipe','pipe','pipe','ipc']}));
+    entry.handle.stdio[3].on('data',incoming); entry.handle.stdio[3].on('error',reason=>owner.fail(reason)); entry.handle.stdio[4].on('error',reason=>owner.fail(reason));
+    entry.handle.on('disconnect',()=>{if(!complete)owner.fail(new Error('premature entry disconnect'));});
+  } catch(reason) { owner.fail(reason); }
+  await done;
+  const state = owner.finish(); let result, failure = state.failure, failed = state.failed;
+  try {
+    assert.ok(!state.stopped && state.settled && !state.failed && complete && childIndex===5 && requestBuffer.length===0 && pendingSends.size===0);
+    assert.ok(entry.spawned && entry.exited && entry.closed && entry.code===0 && entry.signal===null);
+    for (const record of state.records) assert.ok(record.spawned && record.exited && record.closed && record.groupAbsent && record.settled && !record.acquisitionUnknown);
+    store.audit(); auditArchive(); assertOwnData([hashTool(go.runtime),hashTool(go.binary)],toolIdentities);
+    const output = readBound(path.join(parentRoot,'entry-stdout.raw'),4194304,0o600);
+    assert.ok(output.length>0 && output[output.length-1]===10); result = JSON.parse(output.toString('utf8')); assert.equal(result.success,true); assert.equal(result.phase,'POSTPUBLICATION_AUTHENTICATED');
+    assert.equal(result.starts,5); assert.equal(result.qualificationCommit,go.qualificationCommit); assert.equal(result.candidate,manifest.candidate);
+    assertOwnData(result.reports.map(item=>item.id),go.caseIds); assert.equal(result.network,0); assert.equal(result.native43,0); assert.equal(result.productExecutions,0);
+    const expectedLoads = ['admission.mjs','data.mjs','lifecycle.mjs','node-driver.mjs','observer.mjs','storage.mjs'].map(name=>[path.join(archiveRoot,'controls/observer-v1/modules',name),bindings.get(path.join(archiveRoot,'controls/observer-v1/modules',name)).sha256]).sort(); assertOwnData(result.loaded.sort(),expectedLoads);
+    assert.equal(result.finalPath,path.join(go.evidenceRoot,'qualification-final.json')); readBound(result.finalPath,4194304,0o600,result.finalSha256);
+    const ownedFiles = result.files.filter(item=>item.written), ownedDirectories = result.directories.filter(item=>item.acquired&&!item.removed); assert.ok(ownedFiles.length<=256 && ownedDirectories.length<=96);
+    let readBytes=0;
+    for (const record of ownedFiles) { assert.ok(record.path===path.join(go.evidenceRoot,path.basename(record.path)) || go.caseIds.some(id=>record.path.startsWith(`${go.evidenceRoot}-${id}/`))); const bytes=readBound(record.path,4194304,record.mode,record.sha256); readBytes+=bytes.length; assert.equal(bytes.length,record.bytes); assert.equal(`${fs.lstatSync(record.path).dev}:${fs.lstatSync(record.path).ino}`,record.identity); }
+    assert.ok(readBytes<=8388608);
+    for (const record of ownedDirectories) { assert.ok(record.path===go.evidenceRoot || go.caseIds.some(id=>record.path===`${go.evidenceRoot}-${id}` || record.path.startsWith(`${go.evidenceRoot}-${id}/`))); const stat=fs.lstatSync(record.path); assert.ok(stat.isDirectory() && (stat.mode&4095)===0o700 && fs.realpathSync(record.path)===record.path); assert.equal(`${stat.dev}:${stat.ino}`,record.identity); const expected=[...ownedFiles,...ownedDirectories].filter(item=>item.path!==record.path&&path.dirname(item.path)===record.path).map(item=>path.basename(item.path)).sort(); const actual=fs.readdirSync(record.path); assert.ok(actual.length<=256); assertOwnData(actual.sort(),expected); }
+    store.journal({kind:'post-entry-cleanup-checkpoint',entryFinalSha256:result.finalSha256});
+  } catch(reason) { if(!failed)failure=reason; failed=true; }
+  const evidence = { schema:'parent-owned-harmless-supervisor-v1',authorizedRun:run,success:false,phase:'PROVISIONAL',failed,reason:failed?describeReason(failure):null,state:{...state,failure:undefined},loads,toolIdentities,transportBytes,requestSequence,entryFinalSha256:result?.finalSha256 ?? null,rootGuard:guardPath,retainedUnknownResources:!state.settled,realPhysicalEffects:'Only a future ROOT-granted run; mocks are not OS evidence' };
+  try {
+    const finalBytes=Buffer.from(JSON.stringify(evidence)); assert.ok(finalBytes.length<=262144); store.write(path.join(parentRoot,'parent-final.json'),finalBytes);
+    const checkpoint=store.audit(); auditArchive(); assertOwnData([hashTool(go.runtime),hashTool(go.binary)],toolIdentities);
+    store.close(); const afterCleanup=store.audit(); assertOwnData(afterCleanup,checkpoint); auditArchive(); assert.ok(Date.now()<go.expiresAtMs);
+    process.stdout.write(JSON.stringify({success:!failed,phase:'AFTER_DESCRIPTOR_CLEANUP_AND_FINAL_AUTHENTICATION',parentFinalSha256:hash(finalBytes),guardSha256:checkpoint.files.find(item=>item.path===guardPath).sha256,parentRoot,rootGuard:guardPath})+'\n'); process.exitCode=failed?1:0;
+  } catch(reason) { store.close(); process.stderr.write('FINAL_PUBLICATION_REFUSED\n'); process.exitCode=1; }
+}

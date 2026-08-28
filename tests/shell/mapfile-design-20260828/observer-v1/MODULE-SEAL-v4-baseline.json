@@ -1,6 +1,6 @@
 {
-  "schema": "mapfile-observer-module-seal-v4",
-  "phase": "before repaired20 chronology plus37+27 controls; no real OS/native GO",
+  "schema": "mapfile-observer-module-seal-v4-baseline",
+  "phase": "before three baseline chronology controls; lifecycle source stillde9dae6d",
   "precodeCommit": "cc471485",
   "moduleFiles": [
     "admission.mjs",
@@ -21,10 +21,10 @@
     "ADDENDUM-v2.md": "06d194641b3df74e17b6c2708e0b54c7872e7c00dfbdfaaf852c240a2fea4e69",
     "OBSERVATIONS-addendum-v2.json": "e6892b11fca34cc0ecc0f7e9d7856d34db01bf5ddc768cc56a1f0818e89624af",
     "observer-v1/PRECODE.json": "a522bf543796951728d64b963e67c4cc94e2b8503eb93b9ff9f482154ff9219c",
-    "observer-v1/README.md": "3cd55fdd6a92999c65790fe535051c79927f7ec11ab31df44bf1e1e105eae4a1",
+    "observer-v1/README.md": "0c62d3b2ac01db0dbf59fe3ad9eb92a6b527e8d2137f4abdc5aed79cf2cca376",
     "observer-v1/modules/admission.mjs": "40faa6d99b10cb430b773086f0bcfe5765a72feffc63257e063bad62e18283bf",
     "observer-v1/modules/cli.mjs": "0d7aa7223fee54f39e019a2fb80112e77697dc34f3d4f6854d353b56a300f720",
-    "observer-v1/modules/lifecycle.mjs": "176e55d98b2058daa121e4864ec84e450eaf3f1c2d4f7f716051577a5c14b645",
+    "observer-v1/modules/lifecycle.mjs": "755439caa127e9f5d27a4006bcb1917753906006263e83c63c79c3b14f5a2725",
     "observer-v1/modules/node-driver.mjs": "6daea48e05a79279ca64cabad8fc44df3a388d24671a6e0f8d53ad1fa8ef3f97",
     "observer-v1/modules/observer.mjs": "614ac17db096c0ce746eeab1a4ae5caffac778dea4113fab3fd094d7d6f0b4d8",
     "observer-v1/modules/storage.mjs": "60b084b3fc5a940090fa45a6936cf9a952b0caf3b70fd57c074d4bbaf67ad8ad",
@@ -40,8 +40,7 @@
     "observer-v1/MODULE-SEAL-v3.json": "2829de1f75bd7522a12d1399d387838f132d397bce4700180d1640cb2ade6198",
     "observer-v1/CHRONOLOGY-v4.json": "793dfe7be332e6f7970bf2d48a74e3f69c482572f30ef7a9c1c7bd3d5acb6ea0",
     "observer-v1/chronology-controls.mjs": "2294a6d37abde050fe5297d91b1581a4427b0855373a6f92e1bdd505809d895c",
-    "observer-v1/MODULE-SEAL-v3.1.json": "e0e9257426d969633c75749066ac94fe75bb13083179b0e3352ece17b0001381",
-    "observer-v1/MODULE-SEAL-v4-baseline.json": "22e485b482d28f35a2d6e03145e75e36175635503592c243b4ddfb2dee82c403"
+    "observer-v1/MODULE-SEAL-v3.1.json": "e0e9257426d969633c75749066ac94fe75bb13083179b0e3352ece17b0001381"
   },
   "nativeAuthorized": false,
   "actualChildControlsAuthorized": false,
@@ -74,8 +73,7 @@
     "observer-v1/MODULE-SEAL-v3.json": 420,
     "observer-v1/CHRONOLOGY-v4.json": 420,
     "observer-v1/chronology-controls.mjs": 420,
-    "observer-v1/MODULE-SEAL-v3.1.json": 420,
-    "observer-v1/MODULE-SEAL-v4-baseline.json": 420
+    "observer-v1/MODULE-SEAL-v3.1.json": 420
   },
   "phaseCorrectionPrecodeCommit": "bc82b56c",
   "chronologyPrecodeCommit": "17f3760c"

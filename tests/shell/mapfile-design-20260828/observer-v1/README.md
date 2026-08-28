@@ -176,3 +176,41 @@ metadata and the8-module closure replacing7. New repair-controls.mjs runs27
 presealed families separately under the existing2MiB report bound. Both use only
 finite in-memory children; real-driver code, including its actual mode projection,
 remains uninstantiated. No arbitrary time/output/process/recipe limits widen.
+
+## Version4 chronology repair
+
+Locke b1485454 preserves47/49 unique predicates: eventual flags allowed two invalid
+event orders to succeed after delayed group absence. CHRONOLOGY-v4 presealed20
+whole-driver synthetic traces. Before the repair, the selected natural control
+passes while both reported bad orders reproduce (1/3); raw baseline remains in
+CHRONOLOGY-BASELINE-v4. No previous cohort is rescored.
+
+The lifecycle now admits one spawn, then one exit, then one close, in that arrival
+order. First out-of-order/duplicate lifecycle arrival permanently marks invalid;
+later arrivals still record their facts but cannot heal the violation. Exit/close
+logs retain code/signal and bounded preterminal counts, in addition to existing
+observed flags. Repeated spawn does not retry its one-time receipt publication.
+An error without a spawned process remains a failed attempt, not a synthetic
+spawn/close or chronology violation by itself. Independent stream/host errors keep
+their original reason identity and are not duplicate lifecycle notifications.
+
+Invalid order faults/escalates using existing cleanup, waits for actual modeled
+group absence/close or the existing terminal bound, and prevents the next row.
+Already terminal reports stay frozen; late notifications are handled and recorded
+only in the external model trace. Neither group queries nor cleanup failure can
+erase the first chronology violation or an actual thrown reason.
+
+The new chronology-controls.mjs loads six complete sealed module bodies through
+Node's built-in VM module linker. Only finite filesystem/child/process/timer stubs
+are exposed to the actual node-driver; all eight source files remain hash/mode
+bound. This is a different test mechanism from the earlier direct-port model:
+driver methods now run, but **only against injected primitives**, not the real OS.
+No private engine, Bash recipe, product code or model network capability is loaded.
+The parent --experimental-vm-modules warning is expected, not native evidence.
+
+Primary source inspected read-only: Nodev22.22.2 child_process documentation,
+`https://raw.githubusercontent.com/nodejs/node/v22.22.2/doc/api/child_process.md`.
+Its event sections distinguish successful spawn, exit, close and failed-spawn
+error paths. The adversarial traces are not claims that Node emits these orders;
+the prospective real CLI/OS profile remains unqualified. ROOT exclusive cursor
+and effective-u0 decisions are unchanged; no product mapfile implementation.

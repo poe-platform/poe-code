@@ -8,8 +8,8 @@ export function observeChild(port, spec, record, persist, outputBudget, wholeDea
     const timers = new Set(), chunks = { stdout: [], stderr: [] };
     const began = port.now(), hardAt = Math.min(began + 3000, wholeDeadline);
     const admissionEnd = Math.min(began + 2500, wholeDeadline);
-    Object.assign(record, { attemptRegistered: true, spawnCalled: false, submitted: false, spawnObserved: false, closeObserved: false, exitObserved: false, pid: null, code: null, signal: null, fault: null, groupAbsent: null, retainedBytes: 0, observedBytes: 0, signals: [], events: [] });
-    const event = name => { if (record.events.length < 64) record.events.push({ name, at: port.now() - began }); };
+    Object.assign(record, { attemptRegistered: true, spawnCalled: false, submitted: false, spawnObserved: false, closeObserved: false, exitObserved: false, pid: null, code: null, signal: null, fault: null, groupAbsent: null, retainedBytes: 0, observedBytes: 0, signals: [], events: [], lifecycleState: "not-started", chronologyViolation: null, eventCounts: { spawn: 0, exit: 0, close: 0, error: 0 } });
+    const event = (name, details = {}) => { if (record.events.length < 64) record.events.push({ name, at: port.now() - began, ...details }); };
     const schedule = (when, operation) => {
       const timer = port.timer(Math.max(0, when - port.now()), () => { timers.delete(timer); if (!terminal) operation(); });
       timers.add(timer); return timer;
@@ -36,12 +36,22 @@ export function observeChild(port, spec, record, persist, outputBudget, wholeDea
       faultSignalled = true; kill("SIGTERM");
       schedule(Math.min(port.now() + 250, hardAt), () => kill("SIGKILL"));
     };
+    const transition = name => {
+      const state = record.lifecycleState;
+      if (state === "invalid") return;
+      if (name === "close" && state === "awaiting-spawn" && record.eventCounts.error > 0 && record.pid === null) { record.lifecycleState = "failed-before-spawn"; return; }
+      const [expected, next] = { spawn: ["awaiting-spawn", "running"], exit: ["running", "exited"], close: ["exited", "closed"] }[name];
+      if (state === expected) { record.lifecycleState = next; return; }
+      record.chronologyViolation = { event: name, state, at: port.now() - began };
+      record.lifecycleState = "invalid";
+      fault(`invalid driver chronology: ${name} while ${state}`);
+    };
     const poll = () => {
       if (terminal || !handle || record.pid === null) return;
       try { record.groupAbsent = !handle.groupExists(); }
       catch (reason) { preserveReason(record, reason); record.groupAbsent = null; fault(`group query: ${describeReason(reason)}`); }
       if (record.closeObserved && record.groupAbsent === true) {
-        if (!record.submitted || !record.spawnObserved || !record.exitObserved) {
+        if (record.lifecycleState !== "closed" || !record.submitted || !record.spawnObserved || !record.exitObserved) {
           fault("inconsistent driver completion: submitted/spawn/exit observation missing"); finish("inconsistent-driver-completion");
         } else finish("closed-and-group-absent");
       }
@@ -49,12 +59,17 @@ export function observeChild(port, spec, record, persist, outputBudget, wholeDea
     };
     const callbacks = {
       spawn() {
-        if (terminal) return; record.spawnObserved = true; event("spawn");
+        if (terminal) return;
+        const first = !record.spawnObserved; record.spawnObserved = true; record.eventCounts.spawn++; event("spawn"); transition("spawn");
+        if (!first) return;
         try { persist(`spawn-${record.id}.json`, record); } catch (reason) { preserveReason(record, reason); fault(`persistence after spawn: ${describeReason(reason)}`); }
       },
-      exit(code, signal) { if (terminal) return; record.exitObserved = true; record.code = code; record.signal = signal; event("exit"); },
-      close(code, signal) { if (terminal) return; record.closeObserved = true; record.code = code; record.signal = signal; event("close"); if (!starting) poll(); },
-      error(reason) { if (terminal) return; preserveReason(record, reason); fault(`spawn/stream: ${describeReason(reason)}`); if (!starting && record.pid === null) finish("no-process-error"); },
+      exit(code, signal) { if (terminal) return; record.exitObserved = true; record.eventCounts.exit++; record.code = code; record.signal = signal; event("exit", { code, signal }); transition("exit"); },
+      close(code, signal) { if (terminal) return; record.closeObserved = true; record.eventCounts.close++; record.code = code; record.signal = signal; event("close", { code, signal }); transition("close"); if (!starting) poll(); },
+      error(reason) {
+        if (terminal) return; record.eventCounts.error++; event("error"); preserveReason(record, reason); fault(`spawn/stream: ${describeReason(reason)}`);
+        if (!starting && record.pid === null) { if (record.lifecycleState !== "invalid") record.lifecycleState = "failed-before-spawn"; finish("no-process-error"); }
+      },
       data(stream, bytes) {
         if (terminal) return;
         if (!isUint8Array(bytes) || !Object.hasOwn(chunks, stream)) { fault("invalid output chunk"); return; }
@@ -77,17 +92,18 @@ export function observeChild(port, spec, record, persist, outputBudget, wholeDea
       if (admittedAt >= admissionEnd) { record.fault = "row admission deadline after final authentication"; finish("admission-refused"); return; }
       record.admittedAt = admittedAt;
       record.spawnCalled = true;
+      record.lifecycleState = "awaiting-spawn";
       handle = port.start(spec, callbacks);
       record.submitted = true; record.pid = Number.isSafeInteger(handle.pid) && handle.pid > 0 ? handle.pid : null;
       starting = false;
       if (port.now() >= admissionEnd) fault("admitted start returned after deadline");
       if (record.fault) kill("SIGTERM");
       if (record.pid !== null) poll();
-      else if (record.fault) finish("no-process-error");
+      else if (record.fault) { if (record.lifecycleState !== "invalid") record.lifecycleState = "failed-before-spawn"; finish("no-process-error"); }
     } catch (reason) {
       starting = false; preserveReason(record, reason); record.fault ??= `admission/spawn call: ${describeReason(reason)}`;
       event(record.spawnCalled ? "spawn-call-threw" : "admission-threw");
-      if (!handle) finish(record.spawnCalled ? "no-process-spawn-throw" : "admission-refused");
+      if (!handle) { if (record.spawnCalled && record.lifecycleState !== "invalid") record.lifecycleState = "spawn-call-failed"; finish(record.spawnCalled ? "no-process-spawn-throw" : "admission-refused"); }
       else fault(record.fault);
     }
   });

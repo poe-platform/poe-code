@@ -1,0 +1,13 @@
+{
+  "startedAt": "2026-08-28T06:19:50.140Z",
+  "finishedAt": "2026-08-28T06:20:35.007Z",
+  "status": 0,
+  "signal": null,
+  "stdout": "[{\"mode\":\"source\",\"publicResultOrigin\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/attempt-02/records/source-cases-result.json\",\"pass\":86,\"fail\":0,\"blocked\":0,\"types\":{\"positive\":10,\"negative\":10,\"inversions\":10},\"loadNegatives\":4,\"productModules\":207,\"qualification\":\"Previously completed source stages reused, not rerun or silently rescored\"},{\"mode\":\"installed\",\"publicResultOrigin\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/continuation-03/records/installed-cases-result.json\",\"pass\":86,\"fail\":0,\"blocked\":0,\"types\":{\"positive\":10,\"negative\":10,\"inversions\":10},\"loadNegatives\":4,\"productModules\":207},{\"mode\":\"moved\",\"publicResultOrigin\":\"/Users/kjopek/Workspace/safe-bash/tests/shell/cd-prerequisite-independent-20260828/review-4641075d/continuation-03/records/moved-cases-result.json\",\"pass\":86,\"fail\":0,\"blocked\":0,\"types\":{\"positive\":10,\"negative\":10,\"inversions\":10},\"loadNegatives\":4,\"productModules\":207}]\n",
+  "stderr": "",
+  "bytes": 1032,
+  "survivingGroup": false,
+  "groupStillPresent": false,
+  "naturalSettlement": true,
+  "cleanupClean": true
+}

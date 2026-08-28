@@ -1,0 +1,44 @@
+{
+  "schema": "node-abi-reviewed-mechanism-reuse-v1",
+  "sourceCommit": "6d7159e35a1cd92b0ede967d3fe428d54a74d4bd",
+  "sourcePath": "tests/integration/coherent78-safejs-independent-20260828/executor-preparation-v1/supervisor.mjs.data",
+  "sourceSha256": "91591ae00ae696bbae525bf56f2a81c63f10a3154e89a0cbf87630be8954c76c",
+  "exactFunctions": [
+    {
+      "function": "function readLimited",
+      "bytes": 335,
+      "sha256": "2caf72bfd064d91d6b03e3c48a406afef59ae3c16bf556da1d8ce200392a698a"
+    },
+    {
+      "function": "function safe",
+      "bytes": 263,
+      "sha256": "e28d0967d9aa3e606f2cb945f242efd0d40f29f75423932b4e3cea7eaa9694ec"
+    },
+    {
+      "function": "function boundRead",
+      "bytes": 407,
+      "sha256": "a052aa50677245798319447321528a5588a9ef0dfdf5ae581beac2764c42ea01"
+    },
+    {
+      "function": "function tree",
+      "bytes": 1195,
+      "sha256": "d991c46c6f6d98d4c2cd3d555f52b5bae7bac199659d92aba18bca0dac0593a2"
+    },
+    {
+      "function": "async function child",
+      "bytes": 2470,
+      "sha256": "62caccb0ea976a22e0f93dc7a571aba6a583e6d0bddc861c562f4b3ae7d51b5b"
+    }
+  ],
+  "loaderWholeFileUnchanged": true,
+  "loaderSha256": "24c302b637912972ad878ad7c597176aa569d5b5fed2d3fbe75695d097352d04",
+  "newOrchestration": [
+    "fresh ROOT/Raman gate and committed-manifest check",
+    "public commit/tree/source archive authentication, no private guards or copies",
+    "no npm/product install or consumer move",
+    "seven identities/eight evaluations with source-bound internal ABI entry and witnessed provider owner",
+    "subset63 actual-load audit with inherited per-file emission pins",
+    "raw archive plus verified postcleanup closure/status and append-detecting selected guards"
+  ],
+  "qualification": "Exact reviewed functions/loader reused; new surrounding source is not inherited execution acceptance and requires Raman review."
+}

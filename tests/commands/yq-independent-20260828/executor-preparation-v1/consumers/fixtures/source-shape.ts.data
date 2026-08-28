@@ -1,0 +1,6 @@
+import { createYqCommand, createYqCommands, yqCommands } from "@@YQ@@";
+import type { CommandDefinition, VirtualShellPlugin } from "@@CONTRACTS@@";
+
+export const command: CommandDefinition = createYqCommand();
+export const commands: readonly CommandDefinition[] = createYqCommands();
+export const plugin: VirtualShellPlugin = yqCommands({ replace: true });

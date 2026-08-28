@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "strict": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": false,
+    "noEmit": true
+  },
+  "jobs": [
+    {
+      "id": "TYP-01",
+      "name": "positive",
+      "fixture": "fixtures/positive.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "accept",
+      "diagnostic": null,
+      "authority": "final#/publicApi"
+    },
+    {
+      "id": "TYP-02",
+      "name": "factory-command-extra",
+      "fixture": "fixtures/factory-command-extra.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2554,
+        "line": 2
+      },
+      "authority": "final#/publicApi"
+    },
+    {
+      "id": "TYP-02",
+      "name": "factory-array-extra",
+      "fixture": "fixtures/factory-array-extra.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2554,
+        "line": 2
+      },
+      "authority": "final#/publicApi"
+    },
+    {
+      "id": "TYP-03",
+      "name": "unknown-limits",
+      "fixture": "fixtures/unknown-limits.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2353,
+        "line": 2
+      },
+      "authority": "final#/publicApi"
+    },
+    {
+      "id": "TYP-03",
+      "name": "replace-string",
+      "fixture": "fixtures/replace-string.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2322,
+        "line": 2
+      },
+      "authority": "final#/publicApi"
+    },
+    {
+      "id": "TYP-07",
+      "name": "replace-undefined",
+      "fixture": "fixtures/replace-undefined.mts.data",
+      "mode": "DIRECT_AND_FUTURE_PUBLIC",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2379,
+        "line": 2
+      },
+      "authority": "final#/publicApi"
+    },
+    {
+      "id": "TYP-04",
+      "name": "hidden-limits",
+      "fixture": "fixtures/hidden-limits.mts.data",
+      "mode": "PUBLIC_ONLY",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      },
+      "authority": "final#/publicApi + final#/privateAdapter"
+    },
+    {
+      "id": "TYP-04",
+      "name": "hidden-defaults",
+      "fixture": "fixtures/hidden-defaults.mts.data",
+      "mode": "PUBLIC_ONLY",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      },
+      "authority": "final#/publicApi + final#/privateAdapter"
+    },
+    {
+      "id": "TYP-04",
+      "name": "hidden-session",
+      "fixture": "fixtures/hidden-session.mts.data",
+      "mode": "PUBLIC_ONLY",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      },
+      "authority": "final#/publicApi + final#/privateAdapter"
+    },
+    {
+      "id": "TYP-04",
+      "name": "hidden-factory",
+      "fixture": "fixtures/hidden-factory.mts.data",
+      "mode": "PUBLIC_ONLY",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      },
+      "authority": "final#/publicApi + final#/privateAdapter"
+    },
+    {
+      "id": "TYP-04",
+      "name": "hidden-parser",
+      "fixture": "fixtures/hidden-parser.mts.data",
+      "mode": "PUBLIC_ONLY",
+      "outcome": "reject",
+      "diagnostic": {
+        "code": 2305,
+        "line": 1
+      },
+      "authority": "final#/publicApi + final#/privateAdapter"
+    }
+  ]
+}

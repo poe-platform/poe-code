@@ -1,0 +1,1 @@
+negative-subpath.mts(1,38): error TS2307: Cannot find module 'virtual-bash/commands/timeout' or its corresponding type declarations.

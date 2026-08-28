@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: factory surface validates containers and exact property order
+ok 1 - factory surface validates containers and exact property order
+  ---
+  duration_ms: 1.642417
+  type: 'test'
+  ...
+# Subtest: factories accept explicit undefined, snapshot providers, and return fresh frozen values
+ok 2 - factories accept explicit undefined, snapshot providers, and return fresh frozen values
+  ---
+  duration_ms: 0.864042
+  type: 'test'
+  ...
+# Subtest: plugin captures singleton and preflights collision without mutation
+ok 3 - plugin captures singleton and preflights collision without mutation
+  ---
+  duration_ms: 0.293875
+  type: 'test'
+  ...
+# Subtest: help performs only its exact stdout write
+ok 4 - help performs only its exact stdout write
+  ---
+  duration_ms: 0.336084
+  type: 'test'
+  ...
+# Subtest: zero disables deadline resources and transparently forwards literal invocation
+ok 5 - zero disables deadline resources and transparently forwards literal invocation
+  ---
+  duration_ms: 0.295791
+  type: 'test'
+  ...
+# Subtest: present malformed invoke never falls back and absent invoke uses standalone fallback
+ok 6 - present malformed invoke never falls back and absent invoke uses standalone fallback
+  ---
+  duration_ms: 0.441875
+  type: 'test'
+  ...
+# Subtest: duration validation is exact at MAX_SAFE and invalid syntax outranks overflow
+ok 7 - duration validation is exact at MAX_SAFE and invalid syntax outranks overflow
+  ---
+  duration_ms: 0.864625
+  type: 'test'
+  ...
+# Subtest: long zero disables resources and arbitrarily late positive fraction ceilings to one
+ok 8 - long zero disables resources and arbitrarily late positive fraction ceilings to one
+  ---
+  duration_ms: 4.848542
+  type: 'test'
+  ...
+# Subtest: chunking owns one opaque handle and clears before rearm
+ok 9 - chunking owns one opaque handle and clears before rearm
+  ---
+  duration_ms: 4.978417
+  type: 'test'
+  ...
+# Subtest: timer remains owned through cooperative child closure and maps own deadline afterward
+ok 10 - timer remains owned through cooperative child closure and maps own deadline afterward
+  ---
+  duration_ms: 0.82575
+  type: 'test'
+  ...
+# Subtest: outer cancellation wins when its reason is the observed own deadline sentinel
+ok 11 - outer cancellation wins when its reason is the observed own deadline sentinel
+  ---
+  duration_ms: 0.541291
+  type: 'test'
+  ...
+# Subtest: clear failure equal to own deadline sentinel remains cleanup failure
+ok 12 - clear failure equal to own deadline sentinel remains cleanup failure
+  ---
+  duration_ms: 0.353583
+  type: 'test'
+  ...
+# Subtest: actual Shell registry invocation preserves literal argv and child status
+ok 13 - actual Shell registry invocation preserves literal argv and child status
+  ---
+  duration_ms: 7.541
+  type: 'test'
+  ...
+# Subtest: internal leaf does not alter the public default aggregate
+ok 14 - internal leaf does not alter the public default aggregate
+  ---
+  duration_ms: 3.673833
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 514.148916

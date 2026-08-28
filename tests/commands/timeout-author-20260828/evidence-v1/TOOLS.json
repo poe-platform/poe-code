@@ -1,0 +1,47 @@
+{
+  "schema": "timeout-author-tools/1",
+  "tools": [
+    {
+      "requested": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "mode": 493,
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "requested": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/bin/tsc",
+      "mode": 493,
+      "bytes": 45,
+      "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0"
+    },
+    {
+      "requested": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+      "realpath": "/Users/kjopek/Workspace/safe-bash/node_modules/tsx/dist/loader.mjs",
+      "mode": 493,
+      "bytes": 743,
+      "sha256": "49fb46730ddeb226ac4fa9fb990d3573ac8f18fa4de02f1bf723c61d715710c2"
+    },
+    {
+      "requested": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/npm",
+      "realpath": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+      "mode": 493,
+      "bytes": 54,
+      "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7"
+    },
+    {
+      "requested": "/usr/bin/git",
+      "realpath": "/usr/bin/git",
+      "mode": 493,
+      "bytes": 118928,
+      "sha256": "12bed4523661307059b879b9b54e77a73176e9d27d27a0e40363271d8f0668ba"
+    },
+    {
+      "requested": "/usr/bin/tar",
+      "realpath": "/usr/bin/bsdtar",
+      "mode": 493,
+      "bytes": 275344,
+      "sha256": "bdccb76a715fbebc4915a1a1b1de0e7050ad842ebb730c47935b3a22c13e3af9"
+    }
+  ]
+}

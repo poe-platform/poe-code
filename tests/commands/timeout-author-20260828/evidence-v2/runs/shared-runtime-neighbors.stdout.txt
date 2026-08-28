@@ -1,0 +1,238 @@
+TAP version 13
+# Subtest: sole cleanup rejection preserves undefined identity
+ok 1 - sole cleanup rejection preserves undefined identity
+  ---
+  duration_ms: 6.688708
+  type: 'test'
+  ...
+# Subtest: sole cleanup rejection preserves null identity
+ok 2 - sole cleanup rejection preserves null identity
+  ---
+  duration_ms: 1.4695
+  type: 'test'
+  ...
+# Subtest: sole cleanup rejection preserves Error: cleanup only identity
+ok 3 - sole cleanup rejection preserves Error: cleanup only identity
+  ---
+  duration_ms: 0.941084
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: null
+ok 4 - caller abort during drain wins over execution and cleanup: null
+  ---
+  duration_ms: 1.416166
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: 0
+ok 5 - caller abort during drain wins over execution and cleanup: 0
+  ---
+  duration_ms: 1.414542
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: cancel
+ok 6 - caller abort during drain wins over execution and cleanup: cancel
+  ---
+  duration_ms: 0.836542
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: [object Object]
+ok 7 - caller abort during drain wins over execution and cleanup: [object Object]
+  ---
+  duration_ms: 0.98875
+  type: 'test'
+  ...
+# Subtest: caller abort during drain wins over execution and cleanup: Error: caller
+ok 8 - caller abort during drain wins over execution and cleanup: Error: caller
+  ---
+  duration_ms: 1.546542
+  type: 'test'
+  ...
+# Subtest: execution rejection wins while every delayed cleanup failure is observed
+ok 9 - execution rejection wins while every delayed cleanup failure is observed
+  ---
+  duration_ms: 20.428042
+  type: 'test'
+  ...
+# Subtest: ordinary command throw keeps its diagnostic and status after cleanup
+ok 10 - ordinary command throw keeps its diagnostic and status after cleanup
+  ---
+  duration_ms: 18.498834
+  type: 'test'
+  ...
+# Subtest: noncallable registration and cleanup-time registration fail synchronously
+ok 11 - noncallable registration and cleanup-time registration fail synchronously
+  ---
+  duration_ms: 0.947
+  type: 'test'
+  ...
+# Subtest: all hooks start while an earlier hook is pending; finally shares the owned close
+ok 12 - all hooks start while an earlier hook is pending; finally shares the owned close
+  ---
+  duration_ms: 1.723125
+  type: 'test'
+  ...
+# Subtest: normal parent closure seals detached descendants before iterator or FS acquisition
+ok 13 - normal parent closure seals detached descendants before iterator or FS acquisition
+  ---
+  duration_ms: 2.113291
+  type: 'test'
+  ...
+# Subtest: caller-aborted saved capabilities preserve exact admission reason
+ok 14 - caller-aborted saved capabilities preserve exact admission reason
+  ---
+  duration_ms: 0.859875
+  type: 'test'
+  ...
+# Subtest: late opaque rejection is observed after owned cleanup and public settlement
+ok 15 - late opaque rejection is observed after owned cleanup and public settlement
+  ---
+  duration_ms: 17.250542
+  type: 'test'
+  ...
+# Subtest: nested middleware overlays keep their cleanup closure and exact replacement environment
+ok 16 - nested middleware overlays keep their cleanup closure and exact replacement environment
+  ---
+  duration_ms: 1.349833
+  type: 'test'
+  ...
+# Subtest: dispose and cancellation isolate concurrent execs and another shell sharing an owner
+ok 17 - dispose and cancellation isolate concurrent execs and another shell sharing an owner
+  ---
+  duration_ms: 53.233458
+  type: 'test'
+  ...
+# Subtest: reentrant dispose returns the identical barrier and starts plugin disposal once
+ok 18 - reentrant dispose returns the identical barrier and starts plugin disposal once
+  ---
+  duration_ms: 16.28125
+  type: 'test'
+  ...
+# Subtest: dispose drains every owned failure before reverse plugin disposal
+ok 19 - dispose drains every owned failure before reverse plugin disposal
+  ---
+  duration_ms: 16.675625
+  type: 'test'
+  ...
+# Subtest: closed detached middleware cannot call later middleware through a saved next
+ok 20 - closed detached middleware cannot call later middleware through a saved next
+  ---
+  duration_ms: 1.023458
+  type: 'test'
+  ...
+# Subtest: each duplicate registration runs once without exposing closure authority
+ok 21 - each duplicate registration runs once without exposing closure authority
+  ---
+  duration_ms: 0.489708
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=false, failure=false
+ok 22 - early downstream closure drains both owners; pipefail=false, failure=false
+  ---
+  duration_ms: 44.474792
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=false, failure=true
+ok 23 - early downstream closure drains both owners; pipefail=false, failure=true
+  ---
+  duration_ms: 35.353917
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=true, failure=false
+ok 24 - early downstream closure drains both owners; pipefail=true, failure=false
+  ---
+  duration_ms: 36.092834
+  type: 'test'
+  ...
+# Subtest: early downstream closure drains both owners; pipefail=true, failure=true
+ok 25 - early downstream closure drains both owners; pipefail=true, failure=true
+  ---
+  duration_ms: 36.433791
+  type: 'test'
+  ...
+# Subtest: pipeline abort drains nested owners even when every handler remains opaque
+ok 26 - pipeline abort drains nested owners even when every handler remains opaque
+  ---
+  duration_ms: 21.061542
+  type: 'test'
+  ...
+# Subtest: opaque pending input and iterator return do not delay owned cleanup on cancel
+ok 27 - opaque pending input and iterator return do not delay owned cleanup on cancel
+  ---
+  duration_ms: 18.456042
+  type: 'test'
+  ...
+# Subtest: opaque sink rejection is observed without skipping cleanup or altering captured bytes
+ok 28 - opaque sink rejection is observed without skipping cleanup or altering captured bytes
+  ---
+  duration_ms: 35.220959
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows owned | pass
+ok 29 - registered cleanup follows owned | pass
+  ---
+  duration_ms: 21.076917
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows (owned)
+ok 30 - registered cleanup follows (owned)
+  ---
+  duration_ms: 18.134583
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows f() { owned; }; f
+ok 31 - registered cleanup follows f() { owned; }; f
+  ---
+  duration_ms: 18.195375
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows eval owned
+ok 32 - registered cleanup follows eval owned
+  ---
+  duration_ms: 16.067541
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows . /owned.sh
+ok 33 - registered cleanup follows . /owned.sh
+  ---
+  duration_ms: 17.723583
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows source /owned.sh
+ok 34 - registered cleanup follows source /owned.sh
+  ---
+  duration_ms: 18.779333
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows say $(owned)
+ok 35 - registered cleanup follows say $(owned)
+  ---
+  duration_ms: 18.627667
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows bash -c owned
+ok 36 - registered cleanup follows bash -c owned
+  ---
+  duration_ms: 16.810916
+  type: 'test'
+  ...
+# Subtest: registered cleanup follows command owned
+ok 37 - registered cleanup follows command owned
+  ---
+  duration_ms: 15.90975
+  type: 'test'
+  ...
+# Subtest: pipeline output and shared output accounting preserve exact bytes after delayed drain
+ok 38 - pipeline output and shared output accounting preserve exact bytes after delayed drain
+  ---
+  duration_ms: 32.86425
+  type: 'test'
+  ...
+1..38
+# tests 38
+# suites 0
+# pass 38
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 684.064917

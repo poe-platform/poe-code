@@ -2,6 +2,7 @@ import { configuration, environment, type Configuration } from "./config.js";
 import { inflateObject, type GitObject } from "./codec.js";
 import { compare, component, objectPath, parent, type Session } from "./io.js";
 import { GIT_LIMITS, GitFailure, demand } from "./limits.js";
+import { PackCatalogue } from "./pack.js";
 
 export interface Entry { readonly path: string; readonly mode: number; readonly oid: string; readonly stage: number }
 export interface Commit { readonly tree: string; readonly parents: readonly string[]; readonly message: Buffer }
@@ -22,6 +23,7 @@ export class Repository {
   private readonly commits = new Map<string, Commit>();
   private indexData: Entry[] | undefined;
   private readonly names: string[] = [];
+  private packs: PackCatalogue | undefined;
   config!: Configuration;
 
   private constructor(readonly session: Session, readonly gitdir: string, readonly root: string | undefined, readonly cwd: string) {}
@@ -63,11 +65,10 @@ export class Repository {
     for (const entry of await session.list(objects)) {
       const directory = session.path(objects, entry.name);
       demand(entry.type === "directory", "M1A unsupported object storage");
-      const children = await session.list(directory);
       if (entry.name === "pack" || entry.name === "info") {
-        demand(children.length === 0, `M1A nonempty objects/${entry.name} unsupported`);
         continue;
       }
+      const children = await session.list(directory);
       demand(/^[0-9a-f]{2}$/.test(entry.name), "M1A unsupported object directory");
       for (const child of children) {
         demand(child.type === "file" && /^[0-9a-f]{38}$/.test(child.name), "M1A pack/idx/promisor or invalid loose object member");
@@ -75,6 +76,18 @@ export class Repository {
         session.reserve(80);
         this.names.push(entry.name + child.name);
       }
+    }
+    this.packs = new PackCatalogue(session);
+    await this.packs.admit(this.gitdir);
+    session.reserve(this.names.length * 16);
+    const names = new Set(this.names);
+    for (const oid of this.packs.objects.keys()) {
+      await session.step();
+      if (names.has(oid)) continue;
+      session.charge("maxObjects", 1);
+      session.reserve(80);
+      names.add(oid);
+      this.names.push(oid);
     }
     const packed = await session.read(session.path(this.gitdir, "packed-refs"), GIT_LIMITS.maxMetadataBytes, true, true);
     if (packed) {
@@ -142,7 +155,7 @@ export class Repository {
 
   async object(oid: string): Promise<GitObject> {
     demand(oidPattern.test(oid), "invalid Git object ID");
-    const cached = this.objects.get(oid);
+    const cached = this.objects.get(oid) ?? this.packs?.objects.get(oid);
     if (cached) { await this.session.step(); return cached; }
     const path = this.session.path(this.gitdir, `objects/${oid.slice(0, 2)}/${oid.slice(2)}`);
     const compressed = (await this.session.read(path, GIT_LIMITS.maxReadBytes))!;

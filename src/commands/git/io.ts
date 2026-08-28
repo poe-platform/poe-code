@@ -11,6 +11,8 @@ export class Session {
   private sinceYield = 0;
   private resident = 0;
   private readonly observations = new Map<string, string>();
+  private readonly extraObservations: (() => Promise<void>)[] = [];
+  private readonly finalizers: (() => void)[] = [];
 
   constructor(readonly context: CommandContext, boundary: string) {
     this.boundary = resolvePath("/", boundary);
@@ -51,9 +53,11 @@ export class Session {
 
   allocate(size: number): Buffer {
     this.reserve(size);
-    const bytes = Buffer.alloc(size);
-    this.owned.set(bytes, size);
-    return bytes;
+    try {
+      const bytes = Buffer.alloc(size);
+      this.owned.set(bytes, size);
+      return bytes;
+    } catch (error) { this.unreserve(size); throw error; }
   }
 
   copy(bytes: Uint8Array): Buffer {
@@ -203,11 +207,92 @@ export class Session {
   }
 
   async unchanged(): Promise<void> {
+    for (const observation of this.extraObservations) await observation();
     for (const [path, hash] of this.observations) {
       const bytes = await this.read(path, GIT_LIMITS.maxIndexBytes);
       try { demand(await this.hash(bytes!) === hash, "Git metadata changed before output"); }
       finally { this.release(bytes!); }
     }
+  }
+
+  observe(check: () => Promise<void>): void { this.reserve(64); this.extraObservations.push(check); }
+
+  onFinish(close: () => void): void { this.reserve(64); this.finalizers.push(close); }
+
+  finish(): void { for (const close of this.finalizers.splice(0)) close(); }
+
+  async visitFile(path: string, maximum: number, consume: (bytes: Uint8Array, offset: number) => Promise<void>): Promise<void> {
+    await this.safe(path);
+    const before = await this.stat(path);
+    demand(before?.type === "file" && Number.isSafeInteger(before.size) && before.size >= 0 && before.size <= maximum, "Git file admission size exceeded");
+    let total = 0;
+    let iterator: AsyncIterator<Uint8Array> | undefined;
+    let closing: Promise<unknown> | undefined;
+    const close = (): Promise<unknown> => closing ??= Promise.resolve().then(() => iterator?.return?.());
+    let failed = false;
+    try {
+      if (this.context.fs.readStream) {
+        await this.operation.acquire(() => iterator = this.context.fs.readStream!(path, { signal: this.operation.signal, chunkSize: GIT_LIMITS.maxChunkBytes })[Symbol.asyncIterator](), async () => { await close(); });
+        for (;;) {
+          const row = await this.call(() => iterator!.next());
+          if (row.done) break;
+          this.charge("maxChunks", 1);
+          demand(row.value instanceof Uint8Array && row.value.length <= GIT_LIMITS.maxChunkBytes && row.value.length <= before.size - total, "Git exact read chunk/size exceeded");
+          this.charge("maxReadBytes", row.value.length);
+          await this.step();
+          await consume(row.value, total);
+          total += row.value.length;
+        }
+      } else {
+        const bytes = await this.call(() => this.context.fs.readFile(path, { signal: this.operation.signal, maxBytes: maximum }));
+        demand(bytes instanceof Uint8Array && bytes.length === before.size, "Git exact readFile size mismatch");
+        this.charge("maxReadBytes", bytes.length);
+        await consume(bytes, 0);
+        total = bytes.length;
+      }
+      const after = await this.stat(path);
+      demand(after && snapshot(before) === snapshot(after) && total === before.size, "Git input changed during exact read");
+    } catch (error) { failed = true; throw error; }
+    finally { try { await close(); } catch (error) { if (!failed) throw error; } }
+  }
+
+  async copyInto(target: Uint8Array, source: Uint8Array, offset = 0): Promise<void> {
+    demand(Number.isSafeInteger(offset) && offset >= 0 && source.length <= target.length - offset, "Git copy extent exceeded");
+    for (let position = 0; position < source.length; position += 4096) {
+      const part = source.subarray(position, position + 4096);
+      await this.step(part.length);
+      target.set(part, offset + position);
+    }
+  }
+
+  async readExact(path: string, maximum: number): Promise<Buffer> {
+    await this.safe(path);
+    const stat = await this.stat(path);
+    demand(stat?.type === "file" && Number.isSafeInteger(stat.size) && stat.size >= 0 && stat.size <= maximum, "Git exact file admission exceeded");
+    const body = this.allocate(stat.size);
+    let success = false;
+    try {
+      await this.visitFile(path, maximum, (bytes, offset) => this.copyInto(body, bytes, offset));
+      const after = await this.stat(path);
+      demand(after && snapshot(stat) === snapshot(after), "Git exact file changed before fill");
+      success = true;
+      return body;
+    } finally { if (!success) this.release(body); }
+  }
+
+  async observeExact(path: string, maximum: number, body: Uint8Array): Promise<void> {
+    const expected = await this.hash(body);
+    this.observe(async () => {
+      const hash = createHash("sha1");
+      await this.visitFile(path, maximum, async bytes => {
+        for (let offset = 0; offset < bytes.length; offset += 4096) {
+          const part = bytes.subarray(offset, offset + 4096);
+          await this.step(part.length);
+          hash.update(part);
+        }
+      });
+      demand(hash.digest("hex") === expected, "Git packed input changed before output");
+    });
   }
 
   async output(bytes: Uint8Array | string): Promise<void> {

@@ -31,6 +31,7 @@ export function createGitCommand(options: GitCommandsOptions = {}): CommandDefin
       catch (error) { failed = true; failure = error; }
       try { await session.operation.close(); }
       catch (error) { cleanupFailed = true; cleanupFailure = error; }
+      session.finish();
       context.signal.throwIfAborted();
       if (failed && !(failure instanceof GitFailure) && !(failure instanceof ConsumerClosed)) throw failure;
       if (cleanupFailed) throw cleanupFailure;

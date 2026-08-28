@@ -4,6 +4,82 @@ import { ConsumerClosed, GIT_LIMITS, GitFailure, demand } from "./limits.js";
 
 export interface GitObject { readonly type: "blob" | "tree" | "commit" | "tag"; readonly bytes: Buffer }
 
+export async function inflatePackedFrame(session: Session, compressed: Uint8Array, declaredBytes: number): Promise<Buffer> {
+  demand(Number.isSafeInteger(declaredBytes) && declaredBytes >= 0 && declaredBytes <= GIT_LIMITS.maxObjectBytes, "Git packed body size exceeded");
+  const body = session.allocate(declaredBytes);
+  let codec: ReturnType<typeof createInflate> | undefined;
+  let closing: Promise<void> | undefined;
+  let written: Promise<void> | undefined;
+  let codecError: unknown, hasCodecError = false, reserved = false, success = false;
+  const close = async (): Promise<void> => {
+    if (!codec) return;
+    closing ??= new Promise<void>(resolve => {
+      if (codec!.closed) { resolve(); return; }
+      codec!.once("close", resolve);
+      codec!.destroy();
+    });
+    await closing;
+  };
+  try {
+    session.reserve(GIT_LIMITS.maxChunkBytes * 2);
+    reserved = true;
+    const stream = await session.operation.acquire(() => {
+      codec = createInflate({ chunkSize: GIT_LIMITS.maxChunkBytes });
+      codec.on("error", error => { if (!hasCodecError) { hasCodecError = true; codecError = error; } });
+      return codec;
+    }, close);
+    const write = async (): Promise<void> => {
+      try {
+        for (let offset = 0; offset < compressed.length; offset += 4096) {
+          const part = compressed.subarray(offset, offset + 4096);
+          await session.step(part.length);
+          await new Promise<void>((resolve, reject) => {
+            let settled = false;
+            const finish = (error?: Error | null): void => {
+              if (settled) return;
+              settled = true;
+              stream.removeListener("close", closed);
+              if (error) reject(error); else resolve();
+            };
+            const closed = (): void => finish(new GitFailure("Git packed codec closed during write"));
+            if (stream.destroyed) { closed(); return; }
+            stream.once("close", closed);
+            stream.write(part, finish);
+          });
+          if (stream.readableEnded) break;
+        }
+        stream.end();
+      } catch (error) { stream.destroy(); throw error; }
+    };
+    written = write();
+    void written.catch(() => {});
+    let produced = 0;
+    for await (const chunk of stream) {
+      session.check();
+      demand(chunk instanceof Uint8Array && chunk.length <= GIT_LIMITS.maxChunkBytes, "invalid Git packed codec chunk");
+      session.charge("maxInflatedBytes", chunk.length);
+      demand(chunk.length <= declaredBytes - produced, "Git packed body exceeds declared size");
+      await session.copyInto(body, chunk, produced);
+      produced += chunk.length;
+    }
+    await written;
+    demand(produced === declaredBytes, "truncated Git packed body");
+    demand(stream.bytesWritten === compressed.length, "trailing Git packed zlib input");
+    success = true;
+    return body;
+  } catch (error) {
+    session.context.signal.throwIfAborted();
+    if (session.operation.signal.aborted) session.check();
+    if (hasCodecError && error === codecError) throw new GitFailure("invalid Git packed zlib frame");
+    throw error;
+  } finally {
+    await close();
+    await written?.catch(() => {});
+    if (!success) session.release(body);
+    if (reserved) session.unreserve(GIT_LIMITS.maxChunkBytes * 2);
+  }
+}
+
 export async function inflateObject(session: Session, compressed: Buffer, oid: string): Promise<GitObject> {
   session.reserve(GIT_LIMITS.maxChunkBytes * 2);
   const header = session.allocate(128);

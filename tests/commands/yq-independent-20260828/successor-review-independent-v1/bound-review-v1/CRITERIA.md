@@ -20,7 +20,7 @@ The candidate-v2 data packet is sealed. A bound-plan successor is incoming.
 Old GO remains consumed. The previous SS-F01 and historical failures remain
 exact history; a correction can satisfy a new plan without rescoring the old.
 
-## Goals, Non-Goals and Boundary
+## Goals and Non-Goals
 
 Authenticate raw artifacts before parsing, check selected-source composition,
 and audit finite scheduling/proof-role bindings. No product, compiler, build,

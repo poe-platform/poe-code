@@ -132,6 +132,10 @@
 
 - Canonical tests must not rewrite committed evidence. Explicit capture writes
   to unique isolated output directories, preserving existing captures.
+- Cross-realm tool-role validation checks exact finite own-data types, keys,
+  values and sequence order, not prototype identity. Reject holes, accessors
+  and extras without coercion; preserve actual thrown-reason identity and strict
+  route admission. This is not a hostile host-JavaScript sandbox guarantee.
 - Reusable current canonical tests must not pin historical implementation bytes
   as current. Version-specific reproduction/audit drivers remain explicit opt-in
   with immutable data, outside canonical discovery.

@@ -3301,3 +3301,60 @@ that any implementation, command, fixture, or test currently exists.
   selected37ad; it is not yet an integrated candidate. This updates the earlier
   unratified-design status prospectively without rewriting historical evidence.
   YQ remains under different review; XAN execution hold/unaccepted status remains.
+
+### 2026-08-28 — ROOT accepts H11 scoped independent continuation
+
+- ROOT accepts652b76f4af9a03ba1fe0d8f90ca5128463f9e34b, preseal/audit
+  1a5c1dcf44ec7e719e43f4b6f8268bab81a02965. Sourcef03c2602 is unchanged.
+  Distinct new results:3 actual fenced owned-child cases,22 comparator controls
+  and6 collector checks; coordinator0. All three registered PID/birth/PGID
+  identities are absent afterward; outer rescue0/KILL0. A02 uses owned SIGTERM,
+  retaining falsy primary/secondary faults with UNKNOWN/nonclean disposition.
+- This is whole linked-module/fenced-child proof, not full-phase IPC, private
+  or whole-gate proof. Originalfb6f048d15PASS/1harnessFAIL/2UNEXECUTED and505
+  artifacts remain unchanged; old15 proofs were not rerun or silently rescored.
+  H06.3 stays ROOT SOURCEQUALIFIED/actual dual-private-error UNEXECUTED,
+  conditional on successful terminal persistence; save failure has no durable
+  capture guarantee. Originalaea23327 remains38PASS/0FAIL/2UNEXECUTED.
+  Evidence: `tests/integration/full-gate-20260827/unified76-driver-independent/supervisor-repair-v17/continuation-v2/HANDOFF.md`.
+- AGENTS gains only a durable cross-realm tool-role rule: exact finite own-data
+  types/keys/values/sequence order rather than prototype identity; reject holes,
+  accessors/extras without coercion; preserve real thrown-reason identity and
+  strict route admission. No product API or hostile-host sandbox claim follows.
+
+### 2026-08-28T13:31Z — Fresh qualified76 packet prepared, NO release
+
+- Packet69f5cc1b binds normalized
+  d236cc7723dfaf860e3e70cda1d04bff2f46950c54c845d8ac0184e969296b00,
+  driveraca88337d644351888659e4364f0610da0219eb3697de45fa808b509bfbc3424,
+  effective profilefa6731eec6b41915f3f56affa9cdf29e7352a10e939bb0f1fe1b9d675caa7510,
+  fixedf5e9fc49/c109 package and41 shipping members. Thirty-nine members are
+  unchanged frome35; only supervisor/DRIVER differ. Compared with old52e83606
+  shipping,31 stay identical,7 change and3 are added, all explicitly enumerated.
+- Exact eligibilityProfile=unified76-historical-file-authority-20260828-v1,
+  historicalEligibilitySha256=519ac40f0239bf363586c5144bbe7f0f3c72c786f42abbc2d1d9ffb004ba2cf6,
+  acceptsUnqualifiedHistoricalNative=true are required. NA-2755/NA-6755 remain
+  HISTORICAL August28 UNSUPPORTED_HOST_OPERATION/native parity UNQUALIFIED;
+  admission does not repeat them. Other mandatory checks stay strict. All632
+  canonical paths/bodies remain unchanged and eligible, with no skip/filter/
+  raw-count deduction. No broad Node/directory/symbolic-mode attribution follows.
+- Even if all14 runtime phases qualify, aggregate exit remains1 with
+  QUALIFIED_DIAGNOSTIC_UNQUALIFIED_NATIVE, never strict/all-qualified green.
+  Missing/failed integrity, cleanup or ordinary evidence remains separately
+  HOLD_OR_QUALIFIED_RED; admission can refuse78. Raw Node22/24 gaps and all old
+  failures stay separate. Both8e6b/df89 andc222/55db remain consumed0/14.
+- Metadata-only checks authenticate41 shipping/35 proof-file bindings, unchanged
+  strict profile/projection/routes/cleanup/native identity metadata, fixed Git
+  commit/tree/four-fixture data and14 phase/bound constants. One shape-only
+  positive plus11 invalid receipt shapes pass; invalid template refuses.
+  No actual tool probes, private reads/copies, archives, setup, builds or gate.
+  PriorA10/protection/route evidence is bound-only where bytes are unchanged;
+  metadata strings do not authenticate their own claims.
+- Future output is /tmp/full-gate-unified76-f5-historical-h11-20260828-r3;
+  actual authorization path is /tmp/unified76-release-f5-historical-h11-20260828-r3.json.
+  Both remain absent. Setup600s/phase1800s/outer25805s/cleanup5s and capture
+  256MiBphase/4GiBtotal are unchanged, as are13 supervised phases+final sweep,
+  one driver build,51 identities,192 classifications and256 cleanup inputs.
+  Dirac metadata review and FRESH ROOT authorization remain required; no GO
+  transfers. No product/default/limit/permission changes or failed-root mutation.
+  Command and template: `tests/integration/full-gate-20260827/unified76-driver/release-packet-v4-qualified-h11/LAUNCH.md`.

@@ -1,0 +1,402 @@
+{
+  "version": 2,
+  "timing": "post-source semantic inspection; syntax/tree/hash proofs are not runtime measurements",
+  "candidate": "3e4cd743f1d4d2302b6b58a337740b3fde68462a",
+  "baseLET": "c26892c3a1a419311c9cf46a6c2976e696e00624",
+  "existingRuntimeMembers": [
+    {
+      "name": "constructor",
+      "unchanged": true,
+      "baseSha256": "456f810945ffb42ce36d363aebf2fb35e864ff5aee0cd32c9e7ebb6970b6fa31",
+      "candidateSha256": "456f810945ffb42ce36d363aebf2fb35e864ff5aee0cd32c9e7ebb6970b6fa31"
+    },
+    {
+      "name": "rootCancellationAdmission",
+      "unchanged": true,
+      "baseSha256": "ce76654998bdb95ccb910179d5bca39625476cb1033f88119385e83c5ab3a351",
+      "candidateSha256": "ce76654998bdb95ccb910179d5bca39625476cb1033f88119385e83c5ab3a351"
+    },
+    {
+      "name": "cancellationResourceLimit",
+      "unchanged": true,
+      "baseSha256": "df32ef149700b390c5489c76ed72a9c8b8a501558b07a35a858c6bdb2571c93b",
+      "candidateSha256": "df32ef149700b390c5489c76ed72a9c8b8a501558b07a35a858c6bdb2571c93b"
+    },
+    {
+      "name": "cancellationAdmission",
+      "unchanged": true,
+      "baseSha256": "77fbb9f76ff8e14433d0e021846b9857ee34f79ab4b3ebb9b62094a665a0fb3b",
+      "candidateSha256": "77fbb9f76ff8e14433d0e021846b9857ee34f79ab4b3ebb9b62094a665a0fb3b"
+    },
+    {
+      "name": "observeRuntimeReturn",
+      "unchanged": true,
+      "baseSha256": "2d1ee49ad5427483eeda8aa0b5ce617ca9e135a783dead8eb11664c17f1528ac",
+      "candidateSha256": "2d1ee49ad5427483eeda8aa0b5ce617ca9e135a783dead8eb11664c17f1528ac"
+    },
+    {
+      "name": "invokeChild",
+      "unchanged": true,
+      "baseSha256": "c2bc89f5dde05996cc5da1bc40707470782e9a266e31a552313e5baf7ccc4bf9",
+      "candidateSha256": "c2bc89f5dde05996cc5da1bc40707470782e9a266e31a552313e5baf7ccc4bf9"
+    },
+    {
+      "name": "clearOutcomeReport",
+      "unchanged": true,
+      "baseSha256": "f552d83d7064085a3406e2af5fde92b2ceab08e3ee3a374e8846de6d61b98ba4",
+      "candidateSha256": "f552d83d7064085a3406e2af5fde92b2ceab08e3ee3a374e8846de6d61b98ba4"
+    },
+    {
+      "name": "diagnostic",
+      "unchanged": true,
+      "baseSha256": "6612c58d4901bbd6649f5eaf778efa716d224a67960753878b58261cd1a68be0",
+      "candidateSha256": "6612c58d4901bbd6649f5eaf778efa716d224a67960753878b58261cd1a68be0"
+    },
+    {
+      "name": "writeVariable",
+      "unchanged": true,
+      "baseSha256": "9075de4b101e83595010fb26649a5e6a69c7ec8ed8cb6873ac5e1c06d8e91a51",
+      "candidateSha256": "9075de4b101e83595010fb26649a5e6a69c7ec8ed8cb6873ac5e1c06d8e91a51"
+    },
+    {
+      "name": "syncGetopts",
+      "unchanged": true,
+      "baseSha256": "1c30a7e0bba05b8efdab4123bf7f9962eac9d557c172157a64e485316d161bf8",
+      "candidateSha256": "1c30a7e0bba05b8efdab4123bf7f9962eac9d557c172157a64e485316d161bf8"
+    },
+    {
+      "name": "reconcileGetopts",
+      "unchanged": true,
+      "baseSha256": "79893e7b5050c39d2ccf66747a7ffcd584b80792039c24ff94731cc2f33bca75",
+      "candidateSha256": "79893e7b5050c39d2ccf66747a7ffcd584b80792039c24ff94731cc2f33bca75"
+    },
+    {
+      "name": "unsetVariable",
+      "unchanged": true,
+      "baseSha256": "1bd7d276ff22a2b703f93f43496872761d8f10c6f2a1abe58a37ba5e55202644",
+      "candidateSha256": "1bd7d276ff22a2b703f93f43496872761d8f10c6f2a1abe58a37ba5e55202644"
+    },
+    {
+      "name": "arithmeticVariables",
+      "unchanged": true,
+      "baseSha256": "75469dca8723e22ef76faf90e91ba1e1d80bf6eaf17137da294efe5813d7d74b",
+      "candidateSha256": "75469dca8723e22ef76faf90e91ba1e1d80bf6eaf17137da294efe5813d7d74b"
+    },
+    {
+      "name": "run",
+      "unchanged": true,
+      "baseSha256": "29f6e213d1157e8400cb942c117e267af6f38eddd864a323d49afe71376557e1",
+      "candidateSha256": "29f6e213d1157e8400cb942c117e267af6f38eddd864a323d49afe71376557e1"
+    },
+    {
+      "name": "runUnit",
+      "unchanged": true,
+      "baseSha256": "18c0eb245c4d3ea32d45cad1d5bbdf5c9d2880cc6eb77dadcd2fc5c27d445e46",
+      "candidateSha256": "18c0eb245c4d3ea32d45cad1d5bbdf5c9d2880cc6eb77dadcd2fc5c27d445e46"
+    },
+    {
+      "name": "script",
+      "unchanged": true,
+      "baseSha256": "37514a1b5144855865c65e6acfc1ba15a85084ce4038527727e661b9674f9f73",
+      "candidateSha256": "37514a1b5144855865c65e6acfc1ba15a85084ce4038527727e661b9674f9f73"
+    },
+    {
+      "name": "pipeline",
+      "unchanged": true,
+      "baseSha256": "5da7e8a38d4a894f3b211cc7dce4ceff8f6cb50173e093f41fdeae2cf2852772",
+      "candidateSha256": "5da7e8a38d4a894f3b211cc7dce4ceff8f6cb50173e093f41fdeae2cf2852772"
+    },
+    {
+      "name": "runCommandIsolated",
+      "unchanged": true,
+      "baseSha256": "c34cd5caeaae8690d475c1338eade88472d081d3d738aa1c1e14fa83ddaa29a1",
+      "candidateSha256": "c34cd5caeaae8690d475c1338eade88472d081d3d738aa1c1e14fa83ddaa29a1"
+    },
+    {
+      "name": "errexit",
+      "unchanged": true,
+      "baseSha256": "dd6b14a2c73ad9e8f5c4fc70d21a6d4478615e2750123fd5be70f9fe7430489b",
+      "candidateSha256": "dd6b14a2c73ad9e8f5c4fc70d21a6d4478615e2750123fd5be70f9fe7430489b"
+    },
+    {
+      "name": "command",
+      "unchanged": true,
+      "baseSha256": "ad33db6d484e94e4c02312a055b9e4122405ec49797aa8b73ba34a640a1c470c",
+      "candidateSha256": "ad33db6d484e94e4c02312a055b9e4122405ec49797aa8b73ba34a640a1c470c"
+    },
+    {
+      "name": "executeCommand",
+      "unchanged": true,
+      "baseSha256": "831863bbac9e33465cf3cb84af6559ea874d3d1d0dd7524d3ba55890e9f64c41",
+      "candidateSha256": "831863bbac9e33465cf3cb84af6559ea874d3d1d0dd7524d3ba55890e9f64c41"
+    },
+    {
+      "name": "loopBody",
+      "unchanged": true,
+      "baseSha256": "5c3c50f95dd02876bfbaee8003d6c04fd53a97dde57483dea73cdbc298393bc6",
+      "candidateSha256": "5c3c50f95dd02876bfbaee8003d6c04fd53a97dde57483dea73cdbc298393bc6"
+    },
+    {
+      "name": "document",
+      "unchanged": true,
+      "baseSha256": "f039fa5950ab11550c1acee8137a99402a52fbce3d2134c0d28ad185a5f7a3ff",
+      "candidateSha256": "f039fa5950ab11550c1acee8137a99402a52fbce3d2134c0d28ad185a5f7a3ff"
+    },
+    {
+      "name": "redirect",
+      "unchanged": true,
+      "baseSha256": "f77ed553dbadb43c40a6757f16aa8d83969a04d8db274d3f009ca8a9c534181d",
+      "candidateSha256": "f77ed553dbadb43c40a6757f16aa8d83969a04d8db274d3f009ca8a9c534181d"
+    },
+    {
+      "name": "fileOperation",
+      "unchanged": true,
+      "baseSha256": "cabc041309c2db6f17689717bcff0ff926183c49f74e6c1a5fb9971502d30d01",
+      "candidateSha256": "cabc041309c2db6f17689717bcff0ff926183c49f74e6c1a5fb9971502d30d01"
+    },
+    {
+      "name": "assignment",
+      "unchanged": true,
+      "baseSha256": "e9ea5fbd9e0ec8ba702bb675698462fcda805184bd9f4f811f91e450f9adacdb",
+      "candidateSha256": "e9ea5fbd9e0ec8ba702bb675698462fcda805184bd9f4f811f91e450f9adacdb"
+    },
+    {
+      "name": "simple",
+      "unchanged": false,
+      "baseSha256": "45b2e71ff1866e5a1365771afffba785d29cdc5eab1c25141244272a8fe1d5af",
+      "candidateSha256": "d76d715b32585427716e4a5a5a8caa758b5724d969f157eb174409260e42322e"
+    },
+    {
+      "name": "dispatch",
+      "unchanged": true,
+      "baseSha256": "af608853c65f3af463d6245bcd5a311ba9596ff1d3d590586c1237899e4211a5",
+      "candidateSha256": "af608853c65f3af463d6245bcd5a311ba9596ff1d3d590586c1237899e4211a5"
+    },
+    {
+      "name": "dispatchScoped",
+      "unchanged": false,
+      "baseSha256": "02468a8c413bf42fced0e557b472fbde53c72e9e486b4a725e7b35eab1dc4789",
+      "candidateSha256": "aabb95311e3780e19043d3c1b583e36bdf8cf649e301ec3c2c4e050d9fb3660f"
+    },
+    {
+      "name": "internalDiscovery",
+      "unchanged": true,
+      "baseSha256": "a33789739f4eaef6c5606674fb3348cd37cafa5e3ad907672e6f5e0da7aff9b7",
+      "candidateSha256": "a33789739f4eaef6c5606674fb3348cd37cafa5e3ad907672e6f5e0da7aff9b7"
+    },
+    {
+      "name": "discoveryBuiltin",
+      "unchanged": true,
+      "baseSha256": "2067da0fcca005f863eeb2e9c5ab0a47f751c9bd9e04c7a75f7e4bfdf3ed36c1",
+      "candidateSha256": "2067da0fcca005f863eeb2e9c5ab0a47f751c9bd9e04c7a75f7e4bfdf3ed36c1"
+    },
+    {
+      "name": "searchPath",
+      "unchanged": true,
+      "baseSha256": "ea5204a4a633c276c59183b6a782f439b917f6492b85894c277cf38aafdc6161",
+      "candidateSha256": "ea5204a4a633c276c59183b6a782f439b917f6492b85894c277cf38aafdc6161"
+    },
+    {
+      "name": "searchPaths",
+      "unchanged": true,
+      "baseSha256": "a2d9f2d27eccfeb1eb1317261eb43f2b4b51fbd6e5d3c6a68d7acec8f65efe24",
+      "candidateSha256": "a2d9f2d27eccfeb1eb1317261eb43f2b4b51fbd6e5d3c6a68d7acec8f65efe24"
+    },
+    {
+      "name": "processState",
+      "unchanged": false,
+      "baseSha256": "399e85224fb8a3afab7767046c071ab0fcd29cf9364f314ba611ee631f32c853",
+      "candidateSha256": "c7b1115c58dc6bf59b0fb8789c16e97b1bd235d794dbab184e5da3b88f5a80ea"
+    },
+    {
+      "name": "interpreter",
+      "unchanged": true,
+      "baseSha256": "1d3e5b0d622dcb0241d300d36d8283f9bbab2fd33211572624081cbf06ff4050",
+      "candidateSha256": "1d3e5b0d622dcb0241d300d36d8283f9bbab2fd33211572624081cbf06ff4050"
+    },
+    {
+      "name": "syntaxFailure",
+      "unchanged": true,
+      "baseSha256": "e5da4d30996d68474dece7b1cf76bfa8b6fe0b837ace5bca0f365fcc98d5e283",
+      "candidateSha256": "e5da4d30996d68474dece7b1cf76bfa8b6fe0b837ace5bca0f365fcc98d5e283"
+    },
+    {
+      "name": "runCommandString",
+      "unchanged": true,
+      "baseSha256": "c3e02252dd357bde24adfda2cf4b6bbc282217e4859a6bfb85ce6c5e2c30c8d3",
+      "candidateSha256": "c3e02252dd357bde24adfda2cf4b6bbc282217e4859a6bfb85ce6c5e2c30c8d3"
+    },
+    {
+      "name": "sourceText",
+      "unchanged": true,
+      "baseSha256": "d25ea1d9b95129679f0931c87f15acc7121950dc0c5e49cb8595f688ca2a3b64",
+      "candidateSha256": "d25ea1d9b95129679f0931c87f15acc7121950dc0c5e49cb8595f688ca2a3b64"
+    },
+    {
+      "name": "runStandardInput",
+      "unchanged": true,
+      "baseSha256": "ce084e2acb4208d3b108378ee6401fff894061d60164dc8fa5af0a97e2c386cc",
+      "candidateSha256": "ce084e2acb4208d3b108378ee6401fff894061d60164dc8fa5af0a97e2c386cc"
+    },
+    {
+      "name": "envShebangCommand",
+      "unchanged": true,
+      "baseSha256": "7263dec629cc7c3e09230942c35376e9f70bc5e6df5343adefd6cd9aea314ae4",
+      "candidateSha256": "7263dec629cc7c3e09230942c35376e9f70bc5e6df5343adefd6cd9aea314ae4"
+    },
+    {
+      "name": "shebangState",
+      "unchanged": true,
+      "baseSha256": "504daa0be3ca79e9ce217fa7424a1f04c651ab4a68c2a1a4321fcf06c9a0a711",
+      "candidateSha256": "504daa0be3ca79e9ce217fa7424a1f04c651ab4a68c2a1a4321fcf06c9a0a711"
+    },
+    {
+      "name": "shebangStage",
+      "unchanged": true,
+      "baseSha256": "37cda9f47941539ddc20ba881ce2a814aeb7f26cf61f319a0511a2b80d6d2e06",
+      "candidateSha256": "37cda9f47941539ddc20ba881ce2a814aeb7f26cf61f319a0511a2b80d6d2e06"
+    },
+    {
+      "name": "shebangTarget",
+      "unchanged": true,
+      "baseSha256": "958f70212b8414fa70d4045b63114a1d445820d3662b11740e9121985710a412",
+      "candidateSha256": "958f70212b8414fa70d4045b63114a1d445820d3662b11740e9121985710a412"
+    },
+    {
+      "name": "shebangTargetScoped",
+      "unchanged": true,
+      "baseSha256": "cde55fb821e8c71970b979bd1e92f86a26f1b111cc3913fd8fd9434e1aa8743a",
+      "candidateSha256": "cde55fb821e8c71970b979bd1e92f86a26f1b111cc3913fd8fd9434e1aa8743a"
+    },
+    {
+      "name": "envShebang",
+      "unchanged": true,
+      "baseSha256": "a7130a4e2f889f876aade3bcfb1fe5e712dc45fecd7146da1edbc1d08d2c8eed",
+      "candidateSha256": "a7130a4e2f889f876aade3bcfb1fe5e712dc45fecd7146da1edbc1d08d2c8eed"
+    },
+    {
+      "name": "scriptFile",
+      "unchanged": true,
+      "baseSha256": "3adc20c2e721753171dfe60c0587e3c3daa87f7819c5f0331543127ea0f852b0",
+      "candidateSha256": "3adc20c2e721753171dfe60c0587e3c3daa87f7819c5f0331543127ea0f852b0"
+    },
+    {
+      "name": "runCurrentText",
+      "unchanged": true,
+      "baseSha256": "abc9f4bcc76bba179a88a24fed7935206471fed668724c857106e3a8f8a919e4",
+      "candidateSha256": "abc9f4bcc76bba179a88a24fed7935206471fed668724c857106e3a8f8a919e4"
+    },
+    {
+      "name": "evalBuiltin",
+      "unchanged": true,
+      "baseSha256": "82cc599f9d911a62e8d774f35a2a1a90d424e6af87789c19962f7cdde407bd16",
+      "candidateSha256": "82cc599f9d911a62e8d774f35a2a1a90d424e6af87789c19962f7cdde407bd16"
+    },
+    {
+      "name": "sourceBuiltin",
+      "unchanged": true,
+      "baseSha256": "60460163cfbffc88cc559e6e12818918be9668fe77e547d2dba11fecfc98f26f",
+      "candidateSha256": "60460163cfbffc88cc559e6e12818918be9668fe77e547d2dba11fecfc98f26f"
+    },
+    {
+      "name": "invoke",
+      "unchanged": true,
+      "baseSha256": "faac77b328124d0149d54bc6624316af8a22e24908f6dbe4ee208938b92fc462",
+      "candidateSha256": "faac77b328124d0149d54bc6624316af8a22e24908f6dbe4ee208938b92fc462"
+    },
+    {
+      "name": "invokeScoped",
+      "unchanged": true,
+      "baseSha256": "f7220bb73d15ba4ffa21bc0cd7ed265836639f59e6237a1474ea153fa72645f8",
+      "candidateSha256": "f7220bb73d15ba4ffa21bc0cd7ed265836639f59e6237a1474ea153fa72645f8"
+    },
+    {
+      "name": "letBuiltin",
+      "unchanged": true,
+      "baseSha256": "97a92ed7b6d5735a474d68798e5bfd14d1c694835d2ae9c2df6d62c66a1bcc01",
+      "candidateSha256": "97a92ed7b6d5735a474d68798e5bfd14d1c694835d2ae9c2df6d62c66a1bcc01"
+    },
+    {
+      "name": "getoptsBuiltin",
+      "unchanged": true,
+      "baseSha256": "42675a31e92958d84be1b6ccb198742bb21e80942d1f6808e64c0bf09dfd5a53",
+      "candidateSha256": "42675a31e92958d84be1b6ccb198742bb21e80942d1f6808e64c0bf09dfd5a53"
+    },
+    {
+      "name": "builtin",
+      "unchanged": false,
+      "baseSha256": "f139c8a4e3fd374ba32b6856c312597451f128f9d155507731501defb3aed25b",
+      "candidateSha256": "68c736491497c62400ebd506fdc8481c3626d2b46a2cbf5eb9ee58493c2e5bcd"
+    },
+    {
+      "name": "words",
+      "unchanged": true,
+      "baseSha256": "88ae8f1ea247d4de761e82a83763e472847a18a1800470249e40afe862934320",
+      "candidateSha256": "88ae8f1ea247d4de761e82a83763e472847a18a1800470249e40afe862934320"
+    },
+    {
+      "name": "part",
+      "unchanged": true,
+      "baseSha256": "595b1c00029cd6a812ad4aeff3aa0e7a66277a8c1d09139fed6ced974c8fe7d4",
+      "candidateSha256": "595b1c00029cd6a812ad4aeff3aa0e7a66277a8c1d09139fed6ced974c8fe7d4"
+    },
+    {
+      "name": "substring",
+      "unchanged": true,
+      "baseSha256": "341d8484feb70b116194a3e0ff0ead6b29f71c481c34e2cf52d6056e9bc36a6a",
+      "candidateSha256": "341d8484feb70b116194a3e0ff0ead6b29f71c481c34e2cf52d6056e9bc36a6a"
+    },
+    {
+      "name": "parameterPattern",
+      "unchanged": true,
+      "baseSha256": "24bfc9ca64983bd298e855269dd8cb4caab2c879f3a9996c450ca326f5508e51",
+      "candidateSha256": "24bfc9ca64983bd298e855269dd8cb4caab2c879f3a9996c450ca326f5508e51"
+    },
+    {
+      "name": "word",
+      "unchanged": true,
+      "baseSha256": "87819ec37d6472fd493bf8859ed9789465c65f9106af90938d43d3625e452342",
+      "candidateSha256": "87819ec37d6472fd493bf8859ed9789465c65f9106af90938d43d3625e452342"
+    },
+    {
+      "name": "glob",
+      "unchanged": true,
+      "baseSha256": "83f2382d43ee53579697fea4f0671ebca31bedf90d7c07a34417608c5cd5c794",
+      "candidateSha256": "83f2382d43ee53579697fea4f0671ebca31bedf90d7c07a34417608c5cd5c794"
+    }
+  ],
+  "unchangedExistingCount": 56,
+  "changedExisting": [
+    "simple",
+    "dispatchScoped",
+    "processState",
+    "builtin"
+  ],
+  "addedMembers": [
+    "changeDirectory",
+    "directoryStackBuiltin"
+  ],
+  "helpers": [
+    {
+      "name": "CdLookup",
+      "unchanged": true,
+      "sha256": "004de03121be35ecbd2384bb26904684b813d6b69f06f452dbbf2871103717b0"
+    },
+    {
+      "name": "cdDiagnostic",
+      "unchanged": true,
+      "sha256": "cf9a10bbf9968488844145f54a02f11378584530048dadc8d5ce5392b180539b"
+    },
+    {
+      "name": "cdUtf8Width",
+      "unchanged": true,
+      "sha256": "6303058583704ace5f4c6d65fc0111abc35926a5979d0d24f2fdf720c14b5ca7"
+    }
+  ],
+  "scope": "exact selected265 product inputs; all except runtime/shell match selectedacceptedbase by construction; no movingHEAD input",
+  "qualifications": [
+    "I18/I21 reused unchanged method bodies and cancellation module with new cloneState tailcopy; scoped runtime/unit regressions still required",
+    "I24 private work/display/diagnostic mask derivations remain source-only",
+    "C04 public requiredprint plus source ordering establishes publication; context.invoke is not a live cwd getter"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "version": 3,
+  "role": "post-source pre-control-execution scheduling strengthening, not originalprecode",
+  "case": "C07",
+  "change": "Hold each actual awaited sink write for1024 externally scheduled turns instead of one; unchanged frozen bytes/maxPending=1 expectations. This is a host schedule, not private stack-work measurement.",
+  "reason": "The helper independently yields every128worksteps; a one-turn sink delay can mask a missing-await mutant between16KiB chunks.",
+  "controls": "Both unmodified candidate and U14 use the same sealed stronger host schedule. Baseline must pass; surviving mutant remains survivor, never inferred kill.",
+  "originalPreservation": "Original and corrected case runs untouched; no new case/family denominator."
+}

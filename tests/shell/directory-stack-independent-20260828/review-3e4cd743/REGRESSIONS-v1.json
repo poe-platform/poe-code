@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "timing": "postcandidate source inspection, before scoped regression execution",
+  "candidate": "3e4cd743f1d4d2302b6b58a337740b3fde68462a",
+  "tests": [
+    "tests/shell/core.test.ts",
+    "tests/shell/invoke.test.ts",
+    "tests/shell/getopts/runtime/state.test.ts",
+    "tests/shell/getopts/runtime/host.test.ts",
+    "tests/shell/getopts/runtime/ordering.test.ts",
+    "tests/shell/invocation-cleanup.test.ts",
+    "tests/shell/invocation-cleanup-lifecycle.test.ts",
+    "tests/shell/invocation-cleanup-pipeline.test.ts",
+    "tests/shell/cancellation-stage1-20260827/repair-v1/cancellation-repair.test.ts",
+    "tests/integration/owned-output-production-rebase/author/operation.test.ts",
+    "tests/integration/owned-output-production-rebase/author/shell.test.ts"
+  ],
+  "cd": {
+    "file": "tests/shell/cd-prerequisite-20260828/runtime-v1/cd.test.ts",
+    "pattern": "^(ordered search |relative HOME |duck-typed errno |non-directory skips |empty duplicate |delegated X_OK |checked (OLDPWD|PWD) |prefix bindings |host invoke cd )",
+    "qualification": "only selected Memory/error/readonly/CDPATH/invoke seams; no native mapping, no provider matrix, no fullCD replay"
+  },
+  "inputs": [
+    {
+      "path": "tests/shell/core.test.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "773f3dc5fbba9252311872b3f9a983f3a17b6fd7",
+      "bytes": 8121,
+      "sha256": "73f978e9461f0bfe1df6ba74af0fba3d557dea71501683d4e1e242ba6e6685c1"
+    },
+    {
+      "path": "tests/shell/helpers.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "b7a6e998a356dbe58056990de1bf71f149c3136e",
+      "bytes": 1670,
+      "sha256": "ea3bfd82b48886c5da020ef3983243d5139b9da23821a6a36336cb58eb804cb4"
+    },
+    {
+      "path": "tests/shell/invoke.test.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "d8fdff039b52f755a047ef0072892e987ab1f0ca",
+      "bytes": 4853,
+      "sha256": "314848095b66f3911a755e00dc3fb0bcb1286d35f285f72d7a29723f3f8ac310"
+    },
+    {
+      "path": "tests/shell/getopts/runtime/state.test.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "093bfa4d4178fd281fe2f07e143785558e3bb134",
+      "bytes": 6572,
+      "sha256": "2fae9eeba9b36e42ce1dff2ab7bee0e7b2fb9d7306d92e0da6da70f71b64d242"
+    },
+    {
+      "path": "tests/shell/getopts/runtime/helpers.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "6cca83a87b6d2f320937795e73fe2e1c5acd81e5",
+      "bytes": 341,
+      "sha256": "527acf100dd4098e4fae1962fbddfdc31feec346600ef71cb71d323d639e3b32"
+    },
+    {
+      "path": "tests/shell/getopts/runtime/host.test.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "349cd316c0c465991b6c6884c0a385432ab034fc",
+      "bytes": 9362,
+      "sha256": "e927a705d11e0b810eabd306d6f6548347a49f4c8109b1ccd5b1cb8dc9ebbd4c"
+    },
+    {
+      "path": "tests/shell/getopts/runtime/ordering.test.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "144ae2d810f7114a4c1c22832a58cb89a0a3d3e7",
+      "bytes": 6638,
+      "sha256": "6277b08e6a3cc04dad733e766e1876a343a60e0c695177fe6b167899ca43099e"
+    },
+    {
+      "path": "tests/shell/invocation-cleanup.test.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "79d6de5cfef3ffe4f6d0f0cbe49b14d540e94582",
+      "bytes": 5113,
+      "sha256": "5574c28fac6a1f69c2d0e1e0ff2f749fef13f5c0df6bd617295a0359fad417c0"
+    },
+    {
+      "path": "tests/shell/invocation-cleanup-lifecycle.test.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "3343bd92f6ba778f9e03d378632b2b2929b81f26",
+      "bytes": 15642,
+      "sha256": "e61b1d76d32ba85c97de6ed73510adea26a9a6ef40b21d1ebce4ea5eb1be2dca"
+    },
+    {
+      "path": "tests/shell/invocation-cleanup-pipeline.test.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "86eb6b57388d4d2eb31b9cb7d3eddd635535d8bc",
+      "bytes": 7431,
+      "sha256": "80e943b54723fe2e72894ee3cce6920039b1e99131faa0399efecd033e166987"
+    },
+    {
+      "path": "tests/shell/cancellation-stage1-20260827/repair-v1/cancellation-repair.test.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "e2cc59b1a0ef2aec26d7aeabb1d537b099536a6c",
+      "bytes": 6784,
+      "sha256": "a8e3d2f3714c82c17bd66e62664896a584ab8d5435931df44bb37ec20f4e04fa"
+    },
+    {
+      "path": "tests/integration/owned-output-production-rebase/author/operation.test.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "421892b39b02d51a8ad6342c1b72e25fda36e70c",
+      "bytes": 9963,
+      "sha256": "832fc8770bcfd06b5d9d8b953796f9f47e83842aff6f099405595a9f76c94231"
+    },
+    {
+      "path": "tests/integration/owned-output-production-rebase/author/helpers.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "142032782ff0a746bfddf6ab93f093e451089ac0",
+      "bytes": 1356,
+      "sha256": "505f77722129e4e89e12d9f2ad81ebba907d40cd1a98cf8569305631fe020cab"
+    },
+    {
+      "path": "tests/integration/owned-output-production-rebase/author/shell.test.ts",
+      "commit": "5137a74ec855a32d8a8860eb66b62eb44d11e290",
+      "mode": "100644",
+      "blob": "bb6c6dc09927ee9867551e9a63a70e33ea055e9c",
+      "bytes": 10086,
+      "sha256": "dd4fb1c3ebba9c8b778abf192b7eb99b33b4a559b1ebde6babafadd7db8b38d1"
+    },
+    {
+      "path": "tests/shell/cd-prerequisite-20260828/runtime-v1/cd.test.ts",
+      "commit": "4641075df5355a91c83bf5b2cc3a88dfaf1f5153",
+      "mode": "100644",
+      "blob": "680fc93495acd676eef727e3e60be1cfa6516cb0",
+      "bytes": 14258,
+      "sha256": "ee6d6d5bf354c72547222e865e6441a2298552c73963c53a87857992915c6ebd"
+    }
+  ],
+  "let": {
+    "commit": "08b0553148afdfdb95edd722a2cdd7f63935d470",
+    "path": "tests/shell/let-independent-20260828/cases.json",
+    "sha256": "84b6308145e040283b05af2348caefac874f5cecab3b4797ef8112c973416955",
+    "rows": [
+      {
+        "id": "P01",
+        "family": "L01",
+        "script": "type let",
+        "stdout": "let is a shell builtin\n",
+        "stderr": "",
+        "exitCode": 0,
+        "reference": "project builtin discovery"
+      },
+      {
+        "id": "P21",
+        "family": "L06",
+        "script": "value=0; tail=0; let 'value=7' '1+' 'tail=9'; printf '%s:%s:%s\\n' \"$?\" \"$value\" \"$tail\"",
+        "stdout": "1:7:0\n",
+        "stderr": "shell: line 1: let: 1+: arithmetic syntax error: operand expected (error token is \"+\")\n",
+        "exitCode": 0,
+        "reference": "N09 nearby; rules out whole-argv preparse"
+      },
+      {
+        "id": "P22",
+        "family": "L06",
+        "script": "value=0; let '(value=7),1+'; printf '%s:%s\\n' \"$?\" \"$value\"",
+        "stdout": "1:0\n",
+        "stderr": "shell: line 1: let: (value=7),1+: arithmetic syntax error: operand expected (error token is \"+\")\n",
+        "exitCode": 0,
+        "reference": "RATIFIED C1; N10 native retained value=7, project requires0"
+      }
+    ],
+    "qualification": "three unchanged accepted literals only; unsupported P58/set-u and M3 survivor unrescored"
+  },
+  "forbidden": "no native oracle, provider services, private SafeJS/guest execution or old archived workflow run"
+}

@@ -1,0 +1,5 @@
+{
+  "source":"9d27a489607af262e3f9fb3ea1d9c34d406138b7456850c7abde68c56c003a05",
+  "role":"DATA_PREPARATION_NOT_PRODUCT",
+  "files":[{"path":"tests/compatibility/bash-strict-extension-author-20260829/n14-v4/bootstrap-v5/bash-strict-extension-author-20260829/run-v2.mjs","bytes":2543,"sha256":"8fc9d65b58d3b06a2f9ef19e543fad167b216302b0b6df2afd1a0ee7ddd83135"}]
+}

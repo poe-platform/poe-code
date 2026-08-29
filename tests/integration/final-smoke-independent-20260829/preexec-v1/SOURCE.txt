@@ -1,0 +1,226 @@
+
+FILE /Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/HANDOFF.md
+# Final coherent smoke: SOURCE/PURE preparation only
+
+Eight rows x three layouts =24 UNRUN cells. C01/C02/C07/C12/C13/C14 use exact accepted B0 v4 workflow6d8a1985, not the stale v2 locator in readiness SMOKE-PROPOSAL. Neutral fixturefcb7bae1 unchanged. R16/R17 come from runtime-cases9ece84f2; R17 is byte-identical to local-a R17-UNCHANGED44ca411e. The unrelated local-a SCALAR row is not substituted for R16.
+
+Six PURE DATA controls pass. No product/module/Worker/npm/compiler/install/native execution. Source union323 is a provisional inspected inventory, not a hardcoded future member count. Final local-a-inclusive artifact remains unbuilt and requires a newly admitted producer receipt; consumer parameter schema is not authentication by itself. External type/size/hash admission of receipt and every manifest plus per-file loader binding is mandatory before runSelected.
+
+Selected branches require zero guest/Regex Workers. They do not call regex operators/regex tools or node guest execution; mock curl has no real network. Existing B0 resources guard can use allowance0. Its authenticated loader mechanism nevertheless requires3 async-loader admissions, peak1; therefore strict all-Worker/thread zero is NOT yet qualified. ROOT must explicitly approve that bounded loader profile or separately bind the already-qualified synchronous-hook alternative; no new hook was invented here.
+
+coordinator.mjs reuses exact tracked-owner00fdbaef, with no ambient launch or new administrative framework. consumer.mjs invokes unchanged workflow branches plus the original R16/R17 script/stdout/status checks; it does not import product by itself. There is intentionally no runnable --run bootstrap/final command: producer/materializer/installed/moved/tool/permission bindings and independent review remain necessary. Maintain raw falsy presence/cleanup observations; disposal is not opaque-provider finalization.
+
+Proposal:40knownOS peak3,1200s inclusive =1020active+180publication; setup60/install120/three270s consumers leaves30active slack. Eight30s cases/layout with awaited disposal, cleanup5s bounded by the enclosing clocks. Capture64MiB; sampled logical work256MiB is a cap requiring fresh pre-install fit admission, NOT a demonstrated final-artifact fit or OS quota. No hardcoded emitted/member cardinality, HEAD, or retained old package substitution. No shared test/package/source edits; historical failures and pending local-a status unchanged.
+
+
+FILE /Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/consumer.mjs
+import assert from 'node:assert/strict';
+import { ids, validateSelection } from './contract.mjs';
+export async function runSelected(context) {
+  validateSelection(context.ids, context.layout);
+  const rows = [];
+  for (let index = 0; index < ids.length; index++) {
+    await context.beforeCase(index);
+    const id = ids[index];
+    if (id.startsWith('C')) {
+      rows.push(await context.runWorkflow(id, { api:context.api, nodeApi:context.nodeApi, fixture:context.fixture }));
+      continue;
+    }
+    const original = context.scalarAndPipelineRows.find(row => row.id === id); assert(original);
+    const shell = new context.api.Shell({ fs:new context.api.MemoryFileSystem(), cwd:'/', env:{} });
+    shell.use(context.api.agentCommands());
+    let primaryPresent = false, primary, execution;
+    try {
+      execution = await shell.exec(original.script);
+      assert.equal(execution.stdout, original.stdout); assert.equal(execution.exitCode, original.exitCode);
+    } catch (reason) { primaryPresent = true; primary = reason; }
+    let cleanupPresent = false, cleanup;
+    try { await shell.dispose(); } catch (reason) { cleanupPresent = true; cleanup = reason; }
+    context.observe({ id, primaryPresent, primary, cleanupPresent, cleanup });
+    if (primaryPresent) throw primary;
+    if (cleanupPresent) throw cleanup;
+    rows.push({ id, status:'PASS', stdout:execution.stdout, stderr:execution.stderr, exitCode:execution.exitCode });
+  }
+  return { layout:context.layout, rows };
+}
+
+
+FILE /Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/contract.mjs
+import assert from 'node:assert/strict';
+export const ids = Object.freeze(['C01','C02','C07','C12','C13','C14','R17','R16']);
+export const layouts = Object.freeze(['source-built','installed','physically-moved']);
+export const bounds = Object.freeze({ knownOS:40, peakOS:3, inclusiveSeconds:1200, publicationSeconds:180, caseSeconds:30, layoutSeconds:270, installSeconds:120, setupSeconds:60, cleanupSeconds:5, captureBytes:67108864, sampledLogicalWorkBytes:268435456, guestWorkers:0, regexWorkers:0 });
+function data(value, keys) {
+  assert(value && typeof value === 'object' && !Array.isArray(value));
+  assert.deepEqual(Reflect.ownKeys(value).sort(), [...keys].sort());
+  for (const key of keys) { const descriptor = Object.getOwnPropertyDescriptor(value, key); assert(descriptor && Object.hasOwn(descriptor, 'value'), 'own data only'); }
+}
+export function validateSelection(selected, layout) { assert.deepEqual(selected, ids); assert(layouts.includes(layout)); }
+export function admitProducerParameter(value) {
+  data(value, ['schema','authority','sourceManifest','emittedManifest','packageManifest','package','counts']);
+  assert.equal(value.schema, 'FINAL_SMOKE_ADMITTED_PRODUCER_V1');
+  assert.equal(value.authority, 'HASH_SIZE_TYPE_ADMITTED_PRODUCER_RECEIPT');
+  for (const name of ['sourceManifest','emittedManifest','packageManifest','package']) {
+    data(value[name], ['path','bytes','sha256']);
+    assert(typeof value[name].path === 'string' && value[name].path.startsWith('/') && !value[name].path.includes('\0'));
+    assert(Number.isSafeInteger(value[name].bytes) && value[name].bytes > 0); assert.match(value[name].sha256, /^[0-9a-f]{64}$/);
+  }
+  data(value.counts, ['sourceInputs','emittedFiles','packageMembers']);
+  for (const count of Object.values(value.counts)) assert(Number.isSafeInteger(count) && count > 0 && count <= 16384);
+  return value;
+}
+export function reconcileCardinality(receipt, manifests) {
+  admitProducerParameter(receipt);
+  for (const [kind, count] of [['source','sourceInputs'],['emitted','emittedFiles'],['members','packageMembers']]) {
+    assert(Array.isArray(manifests[kind])); assert.equal(manifests[kind].length, receipt.counts[count]);
+    const names = manifests[kind].map(row => row.path); assert.equal(new Set(names).size, names.length);
+    for (const name of names) assert(typeof name === 'string' && name.length > 0 && !name.startsWith('/') && !name.split('/').includes('..') && !name.includes('\0'));
+  }
+}
+export function beforeCase({ selected, layout, index, now, activeEnd, workers, captureRemaining, workRemaining }) {
+  validateSelection(selected, layout); assert(Number.isSafeInteger(index) && index >= 0 && index < ids.length);
+  assert(Number.isFinite(now) && Number.isFinite(activeEnd) && now + bounds.caseSeconds * 1000 <= activeEnd, 'insufficient inclusive case headroom');
+  assert.equal(workers.guest, 0); assert.equal(workers.regex, 0);
+  assert(captureRemaining >= 1048576 && workRemaining >= 1048576, 'precase reserved output/work headroom');
+  return ids[index];
+}
+
+
+FILE /Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/coordinator.mjs
+import assert from 'node:assert/strict';
+import { Owner } from '../agent-bash-coherent-author-20260829/admin-owner-r1/tracked-owner.mjs';
+import { admitProducerParameter, bounds, layouts } from './contract.mjs';
+export function createSmokeCoordinator(admitted) {
+  assert.equal(admitted.authority, 'ROOT_FUTURE_FINAL_SMOKE_EXPLICIT_GO');
+  admitProducerParameter(admitted.producer);
+  assert.equal(admitted.outputCaptureAlreadyOwned, true);
+  assert.equal(admitted.activeEnd - admitted.started, 1020000);
+  assert.equal(admitted.deadline - admitted.activeEnd, 180000);
+  assert.equal(admitted.commandProfileIndependentlyReviewed, true);
+  const owner = new Owner({ raw:admitted.raw, cwd:admitted.cwd, env:admitted.env, tools:admitted.tools,
+    wallMs:admitted.deadline-Date.now(), reserveMs:180000, cleanupMs:5000, maxStarts:40, peak:3,
+    captureLimit:bounds.captureBytes, metadataLimit:8388608, tailBytes:1048576 });
+  return Object.freeze({ owner, async dispatch(commands) {
+    assert.deepEqual(commands.map(row => row.role), ['offline-install', ...layouts.map(layout => `smoke-${layout}`)]);
+    const results = [];
+    for (const command of commands) {
+      await admitted.reauthenticate(command);
+      const maximum = command.role === 'offline-install' ? 120000 : 270000;
+      const result = await owner.run(command.role, command.tool, command.argv, maximum);
+      results.push(result);
+      if (result.faults.primaryPresent) throw Object.assign(new Error('smoke owner fault'), { result });
+      assert.equal(result.row.exitCode, 0, 'settled child failure preserved; no implicit retry');
+      await admitted.verifyAndRecord(result);
+    }
+    return results;
+  } });
+}
+
+
+FILE /Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/finish.mjs
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import { ids, layouts, bounds, admitProducerParameter, reconcileCardinality, beforeCase } from './contract.mjs';
+export async function finish(context) {
+  const { repo, scope, read, write, hash, cache, started } = context;
+  const base = 'tests/integration/agent-bash-coherent-author-20260829/';
+  const preseal = read(base + 'stage-b0-r3/PRESEAL.json'); assert.equal(preseal.sha256, '78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7');
+  const old = JSON.parse(preseal.body);
+  const workflowPin = old.stageFiles.find(row => row.target === 'workflows.mjs');
+  const fixturePin = old.stageFiles.find(row => row.target === 'fixture.json');
+  const workflow = read(workflowPin.source); assert.equal(workflow.bytes, workflowPin.bytes); assert.equal(workflow.sha256, workflowPin.sha256);
+  const fixture = read(fixturePin.source); assert.equal(fixture.bytes, fixturePin.bytes); assert.equal(fixture.sha256, fixturePin.sha256);
+  const runtimeRows = read('tests/shell/pipestatus-author-20260829/runtime-cases.json'); assert.equal(runtimeRows.sha256, '9ece84f2f5cc4a4916d7deab4a173e17dc4fb5d3b5240267e54adf252d310806');
+  const originalRows = JSON.parse(runtimeRows.body).cases.filter(row => ['R16','R17'].includes(row.id)); assert.equal(originalRows.length, 2);
+  const local = read('tests/shell/pipestatus-author-20260829/local-a-v1/cases.json'); assert.equal(local.sha256, '44ca411e4ad54241ea23edac489710ecc4f50c51a65a1c375a5f06e29a4abc51');
+  const localR17 = JSON.parse(local.body).find(row => row.id === 'R17-UNCHANGED');
+  assert.equal(localR17.script, originalRows.find(row => row.id === 'R17').script); assert.equal(localR17.expected, originalRows.find(row => row.id === 'R17').stdout);
+  const sourceManifest = read('tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/CANDIDATE-INPUTS.json'); assert.equal(sourceManifest.sha256, 'ef910f1c3bccf4f0345a7d938cf9f2969a8d0e03ceaaafa55bf93b837e40cdbd');
+  const primitives = read(base + 'admin-owner-r1/tracked-owner.mjs'); assert.equal(primitives.sha256, '00fdbaef7a6b2d950babe22a0d9e3c6ee0c8265004c88becc485a9f30d64d446');
+  const marker = 'async function runWorkflow'; assert(workflow.body.toString().includes(marker));
+  const metadata = record => ({ path:record.path, bytes:record.bytes, sha256:record.sha256, mode:record.mode });
+  const cases = ids.map(id => id.startsWith('C') ? { id, authority:metadata(workflow), implementation:'existing runWorkflow branch unchanged', status:'UNRUN' } : { ...originalRows.find(row => row.id === id), authority:metadata(runtimeRows), status:'UNRUN' });
+  const inputs = [workflow, fixture, runtimeRows, local, sourceManifest, primitives].map(metadata);
+  const ownFiles = ['contract.mjs','consumer.mjs','coordinator.mjs','finish.mjs','prepare.mjs'].map(name => metadata(read(path.relative(repo, path.join(scope, name)))));
+  const pre = { kind:'SOURCE_DATA_PREPARATION_ONLY', ids, layouts, cells:24, inputs, ownFiles, futureProducer:null, productCalls:0, workerStarts:0,
+    controls:['D01-selector-order','D02-missing-producer','D03-cardinality','D04-own-data-rejection','D05-Worker-denial','D06-beforecase-fit'], bounds };
+  const preBody = Buffer.from(JSON.stringify(pre, null, 2) + '\n'); write(path.join(scope, 'PRESEAL.json'), preBody);
+  const results = [];
+  const control = (id, action) => { action(); results.push({ id, status:'PASS', role:'PURE_DATA_NO_PRODUCT' }); };
+  const descriptor = { path:'/synthetic/receipt', bytes:1, sha256:'a'.repeat(64) };
+  const synthetic = { schema:'FINAL_SMOKE_ADMITTED_PRODUCER_V1', authority:'HASH_SIZE_TYPE_ADMITTED_PRODUCER_RECEIPT', sourceManifest:descriptor, emittedManifest:descriptor, packageManifest:descriptor, package:descriptor, counts:{ sourceInputs:2, emittedFiles:3, packageMembers:4 } };
+  const gate = { selected:[...ids], layout:layouts[0], index:0, now:1000, activeEnd:31000, workers:{ guest:0, regex:0 }, captureRemaining:1048576, workRemaining:1048576 };
+  control('D01-selector-order', () => { assert.equal(beforeCase(gate), 'C01'); assert.throws(() => beforeCase({ ...gate, selected:[...ids].reverse() })); assert.throws(() => beforeCase({ ...gate, selected:[...ids,'C08'] })); });
+  control('D02-missing-producer', () => { assert.throws(() => admitProducerParameter(null)); assert.throws(() => admitProducerParameter({ ...synthetic, authority:'UNBUILT' })); });
+  control('D03-cardinality', () => { const manifests = { source:[{path:'a'},{path:'b'}], emitted:[{path:'a'},{path:'b'},{path:'c'}], members:[{path:'a'},{path:'b'},{path:'c'},{path:'d'}] }; reconcileCardinality(synthetic, manifests); assert.throws(() => reconcileCardinality(synthetic,{ ...manifests, members:[] })); });
+  control('D04-own-data-rejection', () => { let invoked = false; const bad = { ...synthetic }; Object.defineProperty(bad,'counts',{ get(){ invoked=true; return synthetic.counts; }, enumerable:true }); assert.throws(() => admitProducerParameter(bad)); assert.equal(invoked,false); assert.throws(() => admitProducerParameter({ ...synthetic, [Symbol('extra')]:1 })); });
+  control('D05-Worker-denial', () => { assert.throws(() => beforeCase({ ...gate, workers:{guest:1,regex:0} })); assert.throws(() => beforeCase({ ...gate, workers:{guest:0,regex:1} })); });
+  control('D06-beforecase-fit', () => { assert.throws(() => beforeCase({ ...gate, now:1001 })); assert.throws(() => beforeCase({ ...gate,captureRemaining:1048575 })); assert.throws(() => beforeCase({ ...gate,workRemaining:1048575 })); });
+  for (const record of inputs.concat(ownFiles)) { const bytes = fs.readFileSync(record.path); assert.equal(bytes.length,record.bytes); assert.equal(hash(bytes),record.sha256); }
+  const workerProfile = { guest:0, regex:0, nativeOracle:0, reason:'C01 registers an inert provider only; C02 literal equality/printf/cat; C07 printf redirects; C12 injected transport; C13/C14 VFS Git/patch; R16/R17 false/true/printf/local.', inheritedB0AsyncLoaderAdmissions:3, inheritedB0AsyncLoaderPeak:1, strictAllThreadsZero:false, decision:'ROOT must explicitly authorize these loader admissions or separately bind a qualified synchronous-hook successor before activation.' };
+  const proposal = { status:'SOURCE_PURE_READY_NOT_FINAL_EXECUTABLE_ADMISSION', sourceUnion:metadata(sourceManifest), localACandidate:'ec74e14_under_independent_review', finalArtifact:'NOT_BUILT_NOT_ADMITTED', cases, layouts, prospectiveCells:24, workerProfile, bounds,
+    knownRoles:{ coordinator:1, install:1, consumers:3, administrationAllowance:35 }, totalKnownOSCeiling:40,
+    inclusiveSchedule:{ setup:60, install:120, consumers:[270,270,270], activeSlack:30, publication:180 },
+    producerParameter:'Fresh externally hash/type/size-admitted producer receipt and exact source/emitted/package member manifests. Counts reconcile to their admitted arrays; no309/323/1014/HEAD runtime authority.',
+    readinessErratum:'SMOKE-PROPOSAL v2 points to old v2 workflows. Select actual accepted B0 v4 6d8a1985 instead, including corrected C14 Git-diff oracle. No old expected byte edits.',
+    actualBlockers:['local-a independent acceptance/final composition freeze','fresh trusted producer artifact and full member inventory','zero-Worker versus3 inherited async loader admissions ROOT decision','future layout/command/tool/permission paths and independent final preexecution review'],
+    noActivationWindow:true, noProductExecuted:true };
+  write(path.join(scope,'PROPOSAL.json'),Buffer.from(JSON.stringify(proposal,null,2)+'\n'));
+  write(path.join(scope,'SELECTION.json'),Buffer.from(JSON.stringify({ids,layouts,cases},null,2)+'\n'));
+  write(path.join(scope,'CONTROLS.json'),Buffer.from(JSON.stringify({results,startedUTC:new Date(started).toISOString(),endedUTC:new Date().toISOString(),childSpawns:0,productCalls:0},null,2)+'\n'));
+  const report = '# Final coherent smoke: SOURCE/PURE preparation only\n\nEight rows x three layouts =24 UNRUN cells. C01/C02/C07/C12/C13/C14 use exact accepted B0 v4 workflow6d8a1985, not the stale v2 locator in readiness SMOKE-PROPOSAL. Neutral fixturefcb7bae1 unchanged. R16/R17 come from runtime-cases9ece84f2; R17 is byte-identical to local-a R17-UNCHANGED44ca411e. The unrelated local-a SCALAR row is not substituted for R16.\n\nSix PURE DATA controls pass. No product/module/Worker/npm/compiler/install/native execution. Source union323 is a provisional inspected inventory, not a hardcoded future member count. Final local-a-inclusive artifact remains unbuilt and requires a newly admitted producer receipt; consumer parameter schema is not authentication by itself. External type/size/hash admission of receipt and every manifest plus per-file loader binding is mandatory before runSelected.\n\nSelected branches require zero guest/Regex Workers. They do not call regex operators/regex tools or node guest execution; mock curl has no real network. Existing B0 resources guard can use allowance0. Its authenticated loader mechanism nevertheless requires3 async-loader admissions, peak1; therefore strict all-Worker/thread zero is NOT yet qualified. ROOT must explicitly approve that bounded loader profile or separately bind the already-qualified synchronous-hook alternative; no new hook was invented here.\n\ncoordinator.mjs reuses exact tracked-owner00fdbaef, with no ambient launch or new administrative framework. consumer.mjs invokes unchanged workflow branches plus the original R16/R17 script/stdout/status checks; it does not import product by itself. There is intentionally no runnable --run bootstrap/final command: producer/materializer/installed/moved/tool/permission bindings and independent review remain necessary. Maintain raw falsy presence/cleanup observations; disposal is not opaque-provider finalization.\n\nProposal:40knownOS peak3,1200s inclusive =1020active+180publication; setup60/install120/three270s consumers leaves30active slack. Eight30s cases/layout with awaited disposal, cleanup5s bounded by the enclosing clocks. Capture64MiB; sampled logical work256MiB is a cap requiring fresh pre-install fit admission, NOT a demonstrated final-artifact fit or OS quota. No hardcoded emitted/member cardinality, HEAD, or retained old package substitution. No shared test/package/source edits; historical failures and pending local-a status unchanged.\n';
+  write(path.join(scope,'HANDOFF.md'),Buffer.from(report));
+  return { status:proposal.status, controls:results, prospectiveCells:24, actualCells:0, workerProfile, presealSha256:hash(preBody), endedUTC:new Date().toISOString(), childSpawns:0 };
+}
+
+
+FILE /Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/prepare.mjs
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+import readline from 'node:readline';
+const repo = '/Users/kjopek/Workspace/safe-bash';
+const scope = path.join(repo, 'tests/integration/final-smoke-preparation-20260829');
+const raw = '/private/tmp/final-smoke-preparation-20260829';
+const started = Date.now(), deadline = started + 480000;
+let sequence = 0, total = 0, input;
+const cache = new Map();
+const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const clock = () => assert(Date.now() < deadline, 'preparation deadline');
+function write(filename, bytes) {
+  assert(total + bytes.length <= 16 * 1024 * 1024); const descriptor = fs.openSync(filename, 'wx', 0o600);
+  try { let offset = 0; while (offset < bytes.length) { const count = fs.writeSync(descriptor, bytes, offset, bytes.length - offset); assert(count > 0); offset += count; } } finally { fs.closeSync(descriptor); } total += bytes.length;
+}
+function read(relative, expected) {
+  clock(); assert(!path.isAbsolute(relative) && !relative.split('/').includes('..') && path.basename(relative) !== 'AGENTS.md');
+  if (cache.has(relative)) return cache.get(relative);
+  const filename = path.join(repo, relative); const stat = fs.lstatSync(filename); assert(stat.isFile() && !stat.isSymbolicLink() && stat.size <= 1048576);
+  if (expected) assert.equal(stat.size, expected.bytes);
+  const bytes = fs.readFileSync(filename), sha256 = hash(bytes); assert.equal(bytes.length, stat.size);
+  if (expected) assert.equal(sha256, expected.sha256);
+  const after = fs.lstatSync(filename); assert.equal(after.ino, stat.ino); assert.equal(after.mtimeMs, stat.mtimeMs); assert.equal(after.size, stat.size);
+  const record = { path: filename, relative, bytes: stat.size, sha256, mode: stat.mode & 0o7777, body: bytes };
+  write(path.join(raw, `input-${++sequence}.txt`), bytes); cache.set(relative, record); return record;
+}
+function say(value) { const bytes = Buffer.from(JSON.stringify(value) + '\n'); assert(bytes.length < 65536); for (const descriptor of [1,3]) { let offset = 0; while (offset < bytes.length) { const count = fs.writeSync(descriptor, bytes, offset, bytes.length - offset); assert(count > 0); offset += count; } } }
+try {
+  fs.mkdirSync(raw); say({ startedUTC: new Date(started).toISOString(), pid: process.pid, childSpawns: 0 });
+  input = readline.createInterface({ input: process.stdin, terminal: false });
+  for await (const command of input) {
+    clock();
+    if (command.startsWith('read ')) {
+      const [relative, start = '0', length = '5000'] = command.slice(5).split(' '); const record = read(relative);
+      say({ ...record, body: undefined, text: record.body.toString().slice(Number(start), Number(start) + Number(length)) });
+    } else if (command.startsWith('json ')) {
+      const [relative, field] = command.slice(5).split(' '); const record = read(relative); const parsed = JSON.parse(record.body);
+      let selected = field ? parsed[field] : parsed;
+      if (Array.isArray(selected)) selected = selected.filter(row => ['R16','R17','C01','C02','C07','C12','C13','C14'].includes(row.id));
+      say({ ...record, body: undefined, keys: Object.keys(parsed), selected });
+    } else if (command === 'finish') {
+      const { finish } = await import('./finish.mjs'); say(await finish({ repo, scope, raw, read, write, hash, cache, clock, started })); input.close(); break;
+    } else throw new Error('unknown preparation command');
+  }
+} catch (error) { const result = { status: 'PREPARATION_STOP', errorPresent: true, error: String(error?.stack ?? error), actualProduct: 0, startedUTC: new Date(started).toISOString(), endedUTC: new Date().toISOString() }; write(path.join(scope, 'STOP.json'), Buffer.from(JSON.stringify(result, null, 2) + '\n')); say(result); process.exitCode = 78; }
+finally { input?.close(); }

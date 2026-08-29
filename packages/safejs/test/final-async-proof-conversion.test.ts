@@ -158,7 +158,7 @@ it("converts current source functions without invoking them or losing graph iden
   expect(baselineReplay.ok).toBe(true);
   if (replayed.ok && baselineReplay.ok) {
     const baselineValue = deepCopyFromSandbox(baselineReplay.returnValue);
-    expect(baselineValue).toEqual({ ...expected, map: false });
+    expect(baselineValue).toEqual({ ...expected, map: true });
     expect(deepCopyFromSandbox(replayed.returnValue)).toEqual(baselineValue);
   }
   const identities = (records: typeof result.snapshot.hostCalls) =>

@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import {
+  cloneSandboxValue,
   createSandboxClosure,
-  deepCopyToSandbox,
   measureSandboxData,
   type SandboxClosure,
   type SandboxValue
@@ -524,8 +524,8 @@ export class HostCallJournal {
 
 function copyOutcome(outcome: HostCallOutcome): HostCallOutcome {
   return outcome.status === "fulfilled"
-    ? { status: "fulfilled", value: deepCopyToSandbox(outcome.value) }
-    : { status: "rejected", reason: deepCopyToSandbox(outcome.reason) };
+    ? { status: "fulfilled", value: cloneSandboxValue(outcome.value) }
+    : { status: "rejected", reason: cloneSandboxValue(outcome.reason) };
 }
 
 function restoreReplayCalls(

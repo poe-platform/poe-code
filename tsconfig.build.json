@@ -8,5 +8,25 @@
     "sourceMap": true
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["tests", "dist", "node_modules"]
+  "exclude": [
+    "tests",
+    "dist",
+    "node_modules",
+    "src/commands/structured/query-core.ts",
+    "src/commands/xan/argv.ts",
+    "src/commands/xan/budget.ts",
+    "src/commands/xan/commands.ts",
+    "src/commands/xan/csv.ts",
+    "src/commands/xan/index.ts",
+    "src/commands/xan/io.ts",
+    "src/commands/xan/options.ts",
+    "src/commands/xan/selector.ts",
+    "src/commands/xan/sort.ts",
+    "src/commands/xan/writer.ts",
+    "src/commands/yq/accounting.ts",
+    "src/commands/yq/encoder.ts",
+    "src/commands/yq/errors.ts",
+    "src/commands/yq/index.ts",
+    "src/commands/yq/parser.ts"
+  ]
 }

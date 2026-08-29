@@ -1,0 +1,27 @@
+{
+  "id": "final-outer-inventory",
+  "args": [
+    "ls-tree",
+    "-rz",
+    "--full-tree",
+    "88036591c32067ffe86a5950198f9f73fbb5cb63",
+    "--",
+    "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation/",
+    "tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1",
+    "tests/AGENTS.md",
+    "tests/comparison/AGENTS.md",
+    "tests/comparison/v7-r3-independent-20260829/AGENTS.md"
+  ],
+  "pid": 84656,
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  },
+  "bytes": 30876,
+  "errors": [],
+  "stdoutSha256": "36ab40400a3c6f6168c53572233be84a8eee2106df32956aa501ee8a44bbac37"
+}

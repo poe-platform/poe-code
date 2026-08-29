@@ -1,0 +1,19 @@
+[main 65e4d29173ed2cbef981f356a5527e5b88cd7a13] test: freeze actual ERE package receipt before bounded inflation
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 4 files changed, 5046 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A10.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A10.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/PRE-INFLATE-RECEIPT.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package/virtual-bash-0.0.0.tgz

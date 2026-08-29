@@ -1528,7 +1528,7 @@ export class Runtime {
               const binding = arrayStore(state)?.get(match[1]!);
               const selector = match[2];
               if (selector === "@" || selector === "*") return binding ? binding.values.size > 0 : this.variable(state, match[1]!) !== undefined;
-              const index = selector === undefined ? 0 : numericIndex(selector);
+              const index = selector === undefined ? 0 : numericIndex({ decimal: selector });
               if (index === undefined) throw new ConditionalUnsupported("[[ variable index: unsupported conditional profile");
               return binding ? binding.get(index) !== undefined : index === 0 && this.variable(state, match[1]!) !== undefined;
             },

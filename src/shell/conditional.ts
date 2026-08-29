@@ -8,7 +8,8 @@ export type ConditionalExpression =
   | { kind: "unary"; operator: string; operand: Word }
   | { kind: "binary"; operator: string; left: Word; right: Word }
   | { kind: "not"; operand: ConditionalExpression }
-  | { kind: "and" | "or"; left: ConditionalExpression; right: ConditionalExpression };
+  | { kind: "and"; left: ConditionalExpression; right: ConditionalExpression }
+  | { kind: "or"; left: ConditionalExpression; right: ConditionalExpression };
 
 export const conditionalUnary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-s", "-L", "-h", "-r", "-w", "-x", "-v", "-o", "-b", "-c", "-p", "-S", "-t", "-O", "-G", "-R", "-N", "-u", "-g", "-k"]);
 export const conditionalBinary = new Set(["=", "==", "!=", "<", ">", "=~", "-eq", "-ne", "-lt", "-le", "-gt", "-ge", "-nt", "-ot", "-ef"]);

@@ -1,0 +1,123 @@
+{
+  "role": "SOURCE_DATA_ONLY_NOT_PUBLIC80_EXECUTION",
+  "oldRunSha256": "582f7c4df2d3dd3d7f4298b428c548046ceefd8a30d9071be58b7002bbc74570",
+  "newRunSha256": "2b6fbd8a9059abdc1af04e0b9e614b98b50de3987e5a77b305bf94aa1517ac8c",
+  "reverseThreeDeclaredDeltasEqualsOld": true,
+  "deltas": [
+    "one tested argument-helper import",
+    "guarded loader admission role/file/argument block replaces sole conditional --allow-worker prefix",
+    "cleanup label distinguishes loader admissions from unobserved per-Worker exit events"
+  ],
+  "unchangedHistoricalRuntime": [
+    {
+      "path": "run.mjs",
+      "sha256": "582f7c4df2d3dd3d7f4298b428c548046ceefd8a30d9071be58b7002bbc74570"
+    },
+    {
+      "path": "resources.mjs",
+      "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f"
+    },
+    {
+      "path": "worker-policy.mjs",
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+    },
+    {
+      "path": "loader.mjs",
+      "sha256": "9b0bd410ae4a18401f00da6ba2caddc122771b7b1bca910c0affd93a1753e342"
+    }
+  ],
+  "controlSourcePostguards": [
+    {
+      "scope": "original",
+      "path": "admission.mjs",
+      "equal": true
+    },
+    {
+      "scope": "original",
+      "path": "application-error.mjs",
+      "equal": true
+    },
+    {
+      "scope": "original",
+      "path": "application.mjs",
+      "equal": true
+    },
+    {
+      "scope": "original",
+      "path": "bootstrap.mjs",
+      "equal": true
+    },
+    {
+      "scope": "original",
+      "path": "consumer.mjs",
+      "equal": true
+    },
+    {
+      "scope": "original",
+      "path": "controls.mjs",
+      "equal": true
+    },
+    {
+      "scope": "original",
+      "path": "internal-loader-arguments.mjs",
+      "equal": true
+    },
+    {
+      "scope": "original",
+      "path": "tiny-loader.mjs",
+      "equal": true
+    },
+    {
+      "scope": "original",
+      "path": "worker-policy.mjs",
+      "equal": true
+    },
+    {
+      "scope": "correction",
+      "path": "controls-v2.mjs",
+      "equal": true
+    },
+    {
+      "scope": "correction",
+      "path": "consumer-v2.mjs",
+      "equal": true
+    },
+    {
+      "scope": "correction",
+      "path": "admission.mjs",
+      "equal": true
+    },
+    {
+      "scope": "correction",
+      "path": "internal-loader-arguments.mjs",
+      "equal": true
+    },
+    {
+      "scope": "correction",
+      "path": "tiny-loader.mjs",
+      "equal": true
+    },
+    {
+      "scope": "correction",
+      "path": "bootstrap.mjs",
+      "equal": true
+    },
+    {
+      "scope": "correction",
+      "path": "worker-policy.mjs",
+      "equal": true
+    },
+    {
+      "scope": "correction",
+      "path": "application.mjs",
+      "equal": true
+    },
+    {
+      "scope": "correction",
+      "path": "application-error.mjs",
+      "equal": true
+    }
+  ],
+  "fixtureCorrectionSyntaxOnlyAndExplicitRegrouping": true,
+  "applicationPolicyUnchanged": true
+}

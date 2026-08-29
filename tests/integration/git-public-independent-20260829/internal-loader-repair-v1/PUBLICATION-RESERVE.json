@@ -1,0 +1,16 @@
+{
+  "role": "prospective bounded publication reservation",
+  "currentKnownOsChildren": 30,
+  "currentConservativeSlots": 37,
+  "originalEstimatedPlan": 36,
+  "rootHardCap": 64,
+  "remainingPlanned": {
+    "reportPatchAndHelper": 2,
+    "gitPublication": 6
+  },
+  "newConservativeCeiling": 45,
+  "reason": "versioned ordinary helper correction required extra source/preseal administration; no runtime or Worker breadth added",
+  "internalAttemptsExhausted": 12,
+  "applicationActual": 2,
+  "noFurtherLoaderExecution": true
+}

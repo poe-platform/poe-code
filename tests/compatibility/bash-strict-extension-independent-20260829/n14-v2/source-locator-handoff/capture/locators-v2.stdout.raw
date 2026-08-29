@@ -1,0 +1,115 @@
+{
+  "name": "actual-v2/evidence/source-strict-binding.json",
+  "keys": [
+    "root",
+    "inputs",
+    "harness",
+    "trace"
+  ],
+  "scalarFields": {
+    "root": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source",
+    "trace": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source-strict-loads.jsonl"
+  },
+  "collections": {
+    "inputs": {
+      "length": 952,
+      "firstKeys": [
+        "path",
+        "mode",
+        "bytes",
+        "sha256"
+      ]
+    },
+    "harness": {
+      "length": 5,
+      "firstKeys": [
+        "path",
+        "sha256"
+      ]
+    }
+  }
+}
+{
+  "name": "actual-v2/evidence/moved-strict-binding.json",
+  "keys": [
+    "root",
+    "inputs",
+    "harness",
+    "trace"
+  ],
+  "scalarFields": {
+    "root": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/moved package/node_modules/virtual-bash",
+    "trace": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/moved-strict-loads.jsonl"
+  },
+  "collections": {
+    "inputs": {
+      "length": 952,
+      "firstKeys": [
+        "path",
+        "mode",
+        "bytes",
+        "sha256"
+      ]
+    },
+    "harness": {
+      "length": 5,
+      "firstKeys": [
+        "path",
+        "sha256"
+      ]
+    }
+  }
+}
+{
+  "toolShapes": {
+    "typescript": {
+      "keys": [
+        "originalRows",
+        "origin",
+        "version",
+        "omittedInternalBinLinks"
+      ]
+    },
+    "@types/node": {
+      "keys": [
+        "originalRows",
+        "origin",
+        "version",
+        "omittedInternalBinLinks"
+      ]
+    },
+    "undici-types": {
+      "keys": [
+        "originalRows",
+        "origin",
+        "version",
+        "omittedInternalBinLinks"
+      ]
+    },
+    "npm": {
+      "keys": [
+        "originalRows",
+        "origin",
+        "version",
+        "omittedInternalBinLinks"
+      ]
+    }
+  }
+}
+{
+  "records": 19,
+  "archive": {
+    "path": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/virtual-bash-0.0.0.tgz",
+    "type": "regular",
+    "bytes": 872281,
+    "mode": 420,
+    "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+    "observation": "bounded stream hash only; no decompression"
+  },
+  "sourceMaterialization": {
+    "path": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source",
+    "exists": true,
+    "qualification": "existence only, not fresh full content admission"
+  },
+  "elapsedMs": 179813
+}

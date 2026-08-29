@@ -1,0 +1,65 @@
+[
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/FINAL-MANIFEST-v2.json",
+    "type": "regular",
+    "bytes": 379,
+    "mode": 420,
+    "sha256": "026c4a76cd442793276730ca83bafdfcf74e4779138e754537308fc3b8a09b39"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/FINAL-MANIFEST.json",
+    "type": "regular",
+    "bytes": 44778,
+    "mode": 420,
+    "sha256": "c471ecf8d9582fb7fed677ef25e734b51ab8f988a9e55a2c853489016cbdcabb"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/SOURCE.json",
+    "type": "regular",
+    "bytes": 230044,
+    "mode": 420,
+    "sha256": "12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/SOURCE-TREES.json",
+    "type": "regular",
+    "bytes": 14655,
+    "mode": 420,
+    "sha256": "90a458bb23ba83fb13ae4057a905306997ec650e7244f91b3c9acc44a1e17274"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/TOOLS.json",
+    "type": "regular",
+    "bytes": 417978,
+    "mode": 420,
+    "sha256": "0a6f49ac1f57c229cfdb14d92cf6bd3a69ca64791f58d61ff3f472bb8df0e95e"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/TOOL-SUPPLEMENT.json",
+    "type": "regular",
+    "bytes": 524,
+    "mode": 420,
+    "sha256": "3cfcdc1842818c065e071dde569abec728c62bb076cb233a8fe31daff72f0c65"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/EXECUTOR-v2.json",
+    "type": "regular",
+    "bytes": 26762,
+    "mode": 420,
+    "sha256": "a1d5f0c668a8ba52e071dc52d5c933d40e97c858ffe0b94b9feeb56dfa9ee8ac"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/SOURCE-REVIEW.json",
+    "type": "regular",
+    "bytes": 2969,
+    "mode": 420,
+    "sha256": "6a3912073ddc2cdd3a765edd19f9a410be7ba368069a94357c0676903ac9b801"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/RESULT.json",
+    "type": "regular",
+    "bytes": 1651971,
+    "mode": 420,
+    "sha256": "c031715228f24c4bd48a231a87668f153ff7cf1ee2882fde7ac90ed372267a3a"
+  }
+]

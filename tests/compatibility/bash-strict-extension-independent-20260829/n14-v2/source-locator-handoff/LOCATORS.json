@@ -1,0 +1,193 @@
+{
+  "verifiedAt": "2026-08-29T09:51:00.128Z",
+  "records": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/FINAL-MANIFEST-v2.json",
+      "type": "regular",
+      "bytes": 379,
+      "mode": 420,
+      "sha256": "026c4a76cd442793276730ca83bafdfcf74e4779138e754537308fc3b8a09b39"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/FINAL-MANIFEST.json",
+      "type": "regular",
+      "bytes": 44778,
+      "mode": 420,
+      "sha256": "c471ecf8d9582fb7fed677ef25e734b51ab8f988a9e55a2c853489016cbdcabb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/SOURCE.json",
+      "type": "regular",
+      "bytes": 230044,
+      "mode": 420,
+      "sha256": "12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/SOURCE-TREES.json",
+      "type": "regular",
+      "bytes": 14655,
+      "mode": 420,
+      "sha256": "90a458bb23ba83fb13ae4057a905306997ec650e7244f91b3c9acc44a1e17274"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/TOOLS.json",
+      "type": "regular",
+      "bytes": 417978,
+      "mode": 420,
+      "sha256": "0a6f49ac1f57c229cfdb14d92cf6bd3a69ca64791f58d61ff3f472bb8df0e95e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/TOOL-SUPPLEMENT.json",
+      "type": "regular",
+      "bytes": 524,
+      "mode": 420,
+      "sha256": "3cfcdc1842818c065e071dde569abec728c62bb076cb233a8fe31daff72f0c65"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/EXECUTOR-v2.json",
+      "type": "regular",
+      "bytes": 26762,
+      "mode": 420,
+      "sha256": "a1d5f0c668a8ba52e071dc52d5c933d40e97c858ffe0b94b9feeb56dfa9ee8ac"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/SOURCE-REVIEW.json",
+      "type": "regular",
+      "bytes": 2969,
+      "mode": 420,
+      "sha256": "6a3912073ddc2cdd3a765edd19f9a410be7ba368069a94357c0676903ac9b801"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/RESULT.json",
+      "type": "regular",
+      "bytes": 1651971,
+      "mode": 420,
+      "sha256": "c031715228f24c4bd48a231a87668f153ff7cf1ee2882fde7ac90ed372267a3a"
+    },
+    {
+      "path": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/virtual-bash-0.0.0.tgz",
+      "type": "regular",
+      "bytes": 872281,
+      "mode": 420,
+      "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+      "observation": "bounded stream hash only; no decompression"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/EVIDENCE-MANIFEST.json",
+      "type": "regular",
+      "bytes": 6683,
+      "mode": 420,
+      "sha256": "320bab5fc4e62a9f57e475e89be6075f6ede828e84803631e173355a8317a418"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/package-admission.mjs",
+      "type": "regular",
+      "bytes": 3895,
+      "mode": 420,
+      "sha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/parse-manifest.mjs",
+      "type": "regular",
+      "bytes": 2860,
+      "mode": 420,
+      "sha256": "0dd49a2e6fa0d222ada2477937a482aed613f220f28bef1f790cb06b61270f61"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/EXPECTED-MEMBERS.json",
+      "type": "regular",
+      "bytes": 166933,
+      "mode": 420,
+      "sha256": "9800c6e7b6025c548c7b6be8376ca4804b5d3601115578c264ba7f7dd5b35011"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/admission.mjs",
+      "type": "regular",
+      "bytes": 2193,
+      "mode": 420,
+      "sha256": "9a7273e21ff928b421728977daed70e4736352687c1b9e5b6fa449b4df510fae"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/run-v2.mjs",
+      "type": "regular",
+      "bytes": 30558,
+      "mode": 420,
+      "sha256": "27513d8c4c158999c42508fe797831280657e50f2f96eacd345871eb1d71dfac"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/source-strict-binding.json",
+      "type": "regular",
+      "bytes": 134560,
+      "mode": 420,
+      "sha256": "852ba942337c667c3bd5fd86447079c0b355008d3f352cf40a3ebec5f583bb87"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/moved-strict-binding.json",
+      "type": "regular",
+      "bytes": 134580,
+      "mode": 420,
+      "sha256": "36edbf3ba549e5c31d94c63b52bce858f1f9e0cde5519b1e4b2da09f74d0da87"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/source-strict-loads.jsonl",
+      "type": "regular",
+      "bytes": 49428,
+      "mode": 420,
+      "sha256": "00e88e0fbbde60b1573cfc4f3f27abd8cfad740a8c78d4be2022250f0419aa18"
+    }
+  ],
+  "sourceManifest": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "inputs": 293,
+  "blobAvailability": "293/293 stored blob/type/size rows verified from captured metadata command; content SHA256 must be checked freshly during reconstruction",
+  "archive": {
+    "path": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/virtual-bash-0.0.0.tgz",
+    "type": "regular",
+    "bytes": 872281,
+    "mode": 420,
+    "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+    "observation": "bounded stream hash only; no decompression"
+  },
+  "shippingInventory": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/RESULT.json",
+    "field": "package.members",
+    "count": 954
+  },
+  "sourceMaterialization": {
+    "path": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source",
+    "exists": true,
+    "qualification": "existence only, not fresh full content admission"
+  },
+  "tools": {
+    "node": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "typescript": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "version": "5.9.3",
+      "inventorySha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41"
+    },
+    "npm": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+      "version": "10.9.7",
+      "inventorySha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    "@types/node": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+      "version": "22.20.1",
+      "inventorySha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae"
+    },
+    "undici-types": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+      "version": "6.21.0",
+      "inventorySha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986"
+    }
+  },
+  "wrongLocator": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/BINDING-PROOF.json",
+    "status": "ENOENT in fully captured source/data helper; not a valid locator and not reused",
+    "qualification": "This guessed historical citation violated the no-guessed-locator instruction; preserved, no product/archive decoding occurred. Successor locators selected from authenticated inventory."
+  },
+  "reconstructionRequired": "source.inputs is authoritative; use each row.blob, not computedTree:path or optional revision:path"
+}

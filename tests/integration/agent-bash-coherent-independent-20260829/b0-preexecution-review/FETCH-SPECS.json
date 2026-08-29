@@ -1,0 +1,23 @@
+[
+  "db6306798211811ffba11e8abaf6d977fcf89768:tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/common.mjs",
+  "db6306798211811ffba11e8abaf6d977fcf89768:tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/PRESEAL.json",
+  "db6306798211811ffba11e8abaf6d977fcf89768:tests/integration/agent-bash-coherent-author-20260829/v4/PRESEAL.json",
+  "db6306798211811ffba11e8abaf6d977fcf89768:tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE.json",
+  "db6306798211811ffba11e8abaf6d977fcf89768:tests/integration/agent-bash-coherent-author-20260829/v2/TOOLS.json",
+  "db6306798211811ffba11e8abaf6d977fcf89768:tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/TOOLS-BEFORE.json",
+  "db6306798211811ffba11e8abaf6d977fcf89768:tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/EMITTED.json",
+  "db6306798211811ffba11e8abaf6d977fcf89768:tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/PACKAGE-MEMBERS.json",
+  "db6306798211811ffba11e8abaf6d977fcf89768:tests/integration/agent-bash-coherent-author-20260829/v4/workflows.mjs",
+  "db6306798211811ffba11e8abaf6d977fcf89768:tests/integration/agent-bash-coherent-author-20260829/v2/NEUTRAL-FIXTURE.json",
+  "ab976f5ee31d0a793d6016f13cc46e6960ace2aa:tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/PRESEAL.json",
+  "955e7eb7d7f49feb4cf288fcb58a6ba6125073f0:tests/integration/agent-bash-coherent-author-20260829/v4/PRESEAL.json",
+  "d8524695:tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz",
+  "d8524695:tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/ROOT-IDENTITY.json",
+  "d8524695:tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/SOURCE-BEFORE.json",
+  "d8524695:tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/TOOLS-BEFORE.json",
+  "d8524695:tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/EMITTED.json",
+  "d8524695:tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/PACKAGE-OUTPUT-RECEIPT.json",
+  "d8524695:tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/PACKAGE-MEMBERS.json",
+  "d8524695:tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/RESULT.json",
+  "d8524695:tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/SELECTED-SOURCE.json"
+]

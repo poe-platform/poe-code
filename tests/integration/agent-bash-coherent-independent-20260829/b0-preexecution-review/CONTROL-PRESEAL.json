@@ -1,0 +1,60 @@
+{
+  "created": "2026-08-29T11:14:27.845Z",
+  "deadline": "2026-08-29T11:25:25.281Z",
+  "candidate": "db6306798211811ffba11e8abaf6d977fcf89768",
+  "files": [
+    {
+      "path": "capsule/stage-a-r2/common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+    },
+    {
+      "path": "capsule/stage-b0-r2/controls.mjs",
+      "bytes": 1509,
+      "sha256": "795f8f376a83452f1c6301e776706e43f71a850f2c3432a950368e58f665a8d6"
+    },
+    {
+      "path": "capsule/stage-b0-r2/LOCATOR-IDENTITIES.json",
+      "bytes": 796,
+      "sha256": "29290a473b51532a9fda226924f0f52e5996dbb479a07cffd99f854114c66a60"
+    },
+    {
+      "path": "independent-controls.mjs",
+      "bytes": 5266,
+      "sha256": "7f28ca28fc9d35f6ce0bd2c48d18498e8a5e02ee9e73e8349b9c9e8fff784ecc"
+    },
+    {
+      "path": "CONTROL-POLICY.md",
+      "bytes": 1666,
+      "sha256": "29ccd6a83bd9755bc8f4d384e8b594b477d3f5f15f53a6993a768576131e6a1a"
+    }
+  ],
+  "roles": [
+    {
+      "id": "author-data",
+      "entry": "capsule/stage-b0-r2/controls.mjs",
+      "controls": 6,
+      "seconds": 30
+    },
+    {
+      "id": "independent-synthetic",
+      "entry": "independent-controls.mjs",
+      "families": 6,
+      "predicates": 9,
+      "seconds": 30
+    }
+  ],
+  "caps": {
+    "nodeControllers": 2,
+    "realChildFixtures": 0,
+    "productImports": 0,
+    "workers": 0,
+    "peak": 1,
+    "capturePerController": 1048576
+  },
+  "patch": {
+    "pid": 2465,
+    "status": 0,
+    "signal": null
+  }
+}

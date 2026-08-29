@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+const key = '__CF_USER_TEXT_ENCODING';
+const names = Object.keys(process.env).sort();
+if (names.length > 32 || names.some(name => Buffer.byteLength(name) > 128)) throw Error('ENV_KEY_BOUND');
+const present = Object.hasOwn(process.env, key);
+const value = present ? process.env[key] : undefined;
+const valueBytes = typeof value === 'string' ? Buffer.byteLength(value) : null;
+const uid = process.getuid();
+const boundedValue = valueBytes !== null && valueBytes <= 128 ? value : null;
+const match = typeof boundedValue === 'string' ? /^0x([0-9a-fA-F]{1,8}):0x0:0x0$/.exec(boundedValue) : null;
+const qualified = process.platform === 'darwin' && Number.isSafeInteger(uid) && uid >= 0 && names.length === 1 && names[0] === key && present && typeof value === 'string' && valueBytes <= 128 && match !== null && Number.parseInt(match[1], 16) === uid;
+const receipt = { schema: 'ONE_HOST_NODE_ENV_PROBE_V1', pid: process.pid, parentPid: process.ppid, platform: process.platform, uid, names, key, present, type: typeof value, value: boundedValue, valueBytes, qualified, origin: 'UNKNOWN', guestEnvironmentChanged: false };
+fs.writeSync(1, JSON.stringify(receipt) + '\n');
+process.exitCode = qualified ? 0 : 73;

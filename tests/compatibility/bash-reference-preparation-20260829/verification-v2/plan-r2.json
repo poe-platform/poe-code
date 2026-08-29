@@ -1,0 +1,1420 @@
+{
+  "sourceCommits": [
+    "822e82a70dfebc071d3b6e27bc78967afa40a993",
+    "193efc87c3ed3e1245b9d0a2d76d4ba293f54c88"
+  ],
+  "authoritativePrimary": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+  "pairs": [
+    {
+      "id": "PAIR-01",
+      "name": "bash-5.3.tar.gz",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash-5.3.tar.gz.data",
+        "bytes": 11355854,
+        "mode": "600",
+        "sha256": "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash-5.3.tar.gz.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "bd32023612c9554182393b10d9db909fc5e35e2f07b38e327ff65e500288a9ad",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-01/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash-5.3.tar.gz.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash-5.3.tar.gz.data"
+      ]
+    },
+    {
+      "id": "PAIR-02",
+      "name": "bash53-001",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-001.data",
+        "bytes": 1531,
+        "mode": "600",
+        "sha256": "1f608434364af86b9b45c8b0ea3fb3b165fb830d27697e6cdfc7ac17dee3287f",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-001.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "47a678b49a5b5c63f56cf119a65be650d37b922e49ef4263654fc7842bc7f4c6",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-02/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-001.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-001.data"
+      ]
+    },
+    {
+      "id": "PAIR-03",
+      "name": "bash53-002",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-002.data",
+        "bytes": 2635,
+        "mode": "600",
+        "sha256": "e385548a00130765ec7938a56fbdca52447ab41fabc95a25f19ade527e282001",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-002.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "693d6b30c3cbcbcb30ad262b1b870fd33ee6f56113146b0f3586577af57d3f3f",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-03/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-002.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-002.data"
+      ]
+    },
+    {
+      "id": "PAIR-04",
+      "name": "bash53-003",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-003.data",
+        "bytes": 2683,
+        "mode": "600",
+        "sha256": "f245d9c7dc3f5a20d84b53d249334747940936f09dc97e1dcb89fc3ab37d60ed",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-003.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "975ea7c4d40ec435ed8d453b2802f4d61916db1fa2d56f760db5b13a8b918500",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-04/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-003.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-003.data"
+      ]
+    },
+    {
+      "id": "PAIR-05",
+      "name": "bash53-004",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-004.data",
+        "bytes": 1266,
+        "mode": "600",
+        "sha256": "9591d245045529f32f0812f94180b9d9ce9023f5a765c039b852e5dfc99747d0",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-004.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "8014107113756b307b9e79b9d17a99806e7e529694d3e90c906bc2ef8cf8ca2e",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-05/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-004.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-004.data"
+      ]
+    },
+    {
+      "id": "PAIR-06",
+      "name": "bash53-005",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-005.data",
+        "bytes": 1072,
+        "mode": "600",
+        "sha256": "cca1ef52dbbf433bc98e33269b64b2c814028efe2538be1e2c9a377da90bc99d",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-005.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "cb47825ff8ed52574bc15550aa4175d8e989955644f8e94a4d25047f8f1c8654",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-06/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-005.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-005.data"
+      ]
+    },
+    {
+      "id": "PAIR-07",
+      "name": "bash53-006",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-006.data",
+        "bytes": 1346,
+        "mode": "600",
+        "sha256": "29119addefed8eff91ae37fd51822c31780ee30d4a28376e96002706c995ff10",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-006.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "0039bdd8d88c9150358bbfb3155a97019b9b88cd9a8c6d4ad5d7a19de65c51e7",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-07/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-006.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-006.data"
+      ]
+    },
+    {
+      "id": "PAIR-08",
+      "name": "bash53-007",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-007.data",
+        "bytes": 1437,
+        "mode": "600",
+        "sha256": "c0976bbfffa1453c7cfdd62058f206a318568ff2d690f5d4fa048793fa3eb299",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-007.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "66ef5f0e535594c9836810aba5b9e4a0cd23a2fb258a01f5e34a950618e4faea",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-08/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-007.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-007.data"
+      ]
+    },
+    {
+      "id": "PAIR-09",
+      "name": "bash53-008",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-008.data",
+        "bytes": 5717,
+        "mode": "600",
+        "sha256": "097cd723cbfb8907674ac32214063a3fd85282657ec5b4e544d2c0f719653fb4",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-008.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "09e80b5a51d848da582b61aa99e2a18e4f5c7102348c8e16f735dd9dd8b3405f",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-09/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-008.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-008.data"
+      ]
+    },
+    {
+      "id": "PAIR-10",
+      "name": "bash53-009",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-009.data",
+        "bytes": 2468,
+        "mode": "600",
+        "sha256": "eee30fe78a4b0cb2fe20e010e00308899cfc613e0774ebb3c8557a1552f24f8c",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-009.sig.data",
+        "bytes": 95,
+        "mode": "600",
+        "sha256": "153a8b129f2a4d97e75ccedda7cda032283d3976196b831a191f391a62a8120c",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-009.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-009.data"
+      ]
+    },
+    {
+      "id": "PAIR-11",
+      "name": "bash53-010",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-010.data",
+        "bytes": 1457,
+        "mode": "600",
+        "sha256": "cf76f1cce2ea300c18bff9f002d21f280cc931acd17c28518110b93fe6e72569",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-010.sig.data",
+        "bytes": 123,
+        "mode": "600",
+        "sha256": "fbf008c39eaf01401df6ade2a9b8ac38a173cce2025523c6b0919c54d8bea69d",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-11/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-010.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-010.data"
+      ]
+    },
+    {
+      "id": "PAIR-12",
+      "name": "bash53-011",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-011.data",
+        "bytes": 2251,
+        "mode": "600",
+        "sha256": "0298df8f5ea2a31d3be43ed7d269c5b3c7c342dd5b570bea7f64d66dcbbe7531",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-011.sig.data",
+        "bytes": 123,
+        "mode": "600",
+        "sha256": "97a2fefb3ac297635b54662c201b80edd7f54276a0eabb54494fe5d17443fb0f",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-12/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-011.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-011.data"
+      ]
+    },
+    {
+      "id": "PAIR-13",
+      "name": "bash53-012",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-012.data",
+        "bytes": 2378,
+        "mode": "600",
+        "sha256": "d71379b39bebaedaf123414414e77fb458a0a43b9ad3116594c6df7ca6754573",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-012.sig.data",
+        "bytes": 123,
+        "mode": "600",
+        "sha256": "536ccbaff4fd28c95fb0394bea230b125d607821d12fee3f231f44682aa2c8af",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-13/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-012.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-012.data"
+      ]
+    },
+    {
+      "id": "PAIR-14",
+      "name": "bash53-013",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-013.data",
+        "bytes": 1467,
+        "mode": "600",
+        "sha256": "042f9cda967e24bf4211944697441e93d06ff42b4b998629a98a1b249279f200",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-013.sig.data",
+        "bytes": 123,
+        "mode": "600",
+        "sha256": "c1ed27f2231f982e494e3bb73f53c9310f8853ee46354b993114cc8c1030eb22",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-14/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-013.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-013.data"
+      ]
+    },
+    {
+      "id": "PAIR-15",
+      "name": "bash53-014",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-014.data",
+        "bytes": 2229,
+        "mode": "600",
+        "sha256": "bd4360b401d38507e358783dcad8536a99c6789f0d3a5bd0cfb8c4a34144696c",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-014.sig.data",
+        "bytes": 123,
+        "mode": "600",
+        "sha256": "fa7746cd7c02a03a752d41c5dea8343a8ef4ffd9d0fe88b1e3247f9d0678e80b",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-15/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-014.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-014.data"
+      ]
+    },
+    {
+      "id": "PAIR-16",
+      "name": "bash53-015",
+      "payload": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-015.data",
+        "bytes": 2151,
+        "mode": "600",
+        "sha256": "55b79ceee2fc27f6767eed697e939a7eb2fe2a28c01556bd75f18d581014f46e",
+        "role": "OPAQUE_SOURCE"
+      },
+      "signature": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-015.sig.data",
+        "bytes": 123,
+        "mode": "600",
+        "sha256": "8a432fbe5bd1f0d4f5ecbcb7a462009fe7f780a8c5cf0e71b423692aaf22bfc5",
+        "role": "OPAQUE_DETACHED_SIGNATURE"
+      },
+      "argv": [
+        "--homedir",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-16/gnupg",
+        "--keyring",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+        "--status-fd",
+        "1",
+        "--",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-015.sig.data",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-015.data"
+      ]
+    }
+  ],
+  "acquiredArtifacts": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash-5.3.tar.gz.data",
+      "bytes": 11355854,
+      "mode": "600",
+      "sha256": "0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba",
+      "role": "OPAQUE_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash-5.3.tar.gz.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "bd32023612c9554182393b10d9db909fc5e35e2f07b38e327ff65e500288a9ad",
+      "role": "OPAQUE_DETACHED_SIGNATURE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-001.data",
+      "bytes": 1531,
+      "mode": "600",
+      "sha256": "1f608434364af86b9b45c8b0ea3fb3b165fb830d27697e6cdfc7ac17dee3287f",
+      "role": "OPAQUE_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-001.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "47a678b49a5b5c63f56cf119a65be650d37b922e49ef4263654fc7842bc7f4c6",
+      "role": "OPAQUE_DETACHED_SIGNATURE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-002.data",
+      "bytes": 2635,
+      "mode": "600",
+      "sha256": "e385548a00130765ec7938a56fbdca52447ab41fabc95a25f19ade527e282001",
+      "role": "OPAQUE_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-002.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "693d6b30c3cbcbcb30ad262b1b870fd33ee6f56113146b0f3586577af57d3f3f",
+      "role": "OPAQUE_DETACHED_SIGNATURE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-003.data",
+      "bytes": 2683,
+      "mode": "600",
+      "sha256": "f245d9c7dc3f5a20d84b53d249334747940936f09dc97e1dcb89fc3ab37d60ed",
+      "role": "OPAQUE_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-003.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "975ea7c4d40ec435ed8d453b2802f4d61916db1fa2d56f760db5b13a8b918500",
+      "role": "OPAQUE_DETACHED_SIGNATURE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-004.data",
+      "bytes": 1266,
+      "mode": "600",
+      "sha256": "9591d245045529f32f0812f94180b9d9ce9023f5a765c039b852e5dfc99747d0",
+      "role": "OPAQUE_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-004.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "8014107113756b307b9e79b9d17a99806e7e529694d3e90c906bc2ef8cf8ca2e",
+      "role": "OPAQUE_DETACHED_SIGNATURE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-005.data",
+      "bytes": 1072,
+      "mode": "600",
+      "sha256": "cca1ef52dbbf433bc98e33269b64b2c814028efe2538be1e2c9a377da90bc99d",
+      "role": "OPAQUE_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-005.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "cb47825ff8ed52574bc15550aa4175d8e989955644f8e94a4d25047f8f1c8654",
+      "role": "OPAQUE_DETACHED_SIGNATURE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-006.data",
+      "bytes": 1346,
+      "mode": "600",
+      "sha256": "29119addefed8eff91ae37fd51822c31780ee30d4a28376e96002706c995ff10",
+      "role": "OPAQUE_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-006.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "0039bdd8d88c9150358bbfb3155a97019b9b88cd9a8c6d4ad5d7a19de65c51e7",
+      "role": "OPAQUE_DETACHED_SIGNATURE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-007.data",
+      "bytes": 1437,
+      "mode": "600",
+      "sha256": "c0976bbfffa1453c7cfdd62058f206a318568ff2d690f5d4fa048793fa3eb299",
+      "role": "OPAQUE_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-007.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "66ef5f0e535594c9836810aba5b9e4a0cd23a2fb258a01f5e34a950618e4faea",
+      "role": "OPAQUE_DETACHED_SIGNATURE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-008.data",
+      "bytes": 5717,
+      "mode": "600",
+      "sha256": "097cd723cbfb8907674ac32214063a3fd85282657ec5b4e544d2c0f719653fb4",
+      "role": "OPAQUE_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-008.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "09e80b5a51d848da582b61aa99e2a18e4f5c7102348c8e16f735dd9dd8b3405f",
+      "role": "OPAQUE_DETACHED_SIGNATURE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-009.data",
+      "bytes": 2468,
+      "mode": "600",
+      "sha256": "eee30fe78a4b0cb2fe20e010e00308899cfc613e0774ebb3c8557a1552f24f8c",
+      "role": "OPAQUE_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-009.sig.data",
+      "bytes": 95,
+      "mode": "600",
+      "sha256": "153a8b129f2a4d97e75ccedda7cda032283d3976196b831a191f391a62a8120c",
+      "role": "OPAQUE_DETACHED_SIGNATURE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-010.data",
+      "bytes": 1457,
+      "mode": "600",
+      "sha256": "cf76f1cce2ea300c18bff9f002d21f280cc931acd17c28518110b93fe6e72569",
+      "role": "OPAQUE_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-010.sig.data",
+      "bytes": 123,
+      "mode": "600",
+      "sha256": "fbf008c39eaf01401df6ade2a9b8ac38a173cce2025523c6b0919c54d8bea69d",
+      "role": "OPAQUE_DETACHED_SIGNATURE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-011.data",
+      "bytes": 2251,
+      "mode": "600",
+      "sha256": "0298df8f5ea2a31d3be43ed7d269c5b3c7c342dd5b570bea7f64d66dcbbe7531",
+      "role": "OPAQUE_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-011.sig.data",
+      "bytes": 123,
+      "mode": "600",
+      "sha256": "97a2fefb3ac297635b54662c201b80edd7f54276a0eabb54494fe5d17443fb0f",
+      "role": "OPAQUE_DETACHED_SIGNATURE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-012.data",
+      "bytes": 2378,
+      "mode": "600",
+      "sha256": "d71379b39bebaedaf123414414e77fb458a0a43b9ad3116594c6df7ca6754573",
+      "role": "OPAQUE_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-012.sig.data",
+      "bytes": 123,
+      "mode": "600",
+      "sha256": "536ccbaff4fd28c95fb0394bea230b125d607821d12fee3f231f44682aa2c8af",
+      "role": "OPAQUE_DETACHED_SIGNATURE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-013.data",
+      "bytes": 1467,
+      "mode": "600",
+      "sha256": "042f9cda967e24bf4211944697441e93d06ff42b4b998629a98a1b249279f200",
+      "role": "OPAQUE_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-013.sig.data",
+      "bytes": 123,
+      "mode": "600",
+      "sha256": "c1ed27f2231f982e494e3bb73f53c9310f8853ee46354b993114cc8c1030eb22",
+      "role": "OPAQUE_DETACHED_SIGNATURE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-014.data",
+      "bytes": 2229,
+      "mode": "600",
+      "sha256": "bd4360b401d38507e358783dcad8536a99c6789f0d3a5bd0cfb8c4a34144696c",
+      "role": "OPAQUE_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-014.sig.data",
+      "bytes": 123,
+      "mode": "600",
+      "sha256": "fa7746cd7c02a03a752d41c5dea8343a8ef4ffd9d0fe88b1e3247f9d0678e80b",
+      "role": "OPAQUE_DETACHED_SIGNATURE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-015.data",
+      "bytes": 2151,
+      "mode": "600",
+      "sha256": "55b79ceee2fc27f6767eed697e939a7eb2fe2a28c01556bd75f18d581014f46e",
+      "role": "OPAQUE_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-015.sig.data",
+      "bytes": 123,
+      "mode": "600",
+      "sha256": "8a432fbe5bd1f0d4f5ecbcb7a462009fe7f780a8c5cf0e71b423692aaf22bfc5",
+      "role": "OPAQUE_DETACHED_SIGNATURE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/gnu-keyring.gpg.data",
+      "bytes": 3687794,
+      "mode": "600",
+      "sha256": "b136fbe57ade4ee5270ca66c402cae7b50349fd07646b5b3de7962d58d4df608",
+      "role": "OFFICIAL_GLOBAL_KEYRING_NOT_YET_VERIFIED"
+    }
+  ],
+  "authorityArtifacts": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/AUTHORITY-CACHE-01/CACHE.json",
+      "bytes": 5691,
+      "mode": "600",
+      "sha256": "0460874baae0be23114899072eb4e14d650bffb01d17288ae22471869c1509a1",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/AUTHORITY-CACHE-01/PUBLISHER.json",
+      "bytes": 358,
+      "mode": "600",
+      "sha256": "55d911544a886326361a44b1657385de46e65753c61554d0c0bee1a32a91d782",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/AUTHORITY-CACHE-01/RESULT.json",
+      "bytes": 523,
+      "mode": "600",
+      "sha256": "3e58585fd0c4439670c7cb21ce6eb0e8e8cc83bb716eeecdf8f01c658f154a02",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/AUTHORITY-CACHE-01/STARTUP.json",
+      "bytes": 82,
+      "mode": "600",
+      "sha256": "8e85a2ebe553ed7deff4ec9d5ccfca2969c49f5cc1aca3e3e8aba31a222e02bb",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/AUTHORITY-CACHE-01/chet.html.data",
+      "bytes": 9654,
+      "mode": "600",
+      "sha256": "56b89c2bfb00f86ca518661d5addd5e3d0d1f7bfe14060be3e610d9035eab177",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/AUTHORITY-CACHE-PRESEAL.md",
+      "bytes": 1336,
+      "mode": "644",
+      "sha256": "d6da1291e4d7183e5771c28f63a671038086a3bf6c6508e68b476d405262d412",
+      "role": "AUTHORED_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/1.admission.json",
+      "bytes": 1033,
+      "mode": "600",
+      "sha256": "fff56ba221c911287bc5330ba8f53f2ea5f5bc03937eee02d63f7844dbc036e1",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/1.result.json",
+      "bytes": 479,
+      "mode": "600",
+      "sha256": "5699c47b48b653f752498b756dc0a4ac434add9daa4a759b866d7927a9518f42",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/1.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/1.stdout.raw",
+      "bytes": 2504,
+      "mode": "600",
+      "sha256": "a8685cff478ee5c343f184de6c0147f8a3c0057fcc1d08fb42abc58b084101ee",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/2.admission.json",
+      "bytes": 1325,
+      "mode": "600",
+      "sha256": "f76b20b903c0ec8a2377ea0d9ffe374a09f7a0ebcdd19bf1557bf87e05df6502",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/2.result.json",
+      "bytes": 488,
+      "mode": "600",
+      "sha256": "c6435bd35ab8cfea2826d4118456a8910c5fc91d74a03e144bf05fe21ac8b13a",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/2.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/2.stdout.raw",
+      "bytes": 2516,
+      "mode": "600",
+      "sha256": "a8671ea3366f0a9c9a853f1a00c07024ae6a84af690eca94cbc0c47b13fbe620",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/3.admission.json",
+      "bytes": 1033,
+      "mode": "600",
+      "sha256": "6307faf798e0888ed52e68f7f44bca1c57ba9ee713bacb86384dd1c5178787a9",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/3.result.json",
+      "bytes": 480,
+      "mode": "600",
+      "sha256": "bee375768d257cbc49b0ead208ba04b2e1e69c6446088f5dcc3c386f393702e4",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/3.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/3.stdout.raw",
+      "bytes": 15753,
+      "mode": "600",
+      "sha256": "f5fd10b55165c2960bf50f8603f928dffbea64fc28798abb6b028bf3f2631365",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/CLOSURE.json",
+      "bytes": 10985,
+      "mode": "600",
+      "sha256": "24982bd729e1cb8b0a9739bcc3fffdf29e1ab5316c4dba2290c061d54fc99bdb",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/RESULT.json",
+      "bytes": 167,
+      "mode": "600",
+      "sha256": "8f5c0d677b9d9bfc195e676cafaab3120038aa81c7846d844cdf3b3b29f4812a",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-01/STARTUP.json",
+      "bytes": 252,
+      "mode": "600",
+      "sha256": "5993cb00ae1e3eb83edd3fed227284d40c4158c6e837fdefd3873c6bbfbd6f25",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/CLOSURE-PRESEAL.md",
+      "bytes": 1611,
+      "mode": "644",
+      "sha256": "e0e0aa3c5a5f775e94f66212019781c6ada78983e14df08039afe774b67b195d",
+      "role": "AUTHORED_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/HANDOFF.md",
+      "bytes": 5864,
+      "mode": "644",
+      "sha256": "16f089ed5637f4ecd20f7a3c42b2bd2d881f2c67ae5c21911d61f10e2a16c359",
+      "role": "AUTHORED_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/KEY-INSPECTION-01/ADMISSION.json",
+      "bytes": 8727,
+      "mode": "600",
+      "sha256": "9950b8fae3f9a2771c67e38296a2266dcd1955b6fd983e67523e40cf9d86ea42",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/KEY-INSPECTION-01/CHILD.json",
+      "bytes": 477,
+      "mode": "600",
+      "sha256": "18994371e33e588552085ef60bbe1d0e4acd6ecc1ffd437deebbfc0582b0ab1b",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/KEY-INSPECTION-01/RESULT.json",
+      "bytes": 238,
+      "mode": "600",
+      "sha256": "f4d47bbb0902ee88d10c646a541007e9a064a020706ef7b811f4778091f39693",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/KEY-INSPECTION-01/STARTUP.json",
+      "bytes": 129,
+      "mode": "600",
+      "sha256": "4cd23f65433a39cc5ea677ec60ea96914a7e4942fe8279a6906f8c5d0095b800",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/KEY-INSPECTION-01/gnupg/trustdb.gpg",
+      "bytes": 1200,
+      "mode": "600",
+      "sha256": "7a09e79a4c3e8f8cf8b0da7b1ec5539f3ff69ff61c97ad671184eefac0389cf5",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/KEY-INSPECTION-01/stderr.raw",
+      "bytes": 88725,
+      "mode": "600",
+      "sha256": "285b802c133bef34c8525f6ea1c46dc76f55cd3e985b4ec3d5978d5d75e4d928",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/KEY-INSPECTION-01/stdout.raw",
+      "bytes": 673,
+      "mode": "600",
+      "sha256": "a81edff0367b2f6a0b056b8677fca39cc5d8775ce899d090587f0e93235e9d30",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/KEY-INSPECTION-PRESEAL.md",
+      "bytes": 2014,
+      "mode": "644",
+      "sha256": "a78f917b02b28af8082b9b09498e3ed97531124a5d608064ad2b7e52975c5447",
+      "role": "AUTHORED_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/OBSERVATIONS.json",
+      "bytes": 171914,
+      "mode": "600",
+      "sha256": "de62ef539eb61dc5f112e9f7d34c75cf7b031124fb2fd4b4fd3ce5f6c7c791ea",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PREPARE-01/METADATA.json",
+      "bytes": 2290,
+      "mode": "600",
+      "sha256": "8231bf62a64451cb499bcf10105954eb39ab9c5cdc5e14cf8c989c4ac4b00d8a",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PREPARE-01/RESULT.json",
+      "bytes": 5545,
+      "mode": "600",
+      "sha256": "8781816715b1222de967f2a9505c22b9a36ea6f4f879dff6f7f9d783d473c4d0",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PREPARE-01/STARTUP.json",
+      "bytes": 1360,
+      "mode": "600",
+      "sha256": "4b1264abdea6db033f0ec30c01993d69b01cff5bcb2b4addf3d52d5002f8d7df",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PREPARE-01/SystemVersion.plist.data",
+      "bytes": 604,
+      "mode": "600",
+      "sha256": "7cd74d8a730f38923ef39aed140d3172b3886e64b55f7489f33cef3731687709",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PREPARE-01/bash-project.html.data",
+      "bytes": 19232,
+      "mode": "600",
+      "sha256": "b86400e9a153274baa306cc0641810fc5ebedb65333c66dbf071ae5dcfda29fc",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PREPARE-01/gpg-guidance.html.data",
+      "bytes": 5115,
+      "mode": "600",
+      "sha256": "8dcaf814b760e32a7d8ce0185baf85a7ac2c4bf512574f113877ab0ffe015d29",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PREPARE-01/gpgv.1.data",
+      "bytes": 5771,
+      "mode": "600",
+      "sha256": "fa83de0430d395e4098b1569fefad441d2f8b0b1cf3c37301a676e3fb4564689",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PREPARE-01/keyring-guidance.html.data",
+      "bytes": 7704,
+      "mode": "600",
+      "sha256": "75d81371f0c5fb2b7aa09407530d28cc136bbcd8c5d8bcbadb9d11a99e925d12",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PREPARE-01/response-1.json",
+      "bytes": 572,
+      "mode": "600",
+      "sha256": "95a8b5a54d88b4355a85ccf1f815ee73d385bf8857072e9700c6955faaa498bb",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PREPARE-01/response-2.json",
+      "bytes": 568,
+      "mode": "600",
+      "sha256": "ad9edcf01c2d510490e36c33ec385fa019ea79316cda01a5f8317c3058f09c9a",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PREPARE-01/response-3.json",
+      "bytes": 439,
+      "mode": "600",
+      "sha256": "efe8416d7c16f85e6f03bedb08b566f0b723e2964df86ada6e6fa15f53e9e97b",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PREPARE-01/response-4.json",
+      "bytes": 447,
+      "mode": "600",
+      "sha256": "e1a5c3656e4d9626015243031a6579897fe7003f6ec703096b7c5ddbd4f8efb9",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PREPARE-01/response-5.json",
+      "bytes": 561,
+      "mode": "600",
+      "sha256": "3d06b9447b53d1a3de8253dbff53c2ab4332526df29e8c95cbc4e20ea6dd7607",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PRESEAL.md",
+      "bytes": 2328,
+      "mode": "644",
+      "sha256": "74ff9e6ed325eb90615cf26d19d16ecf0bd1654ea41704230f550dcd8a6bf6e5",
+      "role": "AUTHORED_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PUBLISHER-KEY-01/RESULT.json",
+      "bytes": 517,
+      "mode": "600",
+      "sha256": "d9f7580005dbc354ea5d9ab94001c7affd54f8bd2a7936c58ee43e33ed1eccf7",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PUBLISHER-KEY-01/STARTUP.json",
+      "bytes": 96,
+      "mode": "600",
+      "sha256": "145127297214972f9f4e99dfa6d38c0b6db78e822e5a72addbadc6d021e1cb0c",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PUBLISHER-KEY-01/maintainer-public-key.data",
+      "bytes": 2200,
+      "mode": "600",
+      "sha256": "db4041b4d3896b9f21250e6c29861958bd5d4781f521f06beda849a9ed79fae8",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PUBLISHER-KEY-PRESEAL.md",
+      "bytes": 853,
+      "mode": "644",
+      "sha256": "2f56e9cc586e0a69bf5a01f624040772771e950aa446f75b8204c1671242a912",
+      "role": "AUTHORED_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/authority-cache.mjs",
+      "bytes": 4352,
+      "mode": "644",
+      "sha256": "abcdba228761eebb551ac9c9bfad19eaced2af593ca3ecf67d29981a308578be",
+      "role": "AUTHORED_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/authority-cache.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/authority-cache.stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/inspect.mjs",
+      "bytes": 7470,
+      "mode": "644",
+      "sha256": "f2afbf517be5be23c2ae5c7380410c7319ccb8cfc9327a94e1c439f12d2e7a06",
+      "role": "AUTHORED_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/inspect.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/inspect.stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/key-inspect.mjs",
+      "bytes": 6118,
+      "mode": "644",
+      "sha256": "f12255f4105052967db61154d3445881174733267b4fb6e9a7cf9d74fdab2e1d",
+      "role": "AUTHORED_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/key-inspect.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/key-inspect.stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/prepare.mjs",
+      "bytes": 5434,
+      "mode": "644",
+      "sha256": "cdd2172b7329835d5c39bda36c261b98df6587b8c2f7e55c21d4e1182a49979b",
+      "role": "AUTHORED_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/prepare.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/prepare.stdout.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/publisher-key.mjs",
+      "bytes": 3113,
+      "mode": "644",
+      "sha256": "842e8fef217a2bcca0695853e789ad88806ab17c7ad312903a2f851b96461e7a",
+      "role": "AUTHORED_SOURCE"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/publisher-key.stderr.raw",
+      "bytes": 0,
+      "mode": "600",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/publisher-key.stdout.raw",
+      "bytes": 927,
+      "mode": "600",
+      "sha256": "1facbcbfb9a56769d91f9b84083d479008a0e7f56d1eec63c58bc30fb3a95ad3",
+      "role": "CAPTURED_METADATA_OR_PUBLIC_DATA"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/seal.mjs",
+      "bytes": 5520,
+      "mode": "644",
+      "sha256": "c96b7113dfde94f148d10d990c37092677d067a910bf6236c21458a497eb57fe",
+      "role": "AUTHORED_SOURCE"
+    }
+  ],
+  "closure": [
+    {
+      "path": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "resolved": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+      "bytes": 538432,
+      "mode": "555",
+      "sha256": "d9eb7bc783a1a0f1f39bb1f12ff0c94d7c2aac3b25aac2a7909a647d60be7bd4"
+    },
+    {
+      "path": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+      "resolved": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+      "bytes": 1074432,
+      "mode": "555",
+      "sha256": "9d8501878158144e8db80be1454f6c69d62b8a97c21441da3b720081f917f8ac"
+    },
+    {
+      "path": "/opt/homebrew/Cellar/gettext/1.0/lib/libintl.8.dylib",
+      "resolved": "/opt/homebrew/Cellar/gettext/1.0/lib/libintl.8.dylib",
+      "bytes": 228800,
+      "mode": "444",
+      "sha256": "0c6d618e75fea85cc3d631e164a71766fba9341d19ce1f723300c52e63037c51"
+    },
+    {
+      "path": "/opt/homebrew/Cellar/libgcrypt/1.12.2/lib/libgcrypt.20.dylib",
+      "resolved": "/opt/homebrew/Cellar/libgcrypt/1.12.2/lib/libgcrypt.20.dylib",
+      "bytes": 974496,
+      "mode": "444",
+      "sha256": "0c69b9bb708895ce5f5f966aefa3db58b3faad7bb7d98c8fde7839c8ce13c644"
+    },
+    {
+      "path": "/opt/homebrew/Cellar/libassuan/3.0.2/lib/libassuan.9.dylib",
+      "resolved": "/opt/homebrew/Cellar/libassuan/3.0.2/lib/libassuan.9.dylib",
+      "bytes": 98896,
+      "mode": "444",
+      "sha256": "95756ea58650c98c22e238599c4cae84319d45062ab143f14ddd498a6f86b658"
+    },
+    {
+      "path": "/opt/homebrew/Cellar/npth/1.8/lib/libnpth.0.dylib",
+      "resolved": "/opt/homebrew/Cellar/npth/1.8/lib/libnpth.0.dylib",
+      "bytes": 54848,
+      "mode": "444",
+      "sha256": "af7db20f7445a08cfca04680e110e414faad8919e4993d7d73d0cc5b9a663e62"
+    },
+    {
+      "path": "/opt/homebrew/Cellar/libgpg-error/1.61/lib/libgpg-error.0.dylib",
+      "resolved": "/opt/homebrew/Cellar/libgpg-error/1.61/lib/libgpg-error.0.dylib",
+      "bytes": 181920,
+      "mode": "444",
+      "sha256": "bff87750b336d72fd4ba3db1f174979e662043b56f1e659c6f2c2a9b5500fa85"
+    },
+    {
+      "path": "/opt/homebrew/Cellar/readline/8.3.3/lib/libreadline.8.3.dylib",
+      "resolved": "/opt/homebrew/Cellar/readline/8.3.3/lib/libreadline.8.3.dylib",
+      "bytes": 314272,
+      "mode": "444",
+      "sha256": "7d74566dcbd3f64a5ec6266c8285e48f0214a9d2f36ad5f158b4282a3f10b9a9"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e",
+      "bytes": 573440,
+      "mode": "755",
+      "regular": true,
+      "sha256": "23f83bb30ccedb95598b24850ac875df4031b84fa76da68cb6b1abff2537ef75"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.01",
+      "bytes": 1702723584,
+      "mode": "755",
+      "regular": true,
+      "sha256": "ce476f10e3ea73246d7afd68d451feabab2cf490879e198964016c733faa1d15"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.02.dylddata",
+      "bytes": 233996288,
+      "mode": "755",
+      "regular": true,
+      "sha256": "e6ceb585882a12a180584cb39654f01cce6f4712ebc806232af230582bb0f7b8"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.03.dyldreadonly",
+      "bytes": 126664704,
+      "mode": "755",
+      "regular": true,
+      "sha256": "c6d9f2c9837e101d8bf63f36a9ef48acb6b0f8cfe940d6ddcd41c4c3f452eef8"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.04.dyldlinkedit",
+      "bytes": 601358336,
+      "mode": "755",
+      "regular": true,
+      "sha256": "e950f0ef3f3aab696926dd725a1ce3792be0b699975881ca6a990a4ad633049e"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.05",
+      "bytes": 1825177600,
+      "mode": "755",
+      "regular": true,
+      "sha256": "e5d615efc54391e8f46bc0c47102b22771d1ea9fcee39c3523ff60900ed03b10"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.06.dylddata",
+      "bytes": 237207552,
+      "mode": "755",
+      "regular": true,
+      "sha256": "723faa7ae72f3643d7b2cd5ee04838e34878086611a8dc06f3d39beb18c36dba"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.07.dyldreadonly",
+      "bytes": 7290880,
+      "mode": "755",
+      "regular": true,
+      "sha256": "5b1b963becd703c424e98cc30e17f0732a0bdc275681957580b8352f3057c6fc"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.08.dyldlinkedit",
+      "bytes": 616185856,
+      "mode": "755",
+      "regular": true,
+      "sha256": "be37939c10b4f7a76a43c44c8556343e4219bd24a49509075ead2a942c146431"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.09",
+      "bytes": 165773312,
+      "mode": "755",
+      "regular": true,
+      "sha256": "568bc08127a319958eb58cc97cb6dbe6037d0bc389d6d796eb3a61bc83dc719d"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.10.dylddata",
+      "bytes": 21872640,
+      "mode": "755",
+      "regular": true,
+      "sha256": "6e7fb49ae747ee5de1eb601863bb3323fe978ce934537fdbc9f524c0c3746578"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.11",
+      "bytes": 32768,
+      "mode": "755",
+      "regular": true,
+      "sha256": "65e7fbc5db98baca30cb60db2ec12c607bc2832f8cc2b43d734290779e127e1b"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.12.dyldlinkedit",
+      "bytes": 249774080,
+      "mode": "755",
+      "regular": true,
+      "sha256": "468c2658c38eb2ddc41bbaeba5e539f403c3afd6fade16704f3216807d5d0f93"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.atlas",
+      "bytes": 2368216,
+      "mode": "755",
+      "regular": true,
+      "sha256": "e0599b7cbba24b52fb4910cda6e9a494e895127de74551699e6e7dd838e61ee6"
+    },
+    {
+      "path": "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e.map",
+      "bytes": 1335703,
+      "mode": "755",
+      "regular": true,
+      "sha256": "22fb14ddcf854e3d828696b9b34b11f247b74ae456468bfc700b8cc20b14365b"
+    },
+    {
+      "path": "/usr/lib/dyld",
+      "resolved": "/usr/lib/dyld",
+      "role": "BINARY",
+      "bytes": 2357376,
+      "mode": "755",
+      "sha256": "a572fe3d9d46fc2c6461745a13940ec63de8c9ab333fcba5ef1e112783e521a7"
+    },
+    {
+      "path": "/System/Library/CoreServices/SystemVersion.plist",
+      "resolved": "/System/Library/CoreServices/SystemVersion.plist",
+      "role": "TEXT",
+      "bytes": 604,
+      "mode": "444",
+      "sha256": "7cd74d8a730f38923ef39aed140d3172b3886e64b55f7489f33cef3731687709",
+      "capture": "SystemVersion.plist.data"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PUBLISHER-KEY-01/maintainer-public-key.data",
+      "bytes": 2200,
+      "mode": "600",
+      "sha256": "db4041b4d3896b9f21250e6c29861958bd5d4781f521f06beda849a9ed79fae8"
+    }
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": "755",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "dev": "16777232",
+    "ino": "3707231"
+  },
+  "gpg": {
+    "path": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+    "resolved": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpg",
+    "bytes": 1074432,
+    "mode": "555",
+    "sha256": "9d8501878158144e8db80be1454f6c69d62b8a97c21441da3b720081f917f8ac"
+  },
+  "gpgv": {
+    "path": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+    "resolved": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+    "bytes": 538432,
+    "mode": "555",
+    "sha256": "d9eb7bc783a1a0f1f39bb1f12ff0c94d7c2aac3b25aac2a7909a647d60be7bd4"
+  },
+  "key": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PUBLISHER-KEY-01/maintainer-public-key.data",
+    "bytes": 2200,
+    "mode": "600",
+    "sha256": "db4041b4d3896b9f21250e6c29861958bd5d4781f521f06beda849a9ed79fae8"
+  },
+  "keyringPath": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+  "dearmorArgs": [
+    "--no-options",
+    "--homedir",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/KEYRING/gnupg",
+    "--batch",
+    "--no-autostart",
+    "--no-default-keyring",
+    "--no-keyring",
+    "--no-auto-check-trustdb",
+    "--no-auto-key-locate",
+    "--no-auto-key-retrieve",
+    "--no-auto-key-import",
+    "--output",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+    "--dearmor",
+    "--",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v1/PUBLISHER-KEY-01/maintainer-public-key.data"
+  ],
+  "output": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/",
+  "maxChildren": 17,
+  "caseMs": 10000,
+  "closeGraceMs": 1000,
+  "streamBytes": 262144,
+  "controllerMs": 263781,
+  "network": false,
+  "globalKeyringUsedForVerification": false,
+  "harnessRevision": {
+    "originalSourceCommit": "c5d4d47a",
+    "originalSourceSha256": "401550f31a05aa0d7db73721d93c0a2e4efc373f3215f8bc88c32ed59f4113b0",
+    "sourceSha256": "e9b71ee922a6bc9a9cd96f2ba182a01baf1c3a5557fe35758d75dfa4badb4d5e",
+    "firstControllerStart": "2026-08-29T05:18:13.259Z",
+    "elapsedBeforeCorrectionMs": 216219,
+    "originalControllerMs": 480000,
+    "noDeadlineReset": true
+  }
+}

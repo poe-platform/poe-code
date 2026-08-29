@@ -1,0 +1,25 @@
+{
+  "executable": "/opt/homebrew/Cellar/gnupg/2.5.21/bin/gpgv",
+  "argv": [
+    "--homedir",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/gnupg",
+    "--keyring",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+    "--status-fd",
+    "1",
+    "--",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-009.sig.data",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-009.data"
+  ],
+  "environment": {
+    "HOME": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/home",
+    "GNUPGHOME": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/gnupg",
+    "TMPDIR": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/tmp",
+    "PATH": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/empty",
+    "LC_ALL": "C",
+    "LANG": "C",
+    "TZ": "UTC",
+    "DYLD_PRINT_LIBRARIES": "1"
+  },
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/PAIR-10/home"
+}

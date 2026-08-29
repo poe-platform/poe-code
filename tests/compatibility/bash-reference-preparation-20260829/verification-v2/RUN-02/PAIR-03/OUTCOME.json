@@ -1,0 +1,97 @@
+{
+  "id": "PAIR-03",
+  "name": "bash53-002",
+  "payload": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-002.data",
+    "bytes": 2635,
+    "mode": "600",
+    "sha256": "e385548a00130765ec7938a56fbdca52447ab41fabc95a25f19ade527e282001",
+    "role": "OPAQUE_SOURCE"
+  },
+  "signature": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/downloads/bash53-002.sig.data",
+    "bytes": 95,
+    "mode": "600",
+    "sha256": "693d6b30c3cbcbcb30ad262b1b870fd33ee6f56113146b0f3586577af57d3f3f",
+    "role": "OPAQUE_DETACHED_SIGNATURE"
+  },
+  "keyring": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-reference-preparation-20260829/verification-v2/RUN-02/key-material/ramey.gpg",
+    "bytes": 1507,
+    "mode": "600",
+    "sha256": "4adabad0482fb4634c0a13c3f3bff27308567a898b29e59c432327e3efddbe94"
+  },
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "machine": [
+    {
+      "raw": "[GNUPG:] NEWSIG",
+      "code": "NEWSIG",
+      "fields": []
+    },
+    {
+      "raw": "[GNUPG:] KEY_CONSIDERED 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 0",
+      "code": "KEY_CONSIDERED",
+      "fields": [
+        "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+        "0"
+      ]
+    },
+    {
+      "raw": "[GNUPG:] SIG_ID 0HhVoWc0O7+9qLCRdl3B3LrzVm0 2025-07-21 1753125487",
+      "code": "SIG_ID",
+      "fields": [
+        "0HhVoWc0O7+9qLCRdl3B3LrzVm0",
+        "2025-07-21",
+        "1753125487"
+      ]
+    },
+    {
+      "raw": "[GNUPG:] GOODSIG BB5869F064EA74AB Chet Ramey <chet@cwru.edu>",
+      "code": "GOODSIG",
+      "fields": [
+        "BB5869F064EA74AB",
+        "Chet",
+        "Ramey",
+        "<chet@cwru.edu>"
+      ]
+    },
+    {
+      "raw": "[GNUPG:] VALIDSIG 7C0135FB088AAF6C66C650B9BB5869F064EA74AB 2025-07-21 1753125487 0 4 0 17 2 00 7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+      "code": "VALIDSIG",
+      "fields": [
+        "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+        "2025-07-21",
+        "1753125487",
+        "0",
+        "4",
+        "0",
+        "17",
+        "2",
+        "00",
+        "7C0135FB088AAF6C66C650B9BB5869F064EA74AB"
+      ]
+    }
+  ],
+  "validSignatures": [
+    {
+      "signingFingerprint": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+      "primaryFingerprintField": "7C0135FB088AAF6C66C650B9BB5869F064EA74AB",
+      "directAttributedPrimaryMatch": true,
+      "signatureDate": "2025-07-21",
+      "timestamp": "1753125487",
+      "expiration": "0",
+      "publicKeyAlgorithm": "17",
+      "digestAlgorithm": "2",
+      "signatureClass": "00"
+    }
+  ],
+  "adverse": [],
+  "attributed": true,
+  "classification": "VALID_SIGNATURE_WITH_SOURCE_ATTRIBUTED_PRIMARY",
+  "unknownSignerHints": [],
+  "imagesObserved": 610,
+  "keyHomeEntries": []
+}

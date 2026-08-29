@@ -4,6 +4,7 @@ import { assertSnapshotGraphDepth } from "../graph-depth.js";
 import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import { getSandboxArgumentEntries, isSandboxArguments } from "../interp/arguments.js";
 import { serializeArguments, type SerializedArguments } from "./arguments.js";
+import { requiresArrayEntries, serializeArray, type SerializedArray } from "./arrays.js";
 
 const SKIP_VALUE = Symbol("SafeJS.skip-dump-value");
 
@@ -18,10 +19,7 @@ type DumpValue =
 
 type DumpHeapValue =
   | SerializedArguments<DumpValue>
-  | {
-      kind: "array";
-      items: DumpValue[];
-    }
+  | SerializedArray<DumpValue>
   | {
       kind: "object";
       entries: Record<string, DumpValue>;
@@ -164,10 +162,10 @@ function serializeHeapReference(
         return serialized === SKIP_VALUE ? { kind: "undefined" } : serialized;
       });
     } else if (Array.isArray(value)) {
-      state.heap[String(id)] = {
-        kind: "array",
-        items: serializeArrayItems(value, path, state)
-      };
+      state.heap[String(id)] = serializeArray(value, (entry, key) => {
+        const serialized = serializeDumpValue(entry, `${path}[${key}]`, state);
+        return serialized === SKIP_VALUE ? { kind: "undefined" } : serialized;
+      });
     } else {
       const errorType = sandboxErrorTypes.get(value);
       state.heap[String(id)] = {
@@ -219,6 +217,7 @@ function indexHeapContainers(snapshot: DumpableSnapshot): WeakMap<object, number
     if (
       stat.count > 1 ||
       stat.cyclic ||
+      (Array.isArray(value) && requiresArrayEntries(value)) ||
       isSandboxArguments(value) ||
       sandboxErrorTypes.has(value)
     ) {
@@ -269,9 +268,7 @@ function collectContainerStats(
 
   const entries = isSandboxArguments(value)
     ? getSandboxArgumentEntries(value).map(([, entry]) => entry)
-    : Array.isArray(value)
-      ? getArrayDataItems(value)
-      : getEnumerableDataValues(value);
+    : getEnumerableDataValues(value);
   for (const entry of entries) {
     collectContainerStats(entry, stats, ancestors);
   }
@@ -302,7 +299,7 @@ function getArrayDataItems(value: unknown[]): unknown[] {
   return items;
 }
 
-function getEnumerableDataEntries(value: Record<string, unknown>): Array<[string, unknown]> {
+function getEnumerableDataEntries(value: object): Array<[string, unknown]> {
   const entries: Array<[string, unknown]> = [];
 
   for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
@@ -316,6 +313,6 @@ function getEnumerableDataEntries(value: Record<string, unknown>): Array<[string
   return entries;
 }
 
-function getEnumerableDataValues(value: Record<string, unknown>): unknown[] {
+function getEnumerableDataValues(value: object): unknown[] {
   return getEnumerableDataEntries(value).map(([, entry]) => entry);
 }

@@ -504,11 +504,20 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
   }
 
   if (serialized.kind === "array") {
-    const array: RuntimeSnapshotValue[] = [];
+    const array = new Array<RuntimeSnapshotValue>(
+      "items" in serialized ? serialized.items.length : serialized.length
+    );
     state.heapValueById.set(id, array);
 
-    for (const entry of serialized.items) {
-      array.push(deserializeValue(entry, state));
+    const entries =
+      "items" in serialized ? Object.entries(serialized.items) : Object.entries(serialized.entries);
+    for (const [key, entry] of entries) {
+      Object.defineProperty(array, key, {
+        value: deserializeValue(entry, state),
+        configurable: true,
+        enumerable: true,
+        writable: true
+      });
     }
 
     return array;

@@ -2,6 +2,7 @@ import { hashSource } from "../parse/hash.js";
 import { sandboxErrorTypes, type SandboxErrorName } from "../error/shape.js";
 import { assertSnapshotGraphDepth } from "../graph-depth.js";
 import { serializeArguments, type SerializedArguments } from "./arguments.js";
+import { requiresArrayEntries, serializeArray, type SerializedArray } from "./arrays.js";
 import {
   isSandboxArguments,
   isSandboxGenerator,
@@ -63,10 +64,7 @@ export type SerializedReferenceValue = {
 
 export type SerializedHeapValue =
   | SerializedArguments<SerializedSnapshotValue>
-  | {
-      kind: "array";
-      items: SerializedSnapshotValue[];
-    }
+  | SerializedArray<SerializedSnapshotValue>
   | {
       kind: "object";
       entries: Record<string, SerializedSnapshotValue>;
@@ -442,10 +440,9 @@ function serializeHeapReference(
         )
       };
     } else if (Array.isArray(value)) {
-      state.heap[String(id)] = {
-        kind: "array",
-        items: value.map((entry, index) => serializeValue(entry, `${path}[${index}]`, state))
-      };
+      state.heap[String(id)] = serializeArray(value, (entry, key) =>
+        serializeValue(entry as RuntimeSnapshotValue, `${path}[${key}]`, state)
+      );
     } else {
       const entries = Object.create(null) as Record<string, SerializedSnapshotValue>;
       const errorType = sandboxErrorTypes.get(value);
@@ -555,6 +552,7 @@ function indexHeapContainers(input: SerializeInput): WeakMap<object, number> {
     if (
       stat.count > 1 ||
       stat.cyclic ||
+      (Array.isArray(value) && requiresArrayEntries(value)) ||
       sandboxErrorTypes.has(value) ||
       isSandboxArguments(value) ||
       isSandboxMap(value) ||
@@ -624,9 +622,7 @@ function collectContainerStats(
       ? [...value.entries].flatMap(([key, entry]) => [key, entry])
       : isSandboxSet(value)
         ? [...value.values]
-        : Array.isArray(value)
-          ? value
-          : Object.values(value);
+        : Object.values(value);
   for (const entry of entries) {
     collectContainerStats(entry as RuntimeSnapshotValue, stats, ancestors);
   }

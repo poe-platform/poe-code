@@ -77,7 +77,6 @@ function graphEntries(value: object): Array<[string, unknown]> {
   if (isSandboxArguments(value)) {
     return getSandboxArgumentEntries(value).map(([key, entry]) => [`.${key}`, entry]);
   }
-  if (Array.isArray(value)) return value.map((entry, index) => [`[${index}]`, entry]);
   if (value instanceof Map) {
     return [...value.entries()].flatMap(([key, entry], index) => [
       [`.<map>[${index}].key`, key] as [string, unknown],
@@ -92,7 +91,7 @@ function graphEntries(value: object): Array<[string, unknown]> {
   for (const key of Object.keys(value)) {
     const descriptor = Object.getOwnPropertyDescriptor(value, key);
     if (descriptor !== undefined && "value" in descriptor)
-      entries.push([`.${key}`, descriptor.value]);
+      entries.push([Array.isArray(value) ? `[${key}]` : `.${key}`, descriptor.value]);
   }
   return entries;
 }

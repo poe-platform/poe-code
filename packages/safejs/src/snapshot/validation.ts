@@ -123,7 +123,7 @@ function validateDumpHeap(root: Record<string, unknown>, state: ValidationState)
       continue;
     }
     if (entry.kind === "array") {
-      requireArray(entry.items, `${path}.items`, state);
+      validateArrayHeap(entry, path, state);
       continue;
     }
     if (entry.kind === "object") {
@@ -508,7 +508,7 @@ function validateHeapValue(value: unknown, path: string, state: ValidationState)
     fail("unknownTag", `${path}.kind`, "unknown heap tag");
   validateValue(record, path, 1, state);
   if (record.kind === "arguments") validateArgumentsProperties(record, path);
-  if (record.kind === "array") requireArray(record.items, `${path}.items`, state);
+  if (record.kind === "array") validateArrayHeap(record, path, state);
   if (record.kind === "object") requireRecord(record.entries, `${path}.entries`);
   if (record.kind === "map") {
     const entries = requireArray(record.entries, `${path}.entries`, state);
@@ -518,6 +518,42 @@ function validateHeapValue(value: unknown, path: string, state: ValidationState)
     });
   }
   if (record.kind === "set") requireArray(record.values, `${path}.values`, state);
+}
+
+function validateArrayHeap(
+  record: Record<string, unknown>,
+  path: string,
+  state: ValidationState
+): void {
+  if (Object.hasOwn(record, "items")) {
+    requireArray(record.items, `${path}.items`, state);
+    if (Object.hasOwn(record, "length") || Object.hasOwn(record, "entries"))
+      fail("invalidValue", path, "array must use either items or length and entries");
+    return;
+  }
+
+  const length = requireSafeInteger(record.length, `${path}.length`, 0);
+  if (length > 0xffff_ffff) fail("invalidValue", `${path}.length`, "exceeds maximum array length");
+  if (length > state.limits.maxEntries)
+    fail(
+      "budgetExceeded",
+      `${path}.length`,
+      `exceeds collection entry limit ${state.limits.maxEntries}`
+    );
+  const entries = requireRecord(record.entries, `${path}.entries`);
+  for (const key of Object.keys(entries)) {
+    if (key === "length")
+      fail("invalidValue", `${path}.entries.length`, "array length is stored separately");
+    const index = Number(key);
+    if (
+      String(index) === key &&
+      Number.isInteger(index) &&
+      index >= 0 &&
+      index < 0xffff_ffff &&
+      index >= length
+    )
+      fail("invalidValue", `${path}.entries${formatKey(key)}`, "array index exceeds its length");
+  }
 }
 
 function validateErrorType(record: Record<string, unknown>, path: string): void {

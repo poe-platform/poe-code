@@ -1,0 +1,21 @@
+{
+  "args": [
+    "add",
+    "--",
+    "tests/compatibility/bash-conditional-independent-20260829/README.md",
+    "tests/compatibility/bash-conditional-independent-20260829/PROTOCOL.md",
+    "tests/compatibility/bash-conditional-independent-20260829/QUESTIONS.json",
+    "tests/compatibility/bash-conditional-independent-20260829/DESIGN-CASES.json",
+    "tests/compatibility/bash-conditional-independent-20260829/NOVEL-CASES.json",
+    "tests/compatibility/bash-conditional-independent-20260829/CASE-MAP.json",
+    "tests/compatibility/bash-conditional-independent-20260829/BASELINE.json",
+    "tests/compatibility/bash-conditional-independent-20260829/public-positive.mts.fixture",
+    "tests/compatibility/bash-conditional-independent-20260829/public-negative.mts.fixture",
+    "tests/compatibility/bash-conditional-independent-20260829/PRECODE-SEAL.json"
+  ],
+  "closed": true,
+  "captureBytes": 0,
+  "pid": 14316,
+  "code": 0,
+  "signal": null
+}

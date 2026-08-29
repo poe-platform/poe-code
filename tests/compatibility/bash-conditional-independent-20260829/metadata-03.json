@@ -1,0 +1,11 @@
+{
+  "args": [
+    "show",
+    "8266f1849312368c65930c693cca3bf393cb38b1:tests/compatibility/bash-conditional-design-20260829/HANDOFF.md"
+  ],
+  "closed": true,
+  "captureBytes": 3575,
+  "pid": 97972,
+  "code": 0,
+  "signal": null
+}

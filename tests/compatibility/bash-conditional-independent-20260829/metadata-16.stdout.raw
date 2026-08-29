@@ -1,0 +1,25 @@
+[main d9e466af6212a35fe190ee7ca8636f0e491df628] test: freeze independent conditional design cases before candidate audit
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 10 files changed, 4535 insertions(+)
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/BASELINE.json
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/CASE-MAP.json
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/DESIGN-CASES.json
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/NOVEL-CASES.json
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/PRECODE-SEAL.json
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/PROTOCOL.md
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/QUESTIONS.json
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/README.md
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/public-negative.mts.fixture
+ create mode 100644 tests/compatibility/bash-conditional-independent-20260829/public-positive.mts.fixture

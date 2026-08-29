@@ -1,0 +1,1078 @@
+78aac18e23052a31b3ce00f62b95ef4589b3f317 blob 16627
+# `[[ … ]]`: source-bound design, not implementation acceptance
+
+2026-08-29. No product, Bash oracle, compiler, installer, Worker, private engine,
+or service was executed. All 40 proposed differential identities and 10 host
+protocols are UNRUN. Existing surface-40 inputs are unchanged.
+
+## Source authority
+
+`BINDING.json` binds 38 inspected stored blobs selected from the 292-input Unit2
+manifest SHA256 `75ac56902fdce22f8292c17c14d48287063a5544c46ac8c526b5d4572143bde2`.
+Selected derived tree: `26215b99cb379a9f825f803454f758fab5a3c8e9`.
+This is accepted public80 c83 plus accepted Unit1
+`1e9b83d73ca6efcf84e4cb0a0b20d81f71da237e` and **provisional** frozen Unit2
+`928be5585f05c15867fbbb5f4b5debe153b0734e`, not live HEAD or Unit2 acceptance.
+Unit1 root acceptance is `b0934e90c13f43c6a9b929e10c31388b2054036d`.
+Computed composition identity is not a claim that this tree is a stored object.
+
+GNU reference: official online Reference Manual Edition 5.3, updated May 18,
+2025, inspected August 29, 2026. This identifies the documentation edition,
+not the latest binary patch or the local Bash version. `REFERENCES.md` records
+primary locators and separates normative rules from our proposed restrictions.
+
+## Inspected implementation hooks
+
+All line numbers below refer to the frozen blobs, not moving files.
+
+| Frozen source / line | Fact and consequence |
+| --- | --- |
+| `src/shell/parser.ts:7`, `:14`, `:277` | Word parts retain quote bits, spelling, expansion nodes and array metadata. Preserve these; expanded argv is insufficient. |
+| `src/shell/parser.ts:61`, `:697` | No conditional node; `[[`/`]]` explicitly refused. This requires grammar, not registering a command named `[[`. |
+| `src/shell/parser.ts:127`, `:298` | Ordinary lexer treats `<`, `>`, parentheses and `&&`/`||` as shell operators. A conditional lexical context must disambiguate them. |
+| `src/shell/parser.ts:600`, `:733` | Arithmetic has a dedicated parse route; compound commands already accept trailing ordered redirects. Reuse the latter. |
+| `src/shell/parser.ts:694` | Function-body starters are enumerated. Supporting `f() [[ … ]]` requires an explicit addition, not incidental simple-command parsing. |
+| `src/shell/index.ts:2` | `parseShell` is exported. An additive conditional AST node is observable in inferred public declarations even without a new root export. |
+| `src/shell/display.ts:11`, `:29` | Compound display and redirect rendering are separate; add a conditional branch preserving syntax/quotes, never execute display text. |
+| `src/shell/runtime.ts:3710`, `:3725`, `:3810` | `word(..., false)` avoids field splitting/path globbing; pattern mode preserves quoted glob literals. One evaluation per operand is essential. |
+| `src/shell/runtime.ts:1533` | `case` demonstrates a bounded pattern-work counter with signal/yield checks. It is not a complete extglob or ERE implementation. |
+| `src/shell/runtime.ts` command wrapper | Errexit eligibility currently lists simple/subshell/arithmetic kinds. Add conditional eligibility without rewriting existing ignore-errexit/pipeline rules. |
+| `src/commands/predicates.ts:16`, `:27`, `:46`, `:88` | `test`/`[` use argv-count grammar, decimal BigInt, literal equality and already-expanded operands. Their later predicate closures cannot provide lazy shell expansion. |
+| `src/commands/predicates.ts:50` | `-ef` compares inode/device without identityScope. Do not reuse this as cross-provider identity authority. No change to `test` is authorized here. |
+| `src/contracts/filesystem.ts:3` | File/directory/symlink types and optional identity metadata do not establish tty/FIFO/socket/device/owner predicates. |
+| `src/shell/pattern.ts:12`, `:69`, `:79` | Basic glob engine, constrained bracket RegExp, cooperative work checks; no extglob or locale collation. Some arrays allocate before per-character charging. Admit bounded strings first. |
+| `src/shell/arithmetic.ts:37`, `:85`, `:134` | Existing numeric syntax includes octal/base notation, signed64 arithmetic, finite recursion/work. It is not `test`'s decimal-only parser. Arithmetic nounset/indexed reads remain separately unresolved. |
+| `src/commands/regex-execution/protocol.ts`, `matching.ts:55`, `client.ts:28` | Existing bounded worker lifecycle is useful, but grep/rg adapters use JS matching; expr uses a separate BRE profile and only one capture. Neither supplies Bash POSIX ERE plus all captures. |
+
+## Proposed implementation unit and write set
+
+First unit: dedicated grammar and lazy scalar/basic-pattern/VFS evaluator.
+Proposed production paths (NOT edited): `src/shell/parser.ts`,
+`src/shell/runtime.ts`, `src/shell/display.ts`, new private
+`src/shell/conditional.ts`. Existing pattern helper can be consumed read-only;
+change `src/shell/pattern.ts` only under a separately enumerated need/review.
+No commands/predicates, shared contracts, registry, package, default count, new
+public limits or regex worker files in this first unit. Tests get a new author
+scope only after GO. Shared regex work would require its own ownership grant.
+
+Suggested AST: `Command.kind = "conditional"`, an expression tree, original
+source/spelling for display, and the existing redirects/source-line envelope.
+Expression nodes: unary, binary, nonempty, not, and, or; operands are original
+`Word` nodes. Parentheses determine structure, not an eagerly evaluated list.
+Conditional helper types may be imported type-only by parser/runtime; no new
+callable public API. This **does** add one observable parseShell AST variant.
+
+```text
+or      := and ( '||' and )*
+and     := not ( '&&' not )*
+not     := '!' not | '(' or ')' | primary
+primary := operand | unary operand | operand binary operand
+```
+
+This is precedence sketch, not a replacement lexer. Conditional operators are
+recognized only in syntactically unquoted positions, not from expansion output.
+It also is not an ordered-choice rule that always consumes a unary operator:
+single-word forms such as `[[ -n ]]` need context-sensitive primary selection.
+Bind these ambiguous arity cases with C05 before freezing a parser grammar;
+do not inherit the separate `test` argument-count algorithm.
+`-a` is the file-existence unary, `-o` an option unary: do not import `test`'s
+binary `-a`/`-o` argument-count rules. Parse the complete supported syntax before
+running it; evaluate only visited nodes, operands left to right once each.
+`&&`/`||` must skip command substitution, variable lookup, filesystem access and
+pattern compilation on the unused side. Parse-time malformed grammar still
+fails independently of execution short circuit.
+
+Lexer work must use existing quote/substitution scanning, not split strings or
+search for the next `]]`. Recognize unquoted closing `]]` only in its grammar
+position; quoted `"]]"` remains data. Inside the condition `<`/`>` are comparisons,
+outside it redirects. Nested substitutions retain their own parser. Newline,
+comment, escaped delimiter, and direct function-body cases require explicit
+future cases; no claim the sketch resolves every Bash token ambiguity.
+Extglob/ERE RHS parentheses need operator-aware scanning if later enabled.
+
+## Finite proposed profile
+
+### Low-risk first set (still needs runtime/oracle verification)
+
+* Nonempty operand; `-n`, `-z`; parentheses, `!`, `&&`, `||`.
+* `=`, `==`, `!=` with whole-string basic glob matching: `*`, `?`, validated
+  literal/range brackets in the declared C profile. Quoted portions are literal.
+  Quoted `*` and unquoted `*` are not interchangeable. Pattern variables must
+  preserve whether their expansion was quoted.
+* VFS `-e`/`-a`, `-f`, `-d`, `-s`, `-L`/`-h`, `-r`/`-w`/`-x`, using supplied FS,
+  cwd and signal. Access reflects the adapter contract, not a remote OS DAC claim.
+  `-nt`/`-ot` are possible follow-up leaf predicates with explicit missing-target
+  rules; initially hold them rather than infer timestamp precision.
+* `-v` scalar presence and existing canonical indexed-array element/aggregate
+  presence, without dereferencing a missing value; restrict selectors to the
+  accepted array grammar. No associative/nameref or new arithmetic selector API.
+* `-o` only actual implemented shell options; no fabricated SHELLOPTS or version.
+  Unknown-option false is a proposed policy pending oracle qualification.
+
+Reuse `word(..., false)` for ordinary operands. Pattern expansion must return
+both semantic value and quote-aware pattern/provenance in one pass if needed;
+never expand a substitution twice. Existing `word(..., false, true)` is a useful
+starting lane, not proof of full conditional array/quoted-empty semantics.
+Do not call glob(), split on IFS, or retokenize expanded operators. Process
+substitution is not implemented by the inspected Word model and stays unsupported.
+
+### Root decisions before implementation
+
+| ID | Recommended selection | Reason / held alternative |
+| --- | --- | --- |
+| D01 | Approve additive conditional AST + four paths above | Public parseShell declaration changes must be acknowledged; no broad AST redesign. |
+| D02 | Basic glob subset initially; reached unquoted extglob, collating/equivalence classes or unsupported locale features explicitly refuse | GNU equality enables extglob regardless of shopt; silently treating these as literals/false would be a compatibility bug. Do not silently alter existing case matching. |
+| D03 | Add `<`/`>` only under explicit C/POSIX collation with UTF-8 byte ordering; other locales refuse | Existing JS UTF16 order and host localeCompare are not GNU locale collation. Resolve LC_ALL, LC_COLLATE, LANG in that order; default C is our selected virtual profile, not host discovery. |
+| D04 | Numeric six-operator initial subset: signed integer literals/base forms and empty-to-zero, using existing signed64 numeric parser; refuse names/operators/assignments | Full expression evaluation is GNU behavior but depends on unresolved Unit2 arithmetic nounset, recursion and array policy. Alternative: hold all six until that policy resolves. Do not use decimal-only test parser. |
+| D05 | Recognize `=~` as a held feature with explicit refusal when reached; no worker acquisition/BASH_REMATCH publication yet | No current engine gives POSIX ERE/captures. Need separate bounded ERE dialect/protocol, quote-fragment mapping, global capture-array publication, configuration and cleanup ownership design. |
+| D06 | Limit host-only predicates explicitly: hold `-ef`, ownership/device/tty/FIFO/socket/nameref and special `/dev/fd` emulation | Unknown identity must not become false proof or synthetic disjointness. Do not reinterpret Bash special descriptors as ordinary VFS files without a disclosed profile decision. |
+| D07 | Existing source/expansion/output budgets plus private maximum 4096 expression nodes, nesting64; shared visited-pattern work from maxExpansionBytes | Numeric internal limits are proposed, not existing public caps. Admit before allocation; avoid resetting work per leaf. No new public Budget field. |
+| D08 | True0/false1; unsupported reached profile status2 with one budgeted diagnostic, grammar ShellSyntaxError; no fatal reinterpretation of infrastructure failures | These diagnostic/status bytes are proposed product policy, not captured GNU goldens. Nounset follows frozen Unit2 logical-boundary control provisionally; wait for its acceptance. |
+
+For D02/D05, parse valid-but-unsupported operators without executing/compiling
+unused branches where lexical grammar can be represented faithfully. This does
+not permit swallowing malformed syntax. If the first lexer cannot distinguish
+unsupported RHS grammar safely, report that concrete blocker before claiming
+lazy compatibility; do not scan runtime-expanded strings as shell grammar.
+Quoted text that resembles extglob remains literal and must not be refused.
+The proposed C comparison domain is valid Unicode scalar strings encoded as
+UTF-8. Existing shell decoding/replacement behavior is not proof of arbitrary
+non-UTF8 Bash byte-string parity; retain that separate restriction. Locale
+selection must distinguish nonempty precedence values, not treat an empty
+LC_ALL as an override of a nonempty LC_COLLATE.
+
+## Control, resources and error obligations
+
+Standalone false participates in existing errexit; if/while conditions, !,
+and/or lists and pipeline stages retain existing exception/boundary semantics.
+Do not rewrite errexit/pipefail, Unit1 ordered redirects, or Unit2 nounset.
+Visited unset ordinary expansions can trigger Unit2 private fatal control;
+unvisited operands cannot. `-v name` is presence inspection, not `$name` expansion.
+Exact GNU line/status/diagnostic bytes and aggregate-array edge cases remain UNRUN.
+
+Apply compound redirects once through the existing command wrapper, before
+evaluating even a false condition. Preserve truncation/creation effects, writer
+alias ownership and close-once rules. A predicate does not consume stdin or
+write stdout. Required diagnostics use original caller stderr and existing
+budget/escaping-error rules; no extra output-operation scope for an argv-only
+condition. Caller reason, ShellLimitError, sink and cleanup failures must retain
+their existing identities/priorities rather than be converted into false/2.
+
+FS negatives need a finite reviewed errno mapping: existing test metadata treats
+ENOENT/ENOTDIR/EACCES/ELOOP as absence, and access adds EPERM/EROFS. Reusing that
+profile is a proposal, not normative proof. Unexpected provider failures must
+follow existing shell error routing, never become a successful false predicate.
+Follow links for normal metadata, lstat for -L/-h. No host filesystem or network.
+
+Parse nodes charged/admitted before growth; depth64 mirrors existing parse
+nesting, node4096 is new proposed private admission. Iterative logical traversal
+or depth-safe structure avoids a long-chain JS stack overflow. Expanded strings
+remain charged once by existing expansion machinery; quote masks/fragments also
+need bounded ownership. Basic matching shares one work counter across visited
+patterns, checks abort and yields on the existing 1024-step cadence. Input
+admission precedes Array.from/token allocation. No hard RSS/preemption promise.
+If a later regex phase acquires worker leases, register cooperative cleanup
+before acquisition and await owned retirement; sibling sessions remain isolated.
+
+## Future differential/host proposal — no execution grant
+
+`CASES.json` holds exactly40 literal scripts and10 host protocols, zero filled
+native goldens and zero outcomes. Scripts deliberately include held features;
+these remain measured compatibility gaps, not filtered/skipped green rows.
+All fixtures are synthetic under one owned root: ordinary/empty files, directory,
+symlink/dangling symlink, explicit mode/mtime where capability qualified.
+The eventual native runner must bind a real GNU5.3 binary and dependency/tool
+profile, empty environment except fixed owned HOME/TMPDIR/PATH/locale, literal
+`--noprofile --norc -c` scripts, no BASH_ENV/ENV, no network/private/user data.
+Only builtins are needed for these scripts; paths are relative owned fixtures.
+`-rwx` native provider observations are separate from virtual adapter assertions.
+
+Capture status, stdout/stderr bytes, every file effect and cleanup before deriving
+any expected output; do not normalize quoting, status, newline, messages or effects.
+At most a separately recorded, predeclared owned-root path substitution may align
+diagnostic roots; keep raw bytes. `set -e` termination cases execute in independent
+instances. Malformed syntax records raw parse status/diagnostic, not a guessed2.
+
+Suggested future bounded grant: 20min total including publication, <=96 ALL
+processes peak3, case5s, 64MiB capture/256MiB scratch, stdout+stderr256KiB/case,
+owned process cleanup5s. Forty native + forty virtual cases must be batched through
+one authenticated virtual runner if used; host protocols are a separate <=10-case
+in-process suite. Exact runtime/fence/child accounting and loader admission must
+be presealed before execution. Safety/capture/integrity/retirement failure stops;
+ordinary assertions aggregate only after safe cleanup. No implicit current GO.
+
+## Release path
+
+Ratify D01–D08 (especially partial pattern/numeric/regex policy), then author the
+small separate grammar/evaluator with structural/safety tests. Independently
+bind native observations before claiming GNU compatibility; a different reviewer
+must exercise quote provenance, skipped side effects, redirects and budgets in
+source and moved package. Pending regex/arithmetic/collation/descriptor rows stay
+visible. Neither this design nor passing a finite profile means full Bash parity.
+
+6133d8319be86c45a2774a97ae8e98f46e2ee3b3 blob 14313
+{
+  "candidate": "26215b99cb379a9f825f803454f758fab5a3c8e9",
+  "sourceManifestSha256": "75ac56902fdce22f8292c17c14d48287063a5544c46ac8c526b5d4572143bde2",
+  "sourceRole": "Accepted public80+c83/unit1 with frozen provisional unit2 928be558, not live HEAD or independent unit2 acceptance",
+  "unit1AcceptedBy": "b0934e90c13f43c6a9b929e10c31388b2054036d",
+  "selected": [
+    {
+      "path": "src/commands/internal.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "b13134023b32f79e76df8cc2de3c93c36b7f608f",
+      "mode": "100644",
+      "bytes": 8820,
+      "sha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/regex-execution/README.md",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "3be6ea55e45b28c0492474d4d11d238e058579c2",
+      "mode": "100644",
+      "bytes": 11189,
+      "sha256": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "mode": "100644",
+      "bytes": 15319,
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/regex-execution/matching.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "9f1f53ec5fd78ddc2e6062bccaafd038fdec1f07",
+      "mode": "100644",
+      "bytes": 11796,
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "99f39e111b0e105d8a3c0373266d90f2bd356433",
+      "mode": "100644",
+      "bytes": 10890,
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "8da7d8566d17ab7d81ff4d440f632e8127312000",
+      "mode": "100644",
+      "bytes": 1930,
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/tree/pattern.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "10856009329db0d2729fe911ab022c638239ab25",
+      "mode": "100644",
+      "bytes": 3061,
+      "sha256": "114de00a12f9e32e0593a22abe753d27e079fe504e13e8b35289ae90afdbb215",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "mode": "100644",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "5c1a59a85e47bc9bc242a2e92b22680d785fcc89",
+      "mode": "100644",
+      "bytes": 3897,
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/arithmetic.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "223101946d13ac9b44f4a898f58fd16004ba86b9",
+      "mode": "100644",
+      "bytes": 9922,
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/arrays/bindings.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "c686048897bbd7fa797ba6982a255a543afbe6a3",
+      "bytes": 9989,
+      "sha256": "1f842c3b1a89d0332a8a81c0001384fe3b42a1057721456a14334141182dd356",
+      "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/arrays/ledger.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "c0c1a4ba292e26696b792b024019a79ce241cb89",
+      "bytes": 9105,
+      "sha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45",
+      "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/arrays/state.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "021459790e7aa5d03b6cac2d786a77643fa2f2aa",
+      "bytes": 13072,
+      "sha256": "14cee1539243675072a3e2ff6947d10d6343f63859610a79ca9170c78fe1df50",
+      "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/arrays/syntax.ts",
+      "commit": "c0adae539c736db0e4023d401562ce958d9ebb00",
+      "mode": "100644",
+      "blob": "d74d8f5fde70dfd7b4fa44213f29e6fdf38e7564",
+      "bytes": 5471,
+      "sha256": "6868288c25bc6c2760adb327528e616890dddd18f2739452432f152ff0c40da0",
+      "revision": "c0adae539c736db0e4023d401562ce958d9ebb00",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/cancellation.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+      "mode": "100644",
+      "bytes": 31986,
+      "sha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "mode": "100644",
+      "bytes": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/display.ts",
+      "mode": "100644",
+      "blob": "1bd9c7110aa82c6b3c9817bfc4ffdf08db99bee2",
+      "bytes": 2798,
+      "sha256": "293c7d058c5d959134334ba432ad4baa906a3b99608b38140d82887dbebfd6f8"
+    },
+    {
+      "path": "src/shell/getopts.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "bb502b076063c0fb95766911648dba788000f8b4",
+      "mode": "100644",
+      "bytes": 9964,
+      "sha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/index.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+      "mode": "100644",
+      "bytes": 275,
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/input.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "3eec71b72f87dd48ddac572d6e7feb9097d32be4",
+      "mode": "100644",
+      "bytes": 9881,
+      "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "5a2cda6417f2f28af38b33f2d32a56271c0f5a58",
+      "mode": "100644",
+      "bytes": 207,
+      "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "mode": "100644",
+      "blob": "40857123df98fb3696cc457733863ad77bc55109",
+      "bytes": 39122,
+      "sha256": "e8c19ffc7a5c2ffcd63608f0fd4722466e1999e647bc2e676b12710555a0e9a4"
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "be8739ee6b6c9e9323c559aff15f2dd27ce8271c",
+      "mode": "100644",
+      "bytes": 4863,
+      "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "mode": "100644",
+      "blob": "6c4ec49fc2eaf3f540c6a40d3a6de32a16b01021",
+      "bytes": 197605,
+      "sha256": "d47946f659af53880de53e65f93d26b934404a56b31183d937174d0f46221f66"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "mode": "100644",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "mode": "100644",
+      "bytes": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/basic.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "4180a22e83a6246287b5a2d169cfbf039f6e4b37",
+      "mode": "100644",
+      "bytes": 8605,
+      "sha256": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/copy-identity.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "020bedd35a95893736aae453330c96cff58a112b",
+      "mode": "100644",
+      "bytes": 2179,
+      "sha256": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/env-split.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "437c36d72c12e985d39c5dc9e09b6bb644753500",
+      "mode": "100644",
+      "bytes": 7492,
+      "sha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/execution.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "61e49c6d8684ccdb5c2f80624d9c8fda9f1d5d2c",
+      "mode": "100644",
+      "bytes": 9269,
+      "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/filesystem.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "470911e2a7cb9fe051d3b3616a6730e415d9f87c",
+      "mode": "100644",
+      "bytes": 22388,
+      "sha256": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/find.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "cc1854873f02be5a6ede00fa78283f3b80f647ee",
+      "mode": "100644",
+      "bytes": 9193,
+      "sha256": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/grep.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "68ebe72c37722cddb5f939be13653115b883429e",
+      "mode": "100644",
+      "bytes": 5742,
+      "sha256": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/index.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "ced15c531fe849ac874f2b3825bda12a0928daa5",
+      "mode": "100644",
+      "bytes": 2292,
+      "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/move.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "c8b98b9b354594c5c8797b7a5d6d5b1b66ec3f3b",
+      "mode": "100644",
+      "bytes": 8000,
+      "sha256": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/predicates.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "4a7ce27295d6347a26bd9edf4c0d2769afec0297",
+      "mode": "100644",
+      "bytes": 5535,
+      "sha256": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/streams.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "3ea14daa9679a18f03e9d819cb829b18f6ea43c8",
+      "mode": "100644",
+      "bytes": 17782,
+      "sha256": "1a00a55bf30b1c917041e9c32011988a29b539b0876e46d41e311d3e469dc45d",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/text.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "b28fc2e65e84cde94ab6ed25ffc3381903ecfe3e",
+      "mode": "100644",
+      "bytes": 19301,
+      "sha256": "9a66dc0e320c62aad86d78da9c55580cf6910a537a47db8a330e5122f63a1895",
+      "role": "accepted coherent78 unchanged"
+    }
+  ],
+  "children": [
+    {
+      "label": "source",
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "code": 0,
+      "signal": null,
+      "bytes": 434741
+    },
+    {
+      "label": "status",
+      "args": [
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=no"
+      ],
+      "code": 0,
+      "signal": null,
+      "bytes": 0
+    },
+    {
+      "label": "index",
+      "args": [
+        "diff",
+        "--cached",
+        "--name-only",
+        "-z"
+      ],
+      "code": 0,
+      "signal": null,
+      "bytes": 0
+    },
+    {
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "productExecutions": 0
+}
+f4d51b0faa49d1a4e54953ed52693cbebfc5992e blob 13820
+{
+  "differential": [
+    {
+      "id": "C01",
+      "role": "scalar-empty",
+      "program": "[[ \"\" ]]; printf \"status=%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C02",
+      "role": "scalar-nonempty",
+      "program": "[[ x ]]; printf \"status=%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C03",
+      "role": "no-IFS-splitting",
+      "program": "IFS=:; x=\"a:b c\"; [[ $x == \"a:b c\" ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C04",
+      "role": "no-pathname-expansion",
+      "program": "x=\"*\"; [[ $x == \"*\" ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C05",
+      "role": "quoted-operator-and-unary-arity",
+      "program": "[[ \"-n\" ]]; printf \"%s\\n\" \"$?\"; [[ -n ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "arity-native-unresolved",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C06",
+      "role": "quoted-closing-token",
+      "program": "[[ \"]]\" == \"]]\" ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C07",
+      "role": "basic-pattern",
+      "program": "[[ alpha == a* ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C08",
+      "role": "quoted-pattern",
+      "program": "[[ alpha == \"a*\" ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C09",
+      "role": "mixed-pattern",
+      "program": "[[ \"a*b\" == \"a*\"? ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C10",
+      "role": "variable-pattern",
+      "program": "p=\"a*\"; [[ alpha == $p ]]; printf \"%s\\n\" \"$?\"; [[ alpha == \"$p\" ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C11",
+      "role": "negated-pattern-and-equals",
+      "program": "[[ beta != a* && beta = b* ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C12",
+      "role": "backslash-literal",
+      "program": "[[ \"a*b\" == a\\*b ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C13",
+      "role": "brackets",
+      "program": "[[ b == [a-c] && z != [a-c] ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "C-profile-ratification",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C14",
+      "role": "extglob",
+      "program": "[[ ab == @(ab|cd) ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "held-extglob",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C15",
+      "role": "and-skips-substitution",
+      "program": "[[ \"\" && $(printf bad > marker) ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C16",
+      "role": "or-skips-nounset",
+      "program": "set -u; [[ x || $missing ]]; printf \"after\\n\"",
+      "qualification": "provisional-unit2",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C17",
+      "role": "precedence",
+      "program": "[[ x || \"\" && \"\" ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C18",
+      "role": "parentheses-negation",
+      "program": "[[ ! ( x && \"\" ) ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C19",
+      "role": "expanded-operator-is-data",
+      "program": "x=\"||\"; [[ $x == \"||\" ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C20",
+      "role": "substitution-once",
+      "program": "[[ $(printf once >> visits; printf value) == v* ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C21",
+      "role": "file-directory",
+      "program": "[[ -f file && -d dir && ! -f dir ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "VFS-profile",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C22",
+      "role": "dangling-symlink",
+      "program": "[[ -L dangling && ! -e dangling && -h link ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "VFS-profile",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C23",
+      "role": "size-access",
+      "program": "[[ -s file && ! -s empty && -r file && -w file && -x executable ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "adapter-access-qualified",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C24",
+      "role": "timestamps",
+      "program": "[[ newer -nt older && older -ot newer ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "held-timestamps",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C25",
+      "role": "presence-unset-empty",
+      "program": "unset x; [[ -v x ]]; printf \"%s\\n\" \"$?\"; x=; [[ -v x ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "presence-ratification",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C26",
+      "role": "sparse-presence",
+      "program": "a=(); a[3]=; [[ -v a[3] && ! -v a[0] && -v a[@] ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "array-selector-ratification",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C27",
+      "role": "option-query",
+      "program": "set -u; [[ -o nounset ]]; printf \"%s\\n\" \"$?\"; set +u; [[ -o nounset ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "provisional-unit2",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C28",
+      "role": "C-order",
+      "program": "[[ A < z && z > A ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "C-profile-ratification",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C29",
+      "role": "numeric-octal",
+      "program": "[[ 010 -eq 8 && -2 -lt 0 ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "numeric-literal-ratification",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C30",
+      "role": "numeric-empty",
+      "program": "x=; [[ $x -eq 0 ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "numeric-literal-ratification",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C31",
+      "role": "numeric-expression",
+      "program": "x=2; [[ x+1 -eq 3 ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "held-arithmetic",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C32",
+      "role": "arithmetic-nounset",
+      "program": "set -u; [[ missing -eq 0 ]]; printf \"after\\n\"",
+      "qualification": "held-arithmetic-nounset",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C33",
+      "role": "ERE-and-captures",
+      "program": "p=\"(ab)+\"; [[ xxababyy =~ $p ]]; printf \"%s:%s:%s\\n\" \"$?\" \"${BASH_REMATCH[0]}\" \"${BASH_REMATCH[1]}\"",
+      "qualification": "held-ERE",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C34",
+      "role": "quoted-ERE",
+      "program": "p=\"a.b\"; [[ axb =~ \"$p\" ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "held-ERE",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C35",
+      "role": "invalid-ERE",
+      "program": "p=\"[\"; [[ x =~ $p ]]; printf \"%s\\n\" \"$?\"",
+      "qualification": "held-ERE",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C36",
+      "role": "false-redirect-effect",
+      "program": "[[ \"\" ]] > out; printf \"status=%s\\n\" \"$?\"",
+      "qualification": "proposed-core",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C37",
+      "role": "compound-function-and-pipeline",
+      "program": "f() [[ x == x ]]; f |& printf \"pipe\\n\"; [[ x ]] &> combined",
+      "qualification": "accepted-unit1-composition",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C38",
+      "role": "errexit-condition-exception",
+      "program": "set -e; if [[ \"\" ]]; then printf bad; fi; printf \"after\\n\"",
+      "qualification": "existing-errexit-composition",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C39",
+      "role": "errexit-standalone",
+      "program": "set -e; [[ \"\" ]]; printf bad",
+      "qualification": "existing-errexit-composition",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    },
+    {
+      "id": "C40",
+      "role": "missing-close",
+      "program": "[[ x == x",
+      "qualification": "syntax-native-status-unresolved",
+      "nativeExpected": null,
+      "productExpected": null,
+      "result": "UNRUN"
+    }
+  ],
+  "host": [
+    {
+      "id": "H01",
+      "role": "Caller already aborted before metadata",
+      "obligation": "Exact caller reason; no metadata acquisition.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H02",
+      "role": "Abort during cooperative metadata",
+      "obligation": "Await owned cleanup; distinguish unrelated provider rejection from caller abort.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H03",
+      "role": "Unvisited operand traps",
+      "obligation": "Counter/throwing FS and substitution handlers never entered by skipped branches.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H04",
+      "role": "Expansion/node/pattern admission boundaries",
+      "obligation": "Before-growth admission, shared visited-leaf counters, bounded zero/limit/over-limit neighbors.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H05",
+      "role": "Sink and diagnostic failure",
+      "obligation": "Raw sink rejection and budget failure preserve existing priorities; no false-predicate recast.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H06",
+      "role": "Redirect aliases and failures",
+      "obligation": "False condition still creates/truncates; same writer close once; failure cleanup awaited.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H07",
+      "role": "No registry dependency",
+      "obligation": "No test/[ plugin and deliberately shadowed names do not change [[ grammar/evaluation.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H08",
+      "role": "Quote/AST/source ownership",
+      "obligation": "Quote fragments survive parse/display; single substitution; no live-source fallback or mutation.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H09",
+      "role": "Unsupported regex and sibling isolation",
+      "obligation": "Initial refusal acquires zero workers and does not publish BASH_REMATCH; no sibling cancellation.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    },
+    {
+      "id": "H10",
+      "role": "Logical boundary unwind",
+      "obligation": "Visited nounset/control failures unwind functions/source correctly; isolated stage/subshell boundaries retain existing behavior.",
+      "qualification": "PROPOSED_HOST_PROTOCOL_NOT_NATIVE_GOLDEN",
+      "result": "UNRUN"
+    }
+  ]
+}
+
+0bb828fbd9040f41ba5c01f443c9c2547d52585e blob 1945
+# Official reference observations
+
+Observed 2026-08-29 via web search/fetched search text, not native execution.
+Only GNU primary manual used. Locators are references, not downloaded body-hash
+attestations. Edition/date below do not identify an installed binary patch.
+
+* GNU Reference Manual top, Edition5.3, updated18May2025:
+  `https://www.gnu.org/s/bash/manual/html_node/index.html`
+* Conditional Constructs:
+  `https://www.gnu.org/s/bash/manual/html_node/Conditional-Constructs.html`
+  Normative summary: no field/path expansion inside [[; operators require
+  unquoted syntax; equality uses quote-sensitive patterns with extglob enabled;
+  =~ uses POSIX ERE, with invalid-pattern status2; comparisons use locale;
+  BASH_REMATCH stores global captures; &&/|| short-circuit. Exact diagnostic bytes
+  and all lexical corner cases are not established by this summary.
+* Conditional Expressions:
+  `https://www.gnu.org/s/bash/manual/html_node/Bash-Conditional-Expressions.html`
+  Normative summary: -v tests assignment/presence including aggregate indexed
+  array members; numeric operands are arithmetic expressions, expanded-empty
+  operands evaluate to zero; metadata normally follows symlinks; descriptor
+  pseudo-paths have special behavior. Adapter authority is our contract concern,
+  not an assertion made by this page.
+* Full manual, Shell Arithmetic and Pattern Matching sections:
+  `https://www.gnu.org/s/bash/manual/bash.html`
+  Normative summary: arithmetic uses fixed-width integers and recursive variable
+  expressions; shell pattern extended groups are not ordinary literal parentheses.
+  This does not resolve current Unit2 nounset arithmetic policy or establish that
+  JS RegExp implements GNU regex/locale semantics.
+
+No third-party answers, libc claims, local Bash version inference or oracle
+goldens are used. Proposed restrictions and numeric caps are decisions in README,
+not claims that GNU documents those restrictions.
+

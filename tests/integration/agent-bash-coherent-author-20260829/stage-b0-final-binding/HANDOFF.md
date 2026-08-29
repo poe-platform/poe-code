@@ -1,0 +1,67 @@
+# Final prospective B0 binding — NOT activation
+
+Candidate8ab0b2875c695c7cf6fbe90080cd083f69ef7146, sealed preseal11952B/SHA
+78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7 unchanged.
+ROOT finite-source/24-PURE acceptance360b22fb is authenticated by exact3460B
+receipt d490a5a2d1efe36dfc8b737267cf3762d04d1d273cbcba30b636e0123bf91a35.
+Historical eff15eba HOLD/group UNKNOWN is not rescored. Functional profile covers
+known roles only; no group-absence/full-census acceptance claim. Existing owner
+checks stay intact: future guard failures are not waived by this metadata.
+
+## Exact permitted route, pending final review and fresh ROOT activation
+
+    B0_ROOT_GO=ROOT_B0_39_EXPLICIT_FRESH_AUTHORIZATION /bin/zsh tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/launch.sh tests/integration/agent-bash-coherent-author-20260829/stage-b0-r3/PRESEAL.json 78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7 11952
+
+Cwd /Users/kjopek/Workspace/safe-bash. Exact launch/bootstrap/run blobs and
+byte hashes are in BINDING.json, authenticated from candidate8ab, not HEAD.
+No direct-main/alternate entry or retry is authorized.
+
+## Fixed UTC window
+
+- Issued at local-clock observation: **2026-08-29T11:53:14.522Z**.
+- Latest start (+20min): **2026-08-29T12:13:14.522Z**.
+- Expires (+50min): **2026-08-29T12:43:14.522Z**.
+
+The platform timestamp of ROOT's message was not supplied; issuance is explicitly
+the observed binding-preparation UTC time. This is an OUTSIDE-candidate policy
+binding: sealed code has no UTC activation-window fields. Do not change it or
+pretend the environment string cryptographically enforces authorization/window.
+Fresh ROOT activation must reference the final packet and independent final
+binding acceptance, start by latestStart and end by expires. Expiry means HOLD,
+not automatic renewal. Monotonic1800s enforcement inside candidate is unchanged.
+
+## Slot and phase binding
+
+Work root /private/tmp/safe-bash-coherent-b0-20260829-r3 and exclusive outer
+/private/tmp/coherent-b0-39-20260829-r3.launch.stdout / .stderr were absent during
+preparation. Recheck at activation; no root/capture was created or renamed.
+Slot difference from prior proposal: no path changes; explicit UTC window,
+accepted review provenance and prospective known-role profile are now bound.
+Actual authority is still false; old preseal/prospective metadata is not a GO.
+
+Four sequential children: offline-install,workflow-source-built,workflow-installed,
+workflow-physically-moved.13 unchanged IDs C01–C09,C12–C14,C17 per layout=39.
+32 known OS starts/peak3; Regex max2/layout6total/live2consumer; three fixed
+internal-loader admissions separately; zero guest Workers/PUBLIC95.
+1800s inclusive/1620 active+180 reserve; install120/layout420/case30/cleanup5s;
+capture67108864B/work805306368B. Known unresolved work or guard failure STOPs;
+no wider permissions, extra roles, retries or unaccepted source overlays.
+
+## Fresh source/data admission
+
+All sealed source files and309 selected StageA inputs matched. Actual retained
+dist1012 received complete file/directory census, including unexpected entries.
+Tools2274 regular+12 admitted links received complete hash/link/mode census.
+This is not a whole checkout/OS/process census. Node binary is pinned and hashed;
+no tool/native/product execution is inferred. The930368B package SHA2fe071e2 was
+freshly admitted without inflation. No compiler/install/39/product/Worker/engine
+or native oracle ran. Package remains1014 members from accepted producer proof.
+
+PACKET.json binds BINDING.json and fresh CENSUS.json. PACKET-RECEIPT.json gives
+full packet SHA/size and preparation accounting. Source/example code is unchanged.
+LargerStageB726/all50Unit2/layout/types/mutants/PUBLIC95 remain later/UNRUN.
+
+Suggested future activation text (ROOT, not author):
+"Accept final binding review <review SHA>. Activate ONE B0 attempt for exact
+<PACKET SHA>, candidate8ab/preseal78e6, exact command and UTC window above.
+Known-role-only functional profile; preserve all guards and failures; no retry."

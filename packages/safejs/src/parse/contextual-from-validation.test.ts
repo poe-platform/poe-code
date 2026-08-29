@@ -192,12 +192,12 @@ describe("TREE-01 independent contextual-from validation", () => {
     ]);
   });
 
-  it("retains IP-002 as a separate known return-method rejection", async () => {
+  it("accepts the separately repaired IP-002 return method", async () => {
     const source = "return { return() { return 7; } }.return();";
     expect(runInNewContext(`(function () { ${source} })()`, {}, { timeout: 1_000 })).toBe(7);
-    expect(() => parse(source)).toThrow("Unexpected token 'return'");
+    expect(() => parse(source)).not.toThrow();
     await expect(
       run(source, { modules: {}, budget: new Budget({ maxSteps: 100 }) })
-    ).rejects.toMatchObject({ kind: "ParseError" });
+    ).resolves.toMatchObject({ ok: true, returnValue: 7 });
   });
 });

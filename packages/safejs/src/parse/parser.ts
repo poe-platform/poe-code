@@ -2907,7 +2907,7 @@ class Parser {
     if (
       this.currentToken().type === "identifier" &&
       (this.currentToken().value === "get" || this.currentToken().value === "set") &&
-      this.isObjectAccessorShorthandStart()
+      this.isObjectMethodStart()
     ) {
       const token = this.currentToken();
       const syntax = token.value === "get" ? "Getter" : "Setter";
@@ -2916,19 +2916,32 @@ class Parser {
       );
     }
 
+    const modifierToken = this.currentToken();
+    const asyncToken =
+      modifierToken.type === "keyword" &&
+      modifierToken.value === "async" &&
+      modifierToken.end.offset - modifierToken.start.offset === modifierToken.value.length &&
+      this.isObjectMethodStart() &&
+      !hasLineBreakBetween(modifierToken, this.peekToken(1))
+        ? modifierToken
+        : undefined;
+    if (asyncToken !== undefined) {
+      this.index += 1;
+    }
+
     if (this.consumePunctuator("[") !== undefined) {
       const propertyStart = this.previousToken();
       const key = this.parseExpression();
       this.expectPunctuator("]");
       if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
-        const value = this.parseObjectMethod(undefined, propertyStart.start);
+        const value = this.parseObjectMethod(asyncToken, propertyStart.start);
         return {
           type: "Property",
           computed: true,
           shorthand: false,
           key: key.node,
           value,
-          span: createSpan(propertyStart.start, value.span.end)
+          span: createSpan(asyncToken?.start ?? propertyStart.start, value.span.end)
         };
       }
       this.expectPunctuator(":");
@@ -2943,21 +2956,13 @@ class Parser {
       };
     }
 
-    const asyncToken =
-      this.currentToken().type === "keyword" &&
-      this.currentToken().value === "async" &&
-      isIdentifierLikeToken(this.peekToken(1)) &&
-      this.peekToken(2).type === "punctuator" &&
-      this.peekToken(2).value === "(" &&
-      !hasLineBreakBetween(this.currentToken(), this.peekToken(1))
-        ? this.currentToken()
-        : undefined;
-    if (asyncToken !== undefined) {
-      this.index += 1;
-    }
-
     const token = this.currentToken();
-    if (isIdentifierLikeToken(token)) {
+    if (
+      isIdentifierLikeToken(token) ||
+      (token.type === "keyword" &&
+        this.peekToken(1).type === "punctuator" &&
+        this.peekToken(1).value === "(")
+    ) {
       this.index += 1;
       const key = createIdentifier(token);
       if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
@@ -2997,14 +3002,14 @@ class Parser {
       this.index += 1;
       const key = createLiteralFromToken(token);
       if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
-        const value = this.parseObjectMethod(undefined, key.span.start);
+        const value = this.parseObjectMethod(asyncToken, key.span.start);
         return {
           type: "Property",
           computed: false,
           shorthand: false,
           key,
           value,
-          span: createSpan(key.span.start, value.span.end)
+          span: createSpan(asyncToken?.start ?? key.span.start, value.span.end)
         };
       }
       this.expectPunctuator(":");
@@ -3022,7 +3027,7 @@ class Parser {
     throw unexpectedTokenError(token);
   }
 
-  private isObjectAccessorShorthandStart(): boolean {
+  private isObjectMethodStart(): boolean {
     const propertyToken = this.peekToken(1);
     if (propertyToken.type === "punctuator" && propertyToken.value === "[") {
       let depth = 0;
@@ -3045,7 +3050,8 @@ class Parser {
       }
     }
     return (
-      (isIdentifierLikeToken(propertyToken) ||
+      (propertyToken.type === "identifier" ||
+        propertyToken.type === "keyword" ||
         propertyToken.type === "numeric" ||
         propertyToken.type === "string") &&
       this.peekToken(2).type === "punctuator" &&

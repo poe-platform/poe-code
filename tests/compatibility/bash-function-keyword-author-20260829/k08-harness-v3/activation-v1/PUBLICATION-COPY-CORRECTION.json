@@ -1,0 +1,40 @@
+{
+  "schema": "k08-binding-publication-copy-correction",
+  "scope": "Publication artifact only; no execution or binding change",
+  "originalCommit": "463b17b4df4430555f72b2c358ba94e747fa50b6",
+  "retainedNonAuthoritativeCopy": {
+    "path": "check.stderr",
+    "bytes": 1,
+    "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "cause": "apply_patch emitter added one LF when representing an empty output; this copy is NOT the raw stream"
+  },
+  "authoritativeCapture": {
+    "path": "/private/tmp/safe-bash-k08-v3-binding-TM7tml/capture/08.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "alsoPreserved": "RAW-PREP-CAPTURES.json exact base64 and original external capture"
+  },
+  "replacement": {
+    "path": "check.stderr.exact",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "bindingUnchanged": {
+    "grant": {
+      "bytes": 976,
+      "sha256": "1de03294f35b1c7f9d3d9aee1281250eec3771cfdc6aa2fbcee28a30f213c641",
+      "mode": 384
+    },
+    "review": {
+      "bytes": 211,
+      "sha256": "80f3ae8ed00a5dcc7ba597497352fcf4e94a21e427e53858b3fe6b8e970653d3",
+      "mode": 384
+    },
+    "command": {
+      "bytes": 346,
+      "sha256": "7984588d150e52732e87063a045cc657d653463bf6eba765bc944f90eec5321d"
+    }
+  },
+  "productCalls": 0,
+  "helperReruns": 0
+}

@@ -1,5 +1,7 @@
 # K08 v3 activation binding: READY for different final-slot review
 
+Publication note: check.stderr retains an erroneous one-LF copy. The original capture and RAW-PREP-CAPTURES.json record zero stderr bytes; check.stderr.exact is the authenticated empty derivative. PUBLICATION-COPY-CORRECTION.json preserves this copy-only defect; no helper rerun or binding change.
+
 No actual GO is asserted by this preparation. The prospective GO.json is inert until ROOT grants execution after different slot review. Source ffac894aa98b8cd98476b8ea109ef2e2425c2a07 and package remain the accepted frozen identities in ROOT-AUTHORITY.json; no source or sealed harness edits occurred.
 
 - Independent preexec:5aa383ae63e20ef8df3fa0bd2c2e06871976fe76; rich receipt31c83a1d7ecb972c217a6f65b91976dc694bc0662e0dca1fb261a8a327cd05fa.

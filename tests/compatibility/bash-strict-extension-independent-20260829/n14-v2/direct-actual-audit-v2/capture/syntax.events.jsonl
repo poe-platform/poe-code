@@ -1,0 +1,12 @@
+{"at":"2026-08-29T11:54:33.451Z","event":"owner-start","pid":56117,"mode":"syntax"}
+{"at":"2026-08-29T11:54:33.465Z","event":"capture-open","label":"syntax-supervise.mjs"}
+{"at":"2026-08-29T11:54:33.470Z","event":"enrolled","label":"syntax-supervise.mjs","pid":56119,"executable":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","args":["--check","/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/supervise.mjs"]}
+{"at":"2026-08-29T11:54:33.506Z","event":"exit","label":"syntax-supervise.mjs","pid":56119,"code":0,"signal":null}
+{"at":"2026-08-29T11:54:33.516Z","event":"close","label":"syntax-supervise.mjs","pid":56119,"code":0,"signal":null,"exitSeen":true,"timedOut":false,"spawnErrorPresent":false}
+{"at":"2026-08-29T11:54:33.520Z","event":"capture-closed","label":"syntax-supervise.mjs"}
+{"at":"2026-08-29T11:54:33.524Z","event":"capture-open","label":"syntax-audit.mjs"}
+{"at":"2026-08-29T11:54:33.529Z","event":"enrolled","label":"syntax-audit.mjs","pid":56121,"executable":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","args":["--check","/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-actual-audit-v2/audit.mjs"]}
+{"at":"2026-08-29T11:54:33.563Z","event":"exit","label":"syntax-audit.mjs","pid":56121,"code":0,"signal":null}
+{"at":"2026-08-29T11:54:33.574Z","event":"close","label":"syntax-audit.mjs","pid":56121,"code":0,"signal":null,"exitSeen":true,"timedOut":false,"spawnErrorPresent":false}
+{"at":"2026-08-29T11:54:33.577Z","event":"capture-closed","label":"syntax-audit.mjs"}
+{"at":"2026-08-29T11:54:33.580Z","event":"owner-complete","pid":56117,"code":0}

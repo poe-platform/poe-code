@@ -1,0 +1,18 @@
+{
+  "schema": "k08-source-disjointness-check-v1",
+  "at": "2026-08-29T14:47:34.247Z",
+  "liveRuntimeSha256": "52b916030e4ca6e5c36bf858d16e26be8e39d124707597e3e601c94641185df6",
+  "originalSha256": "0c17850b1ceb4f09eec5458315dbb08433aa01721cf1b20fe7385481a20992e1",
+  "firstPredicate": {
+    "result": false,
+    "reason": "Source-only review helper removed the pre-existing arithmetic import instead of the new helper import. No source bytes changed.",
+    "removedLine": "import { evaluateArithmetic, prepareArithmetic } from \"./arithmetic.js\";",
+    "outputHash": "ff88c34b6dc4329b871defbeb5b75104db831eec9de0488a64272ed787eac0ad"
+  },
+  "correctedPredicate": {
+    "removedLine": "import { evaluatePositionalArithmetic } from \"./arithmetic-parameters.js\";",
+    "result": true,
+    "reversedSha256": "0c17850b1ceb4f09eec5458315dbb08433aa01721cf1b20fe7385481a20992e1",
+    "callsiteBlocks": 2
+  }
+}

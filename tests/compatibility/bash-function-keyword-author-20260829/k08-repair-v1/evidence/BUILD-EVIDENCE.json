@@ -1,0 +1,123 @@
+{
+  "schema": "k08-author-build-evidence-v1",
+  "sourceCommit": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+  "capturedAt": "2026-08-29T14:46:53.153Z",
+  "build": {
+    "bytes": 250698,
+    "sha256": "13cef2056add37b0653526e40930eb94b14fbb4edbeb4edef9a835b9bfbbdf59",
+    "status": "STRICT_BUILD_COMPLETED",
+    "compilerStatus": 0,
+    "stdoutBytes": 0,
+    "stderrBytes": 0
+  },
+  "sourceBinding": {
+    "bytes": 47625,
+    "sha256": "23719007f88f5414725cbb3806763c70d210d8a2433ec285c179b41c67e4fa17"
+  },
+  "archive": {
+    "path": "/private/tmp/safe-bash-k08-author-RAvH2m/virtual-bash-k08.tgz",
+    "bytes": 981948,
+    "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c",
+    "base64Artifact": "package.tgz.base64",
+    "members": 1006,
+    "decodedBytes": 5803008
+  },
+  "futureSeal": {
+    "bytes": 196558,
+    "sha256": "ba016c4ff6bfa1add722d65c59a0d4f740e43ca652c56bfc12610472bb633d91"
+  },
+  "authenticatedFiles": [
+    {
+      "name": "case-adapter.mjs",
+      "bytes": 4474,
+      "sha256": "0200f5240559bf0b09a132d68e378d566475a2454cc89ae7401be01f678544bc"
+    },
+    {
+      "name": "helper-driver.mjs",
+      "bytes": 3013,
+      "sha256": "fe537fc9dfced47c536311b0de817bbfffad6f86d657bf0cff44e168c6bd6c9d"
+    },
+    {
+      "name": "case-driver.mjs",
+      "bytes": 2625,
+      "sha256": "b79e1d478be4b5744591ec39d1711ccac28e714878314cc110f9dd95c018204e"
+    },
+    {
+      "name": "CASES.json",
+      "bytes": 10895,
+      "sha256": "a6018734d7e717a2efaed63125da154466b317f18796f6687e3e90efa4031bc5"
+    },
+    {
+      "name": "PRODUCT-EDGES.json",
+      "bytes": 29973,
+      "sha256": "7ed98d6a1937ed667983adc2846daea35f699bc82632b331db199e5a9ccaaa88"
+    },
+    {
+      "name": "target-owner.mjs",
+      "bytes": 12710,
+      "sha256": "b81d857a2514f9d5d1a7f2c4ec3df666f34d8b40bc4f151c5ebdd104e80ff1e0"
+    },
+    {
+      "name": "activation.mjs",
+      "bytes": 2129,
+      "sha256": "88bf2420227a5695fdf76c58fbb0f90a2a402111e055c7835ce4f4f553120525"
+    },
+    {
+      "name": "collector.mjs",
+      "bytes": 2335,
+      "sha256": "2d36af1cb5bfcd5faa44523b091b5a5975ab6f7a07f0689dd75d1f198e79403f"
+    },
+    {
+      "name": "launch.sh",
+      "bytes": 702,
+      "sha256": "456743d299177a91f994e5182cfe7bdf80ede39aef1320776b0c9afbbbf0e796"
+    },
+    {
+      "name": "auth.mjs",
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    },
+    {
+      "name": "direct-child.mjs",
+      "bytes": 5589,
+      "sha256": "9ef04780212a6b528b13968da456a2d0893de1f2f7c017d9dc4f202337d6235e"
+    },
+    {
+      "name": "collector-core.mjs",
+      "bytes": 121,
+      "sha256": "7056edbb3beaad8e12e667498c1e469a89004b1bb83708ec7df92c70f0992b61"
+    },
+    {
+      "name": "preauth.mjs",
+      "bytes": 339,
+      "sha256": "04af67d6b441ca5433b895033075fee43361f0f9af969add6f439a2a6cacb22e"
+    }
+  ],
+  "inheritedHelpers": 9,
+  "declarationChanges": [
+    "dist/shell/arithmetic-parameters.d.ts"
+  ],
+  "actual": {
+    "strictBuilds": 1,
+    "productShellCalls": 0,
+    "helperControls": 0,
+    "mutants": 0,
+    "native": 0,
+    "workers": 0,
+    "consumerChecks": 0
+  },
+  "snapshot": {
+    "root": "/private/tmp/safe-bash-k08-author-RAvH2m",
+    "at": 1788014756250,
+    "bytes": 44091251,
+    "entries": 2920,
+    "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+  },
+  "administrationSnapshot": {
+    "knownStarts": 19,
+    "compilerDistinctKnownStarts": 1,
+    "captureBytes": 4371,
+    "qualification": "Prepublication snapshot; later publication commands are recorded separately, not falsely included."
+  },
+  "history": "47a2311e unchanged; old 2MiB administrative archive STOP not retried or repaired"
+}

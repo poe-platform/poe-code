@@ -2,6 +2,8 @@ import { createHash, randomUUID } from "node:crypto";
 import {
   cloneSandboxValue,
   createSandboxClosure,
+  defineOwnDataProperty,
+  isArrayIndexKey,
   measureSandboxData,
   type SandboxClosure,
   type SandboxValue
@@ -768,7 +770,17 @@ function normalize(value: unknown, seen: WeakSet<object>): unknown {
   if (seen.has(value)) throw new TypeError("Host call arguments cannot contain cycles.");
   seen.add(value);
   try {
-    if (Array.isArray(value)) return value.map((entry) => normalize(entry, seen));
+    if (Array.isArray(value)) {
+      const normalized = new Array<unknown>(value.length);
+      for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+        if (!isArrayIndexKey(key)) continue;
+        if (!("value" in descriptor)) {
+          throw new TypeError("Host call arguments cannot contain accessor properties.");
+        }
+        defineOwnDataProperty(normalized, key, normalize(descriptor.value, seen));
+      }
+      return normalized;
+    }
     return Object.fromEntries(
       Object.keys(value as object)
         .sort()

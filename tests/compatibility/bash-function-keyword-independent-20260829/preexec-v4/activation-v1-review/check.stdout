@@ -1,0 +1,2 @@
+{"phase":"binding-check-start","pid":25397,"utc":"2026-08-29T14:04:22.662Z"}
+{"decision":"ACCEPT","inventory":24,"sourcePins":29,"toolRows":247,"remainingStartMs":943938,"actualCalls":0}

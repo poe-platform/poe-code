@@ -1,0 +1,49 @@
+# L04 Worker qualifier: source/data adjudication
+
+Review date2026-08-29; no Worker/engine/compiler execution. **Recommend ROOT authorize preparation of versioned L04v2 plus the exact seven unrun slots, then bind the new manifests/grant before actual execution.** Current v11 remains a one-slot diagnostic recipe, not an eight-slot executable grant. No engine patch, polyfill, constructor/global expansion, D1–D3 change or cap increase is needed.
+
+## Frozen observation, not retrospective diagnosis
+
+Source 702c0a448fcaaabad51294f407e9920c8d577925; grant fe7417e6cbca777f0b94ed977a1cb0c0eb91745f; evidence2871a7bb5fc51abecfd92442dbfec4588a886abd. Authenticated the135-file actual archive ddd1c9d37d15a2538efbcb5a404e2a3489a0c5c772fed119d89dfc875b82e0d7,126 copied candidate entries/1,342,249 bytes,99 actual Worker-load records (93engine+6helpers), and95 unchanged .js emissions/1,076,164 bytes against frozen v10 composition. All126 source entries match the actual capture. The compiled-directory package.json is not a96th emission.
+
+Actual v11 receipt: status1, guestFailure terminal, empty channels, zero RPC outcomes, zero new FS effects, one Worker/public-run attempt, no bridge-proven guest entry. Exact observation: TypeError; message “Promise is not a constructor.”; code absent; route rejection; supplemental fault=false. Actual Worker exit1 and parent cleanup closed/settled; owner natural exit1 with no signal, both captures closed. Semantic judgement remains FAIL (status, channels, terminal).20 harmless observer controls are author evidence, not rerun or recredited here. Original2eb0536d L04 detail UNKNOWN remains unchanged; this separate observation does not recover it.
+
+## Source cause and supported replacement
+
+Pinned PUBLIC98 at bb23ec270aaaf1d394b00d330fbf1aa6ccb2952e was decoded as DATA only, all98 records authenticated by byte count/SHA256/Git blob. Detailed source anchors/hashes are in REVIEW.data.json.
+
+1. src/interp/promise.ts20–38 provides Promise as an object of static closures, including race; not a constructible closure. interpreter.ts2416–2428 rejects new Promise before evaluating constructor arguments. The exact message matches this NEW captured failure. Classify constructor syntax unsupported in the initial restricted Node profile, not a newly proved universal engine defect.
+2. race is an async-marked sandbox closure calling createSandboxPromise(settleIterable(...Promise.race(entries)...)). The empty literal is a real empty SandboxArray; iterable conversion yields zero entries. No await or callback is added by the proposal.
+3. interpreter.ts3461–3477 and async.ts419–427 preserve the SandboxPromise wrapper rather than awaiting its underlying pending host promise. values.ts173–221 registers replay/rejection tracking but does not enqueue a perpetually running SandboxJobQueue task for this intrinsic.
+4. Public run awaits interpret; interpreter.ts333–334 awaits evaluation then jobs.drain(). jobs.ts49–56 waits for running jobs and20 stable-generation microtask turns, NOT all outstanding promises. This discarded race creates no sandbox reaction callback. promise-replay.ts102–125 observes settlements without waiting for all promises on a fresh run; its snapshot records counts, not settlement completeness. promise-tracker.ts47–65/90–94 flushes20 microtask turns and checks observed rejection flags, not pending-promise settlement.
+5. run.ts417–444 checks returned/unhandled rejections and emits a snapshot. The proposed guest discards the race result, writes output, returns undefined. Source therefore supports **entry return** as the positive target. It is not dynamic proof the public run will finish or that the pending promise remains retained; it does not establish Q/all-jobs-settled. A deadline outcome must stay separate and nonpassing.
+
+Exact proposed data-only delta in a NEW versioned scaffold: replace the sole line “    new Promise(() => {});” with “    Promise.race([]);”. Preserve following console.log('entry-return') and return. Original7000-byte SHA256 04e8842ed42ef72e1ed4ea2a851cf785558380e024c4c801444c15acb5bf5833; proposed6995-byte SHA256 2674a7fd2fb7b01632a0fb1e9e3252f0831c7bd2b696fde9e5c9dbd217ced742. No file in author scope was modified. Preserve original constructor input and actual error as a versioned unsupported-feature negative record; do not rescore its old positive assertion or consume a ninth Worker rerun.
+
+## Pre-run outcome table — recommendation frozen now
+
+| Observed branch | Classification required before execution |
+| --- | --- |
+| Public run fulfills ok; normal entryReturned; exact output entry-return\n; no new FS effects; one delivered/closed/FINAL_ACK stdout outcome; actual Worker exit plus parent cleanup succeed | L04v2 positive target, status0. Output establishes reaching post-intrinsic bridge code, not internal all-job settlement. |
+| Public run remains pending until existing5s admission deadline | Existing private-profile admission-deadline/typically status2, no124 remapping. Retirement safety may separately pass only after actual exit+cleanup; **L04v2 positive FAIL/HOLD**, not alternative status0 or silently accepted pending compatibility. |
+| Guest rejection/not-ok, unrelated host/control failure, missing terminal, cleanup contradiction, late/unbound load or malformed output | Retain original routes/reasons, fail the appropriate predicate; never infer an error cause from missing diagnostic data. |
+
+This table chooses the source-supported entry-return target now. It does not choose whichever branch later executes. No timeout/deadline or Q guarantee is added. Numeric cleanup outcomes remain existing policies.
+
+## Observer edge, copies and identity
+
+Exact new v11 edge relative to v10: worker-error-observation.mjs → node:util, Worker-only, importer SHA256 1dcb8319e5d216d2f2bbf1793f4ccacfa51c18149b3dee074b9c77900fed339a. No additional builtin edge is needed for race([]). This trusted host helper is not exposed as a guest builtin/global; no guest fs/process/SAB/port grant. Existing conditional grant/source bindings identify that exact edge.
+
+Helper precharge65536 is backed by supervisor reserve before Worker acquisition and retained for the case lifetime on the same16MiB ledger. It inspects only own name/message/code descriptors; types.isProxy precedes descriptors, no getters/prototype traversal/coercion/stack/cause read. Length check short-circuits before UTF8 scanning beyond256 code units, each copied field at most256 UTF8 bytes; at most3 fields. Encoded helper payload≤8192. Parent admits one session-bound preterminal string≤8192; the serialized sidecar wraps/escapes that string, so **8192 is the inner payload cap, not whole-file cap**. Parent publication's existing1MiB precharge/aggregate bounds cover wrapper/receipt/judgement copies. This is logical accounting, not RSS/preemptive allocation proof.
+
+publish returns the exact original reason plus separate fault with explicit presence, including undefined. Worker catch never supplies parent caller/control reasons to this observer; transport carries diagnostic strings, NOT cross-Worker object identity. Important SOURCE qualification: worker-body ignores publish's returned fault record. Therefore parent observationFault=false/text=null does NOT prove successful observation; it can mean absent observation or a swallowed supplemental send/observer failure. The semantic guestFailure terminal remains failure, so this is not false semantic success. For the next recipe, freeze diagnostic completeness as: valid sidecar when present; missing/faulted observation on guestFailure = diagnosis HOLD, never “no error.” No observer repair is necessary to run the positive fixture under that honest supplemental profile; claiming complete Worker diagnostic-fault transport would need a separately approved change. Existing20 helper controls prove local return identity, not whole-Worker fault transport.
+
+## Exact eight-slot proposal and minimal edits
+
+New L04v2; unchanged L05(undefined),L05(false),L05(object),L06a,L06b,L07,L08. Eight Workers/seven guest evaluations, peak1, zero retries; L08 zero engine evaluation. Do NOT repeat L01/L02/L03 or rerun the constructor negative. Original seven slots' expected values and intentional cleanup/permission outcomes stay exact.
+
+Before actual GO, author creates versioned scaffold/case metadata and updates selected instance IDs, fresh run ID, parent finite-selection1→8 and guest sum1→7, PROFILE declared counts, SOURCE guest hash, MODULES importer hashes, COMPOSITION and grant bindings. These are cohort-selection changes within prior ceilings, not relaxed per-case caps. The current PROFILE.profile description “exact9-old-unrun-plus-L02-repeat” is stale; correct it only in the new version. Keep old v11/old actuals immutable. Preserve95 emissions byte-identically, all D1–D3 policies and existing numeric limits. Add the above diagnostic-completeness interpretation to the new evidence judge/schema documentation without converting diagnostic shape to provenance or changing terminal reason ranking. Actual execution remains pending ROOT's new source/manifest/grant binding.
+
+## Review boundaries
+
+Preseal SHA256 4e13444b31eb728bc19e59b2293851d0bc6dbecd59157ca7917f1dbef3a45699. SOURCE/DATA only; no synthetic semantic controls or new observer/engine/Worker/compiler/private/network calls. One initial REPL preparation failed because prior bindings were unavailable; imports initialized before candidate reads, no child created by that failure. All source/archive hashes were authenticated from exact Git objects; no live fallback. A conservative12 OS-process slots include initial shell/cat/Git, preseal patch, three Git reads, final patch/add/commit; peak2. Final elapsed and commit are returned separately. Original evidence and all K1–K4 partial qualifications remain; no product acceptance claimed.

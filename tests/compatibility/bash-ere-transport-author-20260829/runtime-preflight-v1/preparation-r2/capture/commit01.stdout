@@ -1,0 +1,6 @@
+[main eb101a6f3] Seal ERE T1 r2 text diagnosis and six-helper preparation ceiling
+ 4 files changed, 100 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/NODE.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/PREPARATION-PROFILE.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/SYNTAX-PRESEAL.json
+ create mode 100644 tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r2/syntax-diagnosis.mjs

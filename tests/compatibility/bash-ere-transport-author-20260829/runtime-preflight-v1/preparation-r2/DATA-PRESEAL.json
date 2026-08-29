@@ -1,0 +1,100 @@
+{
+  "schema": 2,
+  "role": "H2 syntax-text, 14 retained DATA controls +16 new capture/receipt controls, materialize135cells DATA only",
+  "inputs": [
+    {
+      "name": "bridge-state.mjs.data",
+      "size": 990,
+      "sha256": "a056de25d26cf735939a17b38ff7a06bb313e3d2bffb2df068bcda24640264b7"
+    },
+    {
+      "name": "case-runner.mjs.data",
+      "size": 13252,
+      "sha256": "99528907e852afdfd82490dfe4f0482571179000cce6e71b6d1e74e2153aabf6"
+    },
+    {
+      "name": "child-bootstrap.mjs.data",
+      "size": 2033,
+      "sha256": "133080e5c3872651169848cbd269af7adb531884a63ce15359a7bf3a1b628971"
+    },
+    {
+      "name": "control-suite.mjs",
+      "size": 6023,
+      "sha256": "e1678793fbdd8a30ce38c9caaae87ff9ba40694e531560cd1cb957e1867a5b3e"
+    },
+    {
+      "name": "data-controls-r2.mjs",
+      "size": 3756,
+      "sha256": "bf2e806b29c79aab864fe91b89a4b361740a60b4eb7395f0b785509f89590e96"
+    },
+    {
+      "name": "data-support.mjs",
+      "size": 5286,
+      "sha256": "98464347398558ce569cecb306449dbb0c3798ba82029692b3cd76a8c29c4017"
+    },
+    {
+      "name": "materializer.mjs",
+      "size": 5385,
+      "sha256": "08a8f7d2a0f0e5d54ba8cd441918d4ff2aebc8e8d4873422a3a0c16a4161f9e9"
+    },
+    {
+      "name": "owned-process.mjs",
+      "size": 3219,
+      "sha256": "e0558f92c09e8e9f582ad19bcb14efba9a913237d0832e5fbfe4c18c4ac651fe"
+    },
+    {
+      "name": "owner-controls.mjs",
+      "size": 2420,
+      "sha256": "d59dbac0ab89478bcc11bf71e4c2ead1293183a09ca7668302a3b04499e084b5"
+    },
+    {
+      "name": "receipt-gate.mjs",
+      "size": 5691,
+      "sha256": "d34a21c2d962616ae002460b0559535a60310c728ee54d17a2ad8847e94a399d"
+    },
+    {
+      "name": "stub.mjs",
+      "size": 176,
+      "sha256": "9f93bbd839c4d78c4c50d7f10f579c09019f5e9b6a7fd1ee8fe4a2849744704d"
+    },
+    {
+      "name": "stub.mjs.data",
+      "size": 176,
+      "sha256": "9f93bbd839c4d78c4c50d7f10f579c09019f5e9b6a7fd1ee8fe4a2849744704d"
+    },
+    {
+      "name": "supervisor.mjs",
+      "size": 6821,
+      "sha256": "bfc4817598b7e189d203b032ac048f06687ed27e979d6c2902eb9c09b764796b"
+    },
+    {
+      "name": "syntax-diagnosis.mjs",
+      "size": 3216,
+      "sha256": "56bea316e523b3a59f2d0bf3320358f5849a89ce58dced04f69e245ef009c154"
+    },
+    {
+      "name": "validation-observer.mjs.data",
+      "size": 287,
+      "sha256": "6d17eb806c3adccec39841e36a912692810ecfd09c3b010d3a586f4325cb6280"
+    },
+    {
+      "name": "worker-bridge.mjs.data",
+      "size": 2505,
+      "sha256": "1b68ad6fe9e77924496ced8bb28ead252a8d562c57049d96d37eeec27be0c742"
+    }
+  ],
+  "typescript": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/BUILD/work/node_modules/typescript/lib/typescript.js",
+    "size": 9112572,
+    "sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675"
+  },
+  "limits": {
+    "milliseconds": 120000,
+    "helpers": 1,
+    "children": 0,
+    "Workers": 0,
+    "productImports": 0,
+    "captureBytes": 4194304,
+    "workingBytes": 67108864
+  }
+}

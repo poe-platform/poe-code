@@ -1,0 +1,35 @@
+{
+  "schema": 2,
+  "role": "H3 controller plus H4 normal and H5 postspawn-clock-false harmless children; no production modules",
+  "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "inputs": [
+    {
+      "name": "data-support.mjs",
+      "size": 5286,
+      "sha256": "98464347398558ce569cecb306449dbb0c3798ba82029692b3cd76a8c29c4017"
+    },
+    {
+      "name": "owned-process.mjs",
+      "size": 3219,
+      "sha256": "e0558f92c09e8e9f582ad19bcb14efba9a913237d0832e5fbfe4c18c4ac651fe"
+    },
+    {
+      "name": "owner-controls.mjs",
+      "size": 2420,
+      "sha256": "d59dbac0ab89478bcc11bf71e4c2ead1293183a09ca7668302a3b04499e084b5"
+    },
+    {
+      "name": "stub.mjs",
+      "size": 176,
+      "sha256": "9f93bbd839c4d78c4c50d7f10f579c09019f5e9b6a7fd1ee8fe4a2849744704d"
+    }
+  ],
+  "limits": {
+    "milliseconds": 30000,
+    "helpers": 3,
+    "childStarts": 2,
+    "peakIncludingOuter": 3,
+    "captureBytes": 1048576,
+    "workingBytes": 1048576
+  }
+}

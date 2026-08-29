@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "role": "TEXT syntax only; no fixture/product execution",
+  "scripts": [
+    {
+      "name": "bridge-state.mjs.data",
+      "diagnostics": []
+    },
+    {
+      "name": "worker-bridge.mjs.data",
+      "diagnostics": []
+    },
+    {
+      "name": "validation-observer.mjs.data",
+      "diagnostics": []
+    },
+    {
+      "name": "child-bootstrap.mjs.data",
+      "diagnostics": []
+    },
+    {
+      "name": "case-runner.mjs.data",
+      "diagnostics": [
+        {
+          "code": 1487,
+          "start": 9227,
+          "length": 2,
+          "message": "Octal escape sequences are not allowed. Use the syntax '\\x01'."
+        }
+      ]
+    },
+    {
+      "name": "P04/undefined.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "P04/null.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "P04/false.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "P04/0.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "P04/empty-string.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "P06/hole.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "P06/wrong-count.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "P06/outside-overall.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "P07/over-grant.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "P07/noninteger.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "P07/duplicate-counter-mismatch.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "P09/duplicate.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "P09/stale-id.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "P09/wrong-operation.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "L03/queued-abort-false.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "L04/active-abort-zero.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "L06/startup-timeout.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "L06/request-timeout.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "L07/worker-error.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "L07/unexpected-exit.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "L09/instrumented-publication-rejects.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "B04/crash-unproved.mjs",
+      "diagnostics": []
+    },
+    {
+      "name": "B04/malformed-unproved.mjs",
+      "diagnostics": []
+    }
+  ]
+}

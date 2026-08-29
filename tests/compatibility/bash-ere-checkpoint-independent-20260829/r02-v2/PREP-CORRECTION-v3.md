@@ -1,0 +1,3 @@
+# Version3 preparation correction
+
+Source preflight corrected the initial attribution: prepare.mjs:97 failed because the author runner ALREADY enforces96MiB, so the expected128MiB replacement is absent. The app-line explanation in PREP-CORRECTION.md is incorrect and remains preserved as an unexecuted proposal; prepare-v2.mjs was NOT run. Version3 derives from original prepare.mjs, asserts the existing96MiB cap (no permission/limit change), and keeps the original app insertion unchanged. Four own harness modules receive syntax-only SourceTextModule construction in one pinned Node child, with no linking/evaluation/product imports, to stay within the remaining finite process budget. New capture filenames preserve all originals.

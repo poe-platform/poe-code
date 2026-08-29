@@ -1,0 +1,2 @@
+# Preserved preparation correction
+Original prepare.mjs failed a unique exact-text insertion assertion before any compiler/product or actual dispatch. One metadata Git child exited0; capture and owner retired. The author app-initialization line contains further operations on the same line, so the semicolon-prefix needle did not occur verbatim. Version2 binds the complete actual source line and preserves it when inserting the mutation helper. No case body, product, limits or expected result changes. Original source/captures remain immutable.

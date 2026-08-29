@@ -1,0 +1,30 @@
+prepare.mjs
+91:   runner = runner.slice(0, loopBegin) + runner.slice(loopEnd);
+92:   change("    const app = join(work,'installed-app');", "    const mutants = [];\n    async function mutateLayout(directory, layout) {\n" + functionBody + "    }\n    const app = join(work,'installed-app');");
+93:   const targetLine = runner.split('\n').find(line => line.includes('await runCases(`${layout}-author66`'));
+94:   assert.ok(targetLine); change(targetLine, targetLine + " await runCases(`${layout}-remaining5`,directory,'remaining');");
+95:   const typeLine = runner.split('\n').find(line => line.includes('types.push({layout'));
+96:   assert.ok(typeLine); change(typeLine, typeLine.replace('negative.code===2', 'negative.code!==0').replace("JSON.stringify(diagnostics)==='[2345,2339,2322]'", "JSON.stringify(diagnostics)==='[2345,2339,2322]' && negative.stdout.includes('negative.mts(4,') && negative.stdout.includes('negative.mts(6,') && negative.stdout.includes('negative.mts(7,')") + '\n      await mutateLayout(directory,layout);');
+97:   change('captureBytes > 128 * 1024 * 1024', 'captureBytes > 96 * 1024 * 1024');
+98:   const outer = fs.readFileSync(parent + '/outer.mjs', 'utf8').replace('1950000', '1380000');
+99:   const map = { source: 'b5f2464f63172fc7c92bcfd33fbb2a8a6d8c03eb', inputs: objects.map(({ bytes, ...record }) => record), singleAwaitOnly: true, exactN01: hash(n01), observer: hash(observer(oldNovel)), remainingBodies: [...remaining.matchAll(/await check\('([^']+)'/g)].map(match => ({ id: match[1], sha256: hash(body(remaining, match[1])), unchanged: body(remaining, match[1]) === body(oldNovel, match[1]) })), main: 249, sourceQualifiedNoR01Rescore: true };
+100:   assert.ok(map.remainingBodies.every(row => row.unchanged));
+101:   addFiles([['runner.mjs', runner], ['outer.mjs', outer], ['remaining.mjs', remaining], ['AUTHOR-SEAL.json', sealBytes.toString()], ['DECLARATIONS.json', JSON.stringify(declarations, null, 2) + '\n'], ['SOURCE-FIXTURE-MAP.json', JSON.stringify(map, null, 2) + '\n'], ['TRANSFORMS.json', JSON.stringify(transforms, null, 2) + '\n']]);
+102:   for (const name of ['runner.mjs', 'outer.mjs', 'remaining.mjs', 'prepare.mjs']) run(seal.node.path, ['--check', own + '/' + name]);
+103:   const files = ['runner.mjs', 'outer.mjs', 'remaining.mjs', 'prepare.mjs', 'AUTHOR-SEAL.json', 'DECLARATIONS.json', 'SOURCE-FIXTURE-MAP.json', 'TRANSFORMS.json', 'PRESEAL.md'].map(name => binding(own + '/' + name));
+104:   const executable = JSON.stringify({ node: seal.node, files, source: map.source, authorSealSha256: hash(sealBytes), mainGroups: 249, layouts: 3, typeExecutions: 6, expectedNegativeDiagnostics: 9, declarationFiles: 5, mutationFamilies: 1, kills: 3, restores: 3, bindingRefusals: 2, childCount: 25, runtimeRoles: 27, loaders: 0, workers: 0, noCompression: true, R01: 'seven original failures/HOLD not rerun or rescored' }, null, 2) + '\n';
+prepare-v2.mjs
+91:   runner = runner.slice(0, loopBegin) + runner.slice(loopEnd);
+92:   change("    const app = join(work,'installed-app'); await mkdir(join(app,'artifact'),{recursive:true}); await writeFile(join(app,'package.json'),'{\"type\":\"module\"}\\n');", "    const mutants = [];\n    async function mutateLayout(directory, layout) {\n" + functionBody + "    }\n    const app = join(work,'installed-app'); await mkdir(join(app,'artifact'),{recursive:true}); await writeFile(join(app,'package.json'),'{\"type\":\"module\"}\\n');");
+93:   const targetLine = runner.split('\n').find(line => line.includes('await runCases(`${layout}-author66`'));
+94:   assert.ok(targetLine); change(targetLine, targetLine + " await runCases(`${layout}-remaining5`,directory,'remaining');");
+95:   const typeLine = runner.split('\n').find(line => line.includes('types.push({layout'));
+96:   assert.ok(typeLine); change(typeLine, typeLine.replace('negative.code===2', 'negative.code!==0').replace("JSON.stringify(diagnostics)==='[2345,2339,2322]'", "JSON.stringify(diagnostics)==='[2345,2339,2322]' && negative.stdout.includes('negative.mts(4,') && negative.stdout.includes('negative.mts(6,') && negative.stdout.includes('negative.mts(7,')") + '\n      await mutateLayout(directory,layout);');
+97:   change('captureBytes > 128 * 1024 * 1024', 'captureBytes > 96 * 1024 * 1024');
+98:   const outer = fs.readFileSync(parent + '/outer.mjs', 'utf8').replace('1950000', '1380000');
+99:   const map = { source: 'b5f2464f63172fc7c92bcfd33fbb2a8a6d8c03eb', inputs: objects.map(({ bytes, ...record }) => record), singleAwaitOnly: true, exactN01: hash(n01), observer: hash(observer(oldNovel)), remainingBodies: [...remaining.matchAll(/await check\('([^']+)'/g)].map(match => ({ id: match[1], sha256: hash(body(remaining, match[1])), unchanged: body(remaining, match[1]) === body(oldNovel, match[1]) })), main: 249, sourceQualifiedNoR01Rescore: true };
+100:   assert.ok(map.remainingBodies.every(row => row.unchanged));
+101:   addFiles([['runner.mjs', runner], ['outer.mjs', outer], ['remaining.mjs', remaining], ['AUTHOR-SEAL.json', sealBytes.toString()], ['DECLARATIONS.json', JSON.stringify(declarations, null, 2) + '\n'], ['SOURCE-FIXTURE-MAP.json', JSON.stringify(map, null, 2) + '\n'], ['TRANSFORMS.json', JSON.stringify(transforms, null, 2) + '\n']]);
+102:   for (const name of ['runner.mjs', 'outer.mjs', 'remaining.mjs', 'prepare-v2.mjs']) run(seal.node.path, ['--check', own + '/' + name]);
+103:   const files = ['runner.mjs', 'outer.mjs', 'remaining.mjs', 'prepare-v2.mjs', 'AUTHOR-SEAL.json', 'DECLARATIONS.json', 'SOURCE-FIXTURE-MAP.json', 'TRANSFORMS.json', 'PRESEAL.md'].map(name => binding(own + '/' + name));
+104:   const executable = JSON.stringify({ node: seal.node, files, source: map.source, authorSealSha256: hash(sealBytes), mainGroups: 249, layouts: 3, typeExecutions: 6, expectedNegativeDiagnostics: 9, declarationFiles: 5, mutationFamilies: 1, kills: 3, restores: 3, bindingRefusals: 2, childCount: 25, runtimeRoles: 27, loaders: 0, workers: 0, noCompression: true, R01: 'seven original failures/HOLD not rerun or rescored' }, null, 2) + '\n';

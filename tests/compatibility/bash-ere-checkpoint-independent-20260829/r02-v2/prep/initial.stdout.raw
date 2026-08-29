@@ -1,0 +1,793 @@
+?? tests/commands/diff-patch-stress/fuzz/.native-bvNFwI/
+?? tests/commands/git-independent-20260828/observer-v8-independent/RUN-GIT-OBSERVER-V8-INDEPENDENT-01/
+?? tests/commands/git-independent-20260828/observer-v8-independent/adapter-v10-review/RUN-GIT-ADAPTER-V10-INDEPENDENT-01/
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/CASES.json
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/ENGINE-PACKAGE.json.data
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/GRANT.template.json
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/MODULES.json
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/PROFILE.json
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/SOURCES.json
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/TOOLS.json
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/compiled/
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/diagnostic-publication.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/errors.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/fixtures.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/heap-worker.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/import-policy.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/json-size.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/load-attestation.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/load-guard.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/outcome-judge.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/owner.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/package.json
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/parent-entry.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/parent-rpc.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/receipt-schema.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/reservations.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/scaffold.guest.js.data
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/supervisor.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/sync-bridge.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/wire.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/worker-body.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/worker-entry.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v10-diagnostic-publication/actual-v10-01/capsule/worker-permissions.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v11-l04-diagnostic/actual-v11-01/
+?? tests/commands/node-worker-experiments-20260828/preparation-v12-l04v2-continuation/actual-v12-01/
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/CASES.json
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/ENGINE-PACKAGE.json.data
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/GRANT.template.json
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/MODULES.json
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/PROFILE.json
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/SOURCES.json
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/TOOLS.json
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/compiled/
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/errors.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/fixtures.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/heap-worker.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/import-policy.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/json-size.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/load-attestation.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/load-guard.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/outcome-judge.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/owner.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/package.json
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/parent-entry.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/parent-rpc.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/receipt-schema.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/reservations.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/scaffold.guest.js.data
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/supervisor.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/sync-bridge.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/wire.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/worker-body.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/worker-entry.mjs
+?? tests/commands/node-worker-experiments-20260828/preparation-v7-capture/actual-v7-01/capsule/worker-permissions.mjs
+?? tests/commands/search-stress/.native-1m4O1e/
+?? tests/commands/xan-module-review-20260828/actual-review-v2/build-continuation/
+?? tests/commands/xan-module-review-20260828/actual-review-v2/evidence-continuation/
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/R01/
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/R02/
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/R05/
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/R06/
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/R07/
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/R08/
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/R09/
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/R10/
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/R11/
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/R12/
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/R13/
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/R14/
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/R15/
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/R16/
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/driver-1.json
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/driver-2.json
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/driver-3.json
+?? tests/comparison/breadth-continuation-20260828/coordinator-report-v1/runs/synthetic-v1-01/intentional-failed-persistence-receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/STAGED.json
+?? tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/child-001.json
+?? tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/operation-probe-1.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v4/runs/admission-v4-01/views/
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/S01.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/S02.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/S03.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/S04.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/S05.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/S06.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/S07.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/S08.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/S09.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/S10.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/S11.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/S12.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/cases/
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-001.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-001.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-002.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-002.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-003.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-003.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-004.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-004.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-005.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-005.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-006.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-006.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-007.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-007.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-008.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-008.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-009.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-009.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-010.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-010.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-011.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-011.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-012.json
+?? tests/comparison/breadth-continuation-20260828/executor-v5/runs/resolution-01/child-012.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/admission-v6-01/
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/authority-d933f560b089abd29dbf5aa7af5253fb2de257f6306fe45100425cc8c1afef40.lock
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/E01.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/E02.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/E03.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/E04.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/E05.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/E06.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/E07.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/E08.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/E09.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/E10.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/E11.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/E12.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/E13.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/E14.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/cases/
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-001.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-001.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-002.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-002.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-003.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-003.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-004.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-004.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-005.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-005.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-006.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-006.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-007.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-007.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-008.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-008.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-009.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-009.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-010.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-010.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-011.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-011.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-012.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-012.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-013.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-013.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-014.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/entry-01/child-014.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/coordinator.stderr
+?? tests/comparison/breadth-continuation-20260828/executor-v6/runs/grant-admission-v6-01/coordinator.stdout
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/AUTHORITY.lock
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/AUTHORIZATION.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/STAGED.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/STAGED.json.part-0000.data
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/STAGED.json.part-0001.data
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/STAGED.json.part-0002.data
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/STAGED.json.part-0003.data
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/child-001.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/child-001.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/child-001.receipt.json.part-0000.data
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/child-001.receipt.json.part-0001.data
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/child-002.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/child-002.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/child-002.receipt.json.part-0000.data
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/child-002.receipt.json.part-0001.data
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/child-003.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/child-003.json.part-0000.data
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/child-003.json.part-0001.data
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/child-003.json.part-0002.data
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/child-003.receipt.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/operation-probe-1.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/operation-probe-2.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/operation-probe-3.claim
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/admission-v7-r2-01/views/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/A01-inputs/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/A05-inputs/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/C01/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/C02/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/C03/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/C04/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/C05/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/C06/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/C07/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/C08/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/C09/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/C10/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/A01.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/A02.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/A03.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/A04.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/A05-child-0.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/A05-child-1.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/A05.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/C01.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/C02.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/C03.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/C04.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/C05.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/C06.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/C07.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/C08.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/C09.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/C10.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/CENSUS.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/affected-r2-01/receipts/PRE.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/launch-r2-01/driver/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/launch-r2-01/evidence/INTENT.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r2/runs/launch-r2-01/evidence/RECEIPT.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02/views/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-01/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/S01/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/S02/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/S03/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/S04/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/S05/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/S06/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/S07/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/S08/
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S01-PRE.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S01-RAW.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S01-RESULT.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S02-PRE.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S02-RAW.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S02-RESULT.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S03-PRE.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S03-RAW.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S03-RESULT.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S04-PRE.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S04-RAW.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S04-RESULT.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S05-PRE.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S05-RAW.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S05-RESULT.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S06-PRE.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S06-RAW.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S06-RESULT.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S07-PRE.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S07-RAW.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S07-RESULT.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S08-PRE.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S08-RAW.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/ordering-stubs-v2-01/receipts/S08-RESULT.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v1-20260829/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-launch-v7-01/evidence/INTENT.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-launch-v7-01/evidence/RECEIPT.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/B01/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/B02/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/B03/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/B04/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/B05/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/B06/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/B07/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/B08/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/B09/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/B10/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/B11/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/B12/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/B13/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/B14/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/B15/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/B16/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/D01-files/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/D02-files/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/D04-files/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/D07-files/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/D08-composed/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/D08-ledger/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/D08-outputs/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/D09-files/
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/B01.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/B02.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/B03.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/B04.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/B05.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/B06.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/B07.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/B08.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/B09.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/B10.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/B11.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/B12.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/B13.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/B14.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/B15.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/B16.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/CENSUS.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/D01.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/D02.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/D03.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/D04.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/D05.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/D06.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/D07.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/D08.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/D09.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/G01.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/G02.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/G03.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/G04.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/G05.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/G06.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/G07.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/G08.json
+?? tests/comparison/breadth-continuation-20260828/executor-v7/runs/synthetic-v7-01/receipts/PRE.json
+?? tests/comparison/breadth-continuation-independent-20260828/executor-v6-postadmission-review/report-component/runs/
+?? tests/compatibility/bash-conditional-independent-20260829/docs-acceptance-publication/
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/ACTUAL-01/
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/PUBLICATION-RECEIPT.json
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-21-add-evidence.receipt.json
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-21-add-evidence.stderr.raw
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-21-add-evidence.stdout.raw
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-22-evidence-commit.receipt.json
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-22-evidence-commit.stderr.raw
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-22-evidence-commit.stdout.raw
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-23-revision.receipt.json
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-23-revision.stderr.raw
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-23-revision.stdout.raw
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-24-foreign-stage-after.receipt.json
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-24-foreign-stage-after.stderr.raw
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-24-foreign-stage-after.stdout.raw
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-25-status-after.receipt.json
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-25-status-after.stderr.raw
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-25-status-after.stdout.raw
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-26-commit-paths.receipt.json
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-26-commit-paths.stderr.raw
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-26-commit-paths.stdout.raw
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-27-preseal-revision.receipt.json
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-27-preseal-revision.stderr.raw
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/admin-27-preseal-revision.stdout.raw
+?? tests/compatibility/bash-conditional-independent-20260829/fixture-v4-followup/preparation.events.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/outer.events.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/outer.stderr.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/outer.stdout.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/cache/
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/development-blobs.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/development-blobs.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/global-npmrc
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/harness/
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/npmrc
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/offline-pack.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/offline-pack.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/production-build-once.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/production-build-once.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/source-conditional-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/source-conditional-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/source-conditional-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/source-conditional.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/source-conditional.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/source-novel-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/source-novel-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/source-novel.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/source-novel.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/source/
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/tmp/
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/tools/
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/scratch/virtual-bash-0.0.0.tgz
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/version-edit-0.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/version-edit-1.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/version-edit-10.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/version-edit-11.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/version-edit-12.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/version-edit-2.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/version-edit-3.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/version-edit-4.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/version-edit-5.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/version-edit-6.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/version-edit-7.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/version-edit-8.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01/version-edit-9.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/outer.events.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/outer.stderr.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/outer.stdout.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M01-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M01-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M01-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M01-restored-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M01-restored-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M01-restored-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M01-restored.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M01-restored.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M01.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M01.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M02-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M02-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M02-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M02-restored-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M02-restored-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M02-restored-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M02-restored.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M02-restored.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M02.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M02.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M03-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M03-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M03-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M03-restored-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M03-restored-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M03-restored-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M03-restored.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M03-restored.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M03.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M03.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M04-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M04-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M04-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M04-restored-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M04-restored-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M04-restored-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M04-restored.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M04-restored.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M04.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M04.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M05-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M05-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M05-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M05-restored-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M05-restored-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M05-restored-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M05-restored.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M05-restored.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M05.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M05.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M06-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M06-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M06-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M06-restored-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M06-restored-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M06-restored-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M06-restored.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M06-restored.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M06.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M06.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M07-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M07-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M07-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M07-restored-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M07-restored-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M07-restored-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M07-restored.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M07-restored.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M07.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M07.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M08-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M08-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M08-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M08-restored-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M08-restored-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M08-restored-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M08-restored.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M08-restored.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M08.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M08.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M09-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M09-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M09-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M09-restored-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M09-restored-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M09-restored-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M09-restored.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M09-restored.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M09.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M09.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M10-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M10-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M10-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M10-restored-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M10-restored-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M10-restored-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M10-restored.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M10-restored.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M10.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/M10.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-changed-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-changed-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-changed-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-changed.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-changed.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-fallback-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-fallback-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-fallback.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-fallback.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-missing-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-missing-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-missing.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-missing.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-wrong-root-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-wrong-root-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-wrong-root.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/binding-wrong-root.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/cache/
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/development-blobs.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/development-blobs.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/global-npmrc
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/harness/
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/installed-conditional-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/installed-conditional-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/installed-conditional-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/installed-conditional.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/installed-conditional.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/installed-novel-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/installed-novel-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/installed-novel-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/installed-novel.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/installed-novel.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/installed-retained-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/installed-retained-cases.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/installed-retained-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/installed-retained-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/installed-retained.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/installed-retained.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/isolated-mutants/
+?? "tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved package/"
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved-conditional-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved-conditional-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved-conditional-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved-conditional.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved-conditional.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved-novel-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved-novel-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved-novel-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved-novel.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved-novel.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved-retained-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved-retained-cases.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved-retained-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved-retained-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved-retained.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/moved-retained.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/npmrc
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/offline-install.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/offline-install.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/offline-pack.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/offline-pack.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/production-build-once.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/production-build-once.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source-conditional-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source-conditional-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source-conditional-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source-conditional.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source-conditional.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source-novel-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source-novel-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source-novel-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source-novel.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source-novel.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source-retained-binding.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source-retained-cases.json
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source-retained-loads.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source-retained-resources.jsonl
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source-retained.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source-retained.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/source/
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/tmp/
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/tools/
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-author-installed-false.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-author-installed-false.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-author-installed-true.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-author-installed-true.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-author-moved-false.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-author-moved-false.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-author-moved-true.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-author-moved-true.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-author-source-false.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-author-source-false.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-author-source-true.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-author-source-true.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-independent-installed-false.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-independent-installed-false.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-independent-installed-true.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-independent-installed-true.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-independent-moved-false.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-independent-moved-false.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-independent-moved-true.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-independent-moved-true.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-independent-source-false.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-independent-source-false.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-independent-source-true.stderr
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/types-independent-source-true.stdout
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/scratch/virtual-bash-0.0.0.tgz
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/tail-syntax.stderr.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02/tail-syntax.stdout.raw
+?? tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-03/
+?? tests/compatibility/bash-ere-checkpoint-independent-20260829/ACTUAL-01/work/
+?? tests/compatibility/bash-ere-checkpoint-independent-20260829/r02-v2/
+?? tests/compatibility/bash-ere-design-20260829/PUBLICATION-RECEIPT.json
+?? tests/compatibility/bash-ere-design-20260829/budget-api-v1-captures/
+?? tests/compatibility/bash-ere-design-20260829/captures/
+?? tests/compatibility/bash-ere-design-20260829/edit-bindings.stderr.raw
+?? tests/compatibility/bash-ere-design-20260829/edit-bindings.stdout.raw
+?? tests/compatibility/bash-ere-design-20260829/edit-final.stderr.raw
+?? tests/compatibility/bash-ere-design-20260829/edit-final.stdout.raw
+?? tests/compatibility/bash-ere-design-20260829/index-before.raw
+?? tests/compatibility/bash-ere-design-20260829/publication-1.stderr.raw
+?? tests/compatibility/bash-ere-design-20260829/publication-1.stdout.raw
+?? tests/compatibility/bash-ere-design-20260829/publication-2.stderr.raw
+?? tests/compatibility/bash-ere-design-20260829/publication-2.stdout.raw
+?? tests/compatibility/bash-ere-design-20260829/publication-3.stderr.raw
+?? tests/compatibility/bash-ere-design-20260829/publication-3.stdout.raw
+?? tests/compatibility/bash-ere-design-20260829/publication-4.stderr.raw
+?? tests/compatibility/bash-ere-design-20260829/publication-4.stdout.raw
+?? tests/compatibility/bash-ere-design-20260829/publication-5.stderr.raw
+?? tests/compatibility/bash-ere-design-20260829/publication-5.stdout.raw
+?? tests/compatibility/bash-ere-design-20260829/publication-6.stderr.raw
+?? tests/compatibility/bash-ere-design-20260829/publication-6.stdout.raw
+?? tests/compatibility/bash-ere-design-20260829/status-before.raw
+?? tests/compatibility/bash-ere-engine-author-20260829/ACTUAL-01/work/
+?? tests/compatibility/bash-ere-engine-author-20260829/ACTUAL-02/work/
+?? tests/compatibility/bash-ere-engine-author-20260829/ACTUAL-03/work/
+?? tests/compatibility/bash-ere-engine-author-20260829/r02-v1/ACTUAL-01/work/
+?? tests/compatibility/bash-ere-engine-author-20260829/r02-v2/ACTUAL-01/work/
+?? tests/compatibility/bash-ere-engine-independent-20260829/ACTUAL-01/work/
+?? tests/compatibility/bash-ere-native-reference-20260829/materialized/
+?? tests/compatibility/bash-ere-native-reference-20260829/preflight-v1/
+?? tests/compatibility/bash-ere-transport-design-20260829/CHOICES-v2.stderr
+?? tests/compatibility/bash-ere-transport-design-20260829/CHOICES-v2.stdout
+?? tests/compatibility/bash-ere-transport-design-20260829/ROOT-RATIFICATION-v1.stderr
+?? tests/compatibility/bash-ere-transport-design-20260829/ROOT-RATIFICATION-v1.stdout
+?? tests/compatibility/bash-redirection-independent-20260829/ACTUAL-01/
+?? tests/compatibility/bash-redirection-independent-20260829/acceptance-meta-03.json
+?? tests/compatibility/bash-redirection-independent-20260829/acceptance-meta-03.stderr.raw
+?? tests/compatibility/bash-redirection-independent-20260829/acceptance-meta-03.stdout.raw
+?? tests/compatibility/bash-redirection-independent-20260829/acceptance-meta-04.json
+?? tests/compatibility/bash-redirection-independent-20260829/acceptance-meta-04.stderr.raw
+?? tests/compatibility/bash-redirection-independent-20260829/acceptance-meta-04.stdout.raw
+?? tests/compatibility/bash-redirection-independent-20260829/acceptance-meta-05.json
+?? tests/compatibility/bash-redirection-independent-20260829/acceptance-meta-05.stderr.raw
+?? tests/compatibility/bash-redirection-independent-20260829/acceptance-meta-05.stdout.raw
+?? tests/compatibility/bash-redirection-independent-20260829/actual-meta-07.json
+?? tests/compatibility/bash-redirection-independent-20260829/actual-meta-07.stderr.raw
+?? tests/compatibility/bash-redirection-independent-20260829/actual-meta-07.stdout.raw
+?? tests/compatibility/bash-redirection-independent-20260829/actual-meta-08.json
+?? tests/compatibility/bash-redirection-independent-20260829/actual-meta-08.stderr.raw
+?? tests/compatibility/bash-redirection-independent-20260829/actual-meta-08.stdout.raw
+?? tests/compatibility/bash-redirection-independent-20260829/actual-meta-09.json
+?? tests/compatibility/bash-redirection-independent-20260829/actual-meta-09.stderr.raw
+?? tests/compatibility/bash-redirection-independent-20260829/actual-meta-09.stdout.raw
+?? tests/compatibility/bash-redirection-independent-20260829/adjudication-meta-06.json
+?? tests/compatibility/bash-redirection-independent-20260829/adjudication-meta-06.stderr.raw
+?? tests/compatibility/bash-redirection-independent-20260829/adjudication-meta-06.stdout.raw
+?? tests/compatibility/bash-redirection-independent-20260829/adjudication-meta-07.json
+?? tests/compatibility/bash-redirection-independent-20260829/adjudication-meta-07.stderr.raw
+?? tests/compatibility/bash-redirection-independent-20260829/adjudication-meta-07.stdout.raw
+?? tests/compatibility/bash-redirection-independent-20260829/adjudication-meta-08.json
+?? tests/compatibility/bash-redirection-independent-20260829/adjudication-meta-08.stderr.raw
+?? tests/compatibility/bash-redirection-independent-20260829/adjudication-meta-08.stdout.raw
+?? tests/compatibility/bash-redirection-independent-20260829/continuation-v2/ACTUAL-01/
+?? tests/compatibility/bash-redirection-independent-20260829/n11-v3/ACTUAL-01/
+?? tests/compatibility/bash-redirection-independent-20260829/patch-1787979751485.raw
+?? tests/compatibility/bash-surface-independent-20260829/virtual-comparison-v2-diagnosis-v1/
+?? tests/integration/agent-bash-coherent-author-20260829/v4/
+?? tests/integration/agent-bash-coherent-independent-20260829/public-engine-preflight/
+?? tests/integration/apply-patch-public-independent-20260829/PREPARED/
+?? tests/integration/apply-patch-public-independent-20260829/RUN-APPLY-PUBLIC-INDEPENDENT-01/
+?? tests/integration/coherent78-arrays-independent-20260828/PREPARED/
+?? tests/integration/coherent78-arrays-independent-20260828/RUN-COHERENT78-ARRAYS-20260828-01/
+?? tests/integration/coherent78-arrays-independent-20260828/f11-v2/RUN-COHERENT78-F11-V2-20260828-01/
+?? tests/integration/expr-public-independent-20260827/r21-composed-public-v1/work/
+?? tests/integration/git-public-loader-review-20260829/metadata-11.json
+?? tests/integration/git-public-loader-review-20260829/metadata-11.stderr.raw
+?? tests/integration/git-public-loader-review-20260829/metadata-11.stdout.raw
+?? tests/integration/git-public-loader-review-20260829/metadata-12.json
+?? tests/integration/git-public-loader-review-20260829/metadata-12.stderr.raw
+?? tests/integration/git-public-loader-review-20260829/metadata-12.stdout.raw
+?? tests/integration/git-public-loader-review-20260829/metadata-13.json
+?? tests/integration/git-public-loader-review-20260829/metadata-13.stderr.raw
+?? tests/integration/git-public-loader-review-20260829/metadata-13.stdout.raw
+?? tests/integration/git-public-loader-review-20260829/metadata-14.json
+?? tests/integration/git-public-loader-review-20260829/metadata-14.stderr.raw
+?? tests/integration/git-public-loader-review-20260829/metadata-14.stdout.raw
+?? tests/integration/html-public-admission-resource-v32-independent-20260827/ROOT-COORDINATION.md
+?? tests/integration/priority-command-workflows-20260828/future-run-01/cache/_cacache/
+?? tests/integration/priority-command-workflows-20260828/future-run-01/consumer/
+?? tests/integration/priority-command-workflows-20260828/future-run-01/global-npmrc
+?? tests/integration/priority-command-workflows-20260828/future-run-01/npmrc
+?? tests/integration/priority-command-workflows-20260828/future-run-01/outside/
+?? tests/integration/priority-command-workflows-20260828/future-run-01/setup-guard.mjs
+?? tests/integration/priority-command-workflows-20260828/future-run-01/source/
+?? tests/integration/priority-command-workflows-20260828/future-run-01/tmp/
+?? tests/integration/priority-command-workflows-20260828/future-run-01/tools/
+?? tests/integration/priority-command-workflows-20260828/future-run-02/
+?? tests/integration/priority-command-workflows-20260828/p16-independent/RUN-P16-DATA-CONTINUATION-01/
+?? tests/integration/priority-command-workflows-20260828/p16-independent/RUN-P16-INDEPENDENT-01/
+?? tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/continuation-v1/RUN-ARRAY-TAIL-20260828-01/
+?? tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v5/RUN-ARRAY-S06-20260828-02/
+# Empty-fragment checkpoint repair — author handoff to Dirac
+
+2026-08-29. **Narrow author repair; ROOT acceptance awaits independent followup.**
+Original independent237PASS/3FAIL remains literal. R01's seven capture-reporting
+conflicts remain HELD/native UNRUN; no capture reset, E12 or priority change.
+
+## Exact patch and executable
+
+- Source/preseal commit: `b5f2464f63172fc7c92bcfd33fbb2a8a6d8c03eb`.
+- SEAL.json SHA256:
+  `4f6d24661fc75ab4f2bc26836a735f998a88591caf377fddff36f45709799b12`.
+- syntax.ts SHA256:
+  `9136451259d3dfafe7aca8ffd592d43414ef4995fbe6811d7d8719f3085ee105`.
+- Product delta is exactly one line: `await ledger.checkpoint(signal);` after the
+  first-pass per-fragment work charge, before input admission/empty ASCII scan.
+  DATA synthesis verifies old source plus that single insertion equals candidate.
+- All four other engine files and all five emitted declarations are byte-identical
+  to authenticated0e97500f. No limits/errors/types/expr/transport/runtime/export edits.
+- Baseline remains accepted Unit3 plus f97 engine and0e97500f R02, not moving HEAD,
+  Node integration, whole package or general shell ERE activation.
+
+## Actual outcomes
+
+| Cohort | Source-built | Installed artifact | Physically moved |
+| --- | ---: | ---: | ---: |
+| Original author66, unchanged including E12 | 66/66 | 66/66 | 66/66 |
+| Previous checkpoint C01–C08, byte-exact copy | 8/8 | 8/8 | 8/8 |
+| Exact N01 +three material empty controls | 4/4 | 4/4 | 4/4 |
+
+234 main layout outcomes,78 identities; nested boundary/reason subchecks are not
+additional independent groups. Six strict type executions pass, with exactly
+TS2345/TS2339/TS2322 per negative consumer (nine diagnostics). Strict source build
+is separate from emitted-declaration consumers; source-labelled consumers still
+use emitted declarations. Installed means regular-file artifact placement; physical
+move removes the old app path. No npm/full-package/public integration claim.
+
+N01's original body/inputs/assertions and observer are preserved. The only fixture
+infrastructure addition is case selection plus three new cases. Its exact body
+SHA256 is `56d129094c6a56386033e8015e124a5f92864d0d358ffd5f3cec15bf74ad98df`;
+DATA synthesis compares it byte-for-byte against Dirac's original novel.mjs body.
+On candidate,2048 empty fragments then literal `a` yield `['a']`,2055 total work,
+maximum **1 unit charge between checkpoint calls**. This is not one event-loop
+yield per work unit: the unchanged ledger uses its256-work yield threshold.
+
+E02 checks empty counts0/255/256/257 and work0 refusal. E03 actually schedules caller
+0/false during first pass: rejection preserves exact identity at work256 with no
+engine allocation units/captures admitted; scheduled aborter is awaited. External
+fixture/input allocations are not covered by that observation. E04 uses the same
+ledger across compiles: work261 ->522 ->600/private EreProfileLimitError(status3),
+no refund/reset or fabricated public ShellLimitError.
+
+One actual loaded original-flatten reversion **reproduces N01 gap2050** and fails
+the unchanged assertion. Restored candidate passes N01. Exact original method
+SHA256 `b2d9c160d651f6702895f9738bc81894c3934814d7e046fc0855dba68033dc62`;
+changed and unchanged loaded module hashes are recorded. This is one kill/restore,
+not new credit for earlier mutation families. Two DATA binding refusals exercise
+the same guard for changed bytes and missing file, not runtime sandbox claims.
+
+## Preserved failure and resource qualifications
+
+PRESEAL-01 encountered a captured helper-schema TypeError: old template referenced
+emittedBinding, whereas r02-v1 RESULT uses emittedBindings. No child/compiler/
+product ran; active0/receipts empty and process closed normally. Exact generated
+failed runner is retained as runner-failed-v1.mjs.txt. One-field correction is in
+PREP-CORRECTION.md; PRESEAL-02 fully admitted the corrected executable before this
+actual run. No safety/capture/integrity/unknown-retirement failure or actual retry.
+
+Actual:18/18 execution children naturally retired, active0, peak one child plus
+coordinator (bounded command wrappers remain within three known processes),
+57,054 child capture bytes,26,185,059 working bytes,5,642ms executor elapsed.
+Known process/administrative tally:23 preparation starts;31 actual/publication
+starts including18 execution children and final status query. These are known
+direct/executor starts, not a universal OS descendant monitor or editing-helper
+internals claim. Full child PID/argv/code/close/raw captures and final work census
+are in ACTUAL-01; SUMMARY.json reauthenticates every source/tool/fixture/work entry.
+
+Zero Workers/loaders/Shell =~/transport/Node guest/native oracle/network/private/
+comparator/XAN/P2/old-gate or broad suite execution. No compressed artifact was
+read/inflated; regular-file/type/size/hash input guards were used. The durable
+same-buffer compressed admission rule remains mandatory for any future archives.
+
+No old author/independent evidence or staging was edited/cleaned. Source patch and
+new r02-v2 namespace only; owned generated ACTUAL-01/work retained untracked, raw
+captures/results committed explicitly, foreign index preserved. No engine/root
+acceptance or native parity is inferred. Ready for Dirac's bounded followup.
+["ACTUAL-01","HANDOFF.md","INSPECTION.json","PREP-CORRECTION.md","PREP.outer.jsonl","PREPARE.outer.jsonl","PRESEAL-01","PRESEAL-02","RECIPE.md","SEAL.json","SUMMARY.json","SYNTHESIS.outer.jsonl","TRANSFORMS.json","apply.stderr","apply.stdout","checkpoints.mjs","empty.mjs","extra-cases.mjs.txt","inspect.mjs","prepare.mjs","runner-failed-v1.mjs.txt","runner.mjs","synthesize.mjs"]

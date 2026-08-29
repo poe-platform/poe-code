@@ -1,0 +1,296 @@
+[
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "337a5e4f9ab62c760aaea715fd026690d88bbf95",
+    "bytes": 2621,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/APPROVAL-PROPOSAL.template.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d7c03cf4b79285e3492a972708a2673444d42336",
+    "bytes": 3384,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/C07.mjs.fragment.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d29289ac5c4c3539b6fe8314c63aee515dd85015",
+    "bytes": 8501,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/CONTROL-PRESEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "06e837ae89df1af3431a069deac3939fa6859d34",
+    "bytes": 65,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/CONTROL-PRESEAL.sha256"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "72ee212264aab839fbe3fb05ed2f960b5deba730",
+    "bytes": 2218,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/CONTROL-RESULT.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "a84f876fb79883381ba61acd9dc9c3c23549b09c",
+    "bytes": 6993,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/HANDOFF.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e4e75e4dec373aa757800b8bc1601dcabe2b9462",
+    "bytes": 1384,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/NODE-READ-SOURCE-ANALYSIS.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4b83a89b0ffbec50139c698688a3d80a09cb92cc",
+    "bytes": 2309,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/PROCESS-ACCOUNTING.md"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7f593d953d327a96d1c8b49a772724152111efb0",
+    "bytes": 9273,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/PUBLICATION.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "670e002df127cf0b441b7081f8d42826cdf68368",
+    "bytes": 2020,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/SOURCE-DELTA.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "816162665ce7d371f2d729d6634be2e95bb5c5a2",
+    "bytes": 19603,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/controls.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d0b09f5004ee83d9e980733ecdb27cd1d2b665a1",
+    "bytes": 13100,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/COHORT.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "30d563275b010281a606f421fa52ab60a002e416",
+    "bytes": 4527,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/PRESEAL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0338d65a14a6b254680a59d065dec8b7e1d6226a",
+    "bytes": 1881,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/PROTOCOL.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "3367a66cfbe13e3686e2af767e52a7eff4cf2422",
+    "bytes": 14844,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/REQUESTS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "1e337cadb46f9454f0407cd3d98257908ac54df0",
+    "bytes": 3067,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/TOOLS.json"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9df90e0e0c95a649d79d9d074e3be5079239f9b9",
+    "bytes": 9447,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/admission.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "c8e4d8b7546c5985aff7c6d79322ff2674a3bfb1",
+    "bytes": 1888,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/capture.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4556632f1d7a84440482b3d99508b4af5df8e735",
+    "bytes": 6928,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/entry.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841",
+    "bytes": 759,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/group-observer.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "d41176a15f26a0ee10a3759567a6b1d1c10d5634",
+    "bytes": 5280,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/lifecycle.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "965d3bd1b43ec68f5066b9157eee8217b80a4053",
+    "bytes": 1763,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/observation.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7",
+    "bytes": 1240,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/observer-state.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8a420c4dfc104cff498d05ff3a2c329234505c67",
+    "bytes": 522,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N01.bash.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "9d258d926e2a3c3af3ef13550a7a7f6b5d96455a",
+    "bytes": 523,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N02.bash.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "067e0ae8ee8b5789afb42f638d4130765ac3f1ea",
+    "bytes": 527,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N03.bash.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "90254d928697952562f88fd2d31a5ae66f013b33",
+    "bytes": 535,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N04.bash.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "7a60db688e9764507b4dc378f2d45fd8c236a4cf",
+    "bytes": 524,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N05.bash.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "f10397c553632e178e5860322237997157163dd7",
+    "bytes": 524,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N06.bash.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "dbc1f707f5ca87b0af5733e90607348ea062311f",
+    "bytes": 523,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N07.bash.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "8605ae724f5b3839a8802e8eac1fbc39cf02694e",
+    "bytes": 521,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N08.bash.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "bafce47d9e0bbfdacf628eb63b58586f63e67c7d",
+    "bytes": 517,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N09.bash.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "e3e1c18a66505948dfff9692c887dfd5e29fe091",
+    "bytes": 517,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N10.bash.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "0020062b0fdc2b3372d620061c3e453521577bd5",
+    "bytes": 515,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N11.bash.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "96e89e00dd9c47ad40929a43ca217a5304d95ed3",
+    "bytes": 513,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/programs/N12.bash.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "89ab8168787f5246ee3e36e72a14bd577dfb11c5",
+    "bytes": 1824,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/state.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "6c84cd315be15174ecc45e2f36694d6ef25ff34b",
+    "bytes": 3583,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/materialized/storage.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "57b3ecb1142d33164062b194a0dcc2285a3ee6ce",
+    "bytes": 1026,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/node-fs-readSync-source.txt.data"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5ebc2d92c5b96e8e7c8ec15a51e37e642184023b",
+    "bytes": 8876,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/prepare.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "4a59aae9ce449857f524e9167f5ab7efbb30f8bb",
+    "bytes": 4355,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/publish.mjs"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "5b7467e1d89b4e2118efd4e30c99588617597cb5",
+    "bytes": 173,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/raw/controls.stderr"
+  },
+  {
+    "mode": "100644",
+    "kind": "blob",
+    "oid": "cdff9b37aa01f1d843c38e7bf7987846bee7d32c",
+    "bytes": 3687,
+    "path": "tests/compatibility/bash-ere-native-reference-20260829/preflight-v2/raw/controls.stdout"
+  }
+]

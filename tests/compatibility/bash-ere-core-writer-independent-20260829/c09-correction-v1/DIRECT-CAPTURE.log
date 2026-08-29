@@ -1,0 +1,9 @@
+C09 reviewer-only correction: outer capture established before the single PURE helper.
+Start 2026-08-29T15:06:09Z; publication-inclusive deadline 2026-08-29T15:12:09Z.
+Limits: 18 known OS roles / peak 3; one PURE helper; 24 MiB capture / 96 MiB logical work.
+Original 11/12 replay and raw C09 failure remain immutable.
+PURE_HELPER_START
+{"result":{"phase":"REVIEWER_C09_CORRECTION_PURE_ONLY","results":[{"id":"C09-every-cleanup-attempted","status":"PASS"},{"id":"X01-cross-realm-exact-keys-and-descriptors","status":"PASS"},{"id":"X02-cross-realm-accessor-rejection-without-invocation","status":"PASS"},{"id":"X03-cross-realm-primitive-types-values-and-order","status":"PASS"}],"pass":4,"fail":0,"sourceUnmodified":true,"c09LineSha256":"898c2dc87ebc5e4c833c074608b82765e90509e4b1c6192ce949a2c00408ea92","generatedControlSha256":"fb4cf2ca1ccd1e113e65afb61c476900d50f5e0792ae3aaeb3d2548742f0f556","comparatorSha256":"9fcd2014fc0284f32cbcb035c4e69767cec611ec867967900d27786e34ead2b4","realmPolicy":"VM author C09 plus unchanged main-realm writer/finalizer; only deepEqual replaced with explicit own-key/data-descriptor/finite-primitive comparison; no prototype identity or JSON coercion","inherited":{"otherAuthorControls":11,"novelGroups":8,"rerun":false,"originalReplayUnchanged":true},"products":0,"Workers":0,"native":0},"receiptSha256":"fbc5797d8ee2c49a81ada006620f19a4f7ee6e3ec9cc8574b0f2f7da4a44fbcf","logicalBytesBeforeReceiptAndPublication":12092,"at":"2026-08-29T15:08:37.570Z"}
+(node:70016) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PURE_HELPER_EXIT 0

@@ -1,7 +1,7 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
 
-import { resolveBundleGraph } from "./bundle-graph.mjs";
+import { findUnreachableBundleOutputs, resolveBundleGraph } from "./bundle-graph.mjs";
 
 function createFileSystem(rootPackageJson: object) {
   const volume = Volume.fromJSON({
@@ -9,6 +9,157 @@ function createFileSystem(rootPackageJson: object) {
   });
   return createFsFromVolume(volume).promises;
 }
+
+describe("findUnreachableBundleOutputs", () => {
+  it("keeps declared entries, shared dependencies, dynamic imports, and their source maps", () => {
+    const metafile = {
+      outputs: {
+        "dist/index.js": { entryPoint: "src/index.ts", imports: [{ path: "dist/shared.js" }] },
+        "dist/core.js": { entryPoint: "src/core.ts", imports: [{ path: "dist/shared.js" }] },
+        "dist/cli.js": {
+          entryPoint: "src/cli.ts",
+          imports: [{ path: "dist/lazy.js", kind: "dynamic-import" }]
+        },
+        "dist/shared.js": { imports: [] },
+        "dist/lazy.js": { entryPoint: "src/lazy.ts", imports: [{ path: "dist/shared.js" }] },
+        "dist/unused.js": { entryPoint: "src/unused.ts", imports: [{ path: "dist/shared.js" }] },
+        "dist/index.js.map": { imports: [] },
+        "dist/lazy.js.map": { imports: [] },
+        "dist/unused.js.map": { imports: [] }
+      }
+    };
+
+    expect(
+      findUnreachableBundleOutputs(metafile, ["src/index.ts", "src/core.ts", "src/cli.ts"], "/repo")
+    ).toEqual(["dist/unused.js", "dist/unused.js.map"]);
+  });
+
+  it("retains reachable cycles without keeping disconnected cycles", () => {
+    const metafile = {
+      outputs: {
+        "dist/index.js": { entryPoint: "src/index.ts", imports: [{ path: "dist/shared.js" }] },
+        "dist/shared.js": { imports: [{ path: "dist/index.js" }] },
+        "dist/unused.js": { imports: [{ path: "dist/other.js" }] },
+        "dist/other.js": { imports: [{ path: "dist/unused.js" }] }
+      }
+    };
+
+    expect(findUnreachableBundleOutputs(metafile, ["src/index.ts"], "/repo")).toEqual([
+      "dist/unused.js",
+      "dist/other.js"
+    ]);
+  });
+
+  it("does not traverse external imports even when their paths match an output", () => {
+    const metafile = {
+      outputs: {
+        "dist/index.js": {
+          entryPoint: "src/index.ts",
+          imports: [
+            { path: "dist/external.js", external: true },
+            { path: "node:fs", external: true }
+          ]
+        },
+        "dist/external.js": { imports: [] }
+      }
+    };
+
+    expect(findUnreachableBundleOutputs(metafile, ["src/index.ts"], "/repo")).toEqual([
+      "dist/external.js"
+    ]);
+  });
+
+  it("keeps associated CSS bundles and imported assets", () => {
+    const metafile = {
+      outputs: {
+        "dist/index.js": { entryPoint: "src/index.ts", cssBundle: "dist/index.css", imports: [] },
+        "dist/index.css": { imports: [{ path: "dist/font.woff", kind: "url-token" }] },
+        "dist/index.css.map": { imports: [] },
+        "dist/font.woff": { imports: [] },
+        "dist/unused.css": { imports: [] }
+      }
+    };
+
+    expect(findUnreachableBundleOutputs(metafile, ["src/index.ts"], "/repo")).toEqual([
+      "dist/unused.css"
+    ]);
+  });
+
+  it("normalizes absolute and relative metadata against the explicit working directory", () => {
+    const metafile = {
+      outputs: {
+        "dist/index.js": {
+          entryPoint: "/repo/src/index.ts",
+          imports: [{ path: "/repo/dist/shared.js" }]
+        },
+        "/repo/dist/shared.js": { imports: [] }
+      }
+    };
+
+    expect(findUnreachableBundleOutputs(metafile, ["src/index.ts"], "/repo")).toEqual([]);
+  });
+
+  it.each(["dist/./index.js", "dist/nested/../index.js", "/repo/dist/index.js"])(
+    "refuses ambiguous output aliases instead of pruning live dependencies: %s",
+    (alias) => {
+      const metafile = {
+        outputs: {
+          "dist/index.js": {
+            entryPoint: "src/index.ts",
+            imports: [{ path: "dist/shared.js" }]
+          },
+          [alias]: { entryPoint: "src/index.ts", imports: [] },
+          "dist/shared.js": { imports: [] }
+        }
+      };
+      const before = structuredClone(metafile);
+
+      expect(() => findUnreachableBundleOutputs(metafile, ["src/index.ts"], "/repo")).toThrow(
+        "Duplicate bundle output"
+      );
+      expect(metafile).toEqual(before);
+    }
+  );
+
+  it("rejects aliases of disconnected outputs even when their metadata agrees", () => {
+    const metafile = {
+      outputs: {
+        "dist/index.js": { entryPoint: "src/index.ts", imports: [] },
+        "dist/unused.js": { imports: [] },
+        "/repo/dist/unused.js": { imports: [] }
+      }
+    };
+
+    expect(() => findUnreachableBundleOutputs(metafile, ["src/index.ts"], "/repo")).toThrow(
+      "Duplicate bundle output"
+    );
+  });
+
+  it.each([[], ["src/missing.ts"], ["src/index.ts", "src/missing.ts"]])(
+    "refuses cleanup when declared entries are missing: %j",
+    (...entryPoints) => {
+      const metafile = {
+        outputs: { "dist/index.js": { entryPoint: "src/index.ts", imports: [] } }
+      };
+
+      expect(() => findUnreachableBundleOutputs(metafile, entryPoints, "/repo")).toThrow(
+        "entry point"
+      );
+    }
+  );
+
+  it("refuses cleanup when the output graph has a missing internal dependency", () => {
+    const metafile = {
+      outputs: {
+        "dist/index.js": { entryPoint: "src/index.ts", imports: [{ path: "dist/missing.js" }] }
+      }
+    };
+
+    expect(() => findUnreachableBundleOutputs(metafile, ["src/index.ts"], "/repo")).toThrow(
+      "Missing bundle output"
+    );
+  });
+});
 
 describe("resolveBundleGraph", () => {
   it("aliases sub-path exports to the source behind the import target", async () => {

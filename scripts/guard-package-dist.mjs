@@ -1,13 +1,13 @@
 import path from "node:path";
-import { realpath } from "node:fs/promises";
+import { lstat, realpath } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 export async function assertSafeOutputDirectory(
   packageDirectory,
   outputDirectory = path.join(packageDirectory, "dist"),
-  fileSystem = { realpath },
+  fileSystem = { lstat, realpath },
 ) {
-  let existingOutputDirectory = outputDirectory;
+  let existingOutputDirectory = path.resolve(outputDirectory);
   let canonicalOutputDirectory;
 
   while (true) {
@@ -17,6 +17,13 @@ export async function assertSafeOutputDirectory(
     } catch (error) {
       if (error?.code !== "ENOENT") {
         throw error;
+      }
+      const entry = await fileSystem.lstat(existingOutputDirectory).catch((entryError) => {
+        if (entryError?.code !== "ENOENT") throw entryError;
+        return undefined;
+      });
+      if (entry?.isSymbolicLink()) {
+        throw new Error("The output directory must not contain an unresolved symbolic link.");
       }
       const parentDirectory = path.dirname(existingOutputDirectory);
       if (parentDirectory === existingOutputDirectory) {
@@ -38,7 +45,7 @@ export async function assertSafeOutputDirectory(
   }
 }
 
-export async function assertSafeBundleOutputs(rootDirectory, fileSystem = { realpath }) {
+export async function assertSafeBundleOutputs(rootDirectory, fileSystem = { lstat, realpath }) {
   await Promise.all([
     assertSafeOutputDirectory(rootDirectory, path.join(rootDirectory, "dist"), fileSystem),
     assertSafeOutputDirectory(

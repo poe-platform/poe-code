@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readdir, realpath } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readdir, realpath } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveGithubWorkflowPackageAssetCopies } from "../../../scripts/bundle-assets.mjs";
@@ -7,7 +7,7 @@ import { assertSafeOutputDirectory } from "../../../scripts/guard-package-dist.m
 const packageDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const distDir = path.join(packageDir, "dist");
 
-type AssetFileSystem = Pick<typeof import("node:fs/promises"), "copyFile" | "mkdir" | "readdir" | "realpath">;
+type AssetFileSystem = Pick<typeof import("node:fs/promises"), "copyFile" | "lstat" | "mkdir" | "readdir" | "realpath">;
 
 export async function buildGithubWorkflowAssets(options: {
   packageDir?: string;
@@ -16,7 +16,7 @@ export async function buildGithubWorkflowAssets(options: {
 } = {}): Promise<void> {
   const selectedPackageDir = options.packageDir ?? packageDir;
   const selectedDistDir = options.distDir ?? distDir;
-  const fs = options.fs ?? { copyFile, mkdir, readdir, realpath };
+  const fs = options.fs ?? { copyFile, lstat, mkdir, readdir, realpath };
 
   await Promise.all(
     resolveGithubWorkflowPackageAssetCopies(selectedPackageDir, selectedDistDir).map(

@@ -1,11 +1,12 @@
 import * as esbuild from "esbuild";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { copyFile, cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { versionGateSnippet } from "./node-version-gate.mjs";
 import { resolveGithubWorkflowAssetCopies } from "./bundle-assets.mjs";
-import { assertSafeBundleOutputs } from "./guard-package-dist.mjs";
+import { assertSafeBundleOutputs, assertSafeOutputDirectory } from "./guard-package-dist.mjs";
 import { resolveBundleGraph } from "./bundle-graph.mjs";
+import { publishBundleOutputs } from "./publish-bundle.mjs";
 import { setBinExecutable } from "./set-bin-executable.mjs";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
@@ -172,13 +173,15 @@ if (providerEntryPoints.length > 0) {
   });
 }
 
-await rm(path.join(rootDir, "packages/safejs/dist/chunks"), { recursive: true, force: true });
-await esbuild.build({
-  entryPoints: {
-    index: path.join(rootDir, "packages/safejs/src/index.ts"),
-    core: path.join(rootDir, "packages/safejs/src/core.ts"),
-    cli: path.join(rootDir, "packages/safejs/src/cli.ts")
-  },
+await assertSafeOutputDirectory(path.join(rootDir, "packages/safejs"));
+const safejsEntryPoints = {
+  index: path.join(rootDir, "packages/safejs/src/index.ts"),
+  core: path.join(rootDir, "packages/safejs/src/core.ts"),
+  cli: path.join(rootDir, "packages/safejs/src/cli.ts")
+};
+const safejsBuild = await esbuild.build({
+  absWorkingDir: rootDir,
+  entryPoints: safejsEntryPoints,
   bundle: true,
   splitting: true,
   platform: "node",
@@ -188,7 +191,14 @@ await esbuild.build({
   chunkNames: "chunks/[name]-[hash]",
   external: externalDeps,
   alias: workspaceAliases,
-  sourcemap: true
+  sourcemap: true,
+  metafile: true,
+  write: false
+});
+await publishBundleOutputs(safejsBuild, {
+  outdir: path.join(rootDir, "packages/safejs/dist"),
+  entryPoints: Object.values(safejsEntryPoints),
+  workingDirectory: rootDir
 });
 await setBinExecutable(path.join(rootDir, "packages/safejs"));
 

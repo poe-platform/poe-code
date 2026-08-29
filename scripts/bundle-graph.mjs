@@ -1,6 +1,59 @@
 import path from "node:path";
 import { readFile } from "node:fs/promises";
 
+export function findUnreachableBundleOutputs(metafile, entryPoints, workingDirectory) {
+  const unmatchedEntries = new Set(
+    entryPoints.map((entry) => path.resolve(workingDirectory, entry))
+  );
+  if (unmatchedEntries.size === 0) {
+    throw new Error("At least one declared entry point is required for bundle cleanup.");
+  }
+
+  const outputs = new Map();
+  for (const [filename, output] of Object.entries(metafile.outputs)) {
+    const resolvedFilename = path.resolve(workingDirectory, filename);
+    if (outputs.has(resolvedFilename)) {
+      throw new Error(`Duplicate bundle output: ${resolvedFilename}`);
+    }
+    outputs.set(resolvedFilename, output);
+  }
+  const declaredEntries = new Set(unmatchedEntries);
+  const pending = [];
+  for (const [filename, output] of outputs) {
+    if (output.entryPoint === undefined) continue;
+    const entry = path.resolve(workingDirectory, output.entryPoint);
+    if (declaredEntries.has(entry)) {
+      unmatchedEntries.delete(entry);
+      pending.push(filename);
+    }
+  }
+  if (unmatchedEntries.size > 0) {
+    throw new Error(`Missing bundle entry point: ${[...unmatchedEntries].join(", ")}`);
+  }
+
+  const reachable = new Set();
+  while (pending.length > 0) {
+    const filename = pending.pop();
+    if (reachable.has(filename)) continue;
+    const output = outputs.get(filename);
+    if (output === undefined) {
+      throw new Error(`Missing bundle output: ${filename}`);
+    }
+    reachable.add(filename);
+    for (const dependency of output.imports) {
+      if (!dependency.external) pending.push(path.resolve(workingDirectory, dependency.path));
+    }
+    if (output.cssBundle !== undefined) {
+      pending.push(path.resolve(workingDirectory, output.cssBundle));
+    }
+    if (outputs.has(`${filename}.map`)) pending.push(`${filename}.map`);
+  }
+
+  return Object.keys(metafile.outputs).filter(
+    (filename) => !reachable.has(path.resolve(workingDirectory, filename))
+  );
+}
+
 /**
  * Compute the esbuild graph shared by every bundle in scripts/bundle.mjs:
  *
@@ -50,9 +103,7 @@ export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { r
   const runtimeDeps = [
     ...Object.keys(rootPackageJson.dependencies || {}),
     ...Object.keys(rootPackageJson.optionalDependencies || {})
-  ].filter(
-    (dep) => !workspacePackageNames.has(dep)
-  );
+  ].filter((dep) => !workspacePackageNames.has(dep));
   const externalSet = new Set([...runtimeDeps, ...workspaceDeps]);
   for (const name of workspacePackageNames) externalSet.delete(name);
 

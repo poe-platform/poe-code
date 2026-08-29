@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "role": "SOURCE/DATA preparation only; no actual Worker/matching/compiler/install",
+  "acceptedSource": "4abbdeec8e34de88ed2cf7bd32be9c06b413c631",
+  "independentAcceptance": "f17d8dec11190ef40ecac6c175b208a2e29c7fbf",
+  "packageSha256": "dc20c2be0ea41ff11edeef105c9e93ab349a0601a14d77ecc2d6ac984dfb43b0",
+  "inputs": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "size": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/journal.mjs",
+      "size": 1701,
+      "sha256": "357e0df8f45aaeb6cb2c3227cbb5e530065c8bdfd5ca328d7c7f4e9ead8e5a95"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/state.mjs",
+      "size": 440,
+      "sha256": "07ea65ef952bdeeec5eb8a41bbcdee5a02ee907274321ee61fad2a344eec149a"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/worker-bridge.mjs.data",
+      "size": 2334,
+      "sha256": "bade126417a72d68fb2c65ebaa8f25f00ac96323fc21750db258a1c5359632ea"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/case-runner.mjs.data",
+      "size": 6727,
+      "sha256": "7604f49623d5b6446e44fb69eab9f108ff5d9cc1dfb9ec6394f8fd5fce832804"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/receipt-gate.mjs",
+      "size": 6644,
+      "sha256": "8069f9b97d3f02d7d2777d8d75753bba03d3787e33bb10a45a80bc0d070a4440"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/materialize.mjs",
+      "size": 3752,
+      "sha256": "ac30bd842dfd1532f14ee8f3e9f859a88b534018f697d0e2915715bc2785b222"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/supervisor.mjs",
+      "size": 5445,
+      "sha256": "31f7f12d8e2d5fde8477a49d59526eb6f24a142e9c7e75ac778e0074709344e5"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/controls.mjs",
+      "size": 6458,
+      "sha256": "23edfc891f521828176548050dca522e5b7d85635e1396f4e11c14c47d57d5d6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/followup-preparation-v1/stub.mjs",
+      "size": 193,
+      "sha256": "15c1c00ddbde78229ec89244be1ce0726d349ec57140b5188aa918bfc7375522"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/data-support.mjs",
+      "size": 5286,
+      "sha256": "c29b6703272e381fbdcc69fe1bc7543127b55f6aed5067f831da820d5628adce"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/preparation-r3/owned-process.mjs",
+      "size": 6394,
+      "sha256": "d580493cd2dbf534aa7fe98bd6268e0490a7bbac622bf46c07ce2bea52772c44"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PRODUCER.json",
+      "size": 5127,
+      "sha256": "019575d863dbc99abcdcb3bb2a0aeb7f712c3812822f2ff90a21e7d4be7b6dbc"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-transport-author-20260829/runtime-preflight-v1/l02-repair-v1/PACKAGE.tgz.base64.data",
+      "size": 24001,
+      "sha256": "64517b6467b9963d531b89eff9cbad85985c5409bad6e3c96ac2cf2fc5ac63e8"
+    }
+  ],
+  "helpers": [
+    {
+      "role": "DATA materializer",
+      "entry": "materialize.mjs",
+      "childProcesses": 0
+    },
+    {
+      "role": "10 PURE controls plus 2 harmless owned Node fixtures",
+      "entry": "controls.mjs",
+      "childProcesses": 2
+    },
+    {
+      "role": "syntax only, no imports",
+      "entry": "CASES/01-constructor-built/case-runner.mjs",
+      "nodeArgs": [
+        "--check"
+      ],
+      "childProcesses": 0
+    }
+  ],
+  "limits": {
+    "grantDeadlineUTC": "2026-08-29T15:52:23.490Z",
+    "knownOS": 48,
+    "peak": 3,
+    "captureBytes": 67108864,
+    "workBytes": 402653184,
+    "helpers": 3,
+    "controls": 10,
+    "harmlessChildren": 2,
+    "fixtureMilliseconds": 3000
+  },
+  "future": {
+    "cells": 13,
+    "Workers": 10,
+    "actualAuthorization": false,
+    "unknownLast": true,
+    "recovery": "NO_RESTORE_OR_NATIVE_TERMINATE_BYPASS_AUTHORIZED"
+  },
+  "executionOrder": "commit preseal; one materializer; one controls helper; one node --check; no retries"
+}

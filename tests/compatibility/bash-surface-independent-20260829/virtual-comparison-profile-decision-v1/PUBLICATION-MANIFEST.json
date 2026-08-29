@@ -1,0 +1,74 @@
+{
+  "schema": "profile-source-decision-publication-v1",
+  "sourceCommit": "641d0d5e406b4518b844f264e26d11195a7c3ae3",
+  "actualFiles": [
+    {
+      "path": "AUDIT.json",
+      "bytes": 13105,
+      "sha256": "3878af0d54a64390befef2e6915673317bbf08364031276c6d7db3689c2c2de1"
+    },
+    {
+      "path": "DECISION.json",
+      "bytes": 5956,
+      "sha256": "8842d1b0f7ba84b722bd7e45a00b5b28a56a917997e636d2e7ba17cace5263e0"
+    },
+    {
+      "path": "PRIMARY-SOURCES.json",
+      "bytes": 916,
+      "sha256": "ae3b12bb05b5a90153b9e5434d2ba23074bc9a9c552c0191d51620923b700f23"
+    },
+    {
+      "path": "PUBLICATION-HELPER-ERROR.json",
+      "bytes": 289,
+      "sha256": "73a93c4a348d6d0ce770bd5f6cc99b12ce628a1df471a818fd24ff8a0ff28789"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 7692,
+      "sha256": "b2a5c5b02d716eaefe76d8801ae49a56b6a0a0aca06950c572d13374d0bccfec"
+    },
+    {
+      "path": "SOURCE-BINDING-STOP.json",
+      "bytes": 851,
+      "sha256": "c5cb66aa7e4f81261584761ecdb29e9348cf77ccaf6087b362dc220bc1cc83d5"
+    },
+    {
+      "path": "publication-admin.mjs",
+      "bytes": 4026,
+      "sha256": "76a8f9fc779479f2b72eddc63a8d3525911cbe80815324147665f3740057d89f"
+    }
+  ],
+  "classification": "SOURCE_DATA_ONLY_BOTH_EXECUTION_PROFILES_HOLD",
+  "rawCapture": {
+    "file": "RAW-CAPTURE.json.gz.base64",
+    "compressedBytes": 28105,
+    "compressedSha256": "15bc8419a31c43899b710a4b53ab1d555d8036bbd2689cd2244e784bf5653efe",
+    "decodedBytes": 131577,
+    "decodedSha256": "a0bf8b656664b0f537f5388b27b945cc361977cfbe95d6dce18500655fc6daba",
+    "cutAfterKnownChild": 10
+  },
+  "resourcesAtCut": {
+    "started": 1787996175250,
+    "deadline": 1787997075250,
+    "knownChildren": 10,
+    "knownDirectRetired": 10,
+    "knownChildPeak": 1,
+    "captureBytes": 21941,
+    "active": 0,
+    "halted": false
+  },
+  "qualification": "Source lookup STOP and publication-helper parse error retained. Archive includes metadata/patch captures through stated cut, not its own publication tail. Tail remains in owned capture directory. No RSS/global process or historical group-absence claim.",
+  "sourceLookup": "Missing candidate:path; zero authenticated product source files via attempted Git locator, not evidence of different product bytes.",
+  "activity": {
+    "groupProbe": 0,
+    "signal": 0,
+    "productExecution": 0,
+    "nativeExecution": 0,
+    "compilerExecution": 0,
+    "WorkerExecution": 0,
+    "lifecycleControlsExecuted": 0,
+    "implementationChanges": 0
+  },
+  "oldHistory": "M08 EPERM/UNKNOWN immutable; M09-M16 and111 calls UNRUN",
+  "captureDirectory": "/tmp/bash-surface-profile-source-587JrW"
+}

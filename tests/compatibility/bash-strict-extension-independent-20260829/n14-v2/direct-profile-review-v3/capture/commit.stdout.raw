@@ -1,0 +1,25 @@
+[main 32bde1a5b2ab5a3b274f4fbcec7fc23965f7baaf] test: preseal explicit peak-four B-profile review
+ 23 files changed, 1440 insertions(+)
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/API-ROWS.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/AUTHENTICATED.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/AUTHOR-REPEAT-SEAL.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/HARNESS-DELTA.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/PRESEAL.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/PRESEAL.md
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/START.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/TOOL-ADMISSION.json
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/capture/add.stderr.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/capture/add.stdout.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/capture/bootstrap.stderr.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/capture/bootstrap.stdout.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/capture/outer-syntax.stderr.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/capture/outer-syntax.stdout.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/capture/prepare.stderr.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/capture/prepare.stdout.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/capture/preseal.events.jsonl
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/capture/review-syntax.stderr.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/capture/review-syntax.stdout.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/capture/seal.stdout.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/capture/shell-source.raw
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/outer.mjs
+ create mode 100644 tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v3/review.mjs

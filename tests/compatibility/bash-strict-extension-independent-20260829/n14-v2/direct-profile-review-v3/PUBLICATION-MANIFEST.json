@@ -1,0 +1,192 @@
+{
+  "files": [
+    {
+      "path": "ACCOUNTING.json",
+      "bytes": 4564,
+      "sha256": "9452c269e0a4397a77985f8ce444ffd55e26591359da17f2a3abf72c84448afe"
+    },
+    {
+      "path": "API-ROWS.json",
+      "bytes": 605,
+      "sha256": "8d512b5b936d1e274acedd6b525a1376ad5a28f1d280debcfcf69e229a95636b"
+    },
+    {
+      "path": "AUTHENTICATED.json",
+      "bytes": 7581,
+      "sha256": "983e2462b2b7b2b9bdbad825a81868942d2a6d696755c7721f479eb93cca774b"
+    },
+    {
+      "path": "AUTHOR-REPEAT-SEAL.json",
+      "bytes": 5558,
+      "sha256": "725792b2c44143517dc18b5f107944de6cec2aee19ec863f4045d2639fecc077"
+    },
+    {
+      "path": "HARNESS-DELTA.json",
+      "bytes": 1628,
+      "sha256": "c0d8f4181e44070e210748af70633710127bd0010815e4bdc2f22cf822cee2b2"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 10109,
+      "sha256": "969cb672a72d95dcf318d49df04ac252dc403de21d7fd509efec9a84b7425d7b"
+    },
+    {
+      "path": "PRESEAL.md",
+      "bytes": 2668,
+      "sha256": "ce724a67ea22c34d4e4e7efab5d95fbb608e9eacdca9d7c4c72b4bfe5d593fba"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 3770,
+      "sha256": "883c75802c4df39764ecfbf3601693ec452a4c78013721b766dd47b49d960e11"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 30474,
+      "sha256": "b328c0c3556b5ee335e8537f3bf4ff09c8acbb2ed347eed5db9433c6ce746cc2"
+    },
+    {
+      "path": "RUNTIME-OWNER.json",
+      "bytes": 369,
+      "sha256": "912cf5a631cdc08874b152fcdd478e4cd1dbe958ab5a3df49d85ee7830e5c04f"
+    },
+    {
+      "path": "START.json",
+      "bytes": 393,
+      "sha256": "61deca78d836a5b5755c12f337662405c05cb85e04f3317e550f99f9833b1082"
+    },
+    {
+      "path": "TOOL-ADMISSION.json",
+      "bytes": 386,
+      "sha256": "b67aead63e75dfc04a2773e93ba6cbe2842054ade3231d2c9c22a823ad9bcb70"
+    },
+    {
+      "path": "capture/accounting.raw",
+      "bytes": 2771,
+      "sha256": "8e506e7c134fee2424f5a2741f4d6afd9234e52d3c2e45251896f2edc5ec4d4c"
+    },
+    {
+      "path": "capture/add.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/add.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/author-repeat.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/author-repeat.stdout.raw",
+      "bytes": 56,
+      "sha256": "52390d1942c10038cb930c7d5a6b0a4e68cf93fd56e05c0423fc432953ba52d4"
+    },
+    {
+      "path": "capture/bootstrap.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/bootstrap.stdout.raw",
+      "bytes": 335,
+      "sha256": "a99f2af2369c3698d8ac15219fdbcac6460fc2921c7f2dd6ff0639fb20a14a24"
+    },
+    {
+      "path": "capture/commit.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/commit.stdout.raw",
+      "bytes": 3299,
+      "sha256": "b1662bb435eea969e5bc837ca4bbed9a47623af65cb72a3743b4a6cd24269061"
+    },
+    {
+      "path": "capture/outer-syntax.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/outer-syntax.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/prepare.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/prepare.stdout.raw",
+      "bytes": 191,
+      "sha256": "0228b5c22a67e350f846c707879f721687cbfe3f605ed778e53286e929c1f81b"
+    },
+    {
+      "path": "capture/preseal.events.jsonl",
+      "bytes": 1601,
+      "sha256": "23f3e2e933f2c496dfe929c2420633ea50389b0297d78753f9dc9df07b88e360"
+    },
+    {
+      "path": "capture/review-syntax.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/review-syntax.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/review.events.jsonl",
+      "bytes": 636,
+      "sha256": "dd573caac8fbb43f6c1094ba170d94854e5936043aba05783aa84e840cb4ff2a"
+    },
+    {
+      "path": "capture/runtime.events.jsonl",
+      "bytes": 540,
+      "sha256": "8566c4555c9d590aaabc12f3c913e87e6f923d6c8360fd4977f4cb671cb178c4"
+    },
+    {
+      "path": "capture/runtime.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "capture/runtime.stdout.raw",
+      "bytes": 265,
+      "sha256": "054df00c3df6b61bb3b6e996c74c3f21702104e93f62a1691f30ce31ff01e785"
+    },
+    {
+      "path": "capture/seal.stdout.raw",
+      "bytes": 5568,
+      "sha256": "99586c8ec062b54f41430facf9a388bd68c450db44c08d65cc98b07036dc5198"
+    },
+    {
+      "path": "capture/shell-source.raw",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba"
+    },
+    {
+      "path": "outer.mjs",
+      "bytes": 3806,
+      "sha256": "3d6d9acae14f1653aab47655025ce458863b5addd3179e69c0bd219103831150"
+    },
+    {
+      "path": "review.mjs",
+      "bytes": 10890,
+      "sha256": "66a011e162f71143e002b6550227e7c6d43740befc244c144121d41536026c00"
+    }
+  ],
+  "totalBytes": 113144,
+  "domain": "raw bytes; UTF-8 relative paths ascending; this manifest excluded",
+  "knownRoleSlotsIncludingPublication": 25,
+  "runtimeRoles": 7,
+  "runtimePeak": 4,
+  "publicationCapture": "/tmp/direct-profile-v3-publication-GeYdIQ",
+  "scope": "finite mechanism acceptance; final wiring not reviewed in this phase",
+  "accountingQualification": "Explicit owner/edit/child roles; tool transcript provides completed early administrative boundaries where no OS-specific timestamp was instrumented; not transitive/global census"
+}

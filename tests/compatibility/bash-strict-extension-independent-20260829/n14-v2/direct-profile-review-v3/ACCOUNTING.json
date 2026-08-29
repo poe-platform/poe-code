@@ -1,0 +1,208 @@
+{
+  "verdict": "SCOPED_MECHANISM_ACCEPT",
+  "preseal": "969cb672a72d95dcf318d49df04ac252dc403de21d7fd509efec9a84b7425d7b",
+  "source": "464666830d16016ca7a7bf9ef466aa6dc764e2d3",
+  "data": 6,
+  "harmless": 4,
+  "independent": 8,
+  "runtimeRoles": [
+    {
+      "role": "outer",
+      "pid": 65119,
+      "entryAt": 1788000184673,
+      "exitAt": 1788000185358,
+      "exit": 0
+    },
+    {
+      "role": "review",
+      "pid": 65120,
+      "entryAt": 1788000184675,
+      "exitAt": 1788000185352,
+      "closeAt": 1788000185352,
+      "exit": 0
+    },
+    {
+      "role": "author",
+      "pid": 65121,
+      "acquisitionAt": 1788000184772,
+      "exitAt": 1788000185335,
+      "closeAt": 1788000185335,
+      "exit": 0
+    },
+    {
+      "role": "H01",
+      "pid": 65122,
+      "events": [
+        {
+          "name": "capture-open",
+          "at": 1788000184934
+        },
+        {
+          "name": "listeners-enrolled",
+          "at": 1788000184936
+        },
+        {
+          "name": "spawn",
+          "at": 1788000184936
+        },
+        {
+          "name": "stderr-end",
+          "at": 1788000184986
+        },
+        {
+          "name": "stdout-end",
+          "at": 1788000184987
+        },
+        {
+          "name": "exit",
+          "at": 1788000184987
+        },
+        {
+          "name": "close",
+          "at": 1788000184987
+        }
+      ],
+      "exit": 0,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "forced": false,
+      "knownOutstanding": 0
+    },
+    {
+      "role": "H02",
+      "pid": 65123,
+      "events": [
+        {
+          "name": "capture-open",
+          "at": 1788000185053
+        },
+        {
+          "name": "listeners-enrolled",
+          "at": 1788000185054
+        },
+        {
+          "name": "spawn",
+          "at": 1788000185054
+        },
+        {
+          "name": "stderr-end",
+          "at": 1788000185093
+        },
+        {
+          "name": "stdout-end",
+          "at": 1788000185093
+        },
+        {
+          "name": "exit",
+          "at": 1788000185093
+        },
+        {
+          "name": "close",
+          "at": 1788000185093
+        }
+      ],
+      "exit": 0,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "forced": false,
+      "knownOutstanding": 0
+    },
+    {
+      "role": "H03",
+      "pid": 65124,
+      "events": [
+        {
+          "name": "capture-open",
+          "at": 1788000185159
+        },
+        {
+          "name": "listeners-enrolled",
+          "at": 1788000185160
+        },
+        {
+          "name": "spawn",
+          "at": 1788000185160
+        },
+        {
+          "name": "stderr-end",
+          "at": 1788000185207
+        },
+        {
+          "name": "stdout-end",
+          "at": 1788000185208
+        },
+        {
+          "name": "exit",
+          "at": 1788000185208
+        },
+        {
+          "name": "close",
+          "at": 1788000185208
+        }
+      ],
+      "exit": 0,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "forced": false,
+      "knownOutstanding": 0
+    },
+    {
+      "role": "H04",
+      "pid": 65125,
+      "events": [
+        {
+          "name": "capture-open",
+          "at": 1788000185270
+        },
+        {
+          "name": "listeners-enrolled",
+          "at": 1788000185271
+        },
+        {
+          "name": "spawn",
+          "at": 1788000185271
+        },
+        {
+          "name": "stderr-end",
+          "at": 1788000185322
+        },
+        {
+          "name": "stdout-end",
+          "at": 1788000185322
+        },
+        {
+          "name": "exit",
+          "at": 1788000185322
+        },
+        {
+          "name": "close",
+          "at": 1788000185322
+        }
+      ],
+      "exit": 0,
+      "close": true,
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "forced": false,
+      "knownOutstanding": 0
+    }
+  ],
+  "observedRuntimeRoleCount": 7,
+  "observedPeak": 4,
+  "peakEvidence": "outer/review/author intervals contain each sequential fixture; author waits for each close before next acquisition",
+  "caseWorkers": 0,
+  "caseSubprocessAdmissions": 0,
+  "asyncLoaders": 0,
+  "productImports": 0,
+  "productCalls": 0,
+  "outerCapture": {
+    "stdout": 265,
+    "stderr": 0
+  },
+  "authorCaptureBytes": 3935,
+  "retainedRoot": "/private/tmp/direct-profile-independent-v3-pBvBrr",
+  "qualification": "Specific permission API controls, public API/source and stub settlement, direct owned retirement; not OS containment/group absence/private census or actual111 wiring"
+}

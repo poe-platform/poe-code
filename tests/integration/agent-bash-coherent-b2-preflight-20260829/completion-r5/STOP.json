@@ -1,0 +1,72 @@
+{
+  "schema": "B2_COMPLETION_R5_TERMINAL_PARTIAL",
+  "status": "STOP_NOT_READY",
+  "failure": {
+    "classification": "AUTHORING_REQUEST_JSON_ESCAPE_DEFECT_NOT_SOURCE_INTEGRITY",
+    "function": "main request dispatch JSON.parse",
+    "path": "completion-r5/controller.mjs",
+    "line": 114,
+    "message": "SyntaxError: Bad escaped character in JSON at position 1189 (line 1 column 1190)",
+    "controllerExit": 1,
+    "patchApplied": false,
+    "materialized": false,
+    "automaticRetry": false,
+    "rawArtifact": "/private/tmp/safe-bash-b2-completion-r5-01a04d95/STOP.json",
+    "requestQualification": "Malformed incoming request text exists in tool transcript only; no request-byte capture proof is claimed. Direct-file output capture and terminal STOP artifact exist."
+  },
+  "implementedFix": {
+    "counter": "invocation, lexically scoped within main(), strictly incremented in preseal()",
+    "independentOfChildEvents": true,
+    "exclusiveWritesMaintained": true,
+    "controller": {
+      "bytes": 10252,
+      "sha256": "178c31c6aa474cb6c8030b0ed4d14a41a82826e72f2b050181895d705320cc33"
+    }
+  },
+  "pureControl": {
+    "status": "PURE_REPEATED_PRESEAL_CONTROL_PASS",
+    "qualification": "Exercises the invocation preseal allocator twice without subprocess events; does not import or execute the two copied controller modules.",
+    "first": "/private/tmp/safe-bash-b2-completion-r5-01a04d95/invocation-000001.mjs.preseal.json",
+    "second": "/private/tmp/safe-bash-b2-completion-r5-01a04d95/invocation-000002.mjs.preseal.json",
+    "firstInvocation": 1,
+    "secondInvocation": 2,
+    "additionalSubprocesses": 0,
+    "rawArtifact": "/private/tmp/safe-bash-b2-completion-r5-01a04d95/INVOKE-CONTROL.json"
+  },
+  "preservation": {
+    "r4CodeCommit": "b54b491382a497e0c87b1758b6660dd8357e06bc",
+    "oldPartialCommit": "881ed8989062e4aaff749d35400f1e72adf5f0db",
+    "partialSeal": "35a88f158641c153a05fb2124052a8c23951c6e2870dd70ca4fae4d9698e31a9",
+    "r4EexistStop": "PRESERVED_UNCHANGED",
+    "r4CommittedFiles": "UNCHANGED",
+    "r4IdentitySnapshot": "UNCHANGED",
+    "r4UncommittedInspectData": "LEFT_UNCHANGED_OUTSIDE_ANY_R5_SEAL",
+    "inheritedConditionalEOF": "UNCHANGED_INTENTIONAL_FORMATTING_EXCEPTION",
+    "oldInitialization": "Reported exit127, tool-transcript-only diagnostics, no files, raw artifact UNAVAILABLE; no old capture qualification",
+    "oldParserExit78": "AUTHORING_DEFECT_NOT_SOURCE_INTEGRITY_MISMATCH"
+  },
+  "unrun": {
+    "retained": 672,
+    "types": 6,
+    "negativeDiagnosticIdentities": 24,
+    "mutants": 7,
+    "restores": 7,
+    "bindingRefusals": 2,
+    "harmlessNodeChildFixtures": 4,
+    "productImports": true,
+    "compiler": true,
+    "build": true,
+    "install": true,
+    "Workers": true
+  },
+  "publication": {
+    "purpose": "Terminal partial code and evidence only after STOP; no preparation retry",
+    "readySeal": null,
+    "runtimeCaps": "NOT_FINALIZED_OR_APPROVED",
+    "preparationKnownOsStartsThroughTerminalPublicationConservative": 17,
+    "preparationKnownOsCeiling": 40,
+    "preparationPeakKnownOs": 2,
+    "profile": "Known-role-only; no universal census, OS containment, or group-absence claim",
+    "rawCapture": "/private/tmp/safe-bash-b2-completion-r5-01a04d95.log"
+  }
+}

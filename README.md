@@ -37,6 +37,20 @@ failures/exit one, author obsolete-export failures and the old public79 worker-d
 79/83 remain unchanged. This accepts the finite read-only Git profile, not live
 HEAD, later `|&`/`&>` changes, Node, full Git/Bash, hard RSS or an overall comparison win.
 
+**ROOT-qualified redirectionUnit1 acceptance (August 29, 2026):** source
+`1e9b83d73ca6efcf84e4cb0a0b20d81f71da237e`, derived
+`ed0e0d09cf71bed7f4aee075750b60a30df4ef52`, full950 package SHA256
+`e0e63b0319f0b7b77e68a6e6284021bd747c60ce9f93291a5090048fa835e296`
+adds finite `|&` / `&>` support on the exact public80 base; default80 is unchanged.
+The [qualified acceptance](tests/compatibility/bash-redirection-independent-20260829/root-acceptance/ROOT-ACCEPTANCE.md)
+binds60 version-qualified identities per layout (48 author-v2 +10 unchanged novel
++N06-v2 +N11-v3),103 retained and93 pack outcomes per layout, maintained83,
+moved21 and separate type/mutant controls. Original author/bootstrap/N11 failures
+and stale M1A139/140 remain literal; accepted public80's corrected export fixture
+supports SOURCE interpretation, not a new140/140 run. Inherited SOURCEONLY/MIXED,
+loader/Worker and AST-cloning limits remain. No native Bash/GNU-byte parity,
+full Bash, strict-mode, Node, live-HEAD or global-gate acceptance follows.
+
 **Scoped priority-workflow acceptance (August 28, 2026):** ROOT accepts the
 finite 31-case × three-layout membership on selected `8437e4ed` and its exact
 858-file package `6b5863d5`: 15 original source passes plus 78 RUN02 passes

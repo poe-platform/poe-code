@@ -37,6 +37,20 @@ zero runtime dependencies, no virtual-command host subprocess/eval/native fallba
 and explicit host capabilities remain requirements. This table does not supply a
 subcommand/flag distribution; recommendations below are engineering judgment.
 
+## ROOT-qualified redirectionUnit1 — 2026-08-29
+
+Separate from the public80 acceptance below, ROOT accepts source
+`1e9b83d73ca6efcf84e4cb0a0b20d81f71da237e`, derived
+`ed0e0d09cf71bed7f4aee075750b60a30df4ef52`, full950 SHA256
+`e0e63b0319f0b7b77e68a6e6284021bd747c60ce9f93291a5090048fa835e296`.
+Finite `|&` / `&>` support changes no default80 membership or command priority.
+Each layout has60 version-qualified new identities,103 retained and93 pack
+outcomes; maintained83/moved21 and type/mutant controls remain separate.
+Original author/bootstrap/N11 failures and M1A139/140 are preserved, not rescored.
+No native/GNU-byte/full-Bash/strict-mode/Node/global-HEAD acceptance; inherited
+SOURCEONLY/MIXED, loader/Worker and AST metadata limits remain. See the exact
+[ROOT acceptance](../tests/compatibility/bash-redirection-independent-20260829/root-acceptance/ROOT-ACCEPTANCE.md).
+
 ## ROOT-qualified Git public80 — 2026-08-29
 
 ROOT accepts exactly `c83f352f057c64917f219eb938f54aa42cdab829`, full950 SHA256

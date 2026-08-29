@@ -3839,3 +3839,29 @@ that any implementation, command, fixture, or test currently exists.
   fresh comparator evidence or an overall winner. Documentation publication is
   SOURCE/DATA only; it runs no product, tests, build, compiler, native or private work.
   Exact ROOT record: `tests/integration/git-public-independent-20260829/root-acceptance/ROOT-ACCEPTANCE.md`.
+
+## 2026-08-29 — ROOT-qualified redirectionUnit1 on exact public80
+
+- ROOT accepts source `1e9b83d73ca6efcf84e4cb0a0b20d81f71da237e`, derived
+  `ed0e0d09cf71bed7f4aee075750b60a30df4ef52`, full950 SHA256
+  `e0e63b0319f0b7b77e68a6e6284021bd747c60ce9f93291a5090048fa835e296`.
+  Exact base c83f352f/default80;292 inputs, only parser/runtime/display change.
+- Evidence `e6a4b1ff119b8aff3b2a39110cc11311f8cbb628` plus SOURCE/DATA
+  adjudication `c565f9251bd59332a58c37bc5c48948cc2f24683`:60 version-qualified
+  identities/layout (48 author-v2,10 unchanged novel,N06-v2,N11-v3),103 retained
+  and93 pack outcomes/layout; maintained83, moved21, six type groups/18 negative
+  diagnostics, three loaded mutant kills/three restores/two binding refusals.
+- Original author78 failures, bootstrap zero-body failure, N11-v2 failures and
+  exits remain. Versioned ordinary-fix successors preserve full captures and
+  known cleanup; no safety/integrity/capture/unknown-retirement stop observed.
+  M1A stays139/140/layout. Public80 fixture-v2 2764c054/acceptance9dca6b40 supports
+  SOURCE classification of its stale export assertion, NOT a redirection140/140 run.
+-51 cohort direct children retired,39 fixed loader admissions,four authenticated
+  app RegexWorker exits; no individual internal-Worker exit/global OS census.
+  Logical release instrumentation is not native-allocation proof. Array M21
+  SOURCEONLY/five MIXED, Git private-writer/S02/H09/native and AST metadata/cloning
+  qualifications remain; no hard RSS/universal preemption guarantee.
+- Default80/root APIs/dependencies unchanged. No native Bash/GNU-byte parity,
+  full Bash, strict-mode, Node, live HEAD, whole gate or comparator acceptance.
+  Documentation publication only; no runtime/native/Workers or raw-staging cleanup.
+  Exact record: `tests/compatibility/bash-redirection-independent-20260829/root-acceptance/ROOT-ACCEPTANCE.md`.

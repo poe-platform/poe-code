@@ -1,0 +1,69 @@
+{
+  "schema": "root-redirection-acceptance-doc-binding-v1",
+  "sourceCommit": "1e9b83d73ca6efcf84e4cb0a0b20d81f71da237e",
+  "derivedTree": "ed0e0d09cf71bed7f4aee075750b60a30df4ef52",
+  "packageSha256": "e0e63b0319f0b7b77e68a6e6284021bd747c60ce9f93291a5090048fa835e296",
+  "review": "e6a4b1ff119b8aff3b2a39110cc11311f8cbb628",
+  "adjudication": "c565f9251bd59332a58c37bc5c48948cc2f24683",
+  "docs": [
+    {
+      "path": "README.md",
+      "beforeSha256": "c4571d01dff1659ba4fa6bc6233964e7b6d492dfb945083fee8a0765ae2ab46d",
+      "afterSha256": "6094d88541d554cb5ce4abda668f4f69d4a1e4d728abf6a7f7ca4efba0e42432",
+      "beforeBytes": 52031,
+      "afterBytes": 53052,
+      "kind": "single-additive-status-section"
+    },
+    {
+      "path": "docs/COMMAND_PRIORITIES.md",
+      "beforeSha256": "1ea10dae856a06c751676155ef5edb3bfc4af76db760d1eb202b1cfcf9364b48",
+      "afterSha256": "9c3a87360a0a8c1438a3a7800a22310e56ae7c897e67c92a0bc006392fe7640e",
+      "beforeBytes": 25001,
+      "afterBytes": 25882,
+      "kind": "single-additive-status-section"
+    },
+    {
+      "path": "docs/PROJECT_LEDGER.md",
+      "beforeSha256": "fbe706e31c0e866277b9b2adb0df050c1992e96a2c3696b434cb8e903c96c0c6",
+      "afterSha256": "0f031039d0848a0c54215562f79df562b3c022aef3f57bc030d655fecd8e02e3",
+      "beforeBytes": 280747,
+      "afterBytes": 282638,
+      "kind": "append-only"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "tests/compatibility/bash-redirection-independent-20260829/SOURCE-PROOF.json",
+      "bytes": 2190,
+      "mode": 420,
+      "sha256": "921060e13a4476739f60249b58cee7cb3b18b11dc2d51fe3cd20e3bae3bf4276"
+    },
+    {
+      "path": "tests/compatibility/bash-redirection-independent-20260829/PROOF-MAP.json",
+      "bytes": 7949,
+      "mode": 420,
+      "sha256": "45c2ed98ed676a9de5696998b53da63c7f2273d76f22ccd04bf05d9e88f880e2"
+    },
+    {
+      "path": "tests/compatibility/bash-redirection-independent-20260829/README.md",
+      "bytes": 8745,
+      "mode": 420,
+      "sha256": "ad9a0d80bcb69c00b0b7d19e136675e7bdee41cc7cd7210a489c90c220b82c7c"
+    },
+    {
+      "path": "tests/compatibility/bash-redirection-independent-20260829/adjudication-v1/README.md",
+      "bytes": 7767,
+      "mode": 420,
+      "sha256": "d289c255e8f68f6166efd3baa7019e830a4106668a49784377d2553f2631dead"
+    },
+    {
+      "path": "tests/compatibility/bash-redirection-independent-20260829/adjudication-v1/EVIDENCE.json",
+      "bytes": 25800,
+      "mode": 420,
+      "sha256": "a81afddd7910fca6dddee1ee005375acce14d230b8550fe8116ab0c731acb2e1"
+    }
+  ],
+  "noExecution": true,
+  "noAgENTSChange": true,
+  "noCleanup": true
+}

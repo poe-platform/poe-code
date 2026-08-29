@@ -1,6 +1,21 @@
-# Independent conditional review — qualified HOLD
+# Independent conditional review — ROOT-qualified Unit3 profile
 
-## Current successor execution
+## Current qualified acceptance — August 29, 2026
+
+ROOT accepts exact source `7a5c620005fb04518d44bb284f4e99284e4a7c33`, derived
+`74dfe69135a3fc5ba89396b20dd32d9c9daae131`, full954 SHA256
+`46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09`.
+The finite840 version-qualified outcomes combine831 original positives with9
+fresh N01/N10/N11-v4 positives, not one840-case rerun. Each layout covers67 author,
+201 retained and12 novel identities;12 type groups/33 negative diagnostics,
+8 original +2 fresh unique mutation pairs, and original4 +fresh2 binding refusals
+remain separate proof categories. Default80 is unchanged. See
+[ROOT-ACCEPTANCE.md](ROOT-ACCEPTANCE.md) for exact profile/refusals, H02 lifecycle,
+source/loader/AST/census limits and preserved original failures. Public Node is
+separately accepted, not composed by this evidence; Unit4/native/full-Bash/global
+claims remain excluded. This status publication runs no new tests or cleanup.
+
+## Historical successor execution — original HOLD, unchanged
 
 See `successor-v6/FINAL/REPORT.md` and its exact identity/resource maps.
 Candidate `7a5c620005fb04518d44bb284f4e99284e4a7c33`, derived

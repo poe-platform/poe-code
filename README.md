@@ -14,7 +14,8 @@ The exact `virtual-bash/commands/node` subpath and root expose the restricted
 NP1-CJS-WRQ-L-SYNC-1 / Worker-L APIs; **default80 does not include Node**.
 ROOT accepted public source `bb4dd057` / selected composition `a6d20781` through
 independent review `27f557ad`, retaining module `a2f3983d`'s qualifications.
-This includes accepted Unit2, not pending Unit3/Unit4 or the moving worktree.
+This includes accepted Unit2, not Unit3/Unit4 or the moving worktree; the separate
+Unit3 profile acceptance below does not compose it with Node.
 No engine is bundled, discovered, installed or imported implicitly; npm/npx and
 native evaluation/subprocess fallbacks remain excluded. The static adapter URL and
 identity are configuration, not byte authentication or host authorization.
@@ -115,6 +116,24 @@ partial mutation and exact GNU diagnostic/status/line bytes are unqualified.
 Fatal status1 is provisional project policy, not a native golden. No complete
 strict-mode/full-Bash, native, live-HEAD or Node acceptance follows. See the
 [exact ROOT acceptance and inherited limits](tests/compatibility/bash-strict-mode-independent-20260829/ROOT-ACCEPTANCE.md).
+
+**ROOT-qualified conditional Unit3 profile (August 29, 2026):** exact source
+`7a5c620005fb04518d44bb284f4e99284e4a7c33`, derived
+`74dfe69135a3fc5ba89396b20dd32d9c9daae131`, full954 SHA256
+`46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09`
+adds a separate `[[ ]]` AST with lazy visited expansion, no IFS/pathname globbing,
+quote-aware C basic patterns, limited numeric literal comparisons and typed VFS
+error handling. `-v` supports scalar/canonical numeric indexes only. Reached ERE,
+unsupported extglob/aggregate predicates/timestamps remain refusals, not GNU passes.
+Private4096-node/depth64 grammar caps use `ShellSyntaxError`; actual resource,
+caller, sink and cleanup contracts are separate. The
+[qualified acceptance](tests/compatibility/bash-conditional-independent-20260829/ROOT-ACCEPTANCE.md)
+maps840 version-qualified outcomes (831 original positives +9 fresh), **not one840
+rerun**:67 author +201 retained +12 novel per layout. Types, mutation pairs and
+binding refusals remain separate; original failures and source/loader/AST/census
+limits are retained. Default80 and prior core/opt-in Node acceptances are unchanged.
+No native GNU5.3/full-Bash, coherent Node-plus-Unit3, Unit4, live-HEAD or global-gate
+acceptance follows.
 
 **Scoped priority-workflow acceptance (August 28, 2026):** ROOT accepts the
 finite 31-case × three-layout membership on selected `8437e4ed` and its exact

@@ -13,7 +13,8 @@ and historical expectations are unchanged.
 Full1010 package SHA256 is
 `274839729aa916767d1664e0ec7a84579eb1c6e7eba677535dfe6273f5f079a9`.
 This preserves restricted module `a2f3983d` / acceptance `b10faea3`; the selected
-composition includes accepted Unit2, not pending Unit3/Unit4 or current HEAD.
+composition includes accepted Unit2, not Unit3/Unit4 or current HEAD. Unit3's
+separate profile acceptance below is not a coherent Node-plus-Unit3 proof.
 `nodeCommands` and `createNodeCommands` require trusted provider configuration,
 preserve seven denied-by-default grants/fixed24 limits, and add Node only when
 explicitly installed. Root and exact `virtual-bash/commands/node` imports are
@@ -57,6 +58,26 @@ Node, TypeScript, `tsx`, development types or isolated oracle tooling. TypeScrip
 zero runtime dependencies, no virtual-command host subprocess/eval/native fallback
 and explicit host capabilities remain requirements. This table does not supply a
 subcommand/flag distribution; recommendations below are engineering judgment.
+
+## ROOT-qualified conditional Unit3 profile — 2026-08-29
+
+ROOT accepts exact source `7a5c620005fb04518d44bb284f4e99284e4a7c33`, derived
+`74dfe69135a3fc5ba89396b20dd32d9c9daae131`, full954 SHA256
+`46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09`.
+`[[ ]]` has a separate AST, lazy visited expansion without IFS/pathname globbing,
+quote-aware C basic patterns, limited numeric literal comparisons, typed VFS errno
+policy and scalar/canonical-index `-v`. Reached unsupported ERE/extglob/aggregate
+predicates/timestamps refuse; they are not native compatibility successes.
+Private4096-node/depth64 grammar caps are distinct from resource/caller/sink/cleanup
+contracts. Finite840 version-qualified outcomes =831 original positives +9 fresh,
+not one840 rerun:67 author +201 retained +12 novel per layout. Separate12 type
+groups/33 negative diagnostics,8 original +2 fresh unique mutation pairs, and
+original4 +fresh2 binding refusals retain their own denominators. Original failures,
+H02 ownership distinctions and source/loader/AST/census qualifications remain.
+Default80, priorities, opt-in Node acceptance `6f449bf4`, npm/npx exclusions and
+curl opt-in are unchanged. This accepts neither Node-plus-Unit3 coherence nor
+Unit4/native-GNU/full-Bash/whole-HEAD/global-gate behavior. Exact record:
+[ROOT acceptance](../tests/compatibility/bash-conditional-independent-20260829/ROOT-ACCEPTANCE.md).
 
 ## ROOT-qualified strict-mode Unit2 resolved profile — 2026-08-29
 

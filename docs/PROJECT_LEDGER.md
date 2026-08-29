@@ -3942,3 +3942,33 @@ that any implementation, command, fixture, or test currently exists.
 - Docs-only publication: no runtime/product logic/compiler/Worker/native execution;
   original author/helper captures and historical status entries are preserved.
   Exact decision: `tests/integration/node-public-independent-20260829/ROOT-ACCEPTANCE.md`.
+
+### 2026-08-29 — ROOT qualified conditional Unit3 profile acceptance
+
+- Exact source `7a5c620005fb04518d44bb284f4e99284e4a7c33`, derived composition
+  `74dfe69135a3fc5ba89396b20dd32d9c9daae131`,293 selected inputs, full954 package
+  SHA256 `46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09`.
+  ROOT accepts independent original `d7ec5e26c34a26ec9194ddc88d5159fecf4abeca`
+  plus follow-up `cccd876f6615020a083adf7ee8c51befa553c2ba`, not moving HEAD.
+- Finite840 version-qualified =831 original positives +9 fresh corrected reader
+  cases, NOT one840-case rerun. Per layout67 author +201 retained +12 novel;
+  separate12 type groups/33 negative diagnostics,8 original +2 fresh unique mutation
+  pairs and original4 +fresh2 binding refusals. M04 now has a semantic restoration;
+  M06 H02 activates the changed branch and restores, while H01 remains an explicit
+  nonactivation countercontrol. No old mutation score is retroactively relabeled.
+- Separate `[[ ]]` AST/lazy visited expansion/no IFS or pathname globbing/C basic
+  patterns/limited numeric literals/typed VFS errno policy/canonical-index-or-scalar
+  `-v`. Reached unsupported ERE/extglob/aggregates/timestamps remain refusals, not
+  GNU passes. Private4096-node/depth64 grammar admission uses `ShellSyntaxError`;
+  actual resource/caller/sink/cleanup behavior remains a separate contract.
+- Preserve original H02 unknown-finalization failures, fixture-LF admission errors,
+  N01/N10/N11 reader failures, mutant gaps and H01 nonactivation history. Controlled
+  unenrolled-provider H02 and registered S01 do not establish arbitrary provider
+  ownership. Source-only/mixed, loader/Worker, AST clone/metadata and census limits
+  remain. Fresh41 known processes retired/11 loader admissions/zero RegexWorkers
+  do not establish an individual internal-loader exit or universal OS census.
+- Default80 unchanged. Prior core and public opt-in Node acceptance `6f449bf4`
+  remain scoped to their own compositions; no Node-plus-Unit3/Unit4/native GNU5.3/
+  full-Bash/whole-HEAD/global-gate acceptance. Docs-only publication, no new runtime,
+  native, Workers, product edits or raw cleanup. Historical records remain literal.
+  Exact record: `tests/compatibility/bash-conditional-independent-20260829/ROOT-ACCEPTANCE.md`.

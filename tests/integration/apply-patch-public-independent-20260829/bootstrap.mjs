@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { registerHooks, syncBuiltinESMExports } from 'node:module';
+import cp from 'node:child_process';
+import http from 'node:http';
+import https from 'node:https';
+import net from 'node:net';
+import tls from 'node:tls';
+const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+const [filename,expected]=process.argv.slice(2),bytes=fs.readFileSync(filename);assert.equal(sha(bytes),expected);const binding=JSON.parse(bytes);
+let forbidden=0;
+const deny=()=>{forbidden++;throw Error('FORBIDDEN_HOST_CAPABILITY');};
+for(const key of ['spawn','spawnSync','exec','execSync','execFile','execFileSync','fork'])cp[key]=deny;
+http.request=deny;https.request=deny;http.get=deny;https.get=deny;net.connect=deny;net.createConnection=deny;tls.connect=deny;globalThis.fetch=deny;syncBuiltinESMExports();
+process.once('beforeExit',()=>{if(forbidden){console.error('FORBIDDEN_HOST_ATTEMPTS',forbidden);process.exitCode=78;}});
+registerHooks({load(url,context,next){if(!url.startsWith('file:'))return next(url,context);const filename=fileURLToPath(url);const row=binding.modules[filename];if(!row)throw Error('REVIEW_UNBOUND_MODULE:'+filename);assert.equal(fs.realpathSync(filename),filename);const stat=fs.lstatSync(filename);assert.ok(stat.isFile()&&!stat.isSymbolicLink());const bytes=fs.readFileSync(filename);assert.equal(bytes.length,row.bytes,'REVIEW_SIZE');assert.equal(sha(bytes),row.sha256,'REVIEW_HASH');console.log(JSON.stringify({load:{path:filename,sha256:row.sha256,role:row.role}}));return next(url,context);}});
+if(binding.fallback){let reason;try{await import(pathToFileURL(binding.fallback).href);}catch(error){reason=error;}assert.ok(reason);assert.match(String(reason),/REVIEW_UNBOUND_MODULE|ERR_ACCESS_DENIED|Cannot find module/);console.log(JSON.stringify({refusal:'source-fallback',code:reason.code,message:String(reason)}));}
+else await import(pathToFileURL(binding.entry).href);

@@ -1,0 +1,23 @@
+import { Shell, MemoryFileSystem, agentCommands, createAgentCommands, createApplyPatchCommand, createApplyPatchCommands, applyPatchCommands, type AgentCommandsOptions, type ApplyPatchCommandsOptions, type ApplyPatchLimits } from "virtual-bash";
+import { createApplyPatchCommand as leaf, type ApplyPatchCommandsOptions as LeafOptions, type ApplyPatchLimits as LeafLimits } from "virtual-bash/commands/apply-patch";
+const limits: Partial<ApplyPatchLimits> & Partial<LeafLimits> = { maxFiles: 2, maxPatchBytes: 4096, maxWork: 8192 };
+const options: ApplyPatchCommandsOptions & LeafOptions = { replace: true, limits };
+const aggregate: AgentCommandsOptions = { replace: true, applyPatch: { limits } };
+new Shell({ fs: new MemoryFileSystem() }).use(agentCommands(aggregate));
+createAgentCommands(aggregate); createApplyPatchCommand(options); createApplyPatchCommands(options); applyPatchCommands(options); leaf(options);
+// @ts-expect-error top-level replacement only
+agentCommands({ applyPatch: { replace: true } });
+// @ts-expect-error no host subprocess option
+applyPatchCommands({ spawn: true });
+// @ts-expect-error numeric cap
+createApplyPatchCommand({ limits: { maxFiles: "2" } });
+// @ts-expect-error no unlimited mode
+createApplyPatchCommands({ limits: { unlimited: true } });
+// @ts-expect-error no new core limits
+new Shell({ fs: new MemoryFileSystem(), limits: { maxApplyPatchBytes: 10 } });
+// @ts-expect-error limits are readonly
+limits.maxFiles = 3;
+// @ts-expect-error cwd belongs to context not plugin options
+applyPatchCommands({ cwd: "/" });
+// @ts-expect-error limits cannot be null
+createApplyPatchCommand({ limits: null });

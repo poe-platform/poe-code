@@ -1,0 +1,271 @@
+{
+  "candidate": "7fde32264d757ef856acf3ae92c8581b4a294341",
+  "module": "753f33d2fa1a2ccd86089c563d4ad66b9a1ae26d",
+  "base": "d111e5bf1f53aff16c5d4112e9ead2e025d6464f",
+  "packageSha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd",
+  "roles": [
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PRESEAL.md",
+      "bytes": 4459,
+      "mode": 420,
+      "sha256": "727ef8842b6326c9f7ccfaa5b058ed6c8cf71e84b4e8f82993385fc06f3ccd19"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/AUTHENTICATION.json",
+      "bytes": 1389133,
+      "mode": 420,
+      "sha256": "07e1d6b48340c7a2ca62c2c38013752cf8f7237277115cc47539c0e8171e1a71"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/ROOT-CLOSURE.json",
+      "bytes": 875,
+      "mode": 420,
+      "sha256": "287253aab2a005987820961428f54655ff5f6692592f9e5c09f0c782f59a6395"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/prepare.mjs",
+      "bytes": 9481,
+      "mode": 420,
+      "sha256": "237eee74b1f1153dd03897f70bca61430a109deafe9ca74858beacd30afb2fa9"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/seal.mjs",
+      "bytes": 6395,
+      "mode": 420,
+      "sha256": "4b444259705295ad746b617c75e94f1915cce1cf3f4cb3476f7ff8e6ec944c6a"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/run.mjs",
+      "bytes": 16956,
+      "mode": 420,
+      "sha256": "bf5df220810a002d34b36d2351abb67671947436418c46d89c592ec7f50745b1"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/novel.mjs",
+      "bytes": 11408,
+      "mode": 420,
+      "sha256": "a4fe4238540ccd0fb2bdaaa9d6e6b7eb26123ad13696f41308fc634594e89456"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/bootstrap.mjs",
+      "bytes": 2097,
+      "mode": 420,
+      "sha256": "2dee00c3b96aa40b95984816a11db97229df514de630aa877c0abdfae09f8d50"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/consumer.mts.fixture",
+      "bytes": 1641,
+      "mode": 420,
+      "sha256": "00495408beddd6467f7388ca7aea9b3c8c373c1ec9578dc422233db2f00b1d3f"
+    },
+    {
+      "path": "tests/integration/coherent78-arrays-independent-20260828/common.mjs",
+      "bytes": 5997,
+      "mode": 420,
+      "sha256": "07be840951496c53e3e16aaa0dd92901e32714e0fae3ba1692b35769daba1c99"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/controller.mjs",
+      "bytes": 8301,
+      "mode": 420,
+      "sha256": "a82b3503d4613a209d00db7cd77d23c70ae362391a576e7b1fecedaa2d7ce6e3"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/supervisor.mjs",
+      "bytes": 4656,
+      "mode": 420,
+      "sha256": "fd49dbff486a8399b19de12e3a8abc5c41116ae18a11191d67ee199782572e31"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v4/deadline.mjs",
+      "bytes": 1413,
+      "mode": 420,
+      "sha256": "b2538ecd3b45ea7ea9e4114ca29fae73d7e39aad585ce53259da7968922eb55e"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/s06-successor-v1/preparation-v3/staging.mjs",
+      "bytes": 4647,
+      "mode": 420,
+      "sha256": "861e25bad0935d25cc035b9aa991fdbb9cb9ceddaea72665532ed2a8805e717d"
+    },
+    {
+      "path": "tests/shell/indexed-arrays-independent-20260828/candidate-v1/boundary-app.mjs",
+      "bytes": 11119,
+      "mode": 420,
+      "sha256": "a8c7cddbf73fe9dddab960a59c430265a16262691a71fc88e8fe6b9fffae40cf"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/public-v2.mjs",
+      "bytes": 15902,
+      "mode": 420,
+      "sha256": "1886dc23b32867fc0a9858c01de5beb7f3481a8c5b83efd1cc2130b52191c54a"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/names.mjs",
+      "bytes": 870,
+      "mode": 420,
+      "sha256": "c932c572bbc434e16e60f5625b283c211df6dcd43e5de1f7b20be03ac6ef8efa"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/arrays.mjs",
+      "bytes": 2507,
+      "mode": 420,
+      "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/ARRAY-CASES.json",
+      "bytes": 3019,
+      "mode": 420,
+      "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/coherence/probe.mjs",
+      "bytes": 16819,
+      "mode": 420,
+      "sha256": "c46da7b648b7f1c5402666276f88893f940c60d02606c5f911c6352309586456"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/coherence/names.mjs",
+      "bytes": 853,
+      "mode": 420,
+      "sha256": "eeffe4db1547913544ef0fee85886c7d924f9242e6b43b05530008817ebfbbee"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/coherence/CASES.json",
+      "bytes": 8553,
+      "mode": 420,
+      "sha256": "61486dae6c131769af1a39aef34a5585074467d4f32a34dd90b4be8374d023b0"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/coherence/CASES-v2-overlay.json",
+      "bytes": 1344,
+      "mode": 420,
+      "sha256": "a9aba608d1e30b24b8b3e4c70ca27bd4af8cca2dfac8df45fa460a15d052194d"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/fixtures/tests/plugins/stream-five-public/consumer.mjs",
+      "bytes": 7809,
+      "mode": 420,
+      "sha256": "0355d35504b07f687d1f85953f931f76a5bc410ba60377d123babfb2b61f63f2"
+    }
+  ],
+  "appRoles": [
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/bootstrap.mjs",
+      "destination": "bootstrap.mjs"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/novel.mjs",
+      "destination": "novel.mjs"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/public-v2.mjs",
+      "destination": "public-v2.mjs"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/names.mjs",
+      "destination": "names.mjs"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/arrays.mjs",
+      "destination": "arrays.mjs"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/ARRAY-CASES.json",
+      "destination": "ARRAY-CASES.json"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/coherence/probe.mjs",
+      "destination": "coherence/probe.mjs"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/coherence/names.mjs",
+      "destination": "coherence/names.mjs"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/coherence/CASES.json",
+      "destination": "coherence/CASES.json"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/harness/coherence/CASES-v2-overlay.json",
+      "destination": "coherence/CASES-v2-overlay.json"
+    },
+    {
+      "path": "tests/integration/apply-patch-public-independent-20260829/PREPARED/fixtures/tests/plugins/stream-five-public/consumer.mjs",
+      "destination": "stream-consumer.mjs"
+    }
+  ],
+  "mutants": [
+    {
+      "id": "U01-registration-omission",
+      "member": "dist/plugins/index.js",
+      "needle": "...createApplyPatchCommands(applyPatchLimits === undefined ? {} : { limits: applyPatchLimits })",
+      "replacement": "...[]",
+      "fail": "N06-exact79",
+      "pass": "N13-reused-input-and-owned-cleanups",
+      "bytes": 4696,
+      "sha256": "d4bf3fb6f4475bc6a3abd6e13d6969367698d9bb624802851b71a0b647794d1b",
+      "originalSha256": "9d5a328f4ed315d4391e84525b8dc70a1f975371a6ed8fa829e329e585000c45"
+    },
+    {
+      "id": "U02-limits-not-forwarded",
+      "member": "dist/plugins/index.js",
+      "needle": "const applyPatchLimits = options.applyPatch?.limits;",
+      "replacement": "const applyPatchLimits = undefined;",
+      "fail": "N11-lowered-files-no-publication",
+      "pass": "N06-exact79",
+      "bytes": 4769,
+      "sha256": "4334ae93fb2b1b587729ad8ff28f1ca564ffc371e251d112982ec81005054e4d",
+      "originalSha256": "9d5a328f4ed315d4391e84525b8dc70a1f975371a6ed8fa829e329e585000c45"
+    },
+    {
+      "id": "U03-unrelated-custom-replaced",
+      "member": "dist/plugins/index.js",
+      "needle": "const definitions = createAgentCommands(",
+      "replacement": "if (host.commands.has(\"custom\")) host.commands.register({name:\"custom\",execute:()=>({exitCode:17})},{replace:true});\n            const definitions = createAgentCommands(",
+      "fail": "N04-custom-preservation",
+      "pass": "N06-exact79",
+      "bytes": 4915,
+      "sha256": "25ef8ccd440df43763103f9e4a02afe96ff9a9bcfa42c3aef9a2c0473d72a552",
+      "originalSha256": "9d5a328f4ed315d4391e84525b8dc70a1f975371a6ed8fa829e329e585000c45"
+    },
+    {
+      "id": "U04-existing-patch-not-replaced",
+      "member": "dist/plugins/index.js",
+      "needle": "host.commands.register(definition, { replace: options.replace ?? false });",
+      "replacement": "if (definition.name !== \"apply_patch\" || !host.commands.has(\"apply_patch\")) host.commands.register(definition, { replace: options.replace ?? false });",
+      "fail": "N05-replacement-authority",
+      "pass": "N06-exact79",
+      "bytes": 4862,
+      "sha256": "381b721905ca81ad23e4551d617333f1b5191e3d6ddde7bd856b40a99c57aed3",
+      "originalSha256": "9d5a328f4ed315d4391e84525b8dc70a1f975371a6ed8fa829e329e585000c45"
+    }
+  ],
+  "policy": {
+    "maxConcurrency": 1,
+    "totalElapsedMsIncludingCleanup": 2400000,
+    "reservedCleanupMs": 120000,
+    "maxGitChildren": 0,
+    "maxOtherSupervisedChildren": 70,
+    "maxProductWorkers": 55,
+    "maxRuntimeWorkerMs": 120000,
+    "maxRuntimeWorkerCaptureBytes": 4194304,
+    "maxTypeWorkerCaptureBytes": 4194304,
+    "maxToolCaptureBytes": 8388608,
+    "maxGitCaptureBytes": 0,
+    "maxTotalCapturedChildBytes": 134217728,
+    "maxTotalGitBytes": 0,
+    "maxWorkingBytes": 805306368,
+    "maxRecordBytes": 33554432,
+    "maxPersistedEvidenceBytes": 134217728
+  },
+  "bounds": {
+    "caseMs": 30000,
+    "buildMs": 120000,
+    "expectedDirectChildren": 40,
+    "allOwnedCeiling": 80,
+    "coordinatorIncluded": true,
+    "maxPeak": 4
+  },
+  "qualification": "one scoped public-composition review, no module reacceptance, native/private/network or actual SafeJS"
+}

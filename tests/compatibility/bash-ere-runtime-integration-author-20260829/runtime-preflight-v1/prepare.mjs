@@ -115,6 +115,8 @@ try {
   const definitions = original.map(define); save('CASES.json', { original: bind(casePath), status: 'ALL_UNRUN', rows: definitions });
   const privateRoot = fs.realpathSync(fs.mkdtempSync('/private/tmp/safe-bash-core70-20260829-'));
   fs.chmodSync(privateRoot, 0o700);
+  fs.mkdirSync(path.join(privateRoot, 'controller'), { mode: 0o700 });
+  for (const file of ['dispatch.mjs', 'owner.mjs', 'controller-core.mjs']) copy(path.join(own, file), path.join(privateRoot, 'controller', file));
   const harnessFiles = ['cell.mjs', 'worker-observer.mjs', 'controller-core.mjs', 'malformed-worker.mjs'];
   const layouts = [];
   for (const name of ['source-built', 'installed', 'moved']) {
@@ -139,7 +141,8 @@ try {
       return { id: `${name}/${definition.id}`, originalId: definition.id, route: definition.route, state: 'UNRUN', cellPath, capture, cwd: app, executable: sourceSeal.node.path, argv: ['--permission', `--allow-fs-read=${app}`, `--allow-fs-write=${path.join(app, 'captures')}`, '--allow-worker', path.join(app, 'harness/cell.mjs'), cellPath, capture], env: { PATH: path.dirname(sourceSeal.node.path), HOME: path.join(app, 'home'), TMPDIR: path.join(app, 'tmp'), LANG: 'C', TZ: 'UTC' }, workerStartsMaximum: definition.workerStartsMaximum };
     });
     const closure = inventory(app); save(`LAYOUT-${name}.json`, closure);
-    layouts.push({ name, app, packageRoot: finalPackage, modulePath: path.join(finalPackage, 'dist/index.js'), worker, manifest: bind(path.join(own, `LAYOUT-${name}.json`)), cells });
+    copy(path.join(own, `LAYOUT-${name}.json`), path.join(privateRoot, 'controller', `LAYOUT-${name}.json`));
+    layouts.push({ name, app, packageRoot: finalPackage, modulePath: path.join(finalPackage, 'dist/index.js'), worker, manifest: bind(path.join(privateRoot, 'controller', `LAYOUT-${name}.json`)), cells });
   }
   const privateFiles = packageRows.filter(row => row.path.startsWith('dist/commands/regex-execution/ere/') && row.path.endsWith('.js'));
   const edges = [];
@@ -151,7 +154,10 @@ try {
   save('STATIC-EDGES.json', { files: privateFiles.length, edges, privateAssets: packageRows.filter(row => row.path.startsWith('dist/commands/regex-execution/ere/')).map(({ payload, ...row }) => row) });
   const matrix = layouts.flatMap(layout => layout.cells);
   const seal = { status: 'PREPARATION_WITH_EXPLICIT_GATES_NOT_ACTUAL_READY', sourceTree: sourceSeal.selectedTree, sourceInputs: 305, archive: archiveBinding, compiled: bind(compiledPath), node: sourceSeal.node, tools: { typescript: sourceSeal.typescript.length, npmFiles: sourceSeal.npm.rows.filter(row => row.kind === 'file').length, npmLinks: sourceSeal.npm.rows.filter(row => row.kind === 'link').length }, privateRoot, layouts, cells: matrix, cellCount: matrix.length, deferredCells: matrix.filter(row => row.route === 'DEFERRED_ADAPTER').map(row => row.id), executableBodyCells: matrix.filter(row => row.route !== 'DEFERRED_ADAPTER').length, futureCaps: { totalMilliseconds: 7500000, childMaximum: 210, coordinatorMaximum: 1, osPeak: 2, caseMilliseconds: 30000, retirementMilliseconds: 3000, captureBytes: 167772160, workingBytes: 536870912, workerStartsMaximum: matrix.reduce((sum, row) => sum + row.workerStartsMaximum, 0), workerLivePerCell: 1, internalLoaderAdmissions: 0 }, harness: ['expectations.mjs', 'controller-core.mjs', 'worker-observer.mjs', 'malformed-worker.mjs', 'cell.mjs', 'dispatch.mjs', 'prepare.mjs', 'controls.mjs', 'PRESEAL.md'].map(file => bind(path.join(own, file))), qualifications: ['No product imports or Workers during preparation', 'No nested Worker module-load proof', 'Explicit configured public limits; not default-boundary/RSS proof', 'Seven adapter gates and actual launch controller still incomplete', 'Transport60 and different preexec review plus exact ROOT grant required'] };
+  seal.controller = ['dispatch.mjs', 'owner.mjs', 'controller-core.mjs'].map(name => bind(path.join(privateRoot, 'controller', name)));
+  seal.harness.push(bind(path.join(own, 'owner.mjs')));
   save('EXECUTION-SEAL.json', seal);
+  copy(path.join(own, 'EXECUTION-SEAL.json'), path.join(privateRoot, 'controller', 'EXECUTION-SEAL.json'));
   same(inventory(sourceRoot), compiled, 'retained source post');
   verify(archiveBinding);
   const storage = inventory(privateRoot);

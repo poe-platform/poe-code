@@ -1,0 +1,192 @@
+{
+  "schema": "node-module-author-v4-executable-preseal",
+  "date": "2026-08-29",
+  "timing": "after source d6e0dc7d and independent source review; before successor compiler/module/Worker/engine execution",
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "source": {
+    "baseline": "7fde32264d757ef856acf3ae92c8581b4a294341",
+    "moduleCommit": "d6e0dc7d62a64b33869be79068d13b8d96fa735a",
+    "moduleSha256": "1828ab40eca376bd34d8b07c99aa07cfcf60ac28d25b4d099dbc4d1794a860df"
+  },
+  "files": [
+    {
+      "path": "API-v4.md",
+      "bytes": 4458,
+      "sha256": "0bde23e4b18bb30b8fbc94a1c5c109547f32eb63917325b139a48e6df91417fc"
+    },
+    {
+      "path": "BASE-PACKAGE-v1.json",
+      "bytes": 127885,
+      "sha256": "3f97f00039e1e12d9afdd6fe800b6ae437d375c0f4e3c994825ce7818f926c51"
+    },
+    {
+      "path": "INPUTS-v1.json.gz.base64",
+      "bytes": 1939657,
+      "sha256": "18a3bf6ebf467f3c76a7c0b04c9c72a57f22d21e00ef4d58267c90d0403871c4"
+    },
+    {
+      "path": "MUTATIONS-v1.json",
+      "bytes": 1720,
+      "sha256": "9b3408fe7a961946572e618fa04a839de739e95b009a75b479f0a97669e16fc1"
+    },
+    {
+      "path": "engine-adapter-noise-v1.mjs",
+      "bytes": 282,
+      "sha256": "e9001c5a4dde7202d1223c97de9248dc9ed3714f33aa98af13e989defbe19653"
+    },
+    {
+      "path": "engine-adapter-v1.mjs",
+      "bytes": 1484,
+      "sha256": "2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d"
+    },
+    {
+      "path": "host-guard-v1.mjs",
+      "bytes": 643,
+      "sha256": "f5cbc54f084b0a5b2f81a12e32e28ed058e302b5fbd152ef919314e31110ad1e"
+    },
+    {
+      "path": "load-guard-v1.mjs",
+      "bytes": 2450,
+      "sha256": "0c5098f8ad78441d0a002f05ff29ca7f6c473381a94db6e96d7ae85dcc92055c"
+    },
+    {
+      "path": "load-negative-v1.mjs.data",
+      "bytes": 650,
+      "sha256": "cf10fa1da5c1437b76108da925cf6df586aeadf678bd963712918978da250a4a"
+    },
+    {
+      "path": "types-v1.mts.data",
+      "bytes": 3022,
+      "sha256": "2bf84e25975a71b916176d90adf66c344c27967f9384ed6d43f497d965e377ee"
+    },
+    {
+      "path": "MODULE-v6.json",
+      "bytes": 189666,
+      "sha256": "1828ab40eca376bd34d8b07c99aa07cfcf60ac28d25b4d099dbc4d1794a860df"
+    },
+    {
+      "path": "focused-v3.mjs",
+      "bytes": 15861,
+      "sha256": "cb8c77327388d14c9f6e9f0d697de32d0ef3a07c86aabdc2cbb7e0c84245e9ae"
+    },
+    {
+      "path": "workers-v3.mjs",
+      "bytes": 12466,
+      "sha256": "b4b37d045257b87332dd70a73d07348f837a19146b04d962a36db4d8480b27f3"
+    },
+    {
+      "path": "capture-v1.mjs",
+      "bytes": 3135,
+      "sha256": "745d02d2ffc87085810df9a339c8152bcd7c5fdfee13e98c7a26a01137074177"
+    },
+    {
+      "path": "startup-capture-v3.mjs",
+      "bytes": 3238,
+      "sha256": "97fbc0901a25c6a50b1f554a0ef8376071a2d8adddd7bb70c0731020b17e63a0"
+    },
+    {
+      "path": "case-runner-v4.mjs",
+      "bytes": 1060,
+      "sha256": "d3e696a7d93549907099e3d104b38665f0cda330b6fd19d791f4da5de6f39946"
+    },
+    {
+      "path": "WORKER-CASES-v4.json",
+      "bytes": 2432,
+      "sha256": "5b28f0292bcad4f9d5620629aaed33a8154c621a6f5acb88d64e911e86c219f1"
+    },
+    {
+      "path": "judge-v4.mjs",
+      "bytes": 8841,
+      "sha256": "aa762ee0ca71f92828e0394f3a266d9e59cf2c6a137286621c1e93578b141e88"
+    },
+    {
+      "path": "owner-v4.mjs",
+      "bytes": 27785,
+      "sha256": "708c5889bbb8d35a82657adcc36a9b43df7a61db52e9fd15354fc95af2596b54"
+    },
+    {
+      "path": "startup-owner-v4.mjs",
+      "bytes": 1929,
+      "sha256": "5ecc75cacfecb9f679699f92e29896e7edd8b2ae95f8ecfb3de26191084e4d95"
+    },
+    {
+      "path": "DISPATCH-AUTHOR-v4.mjs.data",
+      "bytes": 5101,
+      "sha256": "e61c5f0091fcf797faee6b066e84d7d998b6f907b11c2dd3535910979b7a2d3b"
+    },
+    {
+      "path": "BUILTINS-v4.json",
+      "bytes": 63465,
+      "sha256": "5ddcdc64c1db2095170d5d757b2886bc857d20b63ebd99c525b80d56bd0b6663"
+    },
+    {
+      "path": "CONTROL-v4.json",
+      "bytes": 6174,
+      "sha256": "b01f596c78e380e578cf86febe8adde75a74b14106503b7903395477d3410a21"
+    },
+    {
+      "path": "PARENTS.json",
+      "bytes": 1240,
+      "sha256": "5d6d413aadc62b5a64d500459f038c10594df51402ccf1f344fa38b0fcb22c68"
+    },
+    {
+      "path": "STARTUP-QUALIFICATION-v4.json",
+      "bytes": 1993,
+      "sha256": "d386a1d586ce5fbffe26152c9da3dae6f58fa9d3fe47f1751275b48f916ca0ff"
+    },
+    {
+      "path": "ROOT-GRANT-v4.json",
+      "bytes": 1282,
+      "sha256": "90a05a175595436ad2b7e53a5aa5c92efed830ad79117a5e820393d37480302c"
+    }
+  ],
+  "planned": {
+    "strictBuild": 1,
+    "pack": 1,
+    "offlineInstall": 1,
+    "mainWorkerIdentities": 27,
+    "mainWorkerExecutions": 81,
+    "mainGuestCeiling": 69,
+    "focusedIdentities": 34,
+    "mainFocusedExecutions": 102,
+    "mutationFocusedExecutions": 68,
+    "mutationWorkerCeiling": 10,
+    "mutationGuestCeiling": 10,
+    "mutantFamilies": 6,
+    "loadNegativeFamilies": 6,
+    "typePositiveIdentities": 12,
+    "typeNegativeIdentities": 12,
+    "typeProcesses": 6,
+    "captureControls": 0,
+    "judgeControls": 8,
+    "captureControlsInherited": 7
+  },
+  "ceilings": {
+    "ownedOS": 113,
+    "rootAllOwnedOS": 128,
+    "peakOwnedOS": 3,
+    "workers": 91,
+    "guests": 79,
+    "absoluteDeadline": 1787982218741,
+    "captureBytes": 69206016,
+    "workBytes": 1073741824
+  },
+  "sourceInputs": 294,
+  "baselineInputs": 278,
+  "baselineFullPackageSha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd",
+  "expectedEmissions": 956,
+  "expectedPackEntries": 958,
+  "baselinePackProjection": 898,
+  "roles": {
+    "source": "strictly source-built ESM, not raw TS execution",
+    "engine": "95 previously authenticated PUBLIC emissions, test-only; not vendored or intrinsically complete containment",
+    "module": "new Node module, direct internal installed import not public root export",
+    "scope": "L entry lifetime retirement; actual Worker exit and cooperative parent cleanup; not all guest jobs settled, RSS, native Node or wholeguest8MiB"
+  },
+  "inheritedFailures": [
+    "89965809",
+    "1dfcd65f",
+    "c24c4887"
+  ],
+  "startupSealSha256": "c0b3d8d88fd89dad1ed9ae2d317b48847a66022e12ba54dee9e9876ff603dbb8"
+}

@@ -1,0 +1,39 @@
+{
+  "schema": "root-node-author-v4-conditional-grant",
+  "date": "2026-08-29",
+  "authority": "ROOT fresh STARTUP-v4 and conditional AUTHOR-v4 user instruction",
+  "source": {
+    "baseline": "7fde32264d757ef856acf3ae92c8581b4a294341",
+    "moduleCommit": "d6e0dc7d62a64b33869be79068d13b8d96fa735a",
+    "moduleSha256": "1828ab40eca376bd34d8b07c99aa07cfcf60ac28d25b4d099dbc4d1794a860df"
+  },
+  "prerequisite": "c0b3d8d88fd89dad1ed9ae2d317b48847a66022e12ba54dee9e9876ff603dbb8",
+  "qualifiedStartup": [
+    "S05-v2",
+    "S06"
+  ],
+  "scope": "module-only public79 plus16 Node source/doc inputs; no root/default/sharedcore/engine vendoring",
+  "limits": {
+    "wallMs": 3600000,
+    "allOwnedOS": 128,
+    "peakOS": 4,
+    "captureBytes": 268435456,
+    "workBytes": 1073741824,
+    "workers": 128,
+    "guests": 128,
+    "plannedOS": 113,
+    "plannedWorkers": 91,
+    "plannedGuests": 79,
+    "caseMs": 30000,
+    "buildMs": 120000
+  },
+  "forbidden": [
+    "private",
+    "network",
+    "nativefallback",
+    "XAN",
+    "rootexports",
+    "defaultregistration"
+  ],
+  "ordinaryRepair": "Only fully captured/reaped compiler or ordinary assertion failures may get versioned source fixes/rebinding within same cumulative grant; no safety/integrity/capture/unknownretirement retry"
+}

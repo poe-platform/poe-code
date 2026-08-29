@@ -1,0 +1,682 @@
+{
+  "schema": "ere12-independent-preexec-bindings-v1",
+  "reviewedSource": "2d07f5921010fda988dcda36ac81a89831fbac55",
+  "initialSource": "8f85329b9e6906947ff3c1805447e90c3d60bcae",
+  "historicalHold": "0463adbcee3601b2cdf43f44bf428eddc0cab2f1",
+  "independentPresealCommit": "83f65e7c4378c85cf86a1bf3ee90be79bf0e3b94",
+  "versionedCorrectionCommit": "564039b8da61297ba78fdfd4f37897d5bc9f96a4",
+  "runtimePresealSha256": "211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457",
+  "authorControlPresealSha256": "b73f207cb4dd7e5a8c903075f4219cd27635b03f3be16f947846c7ff42943b03",
+  "independentPresealSha256": "2c7fe863bb31a6932b112ef0db15c27689f005a7af07adab1c2feabe6c02f4aa",
+  "correctionPresealSha256": "8dbfab88542c98030d58cd1f490492ec4e4ee67b65b901d31de2baec54143306",
+  "requestsSha256": "2678d8619553f9d8d9669f078c29847c65c31984ebd0ab6bdeeea271a213acc8",
+  "cohortSha256": "4e5efbe3ad419ab32f073eb2cffebcd39e564ba9fe9c75d38e67a7f9d5e4201e",
+  "moduleBindings": [
+    {
+      "path": "admission.mjs",
+      "bytes": 9447,
+      "mode": 384,
+      "sha256": "5bb503cabae66da96f847697e34a9e8a19d954bc2137a2ce409fcba1aee265aa",
+      "successorOid": "9df90e0e0c95a649d79d9d074e3be5079239f9b9",
+      "originalOid": "0201e6e80deab901f2be5aafd1f322ca29cec0cf",
+      "originalSameBlob": false
+    },
+    {
+      "path": "capture.mjs",
+      "bytes": 1888,
+      "mode": 384,
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+      "successorOid": "c8e4d8b7546c5985aff7c6d79322ff2674a3bfb1",
+      "originalOid": "c8e4d8b7546c5985aff7c6d79322ff2674a3bfb1",
+      "originalSameBlob": true
+    },
+    {
+      "path": "entry.mjs",
+      "bytes": 6928,
+      "mode": 384,
+      "sha256": "4b4d8910c0843ca79c42f2b96ff388e512024b818a96770e33d5d28e8d194e8e",
+      "successorOid": "4556632f1d7a84440482b3d99508b4af5df8e735",
+      "originalOid": "4556632f1d7a84440482b3d99508b4af5df8e735",
+      "originalSameBlob": true
+    },
+    {
+      "path": "group-observer.mjs",
+      "bytes": 759,
+      "mode": 384,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "successorOid": "60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841",
+      "originalOid": "60aa2f0e43a3a31f3ad23826bc3727dbd6fa0841",
+      "originalSameBlob": true
+    },
+    {
+      "path": "lifecycle.mjs",
+      "bytes": 5280,
+      "mode": 384,
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+      "successorOid": "d41176a15f26a0ee10a3759567a6b1d1c10d5634",
+      "originalOid": "d41176a15f26a0ee10a3759567a6b1d1c10d5634",
+      "originalSameBlob": true
+    },
+    {
+      "path": "observation.mjs",
+      "bytes": 1763,
+      "mode": 384,
+      "sha256": "5f823a028913988d6dd65a66ec1900c0a279455bcff8f504fbaeb8b67cb90e13",
+      "successorOid": "965d3bd1b43ec68f5066b9157eee8217b80a4053",
+      "originalOid": "965d3bd1b43ec68f5066b9157eee8217b80a4053",
+      "originalSameBlob": true
+    },
+    {
+      "path": "observer-state.mjs",
+      "bytes": 1240,
+      "mode": 384,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "successorOid": "76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7",
+      "originalOid": "76e7ca6f25fd21f40105afbf6ab7a96e59eec6e7",
+      "originalSameBlob": true
+    },
+    {
+      "path": "state.mjs",
+      "bytes": 1824,
+      "mode": 384,
+      "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+      "successorOid": "89ab8168787f5246ee3e36e72a14bd577dfb11c5",
+      "originalOid": "89ab8168787f5246ee3e36e72a14bd577dfb11c5",
+      "originalSameBlob": true
+    },
+    {
+      "path": "storage.mjs",
+      "bytes": 3583,
+      "mode": 384,
+      "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+      "successorOid": "6c84cd315be15174ecc45e2f36694d6ef25ff34b",
+      "originalOid": "6c84cd315be15174ecc45e2f36694d6ef25ff34b",
+      "originalSameBlob": true
+    }
+  ],
+  "cases": [
+    {
+      "id": "N01",
+      "pattern": "(a(b)?)+",
+      "subject": "aba",
+      "maps": [
+        "I01-parent-optional-reset",
+        "author-E12"
+      ],
+      "programBytes": 522,
+      "programSha256": "fae970d9c16fb57c0c25b022ac1f5576d6b6143a014ff854fe1740a0987237d8",
+      "expectedNative": null,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N02",
+      "pattern": "((a)|(b))+",
+      "subject": "ab",
+      "maps": [
+        "I02-parent-alternative-reset"
+      ],
+      "programBytes": 523,
+      "programSha256": "aebbf9e66581de06049b0efa81b69de0002ff92e02b747fa03c75bb31d5b10d6",
+      "expectedNative": null,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N03",
+      "pattern": "((a(b)?)c)+",
+      "subject": "abcac",
+      "maps": [
+        "I03-nested-parent-reset"
+      ],
+      "programBytes": 527,
+      "programSha256": "8759c0b41b2d5ef3d8b7facaa6f1d3dcbec1a8e537da074fa6a6bd0b5a0dfdfb",
+      "expectedNative": null,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N04",
+      "pattern": "(ba(na)*s )*",
+      "subject": "bananas bas ",
+      "maps": [
+        "I04-manual-example"
+      ],
+      "programBytes": 535,
+      "programSha256": "9b5ec481108bb0a88a11f456cfb9ca0864375c518ac56b0a2031db9e5f570931",
+      "expectedNative": null,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N05",
+      "pattern": "(a(b)?){2}",
+      "subject": "aba",
+      "maps": [
+        "I05-finite-parent-reset"
+      ],
+      "programBytes": 524,
+      "programSha256": "7660daee58bd0aee45fe92a50df832e856d767307b8511e4b87a9f7ed1b6a56b",
+      "expectedNative": null,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N06",
+      "pattern": "((a)?b){2}",
+      "subject": "abb",
+      "maps": [
+        "I06-parent-zero-iteration"
+      ],
+      "programBytes": 524,
+      "programSha256": "c22e4e91bec435e61a12c70bdf3c874414e6c33c788ecb1bbd1eb074347dd8ce",
+      "expectedNative": null,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N07",
+      "pattern": "((a)|(b))+",
+      "subject": "ba",
+      "maps": [
+        "I23-finite-reset-property"
+      ],
+      "programBytes": 523,
+      "programSha256": "8eb5848ac4ff55db4dc344a5534f52c0897fc6021695d806f7e0a553363f57e2",
+      "expectedNative": null,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N08",
+      "pattern": "(a(b)?)+",
+      "subject": "ab",
+      "maps": [],
+      "programBytes": 521,
+      "programSha256": "baabccf6822de2f828151262377087de08f626a143f5f22ba47a10985ea97a37",
+      "expectedNative": null,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N09",
+      "pattern": "(a)?b",
+      "subject": "b",
+      "maps": [],
+      "programBytes": 517,
+      "programSha256": "c5d4b8bb303e46d12f4d29767cb6e9381cbc60ad7bf267e3c167fc3c6fbff373",
+      "expectedNative": null,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N10",
+      "pattern": "(a*)b",
+      "subject": "b",
+      "maps": [],
+      "programBytes": 517,
+      "programSha256": "de8a08419505d8631802efb8ad1f8478f7763ba23af0ff017a67e6205cabffea",
+      "expectedNative": null,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N11",
+      "pattern": "(a)",
+      "subject": "b",
+      "maps": [],
+      "programBytes": 515,
+      "programSha256": "349779fccfea64c43ff609fd67f335c03f24b0f63752c97e56acffc3d5335c97",
+      "expectedNative": null,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N12",
+      "pattern": "(",
+      "subject": "a",
+      "maps": [],
+      "programBytes": 513,
+      "programSha256": "30419eefab37b3177fc0160bf274522d3299f567b0eae81a21bb57891c0deda8",
+      "expectedNative": null,
+      "status": "UNRUN"
+    }
+  ],
+  "tools": {
+    "schema": "ere-reference-tools-v1",
+    "toolPins": [
+      {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "bytes": 112989184,
+        "mode": 493,
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+      },
+      {
+        "path": "/bin/bash",
+        "bytes": 1293840,
+        "mode": 365,
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3"
+      }
+    ],
+    "environmentLauncher": {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "phase": "metadata-read-only-not-executed"
+    },
+    "wrapperTool": {
+      "schema": "functional-wrapper-tool-metadata-v2",
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "mode": 493,
+      "regular": true,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "version": "NOT_PROBED",
+      "execution": "NONE_THIS_PHASE",
+      "scope": "platform tool wrapper only; not Bash reference",
+      "preexecutionRequired": true
+    },
+    "freshPins": [
+      {
+        "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "bytes": 112989184,
+        "mode": 493,
+        "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+        "observedAt": "2026-08-29T09:07:47.839Z",
+        "operation": "metadata/stream-hash only"
+      },
+      {
+        "path": "/bin/bash",
+        "bytes": 1293840,
+        "mode": 365,
+        "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+        "observedAt": "2026-08-29T09:07:47.845Z",
+        "operation": "metadata/stream-hash only"
+      },
+      {
+        "path": "/usr/bin/env",
+        "bytes": 102368,
+        "mode": 493,
+        "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+        "phase": "metadata-read-only-not-executed",
+        "observedAt": "2026-08-29T09:07:47.846Z",
+        "operation": "metadata/stream-hash only"
+      },
+      {
+        "schema": "functional-wrapper-tool-metadata-v2",
+        "path": "/bin/zsh",
+        "bytes": 1361216,
+        "mode": 493,
+        "regular": true,
+        "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+        "version": "NOT_PROBED",
+        "execution": "NONE_THIS_PHASE",
+        "scope": "platform tool wrapper only; not Bash reference",
+        "preexecutionRequired": true,
+        "observedAt": "2026-08-29T09:07:47.850Z",
+        "operation": "metadata/stream-hash only"
+      }
+    ],
+    "bashLoadCommands": [
+      {
+        "path": "/bin/bash",
+        "architecture": "unspecified",
+        "rpaths": [],
+        "libraries": [
+          {
+            "name": "/usr/lib/libncurses.5.4.dylib",
+            "kind": "LC_LOAD_DYLIB"
+          },
+          {
+            "name": "/usr/lib/libSystem.B.dylib",
+            "kind": "LC_LOAD_DYLIB"
+          }
+        ],
+        "dylinker": [
+          "/usr/lib/dyld"
+        ]
+      }
+    ],
+    "qualifiedRuntimeLoaderGraph": false,
+    "currentDyldCacheRehash": false,
+    "source": "frozen functional-v3 metadata; fresh executable stream hashes; no version execution"
+  },
+  "inputPins": [
+    {
+      "path": "preflight-v2/materialized/PRESEAL.json",
+      "bytes": 4527,
+      "mode": 384,
+      "sha256": "211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457"
+    },
+    {
+      "path": "preflight-v2/materialized/COHORT.json",
+      "bytes": 13100,
+      "mode": 384,
+      "sha256": "4e5efbe3ad419ab32f073eb2cffebcd39e564ba9fe9c75d38e67a7f9d5e4201e"
+    },
+    {
+      "path": "preflight-v2/materialized/PROTOCOL.json",
+      "bytes": 1881,
+      "mode": 384,
+      "sha256": "948519ae3d428f24ae666c8d6f9961779e08e9e37e0a3a2708994f9630d91828"
+    },
+    {
+      "path": "preflight-v2/materialized/REQUESTS.json",
+      "bytes": 14844,
+      "mode": 384,
+      "sha256": "2678d8619553f9d8d9669f078c29847c65c31984ebd0ab6bdeeea271a213acc8"
+    },
+    {
+      "path": "preflight-v2/materialized/TOOLS.json",
+      "bytes": 3067,
+      "mode": 384,
+      "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a"
+    },
+    {
+      "path": "preflight-v2/materialized/admission.mjs",
+      "bytes": 9447,
+      "mode": 384,
+      "sha256": "5bb503cabae66da96f847697e34a9e8a19d954bc2137a2ce409fcba1aee265aa"
+    },
+    {
+      "path": "preflight-v2/materialized/capture.mjs",
+      "bytes": 1888,
+      "mode": 384,
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009"
+    },
+    {
+      "path": "preflight-v2/materialized/entry.mjs",
+      "bytes": 6928,
+      "mode": 384,
+      "sha256": "4b4d8910c0843ca79c42f2b96ff388e512024b818a96770e33d5d28e8d194e8e"
+    },
+    {
+      "path": "preflight-v2/materialized/group-observer.mjs",
+      "bytes": 759,
+      "mode": 384,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417"
+    },
+    {
+      "path": "preflight-v2/materialized/lifecycle.mjs",
+      "bytes": 5280,
+      "mode": 384,
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd"
+    },
+    {
+      "path": "preflight-v2/materialized/observation.mjs",
+      "bytes": 1763,
+      "mode": 384,
+      "sha256": "5f823a028913988d6dd65a66ec1900c0a279455bcff8f504fbaeb8b67cb90e13"
+    },
+    {
+      "path": "preflight-v2/materialized/observer-state.mjs",
+      "bytes": 1240,
+      "mode": 384,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N01.bash.data",
+      "bytes": 522,
+      "mode": 384,
+      "sha256": "fae970d9c16fb57c0c25b022ac1f5576d6b6143a014ff854fe1740a0987237d8"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N02.bash.data",
+      "bytes": 523,
+      "mode": 384,
+      "sha256": "aebbf9e66581de06049b0efa81b69de0002ff92e02b747fa03c75bb31d5b10d6"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N03.bash.data",
+      "bytes": 527,
+      "mode": 384,
+      "sha256": "8759c0b41b2d5ef3d8b7facaa6f1d3dcbec1a8e537da074fa6a6bd0b5a0dfdfb"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N04.bash.data",
+      "bytes": 535,
+      "mode": 384,
+      "sha256": "9b5ec481108bb0a88a11f456cfb9ca0864375c518ac56b0a2031db9e5f570931"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N05.bash.data",
+      "bytes": 524,
+      "mode": 384,
+      "sha256": "7660daee58bd0aee45fe92a50df832e856d767307b8511e4b87a9f7ed1b6a56b"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N06.bash.data",
+      "bytes": 524,
+      "mode": 384,
+      "sha256": "c22e4e91bec435e61a12c70bdf3c874414e6c33c788ecb1bbd1eb074347dd8ce"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N07.bash.data",
+      "bytes": 523,
+      "mode": 384,
+      "sha256": "8eb5848ac4ff55db4dc344a5534f52c0897fc6021695d806f7e0a553363f57e2"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N08.bash.data",
+      "bytes": 521,
+      "mode": 384,
+      "sha256": "baabccf6822de2f828151262377087de08f626a143f5f22ba47a10985ea97a37"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N09.bash.data",
+      "bytes": 517,
+      "mode": 384,
+      "sha256": "c5d4b8bb303e46d12f4d29767cb6e9381cbc60ad7bf267e3c167fc3c6fbff373"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N10.bash.data",
+      "bytes": 517,
+      "mode": 384,
+      "sha256": "de8a08419505d8631802efb8ad1f8478f7763ba23af0ff017a67e6205cabffea"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N11.bash.data",
+      "bytes": 515,
+      "mode": 384,
+      "sha256": "349779fccfea64c43ff609fd67f335c03f24b0f63752c97e56acffc3d5335c97"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N12.bash.data",
+      "bytes": 513,
+      "mode": 384,
+      "sha256": "30419eefab37b3177fc0160bf274522d3299f567b0eae81a21bb57891c0deda8"
+    },
+    {
+      "path": "preflight-v2/materialized/state.mjs",
+      "bytes": 1824,
+      "mode": 384,
+      "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae"
+    },
+    {
+      "path": "preflight-v2/materialized/storage.mjs",
+      "bytes": 3583,
+      "mode": 384,
+      "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9"
+    },
+    {
+      "path": "preflight-v2/prepare.mjs",
+      "bytes": 8876,
+      "mode": 420,
+      "sha256": "e3344bc3b7fe684a1d867fd86cc10cd98f178fc0760c97d16263775515029343"
+    },
+    {
+      "path": "preflight-v2/controls.mjs",
+      "bytes": 19603,
+      "mode": 384,
+      "sha256": "df72c15c637b005a144460118069d2a4a40f060c5538478b940b544be3954f3b"
+    },
+    {
+      "path": "preflight-v2/C07.mjs.fragment.data",
+      "bytes": 3384,
+      "mode": 420,
+      "sha256": "b4bd4833880947cd54990a7e6d07c8ae37fb01549b4ee3ec393499ed9d3e7997"
+    },
+    {
+      "path": "preflight-v2/APPROVAL-PROPOSAL.template.json",
+      "bytes": 2621,
+      "mode": 384,
+      "sha256": "6e092362c293a54bdd108b44a59ad245346890265f3d16d3ff18918239cf7881"
+    },
+    {
+      "path": "preflight-v2/SOURCE-DELTA.json",
+      "bytes": 2020,
+      "mode": 384,
+      "sha256": "6b43cf7cab16a503cfa76c1ed10d1f2c15479c35bef2ec1cf905a6e5b77cdf30"
+    },
+    {
+      "path": "preflight-v2/node-fs-readSync-source.txt.data",
+      "bytes": 1026,
+      "mode": 384,
+      "sha256": "6f45e484cb5d59f604bb512278c0a7a4ede791a0ac251cab5e3389f7780fe675"
+    }
+  ],
+  "captures": [
+    {
+      "name": "m01.stdout",
+      "bytes": 30,
+      "sha256": "fb73af0aa89eba8d3fcae3a871dcb2d99d253c668a6efe8f04f4a0b90da16825"
+    },
+    {
+      "name": "m01.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "m02.stdout",
+      "bytes": 41,
+      "sha256": "0685125ee2428a6bc1ef57ae72852d3d3ad9716cbb8390c48105762fa0a3757a"
+    },
+    {
+      "name": "m02.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "m03.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "m03.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "m04.stdout",
+      "bytes": 39,
+      "sha256": "41939346ec80f71cb77b85983d03bc7436bad3f3f2b3298cd6c01d22354f7342"
+    },
+    {
+      "name": "m04.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "prepare.stdout",
+      "bytes": 133,
+      "sha256": "b516e84558767a2ed16dd8676a952fe9faa8b8502e22dcde89e033e3ddd26ac1"
+    },
+    {
+      "name": "prepare.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "run.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "run.stderr",
+      "bytes": 772,
+      "sha256": "a73975f5a6b84279f33b0de2f0e04397dda7e0530ccfc60fe2da3f6587c48f39"
+    },
+    {
+      "name": "author.stdout",
+      "bytes": 3687,
+      "sha256": "c517c47c331ab7f1ea977f6bbd91a60d16966d7d568f50caacd7bb9af6d09162"
+    },
+    {
+      "name": "author.stderr",
+      "bytes": 172,
+      "sha256": "94f77cd601a47bc1d0d86c96b8b4d7830164eb533f300a4f45426ffedc6e25e4"
+    },
+    {
+      "name": "independent.stdout",
+      "bytes": 1420,
+      "sha256": "9e903a14098ef58390a75b8acb969ffe60ddcf4cb74842d9a84d68c439b9b5f5"
+    },
+    {
+      "name": "independent.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "I04-v2.stdout",
+      "bytes": 270,
+      "sha256": "5dc00f86c8dd757e77c3b2f7b76ec4b802fda9e60fbebdaf7cafd440b69a9054"
+    },
+    {
+      "name": "I04-v2.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "I04-v2-run.stdout",
+      "bytes": 169,
+      "sha256": "dcec2fd7efa9549582e02702d4f50145dbc64b3ef5e4a95da985de0a567da7ec"
+    },
+    {
+      "name": "I04-v2-run.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "processes": {
+    "dataChildren": [
+      {
+        "role": "author",
+        "startedAt": "2026-08-29T09:48:36.448Z",
+        "spawn": true,
+        "exit": true,
+        "close": true,
+        "timeout": false,
+        "pid": 3340,
+        "code": 0,
+        "signal": null,
+        "finishedAt": "2026-08-29T09:48:36.567Z"
+      },
+      {
+        "role": "independent",
+        "startedAt": "2026-08-29T09:48:36.571Z",
+        "spawn": true,
+        "exit": true,
+        "close": true,
+        "timeout": false,
+        "pid": 3342,
+        "code": 1,
+        "signal": null,
+        "finishedAt": "2026-08-29T09:48:36.627Z"
+      },
+      {
+        "startedAt": "2026-08-29T09:49:52.058Z",
+        "spawn": true,
+        "exit": true,
+        "close": true,
+        "timeout": false,
+        "pid": 5085,
+        "code": 0,
+        "signal": null,
+        "finishedAt": "2026-08-29T09:49:52.119Z"
+      }
+    ],
+    "nativeStarts": 0,
+    "fixtureWorkers": 0,
+    "entryImports": 0,
+    "syntheticTimeoutBranchExecuted": false
+  },
+  "claims": {
+    "sourceIntegrity": true,
+    "completeCapsuleEntryCheck": true,
+    "scratchRemoved": true,
+    "initialToolShellStartup": "TRUSTED_HOST_NOT_QUALIFIED",
+    "nativeExecution": "NOT_AUTHORIZED_NOT_RUN",
+    "containment": false,
+    "allOsTransitives": false
+  }
+}

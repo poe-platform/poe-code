@@ -1,0 +1,58 @@
+{
+  "schema": "EXACT_REVIEWED_ATTEMPT02_LAUNCH_INTENT",
+  "createdAt": "2026-08-29T04:21:26.882Z",
+  "runId": "admission-20260829-v7r3-02",
+  "attempt": 1,
+  "grantCommit": "9f007f43a96a49ea55f3110018f63cb50c54f7a6",
+  "grantRawSha256": "684dd18aa1825f7dc1ca4c9eb12c1b84c463dec79083ff2943483613e9f321e1",
+  "authAbsolutePath": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/AUTH.json",
+  "authRawSha256": "75134e4e930402504642e8da92d86991194509514656a45af5892808f3f24bd2",
+  "wrapper": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/FUTURE-LAUNCH.sh.data",
+    "bytes": 2110,
+    "mode": 420,
+    "sha256": "31564e60654168079ac586fcd526fbd2f7882094275bab028704710e724272bb"
+  },
+  "ownerSeal": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/outer-adapter-v2/SEAL.json",
+    "bytes": 2103,
+    "mode": 420,
+    "sha256": "7e1f59a1efdda56ea988971687c826e93ac50c5e3ceb7b7572d6ff41f53568b2"
+  },
+  "command": {
+    "shell": "/bin/sh",
+    "login": false,
+    "execReplacement": true,
+    "argv": [
+      "exec",
+      "-c",
+      "/bin/sh",
+      "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/wrapper-v3/FUTURE-LAUNCH.sh.data",
+      "75134e4e930402504642e8da92d86991194509514656a45af5892808f3f24bd2"
+    ],
+    "cwd": "/Users/kjopek/Workspace/safe-bash",
+    "entryDoesNotUseAmbientReplState": true
+  },
+  "startupCapture": "Execution-tool raw transport before shell/helper startup; reviewed private0600 stdout/stderr opened before owner; owner capture opens before launcher authentication.",
+  "processCensus": {
+    "runtime": 47,
+    "adminIncludingTwoSequentialWrapperHelpers": 20,
+    "totalPlanned": 67,
+    "cap": 128,
+    "peak": 5,
+    "retainedWaitingShell": false
+  },
+  "limits": {
+    "totalMilliseconds": 5400000,
+    "ownerMilliseconds": 4500000,
+    "adminReserveMilliseconds": 900000,
+    "overallCaptureBytes": 269484032,
+    "innerCaptureBytes": 268435456,
+    "outerCaptureBytes": 524288,
+    "adminCaptureBytes": 524288,
+    "workingBytes": 805306368
+  },
+  "actualSemantics": 0,
+  "actualC11EmptySetupsAuthorized": 2,
+  "preparationOrdinal": 6
+}

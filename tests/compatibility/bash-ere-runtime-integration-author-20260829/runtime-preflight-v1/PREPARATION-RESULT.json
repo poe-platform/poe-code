@@ -1,0 +1,15 @@
+{
+  "materialized": true,
+  "privateRoot": "/private/tmp/safe-bash-core70-20260829-0I1ScK",
+  "cellCount": 210,
+  "executableBodyCells": 189,
+  "deferredCells": 21,
+  "privateStaticEdges": 33,
+  "privateAssets": 48,
+  "storageBytes": 19467477,
+  "elapsedMs": 1003660,
+  "productImports": 0,
+  "Workers": 0,
+  "role": "DATA materialization only",
+  "moveOriginAbsent": true
+}

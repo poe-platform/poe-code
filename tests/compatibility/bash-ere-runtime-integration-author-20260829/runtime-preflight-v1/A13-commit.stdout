@@ -1,0 +1,12 @@
+[main bdc125e37d5329d69b950fee1d4bcab8893e787f] test: preseal CORE70 layout and controller preparation with explicit gates
+ 10 files changed, 575 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/PREPARATION-SEAL.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/PRESEAL.md
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/cell.mjs
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/controller-core.mjs
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/controls.mjs
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/dispatch.mjs
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/expectations.mjs
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/malformed-worker.mjs
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/prepare.mjs
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/worker-observer.mjs

@@ -1,0 +1,55 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import crypto from 'node:crypto';
+import { registerHooks } from 'node:module';
+import { fileURLToPath } from 'node:url';
+
+const root = fileURLToPath(new URL('.', import.meta.url));
+const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const admit = (file, maximum, hash) => {
+  const stat = fs.lstatSync(file); assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size <= maximum);
+  const bytes = fs.readFileSync(file); assert.equal(bytes.length, stat.size); assert.equal(sha(bytes), hash); return bytes;
+};
+const sealStat = fs.lstatSync(root + 'PRESEAL.json'); assert.ok(sealStat.isFile() && sealStat.size < 32768);
+const seal = JSON.parse(fs.readFileSync(root + 'PRESEAL.json'));
+const moduleRows = seal.files.filter(row => row.path.startsWith('emitted/') && row.path.endsWith('.js') || row.path === 'author.mjs');
+const loaded = [];
+const builtins = new Set(['node:assert', 'node:module', 'node:fs', 'node:crypto', 'node:url', 'node:util', 'node:timers/promises']);
+const guard = registerHooks({ load(url, context, next) {
+  if (url.startsWith('node:')) { assert.ok(builtins.has(url), url); return next(url, context); }
+  const file = fileURLToPath(url); const row = moduleRows.find(item => root + item.path === file); assert.ok(row, url);
+  admit(file, row.bytes, row.sha256); const result = next(url, context);
+  assert.equal(sha(Buffer.from(result.source)), row.sha256); loaded.push(row.path); return result;
+} });
+await import('./author.mjs');
+const accounting = await import('./emitted/transport/accounting.js');
+const validation = await import('./emitted/transport/validation.js');
+const { EreLedger } = await import('./emitted/limits.js');
+const { EngineAccounting, workerValidationPrepayment, workerReplyValidationWork } = accounting;
+const { validateRequest, validateReply, record } = validation;
+const bounds = { maxExpansionBytes: 4096, maxExpansionFields: 64 };
+const fresh = () => new EngineAccounting(bounds);
+const request = (fragments = [{ text: 'x', literal: false }], subject = 'x', allowance = fresh().limits) => ({ version: 1, operation: 'shell-ere', id: 1, grantId: 1, profile: 'ascii-c-posix-v1', bounds, allowance, pattern: fragments, subject });
+const zero = () => ({ patternBytes: 0, subjectBytes: 0, work: 0, states: 0, allocationUnits: 0, captureBytes: 0, captureSlots: 0 });
+const rows = [];
+const run = (id, body) => { try { const detail = body(); rows.push({ id, pass: true, detail }); } catch (error) { rows.push({ id, pass: false, error: String(error), stack: error?.stack }); } };
+const visits = frame => { let total = 0; validateRequest(frame, 223, units => { total += units; }); return total; };
+const frame = (count, participants) => ({ version: 1, operation: 'shell-ere', id: 1, grantId: 1, kind: 'result', result: { matched: participants > 0, groupCount: count - 1, spans: Array.from({ length: count }, (_, index) => index < participants ? { start: 0, end: 0 } : null), steps: 0, allocatedUnits: 0 }, usage: { ...zero(), captureSlots: participants > 0 ? count : 0 } });
+run('N01', () => { let checks = 0; for (const count of [0,1,2,7,33]) for (const length of [0,1,9]) { const fragments = Array.from({ length: count }, () => ({ text: 'a'.repeat(length), literal: false })); const value = request(fragments, 'xyz'); assert.equal(visits(value), 29 + 5 * count + count * length + 3); checks++; } return { checks }; });
+run('N02', () => { for (const work of [258,259,260]) { const value = request(undefined, undefined, { ...fresh().limits, work }); if (work < 259) assert.throws(() => visits(value), error => error.resource === 'work'); else assert.equal(visits(value) + 223, 259); } });
+run('N03', () => { let checks = 0; let maximum = 0; for (let count = 1; count <= 33; count++) for (let participants = 0; participants <= count; participants++) { const value = frame(count, participants); let work = 0; validateReply(value, request(), units => { work += units; }); assert.equal(work, 38 + count + 3 * participants); const full = work + 7 + count; maximum = Math.max(maximum, full); assert.ok(full <= 210); checks++; } assert.equal(maximum,210); return { checks, maximum }; });
+run('N04', () => { let maximum = 0; let checks = 0; for (const category of ['syntax','unsupported','profile-limit']) for (const resource of category === 'profile-limit' ? Object.keys(zero()) : [null]) { const value = { version: 1, operation: 'shell-ere', id: 1, grantId: 1, kind: 'failure', category, resource, offset: null, usage: zero() }; let work = 0; validateReply(value, request(), units => { work += units; }); assert.equal(work + 7, 41 + category.length + (resource?.length ?? 0)); maximum = Math.max(maximum,work + 7); checks++; } assert.equal(maximum,69); return { checks, maximum }; });
+run('N05', () => { let maximum = 0; const variants = [value => { value.result.spans.length = 34; }, value => { value.result.spans[0] = { start: 2, end: 1 }; }, value => { delete value.result.spans[0]; }, value => { value.result.groupCount = 33; }, value => { value.usage.work = -0; }, value => { value.result.spans.extra = true; }]; for (const change of variants) { const value = frame(33,33); change(value); let work = 0; assert.throws(() => validateReply(value, request(), units => { work += units; })); maximum = Math.max(maximum,work); assert.ok(work <= 170); } return { checks: variants.length, maximum }; });
+run('N06', () => { for (const reason of [false,0,null,undefined]) { let present = false; let actual; try { validateRequest(request(),223,() => { throw reason; }); } catch (error) { present = true; actual = error; } assert.equal(present,true); assert.equal(actual,reason); } });
+run('N07', () => { for (const value of [-0,-1,NaN,Infinity,1.5,Number.MAX_SAFE_INTEGER]) assert.throws(() => workerValidationPrepayment(value,1)); assert.equal(workerValidationPrepayment(47,0),252); assert.throws(() => workerValidationPrepayment(47,Number.MAX_SAFE_INTEGER)); });
+run('N08', () => { let gets = 0; const value = request(); const proto = Object.create(Array.prototype); Object.defineProperty(proto,Symbol.iterator,{ get() { gets++; throw Error('iterator'); } }); Object.setPrototypeOf(value.pattern,proto); assert.equal(visits(value),36); Object.defineProperty(value.pattern[0],'text',{ get() { gets++; throw Error('getter'); } }); assert.throws(() => visits(value)); assert.equal(gets,0); });
+run('N09', () => { const engine = fresh(); for (const [index,entry] of [13,10].entries()) { const grant = engine.reserve(index === 0 ? 3 : 1,index === 0 ? 5 : 1); const ledger = new EreLedger(bounds,grant); let work = 0; validateRequest(request(undefined,undefined,grant),entry + 210,units => { work += units; }); ledger.charge('work',work + entry + 210); engine.commit(grant,ledger.usage); } assert.equal(engine.usage.work,515); assert.equal(engine.usage.patternBytes,3); assert.equal(engine.usage.subjectBytes,5); });
+run('N10', () => { const engine = fresh(); const one = engine.reserve(1,1); engine.abandon(one,false); assert.equal(engine.usage.work,0); const two = engine.reserve(1,1); engine.abandon(two,true); assert.equal(engine.usage.work,engine.limits.work); assert.throws(() => engine.reserve(1,1),error => error.code === 'CLOSED'); assert.throws(() => engine.commit(two,zero())); });
+run('N11', () => { let initial = 0; record({ operation:'shell-ere',version:1 },['operation','version'],units => { initial += units; }); let header = 0; record(request(),['version','operation','id','grantId','profile','bounds','allowance','pattern','subject'],units => { header += units; }); assert.equal(initial,3); assert.equal(header,10); assert.equal(initial + header + 210 + 36,workerValidationPrepayment(53,1)); });
+run('N12', () => { const value = request(undefined,undefined,{ ...fresh().limits,work:250 }); let gets = 0; Object.defineProperty(value.pattern[0],'text',{ get() { gets++; throw Error('late getter'); } }); let observed = 0; assert.throws(() => validateRequest(value,223,units => { observed += units; }),error => error.resource === 'work'); assert.equal(observed,28); assert.equal(gets,0); });
+guard.deregister();
+assert.equal(new Set(loaded).size,6);
+const result = { rows, passed: rows.filter(row => row.pass).length, total: 12, loaded, workerStarts: 0, matchingCalls: 0 };
+fs.writeFileSync(root + 'NOVEL-RESULT.json',JSON.stringify(result,null,2)+'\n',{flag:'wx'});
+console.log(JSON.stringify({ novelPassed: result.passed,total:12,loaded:loaded.length }));
+if (result.passed !== 12) process.exitCode = 1;

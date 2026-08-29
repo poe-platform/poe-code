@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "domain": "ASCII relative POSIX names; ascending byte order",
+  "modules": [
+    {
+      "name": "errors.ts",
+      "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+      "blob": "8dcdc8591d330c3edcc7bdb2cf2de407be45f375",
+      "size": 1003,
+      "sha256": "9496bc26dbe7866451fedf13ea2c25de9837f88331f208bf27f4f6edff1ec38c"
+    },
+    {
+      "name": "limits.ts",
+      "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+      "blob": "a4a31f8789a61ecf0ca138ab15567b8f76e6a14d",
+      "size": 3471,
+      "sha256": "ab7a87c37449dc7184ce530840f90c25ae3f48fb60204a3f6bd3d07c5d2146af"
+    },
+    {
+      "name": "matcher.ts",
+      "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+      "blob": "c2b1e086b61c92a740dbb7f0bdf43b5be0bf27cf",
+      "size": 9759,
+      "sha256": "89aa1e08536cd30ea77b5a488a5e1374813a55787d4738aca80d4f4fa341362a"
+    },
+    {
+      "name": "syntax.ts",
+      "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+      "blob": "774190ace771a0fd13555f72699430649d00e1cd",
+      "size": 13070,
+      "sha256": "9136451259d3dfafe7aca8ffd592d43414ef4995fbe6811d7d8719f3085ee105"
+    },
+    {
+      "name": "transport/accounting.ts",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "blob": "e4534f7aa145f7b1ba6a476b175b522e0acbceaa",
+      "size": 7115,
+      "sha256": "66bab552db94e11764dad9e91d2dfb61c7e9655e2f1f0babdd75bd41431ca3a0"
+    },
+    {
+      "name": "transport/owner.ts",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "blob": "547a529f9522d8b22788947e2114694497e3b241",
+      "size": 6765,
+      "sha256": "a3afbef015856679c63aee240787ace675ce85b64389ba07a822a5269f08cbaf"
+    },
+    {
+      "name": "transport/protocol.ts",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "blob": "77c9bbddcec5da13e4440b63228f3f1101948d4b",
+      "size": 2815,
+      "sha256": "2c0e205bba5af38ebdc219c12b37c7edf10a48431d22135071a4f2756d617973"
+    },
+    {
+      "name": "transport/root.ts",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "blob": "0e7c7ab6fc007813baf1afccd4251416462b9fde",
+      "size": 12329,
+      "sha256": "1a0ac9feddf151a3ab2e2d6432dca259a7c0c93136adbc86bbac7627621e733b"
+    },
+    {
+      "name": "transport/validation.ts",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "blob": "ea8d1f765b85e4a33eddc8a8f684df944e565981",
+      "size": 13090,
+      "sha256": "e57d7085c97f703f8dbb2b51296d40f2bfcf61ad66639001e0109493fbb17cae"
+    },
+    {
+      "name": "transport/wire-engine.ts",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "blob": "9cade833764cd15289a5f609de24e29612735b46",
+      "size": 2481,
+      "sha256": "9b2f15733c71d0cc0080ee033c8867a6160f9aabd3a784a9a9868cf01c4fbb24"
+    },
+    {
+      "name": "transport/worker-entry.ts",
+      "sourceCommit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+      "blob": "e6022d2ac2f169cc87e242ca1ef25f53ac9938f6",
+      "size": 1460,
+      "sha256": "ecbbaa11b7df31549a0b9f9fa916f97bdd4a9712a7575363b30c51080c168a37"
+    },
+    {
+      "name": "types.ts",
+      "sourceCommit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+      "blob": "a3cca12f1cfd38d18ad7650e3d18228438184319",
+      "size": 1554,
+      "sha256": "b8401fe06db29726ce989390d445138b26912c946eb64cac013f8ff2a2e91f2b"
+    }
+  ]
+}

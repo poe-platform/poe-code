@@ -1,0 +1,209 @@
+{
+  "schema": "ACTUAL_V7_R3_ADMISSION_UNSAFE_STOP",
+  "date": "2026-08-29",
+  "status": "UNSAFE_STOP",
+  "admissionQualified": false,
+  "runId": "admission-20260829-v7r3-01",
+  "attemptsAuthorized": 1,
+  "attemptsUsed": 1,
+  "retries": 0,
+  "grantCommit": "9c380f67a708508a359798b85ae5839bcb5e7f0c",
+  "grantRawSha256": "e44e3eb38c338bbc2ff64aca9755f4d9876b6f844ef0fb8d7897cf9710f0be0e",
+  "authCommit": "79531d7aec9580d3a3f40fd19dad3dcb99aa7e88",
+  "authRawSha256": "4b6e5ee0ff3369df59d8abab09f2cbf72e9af9a72e58ba09dc0ca93c0ba70d38",
+  "stopStage": "Inner supervisor prepare: store.save(LAUNCH.json), before coordinator spawn",
+  "cause": {
+    "classification": "Author launch-wrapper harness defect; no product/comparator execution",
+    "introducedByThisInvocation": true,
+    "exactAction": "The administration exec-replacement command set umask077 for capture privacy and inherited it into the unchanged Node owner/launcher.",
+    "requestedRecordMode": "0644",
+    "actualRecordMode": "0600",
+    "modeEquation": "0644 & ~0077 = 0600",
+    "file": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-supervision/LAUNCH.json",
+    "bytes": 941,
+    "primary": "LAUNCH_UNSAFE:prepare -> EVIDENCE_METADATA",
+    "secondary": "EVIDENCE_OBSERVED_SIZE_MODE during evidence qualification",
+    "source": {
+      "recordWriter": "executor-v7-r2/records.mjs:83-85,96,103",
+      "modeGuard": "executor-v7/evidence.mjs:30"
+    },
+    "sourceInference": "The exact recorded umask, sealed0644 writer and actual0600 file establish the launch-environment incompatibility; no additional native reproduction was performed."
+  },
+  "operations": {
+    "planned": 14,
+    "attempted": 0,
+    "qualified": 0,
+    "completed": [],
+    "unrun": [
+      "probe-1",
+      "probe-2",
+      "probe-3",
+      "C03-esm",
+      "C03-cjs",
+      "C03-require",
+      "C03-wrong-hash",
+      "C04-unbound",
+      "C04-offline",
+      "C09-status",
+      "C09-deadline",
+      "C11-positive",
+      "C11-rejected",
+      "C12-loaded-noop"
+    ]
+  },
+  "runtime": {
+    "owner": {
+      "pid": 671,
+      "exitCode": 1,
+      "reapedBy": "direct exec tool returned process-exited disposition"
+    },
+    "launcher": {
+      "attempted": true,
+      "pid": 682,
+      "group": 682,
+      "enrolled": true,
+      "error": null,
+      "exit": {
+        "code": 1,
+        "signal": null
+      },
+      "close": {
+        "code": 1,
+        "signal": null
+      },
+      "pidPresence": "absent",
+      "groupPresence": "absent",
+      "reaped": true,
+      "natural": true
+    },
+    "coordinator": {
+      "ordinal": 1,
+      "kind": "coordinator",
+      "state": "UNSAFE_STOP",
+      "launchAttempted": false,
+      "pid": null,
+      "group": null,
+      "exit": null,
+      "close": null,
+      "reaped": false,
+      "persisted": false,
+      "errors": [
+        {
+          "phase": "prepare",
+          "error": {
+            "name": "Error",
+            "code": "EVIDENCE_METADATA",
+            "message": "EVIDENCE_METADATA: \"/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-supervision/LAUNCH.json\"",
+            "stack": "Error: EVIDENCE_METADATA: \"/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-supervision/LAUNCH.json\"\n    at requireThat (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v4/safety.mjs:11:39)\n    at Object.finish (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/evidence.mjs:30:5)\n    at writeRecord (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/records.mjs:103:12)\n    at Object.save (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/records.mjs:110:47)\n    at prepare (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/outer.mjs:29:51)\n    at launchTracked (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7/launch-ledger.mjs:70:28)\n    at observeCoordinator (file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r2/outer.mjs:28:21)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/launch.mjs:21:12",
+            "original": null
+          }
+        }
+      ]
+    },
+    "workers": 0,
+    "runtimeGitAuthorityChildren": 0,
+    "targetLoads": 0,
+    "comparatorLoads": 0,
+    "packageStaging": 0,
+    "C11EmptySetups": 0,
+    "semanticCalls": 0,
+    "knownRuntimeProcesses": 2,
+    "observedRuntimePeak": 2,
+    "globalHostCensusClaim": false
+  },
+  "capture": {
+    "innerCollectorBytes": 5454,
+    "outerBytes": 2376,
+    "launcherStdoutObserved": 212,
+    "launcherStdoutRetained": 212,
+    "launcherStdoutLost": 0,
+    "launcherStderrObserved": 0,
+    "launcherStderrRetained": 0,
+    "launcherFd3Observed": 0,
+    "launcherFd3Retained": 0,
+    "ownerTerminalFileBytes": 1788,
+    "ownerStderrFileBytes": 0,
+    "outerCaptureQualified": false,
+    "refusalReason": "natural nonzero launcher exit, not a capture truncation",
+    "allOuterStreamsObservedEqualRetained": true,
+    "allOuterFilesSyncedClosed": true,
+    "unknownCurrentTailClaim": false,
+    "ownerTerminalQualification": "Complete JSON file and tool exit retained; no separate stream-observation counter is invented for direct file redirection.",
+    "innerEvidenceQualificationFailed": true
+  },
+  "postguard": {
+    "sourceInputs": 416,
+    "adapterInputs": 7,
+    "archives": 2,
+    "namespaces": [
+      {
+        "path": ".",
+        "entries": 37,
+        "pass": true
+      },
+      {
+        "path": "../executor-v7-r2",
+        "entries": 33,
+        "pass": true
+      },
+      {
+        "path": "../executor-v7-r1",
+        "entries": 28,
+        "pass": true
+      },
+      {
+        "path": "../executor-v7",
+        "entries": 30,
+        "pass": true
+      }
+    ],
+    "passed": true,
+    "bodyAbsent": true,
+    "offlineContentFiles": 3843,
+    "offlineInstructionMetadata": 1,
+    "offlineDirectories": 431
+  },
+  "resourceBounds": {
+    "totalMs": 5400000,
+    "ownerMs": 4500000,
+    "adminReserveMs": 900000,
+    "overallCaptureBytes": 269484032,
+    "innerCaptureBytes": 268435456,
+    "outerCaptureBytes": 524288,
+    "adminCaptureBytes": 524288,
+    "workingBytes": 805306368,
+    "plannedProcesses": 55,
+    "allOwnedCap": 128,
+    "peakCap": 5
+  },
+  "historical": {
+    "original25of25": true,
+    "independent7of8": true,
+    "N02FailRetained": true,
+    "N02Tail718Unknown": true,
+    "V6Unretained294045Preserved": true,
+    "W07": "UNQUALIFIED",
+    "oldBudgetComplianceNotRescored": true
+  },
+  "recommendation": "No retry or chmod of this evidence. Root may separately authorize a narrowly versioned launch-environment correction that preserves0600 admin captures but binds an inner-compatible umask before exec; keep all fixed mode guards, source, worker IDs and limits unchanged. Any qualification and fresh run need separate root authority.",
+  "processCensus": {
+    "planned": 55,
+    "actualRuntime": 2,
+    "actualAdministrationAfterPublication": 8,
+    "actualAllOwnedAfterPublication": 10,
+    "observedRuntimePeak": 2,
+    "waitingShellProcesses": 0,
+    "allProcessCap": 128,
+    "sourceOfCounts": "Direct owner exec PID receipt; outer launcher PID/exit/close/group absence; inner coordinator launchAttempted=false; eight sequential metadata/publication child receipts. Not a global host census."
+  },
+  "duration": {
+    "elapsedAtResultMs": 696710,
+    "ownerInvocationToObservedToolReturnMs": 42652,
+    "execToolWallSeconds": 0.7489,
+    "administrationMsAtResult": 654058,
+    "totalCapMs": 5400000,
+    "adminCapMs": 900000,
+    "ownerCapMs": 4500000,
+    "notBenchmark": true
+  }
+}

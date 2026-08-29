@@ -1,0 +1,216 @@
+623d2493b94afa7752d87232c8eb62fb61a2370f blob 5387
+{
+  "name": "virtual-bash",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Extensible virtual shell with pluggable filesystems and streaming commands",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "import": "./dist/contracts/index.js"
+    },
+    "./contracts/*": {
+      "types": "./dist/contracts/*.d.ts",
+      "import": "./dist/contracts/*.js"
+    },
+    "./commands/network": {
+      "types": "./dist/commands/network/index.d.ts",
+      "import": "./dist/commands/network/index.js"
+    },
+    "./commands/node": {
+      "types": "./dist/commands/node/index.d.ts",
+      "import": "./dist/commands/node/index.js"
+    },
+    "./commands/metadata": {
+      "types": "./dist/commands/metadata/index.d.ts",
+      "import": "./dist/commands/metadata/index.js"
+    },
+    "./commands/archive": {
+      "types": "./dist/commands/archive/index.d.ts",
+      "import": "./dist/commands/archive/index.js"
+    },
+    "./commands/table-text": {
+      "types": "./dist/commands/table-text/index.d.ts",
+      "import": "./dist/commands/table-text/index.js"
+    },
+    "./commands/stream-inspection": {
+      "types": "./dist/commands/stream-inspection/index.d.ts",
+      "import": "./dist/commands/stream-inspection/index.js"
+    },
+    "./commands/stream-format": {
+      "types": "./dist/commands/stream-format/index.d.ts",
+      "import": "./dist/commands/stream-format/index.js"
+    },
+    "./commands/split": {
+      "types": "./dist/commands/split/index.d.ts",
+      "import": "./dist/commands/split/index.js"
+    },
+    "./commands/time-env": {
+      "types": "./dist/commands/time-env/index.d.ts",
+      "import": "./dist/commands/time-env/index.js"
+    },
+    "./commands/tree": {
+      "types": "./dist/commands/tree/index.d.ts",
+      "import": "./dist/commands/tree/index.js"
+    },
+    "./commands/file": {
+      "types": "./dist/commands/file/index.d.ts",
+      "import": "./dist/commands/file/index.js"
+    },
+    "./commands/grep-aliases": {
+      "types": "./dist/commands/grep-aliases/index.d.ts",
+      "import": "./dist/commands/grep-aliases/index.js"
+    },
+    "./commands/column": {
+      "types": "./dist/commands/column/index.d.ts",
+      "import": "./dist/commands/column/index.js"
+    },
+    "./commands/html-to-markdown": {
+      "types": "./dist/commands/html-to-markdown/index.d.ts",
+      "import": "./dist/commands/html-to-markdown/index.js"
+    },
+    "./commands/du": {
+      "types": "./dist/commands/du/index.d.ts",
+      "import": "./dist/commands/du/index.js"
+    },
+    "./commands/expr": {
+      "types": "./dist/commands/expr/index.d.ts",
+      "import": "./dist/commands/expr/index.js"
+    },
+    "./commands/timeout": {
+      "types": "./dist/commands/timeout/index.d.ts",
+      "import": "./dist/commands/timeout/index.js"
+    },
+    "./commands/git": {
+      "types": "./dist/commands/git/index.d.ts",
+      "import": "./dist/commands/git/index.js"
+    },
+    "./commands/apply-patch": {
+      "types": "./dist/commands/apply-patch/index.d.ts",
+      "import": "./dist/commands/apply-patch/index.js"
+    },
+    "./commands/which": {
+      "types": "./dist/commands/which/index.d.ts",
+      "import": "./dist/commands/which/index.js"
+    },
+    "./fs/s3": {
+      "types": "./dist/fs/s3/index.d.ts",
+      "import": "./dist/fs/s3/index.js"
+    },
+    "./fs/s3/http": {
+      "types": "./dist/fs/s3/http/index.d.ts",
+      "import": "./dist/fs/s3/http/index.js"
+    },
+    "./fs/webdav": {
+      "types": "./dist/fs/webdav/index.d.ts",
+      "import": "./dist/fs/webdav/index.js"
+    },
+    "./fs/readonly": {
+      "types": "./dist/fs/readonly/index.d.ts",
+      "import": "./dist/fs/readonly/index.js"
+    },
+    "./fs/mount": {
+      "types": "./dist/fs/mount/index.d.ts",
+      "import": "./dist/fs/mount/index.js"
+    },
+    "./fs/overlay": {
+      "types": "./dist/fs/overlay/index.d.ts",
+      "import": "./dist/fs/overlay/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "benchmark": "node --import tsx benchmarks/run.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "node scripts/typecheck.mjs",
+    "typecheck:all": "node scripts/typecheck.mjs --build",
+    "typecheck:consumers": "node scripts/typecheck.mjs --consumers",
+    "test": "node --input-type=module -e \"import { globSync } from 'node:fs'; import { spawnSync } from 'node:child_process'; const files = globSync('tests/**/*.test.ts', { exclude: path => path === 'tests/commands/regex-execution/continuation/artifacts/native' }); if (!files.length) throw new Error('No test files found'); const result = spawnSync(process.execPath, ['--import', 'tsx', '--test', ...process.argv.slice(1), ...files], { stdio: 'inherit' }); process.exit(result.status ?? 1);\" --",
+    "test:contracts": "node --import tsx --test \"tests/contracts/**/*.test.ts\"",
+    "verify:stream-public": "node tests/plugins/stream-five-public/verify-public.mjs",
+    "verify:release:qualified": "node scripts/verify-qualified-release.mjs",
+    "verify:release:whole": "node scripts/verify-whole-gate.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "tsx": "^4.23.12",
+    "typescript": "5.9"
+  }
+}
+
+89e6b5617b949858c6e90953b561b38089c78dd7 blob 260
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["tests", "dist", "node_modules"]
+}
+
+6a5f0688c7e8ac1d63d62eef915997d2fcca31b6 blob 2920
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": [
+      "ES2023"
+    ],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "tests/commands/table-text-stress/shared-stdin-review/selected-gnu.ts",
+    "tests/commands/regex-execution/continuation/artifacts/native",
+    "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__command.ts",
+    "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__filesystem.ts",
+    "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__io.ts",
+    "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__path.ts",
+    "tests/commands/filesystem-inspection-stress/tree/sealed/inputs/src__contracts__plugin.ts",
+    "tests/integration/du-overlay-independent-20260827/approved-v5-9a5a6f92/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/approved-v6-9a5a6f92/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/approved-v7-9a5a6f92/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/approved-v8-9a5a6f92/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/approved-v9-9a5a6f92/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184628110Z-fdd7-TvfiaD/harness/harness/consumer-v2/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184718966Z-42b7-ik3KTO/harness/harness/consumer-v2/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/candidate-9a5a6f92-2026-08-27T184742640Z-4378-47r2eR/harness/harness/consumer-v2/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/evidence/supplied-revision-9a5a6f92-2026-08-27T183910720Z-c216-VLoupP/harness/harness/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer-v2/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/candidate-9a5a6f92/harness/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182017267Z-cbc5-YXsTka/harness/consumer/consumer.ts",
+    "tests/integration/du-overlay-independent-20260827/evidence/baseline-877144ea-2026-08-27T182141438Z-2e8b-bTCRpv/harness/consumer/consumer.ts"
+  ]
+}
+

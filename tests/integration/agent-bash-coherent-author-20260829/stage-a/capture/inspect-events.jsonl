@@ -1,0 +1,4 @@
+{"args":["status","--porcelain=v1","-z","--untracked-files=no"],"pid":88950,"status":0,"signal":null}
+{"args":["diff","--cached","--name-only","-z"],"pid":88952,"status":0,"signal":null}
+{"args":["cat-file","--batch-check=%(objectname) %(objecttype) %(objectsize)"],"pid":88955,"status":0,"signal":null}
+{"args":["cat-file","--batch"],"pid":88956,"status":0,"signal":null}

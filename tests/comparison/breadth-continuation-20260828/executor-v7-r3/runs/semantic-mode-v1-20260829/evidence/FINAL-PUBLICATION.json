@@ -1,0 +1,58 @@
+{
+  "schema": "SEMANTIC_MODE_FINAL_PUBLICATION_V1",
+  "status": "READY_FOR_ARCHIMEDES_PREEXECUTION_REVIEW_ACTUAL_GO_WITHHELD",
+  "sourceCommit": "428cb8c0ec1c3aa1737c4138198bedce300ebea5",
+  "evidenceCommit": "de91c4ef133104e345e18842ccd034da62f19a48",
+  "sealSha256": "357baeaa36eafdbd3e26c84b6483ec25a50061e22d179efec95ae362cafd065d",
+  "evidenceManifest": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/evidence/EVIDENCE-MANIFEST.json",
+    "bytes": 2654,
+    "mode": 384,
+    "sha256": "0949d7878e44c727ff0e34a230fd7a12b8e22f2b906fccdd0964019d7460c0f3"
+  },
+  "publicationCapture": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/semantic-mode-v1-20260829/evidence/PUBLICATION-CAPTURE.ndjson",
+    "bytes": 15005,
+    "mode": 384,
+    "sha256": "951744545de8eb6f559017f6cea3f8ff76129d390ccbbeb6f09b596efe48aebf"
+  },
+  "controls": {
+    "newPassed": 18,
+    "retainedDataPassed": 3,
+    "failed": 0,
+    "unrun": 0,
+    "oneInvocation": true
+  },
+  "actualEngineImports": 0,
+  "actualWorkers": 0,
+  "actualC11": 0,
+  "actualSemanticPrograms": 0,
+  "modeledRows": 198,
+  "actualNamespaceUnused": true,
+  "childLaunchesThroughPublication": 24,
+  "existingControlOwnerPid": 52192,
+  "existingOwnerCount": 1,
+  "expectedFinalChildLaunches": 27,
+  "expectedFinalScopedProcessRolesIncludingOwner": 28,
+  "prepCapOwnedOS": 72,
+  "peakOwnedRolesIncludingOwner": 2,
+  "rootPeakCap": 3,
+  "allKnownLaunchedChildrenClosed": true,
+  "expectedGitDiffExit1Count": 8,
+  "controlProcessExit0": true,
+  "rawControlCaptureLostBytes": 0,
+  "ownedFixtureCleanup": {
+    "archivedFiles": 817,
+    "fixtureDirectories": 31,
+    "additionalEmptyBudgetDirectory": 1
+  },
+  "publicationHelperFailurePreserved": true,
+  "cumulativeEvidenceAndArchiveBytes": 100098125,
+  "prepCaptureCapBytes": 134217728,
+  "prepWorkingCapBytes": 805306368,
+  "elapsedMillisecondsAtPublication": 1878335,
+  "prepTimeCapMilliseconds": 2100000,
+  "finalThreeMetadataReceipts": "Bounded stage/commit/status receipts retained by tool transport, not recursively self-hashed in this file",
+  "oldAdmissionFilesAndHistoryUnchanged": true,
+  "actualReviewAndFreshRootGoStillRequired": true
+}

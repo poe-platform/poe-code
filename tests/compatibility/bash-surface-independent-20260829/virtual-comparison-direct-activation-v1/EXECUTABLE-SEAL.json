@@ -1,0 +1,207 @@
+{
+  "schema": "direct-activation-executable-seal-v1",
+  "profile": "bash-surface-direct-owned-child-functional-v1",
+  "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "profileCommit": "464666830d16016ca7a7bf9ef466aa6dc764e2d3",
+  "files": {
+    "CANDIDATE-CLOSURE.json": {
+      "bytes": 1037,
+      "sha256": "9abf05556193781055c06b68b3b82fbbec4c4c00de42a83c009f4a2a9dc29102"
+    },
+    "COMMAND-PLAN.json": {
+      "bytes": 276365,
+      "sha256": "a059c018cd445e93f5fec10b7903128006e748bfcb71f552f58bf94654b8394f"
+    },
+    "DATA-CHECKS.json": {
+      "bytes": 2320,
+      "sha256": "974d2e139751ecf1967358b213c329f6e5f5fe939b6ce58622c513637ba3f4e0"
+    },
+    "LIMITS.json": {
+      "bytes": 555,
+      "sha256": "e970e2009cf812e3a88df56cc84643fc5411d6d0843b8e5fa554bf60788c342f"
+    },
+    "PREPROVISION-RECEIPT.json": {
+      "bytes": 335,
+      "sha256": "425f98c0bf9640af274c33a7a1ff5eadc1443f44e31873379d7f90e26133b738"
+    },
+    "README.md": {
+      "bytes": 2922,
+      "sha256": "ee01c33c485a2e2d8881e43cbfd218eb142c1a3a1f10d82a9295af15b3c24cfc"
+    },
+    "SOURCE-CAPSULE.json.gz.base64": {
+      "bytes": 1516833,
+      "sha256": "822a65c19b19d3c6373d7bd05af396cb5a731e49954102ec4ce935d8989f3754"
+    },
+    "SOURCE-PROVENANCE.json": {
+      "bytes": 5575,
+      "sha256": "314ada7036fff47feb6c056e35497b374c0311bd367629170e7ec907533fedb5"
+    },
+    "TOOLS.json": {
+      "bytes": 51333,
+      "sha256": "cddc3188fdf926a9387039c3878a0e8e537e80c1332f48160242dd01458c4b1d"
+    },
+    "outer.mjs": {
+      "bytes": 6096,
+      "sha256": "a0e523a93301429496b6fe887fb4df803ec5bbb4139244b1400260cc77dfce9e"
+    },
+    "packet-io.mjs": {
+      "bytes": 1869,
+      "sha256": "c1a9b2b5831264dd9f58eae9fb1595256f3e6b858af5a68f2fdf7c9488222293"
+    },
+    "profile/MATRIX.json": {
+      "bytes": 201975,
+      "sha256": "b7aa013cdc2d74a8ebdf400b4db1cc475479a13eb62aaa2303d8f28f1295c74e"
+    },
+    "profile/NODE.json": {
+      "bytes": 304,
+      "sha256": "e676eb89a43070cef8b34bda26e167fe321911b7b41ec6d411a3daa303ce3a03"
+    },
+    "profile/PACKAGE-MEMBERS.json": {
+      "bytes": 166933,
+      "sha256": "9800c6e7b6025c548c7b6be8376ca4804b5d3601115578c264ba7f7dd5b35011"
+    },
+    "profile/SOURCE-MEMBERS.json": {
+      "bytes": 68225,
+      "sha256": "c9b257ad4471df5443ff5218f309db643d91ba943be18836bc9017cb2e3cdee3"
+    },
+    "profile/STATIC-EDGES.json": {
+      "bytes": 31738,
+      "sha256": "cc55415de22f5acc7cfb0a4afa5a6e830eff66ffeeb8aab4464e6f4182832cf0"
+    },
+    "profile/auth.mjs": {
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    },
+    "profile/case-adapter.mjs": {
+      "bytes": 4448,
+      "sha256": "19fa37788d57472a67ca699f70d59abcb08aa8222b1ff45c6e204bbf3ba27b2e"
+    },
+    "profile/case-driver.mjs": {
+      "bytes": 1504,
+      "sha256": "c443a3669cca52abebe86cf82afa2d74c19ac2a3aad1c0a73eab16cb2ac0480c"
+    },
+    "profile/case-launch.mjs": {
+      "bytes": 2722,
+      "sha256": "a19197b3048cd985f7db55f47f7a853c66e60c4b5df687ad3eadbdd927b8f746"
+    },
+    "profile/data.mjs": {
+      "bytes": 3196,
+      "sha256": "603395125167a99419ceb198d35b6a51689e9580cb7a4affabdcc5ce15366b52"
+    },
+    "profile/direct-child.mjs": {
+      "bytes": 4583,
+      "sha256": "7542288b4cae1649d80851785aa6369f36f8d57f4ca497cab6829443f70974ec"
+    },
+    "profile/guard.mjs": {
+      "bytes": 2245,
+      "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9"
+    },
+    "profile/mechanism.mjs": {
+      "bytes": 2506,
+      "sha256": "dcfe9557af108fdd521d43a179286ca78d0320c11c0e3b9cb68193c34382bbf0"
+    },
+    "profile/package-admission.mjs": {
+      "bytes": 3895,
+      "sha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6"
+    },
+    "profile/parse-manifest.mjs": {
+      "bytes": 2860,
+      "sha256": "0dd49a2e6fa0d222ada2477937a482aed613f220f28bef1f790cb06b61270f61"
+    },
+    "profile/profile.mjs": {
+      "bytes": 2114,
+      "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc"
+    },
+    "profile/setup.mjs": {
+      "bytes": 4088,
+      "sha256": "701f410894358b08830c545a430a47f38c00882f2bf3664235486da2f1d42628"
+    },
+    "publication-admin.mjs": {
+      "bytes": 4027,
+      "sha256": "8b49cc6fc23df835ab3b173062762993b8fde1fb5cbc4b06bd2e2be2db055278"
+    },
+    "supervisor.mjs": {
+      "bytes": 11663,
+      "sha256": "aee84c8dc73dce7182ef6483dc5c757ccb5610b71e5d8cc9e96cf82f94623099"
+    }
+  },
+  "sourceCapsule": {
+    "compressedBytes": 1137622,
+    "compressedSha256": "b544639ee251d74782049347a4c68a815afc9ab4cbe00417d6a08f95de446880",
+    "decodedBytes": 3647399,
+    "decodedSha256": "95351e2be6a5ad68e472d8d23e2e0b254b6020773250b5227c78dcc3f10a1cc8"
+  },
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "mode": 493,
+    "version": "v22.22.2",
+    "qualification": "Version inherited; executable freshly hash-authenticated without running"
+  },
+  "envExecutable": {
+    "path": "/usr/bin/env",
+    "bytes": 102368,
+    "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+    "mode": 493,
+    "executed": false
+  },
+  "archive": {
+    "path": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/virtual-bash-0.0.0.tgz",
+    "bytes": 872281,
+    "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49"
+  },
+  "builtins": [
+    "node:async_hooks",
+    "node:buffer",
+    "node:crypto",
+    "node:events",
+    "node:fs",
+    "node:fs/promises",
+    "node:http",
+    "node:https",
+    "node:net",
+    "node:path",
+    "node:perf_hooks",
+    "node:stream",
+    "node:stream/promises",
+    "node:stream/web",
+    "node:timers",
+    "node:timers/promises",
+    "node:url",
+    "node:util",
+    "node:worker_threads",
+    "node:zlib"
+  ],
+  "limits": {
+    "inclusiveMs": 1800000,
+    "knownOSMaximum": 144,
+    "knownPeak": 3,
+    "captureBytes": 134217728,
+    "workingBytes": 536870912,
+    "setupAggregateMs": 180000,
+    "typecheckAggregateMs": 180000,
+    "finalizationTailMs": 120000,
+    "caseDriverAbortMs": 3000,
+    "caseProcessMs": 8000,
+    "termGraceMs": 2000,
+    "killGraceMs": 1000,
+    "perStreamBytes": 65536,
+    "customLoaderThreads": 0,
+    "productWorkers": 0,
+    "caseSubprocessPermission": 0,
+    "administrativeRoleAllowance": 28,
+    "ownerRoles": 1,
+    "buildRoles": 1,
+    "typecheckRoles": 3,
+    "caseRoles": 111
+  },
+  "work": "/private/tmp/safe-bash-surface-direct-activation-v1-actual-01",
+  "preprovision": {
+    "path": "/private/tmp/safe-bash-surface-direct-activation-v1-actual-01/PREPROVISIONED.json",
+    "bytes": 335,
+    "sha256": "425f98c0bf9640af274c33a7a1ff5eadc1443f44e31873379d7f90e26133b738"
+  },
+  "actualAuthorization": "WITHHELD_SEPARATE_ROOT_GRANT_AND_FINAL_REVIEW_REQUIRED",
+  "actualCalls": 0
+}

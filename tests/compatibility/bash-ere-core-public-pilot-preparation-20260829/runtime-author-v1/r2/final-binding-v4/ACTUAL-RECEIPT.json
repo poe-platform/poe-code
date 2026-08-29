@@ -1,0 +1,291 @@
+{
+  "schema": 1,
+  "startedUtc": "2026-08-29T17:47:28.368Z",
+  "startedMonotonic": 269060501,
+  "outerStarted": 269035121,
+  "ownerPid": 7837,
+  "parentPid": 7835,
+  "attemptConsumed": true,
+  "status": "HARD_STOP",
+  "coordinatorLaunched": true,
+  "coordinator": {
+    "pid": 7851,
+    "exit": true,
+    "close": true,
+    "stdoutEOF": true,
+    "stderrEOF": true,
+    "retired": true,
+    "code": 1,
+    "signal": null
+  },
+  "captured": {
+    "stdout": 161,
+    "stderr": 0
+  },
+  "signals": [],
+  "failure": {
+    "present": false,
+    "primary": null,
+    "secondary": [],
+    "omitted": 0
+  },
+  "commandSha256": "05f243889f7f54a3988cea59210252267b516b9bf368859f30fe1dd46b2550ad",
+  "grantSha256": "993c5ea238dbf3a07c197da4cc89e7c25fe690207a2512e283dcf1a3bbefffe2",
+  "sourcePostguard": true,
+  "noRetry": true,
+  "admittedUtc": "2026-08-29T17:47:29.397Z",
+  "remainingAtAdmission": 1173593,
+  "innerFinal": {
+    "outcomes": [
+      {
+        "id": "source-built/R01",
+        "status": "FAIL",
+        "receipt": {
+          "id": "source-built/R01",
+          "pid": 8003,
+          "exit": true,
+          "close": true,
+          "stdout": true,
+          "stderr": true,
+          "retired": true,
+          "code": 1,
+          "signal": null,
+          "cutoff": false,
+          "capture": [
+            {
+              "admitted": 293,
+              "maximum": 65536,
+              "written": 293
+            },
+            {
+              "admitted": 202,
+              "maximum": 65536,
+              "written": 202
+            }
+          ],
+          "failure": {
+            "present": false,
+            "primary": null,
+            "secondary": [],
+            "omitted": 0
+          }
+        },
+        "failure": {
+          "present": true,
+          "reason": {
+            "type": "object",
+            "opaque": true
+          }
+        },
+        "qualification": "no Worker retirement inferred from process closure"
+      },
+      {
+        "id": "source-built/R02",
+        "status": "UNRUN"
+      },
+      {
+        "id": "source-built/R05",
+        "status": "UNRUN"
+      },
+      {
+        "id": "source-built/R06",
+        "status": "UNRUN"
+      },
+      {
+        "id": "source-built/R07",
+        "status": "UNRUN"
+      },
+      {
+        "id": "source-built/R11",
+        "status": "UNRUN"
+      },
+      {
+        "id": "source-built/R12",
+        "status": "UNRUN"
+      },
+      {
+        "id": "source-built/R22",
+        "status": "UNRUN"
+      },
+      {
+        "id": "installed/R01",
+        "status": "UNRUN"
+      },
+      {
+        "id": "installed/R02",
+        "status": "UNRUN"
+      },
+      {
+        "id": "installed/R05",
+        "status": "UNRUN"
+      },
+      {
+        "id": "installed/R06",
+        "status": "UNRUN"
+      },
+      {
+        "id": "installed/R07",
+        "status": "UNRUN"
+      },
+      {
+        "id": "installed/R11",
+        "status": "UNRUN"
+      },
+      {
+        "id": "installed/R12",
+        "status": "UNRUN"
+      },
+      {
+        "id": "installed/R22",
+        "status": "UNRUN"
+      },
+      {
+        "id": "moved/R01",
+        "status": "UNRUN"
+      },
+      {
+        "id": "moved/R02",
+        "status": "UNRUN"
+      },
+      {
+        "id": "moved/R05",
+        "status": "UNRUN"
+      },
+      {
+        "id": "moved/R06",
+        "status": "UNRUN"
+      },
+      {
+        "id": "moved/R07",
+        "status": "UNRUN"
+      },
+      {
+        "id": "moved/R11",
+        "status": "UNRUN"
+      },
+      {
+        "id": "moved/R12",
+        "status": "UNRUN"
+      },
+      {
+        "id": "moved/R22",
+        "status": "UNRUN"
+      }
+    ],
+    "workerStarts": 0,
+    "failure": {
+      "present": false,
+      "primary": null,
+      "secondary": [],
+      "omitted": 0
+    },
+    "complete": false,
+    "childStarts": 3,
+    "capture": {
+      "admitted": 1567,
+      "maximum": 58720256
+    },
+    "sampledLogical": 22392758,
+    "qualification": "sampled/quiescent, non-atomic, not OS quota or peak proof"
+  },
+  "innerJournal": [
+    {
+      "event": "native-receipt",
+      "id": "install-installed",
+      "pid": 7893,
+      "exit": true,
+      "close": true,
+      "stdout": true,
+      "stderr": true,
+      "retired": true,
+      "code": 0,
+      "signal": null,
+      "cutoff": false,
+      "capture": [
+        {
+          "admitted": 23,
+          "maximum": 1048576,
+          "written": 23
+        },
+        {
+          "admitted": 0,
+          "maximum": 1048576,
+          "written": 0
+        }
+      ],
+      "failure": {
+        "present": false,
+        "primary": null,
+        "secondary": [],
+        "omitted": 0
+      }
+    },
+    {
+      "event": "native-receipt",
+      "id": "install-moved",
+      "pid": 7937,
+      "exit": true,
+      "close": true,
+      "stdout": true,
+      "stderr": true,
+      "retired": true,
+      "code": 0,
+      "signal": null,
+      "cutoff": false,
+      "capture": [
+        {
+          "admitted": 23,
+          "maximum": 1048576,
+          "written": 23
+        },
+        {
+          "admitted": 0,
+          "maximum": 1048576,
+          "written": 0
+        }
+      ],
+      "failure": {
+        "present": false,
+        "primary": null,
+        "secondary": [],
+        "omitted": 0
+      }
+    },
+    {
+      "event": "native-receipt",
+      "id": "source-built/R01",
+      "pid": 8003,
+      "exit": true,
+      "close": true,
+      "stdout": true,
+      "stderr": true,
+      "retired": true,
+      "code": 1,
+      "signal": null,
+      "cutoff": false,
+      "capture": [
+        {
+          "admitted": 293,
+          "maximum": 65536,
+          "written": 293
+        },
+        {
+          "admitted": 202,
+          "maximum": 65536,
+          "written": 202
+        }
+      ],
+      "failure": {
+        "present": false,
+        "primary": null,
+        "secondary": [],
+        "omitted": 0
+      }
+    }
+  ],
+  "finishedUtc": "2026-08-29T17:47:37.227Z",
+  "finishedMonotonic": 269069358,
+  "remainingIncludingPublication": 1165763,
+  "actualCoordinatorRetirementOnly": true,
+  "unknownReferencesRetained": false
+}

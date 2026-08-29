@@ -1,0 +1,71 @@
+{
+  "created": "2026-08-29T11:38:28.623Z",
+  "deadline": "2026-08-29T11:48:21.624Z",
+  "candidate": "8ab0b2875c695c7cf6fbe90080cd083f69ef7146",
+  "authorPreseal": {
+    "bytes": 11952,
+    "sha256": "78e6c945ceadfb54d51d806fbe57399ab5a552ad4571791cb916c085736e27a7"
+  },
+  "files": [
+    {
+      "path": "capsule/stage-b0-r3/owner.mjs",
+      "bytes": 8991,
+      "sha256": "9172cab72f0a7833401e0900fb01ef1821fc59cde1718e3abf3cbfd1d6c970dd"
+    },
+    {
+      "path": "capsule/stage-b0-r3/controls.mjs",
+      "bytes": 8279,
+      "sha256": "e314b766848641f23a4250b0cb65377ff22e661e5ea81f1ca947483688100cc9"
+    },
+    {
+      "path": "capsule/stage-a-r2/common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac"
+    },
+    {
+      "path": "capsule/stage-b0-r2/LOCATOR-IDENTITIES.json",
+      "bytes": 796,
+      "sha256": "29290a473b51532a9fda226924f0f52e5996dbb479a07cffd99f854114c66a60"
+    },
+    {
+      "path": "novel-controls.mjs",
+      "bytes": 7531,
+      "sha256": "e7cfe72e4a8ac7c4e2132d440cd3c0db6b5c31ea11b47542980ee8aa05c799b4"
+    },
+    {
+      "path": "dispatch.mjs",
+      "bytes": 4151,
+      "sha256": "008c8135953859b7d0e569c447143a5d7c97ff10b1661b8db409fdaf81ad33ad"
+    },
+    {
+      "path": "CONTROL-POLICY.md",
+      "bytes": 1425,
+      "sha256": "dbb8ff282594dbc084481ce15fd552922e4e98580cddf8ac41bc886ffb9551b1"
+    }
+  ],
+  "roles": [
+    {
+      "id": "author16",
+      "entry": "capsule/stage-b0-r3/controls.mjs",
+      "groups": 16
+    },
+    {
+      "id": "independent8",
+      "entry": "novel-controls.mjs",
+      "groups": 8
+    }
+  ],
+  "parent": "dispatch.mjs",
+  "freshNodeProcesses": 3,
+  "maxPeakOwnedOS": 2,
+  "eachSeconds": 30,
+  "capturePerController": 1048576,
+  "actual39": 0,
+  "productImports": 0,
+  "workers": 0,
+  "patch": {
+    "pid": 35965,
+    "status": 0,
+    "signal": null
+  }
+}

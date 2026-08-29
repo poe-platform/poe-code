@@ -1,0 +1,20 @@
+[
+  {
+    "role": "inventory",
+    "pid": 31248,
+    "status": 0,
+    "signal": null,
+    "started": "2026-08-29T11:34:15.497Z",
+    "finished": "2026-08-29T11:34:15.562Z",
+    "closed": true
+  },
+  {
+    "role": "blobs",
+    "pid": 31263,
+    "status": 0,
+    "signal": null,
+    "started": "2026-08-29T11:34:15.564Z",
+    "finished": "2026-08-29T11:34:15.620Z",
+    "closed": true
+  }
+]

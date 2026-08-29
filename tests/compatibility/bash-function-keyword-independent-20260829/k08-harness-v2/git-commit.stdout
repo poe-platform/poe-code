@@ -1,0 +1,21 @@
+[main b3b02f8f706a0f4dd1ec8e80134e9fabf8644eb8] review: accept K08 v2 source and finite pure preexecution repairs
+ 19 files changed, 472 insertions(+)
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/ADMIN-CORRECTION.json
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/LAYOUT-PRECONDITIONS.json
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/POSTGUARDS.json
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/PUBLICATION.jsonl
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/RECEIPT.json
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/REPORT.md
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/RUN-RESULT.json
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/RUN.jsonl
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/author16.stderr
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/author16.stdout
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/git-add.stderr
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/git-add.stdout
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/independent8.stderr
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/independent8.stdout
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/postguard.mjs
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/postguard.stderr
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/postguard.stdout
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/runner.stderr
+ create mode 100644 tests/compatibility/bash-function-keyword-independent-20260829/k08-harness-v2/runner.stdout

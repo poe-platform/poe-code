@@ -1,0 +1,12 @@
+{
+  "originalRole": "inline postguard metadata administration",
+  "toolRecord": "fd7169",
+  "status": 1,
+  "phase": "SyntaxError before execution",
+  "message": "Unexpected end of input",
+  "evidenceQualification": "Tool transcription only; not reconstructed raw capture",
+  "reason": "Missing closing function brace in inline metadata helper",
+  "successor": "postguard.mjs; explicit file entry with direct stdout/stderr capture",
+  "controlsRerun": false,
+  "productFinding": false
+}

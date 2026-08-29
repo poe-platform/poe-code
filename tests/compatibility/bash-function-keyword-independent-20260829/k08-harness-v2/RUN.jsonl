@@ -1,0 +1,4 @@
+{"event":"before-start","id":"author16","at":1788017136883}
+{"id":"author16","pid":97743,"exit":true,"close":true,"stdoutEOF":true,"stderrEOF":true,"forced":false,"failed":false,"status":0,"signal":null,"counts":{"stdout":861,"stderr":173}}
+{"event":"before-start","id":"independent8","at":1788017136958}
+{"id":"independent8","pid":97745,"exit":true,"close":true,"stdoutEOF":true,"stderrEOF":true,"forced":false,"failed":false,"status":0,"signal":null,"counts":{"stdout":597,"stderr":0}}

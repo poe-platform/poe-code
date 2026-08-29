@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "publication-v2.mjs",
+    "bytes": 3371,
+    "sha256": "f8ede5c4890135e0e68020cfc39007bd74f9d39d6402d6a31a6b031df2c9bf5f"
+  },
+  "cases": {
+    "path": "PUBLICATION-V2-FOLLOWUP.md",
+    "bytes": 1498,
+    "sha256": "9b2cab338be9e55fb8eff74bac3173934da70e4eca0d3560765cbc7cbc8d0a06"
+  },
+  "runtime": "UNRUN",
+  "helpersRemaining": 0,
+  "sourceOnly": true,
+  "originalSource": "publication.mjs unchanged",
+  "failedPatch": {
+    "reason": "unmatched HANDOFF context",
+    "atomicNoChangesVerified": true,
+    "subsequentSourcePatchApplied": true
+  }
+}

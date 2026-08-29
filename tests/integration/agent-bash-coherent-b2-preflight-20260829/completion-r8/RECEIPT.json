@@ -1,0 +1,148 @@
+{
+  "status": "PARTIAL_AUTHOR_CHECKPOINT_PUBLICATION_HOLD_POLICY_PENDING",
+  "created": "2026-08-29T16:14:08.590Z",
+  "preseal": "f4893b1cf3b1c37ac186aba19e897c466ed82e144498b798acc0febf62d9db1b",
+  "packet": {
+    "bytes": 6939,
+    "sha256": "b93a03ffbfcf25a575fc852d277d0179ef4e5d4828a9099e88cb0bbdb3eceadf",
+    "files": 32
+  },
+  "controlsPassed": 8,
+  "harmlessChildren": [
+    {
+      "id": "H01",
+      "pid": 53844,
+      "exitCode": 0,
+      "closeCode": 0,
+      "exited": true,
+      "closed": true,
+      "signals": [],
+      "samples": 637,
+      "races": 14,
+      "quiescentCacheBytes": 0
+    },
+    {
+      "id": "H02",
+      "pid": 53846,
+      "exitCode": 0,
+      "closeCode": 0,
+      "exited": true,
+      "closed": true,
+      "signals": [],
+      "samples": 633,
+      "races": 9,
+      "quiescentCacheBytes": 0
+    }
+  ],
+  "totalObservedRaces": 23,
+  "publicationHelper": {
+    "pid": 54476,
+    "exitCode": 1,
+    "closeCode": 1,
+    "knownRetired": true,
+    "cause": "payload copy.source.json collides with v1 sidecar namespace; no capture overwrite"
+  },
+  "v2": {
+    "sha256": "f8ede5c4890135e0e68020cfc39007bd74f9d39d6402d6a31a6b031df2c9bf5f",
+    "execution": "UNRUN",
+    "twoFollowupGroups": "UNRUN",
+    "disjointIdentityRootRequired": true
+  },
+  "cachePolicy": {
+    "proposedReservationBytes": 134217728,
+    "aggregateLimit": 536870912,
+    "sourceDerivedNpmWriteBound": false,
+    "rootAcknowledgementRequired": "ROOT_ACCEPTS_BEST_EFFORT_MUTABLE_CACHE_R8",
+    "acknowledgementGranted": false
+  },
+  "productRuns": 0,
+  "npmRuns": 0,
+  "workerRuns": 0,
+  "compilerRuns": 0,
+  "helpersUsed": 2,
+  "helpersMaximum": 2,
+  "knownOS": {
+    "initialGit": 1,
+    "presealGit": 2,
+    "patchShellAndToolConservative": 12,
+    "controllers": 2,
+    "harmlessChildren": 2,
+    "finalGitPlanned": 3,
+    "totalConservative": 22,
+    "maximum": 40,
+    "peakConservative": 3,
+    "fullTransitiveCensus": false
+  },
+  "workQualification": "No final full logical census: second helper failed before that step. Finite source/raw admission limits retained; no observed over-cap write. Not claimed measured final aggregate.",
+  "copies": [
+    {
+      "path": "terminal-evidence/CONTROLS-RESULT.json",
+      "bytes": 3134,
+      "sha256": "afc8aeefa1994ca1a3ab0becadfc0c08c5a2f60af0c40ee0a28fde4c310c180b",
+      "source": "/private/tmp/safe-bash-b2-r8-controls/RESULT.json"
+    },
+    {
+      "path": "terminal-evidence/controls.stdout",
+      "bytes": 67,
+      "sha256": "06147d033a6a092b9a6db15fa0702810666466d82c33a4ffb0f62a9114020a4c",
+      "source": "/private/tmp/safe-bash-b2-r8-preparation/controls.stdout"
+    },
+    {
+      "path": "terminal-evidence/controls.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/private/tmp/safe-bash-b2-r8-preparation/controls.stderr"
+    },
+    {
+      "path": "terminal-evidence/controls-start.json",
+      "bytes": 93,
+      "sha256": "b8510bfffe035d1b310e69511e19f9af8d9ee11411a6341bdedb9d8cd0a4590b",
+      "source": "/private/tmp/safe-bash-b2-r8-preparation/controls-start.json"
+    },
+    {
+      "path": "terminal-evidence/controls-retirement.json",
+      "bytes": 226,
+      "sha256": "7926e3a9c1080abed3a3ee39cfeeeefd11eaa9d21dfa2ecc16bc96c9ca484ebc",
+      "source": "/private/tmp/safe-bash-b2-r8-preparation/controls-retirement.json"
+    },
+    {
+      "path": "terminal-evidence/preserve.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "/private/tmp/safe-bash-b2-r8-preparation/preserve.stdout"
+    },
+    {
+      "path": "terminal-evidence/preserve.stderr",
+      "bytes": 1422,
+      "sha256": "c274370c039d8e79a0021416b0deb09cf78f4f618d9a90b3ededb120528f1daa",
+      "source": "/private/tmp/safe-bash-b2-r8-preparation/preserve.stderr"
+    },
+    {
+      "path": "terminal-evidence/preserve-start.json",
+      "bytes": 87,
+      "sha256": "97297b2a70bcf98aa455b8fa1d61854d6c9426b98e36a967b808f8878b3ebd36",
+      "source": "/private/tmp/safe-bash-b2-r8-preparation/preserve-start.json"
+    },
+    {
+      "path": "terminal-evidence/preserve-retirement.json",
+      "bytes": 220,
+      "sha256": "a2132531043aadac4759540c60a0a1d8054254373cd9b12bbc2dc9718905676f",
+      "source": "/private/tmp/safe-bash-b2-r8-preparation/preserve-retirement.json"
+    },
+    {
+      "path": "terminal-evidence/status-retirement.json",
+      "bytes": 78,
+      "sha256": "e64bcf0c493b8ced320464d9279d543352e689d364578a420f617fd9fc5fbde4",
+      "source": "/private/tmp/safe-bash-b2-r8-preparation/status-retirement.json"
+    },
+    {
+      "path": "terminal-evidence/seal-git.json",
+      "bytes": 199,
+      "sha256": "3ffbec1d8cadaf136c7081d5f33fa0d8fd9081134985dcc67ee376e332674151",
+      "source": "/private/tmp/safe-bash-b2-r8-preparation/seal-git.json"
+    }
+  ],
+  "sourcePostguard": 32,
+  "originalCohort": "0b13a5b8 224PASS/448UNRUN+2types8diagnostics unchanged",
+  "deadline": "2026-08-29T16:16:47.949Z"
+}

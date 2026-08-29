@@ -1,0 +1,15 @@
+{
+  "administration": "/tmp/safe-bash-i03-v2-publication-9uVqgl",
+  "knownRuntimeProcessLifetimes": 4,
+  "conservativeRuntimeRoleSlots": 5,
+  "knownReportEditingProcesses": 1,
+  "editingHelperReserve": 1,
+  "plannedGitProcesses": 6,
+  "totalConservativeSlots": 13,
+  "remainingReserve": 3,
+  "actualMaximum": 16,
+  "peakMaximum": 4,
+  "administrationCapturesOpenedBeforeGit": true,
+  "retainedScratch": "/private/tmp/safe-bash-i03-v2-Kf8Mva",
+  "qualification": "Python exec-replaces the owner shell; separate role reservation is conservative, not two observed simultaneous processes. Existing capture service is not an independently enumerated host-process census."
+}

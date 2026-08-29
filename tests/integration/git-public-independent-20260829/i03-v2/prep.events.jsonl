@@ -1,0 +1,15 @@
+{"event":"before-spawn","label":"initial-index","args":["diff","--cached","--binary"]}
+{"event":"closed","label":"initial-index","pid":41278,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"initial-status","args":["status","--porcelain=v1","-z"]}
+{"event":"closed","label":"initial-status","pid":41290,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"apply-patch-I03-v2","editingReserve":1}
+{"event":"closed","label":"apply-patch-I03-v2","pid":43788,"status":0,"signal":null,"errorPresent":false}
+{"event":"source-data-admission-pass","files":5057,"shipping":20,"work":"/private/tmp/safe-bash-i03-v2-Kf8Mva","packageMembers":950,"sourceInputs":292,"elapsed":361.077}
+{"event":"before-spawn","label":"apply-preseal","editingReserve":1}
+{"event":"closed","label":"apply-preseal","pid":49581,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"stage-preseal","args":["add","--","tests/integration/git-public-independent-20260829/i03-v2/fixture.mjs","tests/integration/git-public-independent-20260829/i03-v2/run.py","tests/integration/git-public-independent-20260829/i03-v2/PRESEAL.json","tests/integration/git-public-independent-20260829/i03-v2/PRESEAL.md","tests/integration/git-public-independent-20260829/i03-v2/PREP-START.json"]}
+{"event":"closed","label":"stage-preseal","pid":49984,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"commit-preseal","args":["commit","--only","-m","test(git): preseal async duplicate-plugin I03-v2 continuation","--","tests/integration/git-public-independent-20260829/i03-v2/fixture.mjs","tests/integration/git-public-independent-20260829/i03-v2/run.py","tests/integration/git-public-independent-20260829/i03-v2/PRESEAL.json","tests/integration/git-public-independent-20260829/i03-v2/PRESEAL.md","tests/integration/git-public-independent-20260829/i03-v2/PREP-START.json"]}
+{"event":"closed","label":"commit-preseal","pid":49986,"status":0,"signal":null,"errorPresent":false}
+{"event":"before-spawn","label":"preseal-commit-id","args":["rev-parse","HEAD"]}
+{"event":"closed","label":"preseal-commit-id","pid":49992,"status":0,"signal":null,"errorPresent":false}

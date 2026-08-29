@@ -1,0 +1,10 @@
+{
+  "commit": "e7ce4ddfe467f2d869a92d09bd79dfc4ccb01357",
+  "presealSha256": "d73e5c2fffff2b1c2a5c7baf553d63c39de549404ac111781bf0995607dd6a85",
+  "elapsedSeconds": 427.383,
+  "preparationKnownProcesses": 7,
+  "preparationConservativeProcesses": 9,
+  "peakConservative": 3,
+  "actualProductExecutions": 0,
+  "conditionalRootGrant": "Latest I03-v2 three-layout only continuation after immutable source and retained package admission"
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "B1-r5-publication-preseal",
+  "binding": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/PUBLICATION-BINDING.json",
+    "bytes": 4052,
+    "sha256": "ab385dcbc7850c82ca81871aa2aa72554440540e7a353e907a8fbd2a78644288"
+  },
+  "publisher": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/publish.mjs",
+    "bytes": 14038,
+    "sha256": "d77fa071a7a11cb1f9d3d7330912edbab3c95436fb7b765b718aedfe1b3878d6"
+  },
+  "policy": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/policy.mjs",
+    "bytes": 4556,
+    "sha256": "0d9599223d606cdf69bce37c0b373d515fbffbd09d82889ddd16b355ff5a33ed"
+  },
+  "ledger": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/ledger.mjs",
+    "bytes": 7144,
+    "sha256": "09ece69722255e24d469b2f16cf97d9ef1570fb315fd0d5afb260b9d2158c7fd"
+  },
+  "owner": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/entry.mjs",
+    "bytes": 7874,
+    "sha256": "3ae47a93c2ce7481b0b2973e38f804ee104847ca880ec1613d76b374f1a48bf6"
+  },
+  "rootActualAuthority": false
+}

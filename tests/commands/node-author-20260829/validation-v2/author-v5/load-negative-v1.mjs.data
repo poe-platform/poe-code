@@ -1,0 +1,11 @@
+import {createNodeCommand} from '__MODULE__/commands/node/index.js';
+if(typeof createNodeCommand!=='function')throw new Error('negative lacks actual module load');
+const selected=process.argv[2];
+if(selected==='source-fallback')await import('__FORBIDDEN__');
+else if(selected==='builtin-edge')await import('node:os');
+else if(selected==='package-fallback')await import('unapproved-node-provider');
+else if(selected==='pass-nonzero'){process.stdout.write('PASS\n');process.exitCode=1;}
+else if(selected==='missing-receipt')process.stdout.write('PASS\n');
+else if(selected==='tamper')await import('__TAMPER__');
+else throw new Error('negative role');
+

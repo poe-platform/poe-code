@@ -1,0 +1,19 @@
+[
+  {
+    "id": "M05",
+    "file": "commands/node/lifecycle.js",
+    "case": "focused",
+    "changes": [
+      {
+        "from": "this.#controller.abort(reason);",
+        "to": "void reason;",
+        "count": 3
+      },
+      {
+        "from": "this.#controller.abort(this.#primary.value);",
+        "to": "void this.#primary.value;",
+        "count": 1
+      }
+    ]
+  }
+]

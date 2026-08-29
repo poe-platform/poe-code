@@ -1,0 +1,9 @@
+{"kind":"outerPrepCaptureOwned","descriptors":2}
+{"kind":"parentProvisioned","path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v5","mode":493,"device":16777232,"inode":184678012}
+{"kind":"parentProvisioned","path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2","mode":493,"device":16777232,"inode":184678013}
+{"kind":"parentProvisioned","path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/capture","mode":493,"device":16777232,"inode":184678014}
+{"kind":"parentProvisioned","path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/evidence","mode":493,"device":16777232,"inode":184678015}
+{"kind":"parentProvisioned","path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/outer","mode":493,"device":16777232,"inode":184678016}
+{"kind":"parentProvisioned","path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v5/validation-v2/bootstrap","mode":493,"device":16777232,"inode":184678017}
+{"kind":"parentProvisioned","path":"/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v5/startup-controls","mode":493,"device":16777232,"inode":184678018}
+{"kind":"parentManifest","bytes":1240,"sha256":"4c7b347d6b45c0d09439b0595ef4b549cb35866759f4cf1c1eecc13108bd768b"}

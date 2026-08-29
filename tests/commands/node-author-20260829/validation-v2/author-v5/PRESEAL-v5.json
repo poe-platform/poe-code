@@ -1,0 +1,214 @@
+{
+  "schema": "node-author-v5-executable-preseal",
+  "date": "2026-08-29",
+  "timing": "after original v4 executions and source diagnosis; before successor compiler or runtime executions",
+  "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "source": "a2f3983da537b95bed65b8bc727ab93bc7e98ca3",
+  "files": [
+    {
+      "path": "API-v4.md",
+      "bytes": 4458,
+      "sha256": "0bde23e4b18bb30b8fbc94a1c5c109547f32eb63917325b139a48e6df91417fc"
+    },
+    {
+      "path": "BASE-PACKAGE-v1.json",
+      "bytes": 127885,
+      "sha256": "3f97f00039e1e12d9afdd6fe800b6ae437d375c0f4e3c994825ce7818f926c51"
+    },
+    {
+      "path": "INPUTS-v1.json.gz.base64",
+      "bytes": 1939657,
+      "sha256": "18a3bf6ebf467f3c76a7c0b04c9c72a57f22d21e00ef4d58267c90d0403871c4"
+    },
+    {
+      "path": "engine-adapter-noise-v1.mjs",
+      "bytes": 282,
+      "sha256": "e9001c5a4dde7202d1223c97de9248dc9ed3714f33aa98af13e989defbe19653"
+    },
+    {
+      "path": "engine-adapter-v1.mjs",
+      "bytes": 1484,
+      "sha256": "2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d"
+    },
+    {
+      "path": "host-guard-v1.mjs",
+      "bytes": 643,
+      "sha256": "f5cbc54f084b0a5b2f81a12e32e28ed058e302b5fbd152ef919314e31110ad1e"
+    },
+    {
+      "path": "load-guard-v1.mjs",
+      "bytes": 2450,
+      "sha256": "0c5098f8ad78441d0a002f05ff29ca7f6c473381a94db6e96d7ae85dcc92055c"
+    },
+    {
+      "path": "load-negative-v1.mjs.data",
+      "bytes": 650,
+      "sha256": "cf10fa1da5c1437b76108da925cf6df586aeadf678bd963712918978da250a4a"
+    },
+    {
+      "path": "types-v1.mts.data",
+      "bytes": 3022,
+      "sha256": "2bf84e25975a71b916176d90adf66c344c27967f9384ed6d43f497d965e377ee"
+    },
+    {
+      "path": "capture-v1.mjs",
+      "bytes": 3135,
+      "sha256": "745d02d2ffc87085810df9a339c8152bcd7c5fdfee13e98c7a26a01137074177"
+    },
+    {
+      "path": "startup-capture-v3.mjs",
+      "bytes": 3238,
+      "sha256": "97fbc0901a25c6a50b1f554a0ef8376071a2d8adddd7bb70c0731020b17e63a0"
+    },
+    {
+      "path": "focused-v5.mjs",
+      "bytes": 15950,
+      "sha256": "1f46bf46dc0b460c3e4675d62d7e6ff17d47293514b847eed844dc19dfc3cf45"
+    },
+    {
+      "path": "workers-v5.mjs",
+      "bytes": 13299,
+      "sha256": "116fbc5244eeb635b7e2429d3986d330bb6f1a573e9430edeebcb9aae057fc08"
+    },
+    {
+      "path": "judge-v5.mjs",
+      "bytes": 8915,
+      "sha256": "6d48d8937024b6679aabefa196f76a0ccd206ce49551b7e2d9cf51bcd4b0be7d"
+    },
+    {
+      "path": "case-runner-v5.mjs",
+      "bytes": 1060,
+      "sha256": "8f93dc950bb6f9d49a3e0c833e1cddd1bff46ab4b8d0d085c72ce546fa1de6a9"
+    },
+    {
+      "path": "WORKER-CASES-v5.json",
+      "bytes": 1398,
+      "sha256": "c5b19f8d6b616c3820542de6a90bc5314ba6b84e95534a5997e7d11f05e7b143"
+    },
+    {
+      "path": "MUTATIONS-v5.json",
+      "bytes": 376,
+      "sha256": "7d040b6b484d3ad1f771c724d0641b07b96459b01e0ba0ff2240a0da4fe9eb92"
+    },
+    {
+      "path": "MODULE-v5.json",
+      "bytes": 189595,
+      "sha256": "5210a762b00e1ea614d881a4fb3a3aad1e4953601faca294d20fa0e4af4bbb9d"
+    },
+    {
+      "path": "PARENTS.json",
+      "bytes": 1240,
+      "sha256": "4c7b347d6b45c0d09439b0595ef4b549cb35866759f4cf1c1eecc13108bd768b"
+    },
+    {
+      "path": "STARTUP-QUALIFICATION-v4.json",
+      "bytes": 1993,
+      "sha256": "d386a1d586ce5fbffe26152c9da3dae6f58fa9d3fe47f1751275b48f916ca0ff"
+    },
+    {
+      "path": "owner-v5.mjs",
+      "bytes": 27825,
+      "sha256": "1c2a16300e97e2dab3ed4972bfca94ecae6d8bb301f6e41caaea7b71850926ca"
+    },
+    {
+      "path": "startup-owner-v5.mjs",
+      "bytes": 1938,
+      "sha256": "d68b6f834e9bcece821e27b8f2e945ede16966d6c1b3dd8a211a8ab32547987b"
+    },
+    {
+      "path": "DISPATCH-AUTHOR-v5.mjs.data",
+      "bytes": 5101,
+      "sha256": "9693fa7da56221e3a7693dd5cd13327192451cbbab25cfaf34a5b40dff5054b8"
+    },
+    {
+      "path": "CONTROL-v5.json",
+      "bytes": 3896,
+      "sha256": "32984b5d5edb015f9e53238570cc671b6c946a0f8aa2b393a5f1e77f7e54c6c8"
+    },
+    {
+      "path": "BUILTINS-v5.json",
+      "bytes": 63476,
+      "sha256": "63ab632874fcd85e366c8643d97f976be51b007d8489ce5fe72de5f048e1abce"
+    },
+    {
+      "path": "ROOT-GRANT-v5.json",
+      "bytes": 1412,
+      "sha256": "a255d6424aee3c70fc69b51a8368675fd0fc2fbb2012ca3604c7382ea8422524"
+    }
+  ],
+  "planned": {
+    "strictBuild": 1,
+    "pack": 1,
+    "offlineInstall": 1,
+    "mainWorkerIdentities": 15,
+    "mainWorkerExecutions": 45,
+    "mainGuestCeiling": 42,
+    "focusedIdentities": 12,
+    "mainFocusedExecutions": 36,
+    "mutationFocusedExecutions": 24,
+    "mutationWorkerCeiling": 0,
+    "mutationGuestCeiling": 0,
+    "mutantFamilies": 1,
+    "loadNegativeFamilies": 6,
+    "typePositiveIdentities": 12,
+    "typeNegativeIdentities": 12,
+    "typeProcesses": 6,
+    "captureControls": 0,
+    "judgeControls": 8,
+    "captureControlsInherited": 7
+  },
+  "ceilings": {
+    "ownedOS": 67,
+    "rootAllOwnedOS": 96,
+    "peakOwnedOS": 3,
+    "workers": 45,
+    "guests": 42,
+    "absoluteDeadline": 1787982532154,
+    "captureBytes": 69206016,
+    "workBytes": 805306368
+  },
+  "sourceInputs": 294,
+  "baselineInputs": 278,
+  "baselineFullPackageSha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd",
+  "expectedEmissions": 956,
+  "expectedPackEntries": 958,
+  "baselinePackProjection": 898,
+  "roles": {
+    "source": "strictly source-built ESM, not raw TS execution",
+    "engine": "95 previously authenticated PUBLIC emissions, test-only; not vendored or intrinsically complete containment",
+    "module": "new Node module, direct internal installed import not public root export",
+    "scope": "L entry lifetime retirement; actual Worker exit and cooperative parent cleanup; not all guest jobs settled, RSS, native Node or wholeguest8MiB"
+  },
+  "focusIds": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05",
+    "F06",
+    "F10",
+    "F16-v2",
+    "F17-v2",
+    "F28",
+    "F33",
+    "F34"
+  ],
+  "workerIds": [
+    "W01",
+    "W03",
+    "W04",
+    "W05",
+    "W06",
+    "W08",
+    "W09",
+    "W15",
+    "W16",
+    "W23-v2",
+    "W24",
+    "W26",
+    "W27",
+    "W28",
+    "W29"
+  ],
+  "originalFailuresUnchanged": true
+}

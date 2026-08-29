@@ -1,0 +1,340 @@
+{
+  "status": "SOURCE_DATA_READY_FOR_DIFFERENT_REVIEW_NOT_ACTUAL_GO",
+  "nativeCases": [
+    {
+      "id": "N01",
+      "maps": [
+        "I01-parent-optional-reset",
+        "author-E12"
+      ],
+      "purpose": "optional child omitted in final parent",
+      "programSha256": "fae970d9c16fb57c0c25b022ac1f5576d6b6143a014ff854fe1740a0987237d8",
+      "programBytes": 522,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N02",
+      "maps": [
+        "I02-parent-alternative-reset"
+      ],
+      "purpose": "final alternative differs",
+      "programSha256": "aebbf9e66581de06049b0efa81b69de0002ff92e02b747fa03c75bb31d5b10d6",
+      "programBytes": 523,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N03",
+      "maps": [
+        "I03-nested-parent-reset"
+      ],
+      "purpose": "nested grandchild omission",
+      "programSha256": "8759c0b41b2d5ef3d8b7facaa6f1d3dcbec1a8e537da074fa6a6bd0b5a0dfdfb",
+      "programBytes": 527,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N04",
+      "maps": [
+        "I04-manual-example"
+      ],
+      "purpose": "GNU manual reporting example",
+      "programSha256": "9b5ec481108bb0a88a11f456cfb9ca0864375c518ac56b0a2031db9e5f570931",
+      "programBytes": 535,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N05",
+      "maps": [
+        "I05-finite-parent-reset"
+      ],
+      "purpose": "fixed parent repetition",
+      "programSha256": "7660daee58bd0aee45fe92a50df832e856d767307b8511e4b87a9f7ed1b6a56b",
+      "programBytes": 524,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N06",
+      "maps": [
+        "I06-parent-zero-iteration"
+      ],
+      "purpose": "optional inner zero iteration",
+      "programSha256": "c22e4e91bec435e61a12c70bdf3c874414e6c33c788ecb1bbd1eb074347dd8ce",
+      "programBytes": 524,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N07",
+      "maps": [
+        "I23-finite-reset-property"
+      ],
+      "purpose": "one finite reverse-alternative witness, NOT all62 property inputs",
+      "programSha256": "8eb5848ac4ff55db4dc344a5534f52c0897fc6021695d806f7e0a553363f57e2",
+      "programBytes": 523,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N08",
+      "maps": [],
+      "purpose": "final inner participation control",
+      "programSha256": "baabccf6822de2f828151262377087de08f626a143f5f22ba47a10985ea97a37",
+      "programBytes": 521,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N09",
+      "maps": [],
+      "purpose": "optional omission shell-visible reporting control",
+      "programSha256": "c5d4b8bb303e46d12f4d29767cb6e9381cbc60ad7bf267e3c167fc3c6fbff373",
+      "programBytes": 517,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N10",
+      "maps": [],
+      "purpose": "empty captured string reporting control",
+      "programSha256": "de8a08419505d8631802efb8ad1f8478f7763ba23af0ff017a67e6205cabffea",
+      "programBytes": 517,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N11",
+      "maps": [],
+      "purpose": "nonmatch observation control",
+      "programSha256": "349779fccfea64c43ff609fd67f335c03f24b0f63752c97e56acffc3d5335c97",
+      "programBytes": 515,
+      "status": "UNRUN"
+    },
+    {
+      "id": "N12",
+      "maps": [],
+      "purpose": "invalid ERE status observation control",
+      "programSha256": "30419eefab37b3177fc0160bf274522d3299f567b0eae81a21bb57891c0deda8",
+      "programBytes": 513,
+      "status": "UNRUN"
+    }
+  ],
+  "fixtures": [],
+  "sourceModules": 9,
+  "syntax": "9 new/proposed JS modules parsed unlinked; no entry imports",
+  "actualControls": 0,
+  "nativeExecutions": 0,
+  "namespaceCreated": false,
+  "toolMetadata": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "observedAt": "2026-08-29T09:07:47.839Z",
+      "operation": "metadata/stream-hash only"
+    },
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "observedAt": "2026-08-29T09:07:47.845Z",
+      "operation": "metadata/stream-hash only"
+    },
+    {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "phase": "metadata-read-only-not-executed",
+      "observedAt": "2026-08-29T09:07:47.846Z",
+      "operation": "metadata/stream-hash only"
+    },
+    {
+      "schema": "functional-wrapper-tool-metadata-v2",
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "mode": 493,
+      "regular": true,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "version": "NOT_PROBED",
+      "execution": "NONE_THIS_PHASE",
+      "scope": "platform tool wrapper only; not Bash reference",
+      "preexecutionRequired": true,
+      "observedAt": "2026-08-29T09:07:47.850Z",
+      "operation": "metadata/stream-hash only"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "TOOLS.json",
+      "bytes": 3067,
+      "mode": 384,
+      "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a"
+    },
+    {
+      "path": "VERSION-PROVENANCE.json",
+      "bytes": 1323,
+      "mode": 384,
+      "sha256": "e9f0e3ca2c0b8c7570092d2ecebae33e7713d78e17639088a0f48a74e93ff7cb"
+    },
+    {
+      "path": "programs/N01.bash.data",
+      "bytes": 522,
+      "mode": 384,
+      "sha256": "fae970d9c16fb57c0c25b022ac1f5576d6b6143a014ff854fe1740a0987237d8"
+    },
+    {
+      "path": "programs/N02.bash.data",
+      "bytes": 523,
+      "mode": 384,
+      "sha256": "aebbf9e66581de06049b0efa81b69de0002ff92e02b747fa03c75bb31d5b10d6"
+    },
+    {
+      "path": "programs/N03.bash.data",
+      "bytes": 527,
+      "mode": 384,
+      "sha256": "8759c0b41b2d5ef3d8b7facaa6f1d3dcbec1a8e537da074fa6a6bd0b5a0dfdfb"
+    },
+    {
+      "path": "programs/N04.bash.data",
+      "bytes": 535,
+      "mode": 384,
+      "sha256": "9b5ec481108bb0a88a11f456cfb9ca0864375c518ac56b0a2031db9e5f570931"
+    },
+    {
+      "path": "programs/N05.bash.data",
+      "bytes": 524,
+      "mode": 384,
+      "sha256": "7660daee58bd0aee45fe92a50df832e856d767307b8511e4b87a9f7ed1b6a56b"
+    },
+    {
+      "path": "programs/N06.bash.data",
+      "bytes": 524,
+      "mode": 384,
+      "sha256": "c22e4e91bec435e61a12c70bdf3c874414e6c33c788ecb1bbd1eb074347dd8ce"
+    },
+    {
+      "path": "programs/N07.bash.data",
+      "bytes": 523,
+      "mode": 384,
+      "sha256": "8eb5848ac4ff55db4dc344a5534f52c0897fc6021695d806f7e0a553363f57e2"
+    },
+    {
+      "path": "programs/N08.bash.data",
+      "bytes": 521,
+      "mode": 384,
+      "sha256": "baabccf6822de2f828151262377087de08f626a143f5f22ba47a10985ea97a37"
+    },
+    {
+      "path": "programs/N09.bash.data",
+      "bytes": 517,
+      "mode": 384,
+      "sha256": "c5d4b8bb303e46d12f4d29767cb6e9381cbc60ad7bf267e3c167fc3c6fbff373"
+    },
+    {
+      "path": "programs/N10.bash.data",
+      "bytes": 517,
+      "mode": 384,
+      "sha256": "de8a08419505d8631802efb8ad1f8478f7763ba23af0ff017a67e6205cabffea"
+    },
+    {
+      "path": "programs/N11.bash.data",
+      "bytes": 515,
+      "mode": 384,
+      "sha256": "349779fccfea64c43ff609fd67f335c03f24b0f63752c97e56acffc3d5335c97"
+    },
+    {
+      "path": "programs/N12.bash.data",
+      "bytes": 513,
+      "mode": 384,
+      "sha256": "30419eefab37b3177fc0160bf274522d3299f567b0eae81a21bb57891c0deda8"
+    },
+    {
+      "path": "COHORT.json",
+      "bytes": 13100,
+      "mode": 384,
+      "sha256": "4e5efbe3ad419ab32f073eb2cffebcd39e564ba9fe9c75d38e67a7f9d5e4201e"
+    },
+    {
+      "path": "REQUESTS.json",
+      "bytes": 14844,
+      "mode": 384,
+      "sha256": "2678d8619553f9d8d9669f078c29847c65c31984ebd0ab6bdeeea271a213acc8"
+    },
+    {
+      "path": "PROTOCOL.json",
+      "bytes": 1881,
+      "mode": 384,
+      "sha256": "948519ae3d428f24ae666c8d6f9961779e08e9e37e0a3a2708994f9630d91828"
+    },
+    {
+      "path": "draft/entry.mjs.data",
+      "bytes": 7058,
+      "mode": 384,
+      "sha256": "a833478431d60edcae64163db2883643f8b7167b98c80fc4ce7c5c179bb76cf1"
+    },
+    {
+      "path": "draft/admission.mjs.data",
+      "bytes": 3957,
+      "mode": 384,
+      "sha256": "17fc38cd73223b56aad0d5b5f5d1b37a1b56553bec34cba11122582668b7792d"
+    },
+    {
+      "path": "draft/capture.mjs.data",
+      "bytes": 1888,
+      "mode": 384,
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009"
+    },
+    {
+      "path": "draft/lifecycle.mjs.data",
+      "bytes": 5280,
+      "mode": 384,
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd"
+    },
+    {
+      "path": "draft/group-observer.mjs.data",
+      "bytes": 759,
+      "mode": 384,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417"
+    },
+    {
+      "path": "draft/observer-state.mjs.data",
+      "bytes": 1240,
+      "mode": 384,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74"
+    },
+    {
+      "path": "draft/state.mjs.data",
+      "bytes": 1824,
+      "mode": 384,
+      "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae"
+    },
+    {
+      "path": "draft/storage.mjs.data",
+      "bytes": 3583,
+      "mode": 384,
+      "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9"
+    },
+    {
+      "path": "draft/observation.mjs.data",
+      "bytes": 1763,
+      "mode": 384,
+      "sha256": "5f823a028913988d6dd65a66ec1900c0a279455bcff8f504fbaeb8b67cb90e13"
+    },
+    {
+      "path": "SOURCE-DELTA.json",
+      "bytes": 7532,
+      "mode": 384,
+      "sha256": "1e93fcbb26febeb5c3586aaaee051d15480df3beac66ad63873e834a65ebb9f2"
+    },
+    {
+      "path": "APPROVAL-PROPOSAL.template.json",
+      "bytes": 2595,
+      "mode": 384,
+      "sha256": "ac31d4d5e36efc135ac9f3a398c42ca6138175db8a51eb5b62bf3596a098c303"
+    },
+    {
+      "path": "PREEXEC-CONTROLS-PROPOSAL.json",
+      "bytes": 2062,
+      "mode": 384,
+      "sha256": "4722e0b146e2c05939d6d8daa2afb06c00e4109fac863c69b80f079d0c3b1c79"
+    }
+  ],
+  "outputBytes": 80017
+}

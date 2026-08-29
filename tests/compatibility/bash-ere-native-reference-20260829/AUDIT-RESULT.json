@@ -1,0 +1,290 @@
+{
+  "at": "2026-08-29T09:11:50.510Z",
+  "status": "SOURCE_DATA_PREPARATION_ONLY",
+  "programs": [
+    {
+      "id": "N01",
+      "bytes": 522,
+      "sha256": "fae970d9c16fb57c0c25b022ac1f5576d6b6143a014ff854fe1740a0987237d8",
+      "completeBodyInspected": true,
+      "loopIterations": 4,
+      "externalCommands": [],
+      "filesystemOperations": [],
+      "stdinBytes": 0,
+      "sourceForkReservations": 0,
+      "native": "UNRUN"
+    },
+    {
+      "id": "N02",
+      "bytes": 523,
+      "sha256": "aebbf9e66581de06049b0efa81b69de0002ff92e02b747fa03c75bb31d5b10d6",
+      "completeBodyInspected": true,
+      "loopIterations": 4,
+      "externalCommands": [],
+      "filesystemOperations": [],
+      "stdinBytes": 0,
+      "sourceForkReservations": 0,
+      "native": "UNRUN"
+    },
+    {
+      "id": "N03",
+      "bytes": 527,
+      "sha256": "8759c0b41b2d5ef3d8b7facaa6f1d3dcbec1a8e537da074fa6a6bd0b5a0dfdfb",
+      "completeBodyInspected": true,
+      "loopIterations": 4,
+      "externalCommands": [],
+      "filesystemOperations": [],
+      "stdinBytes": 0,
+      "sourceForkReservations": 0,
+      "native": "UNRUN"
+    },
+    {
+      "id": "N04",
+      "bytes": 535,
+      "sha256": "9b5ec481108bb0a88a11f456cfb9ca0864375c518ac56b0a2031db9e5f570931",
+      "completeBodyInspected": true,
+      "loopIterations": 4,
+      "externalCommands": [],
+      "filesystemOperations": [],
+      "stdinBytes": 0,
+      "sourceForkReservations": 0,
+      "native": "UNRUN"
+    },
+    {
+      "id": "N05",
+      "bytes": 524,
+      "sha256": "7660daee58bd0aee45fe92a50df832e856d767307b8511e4b87a9f7ed1b6a56b",
+      "completeBodyInspected": true,
+      "loopIterations": 4,
+      "externalCommands": [],
+      "filesystemOperations": [],
+      "stdinBytes": 0,
+      "sourceForkReservations": 0,
+      "native": "UNRUN"
+    },
+    {
+      "id": "N06",
+      "bytes": 524,
+      "sha256": "c22e4e91bec435e61a12c70bdf3c874414e6c33c788ecb1bbd1eb074347dd8ce",
+      "completeBodyInspected": true,
+      "loopIterations": 4,
+      "externalCommands": [],
+      "filesystemOperations": [],
+      "stdinBytes": 0,
+      "sourceForkReservations": 0,
+      "native": "UNRUN"
+    },
+    {
+      "id": "N07",
+      "bytes": 523,
+      "sha256": "8eb5848ac4ff55db4dc344a5534f52c0897fc6021695d806f7e0a553363f57e2",
+      "completeBodyInspected": true,
+      "loopIterations": 4,
+      "externalCommands": [],
+      "filesystemOperations": [],
+      "stdinBytes": 0,
+      "sourceForkReservations": 0,
+      "native": "UNRUN"
+    },
+    {
+      "id": "N08",
+      "bytes": 521,
+      "sha256": "baabccf6822de2f828151262377087de08f626a143f5f22ba47a10985ea97a37",
+      "completeBodyInspected": true,
+      "loopIterations": 4,
+      "externalCommands": [],
+      "filesystemOperations": [],
+      "stdinBytes": 0,
+      "sourceForkReservations": 0,
+      "native": "UNRUN"
+    },
+    {
+      "id": "N09",
+      "bytes": 517,
+      "sha256": "c5d4b8bb303e46d12f4d29767cb6e9381cbc60ad7bf267e3c167fc3c6fbff373",
+      "completeBodyInspected": true,
+      "loopIterations": 4,
+      "externalCommands": [],
+      "filesystemOperations": [],
+      "stdinBytes": 0,
+      "sourceForkReservations": 0,
+      "native": "UNRUN"
+    },
+    {
+      "id": "N10",
+      "bytes": 517,
+      "sha256": "de8a08419505d8631802efb8ad1f8478f7763ba23af0ff017a67e6205cabffea",
+      "completeBodyInspected": true,
+      "loopIterations": 4,
+      "externalCommands": [],
+      "filesystemOperations": [],
+      "stdinBytes": 0,
+      "sourceForkReservations": 0,
+      "native": "UNRUN"
+    },
+    {
+      "id": "N11",
+      "bytes": 515,
+      "sha256": "349779fccfea64c43ff609fd67f335c03f24b0f63752c97e56acffc3d5335c97",
+      "completeBodyInspected": true,
+      "loopIterations": 4,
+      "externalCommands": [],
+      "filesystemOperations": [],
+      "stdinBytes": 0,
+      "sourceForkReservations": 0,
+      "native": "UNRUN"
+    },
+    {
+      "id": "N12",
+      "bytes": 513,
+      "sha256": "30419eefab37b3177fc0160bf274522d3299f567b0eae81a21bb57891c0deda8",
+      "completeBodyInspected": true,
+      "loopIterations": 4,
+      "externalCommands": [],
+      "filesystemOperations": [],
+      "stdinBytes": 0,
+      "sourceForkReservations": 0,
+      "native": "UNRUN"
+    }
+  ],
+  "fixtureInventory": [],
+  "imports": [
+    {
+      "module": "entry.mjs",
+      "dependencies": [
+        "node:fs",
+        "node:path",
+        "node:process",
+        "node:url",
+        "./storage.mjs",
+        "./state.mjs",
+        "./admission.mjs",
+        "./lifecycle.mjs",
+        "./capture.mjs",
+        "./observation.mjs"
+      ],
+      "role": "parsed only, not linked/evaluated"
+    },
+    {
+      "module": "admission.mjs",
+      "dependencies": [
+        "node:fs",
+        "node:path",
+        "node:crypto"
+      ],
+      "role": "parsed only, not linked/evaluated"
+    },
+    {
+      "module": "capture.mjs",
+      "dependencies": [
+        "node:fs",
+        "node:crypto"
+      ],
+      "role": "parsed only, not linked/evaluated"
+    },
+    {
+      "module": "lifecycle.mjs",
+      "dependencies": [
+        "node:fs",
+        "node:child_process",
+        "./group-observer.mjs",
+        "./state.mjs",
+        "./capture.mjs"
+      ],
+      "role": "parsed only, not linked/evaluated"
+    },
+    {
+      "module": "group-observer.mjs",
+      "dependencies": [
+        "node:process",
+        "./observer-state.mjs"
+      ],
+      "role": "parsed only, not linked/evaluated"
+    },
+    {
+      "module": "observer-state.mjs",
+      "dependencies": [],
+      "role": "parsed only, not linked/evaluated"
+    },
+    {
+      "module": "state.mjs",
+      "dependencies": [],
+      "role": "parsed only, not linked/evaluated"
+    },
+    {
+      "module": "storage.mjs",
+      "dependencies": [
+        "node:fs",
+        "node:path"
+      ],
+      "role": "parsed only, not linked/evaluated"
+    },
+    {
+      "module": "observation.mjs",
+      "dependencies": [
+        "node:crypto"
+      ],
+      "role": "parsed only, not linked/evaluated"
+    }
+  ],
+  "versionHistory": {
+    "commit": "822e82a70dfebc071d3b6e27bc78967afa40a993",
+    "files": [
+      {
+        "mode": "100644",
+        "blob": "01aa80027126da75debabd1ac07228b89dde7ad1",
+        "path": "tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/VERSION-ADMISSION.json",
+        "bytes": 993,
+        "sha256": "9aabc47c327beec378ca58e3b7836c8858ec162cc274fafffea334174d7a2438",
+        "capture": "VERSION-ADMISSION.json.data"
+      },
+      {
+        "mode": "100644",
+        "blob": "0ca6a475b87e02e93eaa19637729e5a1b77a8b99",
+        "path": "tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/VERSION-POST-IDENTITY.json",
+        "bytes": 196,
+        "sha256": "d2049615ddf1379b8783fb2ec8e6fa3050ce963d0864fbacd4cb8d5836a1b8a6",
+        "capture": "VERSION-POST-IDENTITY.json.data"
+      },
+      {
+        "mode": "100644",
+        "blob": "495a07c5ed30f799f7b1346328aebbcf01b88de1",
+        "path": "tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/VERSION-RESULT.json",
+        "bytes": 538,
+        "sha256": "26bc52b3448a0266db45fd2b4690be12f9b85aacba26828b491cf8d85cded29d",
+        "capture": "VERSION-RESULT.json.data"
+      },
+      {
+        "mode": "100644",
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "path": "tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/bash-version.stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "capture": "bash-version.stderr.raw.data"
+      },
+      {
+        "mode": "100644",
+        "blob": "31f51dc2cf78c668920c2caeabf58df7fac9ed12",
+        "path": "tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/bash-version.stdout.raw",
+        "bytes": 109,
+        "sha256": "bbb931c0afdf20554fcb03c4414a67092e2d8db87226567a6ad5be3c1bcc1a15",
+        "capture": "bash-version.stdout.raw.data"
+      }
+    ],
+    "newExecutions": 0
+  },
+  "initialGeneratorPredicate": "NOT relied on; exact full-body checks used",
+  "preexecControls": {
+    "proposed": 12,
+    "executed": 0
+  },
+  "nativeObservations": {
+    "planned": 12,
+    "executed": 0
+  },
+  "entryImports": 0,
+  "namespaceMaterialized": false,
+  "approvalRequested": false,
+  "authority": "new independent review and fresh ROOT activation required",
+  "readBytes": 112190
+}

@@ -1,0 +1,2 @@
+{"event":"start","at":"2026-08-29T09:07:47.766Z","role":"SOURCE/DATA preparation"}
+{"event":"complete","outputBytes":90135,"files":30,"cases":12,"modules":9,"actualGo":false}

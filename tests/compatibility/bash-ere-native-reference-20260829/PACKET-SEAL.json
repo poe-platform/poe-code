@@ -1,0 +1,215 @@
+{
+  "schema": "ere-reference-preparation-seal-v1",
+  "role": "SOURCE/DATA; NOT runtime PRESEAL and NOT GO",
+  "createdAt": "2026-08-29T09:11:50.515Z",
+  "files": [
+    {
+      "path": "HANDOFF.md",
+      "bytes": 9225,
+      "mode": 420,
+      "sha256": "b43855f6178ebd359a99e3f25d457934576d6a886371f1354006e249b0dadc87"
+    },
+    {
+      "path": "PREPARATION.md",
+      "bytes": 2287,
+      "mode": 420,
+      "sha256": "47f08f2f362252399be14fa833c536231ce2acb87de36b2166ea0a432f6c5e8c"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 15664,
+      "mode": 420,
+      "sha256": "5c66a49178e62c12614c56dfd16e31b862cbfab067cac3d2dd9b75714be4d80d"
+    },
+    {
+      "path": "audit.mjs",
+      "bytes": 9358,
+      "mode": 420,
+      "sha256": "a91875bc0dfc13f739aa16eeb45ad66b8447d90fe0ef17aa32cf742d0fab654c"
+    },
+    {
+      "path": "COHORT.json",
+      "bytes": 13100,
+      "mode": 384,
+      "sha256": "4e5efbe3ad419ab32f073eb2cffebcd39e564ba9fe9c75d38e67a7f9d5e4201e"
+    },
+    {
+      "path": "REQUESTS.json",
+      "bytes": 14844,
+      "mode": 384,
+      "sha256": "2678d8619553f9d8d9669f078c29847c65c31984ebd0ab6bdeeea271a213acc8"
+    },
+    {
+      "path": "PROTOCOL.json",
+      "bytes": 1881,
+      "mode": 384,
+      "sha256": "948519ae3d428f24ae666c8d6f9961779e08e9e37e0a3a2708994f9630d91828"
+    },
+    {
+      "path": "TOOLS.json",
+      "bytes": 3067,
+      "mode": 384,
+      "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a"
+    },
+    {
+      "path": "VERSION-PROVENANCE.json",
+      "bytes": 1323,
+      "mode": 384,
+      "sha256": "e9f0e3ca2c0b8c7570092d2ecebae33e7713d78e17639088a0f48a74e93ff7cb"
+    },
+    {
+      "path": "SOURCE-DELTA.json",
+      "bytes": 7532,
+      "mode": 384,
+      "sha256": "1e93fcbb26febeb5c3586aaaee051d15480df3beac66ad63873e834a65ebb9f2"
+    },
+    {
+      "path": "PREEXEC-CONTROLS-PROPOSAL.json",
+      "bytes": 2062,
+      "mode": 384,
+      "sha256": "4722e0b146e2c05939d6d8daa2afb06c00e4109fac863c69b80f079d0c3b1c79"
+    },
+    {
+      "path": "APPROVAL-PROPOSAL.template.json",
+      "bytes": 2595,
+      "mode": 384,
+      "sha256": "ac31d4d5e36efc135ac9f3a398c42ca6138175db8a51eb5b62bf3596a098c303"
+    },
+    {
+      "path": "AUDIT-RESULT.json",
+      "bytes": 8461,
+      "mode": 384,
+      "sha256": "46d9ff6e70ec1cb2e6702d21ce2de9b4fcff9388e0704e1930dbc9906fcdcc2c"
+    },
+    {
+      "path": "programs/N01.bash.data",
+      "bytes": 522,
+      "mode": 384,
+      "sha256": "fae970d9c16fb57c0c25b022ac1f5576d6b6143a014ff854fe1740a0987237d8"
+    },
+    {
+      "path": "programs/N02.bash.data",
+      "bytes": 523,
+      "mode": 384,
+      "sha256": "aebbf9e66581de06049b0efa81b69de0002ff92e02b747fa03c75bb31d5b10d6"
+    },
+    {
+      "path": "programs/N03.bash.data",
+      "bytes": 527,
+      "mode": 384,
+      "sha256": "8759c0b41b2d5ef3d8b7facaa6f1d3dcbec1a8e537da074fa6a6bd0b5a0dfdfb"
+    },
+    {
+      "path": "programs/N04.bash.data",
+      "bytes": 535,
+      "mode": 384,
+      "sha256": "9b5ec481108bb0a88a11f456cfb9ca0864375c518ac56b0a2031db9e5f570931"
+    },
+    {
+      "path": "programs/N05.bash.data",
+      "bytes": 524,
+      "mode": 384,
+      "sha256": "7660daee58bd0aee45fe92a50df832e856d767307b8511e4b87a9f7ed1b6a56b"
+    },
+    {
+      "path": "programs/N06.bash.data",
+      "bytes": 524,
+      "mode": 384,
+      "sha256": "c22e4e91bec435e61a12c70bdf3c874414e6c33c788ecb1bbd1eb074347dd8ce"
+    },
+    {
+      "path": "programs/N07.bash.data",
+      "bytes": 523,
+      "mode": 384,
+      "sha256": "8eb5848ac4ff55db4dc344a5534f52c0897fc6021695d806f7e0a553363f57e2"
+    },
+    {
+      "path": "programs/N08.bash.data",
+      "bytes": 521,
+      "mode": 384,
+      "sha256": "baabccf6822de2f828151262377087de08f626a143f5f22ba47a10985ea97a37"
+    },
+    {
+      "path": "programs/N09.bash.data",
+      "bytes": 517,
+      "mode": 384,
+      "sha256": "c5d4b8bb303e46d12f4d29767cb6e9381cbc60ad7bf267e3c167fc3c6fbff373"
+    },
+    {
+      "path": "programs/N10.bash.data",
+      "bytes": 517,
+      "mode": 384,
+      "sha256": "de8a08419505d8631802efb8ad1f8478f7763ba23af0ff017a67e6205cabffea"
+    },
+    {
+      "path": "programs/N11.bash.data",
+      "bytes": 515,
+      "mode": 384,
+      "sha256": "349779fccfea64c43ff609fd67f335c03f24b0f63752c97e56acffc3d5335c97"
+    },
+    {
+      "path": "programs/N12.bash.data",
+      "bytes": 513,
+      "mode": 384,
+      "sha256": "30419eefab37b3177fc0160bf274522d3299f567b0eae81a21bb57891c0deda8"
+    },
+    {
+      "path": "draft/entry.mjs.data",
+      "bytes": 7058,
+      "mode": 384,
+      "sha256": "a833478431d60edcae64163db2883643f8b7167b98c80fc4ce7c5c179bb76cf1"
+    },
+    {
+      "path": "draft/admission.mjs.data",
+      "bytes": 3957,
+      "mode": 384,
+      "sha256": "17fc38cd73223b56aad0d5b5f5d1b37a1b56553bec34cba11122582668b7792d"
+    },
+    {
+      "path": "draft/capture.mjs.data",
+      "bytes": 1888,
+      "mode": 384,
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009"
+    },
+    {
+      "path": "draft/lifecycle.mjs.data",
+      "bytes": 5280,
+      "mode": 384,
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd"
+    },
+    {
+      "path": "draft/group-observer.mjs.data",
+      "bytes": 759,
+      "mode": 384,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417"
+    },
+    {
+      "path": "draft/observer-state.mjs.data",
+      "bytes": 1240,
+      "mode": 384,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74"
+    },
+    {
+      "path": "draft/state.mjs.data",
+      "bytes": 1824,
+      "mode": 384,
+      "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae"
+    },
+    {
+      "path": "draft/storage.mjs.data",
+      "bytes": 3583,
+      "mode": 384,
+      "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9"
+    },
+    {
+      "path": "draft/observation.mjs.data",
+      "bytes": 1763,
+      "mode": 384,
+      "sha256": "5f823a028913988d6dd65a66ec1900c0a279455bcff8f504fbaeb8b67cb90e13"
+    }
+  ],
+  "parentSource": "4eea354169492b4c47d373d504e5918e1c4f3830",
+  "parentPresealSha256": "ffee6eafb226ead4f9a15351c2964693971dfff7004b0d96cd6f9d0ca6098533",
+  "native": "UNRUN",
+  "controls": "PROPOSED_UNRUN"
+}

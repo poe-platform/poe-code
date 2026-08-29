@@ -1,0 +1,8 @@
+{"event":"begin","at":"2026-08-29T09:11:50.305Z","role":"SOURCE/DATA audit only"}
+{"event":"start","args":["status","--short","--untracked-files=no"]}
+{"event":"retired","pid":49919,"status":0,"signal":null,"stdout":" M tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/regex-worker-instrumented-v3-20260829/EVIDENCE.json\n","stderr":""}
+{"event":"start","args":["ls-tree","-r","-z","822e82a70dfebc071d3b6e27bc78967afa40a993","--","tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/VERSION-ADMISSION.json","tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/VERSION-POST-IDENTITY.json","tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/VERSION-RESULT.json","tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/bash-version.stdout.raw","tests/compatibility/bash-reference-preparation-20260829/acquisition-v1/RUN-01/bash-version.stderr.raw"]}
+{"event":"retired","pid":49921,"status":0,"signal":null,"stderr":""}
+{"event":"start","args":["cat-file","--batch"]}
+{"event":"retired","pid":49923,"status":0,"signal":null,"stderr":""}
+{"event":"complete","programs":12,"draftModules":9,"versionFiles":5,"readBytes":237202,"packetSha256":"7ceac39234b1ce5e789bfb9d5452ec9cf7c718284c2ce78b8c5434dad64a42a1"}

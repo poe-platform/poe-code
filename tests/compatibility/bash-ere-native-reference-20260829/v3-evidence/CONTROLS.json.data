@@ -1,0 +1,58 @@
+{
+  "schema": "functional-reference-v3-data-controls",
+  "identities": [
+    {
+      "id": "D01",
+      "kind": "DATA",
+      "now": 100,
+      "bodyCutoff": 90,
+      "finalDeadline": 100,
+      "behavior": "inclusive final boundary; expired body still permits terminal and eligible observation credit",
+      "expected": "one open/write/fsync/close; qualified true; one credit"
+    },
+    {
+      "id": "D02",
+      "kind": "DATA",
+      "now": 101,
+      "finalDeadline": 100,
+      "behavior": "already expired final blocks terminal and observation credit",
+      "expected": "FINALIZATION_DEADLINE; zero IO and zero credit"
+    },
+    {
+      "id": "D03",
+      "kind": "DATA",
+      "now": 100,
+      "finalDeadline": 100,
+      "behavior": "open begins at inclusive boundary then advances clock to101",
+      "expected": "no write/flush; close independently; deadline primary; no qualification"
+    },
+    {
+      "id": "D04",
+      "kind": "DATA",
+      "now": 99,
+      "finalDeadline": 100,
+      "behavior": "fsync throws original reason; first close throws distinct secondary; second close succeeds",
+      "expected": "original reason identity; secondary identity retained; closed true but qualified false; no credit"
+    },
+    {
+      "id": "D05",
+      "kind": "DATA",
+      "now": 99,
+      "finalDeadline": 100,
+      "behavior": "close returns after clock advances to101",
+      "expected": "already-written bytes remain; final deadline refusal; late cleanup explicitly true; no qualification or credit"
+    },
+    {
+      "id": "D06",
+      "kind": "DATA",
+      "now": 99,
+      "finalDeadline": 100,
+      "behavior": "eligible observation receipt record returns after advancing clock to101",
+      "expected": "READY_FOR_CREDIT event only; no completed increment; terminal refused without IO"
+    }
+  ],
+  "actualNewChildStarts": 0,
+  "native": 0,
+  "entryImports": 0,
+  "qualification": "Injected clock and terminal operations; no real fsync fault/10-minute wait/process lifecycle evidence"
+}

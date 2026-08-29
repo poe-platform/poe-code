@@ -1,0 +1,176 @@
+{
+  "parentSource": "4eea354169492b4c47d373d504e5918e1c4f3830",
+  "parentEvidence": "73065e68469e2e514c0ee87ff34ac1db04ba51cb",
+  "parentPresealSha256": "ffee6eafb226ead4f9a15351c2964693971dfff7004b0d96cd6f9d0ca6098533",
+  "changes": [
+    {
+      "file": "entry.mjs",
+      "before": "const root='/private/tmp/safe-bash-surface-functional-v3-20260829-01';",
+      "after": "const root='/private/tmp/safe-bash-ere-native-observations-20260829-v1';"
+    },
+    {
+      "file": "entry.mjs",
+      "before": "new ManagedLedger(80,6)",
+      "after": "new ManagedLedger(13,2)"
+    },
+    {
+      "file": "entry.mjs",
+      "before": "import {finalizeCaptures} from './capture.mjs';",
+      "after": "import {finalizeCaptures} from './capture.mjs';\nimport {decodeObservation} from './observation.mjs';"
+    },
+    {
+      "file": "entry.mjs",
+      "before": "directory+'/AUDIT.json'",
+      "after": "directory+'/COHORT.json'"
+    },
+    {
+      "file": "entry.mjs",
+      "before": "row.path==='AUDIT.json'",
+      "after": "row.path==='COHORT.json'"
+    },
+    {
+      "file": "entry.mjs",
+      "before": "audit.cases.filter(row=>!['B26','B27','B28'].includes(row.id)).map(row=>row.id)",
+      "after": "audit.cases.map(row=>row.id)"
+    },
+    {
+      "file": "entry.mjs",
+      "before": "expectedIds.length===37,'EXACT37'",
+      "after": "expectedIds.length===12,'EXACT12'"
+    },
+    {
+      "file": "entry.mjs",
+      "before": "literal.program,'surface-case'",
+      "after": "literal.program,'ere-capture-case'"
+    },
+    {
+      "file": "entry.mjs",
+      "before": "  for(const fixture of audit.fixtures){assert(['a.txt','b.txt','.hidden','source-fixture'].includes(fixture.path),'FIXTURE_PATH');const bytes=Buffer.from(fixture.base64,'base64');assert(hash(bytes)===fixture.sha256&&bytes.length===fixture.bytes,'FIXTURE_BYTES');storage.write(caseRoot+'/work/'+fixture.path,bytes);}",
+      "after": "  assert(Array.isArray(audit.fixtures)&&audit.fixtures.length===0,'NO_FIXTURES');"
+    },
+    {
+      "file": "entry.mjs",
+      "before": "assert(ledger.sourceForkReservations<=13,'SOURCE_RESERVATION_DRIFT');",
+      "after": "assert(request.extraProcessReservation===0&&ledger.sourceForkReservations===0,'SOURCE_RESERVATION_DRIFT');"
+    },
+    {
+      "file": "entry.mjs",
+      "before": "  row.filesBefore=before;row.filesAfter=snapshot(caseRoot);const expected=new Map(before.map(item=>[item.path,item]));for(const item of row.filesAfter){const prior=expected.get(item.path);if(prior){assert(JSON.stringify(item)===JSON.stringify(prior),'FIXTURE_MUTATION');expected.delete(item.path);}else assert(['B23','B25'].includes(row.id)&&item.path==='work/out'&&item.type==='file'&&Buffer.from(item.base64,'base64').length<=2,'UNEXPECTED_EFFECT');}assert(expected.size===0,'FIXTURE_DELETION');row.filesVerified=true;",
+      "after": "  row.filesBefore=before;row.filesAfter=snapshot(caseRoot);assert(JSON.stringify(row.filesAfter)===JSON.stringify(before),'UNEXPECTED_EFFECT');row.filesVerified=true;row.observation=decodeObservation(row);"
+    },
+    {
+      "file": "entry.mjs",
+      "before": "schema:'functional-native-observations-v3'",
+      "after": "schema:'ere-native-capture-observations-v1'"
+    },
+    {
+      "file": "admission.mjs",
+      "before": "functional-reference-independent-acceptance-v3",
+      "after": "ere-capture-independent-acceptance-v1"
+    },
+    {
+      "file": "admission.mjs",
+      "before": "functional-reference-root-grant-v3",
+      "after": "ere-capture-root-grant-v1"
+    },
+    {
+      "file": "admission.mjs",
+      "before": "'functional-reference-v3'",
+      "after": "'ere-capture-reference-v1'",
+      "occurrences": 2
+    }
+  ],
+  "moduleBindings": [
+    {
+      "path": "draft/entry.mjs.data",
+      "bytes": 7058,
+      "mode": 384,
+      "sha256": "a833478431d60edcae64163db2883643f8b7167b98c80fc4ce7c5c179bb76cf1",
+      "runtimePath": "entry.mjs",
+      "role": "inert proposed runtime body; parsed only, never linked or executed",
+      "parentSha256": "29dee367786c98d4fc2e8f0dd448da5278a177b318b4a1a1f307d23cb51a9d30",
+      "changed": true
+    },
+    {
+      "path": "draft/admission.mjs.data",
+      "bytes": 3957,
+      "mode": 384,
+      "sha256": "17fc38cd73223b56aad0d5b5f5d1b37a1b56553bec34cba11122582668b7792d",
+      "runtimePath": "admission.mjs",
+      "role": "inert proposed runtime body; parsed only, never linked or executed",
+      "parentSha256": "04c3cdacc18a2ef331e45ec8f0c4b9c7578ae944eccab9e472e38cc26e614bdc",
+      "changed": true
+    },
+    {
+      "path": "draft/capture.mjs.data",
+      "bytes": 1888,
+      "mode": 384,
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+      "runtimePath": "capture.mjs",
+      "role": "inert proposed runtime body; parsed only, never linked or executed",
+      "parentSha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009",
+      "changed": false
+    },
+    {
+      "path": "draft/lifecycle.mjs.data",
+      "bytes": 5280,
+      "mode": 384,
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+      "runtimePath": "lifecycle.mjs",
+      "role": "inert proposed runtime body; parsed only, never linked or executed",
+      "parentSha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd",
+      "changed": false
+    },
+    {
+      "path": "draft/group-observer.mjs.data",
+      "bytes": 759,
+      "mode": 384,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "runtimePath": "group-observer.mjs",
+      "role": "inert proposed runtime body; parsed only, never linked or executed",
+      "parentSha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417",
+      "changed": false
+    },
+    {
+      "path": "draft/observer-state.mjs.data",
+      "bytes": 1240,
+      "mode": 384,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "runtimePath": "observer-state.mjs",
+      "role": "inert proposed runtime body; parsed only, never linked or executed",
+      "parentSha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74",
+      "changed": false
+    },
+    {
+      "path": "draft/state.mjs.data",
+      "bytes": 1824,
+      "mode": 384,
+      "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+      "runtimePath": "state.mjs",
+      "role": "inert proposed runtime body; parsed only, never linked or executed",
+      "parentSha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae",
+      "changed": false
+    },
+    {
+      "path": "draft/storage.mjs.data",
+      "bytes": 3583,
+      "mode": 384,
+      "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+      "runtimePath": "storage.mjs",
+      "role": "inert proposed runtime body; parsed only, never linked or executed",
+      "parentSha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9",
+      "changed": false
+    },
+    {
+      "path": "draft/observation.mjs.data",
+      "bytes": 1763,
+      "mode": 384,
+      "sha256": "5f823a028913988d6dd65a66ec1900c0a279455bcff8f504fbaeb8b67cb90e13",
+      "runtimePath": "observation.mjs",
+      "role": "inert proposed runtime body; parsed only, never linked or executed",
+      "parentSha256": null,
+      "changed": false
+    }
+  ],
+  "sourceMaterialization": "future explicit regular-file copies under materialized/, with fresh mode/byte/import admission; not created or authorized here"
+}

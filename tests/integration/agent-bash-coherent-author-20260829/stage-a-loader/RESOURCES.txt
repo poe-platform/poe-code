@@ -1,0 +1,13 @@
+publication_epoch=1787997432.0203819275
+regular_files=36
+owned_repository_bytes_before_publication=395501
+capture_bytes_before_publication=13127
+known_dispatch_roles_through_publication=30
+full_transitive_census=UNOBSERVED
+preparation_metadata_git_children=2
+preparation_metadata_exit_zero=2
+fixture_child_spawns=0
+compiler_build_pack_product_engine=0
+probe_helper_exit=1
+probe_outer_exit=1
+no_retry=true

@@ -427,6 +427,7 @@ function callMatchLikeMethod(
       ? createSandboxRegex(regex.source, regex.flags, regex.lastIndex)
       : regex;
   const matches = collectRegexMatches(matcher, value, true);
+  if (methodName === "match" && matches.length === 0) return null;
   return methodName === "match"
     ? matches.map((match) => match.text)
     : matches.map((match) => toMatchArray(match, value));

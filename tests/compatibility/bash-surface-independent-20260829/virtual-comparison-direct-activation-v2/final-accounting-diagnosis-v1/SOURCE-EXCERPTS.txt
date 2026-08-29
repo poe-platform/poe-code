@@ -1,0 +1,24 @@
+SOURCE CLASSIFICATION: author-owned administrative REPL excerpts, not sealed campaign owner code. No excerpt executed during diagnosis.
+
+Retained function (read-only Function.prototype.toString):
+async function vCountOwned(dir){for(var name of await vFs.readdir(dir)){if(++vWorkCount.entries>15000)throw Error('FINAL_WORK_ENTRY_STOP');const filename=dir+'/'+name;const st=await vFs.lstat(filename);if(st.isSymbolicLink())throw Error('FINAL_WORK_LINK_STOP');if(st.isDirectory())await vCountOwned(filename);else if(st.isFile()){vWorkCount.bytes+=st.size;if(vWorkCount.bytes>536870912)throw Error('FINAL_WORK_BYTES_STOP');}else throw Error('FINAL_WORK_TYPE_STOP');}}
+
+Original first sampling/publication sequence, transcribed from retained tool-call source:
+var vWorkCount={bytes:0,entries:0};
+await vCountOwned(vSeal.work);
+await vCountOwned(vDir+'/'+vEvidencePrefix);
+await vCountOwned(vCapture);
+var vFinalization={ /* other fields */ workSample:vWorkCount /* other fields */ };
+JSON.stringify(vFinalization,null,2);
+
+Original final sampling/publication sequence, transcribed from retained tool-call source:
+vWorkCount={bytes:0,entries:0};
+await vCountOwned(vSeal.work);
+await vCountOwned(vDir+'/'+vEvidencePrefix);
+await vCountOwned(vCapture);
+var vClosed={ /* other fields */ sampledWorkingBytes:vWorkCount.bytes,sampledWorkingEntries:vWorkCount.entries /* other fields */ };
+
+The omitted fields are not asserted as byte-identical whole-cell source. Complete function bytes are retained above; source-call transcript identity is conversational provenance, not a fabricated preexisting source-file hash.
+
+Distinct sealed supervisor census:
+export function census(root,maximum){let bytes=0,entries=0;function visit(current){if(++entries>12000)throw Error('WORK_ENTRIES');const stat=fs.lstatSync(current);if(stat.isSymbolicLink())throw Error('WORK_SYMLINK');if(stat.isDirectory())for(const name of fs.readdirSync(current))visit(path.join(current,name));else if(stat.isFile()){bytes+=stat.size;if(bytes>maximum)throw Error('WORK_BYTES');}else throw Error('WORK_TYPE');}visit(root);return {bytes,entries,qualification:'sampled logical working bytes, not RSS or continuous disk quota'};}

@@ -1,0 +1,109 @@
+{
+  "schema": "virtual37-final-accounting-source-attribution-v1",
+  "decision": "ADMINISTRATIVE_FALSE_ZERO_CAUSE_IDENTIFIED_CAMPAIGN_HOLD_UNCHANGED",
+  "actualEvidenceCommit": "4601270e3bde9239776fdf0168f6fc826088cf41",
+  "finalizationCommit": "b88c36b21b03dd0e558110346fb9d6313c0a8b62",
+  "invalidClosed": {
+    "path": "/tmp/bash-surface-virtual37-actual-admission-5w1gMT/CLOSED.json",
+    "bytes": 7995,
+    "sha256": "c9436a418599f187b8faecf283f83b648e052e4ab86773e4a98f6b68c8fd4715",
+    "closedAt": "2026-08-29T11:33:40.317Z",
+    "sampledWorkingBytes": 0,
+    "sampledWorkingEntries": 0
+  },
+  "producer": {
+    "kind": "unsealed administrative author REPL sampler, not sealed owner/supervisor",
+    "function": "vCountOwned",
+    "functionSha256": "9acbf46c356747c8fe0d108c317417a472c506d09d665ed80be176127f9ed315",
+    "reader": "vClosed.sampledWorkingBytes=vWorkCount.bytes and sampledWorkingEntries=vWorkCount.entries after counter rebind in later cell",
+    "roots": [
+      "/private/tmp/safe-bash-surface-direct-activation-v2-actual-01",
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/actual-run-v1",
+      "/tmp/bash-surface-virtual37-actual-admission-5w1gMT"
+    ],
+    "clock": {
+      "firstAdminSample": "2026-08-29T11:33:00.695Z",
+      "invalidClosure": "2026-08-29T11:33:40.317Z",
+      "originalConservativeDeadline": "2026-08-29T11:55:00.140Z"
+    }
+  },
+  "sourceFinding": {
+    "cause": "Accumulator ownership/binding split: recursive helper depends on a captured ambient vWorkCount; later caller rebinds its visible vWorkCount and serializes that different zero object. Helper neither accepts nor returns the accumulator. Retained earlier-object alias has accumulated counts while final visible object remains zero.",
+    "classification": "false-zero publication, not a missing field or evidence that roots were empty/cleaned",
+    "scope": "administrative accounting only; exact REPL transformation internals not inspected, no cross-agent interference claim",
+    "confidence": "direct source/data attribution plus read-only retained object identity witness; not a retroactively authenticated historical sample"
+  },
+  "samples": {
+    "sealedOwner": {
+      "bytes": 81552112,
+      "entries": 3577,
+      "source": "sealed supervisor terminal",
+      "sha256": "1202b922229f66ab7c042ebf0c2ddd2baa9a444b752037cf0c1562f531041a59",
+      "scope": "actual work root only, before terminal file final publication; not all later administrative roots"
+    },
+    "earlierAdministrative": {
+      "bytes": 108893686,
+      "entries": 3606,
+      "at": "2026-08-29T11:33:00.695Z",
+      "recordSha256": "ec11e123ee1164092e29bddc6193a89398a5fa56afc113a4feba046729cb471d"
+    },
+    "invalidFinal": {
+      "bytes": 0,
+      "entries": 0,
+      "at": "2026-08-29T11:33:40.317Z",
+      "recordSha256": "c9436a418599f187b8faecf283f83b648e052e4ab86773e4a98f6b68c8fd4715"
+    },
+    "retainedCounterWitness": {
+      "capturedAt": "2026-08-29T11:36:46.563Z",
+      "sourceKind": "retained author-owned REPL function and object references, read only; not a presealed historical source file",
+      "functionSource": "async function vCountOwned(dir){for(var name of await vFs.readdir(dir)){if(++vWorkCount.entries>15000)throw Error('FINAL_WORK_ENTRY_STOP');const filename=dir+'/'+name;const st=await vFs.lstat(filename);if(st.isSymbolicLink())throw Error('FINAL_WORK_LINK_STOP');if(st.isDirectory())await vCountOwned(filename);else if(st.isFile()){vWorkCount.bytes+=st.size;if(vWorkCount.bytes>536870912)throw Error('FINAL_WORK_BYTES_STOP');}else throw Error('FINAL_WORK_TYPE_STOP');}}",
+      "functionSha256": "9acbf46c356747c8fe0d108c317417a472c506d09d665ed80be176127f9ed315",
+      "displayedResetCounter": {
+        "bytes": 0,
+        "entries": 0
+      },
+      "earlierPublishedObjectLiveCounter": {
+        "bytes": 217990012,
+        "entries": 7231
+      },
+      "sameObject": false,
+      "invocation": "NONE; no census/helper/product execution"
+    },
+    "freshProspectiveCensus": {
+      "decision": "NOT_PERFORMED",
+      "reason": "Exact retained counter/object/source evidence suffices; avoid mistaking a new prospective census for retroactive historical qualification. No fresh traversal of the historical roots."
+    }
+  },
+  "historicalPeak": "NOT_ESTABLISHED; neither earlier sample nor retained cumulative object replaces invalid final sample",
+  "independentlyAuthenticatable": {
+    "managedChildren": 115,
+    "qualifiedManagedChildren": 115,
+    "metadataChildren": 12,
+    "retiredMetadata": 12,
+    "ownerToolExit": 0,
+    "ownerProof": "tool-response representation and original OWNER capture; not invented PID/group/global census",
+    "observations": 111,
+    "rawEqual": 57,
+    "rawDifferent": 54,
+    "publicSettled": 111,
+    "terminalPrimaryPresent": false,
+    "terminalSecondaryPresent": false
+  },
+  "noExecution": [
+    "no product",
+    "no compiler/install",
+    "no native",
+    "no Workers",
+    "no helper/census invocation",
+    "no stale PID/PGID probes",
+    "no runtime retry"
+  ],
+  "futurePolicy": [
+    "Use a source-bound file-based census entry with explicit immutable root arguments and a function-local accumulator returned by value; do not reset ambient REPL/global counters.",
+    "Publish exactly the returned immutable snapshot after all roots complete; preserve failure presence/error phase rather than emitting initialized zeros.",
+    "Bind root list/start-end timestamps/entries/byte count/limit/complete flag to that snapshot; reject missing roots and source-known nonempty roots with zero entries.",
+    "Keep pre-write budget admission/publication overlap accounting separate from sampled filesystem size; no historical peak/RSS/continuous containment claim.",
+    "Keep invocation and census/publication failure ownership explicit and preserve earlier primaries; independently review fresh DATA ownership/alias controls before any later actual accounting use."
+  ],
+  "rootDecision": "No corrective implementation or new runtime/census requested in this diagnosis; all original evidence and campaign final-accounting HOLD remain unchanged."
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "final-accounting-authenticated-records-v1",
+  "oldInvalidReceipt": {
+    "path": "/tmp/bash-surface-virtual37-actual-admission-5w1gMT/CLOSED.json",
+    "bytes": 7995,
+    "sha256": "c9436a418599f187b8faecf283f83b648e052e4ab86773e4a98f6b68c8fd4715"
+  },
+  "oldFinalization": {
+    "commit": "b88c36b21b03dd0e558110346fb9d6313c0a8b62",
+    "path": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v2/actual-run-v1/FINALIZATION.json",
+    "bytes": 95689,
+    "sha256": "ec11e123ee1164092e29bddc6193a89398a5fa56afc113a4feba046729cb471d",
+    "gitBytesEqual": true
+  },
+  "oldManifest": {
+    "commit": "4601270e3bde9239776fdf0168f6fc826088cf41",
+    "bytes": 2684,
+    "sha256": "b67a32f83a604a948e18f87fffbe327eb7fc20196fe540ede7ec0cbd86593976"
+  },
+  "membership": {
+    "bytes": 642411,
+    "sha256": "d7919e20c8250eef6b94217e85e4ac24e246f38cc226ed1f5667264eb44a89ea"
+  },
+  "outcomeMatrix": {
+    "bytes": 793985,
+    "sha256": "3e9cd44080c40ba2a9d32a245697fbe905f8f0238c83d858c73d0e65e8a56bd9"
+  },
+  "toolReceipt": {
+    "bytes": 2272,
+    "sha256": "a5c93bdba360f9a345a3a20ce95791a6e5d397af3ad8e6f22c27667199b49dcc"
+  },
+  "terminal": {
+    "bytes": 581884,
+    "sha256": "1202b922229f66ab7c042ebf0c2ddd2baa9a444b752037cf0c1562f531041a59"
+  },
+  "oldAdminState": {
+    "bytes": 11723,
+    "sha256": "5714b0832441b22183f4fbf875eae2e8dc3d78a3e5e9a469a10b9c3bdb11adde"
+  },
+  "scopeChecks": {
+    "managedChildren": 115,
+    "qualifiedManagedChildren": 115,
+    "metadataChildren": 12,
+    "retiredMetadata": 12,
+    "ownerToolExit": 0,
+    "ownerProof": "tool-response representation and original OWNER capture; not invented PID/group/global census",
+    "observations": 111,
+    "rawEqual": 57,
+    "rawDifferent": 54,
+    "publicSettled": 111,
+    "terminalPrimaryPresent": false,
+    "terminalSecondaryPresent": false
+  },
+  "noProspectiveCensus": {
+    "decision": "NOT_PERFORMED",
+    "reason": "Exact retained counter/object/source evidence suffices; avoid mistaking a new prospective census for retroactive historical qualification. No fresh traversal of the historical roots."
+  },
+  "retainedMemoryQualifier": "Current read-only counter identity/source witness is explicitly distinct from immutable historical file evidence."
+}

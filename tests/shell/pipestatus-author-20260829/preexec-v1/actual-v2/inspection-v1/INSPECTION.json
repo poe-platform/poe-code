@@ -1,0 +1,286 @@
+{
+  "kind": "READ_ONLY_DATA_INSPECTION_NO_RERUN",
+  "actualCommit": "5009e090799da6c754fff632a68ad50b07c04571",
+  "actualReceiptSha256": "d4bb63326d1fb22ad2c2ff4e5aa94821586d66e46fd345cb5bf342dfdf3223d2",
+  "actualStatus": "ASSERTION_FAILURES",
+  "layouts": {
+    "source-built": {
+      "PASS": 25,
+      "FAIL": 1,
+      "UNRUN": 0,
+      "failures": [
+        "R17"
+      ]
+    },
+    "installed": {
+      "PASS": 25,
+      "FAIL": 1,
+      "UNRUN": 0,
+      "failures": [
+        "R17"
+      ]
+    },
+    "physically-moved": {
+      "PASS": 25,
+      "FAIL": 1,
+      "UNRUN": 0,
+      "failures": [
+        "R17"
+      ]
+    }
+  },
+  "failures": [
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R17",
+      "layout": "source-built",
+      "pass": false,
+      "reason": {
+        "kind": "object",
+        "name": "AssertionError",
+        "message": "R17\n+ actual - expected\n\n+ 'local=<>\\nouter=<0>\\n'\n- 'local=<1 0>\\nouter=<0>\\n'\n          ^\n",
+        "assertion": true
+      },
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R17",
+      "layout": "installed",
+      "pass": false,
+      "reason": {
+        "kind": "object",
+        "name": "AssertionError",
+        "message": "R17\n+ actual - expected\n\n+ 'local=<>\\nouter=<0>\\n'\n- 'local=<1 0>\\nouter=<0>\\n'\n          ^\n",
+        "assertion": true
+      },
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    },
+    {
+      "schema": "pipestatus-case-v1",
+      "id": "R17",
+      "layout": "physically-moved",
+      "pass": false,
+      "reason": {
+        "kind": "object",
+        "name": "AssertionError",
+        "message": "R17\n+ actual - expected\n\n+ 'local=<>\\nouter=<0>\\n'\n- 'local=<1 0>\\nouter=<0>\\n'\n          ^\n",
+        "assertion": true
+      },
+      "disposals": [
+        {
+          "entered": true,
+          "settled": true,
+          "rejected": false
+        }
+      ],
+      "cleanupQualified": true,
+      "observer": "exact dispose Promise forwarding subclass"
+    }
+  ],
+  "directlyBoundCells": [
+    {
+      "id": "R17",
+      "layout": "source-built",
+      "receipt": {
+        "schema": "pipestatus-case-v1",
+        "id": "R17",
+        "layout": "source-built",
+        "pass": false,
+        "reason": {
+          "kind": "object",
+          "name": "AssertionError",
+          "message": "R17\n+ actual - expected\n\n+ 'local=<>\\nouter=<0>\\n'\n- 'local=<1 0>\\nouter=<0>\\n'\n          ^\n",
+          "assertion": true
+        },
+        "disposals": [
+          {
+            "entered": true,
+            "settled": true,
+            "rejected": false
+          }
+        ],
+        "cleanupQualified": true,
+        "observer": "exact dispose Promise forwarding subclass"
+      },
+      "lifecycle": {
+        "pid": 67934,
+        "status": 1,
+        "qualified": true,
+        "knownOutstanding": 0,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true
+      },
+      "trace": {
+        "bytes": 77177,
+        "sha256": "25a43e0ce6bfed498c58ab76d687f3d9c042974fc34a89a90e7f38ed657507ab"
+      }
+    },
+    {
+      "id": "R17",
+      "layout": "installed",
+      "receipt": {
+        "schema": "pipestatus-case-v1",
+        "id": "R17",
+        "layout": "installed",
+        "pass": false,
+        "reason": {
+          "kind": "object",
+          "name": "AssertionError",
+          "message": "R17\n+ actual - expected\n\n+ 'local=<>\\nouter=<0>\\n'\n- 'local=<1 0>\\nouter=<0>\\n'\n          ^\n",
+          "assertion": true
+        },
+        "disposals": [
+          {
+            "entered": true,
+            "settled": true,
+            "rejected": false
+          }
+        ],
+        "cleanupQualified": true,
+        "observer": "exact dispose Promise forwarding subclass"
+      },
+      "lifecycle": {
+        "pid": 68028,
+        "status": 1,
+        "qualified": true,
+        "knownOutstanding": 0,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true
+      },
+      "trace": {
+        "bytes": 80075,
+        "sha256": "e4fb2758d125aa6b6d263d8289ec88f22ed152d3966047adf65794bc17285c67"
+      }
+    },
+    {
+      "id": "R17",
+      "layout": "physically-moved",
+      "receipt": {
+        "schema": "pipestatus-case-v1",
+        "id": "R17",
+        "layout": "physically-moved",
+        "pass": false,
+        "reason": {
+          "kind": "object",
+          "name": "AssertionError",
+          "message": "R17\n+ actual - expected\n\n+ 'local=<>\\nouter=<0>\\n'\n- 'local=<1 0>\\nouter=<0>\\n'\n          ^\n",
+          "assertion": true
+        },
+        "disposals": [
+          {
+            "entered": true,
+            "settled": true,
+            "rejected": false
+          }
+        ],
+        "cleanupQualified": true,
+        "observer": "exact dispose Promise forwarding subclass"
+      },
+      "lifecycle": {
+        "pid": 68182,
+        "status": 1,
+        "qualified": true,
+        "knownOutstanding": 0,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true
+      },
+      "trace": {
+        "bytes": 80824,
+        "sha256": "aabd643e2bf1e46bcdb85ed67eb7ed5101581dc115ae0c23ba506b069a829cef"
+      }
+    }
+  ],
+  "totalCells": 78,
+  "retirement": {
+    "retired": true,
+    "outerQualified": true,
+    "innerChildren": 79,
+    "qualifiedInner": 79,
+    "closedInner": 79,
+    "forced": 0,
+    "publicationTerminal": {
+      "finished": "2026-08-29T16:47:21.295Z",
+      "knownStarts": 93,
+      "knownManagedOutstanding": 0,
+      "deadline": 1788023696555,
+      "retired": true,
+      "productRetry": false
+    }
+  },
+  "calls": {
+    "plannedExec": 81,
+    "plannedInvoke": 3,
+    "qualification": "The frozen fixture plan has81 exec/3 invoke; no new actual call counter is inferred from an early-failing fixture."
+  },
+  "grant": {
+    "action": "execute-pipestatus-78-v1",
+    "sealSha256": "f61b8fb41db61be3ed89fba296f5cbb9a6e8b4c80dd019202b065fe4f5a093d5",
+    "rootReceipt": "ebde485bdf3ccbb5d6494965365b8e47b02c8371",
+    "started": 1788021896555,
+    "deadline": 1788023696555,
+    "bytes": 224,
+    "sha256": "b1b9e0fdf72930a0a11d97cb033032e6fa8579f165bf31d44ccc5ba443bbc7f5"
+  },
+  "sourceOnly": [
+    "H01 private postreject",
+    "H07 internal pre-errexit"
+  ],
+  "pins": [
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-v2-publication.stdout",
+      "bytes": 7690,
+      "mode": 420,
+      "sha256": "3dc94d8e94baea48fc31f84938979062513e150278220743605e52aa8253c205"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v2/RESULT.json",
+      "bytes": 128621,
+      "mode": 420,
+      "sha256": "d4bb63326d1fb22ad2c2ff4e5aa94821586d66e46fd345cb5bf342dfdf3223d2"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/source-built-R17.json",
+      "bytes": 93714,
+      "mode": 384,
+      "sha256": "8ab8a6d6f6c238a9fff1ecac3b58615c26d6976431ca06b4bb0abf28f3cce934"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/installed-R17.json",
+      "bytes": 96608,
+      "mode": 384,
+      "sha256": "b85cb5160712bea6635d5a90940e9fe14382a56602b16158f37c5a8a76c38f9d"
+    },
+    {
+      "path": "/private/tmp/safe-bash-pipestatus-actual-78-v1/capture/physically-moved-R17.json",
+      "bytes": 97369,
+      "mode": 384,
+      "sha256": "1b85526b30cb3cb3d576cdfc59e710c71fb1a5babe4dbac3cab0fb288605f953"
+    }
+  ],
+  "totalBytes": 424002,
+  "classification": "Assertion reasons and directly bound cell captures are observations. No new production/fixture source was read, so this DATA audit does not independently assign root cause to product versus fixture.",
+  "newRuntimeExecutions": 0
+}

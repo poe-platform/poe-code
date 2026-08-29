@@ -1,0 +1,24 @@
+7b2a72e98c50d43fe4d06ded0773ca857e5d233a
+ef181a3dbf72a4a9ec5e4260f448e87fd1a88dae
+test: qualify bounded internal-loader admission repair
+6b4d6c6f7ec3495f09b6ef9e662cf6a2f9f5c90f
+79531d7aec9580d3a3f40fd19dad3dcb99aa7e88
+test: seal public80 successor loader bindings without activation
+053c4e942c66928972af6aa227177726ca503eab
+6472790e195bb91cbcb3200f239eceeaf10b9e8b
+test: qualify internal-loader repair independently without public80 activation
+5fabc790c6b150622460ed377d8f85d87cb246c5
+a68c2600a874383ee68474b7204235742f32531b
+test: record public80 actual-v2 results and retained I03 failures
+4088ee524e9ec6ae47ef90af3538dc35addcc3a0
+8f7e5977873de258f13a2978587f096b8adebaa9
+Align v4 packet manifest with fixed seven-file verifier
+497c566083fac2eda1ddad14edba052e3c0a6d54
+4088ee524e9ec6ae47ef90af3538dc35addcc3a0
+Repair both P16 validators with exact observable tuple contracts
+8918f35bed8d9ec11f523a53e52488f885f627f3
+497c566083fac2eda1ddad14edba052e3c0a6d54
+Seal P16 v4 DATA qualification and inactive future-run-02 bindings
+0a942ed29897a1993ab45e0b374c5d9edd829682
+5fb0b295e3206386f25ddc95c03d9fc4b3696aa3
+test: retain exact priority RUN02 78-call execution evidence

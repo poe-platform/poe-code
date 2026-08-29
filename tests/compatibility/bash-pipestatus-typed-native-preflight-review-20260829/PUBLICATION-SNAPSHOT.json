@@ -1,0 +1,104 @@
+{
+  "at": "2026-08-29T14:12:08.140Z",
+  "domain": "owned root regular files; nested scratch separately reported",
+  "bytes": 100140,
+  "entries": 19,
+  "files": [
+    {
+      "path": "ACCOUNTING.md",
+      "bytes": 2374,
+      "sha256": "a838938cc2e2c4f520aa80e3ebb34be6cc1856a72defea35f056c8bad995f246"
+    },
+    {
+      "path": "EDIT-TRANSPORT-FAILURE.md",
+      "bytes": 848,
+      "sha256": "36f64091e9899d92c46b3ac31278a173346bea8137d154981234a8e8c260e16e"
+    },
+    {
+      "path": "EXECUTION.json",
+      "bytes": 247,
+      "sha256": "a778c0b13975724805bfe076b79ee377164036928fd4a21319c014be43a762f8"
+    },
+    {
+      "path": "FULL-OWNED-SNAPSHOT.json",
+      "bytes": 22736,
+      "sha256": "cb59c7cac6f89c9059d75b741cbbfa5b72f94a7d52089a0d76b05c727eaedaa2"
+    },
+    {
+      "path": "HANDOFF.raw",
+      "bytes": 3360,
+      "sha256": "3e547b4b0fbb53d6ee024006e2b13ca1e8e7c72d06126df7ee6562086c646678"
+    },
+    {
+      "path": "INPUTS.json",
+      "bytes": 11890,
+      "sha256": "b6d9d429def5b31ef7fc20267ea2471338caa7de68450736f24f2bcc97794f87"
+    },
+    {
+      "path": "LOCATORS.json",
+      "bytes": 2041,
+      "sha256": "e9b57fd5e038ea636a0f23c9b03589ae14b05edc6fc87d97b45921253cc9a867"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 1060,
+      "sha256": "40e385613332c07491f50dbd8636c2fa18cba26be86ee0c4b3d353e88609f0de"
+    },
+    {
+      "path": "RECEIPT.json",
+      "bytes": 5747,
+      "sha256": "0460fca591217940e54b8a15e1c4eb19d50288b070f2714ea5ae2cde715c413c"
+    },
+    {
+      "path": "REPORT.md",
+      "bytes": 2706,
+      "sha256": "85eaaf6f572420b66a857e9ed412f0798960dc933142e6ff8e43b63295434a86"
+    },
+    {
+      "path": "RESULT.json",
+      "bytes": 2186,
+      "sha256": "d8ccbce285d3cea4139051003edd7b15821403322558d729c6bbdbe3d759abec"
+    },
+    {
+      "path": "ROLE-PLAN.json",
+      "bytes": 878,
+      "sha256": "727b89aca1cdabc3aa4db0f612c0989658983f4bda40b0c9af896f31f1371b1b"
+    },
+    {
+      "path": "SCRATCH-SNAPSHOT.json",
+      "bytes": 279,
+      "sha256": "712267426674b231e4638f000fa237ee50c50cb6e59cc076a1be29eb85724d38"
+    },
+    {
+      "path": "accounting.mjs",
+      "bytes": 2966,
+      "sha256": "8aeb4858acc047355c54d12a173a9042d0c520340e2504d3b9455030841f87fa"
+    },
+    {
+      "path": "novel.fragment.data",
+      "bytes": 3321,
+      "sha256": "0cf835cc2e3348c8e4dcdb95fb3568ed9f4c2fbfb5e1e78c3ae6c5058952dd37"
+    },
+    {
+      "path": "owner.mjs",
+      "bytes": 8791,
+      "sha256": "3c847179e38cd47c5e6d5db258f9ceeeac90edb988c04f98d7e07b263ae0db50"
+    },
+    {
+      "path": "prefix.fragment.data",
+      "bytes": 3078,
+      "sha256": "7da3ac45df518a761d56447167985a545eb36181f76418c3079211a627117edf"
+    },
+    {
+      "path": "replay.mjs",
+      "bytes": 19992,
+      "sha256": "acb5126b192fbc2052f4c7eb4a89fd9ea9b00ed415cf253240955af6f016fc31"
+    },
+    {
+      "path": "suffix.fragment.data",
+      "bytes": 5640,
+      "sha256": "f297ba615ba5512f53cea09cc96cbcf385e5bc237f57447e004dc515f8db60b6"
+    }
+  ],
+  "capture": "/tmp/pipestatus-typed-review-publish-UfenYV"
+}

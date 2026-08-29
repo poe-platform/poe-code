@@ -1,0 +1,11 @@
+# Publication qualification
+
+The replay is a new DATA-only cohort: D01–D12 retain all 120 assertions; N01–N08 add 48, for 20 groups / 168 assertions. One PURE replay helper, no harmless ownership fixtures, Bash, Workers, native observations, or old PID probes. The six inherited lifecycle/capture/state modules are byte-identical; no fresh lifecycle runtime proof is claimed.
+
+The initial edit request was rejected by the tool API for a literal NUL before process creation. Its primary evidence is the tool transcript, not a nonexistent process stdout file. `EDIT-TRANSPORT-FAILURE.md` preserves this limitation. No complete raw-file API-error-capture claim is made; no process output loss or unknown child retirement is inferred. Corrected source, syntax check, preseal, and replay have direct-file capture.
+
+Known-role accounting is invocation-local: bootstrap patch 1; inspect owner/Git 2; fields/source readers 2; corrected patch 1; prepare owner/syntax 2; seal owner/add/commit 3; replay owner/helper 2; publication reader 1; accounting patch/helper 2; final publication owner/add/commit/status 4. Total 20 upon successful publication, peak 2. The rejected API request created zero OS processes. Publication roles remain reserved until their actual exit/close records; no transitive census or independent process-group absence claim.
+
+`FULL-OWNED-SNAPSHOT.json` includes nested raw DATA/scratch and copied completed supervision captures, unlike the original root-only publication snapshot. Both declare their measurement domains. Its local byte count is an observation, not a final or peak claim; current accounting and later publication captures are excluded from that terminal-sample claim. Git internal storage is outside this logical owned-tree sample. All current/future publication remains within the original review deadline and process allowance.
+
+PREEXEC acceptance is finite source/DATA qualification only. A fresh typed independent receipt, ROOT GO, owned preprovision, fixed UTC window with a full 600 seconds remaining, sole grant-hash substitution, resolved-slot DATA review, and exact `require_escalated` / `login:false` / no-prefix tool approval remain mandatory. Bootstrap capture files must stay absent until the noclobber wrapper; actual FD/inode/read-one-byte checks are deferred. All P19–P24 observations and semantic decisions remain UNRUN.

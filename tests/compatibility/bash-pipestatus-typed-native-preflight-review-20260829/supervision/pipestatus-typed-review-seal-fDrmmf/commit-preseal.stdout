@@ -1,0 +1,25 @@
+[main fda97d7f42e0efc5805a0a6368486c36c5945fbf] test: preseal typed PIPESTATUS six-native DATA review
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly:
+
+    git config --global user.name "Your Name"
+    git config --global user.email you@example.com
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 11 files changed, 726 insertions(+)
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/EDIT-TRANSPORT-FAILURE.md
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/HANDOFF.raw
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/INPUTS.json
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/LOCATORS.json
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/PRESEAL.json
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/ROLE-PLAN.json
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/novel.fragment.data
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/owner.mjs
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/prefix.fragment.data
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/replay.mjs
+ create mode 100644 tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/suffix.fragment.data

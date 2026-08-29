@@ -261,6 +261,22 @@ console.log(identity.name, identity.handle);
 
 Uses `POE_API_KEY` or the stored credential and honors `POE_BASE_URL`. Throws an API error when Poe rejects the credential.
 
+## Building from Source
+
+Run `npm run build` to compile the workspace and generate the published bundles.
+SafeJS compilation clears its previous TypeScript output, so deleted sources do
+not leave stale JavaScript or declarations behind. Bundling validates the output
+graph and stages complete files before publishing dependencies and then entry
+points; obsolete JavaScript chunks and their source maps are removed afterward.
+`npm run dev -- <command>` also reruns bundling after cached workspace builds.
+
+Output-path guards reject unresolved symbolic links and paths escaping the
+package. Bundle cleanup preserves unrelated files. The bundle step does not
+overwrite existing outputs if compilation fails, but a full build is not atomic
+across the whole package. Do not run concurrent builds against the same output
+directories. See the [artifact cleanup plan](docs/plans/safejs-artifact-cleanup.md)
+for fault-injection coverage and verification steps.
+
 ## Research Preview
 
 These features are available but subject to breaking changes.

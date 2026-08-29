@@ -1,0 +1,511 @@
+
+FILE tests/integration/agent-bash-coherent-design-20260829/WORKFLOWS.md 6420 771e86b47d6e4b5d56680e2d6b0334d337d14a61d987938855e0a3e4893cafe2
+# Eighteen proposed end-to-end identities — all UNRUN
+
+These are declared finite product-profile checks, not GNU oracle results. Their
+future executable fixtures must freeze exact literals/bytes/roles before runtime
+GO. Public engine rows use only the existing authenticated PUBLIC static adapter,
+not private source/native Node/eval. Stub-provider rows prove host integration
+only, never JavaScript execution. No Node fd0, async fs, ESM, arbitrary CommonJS,
+conditional ERE, or aggregate nounset recovery is implied.
+
+| ID | Proposed program/protocol | Observable profile and proof role |
+| --- | --- | --- |
+| C01 | Enumerate default registry, root and explicit Node subpath; add Node/curl plugins explicitly | Exact literal 80-name inventory; no default Node/curl/SafeJS. Root/subpath identities agree; private subpaths denied. Host/type/package protocol. |
+| C02 | `set -eu -o pipefail; value='a b'; [[ "$value" == 'a b' && ( x == x || $missing == z ) ]]; printf '%s\n' "$value" \| cat` | `a b` + LF; skipped unset operand not evaluated. Table escapes denote literal pipeline operators, not program backslashes. |
+| C03 | Quote-sensitive basic patterns, e.g. `[[ abc == a* ]]` versus `[[ abc == 'a*' ]]` | True versus false using supported whole-string pattern/quote profile, no extglob/ERE/collation credit. |
+| C04 | `set -u; a=(zero one); f(){ printf '%s\n' "${a[1]}"; }; f` | `one` + LF across function scope; no `a[@]` length/DISCARD inference. |
+| C05 | `set -o pipefail; false \| cat; printf '%s\n' "$?"` | `1` + LF; errexit deliberately off, existing pipeline status preserved. |
+| C06 | `f(){ printf out; printf err >&2; }; f 2>/audit \|& cat` | `outerr`; `/audit` is created but empty because implicit stderr duplication follows explicit redirection. |
+| C07 | Same function; `f &>/both 1>/out` | `/out` has `out`, `/both` has `err`; one underlying shared writer is not double-closed. Effects and closure counters, not just text. |
+| C08 | VFS sourced script containing `let 'n+=3'`, initial `n=2`, then print n | `5` + LF; source scope and resolved read-sensitive arithmetic, not unratified aggregate continuation. |
+| C09 | `set -u; printf '%s' "$missing"; node -p '1'` | Provisional profile status1, budgeted diagnostic, Node provider prepare/guest counts zero. No GNU byte/status golden claim. |
+| C10 | `/entry.cjs` uses `console.log(process.argv[2]);`; arguments `'a b' '*' ''` | Exact argv checked at trusted provider boundary; guest prints `a b` + LF. Supported `.cjs` and process facade only. |
+| C11 | Mock authorized curl writes `/payload.json`; inline Node uses `require('fs')`, text read, JSON.parse and text write to `/repo/README.md`; separate read-only Git shell diffs same backing | Actual PUBLIC engine edit followed by genuine object/index-backed diff. Inline source needs no VFS source-read grant; dataRead/dataWrite explicit. Freeze fixture-derived diff bytes before GO. No stdin-as-fd0 invention. |
+| C12 | Mock curl redirect followed by VFS output | Authorization recorded on every hop; cross-origin credentials stripped; exact body preserved. No external network or transport sandbox claim. |
+| C13 | Read-only wrapper over neutral authentic `/repo`: `git status --short`, `git rev-parse HEAD`, `git ls-files` | Real objects/index/ref queries and unchanged `.git` hashes; freeze exact fixture-derived outputs, not product-generated goldens. Native Git remains UNRUN. |
+| C14 | Literal patch supplied by printf pipe to `apply_patch`, then `git diff` | Worktree edit is reflected in genuine Git diff, `.git` unchanged; preserve patch limits and non-atomic/refusal qualifications. |
+| C15 | Explicit dataWrite grant with read-only VFS, Node sync write attempt | Read-only provider rejection/no file effect despite grant; finite expected public failure class bound from accepted adapter recipe before GO, not guessed diagnostic bytes. |
+| C16 | Node cooperative held VFS read; wrapper registers owned cleanup before `context.invoke('node', ...)`; caller abort reason false | Exact caller identity; independent finally releases held gate; registered cleanup and worker retirement observed separately. No arbitrary opaque-provider preemption promise. |
+| C17 | Unit4 explicit parameter failure with null/falsy diagnostic sink and secondary cleanup failure; following Node never starts | Existing authenticated guard→invoke-function pattern, exact rejection presence/identity and precedence. No registration/invocation wait cycle; gates always released independently. |
+| C18 | Node plugin collision, then separate replacement/snapshot case with `node -p '8'` | Collision preserves existing handler; replace=true is authoritative and snapshot stable after options mutation; actual engine prints `8` + LF only in enabled case. |
+
+## Reuse, not reclassification
+
+- Node accepted public `tests/integration/node-public-author-20260829/public-node.mjs`
+  provides P07/P08 collision/replacement, P09 inline, P10 argv/env, P11 stdin source,
+  P12 synchronous FS/JSON and P18 cooperative caller-read shapes. Use the exact
+  accepted version mapping from the independent report, not blanket reuse of
+  every historical assertion. P19–P21 were not inspected for this design.
+- Existing Node module frozen focused/worker-v5 recipes carry 61 rows; accepted
+  public plan carries 24. Their unsupported cases remain unsupported tests, not
+  native-compatibility wins. Preserve W23/E09 and observed-versus-complete census.
+- Existing Unit4 H28/X10-v2 guard registration and unconditional gate release are
+  templates for C16/C17; preserve raw old deadline and unobserved substeps.
+- Genuine neutral Git fixture is
+  `tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json`, virtual root `/repo`,
+  HEAD `1cec77171d8321d533b3aa50b7a1a9df02b10816`. Handle each entry's actual text,
+  base64 or symlink representation. Do not native-init or run Git on host repos.
+- All row implementations must keep invocation context/cwd/environment and
+  precise file bytes explicit. No host process/env mutation is a test substitute.
+
+The Markdown rows are design literals, not a sealed executable runner. The
+future preseal must remove table escaping, choose exact hosted protocols and
+freeze all expected bytes/counters from accepted contracts/neutral fixture data.
+Unsettled expectations must be resolved before running, not learned from the
+combined implementation and retrospectively labeled native goldens.
+
+
+FILE tests/integration/agent-bash-coherent-design-20260829/VALIDATION-PROPOSAL.md 7565 e5b91f57ae582bb039811db638bc1e0c7e2bf4ff6e7f73bea8ab1dd328b5e763
+# Maintained regression placement and future validation
+
+## What was actually inspected
+
+The **selected Node-base package.json**, blob
+`623d2493b94afa7752d87232c8eb62fb61a2370f`, defines `npm test` by globbing
+`tests/**/*.test.ts`, then launching Node's test runner with the entire result.
+Its one specific historical exclusion does not make that discovery curated.
+Appending one file to `npm test` does **not** prevent the initial broad glob.
+Do not run that script for this scoped composition: it can discover unrelated
+XAN/YQ/native/fullgate/review tests in a larger checkout.
+
+Likewise, selected `build` uses the build config, while `typecheck:all` has broad
+current-consumer routing. Neither should be treated as a narrow smoke selector.
+The shipping package input is authenticated here; current worktree scripts and
+their entire test closure were not certified by that fact.
+
+No specific existing normal test file has been independently checked as a safe
+home in this design. Existing explicitly invoked public-node.mjs and module
+focused-v5/worker-v5 scripts are useful authenticated recipe inputs, but remain
+versioned evidence, not a substitute for maintained regressions. A separate live
+metadata scan hit its bound; no larger scan or test discovery was attempted.
+
+## Recommended maintained split (future edits only)
+
+**Basic maintained test:** propose `tests/integration/agent-bash-smoke.test.ts`
+using normal node:test/assert, public API, MemoryFileSystem, controlled VFS and
+an inert recording provider stub. Eight small families:
+
+1. Exact explicit default-name set/80, optional Node registration and replacement.
+2. Supported strict option state, positional preservation and ordinary flags.
+3. Lazy conditional quote/pattern semantics and reached unsupported diagnostics.
+4. Ordinary pipes plus ordered `|&`/`&>` effects and writer ownership.
+5. Nounset fails before provider preparation; no guest/Worker implied.
+6. Scalar arrays/functions/source/LET interaction without aggregate-u recovery.
+7. Raw diagnostic-sink reason and registered cleanup precedence with independent
+   controlled release; no opaque-provider cleanup guarantee.
+8. Read-only VFS and mocked transport authorization/effects, no real network.
+
+Use a **literal explicit path invocation**, not a glob:
+
+```text
+<authenticated-node> --import <authenticated-tsx> --test --test-reporter=tap tests/integration/agent-bash-smoke.test.ts
+```
+
+Resolve the runner's own tool/import closure before execution. This is a proposed
+command shape, not an executed command or permission request. A future dedicated
+`test:agent-bash` package script may wrap exactly this list, with no forwarding to
+the broad default test script. Package changes require separate authorization.
+The ordinary `.test.ts` file can also serve normal canonical discovery later;
+the narrow command never discovers other tests. Keep engine work out of it.
+
+**Explicit PUBLIC-engine integration:** propose a separately selected
+`tests/integration/agent-bash-public-engine/run.mjs`, outside `.test.ts` automatic
+discovery. Bind the existing PUBLIC static adapter and engine hashes before any
+Worker. Missing/unbound engine is an explicit failed prerequisite or unexecuted
+qualification, not a successful empty suite. Reuse accepted Node scripts' engine
+staging, not native Node evaluation, private source reads or optional host loads.
+Strict consumer templates should be `.ts.fixture` staged byte-identically into
+an explicitly classified current consumer group, not loose historical `.ts`.
+
+**Concrete next placement step:** read a short, root-approved explicit list of
+normal shell/plugin/integration test files and their helpers to decide whether
+one is a better home than the new smoke file. Do not repeat the capped broad
+live-src scan. Freeze that maintained selector's complete input closure and
+negative "unrelated test not discovered" control before authoring/execution.
+
+## Future combined validation, requiring a new ROOT grant
+
+1. Accept Unit4 or select its reviewed successor. Recompute this exact source
+   inventory/tree if any byte changes; do not use HEAD or absent derived objects
+   as authority. Bind docs changes separately if requested.
+2. Preseal tools, compiler/installer closure, engine emitted closure, fixtures,
+   exact argv/env, scratch ownership, capture/output limits and expected IDs.
+   Tool metadata is not dynamic descendant attestation. Current design grants
+   no Worker or product runtime permission.
+3. Fresh compact selected materialization, no instruction-file snapshots and no
+   stale dist. One production build, full emitted manifest, full package with
+   README and metadata, offline install with scripts disabled, physical move.
+   Authenticate every installed/moved member, not just runtime projection.
+4. Source-built, installed and physically moved layouts run the same 18 new
+   workflows. Reuse 61 module +24 public Node rows under their exact accepted
+   recipe; retain unsupported/refusal classifications. Propose retained core
+   subsets 48 redirection +67 conditional +35 resolved Unit4 rows, avoiding a
+   gratuitous rerun of every archived author/reviewer cohort.
+5. That proposed selection is 253 identities/layout, 759 total (18+61+24+48+67+35
+   times three). This is arithmetic for a **future selection**, not admission,
+   execution, pass count or an assertion that every fixture version is ready.
+   Confirm the exact 67/35 version maps and exclusion reasons in the executable
+   preseal before any run. No native GNU case is credited by these rows.
+6. Six type groups: positive and negative in each layout; target 12 negative
+   categories (provider required; unknown grants; invalid replace; private
+   imports; bad AST discriminant; unsupported engine shape, with finite variants).
+   Exact diagnostics/counts require executable preseal, not this proposal.
+7. Four loaded mutation/restoration roles: conditional lazy evaluation,
+   read-sensitive arithmetic, optional Node registration, and an existing accepted
+   Node host-boundary mutation. Four binding refusal classes: missing module,
+   changed bytes, private export and stale-base runtime substitution. Mutant
+   source sites/probes must be frozen before GO; no production edits here.
+8. Observe resource counts and cleanup separately: known OS children, loader
+   admissions, Node/regex Workers, guest entries, active operations and registered
+   cleanup. Absence of a close event alone is not proof of a live leak; disposal
+   alone is not opaque-provider finalization. Preserve failures and unknowns.
+
+Proposed ceiling for ROOT to consider: **60 minutes total**, 112 known owned OS
+processes peak4, 256MiB capture/1GiB scratch, case30s/build120s, 40 fixed internal
+loader admissions, 192 explicitly authorized Node Workers and at most8 qualified
+RegexWorkers for retained regressions only. These are proposed ceilings, not
+measured census or permission. Count the exact accepted recipe's demand first;
+if it cannot fit, request a smaller selection or explicit revised bound before
+launch rather than silently increasing limits. Safety/capture/integrity/unknown
+retirement/cap failures stop; ordinary assertions aggregate only after safe cleanup.
+
+No live network/private engine/native oracle/wholegate or XAN/P2 execution enters
+this plan. A selected snapshot's success cannot establish current HEAD's default
+`npm test`/`typecheck:all` is green. Report source, package, tool and fixture
+identities and limitations separately, with different independent review before
+ROOT composition acceptance.
+
+
+FILE tests/integration/agent-bash-coherent-design-20260829/compose.mjs 11983 296d25c1f353f443c2cbbf417c171e45f154ea3e479f5f4539d6866c6f9a751e
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const own = path.dirname(fileURLToPath(import.meta.url));
+const repo = path.resolve(own, '../../..');
+const capture = '/tmp/agent-bash-coherent-design-WooVtu';
+const descriptor = fs.openSync(path.join(capture, 'composition.jsonl'), 'wx');
+const note = value => fs.writeSync(descriptor, JSON.stringify(value) + '\n');
+const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+const objectHash = (type, bytes) => crypto.createHash('sha1').update(`${type} ${bytes.length}\0`).update(bytes).digest('hex');
+function read(file, expected) {
+  assert.ok(!file.split('/').includes('AGENTS.md'));
+  const stat = fs.lstatSync(file); assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size < 16 * 1024 * 1024);
+  const bytes = fs.readFileSync(file); if (expected) assert.equal(sha(bytes), expected); return bytes;
+}
+function batch(oids, name) {
+  assert.ok(oids.length <= 400);
+  const result = spawnSync('/usr/bin/git', ['cat-file', '--batch'], { cwd: repo, input: oids.join('\n') + '\n', maxBuffer: 16 * 1024 * 1024, timeout: 15000 });
+  fs.writeFileSync(path.join(capture, name + '.stdout'), result.stdout, { flag: 'wx' }); fs.writeFileSync(path.join(capture, name + '.stderr'), result.stderr, { flag: 'wx' });
+  note({ command: '/usr/bin/git cat-file --batch', role: 'DEVELOPMENT_METADATA_NOT_ORACLE', pid: result.pid, status: result.status, signal: result.signal, objects: oids.length });
+  assert.equal(result.status, 0); assert.equal(result.signal, null);
+  const objects = new Map(); let cursor = 0;
+  for (const oid of oids) {
+    const end = result.stdout.indexOf(10, cursor); assert.ok(end >= cursor);
+    const [actual, type, sizeText] = result.stdout.subarray(cursor, end).toString().split(' '), size = Number(sizeText);
+    assert.equal(actual, oid); assert.ok(type === 'tree' || type === 'blob'); assert.ok(Number.isSafeInteger(size) && size >= 0 && size <= 1048576);
+    const bytes = result.stdout.subarray(end + 1, end + 1 + size); assert.equal(bytes.length, size); assert.equal(objectHash(type, bytes), oid); assert.equal(result.stdout[end + 1 + size], 10);
+    objects.set(oid, { type, bytes }); cursor = end + size + 2;
+  }
+  assert.equal(cursor, result.stdout.length); return objects;
+}
+function entries(bytes) {
+  const rows = []; let cursor = 0;
+  while (cursor < bytes.length) {
+    const space = bytes.indexOf(32, cursor), nul = bytes.indexOf(0, space); assert.ok(space > cursor && nul > space && nul + 21 <= bytes.length);
+    const rawName = bytes.subarray(space + 1, nul), name = rawName.toString(); assert.ok(Buffer.from(name).equals(rawName)); assert.ok(!name.includes('/'));
+    rows.push({ mode: bytes.subarray(cursor, space).toString(), name, oid: bytes.subarray(nul + 1, nul + 21).toString('hex') }); cursor = nul + 21;
+  }
+  return rows;
+}
+try {
+  note({ role: 'COMPOSITION_DESIGN_DATA_ONLY', started: new Date().toISOString(), pid: process.pid, ppid: process.ppid, productExecutions: 0 });
+  assert.deepEqual(process.argv.slice(2), ['--design-only']);
+  const nodeBytes = read(path.join(capture, 'metadata-1.data'), '8371452bb024f99763c9240b42cb891cabe1311afafb32766e0ea24da09c6949');
+  const conditionalBytes = read(path.join(repo, 'tests/compatibility/bash-conditional-author-20260829/SOURCE-v4.json'), '4f196057df98c3aed05519b78eaa725fc9d7eb3c73634613662ac6b927715d32');
+  const strictBytes = read(path.join(repo, 'tests/compatibility/bash-strict-extension-author-20260829/SOURCE.json'), '9924773241f116d4cd5008fa7cd7f7fc3d95521f5e57b33299dbf2ed7cc2bf69');
+  const node = JSON.parse(nodeBytes), conditional = JSON.parse(conditionalBytes), strict = JSON.parse(strictBytes);
+  assert.equal(node.computedTree, 'a6d20781d3c099fb7b3d36c10696beb06615af1b'); assert.equal(conditional.computedTree, '74dfe69135a3fc5ba89396b20dd32d9c9daae131'); assert.equal(strict.computedTree, '37e793ce6dce48a958030e7cc86fa8315d0b112e');
+  const replacements = ['src/shell/parser.ts', 'src/shell/display.ts', 'src/shell/conditional.ts', 'src/shell/runtime.ts'].map(name => {
+    const provider = name.endsWith('/runtime.ts') ? strict : conditional;
+    const row = provider.inputs.find(item => item.path === name); assert.ok(row);
+    return { ...row, origin: name.endsWith('/runtime.ts') ? 'UNIT4_9bb91c37_PENDING_INDEPENDENT' : 'UNIT3_7a5c6200_ROOT_QUALIFIED_ACCEPTED', replacedBlob: node.inputs.find(item => item.path === name)?.blob ?? null };
+  });
+  const inputs = new Map(node.inputs.map(row => [row.path, { ...row, origin: 'ACCEPTED_PUBLIC_NODE_a6' }]));
+  for (const row of replacements) inputs.set(row.path, row);
+  const selected = [...inputs.values()].sort((left, right) => Buffer.compare(Buffer.from(left.path), Buffer.from(right.path)));
+  assert.equal(selected.length, 309);
+  assert.ok(selected.every(row => !row.path.split('/').includes('AGENTS.md') && !row.path.startsWith('tests/') && !/^src\/commands\/(yq|xan)\//.test(row.path)));
+  const trees = new Map();
+  for (const source of [node, conditional, strict]) for (const key of ['reconstructedTrees', 'ancestorTrees', 'fetchedTrees']) for (const row of source[key] ?? []) {
+    const bytes = Buffer.from(row.base64, 'base64'); assert.equal(objectHash('tree', bytes), row.oid); if (trees.has(row.oid)) assert.ok(trees.get(row.oid).equals(bytes)); trees.set(row.oid, bytes);
+  }
+  const witness = [];
+  function compose(oid, changes) {
+    const body = trees.get(oid); assert.ok(body, oid); const rows = new Map(entries(body).map(row => [row.name, row])); const grouped = new Map();
+    for (const row of changes) { const slash = row.path.indexOf('/'); if (slash < 0) rows.set(row.path, { mode: Number.parseInt(row.mode, 8).toString(8), name: row.path, oid: row.blob }); else { const parent = row.path.slice(0, slash); if (!grouped.has(parent)) grouped.set(parent, []); grouped.get(parent).push({ ...row, path: row.path.slice(slash + 1) }); } }
+    for (const [name, changes] of grouped) { assert.equal(rows.get(name).mode, '40000'); rows.set(name, { name, mode: '40000', oid: compose(rows.get(name).oid, changes) }); }
+    const ordered = [...rows.values()].sort((left, right) => Buffer.compare(Buffer.from(left.name + (left.mode === '40000' ? '/' : '')), Buffer.from(right.name + (right.mode === '40000' ? '/' : ''))));
+    const bytes = Buffer.concat(ordered.map(row => Buffer.concat([Buffer.from(`${row.mode} ${row.name}\0`), Buffer.from(row.oid, 'hex')]))), result = objectHash('tree', bytes); trees.set(result, bytes); witness.push({ oid: result, base64: bytes.toString('base64') }); return result;
+  }
+  const computedTree = compose(node.computedTree, replacements);
+  const src = entries(trees.get(computedTree)).find(row => row.name === 'src'); assert.equal(src.mode, '40000');
+  let frontier = [{ path: 'src', oid: src.oid }], rounds = 0; const sourceInventory = [];
+  while (frontier.length) {
+    const missing = [...new Set(frontier.map(row => row.oid).filter(oid => !trees.has(oid)))];
+    if (missing.length) { assert.ok(++rounds <= 6); for (const [oid, row] of batch(missing, 'trees-' + rounds)) { assert.equal(row.type, 'tree'); trees.set(oid, row.bytes); } }
+    const next = [];
+    for (const row of frontier) for (const entry of entries(trees.get(row.oid))) {
+      const name = row.path + '/' + entry.name;
+      if (entry.mode === '40000') next.push({ path: name, oid: entry.oid }); else sourceInventory.push({ path: name, mode: entry.mode, blob: entry.oid });
+    }
+    frontier = next;
+  }
+  const ts = sourceInventory.filter(row => row.path.endsWith('.ts'));
+  const declaredTs = selected.filter(row => row.path.startsWith('src/') && row.path.endsWith('.ts'));
+  assert.deepEqual(ts.map(row => row.path).sort(), declaredTs.map(row => row.path).sort());
+  for (const row of sourceInventory) if (inputs.has(row.path)) { assert.equal(inputs.get(row.path).blob, row.blob); assert.equal(Number.parseInt(inputs.get(row.path).mode, 8), Number.parseInt(row.mode, 8)); }
+  const blobs = batch([...new Set(selected.map(row => row.blob))], 'selected-inputs');
+  for (const row of selected) { const object = blobs.get(row.blob); assert.equal(object.type, 'blob'); assert.equal(object.bytes.length, row.bytes); assert.equal(sha(object.bytes), row.sha256); }
+  const pkg = JSON.parse(blobs.get(inputs.get('package.json').blob).bytes); assert.deepEqual(pkg.dependencies ?? {}, {}); assert.deepEqual(pkg.files, ['dist']);
+  const worktreeDifferences = [];
+  for (const row of selected) { const file = path.join(repo, row.path); try { const stat = fs.lstatSync(file); if (!stat.isFile() || stat.isSymbolicLink()) worktreeDifferences.push({ path: row.path, reason: 'not regular' }); else if (sha(fs.readFileSync(file)) !== row.sha256) worktreeDifferences.push({ path: row.path, reason: 'different bytes' }); } catch (error) { if (error.code === 'ENOENT') worktreeDifferences.push({ path: row.path, reason: 'absent' }); else throw error; } }
+  const recipe = {
+    role: 'PROPOSED_COMPOSITION_NOT_BUILT_NOT_ACCEPTED', date: '2026-08-29',
+    base: { source: 'bb4dd0571a0335b20e29448bf88126ca02c1a32d', tree: node.computedTree, manifestSha256: sha(nodeBytes), acceptance: '6f449bf49d33e7e35b3882bb3396143efa346747', priorPackageSha256: '274839729aa916767d1664e0ec7a84579eb1c6e7eba677535dfe6273f5f079a9' },
+    dependencies: { unit3: 'ROOT_QUALIFIED_ACCEPTED_d7ec5e26_cccd876f', unit4: 'HOLD_N14_cd06468eb1a067d8324e1d0e873cccbc2ede14c2', combined: 'UNACCEPTED_UNEXECUTED' }, replacements, computedTree, derivedOnly: true, inputCount: selected.length, sourceTsCount: declaredTs.length,
+    shippingInputPaths: selected, shippingInputBytes: selected.reduce((total, row) => total + row.bytes, 0),
+    completeSrcTreeFiles: sourceInventory.length, srcNonInputFiles: sourceInventory.filter(row => !inputs.has(row.path)),
+    build: { rootDir: 'src', outDir: 'dist', include: ['src/**/*.ts'], declaration: true, declarationMap: true, sourceMap: true, productExecutions: 0 },
+    package: { exports: pkg.exports, files: pkg.files, runtimeDependencies: pkg.dependencies ?? {}, predictedMembers: 1014, predictionOnly: '253 TypeScript modules times4 outputs + README.md/package.json; actual pack verification REQUIRED', newPackageSha256: null, defaultCommands: 80, optional: ['curl', 'node', 'safejs'], nodeAggregateOption: false },
+    worktreeComparison: { role: 'READONLY_METADATA_NOT_BUILD_AUTHORITY', differences: worktreeDifferences },
+    treeQualification: 'All selected build blobs authenticated; complete src tree inventory compared. Unchanged nonshipping subtree OIDs retained opaquely; not a full repository archive/materialization proof. No AGENTS body fetched.',
+    reconstructedTrees: witness,
+  };
+  const sourceRows = sourceInventory.sort((left, right) => Buffer.compare(Buffer.from(left.path), Buffer.from(right.path)));
+  const witnesses = [...trees].map(([oid, bytes]) => ({ oid, base64: bytes.toString('base64') }));
+  for (const [name, value] of [['COMPOSITION.json', recipe], ['SOURCE-TREE-INVENTORY.json', sourceRows], ['TREE-WITNESSES.json', witnesses]]) fs.writeFileSync(path.join(own, name), JSON.stringify(value, null, 2) + '\n', { flag: 'wx' });
+  fs.writeFileSync(path.join(own, 'SHIPPING-INPUT-PATHS.nul'), Buffer.concat(selected.map(row => Buffer.from(row.path + '\0'))), { flag: 'wx' });
+  note({ finished: new Date().toISOString(), computedTree, inputs: selected.length, ts: declaredTs.length, srcTreeFiles: sourceInventory.length, differences: worktreeDifferences, productExecutions: 0 });
+  console.log(JSON.stringify({ computedTree, inputs: selected.length, ts: declaredTs.length, sourceInventory: sourceInventory.length, predictedPackageMembers: 1014, worktreeDifferences, productExecutions: 0 }));
+} catch (error) { note({ failure: String(error), stack: error?.stack }); throw error; }
+finally { fs.closeSync(descriptor); }
+
+
+FILE tests/integration/agent-bash-coherent-independent-20260829/PROBES.json 7253 4d4a3f840ba29844568271a42584103387370588217b66c82eea0e4213c4745b
+{
+  "role": "independent proposed combined probes; not executable admission",
+  "date": "2026-08-29",
+  "timing": "After component implementations and N14 author result; before any combined build or execution by this reviewer",
+  "allRuntimeSlots": "UNRUN",
+  "requires": "Independent N14 acceptance, exact successor composition, complete fixture/tool/engine closure and separate ROOT actual grant",
+  "layouts": ["fresh source-built", "offline installed", "physically moved with old root absent"],
+  "identities": [
+    {
+      "id": "E01",
+      "role": "engine-free exact-Promise primary failure",
+      "script": "f(){ printf '%s' \"${absent:?required}\"; }; guard; node -p '1'",
+      "host": "Non-async guard synchronously registers gated cleanup throwing false and returns the EXACT context.invoke('f',[]) Promise, without then/catch/async wrapping. Diagnostic sink counts one write and throws undefined. Independent finally releases cleanup gate.",
+      "expected": "Rejection is present with exact undefined reason; one diagnostic attempt; registered cleanup finishes before public settlement; caller live; Node prepare/Worker/guest counts zero.",
+      "basis": "Pending N14 exact-public-Promise mechanism and existing caller/cleanup contract; only eligible after independently accepted successor",
+      "status": "UNRUN"
+    },
+    {
+      "id": "E02",
+      "role": "engine-free caller dominance",
+      "host": "E01 shape, diagnostic rejects 0. After the diagnostic barrier, abort the actual caller with false before independently releasing registered cleanup which also rejects false.",
+      "expected": "Exact caller false, one diagnostic, cleanup finished, no Node preparation. Companion E01 distinguishes provenance; equal primitive values alone do not prove origin.",
+      "status": "UNRUN"
+    },
+    {
+      "id": "E03",
+      "role": "engine-free consumed failure versus unrelated same primitive",
+      "host": "A guard catches its invoke diagnostic rejection 0 and returns exitCode0. Later independent command synchronously throws 0 and registers cleanup throwing false; its stderr sink now accepts output.",
+      "expected": "Handled invocation does not poison later work. Independent handler error follows existing diagnostic/status1 mapping, not the private N14 path; root cleanup false outranks numeric status. Do not infer private provenance from primitive equality.",
+      "status": "UNRUN"
+    },
+    {
+      "id": "E04",
+      "role": "engine-free qualification countercontrol, not compatibility positive",
+      "host": "Separate exact-return and async-wrapper/catch-rethrow shapes bound to N14 author N07/N08. Do not silently replace the C17 guard with an async function.",
+      "expected": "Exact-Promise guarantee applies only to the exact-return shape. Preserve independently accepted transformed-Promise outcome/profile as a separately labeled countercontrol; author status1/two-diagnostic observations are not yet accepted evidence.",
+      "status": "UNRUN; exact numeric countercontrol binding waits for independent N14 decision"
+    },
+    {
+      "id": "E05",
+      "role": "engine-free child/sibling state and shared admission",
+      "host": "Invoke two functions with distinct explicit stdout/stderr sinks and child env/cwd. First enables nounset and reaches a missing variable; second prints its own argument. Parent verifies its original option state, env/cwd, positional values and ability to continue. Use actual CommandContext.invoke, no new Shell inside the handler.",
+      "expected": "First child gets accepted nounset failure status, second succeeds with exact literal argv bytes, and parent/sibling bindings remain unchanged. Genuine shared ShellLimitError is not reset or converted to ordinary failure; finite cap boundary must be separately fixed in executable preseal.",
+      "status": "UNRUN"
+    },
+    {
+      "id": "E06",
+      "role": "engine-free lazy VFS predicate authority",
+      "host": "Bind accepted Unit3 observable/unobservable -x fixtures. Compare a short-circuited predicate with a reached unobservable file predicate guarding Node. Recording provider remains inert.",
+      "expected": "Skipped branch performs no operand expansion/metadata access. Reached unobservable predicate refuses2 under accepted profile, rather than treating unsupported access as permission or ordinary false; Node never prepares. Use genuine FsError versus separately classified unexpected errors, not errno-shaped duck typing.",
+      "status": "UNRUN; exact accepted Unit3 fixture bytes still to bind"
+    },
+    {
+      "id": "E07",
+      "role": "PUBLIC engine, maximum one Node Worker and one guest per layout",
+      "script": "CDPATH=/work; cd repo; node ./entry.cjs",
+      "host": "Memory VFS /work/repo/entry.cjs contains console.log('ok');. Grant sourceRead/stdoutWrite explicitly. Record the actual resolved VFS source path and provider request cwd. Use accepted static PUBLIC adapter only.",
+      "expected": "Exact stdout /work/repo\nok\n; source is /work/repo/entry.cjs with cwd /work/repo; no host fallback. On physical move all product/adapter/engine paths rebind to admitted relocated files.",
+      "status": "UNRUN"
+    },
+    {
+      "id": "E08",
+      "role": "PUBLIC engine, maximum one Node Worker and one guest per layout",
+      "script": "node -p \"'ab'\"; printf c",
+      "host": "Shared Shell maxOutputBytes3, explicit stdoutWrite grant. Actual Node emits ab+LF, then ordinary printf attempts one more byte. No new Shell or Budget inside the provider/invoker.",
+      "expected": "Three emitted bytes ab+LF followed by genuine ShellLimitError from the existing budget; no reset/refund or diagnostic conversion. Node Worker and registered parent work retire before settlement. Freeze exact accepted limit discriminator, not a string-only diagnostic assertion.",
+      "status": "UNRUN"
+    }
+  ],
+  "types": [
+    "All21 declared Node type names imported from root and exact subpath; selected actual positive constructions separately enumerated",
+    "Provider required for both factories; invalid replace and grant fields rejected",
+    "No AgentCommandsOptions.node and no limits override",
+    "Private NodeOwner/host/worker implementation exports remain inaccessible",
+    "Fresh parseShell conditional AST discriminant and lazy operand shape type coherently",
+    "Existing CommandInvokeOptions signal/replaceEnv/stdio types remain unchanged"
+  ],
+  "bindingControls": [
+    "Native package export resolution, then exact load hash verification; no root/subpath alias substitution as sole proof",
+    "Stale held9bb runtime in successor pack is rejected before provider preparation",
+    "Wrong package import target with unchanged declaration target fails native consumer; restore exact bytes",
+    "Absent or changed conditional.js fails before engine/guest; private export denial remains distinct"
+  ],
+  "countQualification": "Eight proposed identities x3 layouts=24 slots, not executed outcomes. E04 remains a qualification countercontrol, not a successful guest command. Adding to author759 gives783 proposed slots only. Retaining all50 accepted Unit2 rows per layout would add150, yielding933 proposed slots, subject to separate finite admission."
+}
+
+
+FILE tests/integration/node-public-author-20260829/public-node.mjs 11663 b7e3b584d845fe120758305ff92543a4dc9f039c3ca6f48b42fae84ff3108aa2
+import assert from 'node:assert/strict';
+import { pathToFileURL } from 'node:url';
+import * as api from 'virtual-bash';
+import * as nodeApi from 'virtual-bash/commands/node';
+import { runWorkerCase } from './workers-v5.mjs';
+const symbols=['createNodeCommand','createNodeCommands','nodeCommands','createNodeWorkerProvider','NODE_PROFILE','NODE_ENGINE_ABI','nodeLimits','NodeProfileError','NodeUsageError'].sort();
+const defaultNames=["[","apply_patch","awk","base32","base64","basename","cat","chmod","cksum","column","comm","cp","cut","date","diff","dirname","du","echo","egrep","env","expand","expr","false","fgrep","file","find","fold","git","grep","gunzip","gzip","head","html-to-markdown","join","jq","ln","ls","md5sum","mkdir","mktemp","mv","nl","od","paste","patch","printenv","printf","pwd","readlink","realpath","rev","rg","rm","rmdir","sed","seq","sha1sum","sha256sum","sleep","sort","split","stat","strings","tac","tail","tar","tee","test","timeout","touch","tr","tree","true","unexpand","uniq","wc","which","xargs","xxd","zcat"];
+const bytes=text=>new TextEncoder().encode(text);
+const capture=promise=>promise.then(value=>({kind:'return',value}),reason=>({kind:'throw',reason}));
+const turn=()=>new Promise(resolve=>setImmediate(resolve));
+export async function runPublic(input,id,publish){
+ const owners=[],events=[],facts={};let cleanupError=false;
+ const memory=new api.MemoryFileSystem();
+ const provider=(identity='author-public-bb23-node-adapter-v1',observe)=>nodeApi.createNodeWorkerProvider({entry:pathToFileURL(input.adapter).href,identity,observe:event=>{events.push(event);return observe?.(event);}});
+ const shell=(grants={stdoutWrite:true,stderrWrite:true},options={})=>{const owner=new api.Shell({fs:options.fs??memory,cwd:'/',env:{MARK:'bound'}});owners.push(owner);if(options.aggregate!==false)owner.use(api.agentCommands());owner.use(nodeApi.nodeCommands({provider:options.provider??provider(),grants,...(options.replace===undefined?{}:{replace:options.replace})}));return owner;};
+ const expect=async(owner,program,stdout,status=0,options)=>{const result=await owner.exec(program,options);facts.results??=[];facts.results.push({exitCode:result.exitCode,stdout:result.stdout,stderr:result.stderr,stdoutHex:Buffer.from(result.stdoutBytes).toString('hex'),stderrHex:Buffer.from(result.stderrBytes).toString('hex')});assert.equal(result.exitCode,status);assert.equal(result.stdout,stdout);if(status===0)assert.equal(result.stderr,'');return result;};
+ let failure;
+ try{
+  if(id==='P01'){const names=api.createAgentCommands().map(item=>item.name).sort();assert.deepEqual(names,defaultNames);for(const name of ['node','npm','npx','curl'])assert(!names.includes(name));facts.names=names;}
+  else if(id==='P02'){assert.deepEqual(Object.keys(nodeApi).sort(),symbols);for(const name of symbols)assert.equal(api[name],nodeApi[name]);assert.equal(nodeApi.NODE_PROFILE,'NP1-CJS-WRQ-L-SYNC-1');assert.equal(Object.keys(nodeApi.nodeLimits).length,24);assert(Object.isFrozen(nodeApi.nodeLimits));}
+  else if(id==='P03'){const definitions=nodeApi.createNodeCommands({provider:provider()});assert.equal(definitions.length,1);assert.equal(definitions[0].name,'node');const owner=shell({}, {aggregate:false});await owner.exec('true').catch(()=>{});assert.deepEqual(owner.commands.list().map(item=>item.name),['node']);}
+  else if(id==='P04'){const owner=shell();await expect(owner,'true','');assert.equal(owner.commands.list().length,81);assert(owner.commands.has('node'));assert(!owner.commands.has('npm'));assert(!owner.commands.has('curl'));}
+  else if(id==='P05'){let invoked=0;const prepared={profile:nodeApi.NODE_PROFILE,identity:'inert-validation',prepare(){invoked++;throw Error('unexpected');}};for(const options of [{},{provider:null},{provider:prepared,replace:'yes'},{provider:prepared,limits:{}},{provider:prepared,grants:{stdoutWrite:1}}])assert.throws(()=>nodeApi.nodeCommands(options));const accessor={};Object.defineProperty(accessor,'provider',{get(){invoked++;return prepared;},enumerable:true});assert.throws(()=>nodeApi.nodeCommands(accessor));assert.equal(invoked,0);facts.rejections=6;}
+  else if(id==='P06'){let actual;const inert={profile:nodeApi.NODE_PROFILE,identity:'grant-inspection',prepare(request){actual=request.grants;return{async start(){return{kind:'entryReturned',observation:{state:'unknown',fault:false,name:null,message:null,code:null}}},cancel(){},async retire(){return{acquisition:'none',exitCode:null}}}}};const definition=nodeApi.createNodeCommand({provider:inert});const owner=new api.Shell({fs:memory});owners.push(owner);owner.register(definition);await expect(owner,'node -e ""','');assert.deepEqual(Object.keys(actual).sort(),['dataRead','dataWrite','jsonModules','sourceRead','stderrWrite','stdinRead','stdoutWrite'].sort());assert(Object.values(actual).every(value=>value===false));facts.role='trusted-provider-protocol-not-engine';}
+  else if(id==='P07'){const owner=new api.Shell({fs:memory});owners.push(owner);let executed=0;const original={name:'node',execute(){executed++;return{exitCode:0}}};owner.register(original);owner.use(nodeApi.nodeCommands({provider:provider()}));const outcome=await capture(owner.exec('node -e ""'));assert.equal(outcome.kind,'throw');assert.equal(outcome.reason.message,'Command already registered: node');assert.equal(owner.commands.get('node'),original);assert.equal(executed,0);facts.setupRejected=true;}
+  else if(id==='P08'){const options={provider:provider(),grants:{stdoutWrite:true,stderrWrite:true},replace:true};const plugin=nodeApi.nodeCommands(options);options.replace=false;options.provider=null;options.grants.stdoutWrite=false;const owner=new api.Shell({fs:memory});owners.push(owner);let oldCalls=0;owner.register({name:'node',execute(){oldCalls++;return{exitCode:99}}});owner.use(plugin);await expect(owner,"node -p '8'",'8\n');assert.equal(oldCalls,0);}
+  else if(id==='P09'){const owner=shell();await expect(owner,"node -e 'console.log(2);'",'2\n');await expect(owner,"node -p '1+2'",'3\n');assert.equal(events.filter(event=>event.kind==='guestEntry').length,2);}
+  else if(id==='P10'){await memory.writeFile('/entry.cjs',bytes('console.log(process.argv[2],process.env.MARK,__dirname);'));await expect(shell({sourceRead:true,stdoutWrite:true,stderrWrite:true}),'node /entry.cjs tail','tail bound /\n');}
+  else if(id==='P11'){await expect(shell({sourceRead:true,stdinRead:true,stdoutWrite:true,stderrWrite:true}),'node','stdin-bom\n',0,{stdin:{async *[Symbol.asyncIterator](){yield bytes('\ufeffconsole.log("stdin-bom");')}}});}
+  else if(id==='P12'){await memory.writeFile('/data.json',bytes('{"n":1}'));await expect(shell({dataRead:true,dataWrite:true,jsonModules:true,stdoutWrite:true,stderrWrite:true}),`node -e 'const fs=require("fs");fs.writeFileSync("/copy","owned",{encoding:"utf8",flag:"wx"});console.log(require("./data.json").n,fs.readFileSync("/copy","utf8"));'`,'1 owned\n');assert.equal(Buffer.from(await memory.readFile('/copy')).toString(),'owned');}
+  else if(id==='P13'){for(const workerId of ['W28','W29']){const result=await runWorkerCase(input,workerId,async row=>{facts[workerId]=row;});assert(result.clean);assert(result.pass);}}
+  else if(id==='P14'){const owner=shell();let calls=0;owner.use(async(context,next)=>{if(context.command==='node')calls++;return next();});await expect(owner,"node -p '2+3' | cat",'5\n');assert.equal(calls,1);}
+  else if(id==='P15'){await memory.writeFile('/program.sh',bytes("set -u; node -p '6'; printf '%s' \"${missing:-ok}\""));await expect(shell(),'. /program.sh','6\nok');}
+  else if(id==='P16'){assert.throws(()=>nodeApi.createNodeWorkerProvider({entry:'https://invalid.example/adapter',identity:'wrong'}));await expect(shell(undefined,{provider:provider('wrong-identity')}),'node -e ""','',2);assert.equal(events.filter(event=>event.kind==='guestEntry').length,0);}
+  else if(id==='P17'){let prepared=0,started=0,retired=0;const fixture={profile:nodeApi.NODE_PROFILE,identity:'inert-contract',prepare(){prepared++;assert.equal(started,0);return{async start(){started++;return{kind:'entryReturned',observation:{state:'unknown',fault:false,name:null,message:null,code:null}}},cancel(){},async retire(){retired++;return{acquisition:'none',exitCode:null}}}}};const plugin=nodeApi.nodeCommands({provider:fixture});assert.equal(prepared,0);const owner=new api.Shell({fs:memory});owners.push(owner);owner.use(plugin);assert.equal(prepared,0);await expect(owner,'node -e ""','');assert.deepEqual([prepared,started,retired],[1,1,1]);facts.role='trusted-provider-protocol-not-engine';}
+  else if(id==='P18'){const controller=new AbortController();const reason=false;let closed=false;memory.readFile=async(name,options)=>new Promise((resolve,reject)=>{const abort=()=>{closed=true;reject(options.signal.reason)};options.signal.addEventListener('abort',abort,{once:true});controller.abort(reason);if(options.signal.aborted&&!closed)abort();});const outcome=await capture(shell({dataRead:true,stdoutWrite:true,stderrWrite:true}).exec(`node -e 'require("fs").readFileSync("/held","utf8");'`,{signal:controller.signal}));assert.equal(outcome.kind,'throw');assert.equal(outcome.reason,reason);assert(closed);facts.sameReason=true;}
+  else if(id==='P19'){await expect(shell(),`node -e 'Promise.race([]);console.log("entry-return");'`,'entry-return\n');assert.equal(events.filter(event=>event.kind==='retired').length,1);}
+  else if(id==='P20'){assert.equal(nodeApi.nodeLimits.memoryBytes,16777216);assert.throws(()=>nodeApi.nodeCommands({provider:provider(),limits:{memoryBytes:1}}));let writes=0;const result=await capture(shell().exec("node -p '3'",{limits:{maxOutputBytes:0},stdout:{async write(){writes++;}}}));assert.equal(result.kind,'throw');assert(result.reason instanceof api.ShellLimitError);assert.equal(result.reason.limit,'maxOutputBytes');assert.equal(writes,0);}
+  else if(id==='P21'){const owner=shell();for(const program of ['node /unsupported.js','node --input-type=module -e ""','node --require x -e ""']){const result=await owner.exec(program);assert.equal(result.exitCode,2);assert.equal(result.stdout,'');}assert.equal(events.length,0);}
+  else if(id==='P22'){await expect(shell(),"node -p '22'",'22\n');facts.packageRoot=input.packageRoot;assert.equal(events.filter(event=>event.kind==='guestEntry').length,1);}
+  else if(id==='P23'){assert.throws(()=>nodeApi.nodeCommands({}));const owner=new api.Shell({fs:memory}).use(api.agentCommands());owners.push(owner);await expect(owner,'printf usable','usable');assert(!owner.commands.has('node'));facts.role='configuration-refusal-no-engine-fallback';}
+  else if(id==='P24'){const owner=shell();await expect(owner,`node -e 'throw new Error("guest-failure");'`,'',1);await expect(owner,"node -p '24'",'24\n');assert.equal(events.filter(event=>event.kind==='retired').length,2);}
+  else throw Error('unknown public identity');
+ }catch(reason){failure=reason;facts.error=String(reason?.stack??reason);}
+ finally{for(const owner of owners){try{await owner.dispose();}catch(reason){if(id==='P07'&&reason?.message==='Command already registered: node'){facts.repeatedSetupError=true;}else{cleanupError=true;facts.cleanupError=String(reason);}}}await turn();}
+ const births=events.filter(event=>event.kind==='workerCreated').length,exits=events.filter(event=>event.kind==='workerExit').length,retired=events.filter(event=>event.kind==='retired').length;
+ const clean=!cleanupError&&births===exits&&exits===retired;
+ const row={id,role:'public-node-integration',pass:failure===undefined&&clean,clean,workers:births,exits,retired,guestEntries:events.filter(event=>event.kind==='guestEntry').length,events,facts};await publish(row);return row;
+}
+
+
+FILE tests/compatibility/bash-strict-extension-author-20260829/n14-v4/n14.mjs 5599 5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3
+import assert from 'node:assert/strict';
+import * as api from 'virtual-bash';
+const rows = [], shells = new Set(), releases = new Set();
+const capture = promise => promise.then(value => ({ kind: 'return', value }), reason => ({ kind: 'throw', reason }));
+const turn = () => new Promise(resolve => setImmediate(resolve));
+function deferred() { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; }
+function create() { const shell = new api.Shell({ fs: new api.MemoryFileSystem(), cwd: '/' }).use(api.agentCommands()); shells.add(shell); return shell; }
+async function record(id, action) {
+  if (process.env.N14_CASE && process.env.N14_CASE !== id) return;
+  const row = { id, role: 'EXACT_OWNED_PROMISE_PRODUCT_PROFILE_NOT_NATIVE', pass: false };
+  const timer = setTimeout(() => { console.error('CASE_DEADLINE', id); process.exit(78); }, 30000);
+  try { await action(row); row.pass = true; } catch (error) { row.error = String(error?.stack ?? error); }
+  finally {
+    for (const release of releases) release(); releases.clear();
+    const results = await Promise.allSettled([...shells].map(shell => shell.dispose()));
+    row.created = shells.size; row.disposed = results.filter(result => result.status === 'fulfilled').length;
+    row.cleanupFailure = row.created !== row.disposed; shells.clear(); clearTimeout(timer);
+  }
+  rows.push(row); console.log(JSON.stringify(row)); if (row.cleanupFailure) process.exit(78);
+}
+async function forward(row, reason, { mode = 'exact', cleanupFailure = false, caller = false, observe = false, nested = false } = {}) {
+  const shell = create(), gate = deferred(), entered = deferred(), controller = new AbortController();
+  let writes = 0, settled = false, publicObserved;
+  const events = []; row.events = events;
+  const event = value => { events.push(value); console.error(JSON.stringify({ protocol: row.id, event: value })); };
+  const release = () => { event('release'); gate.resolve(); }; releases.add(release);
+  if (nested) shell.commands.register({ name: 'relay', execute(context) { return context.invoke('f', []); } });
+  shell.commands.register({ name: 'guard', execute(context) {
+    context.registerCleanup(async () => { event('cleanup-enter'); entered.resolve(); await gate.promise; event('cleanup-finished'); if (cleanupFailure) throw false; });
+    event('registered'); const promise = context.invoke(nested ? 'relay' : 'f', []);
+    if (observe) void promise.then(() => { publicObserved = { kind: 'return' }; }, error => { publicObserved = { kind: 'throw', reason: error }; event('invoke-rejected'); });
+    if (mode === 'consume') return promise.catch(() => ({ exitCode: 0 }));
+    if (mode === 'transform') return promise.catch(error => { throw error; });
+    if (mode === 'async') return (async () => await promise)();
+    return promise;
+  } });
+  const pending = capture(shell.exec('f(){ printf "%s" "${absent:?required}"; }; guard', {
+    signal: controller.signal, stderr: { async write() { writes++; event('diagnostic'); throw reason; } },
+  })).then(outcome => { settled = true; event('settled'); return outcome; });
+  try { await entered.promise; await turn(); assert.equal(settled, false); if (caller) { controller.abort(false); event('caller-abort'); } }
+  finally { release(); releases.delete(release); }
+  const outcome = await pending;
+  row.outcome = { kind: outcome.kind, reasonType: typeof outcome.reason, exitCode: outcome.value?.exitCode }; row.writes = writes;
+  assert.ok(events.indexOf('cleanup-finished') < events.indexOf('settled'));
+  if (caller) { assert.equal(outcome.kind, 'throw'); assert.equal(outcome.reason, false); assert.equal(writes, 1); }
+  else if (mode === 'consume') { assert.equal(outcome.kind, 'return'); assert.equal(outcome.value.exitCode, 0); assert.equal(writes, 1); }
+  else if (mode === 'transform' || mode === 'async') {
+    assert.equal(outcome.kind, 'return'); assert.equal(outcome.value.exitCode, 1); assert.equal(writes, 2);
+    row.qualification = 'TRANSFORMED_PROMISE_OUTSIDE_EXACT_FORWARDING_RULE';
+  } else { assert.equal(outcome.kind, 'throw'); assert.equal(outcome.reason, reason); assert.equal(writes, 1); }
+  if (observe) { assert.equal(publicObserved?.kind, 'throw'); assert.equal(publicObserved.reason, reason); }
+}
+await record('N01', row => forward(row, 0));
+await record('N02', row => forward(row, false));
+await record('N03', row => forward(row, undefined));
+await record('N04', row => forward(row, 0, { observe: true }));
+await record('N05', async row => {
+  const shell = create(); let writes = 0;
+  shell.commands.register({ name: 'ordinary', execute() { throw 0; } });
+  const outcome = await capture(shell.exec('ordinary', { stderr: { async write() { writes++; throw 0; } } }));
+  assert.equal(outcome.kind, 'return'); assert.equal(outcome.value.exitCode, 1); assert.equal(writes, 1); row.writes = writes;
+});
+await record('N06', row => forward(row, 0, { mode: 'consume' }));
+await record('N07', row => forward(row, 0, { mode: 'transform' }));
+await record('N08', row => forward(row, 0, { mode: 'async' }));
+await record('N09', row => forward(row, 0, { cleanupFailure: true, caller: true }));
+await record('N10', row => forward(row, 0, { cleanupFailure: true }));
+await record('N11', row => forward(row, new api.ShellLimitError('maxOutputBytes', 0)));
+await record('N12', row => forward(row, 0, { nested: true }));
+console.log(JSON.stringify({ summary: { cases: rows.length, pass: rows.filter(row => row.pass).length, fail: rows.filter(row => !row.pass).length } }));
+process.exitCode = rows.some(row => !row.pass) ? 1 : 0;
+

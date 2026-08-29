@@ -1,0 +1,1456 @@
+6443158944a20b0a3a688a9ba4144cbdd63331aa blob 7985
+# Accepted N14 source locator handoff
+
+2026-08-29. SOURCE/DATA only; no reconstruction, decompression, extraction,
+consumer evaluation, or comparison was run for this handoff.
+
+## Identity and authoritative inputs
+
+The accepted composition identifier is `bf079ada185a79aec864b068f3738ddc5520822e`.
+It is a derived Git-tree identity, **not a promise that the tree is stored in Git**.
+Do not use `bf079ada:path`, substitute HEAD, or reconstruct by checking out the
+runtime source commit alone.
+
+All paths below, unless absolute, are relative to
+`tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/`.
+
+- `SOURCE.json`: 230044 bytes; raw-file SHA256
+  `12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4`.
+  `.inputs` is the complete selected **293-file**, 2689324-byte input inventory.
+  Each row binds `path`, Git `mode`, `blob`, `bytes`, and raw-content `sha256`.
+  `revision` is optional: use the blob ID, not an inferred revision/path lookup.
+- `.sourceCommit` is `7196bace8ea2c141d5ed1020fef5bf721c321ace`;
+  `.computedTree` is the derived identity above. `.base` is
+  `37e793ce6dce48a958030e7cc86fa8315d0b112e`. The resolved rows already select
+  the accepted prior core and N14 runtime; do not append the provenance
+  collections `.module`, `.publicRows`, or `.fixtures` to `.inputs`.
+- `FINAL-MANIFEST-v2.json` SHA256
+  `026c4a76cd442793276730ca83bafdfcf74e4779138e754537308fc3b8a09b39`
+  binds the prior manifest through `priorManifestSha256`.
+  `FINAL-MANIFEST.json` SHA256
+  `c471ecf8d9582fb7fed677ef25e734b51ab8f988a9e55a2c853489016cbdcabb`
+  binds the original receipts through `.files[].{path,bytes,sha256}`.
+
+The selected `src/shell/runtime.ts` row is blob
+`df6b2c0dfad8d7412f93f434d07a20b2b9375a86`, mode `100644`, 203623 bytes,
+SHA256 `4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058`.
+The parser and conditional rows have no `revision` field; their authoritative
+blob IDs are respectively `27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe` and
+`caab6172df5b8e5bad2d1db007b156f067e295ad`.
+
+## Reconstruction recipe for future authorized execution
+
+1. Admit the exact regular-file metadata and raw hashes of the manifests and
+   source inventory before parsing them. Validate unique safe relative input
+   paths and regular Git modes `100644`/`100755`.
+2. Request each **individual `.inputs[].blob`** using `git cat-file --batch`.
+   Require the exact OID, `blob` type, declared length, payload and delimiter;
+   verify raw SHA256 and Git SHA1 of `blob <length>\0` followed by the payload.
+   Only then write the admitted bytes into a fresh bounded regular-file tree.
+   This handoff checked availability/type/size for all 293 stored blob objects;
+   it did not retrieve or freshly hash their payloads.
+3. `SOURCE-TREES.json` (14655 bytes, SHA256
+   `90a458bb23ba83fb13ae4057a905306997ec650e7244f91b3c9acc44a1e17274`)
+   supplies `.fetched` tree metadata. Existing `admission.mjs` documents the
+   composition proof using this and SOURCE's ancestor/reconstructed metadata.
+   A tree body hashes as Git SHA1 of `tree <length>\0` plus its body; entries are
+   mode/name/NUL/raw-OID records, ordered bytewise with `/` appended for directory
+   comparison. Authenticate every path's mode/OID from the derived root.
+   The derived tree is not a flat hash of the 293 selected files, nor the
+   SOURCE.json SHA256. Sparse witnesses alone are not complete inventories.
+   Historical instruction-file entries remain opaque metadata: never fetch or
+   materialize their plaintext bodies to reconstruct the selected input set.
+4. Independently admit the compiler/dependency closure and any new consumer
+   before execution. No historical consumer receipt authorizes Faraday's new
+   comparison script automatically.
+
+## Tools, shipping bytes and load bindings
+
+`TOOLS.json` SHA256 is
+`0a6f49ac1f57c229cfdb14d92cf6bd3a69ca64791f58d61ff3f472bb8df0e95e`.
+Its `.tools[name].originalRows` and SOURCE's `.toolBindings` bind TypeScript
+5.9.3, @types/node 22.20.1, undici-types 6.21.0 and npm 10.9.7.
+The inventory hash domain is **UTF-8 `JSON.stringify(originalRows)` without a
+newline, preserving recorded order**, not a newly sorted traversal. All four
+recorded domains were independently recomputed from authenticated DATA here;
+`HASH-DOMAINS.json` records the results. Current tool-file bytes still require
+fresh admission. Node's recorded v22.22.2 executable is
+`/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node`, SHA256
+`5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011`;
+the binary was not freshly hashed in this handoff.
+
+`actual-v2/evidence/RESULT.json` (SHA256
+`c031715228f24c4bd48a231a87668f153ff7cf1ee2882fde7ac90ed372267a3a`)
+has `.package.members`: **954** package-relative shipping rows with decimal
+mode, bytes and raw SHA256. `.package.sha256` authenticates compressed package
+bytes, not a JSON serialization of those rows.
+`actual-v2/evidence/source-strict-binding.json` and
+`actual-v2/evidence/moved-strict-binding.json` have `.root`, `.inputs`, `.harness`
+and `.trace`; their 952 source/dist load inputs are not the 954 shipping rows.
+`actual-v2/evidence/source-strict-loads.jsonl` records the historical load trace.
+`EXECUTOR-v2.json` binds the old executor files and source identity. Exact
+regular-file sizes/hashes for these receipts are in `LOCATORS.json`.
+
+The retained compressed package exists at:
+
+`/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/virtual-bash-0.0.0.tgz`
+
+It was freshly checked as a regular **872281-byte** file and stream-hashed to
+`3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49`.
+The adjacent `source` directory exists but was not recursively reauthenticated.
+The historical moved-package locator is the adjacent
+`moved package/node_modules/virtual-bash`; its whole tree was not freshly checked.
+Do not treat retained-directory existence as executable admission.
+
+## Correct early compressed admission
+
+Use the existing, separately qualified
+`prospective-admission-v1/package-admission.mjs` export `admitPackage` with
+authority `{bytes:872281, sha256:"3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49"}`.
+Its `EVIDENCE-MANIFEST.json` SHA256 is
+`320bab5fc4e62a9f57e475e89be6075f6ede828e84803631e173355a8317a418`.
+The helper, `parse-manifest.mjs` and `EXPECTED-MEMBERS.json` were authenticated
+against that manifest; see `LOCATORS.json` for their exact file identities.
+
+The gate requires regular-file/exact-size checks before bounded read, descriptor
+identity checks, and expected compressed SHA256 **before any decoder/parser**.
+Decode the same authenticated Buffer, not a reread pathname. Retain the 872281B
+compressed ceiling, 64MiB decoded ceiling and concurrent-buffer ledger charges;
+bind the decoder/parser and compare all 954 expected members. These are logical
+bounds, not hostile-host race-proof security or RSS guarantees. No decoder,
+parser or helper was invoked here; no encoded DATA archive is needed to locate
+or reconstruct the 293 source inputs.
+
+## Qualifications and preserved records
+
+Root acceptance `76648c572b26486c02e45c65ad42dd74bc938e15` records finite
+source/semantic acceptance based on be7d4b98, c6992dfa and aede1639. The old
+campaign remains CLOSED/noncompliant for pre-inflate admission ordering: its
+744 literal results are not rescored. Do not reuse old `run-v2.mjs`'s ordering.
+Future coherent execution must apply the corrected admission contemporaneously.
+
+This handoff itself mistakenly requested the nonexistent historical path
+`actual-v2/evidence/BINDING-PROOF.json`. The captured ENOENT is preserved in
+`capture/final-inspection.stderr.raw`; this was a guessed-locator instruction
+violation, not a product failure. Subsequent locators came from authenticated
+inventory entries. No absent artifact was invented, decoded or recreated.
+The source/DATA collectors retired naturally; this task makes no new product,
+comparison, native-parity, whole-tree or acceptance claim.
+
+78e40efc5f85b6f5c58c6d0020e912b3809a63c2 blob 8823
+{
+  "verifiedAt": "2026-08-29T09:51:00.128Z",
+  "records": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/FINAL-MANIFEST-v2.json",
+      "type": "regular",
+      "bytes": 379,
+      "mode": 420,
+      "sha256": "026c4a76cd442793276730ca83bafdfcf74e4779138e754537308fc3b8a09b39"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/FINAL-MANIFEST.json",
+      "type": "regular",
+      "bytes": 44778,
+      "mode": 420,
+      "sha256": "c471ecf8d9582fb7fed677ef25e734b51ab8f988a9e55a2c853489016cbdcabb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/SOURCE.json",
+      "type": "regular",
+      "bytes": 230044,
+      "mode": 420,
+      "sha256": "12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/SOURCE-TREES.json",
+      "type": "regular",
+      "bytes": 14655,
+      "mode": 420,
+      "sha256": "90a458bb23ba83fb13ae4057a905306997ec650e7244f91b3c9acc44a1e17274"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/TOOLS.json",
+      "type": "regular",
+      "bytes": 417978,
+      "mode": 420,
+      "sha256": "0a6f49ac1f57c229cfdb14d92cf6bd3a69ca64791f58d61ff3f472bb8df0e95e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/TOOL-SUPPLEMENT.json",
+      "type": "regular",
+      "bytes": 524,
+      "mode": 420,
+      "sha256": "3cfcdc1842818c065e071dde569abec728c62bb076cb233a8fe31daff72f0c65"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/EXECUTOR-v2.json",
+      "type": "regular",
+      "bytes": 26762,
+      "mode": 420,
+      "sha256": "a1d5f0c668a8ba52e071dc52d5c933d40e97c858ffe0b94b9feeb56dfa9ee8ac"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/SOURCE-REVIEW.json",
+      "type": "regular",
+      "bytes": 2969,
+      "mode": 420,
+      "sha256": "6a3912073ddc2cdd3a765edd19f9a410be7ba368069a94357c0676903ac9b801"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/RESULT.json",
+      "type": "regular",
+      "bytes": 1651971,
+      "mode": 420,
+      "sha256": "c031715228f24c4bd48a231a87668f153ff7cf1ee2882fde7ac90ed372267a3a"
+    },
+    {
+      "path": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/virtual-bash-0.0.0.tgz",
+      "type": "regular",
+      "bytes": 872281,
+      "mode": 420,
+      "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+      "observation": "bounded stream hash only; no decompression"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/EVIDENCE-MANIFEST.json",
+      "type": "regular",
+      "bytes": 6683,
+      "mode": 420,
+      "sha256": "320bab5fc4e62a9f57e475e89be6075f6ede828e84803631e173355a8317a418"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/package-admission.mjs",
+      "type": "regular",
+      "bytes": 3895,
+      "mode": 420,
+      "sha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/parse-manifest.mjs",
+      "type": "regular",
+      "bytes": 2860,
+      "mode": 420,
+      "sha256": "0dd49a2e6fa0d222ada2477937a482aed613f220f28bef1f790cb06b61270f61"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/EXPECTED-MEMBERS.json",
+      "type": "regular",
+      "bytes": 166933,
+      "mode": 420,
+      "sha256": "9800c6e7b6025c548c7b6be8376ca4804b5d3601115578c264ba7f7dd5b35011"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/admission.mjs",
+      "type": "regular",
+      "bytes": 2193,
+      "mode": 420,
+      "sha256": "9a7273e21ff928b421728977daed70e4736352687c1b9e5b6fa449b4df510fae"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/run-v2.mjs",
+      "type": "regular",
+      "bytes": 30558,
+      "mode": 420,
+      "sha256": "27513d8c4c158999c42508fe797831280657e50f2f96eacd345871eb1d71dfac"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/source-strict-binding.json",
+      "type": "regular",
+      "bytes": 134560,
+      "mode": 420,
+      "sha256": "852ba942337c667c3bd5fd86447079c0b355008d3f352cf40a3ebec5f583bb87"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/moved-strict-binding.json",
+      "type": "regular",
+      "bytes": 134580,
+      "mode": 420,
+      "sha256": "36edbf3ba549e5c31d94c63b52bce858f1f9e0cde5519b1e4b2da09f74d0da87"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/source-strict-loads.jsonl",
+      "type": "regular",
+      "bytes": 49428,
+      "mode": 420,
+      "sha256": "00e88e0fbbde60b1573cfc4f3f27abd8cfad740a8c78d4be2022250f0419aa18"
+    }
+  ],
+  "sourceManifest": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "inputs": 293,
+  "blobAvailability": "293/293 stored blob/type/size rows verified from captured metadata command; content SHA256 must be checked freshly during reconstruction",
+  "archive": {
+    "path": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/virtual-bash-0.0.0.tgz",
+    "type": "regular",
+    "bytes": 872281,
+    "mode": 420,
+    "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+    "observation": "bounded stream hash only; no decompression"
+  },
+  "shippingInventory": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/RESULT.json",
+    "field": "package.members",
+    "count": 954
+  },
+  "sourceMaterialization": {
+    "path": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source",
+    "exists": true,
+    "qualification": "existence only, not fresh full content admission"
+  },
+  "tools": {
+    "node": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "typescript": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "version": "5.9.3",
+      "inventorySha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41"
+    },
+    "npm": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+      "version": "10.9.7",
+      "inventorySha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    "@types/node": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+      "version": "22.20.1",
+      "inventorySha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae"
+    },
+    "undici-types": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+      "version": "6.21.0",
+      "inventorySha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986"
+    }
+  },
+  "wrongLocator": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/BINDING-PROOF.json",
+    "status": "ENOENT in fully captured source/data helper; not a valid locator and not reused",
+    "qualification": "This guessed historical citation violated the no-guessed-locator instruction; preserved, no product/archive decoding occurred. Successor locators selected from authenticated inventory."
+  },
+  "reconstructionRequired": "source.inputs is authoritative; use each row.blob, not computedTree:path or optional revision:path"
+}
+
+b8315c2e9c647032f670591139d31acdc29e0501 blob 3417
+{
+  "selectedInputBytes": 2689324,
+  "tools": {
+    "typescript": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "version": "5.9.3",
+      "count": 132,
+      "first": [
+        "LICENSE.txt",
+        420,
+        9197,
+        "a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47"
+      ],
+      "omittedInternalBinLinks": [],
+      "compactJsonSha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41",
+      "expected": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41"
+    },
+    "@types/node": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+      "version": "22.20.1",
+      "count": 74,
+      "first": [
+        "LICENSE",
+        420,
+        1141,
+        "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+      ],
+      "omittedInternalBinLinks": [],
+      "compactJsonSha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae",
+      "expected": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae"
+    },
+    "undici-types": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+      "version": "6.21.0",
+      "count": 41,
+      "first": [
+        "LICENSE",
+        420,
+        1090,
+        "a6db8096b2707bc0102d256917d4d33f298ba36d8c3f25de067a2b5bb379db27"
+      ],
+      "omittedInternalBinLinks": [],
+      "compactJsonSha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986",
+      "expected": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986"
+    },
+    "npm": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+      "version": "10.9.7",
+      "count": 2039,
+      "first": [
+        "LICENSE",
+        420,
+        9742,
+        "7610d223851f421d315df5e77974f1c68a04b97e02060e5bbbcf13d95e3ca257"
+      ],
+      "omittedInternalBinLinks": [
+        [
+          "node_modules/.bin/arborist",
+          "../@npmcli/arborist/bin/index.js"
+        ],
+        [
+          "node_modules/.bin/cssesc",
+          "../cssesc/bin/cssesc"
+        ],
+        [
+          "node_modules/.bin/glob",
+          "../glob/dist/esm/bin.mjs"
+        ],
+        [
+          "node_modules/.bin/installed-package-contents",
+          "../@npmcli/installed-package-contents/bin/index.js"
+        ],
+        [
+          "node_modules/.bin/node-gyp",
+          "../node-gyp/bin/node-gyp.js"
+        ],
+        [
+          "node_modules/.bin/node-which",
+          "../which/bin/which.js"
+        ],
+        [
+          "node_modules/.bin/nopt",
+          "../nopt/bin/nopt.js"
+        ],
+        [
+          "node_modules/.bin/pacote",
+          "../pacote/bin/index.js"
+        ],
+        [
+          "node_modules/.bin/qrcode-terminal",
+          "../qrcode-terminal/bin/qrcode-terminal.js"
+        ],
+        [
+          "node_modules/.bin/semver",
+          "../semver/bin/semver.js"
+        ],
+        [
+          "node_modules/@npmcli/metavuln-calculator/node_modules/.bin/pacote",
+          "../pacote/bin/index.js"
+        ],
+        [
+          "node_modules/cross-spawn/node_modules/.bin/node-which",
+          "../which/bin/node-which"
+        ]
+      ],
+      "compactJsonSha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+      "expected": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    }
+  }
+}
+
+59ab4ec68c46ed524dd12199aa962377af9c3a97 blob 19409
+# `[[ =~ ]]`: independent bounded feasibility/design
+
+2026-08-29. SOURCE/DATA only. **Feasible as a substantial bounded matcher extension,
+not a flag flip or JS-RegExp substitution. No implementation is authorized.**
+All32 proposed reference programs and8 host protocols are UNRUN. Existing native
+37/40, accepted Unit3, pending Unit4 and other accepted features are unchanged.
+
+## Frozen inspection, not a new composition certification
+
+Accepted source `7a5c620005fb04518d44bb284f4e99284e4a7c33`, selected
+`74dfe69135a3fc5ba89396b20dd32d9c9daae131`, full954
+`46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09`.
+Pending Unit4 is runtime commit `9bb91c370a0672687399c0a9da4ce1b161f79615`,
+runtime SHA256 `b14268b38f9a156c45cae80e6871a646086746654803c2b05eb0a7ec7438443b`,
+derived `37e793ce6dce48a958030e7cc86fa8315d0b112e`, not accepted or executed here.
+The inspected16 Unit3 product blobs match the selected SOURCE-v4 manifest;
+the seventeenth product observation is Unit4's different runtime. This is a
+selected-source audit, not fresh293-input/full-package reconstruction.
+
+`SOURCE-BINDINGS.json` records exact blobs, hashes, sizes and source roles.
+The private GNU5.3.15 source root was already retained by reference work, not
+downloaded/extracted/built here. Six C/parser files were checked against the authenticated
+final source inventory from the `41d488`/`efcd8b49` reference lineage before reading.
+No Bash executable or libc behavior was tested. No private engine was accessed.
+
+## What is reusable, and what is not
+
+| Frozen source | Actual mechanism / consequence |
+| --- | --- |
+| `src/commands/expr/bre-worker.ts:42–93,189–227,282–334` | Parser supports32 numbered groups, compiles two save slots per group, clones all capture slots at branch splits. Only its public result exposes group1. It is **not internally a one-group matcher**. |
+| Same file:284–296,330–334 | Starts only at input0; chooses a larger overall end, retaining first traversal on ties. No POSIX subexpression tie comparator. Exporting all slots alone is incorrect. |
+| Same file:161–186,290–292 | Nullable repetition/backreference restriction and program-only zero-progress visited guard are BRE-profile mechanisms, not proof of full ERE repeated-capture semantics. |
+| Same file:18–33,252–280 | Explicit cumulative work/allocation/state/node limits; byte or fatal UTF8-scalar symbols with byte boundaries; Worker-only guard. Useful foundations, not an RSS bound. |
+| `src/commands/regex-execution/protocol.ts:59–84,124–153` | `expr-match` reply has overall plus one capture; overall must begin0. New operation/reply validation required, not weakening the existing expr contract. |
+| `src/commands/regex-execution/matching.ts:36–55` | Existing search path uses JS RegExp. Its dialect, alternative order and capture choices cannot stand in for POSIX. |
+| `src/commands/regex-execution/client.ts:28–52,131–198,264–297` | Existing exact Worker entry, queue/timeout/session/retirement machinery. Register cleanup before opening/acquiring. Reuse lifecycle, not a fake grep invocation. |
+| `src/shell/parser.ts:74,305–310,617–654` | Conditional AST already represents `=~` with original Word operands and a regex lexical mode. No new public AST union required for the admitted syntax; lexical bracket/group delimiters still need holdouts. |
+| `src/shell/conditional.ts:133–176` | Evaluates visited LHS then RHS once and refuses reached `=~`; skipped branches never reach it. Preserve this sequencing. |
+| `src/shell/runtime.ts:1523,3741–3757` | Current glob-pattern escaping omits ERE metacharacters such as dot, dollar and braces. Joined RHS loses literal-fragment provenance. Add a private ERE fragment mode, not a regex over the already flattened string. |
+| `src/shell/runtime.ts:1238–1322`; `arrays/{bindings,state,ledger}.ts` | Staged typed bindings, watches, pre-admitted names/tickets, readonly-before-stale validation, atomic publication and awaited retirement exist. `arrayAssignment` also re-expands syntax and rejects exported/control targets: do not call it with fabricated source to publish captures. |
+
+Static discriminator, NOT a new native or product result: an ERE-mode adaptation
+of the current traversal on `(a|aa)(a?)` against `aa` can keep `(a,a)` because its
+later `(aa,empty)` alternative ties on total length. POSIX's overall-then-subpattern
+priority requires a different selector. This is an extension blocker, not a claim
+that accepted expr's explicitly narrower profile has newly failed.
+
+## Normative references and important scope conflict
+
+Primary references are in `REFERENCES.json`. POSIX2017 section9 defines earliest
+start, longest whole match, then subpattern priorities; participation in an empty
+match differs from nonparticipation. Its rationale explains context-dependent
+submatches. Capture histories/reset rules under repetition need explicit proof,
+not branch order or a vector comparator assumed correct for every repetition.
+
+The Bash manual describes substring search, quoting of literal portions,
+status2 for invalid regex and captures0..N. Its global-only BASH_REMATCH wording
+conflicts with the inspected GNU5.3.15 implementation and maintainer's5.3 release
+notes: local BASH_REMATCH is now supported. Source chain:
+`lib/sh/shmatch.c:79–144` -> `builtins/common.c:988–1014` ->
+`arrayfunc.c:454–501` uses ordinary variable lookup/conversion and readonly checks.
+This replaces the old global-unbind/create sequence, retained under `#if 0`.
+**ROOT must choose pinned5.3 visible binding versus historical global-only policy.**
+Recommend pinned5.3: ordinary global storage when no local shadows it, ordinary
+local restoration when one does. Do not silently implement global bypass.
+
+The source compiles with REG_EXTENDED, optionally REG_ICASE, not REG_NEWLINE,
+then delegates to the build's regex library. A GNU Bash version does not establish
+GNU-libc regex behavior on Darwin. New native observations require separate GO
+and actual binary/libc/profile binding. POSIX2024 adds features beyond the selected
+2017 baseline; this proposal does not silently promise its shortest-match modifiers.
+
+## Recommended bounded first profile — decisions pending ROOT
+
+1. C/POSIX locale, ASCII subject/pattern first; no ambient locale. Add a separately
+   named UTF8-scalar extension only after ROOT chooses it. C byte matches can split
+   UTF8 sequences, while shell arrays store JS strings: replacement decoding would
+   corrupt captures. Reject non-ASCII/NUL/lone-surrogate input before encoding in
+   the first profile; this is an explicit compatibility gap, not native behavior.
+   Resolve LC_CTYPE and LC_COLLATE independently from own-key virtual LC_ALL,
+   category and LANG values, with an explicit C fallback; the current single
+   conditional collation string is not sufficient for regex character semantics.
+   Reject unsupported effective locales rather than consulting host Intl/libc.
+   Existing refusal of `shopt nocasematch` remains; this does not add that option.
+2. Admit literals, dot, anchors, grouping, alternation, `* + ? {m} {m,} {m,n}`,
+   ordinary/negated bracket lists/ranges and the12 existing ASCII classes. Whole
+   subject search, not whole-string matching; anchors refer to original endpoints,
+   not each suffix. With the source's no-REG_NEWLINE flag, newline is not secretly
+   line-delimited. Empty matches are real matches, including end-of-input.
+3. Return every group in the admitted grammar, including overall0, unambiguously
+   distinguishing nonparticipation from a zero-length span internally. Publish
+   every index0..N on success (empty strings for unmatched captures, pending pinned
+   confirmation), not a one-group limit or dropped trailing empties. Group cap32
+   is an explicit grammar boundary; cap excess is never silent truncation.
+4. Refuse reached ERE backreferences initially (BRE support does not establish an
+   ERE extension), lookaround, named/noncapturing groups, collating/equivalence
+   elements, locale-dependent non-ASCII classes and ambiguous extension escapes.
+   Do not mark quoted lookalikes unsupported. Refuse stacked/shortest modifiers in
+   this first profile. POSIX-undefined constructs require a documented choice,
+   not invented native goldens.
+5. Captured nullable repetition is the highest algorithmic risk. Recommend first
+   refusing a repetition with maximum>1 whose nullable operand contains captures,
+   until reset/history/zero-progress proof is supplied. Ordinary nonnullable
+   captured repetition must still implement last-iteration/nested participation
+   correctly; `(a(b)?)+` cannot reuse stale inner capture state by assumption.
+   Refusal is profile2, not false. This is a useful subset with complete captures,
+   **not full POSIX ERE**. ROOT may instead fund the larger tagged-history engine.
+
+## Matcher and transport design
+
+Prefer an additive `shell-ere` operation in the existing qualified RegexExecutor:
+new private `src/commands/regex-execution/ere/{syntax,matcher}.ts`, additive
+`protocol.ts`/`client.ts`/`worker.ts` changes, private
+`src/shell/ere.ts`, and focused `conditional.ts`/`runtime.ts` integration.
+No root exports, public command, registry/default count, dependency or new AST
+variant. A lexical repair to `parser.ts` would need a reproduced admitted-pattern
+counterexample and separate scope approval, not speculative parser expansion.
+
+Lexing qualification: GNU `parse.y:5439–5462` special-cases regex parentheses and
+alternation while still reading a shell word; it does not make arbitrary shell
+delimiters literal. Accepted `parser.ts:305–310` also has delimiter/parenthesis
+rules. Patterns supplied via an unquoted variable and direct unquoted patterns
+must be distinguished. Do not invent a native success for a raw `[ ]` or `[)]`
+fixture merely because its contents are valid ERE when passed as data.
+
+Reuse the bounded VM design/ASCII class tables, but leave expr's entry/result/
+tie behavior unchanged. A shared extraction from `expr/bre-worker.ts` is optional
+and separately scoped; avoiding it initially reduces regression exposure.
+Extend syntax directly for ERE rather than translating by backslash replacement.
+Preserve `{text,literal}` fragment provenance through expansion and perform
+context-aware literal admission, including brackets/backslashes. A blanket glob
+escape or `RegExp.escape` equivalent is not a proof of Bash quote-inside-bracket
+behavior; ambiguous combinations stay a source/reference holdout, not a guessed
+golden. No serialization/cloning promise for existing private quote metadata is added.
+New reply: exact own-data `{matched, groupCount, spans, steps, allocatedUnits}`,
+with spans0..N and null participation, validated finite integer boundaries and
+group count before copying. No caller-supplied regexp object, eval or host regex.
+
+Enumerate starts left-to-right with one cumulative budget, retaining all viable
+tag histories until the earliest matching start is exhausted. Select maximum
+whole end, then the specified capture history ordering; charge comparisons,
+cloning, resets and zero-progress tracking. Stopping on the first successful
+alternative is wrong. Do not merge states by program counter/input offset alone:
+their capture histories differ. A tagged-NFA optimization is a later equivalence
+proof, not assumed linear time. Exhaustive bounded search can refuse difficult
+inputs; it must not return a provisional shorter match or false on exhaustion.
+
+Worker ownership is viable but not already wired into shell builtins: Runtime
+needs a private invocation-root executor/session enrolled in its InvocationScope,
+shared by internal descendants, closed before public settlement. Fixed operation
+and Worker URLs only; no plugin-name dispatch or borrowing arbitrary host context.
+Existing `withRegexSession` accepts CommandContext/CommandResult, so a narrow
+runtime lifecycle adapter is required, not a pretend registered command. No
+blanket Worker permission. Worker timeout/crash/protocol/retirement failures remain
+errors, not status1/no-match. Registration/cleanup preserves caller > execution >
+cleanup precedence and raw reason identity, including falsy reasons.
+
+Alternative: a new cooperative main-thread interpreter avoids Worker transport,
+but requires awaited checkpoints in parser/compiler/search/tag-comparison loops
+and explicit ownership of its async task. Merely removing expr's isMainThread
+guard or wrapping its synchronous50M-step loop in a Promise is unacceptable.
+This route needs larger loop-scheduling review. A licensed native/WASM regex
+dependency or host fallback is outside this zero-dependency proposal. JS RegExp
+is lower effort but cannot satisfy the specified matcher/capture semantics.
+
+## Budgets and publication transaction
+
+Proposed private grammar ceilings:4096 compiled/parse nodes,depth64,32 groups,
+interval counts0..255. They are regex admission rules, not changes to shell AST
+caps. Check before repetition unrolling, token-array growth and history cloning.
+Malformed/unsupported/grammar refusal: budgeted diagnostic/status2; exact GNU
+diagnostic bytes unclaimed. Real resource exhaustion remains ShellLimitError.
+
+Let B/F be existing maxExpansionBytes/maxExpansionFields; proposal only, not current
+behavior: subject<=min(B,1048576), pattern<=min(B,65536), output sum<=B and N+1<=F;
+logical work<=min(50000000,32B), cumulative allocation units<=min(4000000,8B+128F),
+state admissions<=min(65536,8F). Use checked arithmetic/zero-cap refusal and shared
+invocation consumption across starts, retries (none), conditional leaves and
+internal invokes. These are logical units, not physical bytes/RSS. ROOT must ratify
+the formulas/error mapping; no public Budget knob or resetting parent budgets.
+Reserve pretransfer copies, posted buffers, reply vectors and decoded capture
+strings before creation. The current client copies arrays before postMessage;
+that copy is not magically covered by the worker's Work counter.
+
+Every new array-owned staging/name/watch/snapshot/join/bridge stays within the
+existing private ledger; overlapping old/staged arrays are counted. Existing
+registered-command formatting after admitted argv transfer remains E_command,
+not charged back into private array storage. Worker memory is also a separately
+qualified envelope, not a combined-memory promise.
+
+Publication sequence proposed:
+
+1. Expand visited LHS then quote-preserving RHS once; earlier substitutions and
+   arithmetic side effects remain. No publication or compilation for skipped RHS.
+2. Admit/compile/search under shared bounds. Syntax/profile failure preserves
+   prior BASH_REMATCH; this follows compile-before-flush source, not a runtime golden.
+3. On a valid match or no-match result, identify the chosen visible/global target
+   according to ROOT's scope decision. Capture current watch/epoch **after operand
+   effects**, pre-admit tickets/name/complete staged binding, decode exact captures.
+   No-match stages an empty indexed binding; success stages0..N. No eval/re-expansion.
+4. At publication check caller/control, readonly then stale, with no retry. Publish
+   once atomically; await old/staged retirement through registered ownership. Abort,
+   resource failure, unexpected error or cleanup failure is not false/syntax2.
+   Async concurrent mutation after the snapshot rejects rather than mixing states.
+5. Nested/recursive same-state matches replace the relevant binding in execution
+   order, not a hidden result stack. Functions restore only real local shadows;
+   subshell/command substitution use cloned state; internal invokes share the
+   ledger. Current scalar-overlay equality and typed-supersession rules remain.
+
+Readonly needs an explicit choice: inspected5.3 code performs regex work, then
+diagnoses an unwritable capture binding without changing the regex result0/1.
+Recommend this narrow source-backed special-variable policy with unchanged data;
+diagnostic sink/caller failures still propagate. If ROOT instead wants existing
+ArrayFailure/status1 for every refused write, label that a project divergence.
+Exported scalar BASH_REMATCH is another choice: current array assignment refuses
+conversion; recommend initially refuse that profile without altering env or
+silently dropping export. Namerefs/associative/integer attributes remain unsupported.
+
+## ROOT decisions needed before code
+
+| ID | Recommended decision / alternative |
+| --- | --- |
+| D1 | Target inspected5.3 visible/local binding semantics, not stale global-only manual wording; otherwise authorize a dedicated saved-global-frame writer and mark divergence. |
+| D2 | ASCII C/POSIX first; explicit Unicode/UTF8-scalar extension later. Byte-exact arbitrary UTF8 captures need a shell string representation decision, not lossy decoding. |
+| D3 | Complete0..N captures for the bounded grammar; refuse captured nullable repetition/backrefs initially, or authorize a larger full tagged-history algorithm before claiming those forms. |
+| D4 | Add `shell-ere` to existing Worker executor with private root-invocation ownership; no main-thread synchronous reuse and no new public executor options. |
+| D5 | Ratify proposed grammar/work/allocation/state ceilings and ShellLimitError mapping; private per-invocation charges do not change existing shell Budget counters. |
+| D6 | Match/no-match atomically replace/clear only after successful matching; preserve old data on compile/profile/resource failure. For readonly, diagnose but keep regex status per5.3 source; exported scalar conversion remains explicit refusal initially. |
+
+If D2/D3 exclusions are too narrow for the user's compatibility target, prefer the
+larger tagged engine/representation work, not a silently weakened matcher. The
+highest-cost work is capture disambiguation plus nullable iterations, followed by
+scope/byte-publication rules; Worker wiring and ERE token syntax are secondary.
+No schedule, performance superiority, native equality, full Bash or implementation
+readiness is claimed. These decisions need not block already accepted features.
+
+## Administrative history and readiness
+
+The first metadata request incorrectly treated derived `37e793ce` as a stored
+commit. It refused with Git128 after two successful metadata reads and before
+any product import. The captured refusal remains in `captures/metadata`; the
+versioned request uses actual stored runtime commit `9bb91c37`, never a derived
+tree-object requirement. This is an administrative role correction, not an
+integrity failure of the accepted product and not a product test result.
+A separate directory-list helper looked for absent `src/internal`; its ENOENT
+was tool-context only, with no child/product execution. Neither is erased.
+
+Source captures are retained in this owned namespace but only compact bindings,
+design/data and metadata receipts are committed. No archive was created; no
+source/private/native process or Worker was run. Git subprocesses here are
+repository metadata/publication only, not product-Git/native-oracle cases. The
+observed foreign `src/shell/runtime.ts` edit was neither read as an input nor
+modified/staged. No instruction plaintext is copied into artifacts.
+`inspect-source.mjs` is an administrative reader, not a proposed product/test
+executor or an OS-process safety qualification. Its finite reads authenticate
+specific blobs; they do not certify the whole selected source or package.
+
+550da67b9e1479bd8eecdcbcda510f4d786b5880 blob 6174
+{
+  "status":"ALL_UNRUN",
+  "purpose":"Neutral future reference recipes, not goldens or product passes. Each future run must record stdout/stderr/status/capture presence separately; C profile except explicit locale boundary rows. No executor authorized by this file.",
+  "programs":[
+    {"id":"R01","script":"LC_ALL=C; re='(ab)([0-9]+)'; [[ xab42y =~ $re ]]; printf '%s:<%s>:<%s>:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\" \"${BASH_REMATCH[1]}\" \"${BASH_REMATCH[2]}\"","question":"substring start and every capture"},
+    {"id":"R02","script":"LC_ALL=C; re='a|aa'; [[ aa =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"","question":"overall longest rather than first alternative"},
+    {"id":"R03","script":"LC_ALL=C; re='(a|aa)(a?)'; [[ aa =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"","question":"capture tie disambiguation"},
+    {"id":"R04","script":"LC_ALL=C; re='(a*)(a*)'; [[ aaa =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"","question":"left subexpression priority"},
+    {"id":"R05","script":"LC_ALL=C; re='((ab)+)(c?)'; [[ ababc =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"","question":"nested repeated captures"},
+    {"id":"R06","script":"LC_ALL=C; re='(a(b)?)+'; [[ aba =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"","question":"last repetition nested participation"},
+    {"id":"R07","script":"LC_ALL=C; re='(a)?(b*)'; [[ '' =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"; [[ -v BASH_REMATCH[2] ]]; printf '%s\\n' \"$?\"","question":"unmatched versus empty captures and dense publication"},
+    {"id":"R08","script":"LC_ALL=C; re='(a*)*'; [[ b =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"","question":"nullable repetition, proposed product exclusion"},
+    {"id":"R09","script":"LC_ALL=C; re='^a$'; [[ ba =~ $re ]]; printf '%s\\n' \"$?\"; [[ a =~ $re ]]; printf '%s\\n' \"$?\"","question":"anchors use whole subject boundaries"},
+    {"id":"R10","script":"LC_ALL=C; re='(a.b)'; [[ $'a\\nb' =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"","question":"no REG_NEWLINE line splitting"},
+    {"id":"R11","script":"LC_ALL=C; [[ axb =~ a\".\"b ]]; printf '%s\\n' \"$?\"; [[ a.b =~ a\".\"b ]]; printf '%s\\n' \"$?\"","question":"quoted fragment dot remains literal"},
+    {"id":"R12","script":"LC_ALL=C; re='a.b'; [[ axb =~ \"$re\" ]]; printf '%s\\n' \"$?\"; [[ axb =~ $re ]]; printf '%s\\n' \"$?\"","question":"quoted expansion versus unquoted regex"},
+    {"id":"R13","script":"LC_ALL=C; [[ '$a{2}' =~ \"$\"a\"{2}\" ]]; printf '%s\\n' \"$?\"","question":"quoted dollar/braces absent from old glob escaping"},
+    {"id":"R14","script":"LC_ALL=C; re='[[:alpha:]][[:digit:]]'; [[ A7 =~ $re ]]; printf '%s\\n' \"$?\"","question":"ASCII named classes"},
+    {"id":"R15","script":"LC_ALL=C; re='[^a-c]+'; [[ abcXYZ =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[0]}\"","question":"negated bracket range"},
+    {"id":"R16","script":"LC_ALL=C; re='([]-]+)'; [[ '--]' =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"","question":"bracket initial closing bracket and trailing hyphen"},
+    {"id":"R17","script":"LC_ALL=C; re='(ab){2,3}'; [[ abababab =~ $re ]]; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"","question":"interval whole length and final capture"},
+    {"id":"R18","script":"LC_ALL=C; re='a{3,2}'; BASH_REMATCH=(old); [[ aa =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"","question":"invalid interval status and preservation"},
+    {"id":"R19","script":"LC_ALL=C; re='('; BASH_REMATCH=(old); [[ a =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"","question":"runtime compile failure status and prior state"},
+    {"id":"R20","script":"LC_ALL=C; BASH_REMATCH=(old); [[ yes || a =~ $(printf '(') ]]; printf '<%s>\\n' \"${BASH_REMATCH[0]}\"","question":"skipped expansion and invalid regex never compile"},
+    {"id":"R21","script":"LC_ALL=C; [[ yes || a =~ ( ]]; printf 'after\\n'","question":"shell structural syntax is parsed even in skipped branch"},
+    {"id":"R22","script":"LC_ALL=C; BASH_REMATCH=(old tail); [[ a =~ z ]]; printf '%s\\n' \"$?\"; printf '<%s>\\n' \"${BASH_REMATCH[@]}\"; [[ -v BASH_REMATCH[0] ]]; printf '%s\\n' \"$?\"","question":"valid nonmatch clears captures"},
+    {"id":"R23","script":"LC_ALL=C; re='(a)'; [[ ! a =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"","question":"negation affects status not successful capture publication"},
+    {"id":"R24","script":"LC_ALL=C; BASH_REMATCH=(global); f(){ local BASH_REMATCH; [[ abc =~ (b) ]]; printf 'in:<%s>\\n' \"${BASH_REMATCH[1]}\"; }; f; printf 'out:<%s>\\n' \"${BASH_REMATCH[0]}\"","question":"5.3 local binding versus manual global claim"},
+    {"id":"R25","script":"LC_ALL=C; BASH_REMATCH=(saved); readonly BASH_REMATCH; [[ abc =~ (b) ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\"","question":"readonly diagnostic and regex status"},
+    {"id":"R26","script":"LC_ALL=C; export BASH_REMATCH=saved; [[ a =~ (a) ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"","question":"exported scalar conversion policy gap"},
+    {"id":"R27","script":"LC_ALL=C; BASH_REMATCH=(outer); ( [[ abc =~ (b) ]]; printf 'sub:<%s>\\n' \"${BASH_REMATCH[1]}\" ); printf 'parent:<%s>\\n' \"${BASH_REMATCH[0]}\"","question":"subshell snapshot isolation"},
+    {"id":"R28","script":"LC_ALL=C; f(){ if [[ $1 =~ (a+) ]]; then printf '<%s>\\n' \"${BASH_REMATCH[1]}\"; fi; }; f aa; f a; printf 'last:<%s>\\n' \"${BASH_REMATCH[1]}\"","question":"same-state functions overwrite last captures without hidden stack"},
+    {"id":"R29","script":"LC_ALL=C; re='(a)\\1'; [[ aa =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"","question":"ERE backreference libc extension, proposed refusal"},
+    {"id":"R30","script":"LC_ALL=C; re='[[.a.]]'; [[ a =~ $re ]]; printf '%s\\n' \"$?\"","question":"collating-symbol gap"},
+    {"id":"R31","script":"LC_ALL=C; re='(.)'; [[ 雪 =~ $re ]]; printf '%s:<%s>\\n' \"$?\" \"${BASH_REMATCH[1]}\"","question":"byte capture split cannot be normalized into JS string"},
+    {"id":"R32","script":"LC_ALL=C; n=0; [[ $((n+=1)) =~ ([0-9]) ]]; printf '%s:<%s>\\n' \"$n\" \"${BASH_REMATCH[1]}\"","question":"arithmetic expansion exactly once, no new arithmetic regex parser"}
+  ]
+}
+
+7ae38bf57184e7118faf1abd5d05cad347759068 blob 2440
+{
+  "status":"ALL_UNRUN",
+  "protocols":[
+    {"id":"H01","name":"preabort-before-acquisition","procedure":"Use each bounded falsy/object caller reason; reached regex must preserve identity with no Worker acquisition or BASH_REMATCH publication. Skipped regex must not create a session either."},
+    {"id":"H02","name":"abort-owned-worker","procedure":"Gate an admitted actual matcher job, abort caller, observe exact reason and registered job/session retirement before public settlement. Gate/release must not create circular cleanup. No opaque-provider ownership inference."},
+    {"id":"H03","name":"grammar-and-logical-limits","procedure":"Preseal exact boundary/one-over group/node/depth/interval fixtures and modest branching work/state exhaustion. Check preallocation refusals, no partial match/capture publication and no parent Budget reset; do not use oversized bombs."},
+    {"id":"H04","name":"capture-ledger","procedure":"Preseal sums of nested overlapping captures, target replacement with old snapshots alive, F/metadata/ticket boundaries and retirement failures. Distinguish worker envelope, private array ledger and E_command; no lowered-private-hook result presented as default proof."},
+    {"id":"H05","name":"concurrent-stale-and-readonly","procedure":"Gate between post-operand target snapshot and publication; mutate through actual context.invoke to readonly/unrelated epoch/local restoration. Caller wins, then readonly before stale. No retry/state injection as public proof."},
+    {"id":"H06","name":"diagnostic-sink-and-cleanup","procedure":"Reject/gate exact redirected diagnostic sink for syntax and readonly routes, combine caller and registered cleanup errors, retain primary reason/backpressure. No false/no-match conversion; no blanket expected status1."},
+    {"id":"H07","name":"reply-and-loaded-binding","procedure":"Finite wrong id/operation/group count/span/UTF8 boundary/extra key/late reply controls; actual fixed Worker/package moved-origin denial and different-source hash refusal. Count lifecycle separately from semantic capture proof."},
+    {"id":"H08","name":"shared-budget-and-snapshots","procedure":"Two internal conditional descendants/context.invoke share admitted work and array ledger; fresh independent public exec uses established fresh boundary. Verify ordinary local, global and cloned state, recursive calls and byte-exact capture reads. Do not infer cross-exec RSS bounds."}
+  ]
+}
+
+ce76744ab6c706b359887c376deaf3bb2bd294dc blob 9486
+{
+  "date": "2026-08-29",
+  "scope": "SOURCE_DATA_ONLY_NOT_PRODUCT_ACCEPTANCE",
+  "accepted": {
+    "source": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+    "derived": "74dfe69135a3fc5ba89396b20dd32d9c9daae131",
+    "package": "46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09",
+    "manifest": {
+      "path": "tests/compatibility/bash-conditional-author-20260829/SOURCE-v4.json",
+      "commit": "05ada1b66bc53e3f433c5e3763d1ec1f16a1d62d",
+      "blob": "29a9ada8f0573b2667a63cb7e0e605011b218bec",
+      "sha256": "4f196057df98c3aed05519b78eaa725fc9d7eb3c73634613662ac6b927715d32"
+    },
+    "selectedInputCount": 293,
+    "freshWhole293Proof": false,
+    "freshPackageProof": false
+  },
+  "pending": {
+    "source": "9bb91c370a0672687399c0a9da4ce1b161f79615",
+    "derived": "37e793ce6dce48a958030e7cc86fa8315d0b112e",
+    "accepted": false,
+    "inspectedRuntimeSectionsByteIdenticalToUnit3": {
+      "conditional": true,
+      "word": true
+    }
+  },
+  "productFiles": [
+    {
+      "path": "src/commands/expr/README.md",
+      "role": "unit3",
+      "blob": "6778b9e71ec49bc318568ad2fb32ba066456ba76",
+      "sha256": "b2f840d827573709df3cd6a8f900a07e2ce1d391a4c7185700e7a329c105f482",
+      "selectedUnit3Match": true,
+      "selectedBlob": "6778b9e71ec49bc318568ad2fb32ba066456ba76"
+    },
+    {
+      "path": "src/commands/expr/bre-worker.ts",
+      "role": "unit3",
+      "blob": "95d2fda3b701d095458f83eadb4ebec61eb9f669",
+      "sha256": "f5c67e9c76b584337ae506b59449ecdcd945207b2269fdb4f79c5d1f7e81aff0",
+      "selectedUnit3Match": true,
+      "selectedBlob": "95d2fda3b701d095458f83eadb4ebec61eb9f669"
+    },
+    {
+      "path": "src/commands/expr/evaluate.ts",
+      "role": "unit3",
+      "blob": "aa1d278bb4ec9fc1fe72b53afd5afaf65fd63a99",
+      "sha256": "c90884b0b08d422e588826df648935fba2944382d93c5d4a12f796b61390505d",
+      "selectedUnit3Match": true,
+      "selectedBlob": "aa1d278bb4ec9fc1fe72b53afd5afaf65fd63a99"
+    },
+    {
+      "path": "src/shell/arithmetic.ts",
+      "role": "unit3",
+      "blob": "223101946d13ac9b44f4a898f58fd16004ba86b9",
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "selectedUnit3Match": true,
+      "selectedBlob": "223101946d13ac9b44f4a898f58fd16004ba86b9"
+    },
+    {
+      "path": "src/shell/arrays/bindings.ts",
+      "role": "unit3",
+      "blob": "c686048897bbd7fa797ba6982a255a543afbe6a3",
+      "sha256": "1f842c3b1a89d0332a8a81c0001384fe3b42a1057721456a14334141182dd356",
+      "selectedUnit3Match": true,
+      "selectedBlob": "c686048897bbd7fa797ba6982a255a543afbe6a3"
+    },
+    {
+      "path": "src/shell/arrays/ledger.ts",
+      "role": "unit3",
+      "blob": "c0c1a4ba292e26696b792b024019a79ce241cb89",
+      "sha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45",
+      "selectedUnit3Match": true,
+      "selectedBlob": "c0c1a4ba292e26696b792b024019a79ce241cb89"
+    },
+    {
+      "path": "src/shell/arrays/state.ts",
+      "role": "unit3",
+      "blob": "021459790e7aa5d03b6cac2d786a77643fa2f2aa",
+      "sha256": "14cee1539243675072a3e2ff6947d10d6343f63859610a79ca9170c78fe1df50",
+      "selectedUnit3Match": true,
+      "selectedBlob": "021459790e7aa5d03b6cac2d786a77643fa2f2aa"
+    },
+    {
+      "path": "src/shell/conditional.ts",
+      "role": "unit3",
+      "blob": "caab6172df5b8e5bad2d1db007b156f067e295ad",
+      "sha256": "47dc81401b2c88f9e422fbce4b55734722aea594385d8b394eeba87df16928f0",
+      "selectedUnit3Match": true,
+      "selectedBlob": "caab6172df5b8e5bad2d1db007b156f067e295ad"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "role": "unit3",
+      "blob": "27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe",
+      "sha256": "5a927b2c93dc62c8ca74e8f16c8e3211022b244916faa2c0c4ce1191930a9690",
+      "selectedUnit3Match": true,
+      "selectedBlob": "27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe"
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "role": "unit3",
+      "blob": "be8739ee6b6c9e9323c559aff15f2dd27ce8271c",
+      "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "selectedUnit3Match": true,
+      "selectedBlob": "be8739ee6b6c9e9323c559aff15f2dd27ce8271c"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "role": "unit3",
+      "blob": "1ee224beec343378532681239a737b746d5ab2b9",
+      "sha256": "6f42b2a8b649a0c6c6377be407cf7d3b2e248bf0081a25e8e1d8a89c80cba46b",
+      "selectedUnit3Match": true,
+      "selectedBlob": "1ee224beec343378532681239a737b746d5ab2b9"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "role": "unit3",
+      "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "selectedUnit3Match": true,
+      "selectedBlob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "role": "unit4-stored",
+      "blob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "selectedUnit3Match": true,
+      "selectedBlob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6"
+    },
+    {
+      "path": "src/commands/regex-execution/matching.ts",
+      "role": "unit4-stored",
+      "blob": "9f1f53ec5fd78ddc2e6062bccaafd038fdec1f07",
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+      "selectedUnit3Match": true,
+      "selectedBlob": "9f1f53ec5fd78ddc2e6062bccaafd038fdec1f07"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "role": "unit4-stored",
+      "blob": "99f39e111b0e105d8a3c0373266d90f2bd356433",
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "selectedUnit3Match": true,
+      "selectedBlob": "99f39e111b0e105d8a3c0373266d90f2bd356433"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "role": "unit4-stored",
+      "blob": "8da7d8566d17ab7d81ff4d440f632e8127312000",
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "selectedUnit3Match": true,
+      "selectedBlob": "8da7d8566d17ab7d81ff4d440f632e8127312000"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "role": "unit4-stored",
+      "blob": "180e6c8f8b86e17bee8723fda638b359531a6e79",
+      "sha256": "b14268b38f9a156c45cae80e6871a646086746654803c2b05eb0a7ec7438443b",
+      "selectedUnit3Match": false,
+      "selectedBlob": "1ee224beec343378532681239a737b746d5ab2b9"
+    }
+  ],
+  "gnuSource": {
+    "source": "/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3",
+    "patchlevel": 15,
+    "inventoryBlob": "139a6476bb1821cb74d18bf3b4e5fe5c71b9423d",
+    "inventorySha256": "a09a69e158ef9bd277f39e05688d9b4f44a708d61f7e6d164d8463a8c3162cc6",
+    "canonicalTuplesSha256": "75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e",
+    "files": [
+      {
+        "path": "bash-5.3/lib/sh/shmatch.c",
+        "sha256": "c889cb70a2670e5f009e4b0f77e6b32ad0c6d55a6bfe36f6cfab14a58515d06c",
+        "bytes": 3687,
+        "mode": "600"
+      },
+      {
+        "path": "bash-5.3/execute_cmd.c",
+        "sha256": "5b7da1b3c61225fdf726929ffbc4f89f7068cbe83d2060b6ad1509c2feb9a032",
+        "bytes": 184046,
+        "mode": "600"
+      },
+      {
+        "path": "bash-5.3/variables.c",
+        "sha256": "e5c8be22b2805b32edcc50d75bf36fc767e8f540b403c50c2e48b6783591bd2e",
+        "bytes": 173996,
+        "mode": "600"
+      },
+      {
+        "path": "bash-5.3/builtins/common.c",
+        "sha256": "979a0c3d1a77d4b33a9e27a68992f584d1b3ca6e6754c3d052ac30bec45e186d",
+        "bytes": 26063,
+        "mode": "600"
+      },
+      {
+        "path": "bash-5.3/arrayfunc.c",
+        "sha256": "cbc3a532fefae2bf199b0437d37581ce90ddda358d3c887e72be988971306280",
+        "bytes": 48005,
+        "mode": "600"
+      },
+      {
+        "path": "bash-5.3/parse.y",
+        "sha256": "076a16d00c5b065137b3d2730d2b94a1f6c89a1bbb5d2f4bd72d31e00947e27f",
+        "bytes": 217136,
+        "mode": "600"
+      }
+    ],
+    "executed": false
+  },
+  "referenceArtifacts": [
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/verification-v1/HANDOFF.md",
+      "blob": "3603ccae3976a3c86eb4c248bc3ff0f4b0c6c7ef",
+      "role": "reference",
+      "filename": "17-tests__compatibility__bash-reference-preparation-20260829__verification-v1__HANDOFF.md",
+      "size": 5864,
+      "sha256": "16f089ed5637f4ecd20f7a3c42b2bd2d881f2c67ae5c21911d61f10e2a16c359"
+    },
+    {
+      "path": "tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/HANDOFF.md",
+      "blob": "78fe551a06d90351c57c1a53a5cb03ed038f2a45",
+      "role": "reference",
+      "filename": "18-tests__compatibility__bash-reference-preparation-20260829__source-preparation-v1__HANDOFF.md",
+      "size": 6656,
+      "sha256": "0e1619d65847db10a31d1fd155336ae0f14e11b039326f25e148a0824446f066"
+    },
+    {
+      "path": "tests/compatibility/bash-strict-reference-source-20260829/REPORT.md",
+      "blob": "1a601af7ceb524a9de60cb76004fa969246b732f",
+      "role": "reference",
+      "filename": "19-tests__compatibility__bash-strict-reference-source-20260829__REPORT.md",
+      "size": 11930,
+      "sha256": "573e49ad6f9732168ec494476f876f129ff100f4939e1200189884bb9b368f21"
+    }
+  ],
+  "inspection": {
+    "uniqueReadEntries": 31,
+    "bytesRead": 1887455,
+    "limitFiles": 48,
+    "limitBytes": 8388608,
+    "AGENTSPlaintextCaptured": false
+  }
+}
+
+803208636dc065100e7aa8cad05013f978476b55 blob 12374
+# ERE budget/API/error decisions — additive source-only clarification
+
+2026-08-29. ROOT conceptually ratified profile choices1–3 and5–6; no implementation
+GO. This supersedes the original design's suggestion that every private regex
+resource failure could become ShellLimitError. Original proposal/evidence remain.
+No runtime, native oracle, Worker, compiler, engine or network activation here.
+
+## 1. Actual public keys and accurate mapping
+
+Frozen `src/shell/types.ts:18–27` has exactly these eight ShellLimits keys:
+`maxOutputBytes`, `maxCommands`, `maxLoopIterations`, `maxSubstitutionDepth`,
+`maxSourceBytes`, `maxExpansionFields`, `maxExpansionBytes`, `pipeHighWaterMark`.
+`ShellLimitError.limit` is `keyof ShellLimits`, not an extensible free-form label.
+`runtime.ts:36–45,69–101,3749–3753` supplies defaults and actual charging sites.
+
+| Proposed resource | Accurate existing public mapping / proposed channel |
+| --- | --- |
+| Existing LHS/RHS word expansion bytes | Preserve existing `ShellLimitError(maxExpansionBytes)` from actual expansion. No substitute error or new counting rule. |
+| Existing expansion fields | Preserve `maxExpansionFields` only when the existing expansion actually produces fields; regex groups or stored capture indexes are not argv fields. |
+| Pattern<=min(B,65536), subject<=min(B,1048576) | A private regex input-admission ceiling. Crossing that ceiling is private profile-limit/status3, unless ordinary expansion has already thrown a genuine public error. An input ceiling derived from B does not make every refusal a public byte-limit violation. |
+| Matcher work<=min(50000000,32B) | No fitting ShellLimits key. Private profile-limit/status3, resource `work`. Not `maxLoopIterations`, `maxCommands` or `maxExpansionBytes`. |
+| State admissions<=min(65536,8F) | No fitting key. Private profile-limit/status3, resource `states`. Not expansion fields. |
+| Cumulative allocation units<=min(4000000,8B+128F) | No fitting key. Private profile-limit/status3, resource `allocationUnits`; logical units are not public output/expansion bytes or RSS. |
+| Capture-byte sum<=B and capture slots N+1<=F | New private capture admission, resources `captureBytes`/`captureSlots`, status3. Storing an indexed binding is not ordinary word/argv expansion. |
+| Existing private ArrayLedger reservation failure | No public key. The ordinary array-command route diagnoses ArrayFailure/status1, but conditional.ts integration currently wraps unexpected errors via NounsetDiagnosticFailure/Flow. A new capture writer therefore needs a narrowly identified owned-publication failure route; status1 is not automatic merely from reusing ArrayFailure. No fabricated ShellLimitError or blanket catch. |
+| Diagnostic output | Actual writes remain charged by existing output sinks; genuine `maxOutputBytes`, raw sink failures and caller/control precedence apply. |
+| Script source, substitutions, shell loops/commands | Preserve their existing named limits at their actual sites. Do not charge regex AST depth/nodes, VM loops or requests to these unrelated keys. |
+| pipeHighWaterMark | Existing pipe flow-control setting, not an ERE allocation ceiling. |
+
+B/F name maxExpansionBytes/maxExpansionFields only as inputs to the proposed
+private formulas; ROOT still needs to ratify those formulas. Check safe integer
+arithmetic and zero ceilings without coercion/clamping upward. Grammar caps remain
+4096 nodes/depth64/groups32/interval0..255: profile refusal/status2, not a public
+resource error. There is no new ShellLimits key or public error-union change in
+the recommended design.
+
+## 2. Recommended private failure channel
+
+Add a non-root-exported `EreProfileLimitError` with a finite resource discriminator
+for patternBytes, subjectBytes, work, states, allocationUnits, captureBytes and
+captureSlots. Recognize local instances or an exactly validated Worker reply,
+never an arbitrary provider object's name/code. At the conditional-command
+boundary, emit a bounded profile-limit diagnostic and return status3. Throw it
+through boolean evaluation so `!`/`&&`/`||` inside `[[ ]]` cannot turn an exhausted
+matcher into a boolean success or suppress it. Surrounding shell status/errexit
+rules continue to apply normally; this is not a new global abort policy.
+
+This follows a real bounded-command precedent, not a generic rule:
+`expr/internal.ts:26–28` defines ExprError(exitCode2|3), and
+`expr/index.ts:54–68` maps syntax/unsupported to2 versus private match limits and
+execution failures to3. Separately inspected accepted Node module
+`a2f3983da537b95bed65b8bc727ab93bc7e98ca3` exports NodeProfileError and uses2 for
+profile refusal (`node/types.ts`, `node/index.ts:112–129`). Therefore Node does
+**not** establish a universal status3 or ShellLimitError policy. ERE's proposed3
+must be explicitly approved; it is not a GNU regex exit-status observation.
+
+Genuine ShellLimitError, caller/control reasons, unexpected host errors and sink/
+cleanup rejection retain their actual identities. Worker crash, protocol violation,
+startup/request timeout or retirement failure are not invalid-regex/status2 or
+no-match/status1; preserve the execution/cleanup error channel. No fake MATCH code.
+Do not mutate the existing RegexErrorCode union to squeeze in unrelated resources.
+
+## 3. Shared invocation-root consumption, not job reset
+
+One private ERE ledger belongs to the existing invocation root; internal invokes,
+pipeline branches and nested conditionals reserve from it. A fresh independent
+public Shell.exec retains the existing fresh-root boundary. No parent Budget
+counter or caller signal is reset or weakened. Live temporary ownership is freed
+only after actual retirement; cumulative work/state/allocation consumption is not.
+
+The original successful reply's steps/allocatedUnits alone was insufficient to
+account state consumption and failed jobs. Required amendment: every semantic
+reply, including syntax/profile failure, carries exact bounded usage for steps,
+state admissions and allocation units. Root reserves a non-overlapping grant
+before dispatch, validates usage, and releases only proven unused credit. On
+timeout/crash/malformed reply, unproved credit is not refunded (conservatively
+consume the grant); actual buffer/job retirement remains independently awaited.
+Serial root admission is simplest initially. Any future concurrency must use the
+same reservation ledger, not copy remaining counters per child. Internal retries
+are not authorized. Checked reservations must precede input/reply copies and
+capture staging; a fresh worker must not restore the invocation's spent budget.
+
+## 4. Public versus internal protocol facts
+
+- Frozen `src/index.ts:5` explicitly exports RegexExecutionOptions. It is also
+  reachable through StandardCommandsOptions.regex, AgentCommandsOptions.regex,
+  ExprCommandsOptions.regex and SearchOptions.regex. It has eight numeric policy
+  fields: requestTimeoutMs, startupTimeoutMs, maxWorkers, maxQueuedRequests,
+  maxQueuedBytes, idleTimeoutMs, workerOldGenerationMb, workerStackMb.
+- Those options contain **no custom regex-executor/factory hook**. The public
+  `execute?: CommandHandler` is command dispatch, not a RegexExecutor injection.
+  Do not make builtin matching depend on that callback or silently reinterpret
+  public aggregate options as ShellOptions.
+- RegexExecutor/RegexSession, Descriptor/Request/Reply and ExprMatchDescriptor/
+  ExprMatchResult are exported from internal source modules, but are not root
+  re-exports or declared regex-execution package subpaths in the frozen package.
+  Their declarations/files are nevertheless shipped, and the public options
+  reference protocol declarations. Thus adding internal exports is observable
+  package/declaration change, **not an assertion of absolute privacy**. Absolute
+  file consumers/custom subclasses are possible, though not a declared injection API.
+- Recommendation: preserve RegexExecutionOptions, existing Descriptor/Request/Reply,
+  RegexErrorCode and all expr input/output shapes byte-for-byte. Add a distinct
+  internal ERE descriptor/reply module and separate session method/overload later;
+  combine operations only in a private dispatch union. Old custom direct users
+  must not receive ERE requests from an unchanged existing method. Root exports,
+  manifest exports and supported command options stay unchanged.
+- Later integration needs declaration-diff and actual moved-package import/type
+  checks. No such runtime/compiler checks were run here; source reachability is
+  not packed-consumer proof or an assurance that changed internal files are invisible.
+
+## 5. Invalid syntax versus unsupported profile
+
+Pinned GNU5.3.15 `lib/sh/shmatch.c` calls regcomp with REG_EXTENDED. Compile
+failure returns2 before capture-array lookup/flush. `execute_cmd.c:4095–4103`
+then diagnoses invalid regular expression using the actual pattern and optionally
+regerror's text. It does not establish a portable libc diagnostic string. The
+source comes from the previously authenticated tree; no native execution here.
+
+Proposed distinct categories, both with budgeted status2:
+
+- `syntax`: malformed ERE within the admitted grammar, such as an unclosed group
+  supplied through an expanded operand or a reversed interval. Diagnose invalid
+  regular expression; preserve prior BASH_REMATCH. Whole shell-grammar failures
+  remain ShellSyntaxError, including syntax in unvisited branches.
+- `unsupported`: valid native constructs excluded by this bounded profile,
+  unsupported encoding/locale, backreferences, captured nullable repetition and
+  private grammar ceilings. Diagnose unsupported ERE profile (with a finite
+  reason), **not** a fabricated GNU invalid-regex message. Preserve captures.
+
+Neither diagnostic has frozen native bytes. For inputs combining malformed and
+unsupported constructs, recommend deterministic token-order classification: the
+first reached parser/admission fault wins; do not scan ahead pretending to prove
+native invalidity after encountering an excluded construct. Skipped regex operands
+do not expand, compile or publish. Genuine resource errors and private status3
+remain separate from both categories. Readonly diagnostic/retain-match-status
+behavior remains the conceptually ratified5.3 source profile, not invalid syntax.
+
+## 6. First implementation window: standalone engine only
+
+Proposed disjoint production paths, only after explicit ROOT GO:
+
+```text
+src/commands/regex-execution/ere/types.ts
+src/commands/regex-execution/ere/errors.ts
+src/commands/regex-execution/ere/limits.ts
+src/commands/regex-execution/ere/syntax.ts
+src/commands/regex-execution/ere/matcher.ts
+tests/commands/regex-execution/ere/**
+```
+
+No edits to expr, current protocol/client/worker files, parser/runtime/shell, public
+barrels/contracts/manifests or accepted fixtures in this first window. Engine
+accepts bounded admitted bytes/literal-origin information and an explicit private
+usage allowance; returns complete spans or typed syntax/profile/limit outcomes.
+It neither acquires a Worker nor publishes BASH_REMATCH. The future adapter owns
+root reservations, Worker enrollment and exact reply validation; the future runtime
+owns expansion/capture transactions after N14 acceptance. Standalone engine results
+must not be promoted to integration, cleanup, root-sharing or public API acceptance.
+
+Future tests: all admitted capture positions, earliest/longest ties, repeated-group
+resets, anchors/newlines, quote fragments, syntax versus profile refusals,
+zero/boundary/one-over allowances and usage on failures; discriminator mutants for
+first-alternative selection, missing captures, history collapse and budget reset.
+Use existing32 reference programs/8 host protocols as UNRUN obligations; future
+native execution needs its own GO. No Worker/native/compiler tests are authorized
+by this source-only document. N14 and all accepted features remain undisturbed.
+
+**ROOT decisions remaining:** ratify private-limit/status3 and exact finite resource
+names/formulas; approve the failed-reply usage/no-unproved-refund rule; approve the
+internal-only additive API strategy and engine-only scope. No public type change is
+recommended. If ROOT instead requires public distinguishable typed rejection for
+each private counter, that needs an explicit exported error/API proposal rather
+than misusing keyof ShellLimits.
+
+0114495037324756264c77b0c5feeca1c4aba013 blob 2909
+# ROOT design ratification — ERE transport
+
+Recorded 2026-08-29 from ROOT's explicit design-only ratification of
+`56fb11365399cf740f1ae2e65b532d74543fcbb8`. This appendix records approved
+choices; it does not rewrite the proposal, historical bindings or unrun matrix.
+
+## Ratified choices
+
+- **Isolation and lifetime:** sibling executor plus static ERE entry; lazily
+  acquire one Worker per invocation root. Descendants/jobs share its serialized
+  scheduler and ledger. Register cleanup before acquisition; root settlement
+  joins retirement. Preserve existing expr protocol and public
+  `RegexExecutionOptions`; no inherited loader authority.
+- **Wire and engine accounting:** retain the five-field result inside a
+  versioned envelope carrying all seven validated usage counters. Exact aliases
+  are `steps = usage.work` and
+  `allocatedUnits = usage.allocationUnits`. Pattern/subject are high-water
+  counters; work, states, allocation, capture bytes and capture slots are
+  cumulative spent usage. Reserve before dispatch. Release only proven-unused
+  reservation on validated success or semantic failure; never refund spent or
+  unknown crash/timeout/malformed usage.
+- **Additional parent accounting:** separate private parent transport logical
+  storage/work ledgers use the same engine-derived A/W caps. They are ADDITIONAL
+  to engine ledgers, not hidden sharing or a physical-memory guarantee. The
+  proposed `47+4n+p+s` request and `479` reply/copy/result schema must be
+  source-bound and independently validated before execution. Adopt the private
+  64-ticket queue maximum; overflow is an explicit private profile limit, not
+  an unbounded queue or new public option.
+- **Canonical nonmatch and validation:** wire nonmatch has exactly
+  `groupCount+1` null spans. Distinguish empty participation `[k,k]` from
+  nonparticipation. Eventual runtime `BASH_REMATCH` is empty on valid nonmatch,
+  not the wire null array. Reject malformed identity, cardinality, accessors,
+  holes, extras, spans and counters before publishing results or refunding
+  reservations.
+
+## Binding and authority boundary
+
+The ratified proposal is `DECISIONS-v2.md`, SHA-256
+`7827c12eea1e6a4292be5f260b1ccc8f28458aa82df1ab46dae3d360c6ee3e17`;
+its existing `CHOICES-BINDINGS-v2.json` remains unchanged (SHA-256
+`e7dbf21e6ea9e6e35c0039b5ff1da29a1f7ee12166de32eefa7e5c8cd3a049d9`).
+This appendix does not independently ratify other proposal details.
+
+All **32 families / 60 variants remain UNRUN**. Pure engine
+`f97fd06024cb63edfd01873d81d84576a22189db` remains pending independent review.
+This is SOURCE/DATA documentation publication only: no implementation, real
+Worker creation, engine execution, conditional/runtime/publication behavior
+changes, or native-parity acceptance is authorized. ROOT will sequence any
+implementation after coherent-package priority. Close this task; no follow-on
+work without a fresh grant.
+
+
+6e799ae43f9ae678769d91e80348120c362bb8b7 blob 5782
+# Private ERE transport — SOURCE review handoff
+
+## Status and authority
+
+SOURCE/type-only packet, NOT transport or engine acceptance. ROOT explicitly
+retains the original phase's publication HOLD: six compiler children retired,
+but administrative/transitive process accounting cannot establish compliance
+with its64-process grant. This fresh publication does not repair that history.
+R01 seven reporting conflicts remain HELD; native12 and all32 transport families/
+60 runtime variants remain UNRUN. No Workers, product imports, Shell `=~`, native
+or private-engine execution occurred in either type-only cohort or publication.
+
+Source commits: `65f0e080` initial additive transport and `0f36459c` explicit owned
+Worker stdout/stderr refusal. Full commit identities are in PUBLICATION.json.
+No existing engine, expr/legacy transport, shell/runtime/conditional, public
+options/exports, package or shared documentation was edited by these commits.
+The provisional five-file engine is b5; only R02 has independent acceptance.
+
+## Complete source scope
+
+All files are under `src/commands/regex-execution/ere/transport/`:
+
+- `protocol.ts`: private request/result/failure schemas and private errors.
+- `accounting.ts`: seven engine counters, grant reconciliation, separate T/H.
+- `validation.ts`: exact own-data frames/identity/cardinality/span validation.
+- `wire-engine.ts`: same-local-ledger compile/match adapter; canonical nonmatch.
+- `worker-entry.ts`: static sibling entry, ready frame and serial request guard.
+- `owner.ts`: fixed Worker acquisition, output refusal, timeout/retirement owner.
+- `root.ts`: lazy invocation-root owner, sessions, shared serialized queue.
+
+Final source/tool/fixture seal SHA256:
+`f6ff74e59b15c98e230a2011af8c5c21d6922e44599bc88084a3705846cc55d1`.
+SEAL-v2.json binds12 source inputs (five unchanged engine, seven transport),
+241 tooling files, exact Node22.22.2 and declaration fixtures. Source selection
+is not current HEAD or a coherent whole-package/API integration claim.
+
+## Retained type evidence, not runtime tests
+
+TYPE-01 and TYPE-02 each contain three compiler child receipts: source/declaration
+compile0, positive declaration consumer0, negative consumer2 with exactly
+TS2353 at2:108, TS2322 at3:59, TS2345 at5:47. Both retain342 captured diagnostic
+bytes and24 emitted files (12JavaScript +12declarations). TYPE-02 does not rescore
+TYPE-01; the source-only output-ownership correction is REVISION-v2.md.
+
+Publication verifies the retained emitted hashes against each original RESULT,
+and the copied source/tool/consumer inputs against each committed seal. It checks
+raw output lengths/diagnostics and child IDs/status against retained receipts.
+Raw RESULT/OUTER files had no independent historical hash seal; their new hashes
+authenticate retained publication bytes, not retroactive tamper-proof history.
+There is no compiler retry or artifact regeneration. Work/tool trees remain
+owned retained staging; no cleanup, foreign staging or product modifications.
+
+## Runtime proposal — all UNRUN and awaiting a separate ROOT decision
+
+The authoritative VALIDATION.json remains the exact32-family/60-variant DATA
+manifest, with its hash and individual family/variant mapping in PUBLICATION.json.
+Preserve those identities rather than replacing them with type checks.
+Proposed later ceiling:40minutes inclusive cleanup/publication;48OS children,
+peak3;24actual Worker starts cumulative;128MiB capture/768MiB work;30s case and
+120s build. SOURCE/synthetic protocol/accounting/ownership precedes real Workers.
+Source, offline-installed and physically-moved static asset closures require a
+new finite dispatch/child/variant map, exact transform/fault controls and grant.
+These are proposed ceilings, not executions or a presently ready runtime seal.
+
+The sibling uses no legacy expr pool/reply changes. Original B/F feeds worker
+ledgers; grants share cumulative work/state/allocation/capture counters, with
+pattern/subject highwater and no refund for unknown sent consumption. Parent
+T=A/H=W is ADDITIONAL logical accounting, not a combined byte/RSS cap. Requests
+prepay2(47+4n+p+s); reply/result capacity479. Exact metadata/traversal/live-retention
+coverage still needs independent SOURCE review and future runtime contrasts.
+Queue interpretation is64waiting plus one active, as explicit in DECISIONS-v2.
+
+## Concrete qualifications for the SOURCE reviewer
+
+1. New static entry/engine import graph and Worker flags/output streams have no
+   inherited loader or application-Worker admission. Own-stream closure, startup,
+   handler-install failures, output refusal and termination joins are UNRUN.
+2. Session close marks active work cancelled and joins bounded settlement;
+   caller abort is checked around that settlement, not universal immediate
+   preemption. Unknown replies/crash/timeout cannot mint engine credit.
+3. Validate schema constants, actual metadata counts and all copied/retained
+   ownership independently. Types do not prove exact T/H accounting or any RSS
+   guarantee. Structured clone occurs before parent frame validation; hostile
+   compromised-Worker allocation containment is not claimed.
+4. Falsy caller/error/cleanup precedence and singleflight close paths require
+   actual fault-injection proof. No BASH_REMATCH writer/publication is present.
+5. New internal declarations may later ship through dist. No public package
+   exports/options changed; no promise that internal types are unobservable.
+6. Capture disambiguation remains the unchanged provisional engine behavior;
+   neither transport typechecking nor publication adjudicates R01/native parity.
+
+Publication's observed process events and qualification are in PUBLICATION.json
+and its outer/raw logs. No historical process probes or invented descendants.
+
+78fe551a06d90351c57c1a53a5cb03ed038f2a45 blob 6656
+# Signed Bash source preparation — no build execution
+
+2026-08-29. ROOT's source/DATA-only grant; acquisition/provenance qualification
+does not qualify a native runtime, process fence, or differential oracle.
+
+## Exact authority and capture clarification
+
+- Signature result commit: `fe5d87a215310cbe847bee99bbe3c7650aa3f6e3`.
+- This procedure's preseal: `36a6722d9fe5fe1dc257b9dfb3d8691ead8322db`.
+- Reauthenticated all 133 committed verification-v2 blobs, then the 33 acquired
+  objects, 66 prior authority artifacts, 26 closure identities and controller.
+  All sixteen stored pair outcomes and literal machine streams still agree.
+- Every signature's signing and explicit primary fingerprint is
+  `7C0135FB088AAF6C66C650B9BB5869F064EA74AB`, attributed by the preserved official
+  GNU project → Ramey profile → published public-key chain, not signature hints.
+  This step reauthenticates the earlier signature evidence, not sixteen new runs.
+- Previous terminal-display truncation hid a commit summary. The actual owned
+  sixteen stdout/stderr pairs are complete: sizes match the original per-child
+  capture counters, content matches committed blobs, and stdout exactly matches
+  the preserved machine-status rows. No raw artifact was repaired or shortened.
+- Initial zero-child `keyring`/`KEYRING` collision, distinct-path correction,
+  previous trailing-space artifact, and every original signature result remain.
+
+## Actual source result
+
+Signed archive SHA256:
+`0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba`.
+Complete tar inventory: 1,603 members, 36,698,647 regular payload bytes,
+37,934,080 decompressed framing bytes. Zero links, special files, AGENTS-named
+members, aliases or excluded members. Every header checksum, regular payload
+hash, framing/padding, path and directory ancestor was checked before extraction.
+Unsupported tar metadata would refuse; this is not a general tar implementation.
+
+Fresh owned source: `/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3`.
+Fifteen unchanged, authenticated patch bodies applied serially, all exit 0 with
+zero fuzz and literal captured statuses. The old header prefixes resolve only
+inside the fresh owned work parent; no signed patch was rewritten. Patchlevel
+was checked before/after every patch, ending at the source declaration 15.
+No source-version-to-executed-version inference follows.
+
+Final inventory: 1,602 entries excluding the root directory; canonical tuple
+SHA256 `75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e`.
+`RUN-01/FINAL-SOURCE-INVENTORY.json` defines the UTF-8 traversal ordering and
+no-LF JSON serialization. Fifteen distinct changed paths match patch headers;
+all other regular files retain archive payload hashes. The full pathname set is
+checked, not only old file hashes. Original archive modes are retained as data;
+staged files are 0600 and directories 0700, so source scripts are not executable.
+
+Twenty-three native children (8 metadata readers + 15 patch invocations) all
+reported close; source controller 21,668.0415 ms, combined native capture 4,811
+bytes. No configure, make, compiler, generated helper, Bash or native oracle ran.
+`RUN-01/INPUT-POSTCHECK.json` rechecks signed inputs/authority/closure after work.
+Fresh final publication separately rechecks staged-source membership and hashes.
+
+The decompressed scratch tar was removed only after its owned handle closed;
+the exact patched source tree remains deliberately retained for ROOT's next
+decision. No open child or file handle remains. Do not overwrite/reuse this
+source as a build directory; any build uses a newly admitted separate root.
+No private checkout or product file changed. GNU licensing and COPYING remain
+unaltered source data, not a shipped product dependency or copied instructions.
+
+## Tool and closure status
+
+Pinned `/usr/bin/patch` SHA256
+`ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84`
+has only libSystem in its inspected load commands; existing system-cache/dyld
+identities were reauthenticated before/after its use. No external patch helper
+or shell command was requested. Trusted CLT llvm-otool read metadata only.
+
+`TOOLS.json` contains 26 finite observations (25 present, `/usr/bin/expr` absent).
+CLT clang is now stream-hashed (290,664,032 bytes), not executed, unlike the old
+survey's smaller per-file ceiling. Make, compiler, ar/ranlib, linker, shell and
+bootstrap utilities have explicit sizes/modes/hashes. Their path names are not
+version evidence. SDK link resolves to `MacOSX26.5.sdk`; SDK contents are NOT
+admitted yet. Linker requires unresolved `@rpath` libtapi, libcodedirectory,
+libLTO and libswiftDemangle; ranlib/libtool also references libLTO. Complete
+transitive build-tool/SDK/utility closure is a remaining admission obligation.
+No guessed rpath resolution or ambient Homebrew fallback is approved.
+
+`BUILD-RECIPE-DETAILS.json` and `RUN-01/BUILD-SOURCE-OBSERVATIONS.json` bind static
+recipe/header findings to source hashes and line indices without copying prose.
+Top-level Program is bash; the templates declare CC/CC_FOR_BUILD/AR/RANLIB and
+bundled Readline/termcap/localization dependencies. Source references include
+mkbuiltins, mkversion, mksignames, mksyntax, config.status and conftest programs.
+Reference presence is not a claim that every conditional helper will execute.
+
+## Resource accounting and limitations
+
+The launch ledger reserves 63 process roles through final publication: 13 tool
+shells before publication, 23 source-operation native children, the Git tree
+reader, controllers and explicit Git/editing commands; final publication adds
+its shell/editor/controller/add/commit/log. Missing initial command lookups were
+not successful executable starts. No CLI leaves or recursive build jobs ran.
+The exact per-call role breakdown is in `PROCESS-LEDGER.json`; this is declared
+launch accounting plus observed closes, not independent kernel descendant/RSS
+measurement. Peak requested process chain is shell → controller → native child.
+
+The 30-minute / 64-start / peak-3 / 128-MiB capture / 512-MiB work ceilings were
+not renewed. Actual source-operation body uses an additional 15-minute maximum
+within that grant, not a new allowance. Publication reports source/evidence
+logical bytes; transient tar plus staged source remained below 80 MiB, excluding
+unchanged external tool files that were streamed rather than copied. No hard
+memory, arbitrary-process preemption, race-free hostile-host or fence claim.
+
+Next action: review `BUILD-PROPOSAL.md`, resolve its admission conditions and
+request ROOT's separate build GO. Until then, wait; do not execute build recipes.
+
+a6ff68b6c393867e4212df312270eed7200e6b20 blob 569
+{
+  "commit": "6c68be44446ad6f3251697f1be6a07910155c53f",
+  "sourceCommits": [
+    "65f0e08078a186d322b7ab975bac5972f09bef17",
+    "0f36459ccf38623906c5c80702c5d32111167f4d"
+  ],
+  "completed": "2026-08-29T10:04:50.911Z",
+  "elapsedMs": 1685,
+  "gitChildren": 8,
+  "retired": 8,
+  "newCaptureBytes": 132580,
+  "indexUnchanged": true,
+  "sourceAndRetainedEvidencePostcheck": true,
+  "compressedInputs": 0,
+  "newRuntime": 0,
+  "old64Compliance": "NOT CERTIFIED",
+  "outerAndGitRaw": "retained untracked append/finalization receipts; not claimed inside earlier commit"
+}
+

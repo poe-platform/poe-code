@@ -1,0 +1,110 @@
+{
+  "selectedInputBytes": 2689324,
+  "tools": {
+    "typescript": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "version": "5.9.3",
+      "count": 132,
+      "first": [
+        "LICENSE.txt",
+        420,
+        9197,
+        "a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47"
+      ],
+      "omittedInternalBinLinks": [],
+      "compactJsonSha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41",
+      "expected": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41"
+    },
+    "@types/node": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+      "version": "22.20.1",
+      "count": 74,
+      "first": [
+        "LICENSE",
+        420,
+        1141,
+        "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+      ],
+      "omittedInternalBinLinks": [],
+      "compactJsonSha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae",
+      "expected": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae"
+    },
+    "undici-types": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+      "version": "6.21.0",
+      "count": 41,
+      "first": [
+        "LICENSE",
+        420,
+        1090,
+        "a6db8096b2707bc0102d256917d4d33f298ba36d8c3f25de067a2b5bb379db27"
+      ],
+      "omittedInternalBinLinks": [],
+      "compactJsonSha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986",
+      "expected": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986"
+    },
+    "npm": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+      "version": "10.9.7",
+      "count": 2039,
+      "first": [
+        "LICENSE",
+        420,
+        9742,
+        "7610d223851f421d315df5e77974f1c68a04b97e02060e5bbbcf13d95e3ca257"
+      ],
+      "omittedInternalBinLinks": [
+        [
+          "node_modules/.bin/arborist",
+          "../@npmcli/arborist/bin/index.js"
+        ],
+        [
+          "node_modules/.bin/cssesc",
+          "../cssesc/bin/cssesc"
+        ],
+        [
+          "node_modules/.bin/glob",
+          "../glob/dist/esm/bin.mjs"
+        ],
+        [
+          "node_modules/.bin/installed-package-contents",
+          "../@npmcli/installed-package-contents/bin/index.js"
+        ],
+        [
+          "node_modules/.bin/node-gyp",
+          "../node-gyp/bin/node-gyp.js"
+        ],
+        [
+          "node_modules/.bin/node-which",
+          "../which/bin/which.js"
+        ],
+        [
+          "node_modules/.bin/nopt",
+          "../nopt/bin/nopt.js"
+        ],
+        [
+          "node_modules/.bin/pacote",
+          "../pacote/bin/index.js"
+        ],
+        [
+          "node_modules/.bin/qrcode-terminal",
+          "../qrcode-terminal/bin/qrcode-terminal.js"
+        ],
+        [
+          "node_modules/.bin/semver",
+          "../semver/bin/semver.js"
+        ],
+        [
+          "node_modules/@npmcli/metavuln-calculator/node_modules/.bin/pacote",
+          "../pacote/bin/index.js"
+        ],
+        [
+          "node_modules/cross-spawn/node_modules/.bin/node-which",
+          "../which/bin/node-which"
+        ]
+      ],
+      "compactJsonSha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+      "expected": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    }
+  }
+}

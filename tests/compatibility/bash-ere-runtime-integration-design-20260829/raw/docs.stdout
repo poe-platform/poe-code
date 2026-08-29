@@ -1,0 +1,675 @@
+{"authority":"2660137c","sourcePath":"tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/source-locator-handoff/HANDOFF.md","storedBlob":"6443158944a20b0a3a688a9ba4144cbdd63331aa","bytes":7985,"sha256":"8716253cf34a62f846b1d7c6dfbf5eef58e9f57650118d101b885f38753ff45e","copy":"docs/core-handoff.data"}
+# Accepted N14 source locator handoff
+
+2026-08-29. SOURCE/DATA only; no reconstruction, decompression, extraction,
+consumer evaluation, or comparison was run for this handoff.
+
+## Identity and authoritative inputs
+
+The accepted composition identifier is `bf079ada185a79aec864b068f3738ddc5520822e`.
+It is a derived Git-tree identity, **not a promise that the tree is stored in Git**.
+Do not use `bf079ada:path`, substitute HEAD, or reconstruct by checking out the
+runtime source commit alone.
+
+All paths below, unless absolute, are relative to
+`tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/`.
+
+- `SOURCE.json`: 230044 bytes; raw-file SHA256
+  `12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4`.
+  `.inputs` is the complete selected **293-file**, 2689324-byte input inventory.
+  Each row binds `path`, Git `mode`, `blob`, `bytes`, and raw-content `sha256`.
+  `revision` is optional: use the blob ID, not an inferred revision/path lookup.
+- `.sourceCommit` is `7196bace8ea2c141d5ed1020fef5bf721c321ace`;
+  `.computedTree` is the derived identity above. `.base` is
+  `37e793ce6dce48a958030e7cc86fa8315d0b112e`. The resolved rows already select
+  the accepted prior core and N14 runtime; do not append the provenance
+  collections `.module`, `.publicRows`, or `.fixtures` to `.inputs`.
+- `FINAL-MANIFEST-v2.json` SHA256
+  `026c4a76cd442793276730ca83bafdfcf74e4779138e754537308fc3b8a09b39`
+  binds the prior manifest through `priorManifestSha256`.
+  `FINAL-MANIFEST.json` SHA256
+  `c471ecf8d9582fb7fed677ef25e734b51ab8f988a9e55a2c853489016cbdcabb`
+  binds the original receipts through `.files[].{path,bytes,sha256}`.
+
+The selected `src/shell/runtime.ts` row is blob
+`df6b2c0dfad8d7412f93f434d07a20b2b9375a86`, mode `100644`, 203623 bytes,
+SHA256 `4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058`.
+The parser and conditional rows have no `revision` field; their authoritative
+blob IDs are respectively `27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe` and
+`caab6172df5b8e5bad2d1db007b156f067e295ad`.
+
+## Reconstruction recipe for future authorized execution
+
+1. Admit the exact regular-file metadata and raw hashes of the manifests and
+   source inventory before parsing them. Validate unique safe relative input
+   paths and regular Git modes `100644`/`100755`.
+2. Request each **individual `.inputs[].blob`** using `git cat-file --batch`.
+   Require the exact OID, `blob` type, declared length, payload and delimiter;
+   verify raw SHA256 and Git SHA1 of `blob <length>\0` followed by the payload.
+   Only then write the admitted bytes into a fresh bounded regular-file tree.
+   This handoff checked availability/type/size for all 293 stored blob objects;
+   it did not retrieve or freshly hash their payloads.
+3. `SOURCE-TREES.json` (14655 bytes, SHA256
+   `90a458bb23ba83fb13ae4057a905306997ec650e7244f91b3c9acc44a1e17274`)
+   supplies `.fetched` tree metadata. Existing `admission.mjs` documents the
+   composition proof using this and SOURCE's ancestor/reconstructed metadata.
+   A tree body hashes as Git SHA1 of `tree <length>\0` plus its body; entries are
+   mode/name/NUL/raw-OID records, ordered bytewise with `/` appended for directory
+   comparison. Authenticate every path's mode/OID from the derived root.
+   The derived tree is not a flat hash of the 293 selected files, nor the
+   SOURCE.json SHA256. Sparse witnesses alone are not complete inventories.
+   Historical instruction-file entries remain opaque metadata: never fetch or
+   materialize their plaintext bodies to reconstruct the selected input set.
+4. Independently admit the compiler/dependency closure and any new consumer
+   before execution. No historical consumer receipt authorizes Faraday's new
+   comparison script automatically.
+
+## Tools, shipping bytes and load bindings
+
+`TOOLS.json` SHA256 is
+`0a6f49ac1f57c229cfdb14d92cf6bd3a69ca64791f58d61ff3f472bb8df0e95e`.
+Its `.tools[name].originalRows` and SOURCE's `.toolBindings` bind TypeScript
+5.9.3, @types/node 22.20.1, undici-types 6.21.0 and npm 10.9.7.
+The inventory hash domain is **UTF-8 `JSON.stringify(originalRows)` without a
+newline, preserving recorded order**, not a newly sorted traversal. All four
+recorded domains were independently recomputed from authenticated DATA here;
+`HASH-DOMAINS.json` records the results. Current tool-file bytes still require
+fresh admission. Node's recorded v22.22.2 executable is
+`/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node`, SHA256
+`5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011`;
+the binary was not freshly hashed in this handoff.
+
+`actual-v2/evidence/RESULT.json` (SHA256
+`c031715228f24c4bd48a231a87668f153ff7cf1ee2882fde7ac90ed372267a3a`)
+has `.package.members`: **954** package-relative shipping rows with decimal
+mode, bytes and raw SHA256. `.package.sha256` authenticates compressed package
+bytes, not a JSON serialization of those rows.
+`actual-v2/evidence/source-strict-binding.json` and
+`actual-v2/evidence/moved-strict-binding.json` have `.root`, `.inputs`, `.harness`
+and `.trace`; their 952 source/dist load inputs are not the 954 shipping rows.
+`actual-v2/evidence/source-strict-loads.jsonl` records the historical load trace.
+`EXECUTOR-v2.json` binds the old executor files and source identity. Exact
+regular-file sizes/hashes for these receipts are in `LOCATORS.json`.
+
+The retained compressed package exists at:
+
+`/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/virtual-bash-0.0.0.tgz`
+
+It was freshly checked as a regular **872281-byte** file and stream-hashed to
+`3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49`.
+The adjacent `source` directory exists but was not recursively reauthenticated.
+The historical moved-package locator is the adjacent
+`moved package/node_modules/virtual-bash`; its whole tree was not freshly checked.
+Do not treat retained-directory existence as executable admission.
+
+## Correct early compressed admission
+
+Use the existing, separately qualified
+`prospective-admission-v1/package-admission.mjs` export `admitPackage` with
+authority `{bytes:872281, sha256:"3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49"}`.
+Its `EVIDENCE-MANIFEST.json` SHA256 is
+`320bab5fc4e62a9f57e475e89be6075f6ede828e84803631e173355a8317a418`.
+The helper, `parse-manifest.mjs` and `EXPECTED-MEMBERS.json` were authenticated
+against that manifest; see `LOCATORS.json` for their exact file identities.
+
+The gate requires regular-file/exact-size checks before bounded read, descriptor
+identity checks, and expected compressed SHA256 **before any decoder/parser**.
+Decode the same authenticated Buffer, not a reread pathname. Retain the 872281B
+compressed ceiling, 64MiB decoded ceiling and concurrent-buffer ledger charges;
+bind the decoder/parser and compare all 954 expected members. These are logical
+bounds, not hostile-host race-proof security or RSS guarantees. No decoder,
+parser or helper was invoked here; no encoded DATA archive is needed to locate
+or reconstruct the 293 source inputs.
+
+## Qualifications and preserved records
+
+Root acceptance `76648c572b26486c02e45c65ad42dd74bc938e15` records finite
+source/semantic acceptance based on be7d4b98, c6992dfa and aede1639. The old
+campaign remains CLOSED/noncompliant for pre-inflate admission ordering: its
+744 literal results are not rescored. Do not reuse old `run-v2.mjs`'s ordering.
+Future coherent execution must apply the corrected admission contemporaneously.
+
+This handoff itself mistakenly requested the nonexistent historical path
+`actual-v2/evidence/BINDING-PROOF.json`. The captured ENOENT is preserved in
+`capture/final-inspection.stderr.raw`; this was a guessed-locator instruction
+violation, not a product failure. Subsequent locators came from authenticated
+inventory entries. No absent artifact was invented, decoded or recreated.
+The source/DATA collectors retired naturally; this task makes no new product,
+comparison, native-parity, whole-tree or acceptance claim.
+
+{"authority":"2660137c","sourcePath":"tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/source-locator-handoff/LOCATORS.json","storedBlob":"78e40efc5f85b6f5c58c6d0020e912b3809a63c2","bytes":8823,"sha256":"f37c62ccab8b76ec5732b13d0b6545d25e4fb02bb34830f71ba2a53d996fe898","copy":"docs/core-locators.data"}
+{
+  "verifiedAt": "2026-08-29T09:51:00.128Z",
+  "records": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/FINAL-MANIFEST-v2.json",
+      "type": "regular",
+      "bytes": 379,
+      "mode": 420,
+      "sha256": "026c4a76cd442793276730ca83bafdfcf74e4779138e754537308fc3b8a09b39"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/FINAL-MANIFEST.json",
+      "type": "regular",
+      "bytes": 44778,
+      "mode": 420,
+      "sha256": "c471ecf8d9582fb7fed677ef25e734b51ab8f988a9e55a2c853489016cbdcabb"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/SOURCE.json",
+      "type": "regular",
+      "bytes": 230044,
+      "mode": 420,
+      "sha256": "12a5806df9ea13eb66e99bec1f0c0c3198bfeb76da012559d943a4d874070fc4"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/SOURCE-TREES.json",
+      "type": "regular",
+      "bytes": 14655,
+      "mode": 420,
+      "sha256": "90a458bb23ba83fb13ae4057a905306997ec650e7244f91b3c9acc44a1e17274"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/TOOLS.json",
+      "type": "regular",
+      "bytes": 417978,
+      "mode": 420,
+      "sha256": "0a6f49ac1f57c229cfdb14d92cf6bd3a69ca64791f58d61ff3f472bb8df0e95e"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/TOOL-SUPPLEMENT.json",
+      "type": "regular",
+      "bytes": 524,
+      "mode": 420,
+      "sha256": "3cfcdc1842818c065e071dde569abec728c62bb076cb233a8fe31daff72f0c65"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/EXECUTOR-v2.json",
+      "type": "regular",
+      "bytes": 26762,
+      "mode": 420,
+      "sha256": "a1d5f0c668a8ba52e071dc52d5c933d40e97c858ffe0b94b9feeb56dfa9ee8ac"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/SOURCE-REVIEW.json",
+      "type": "regular",
+      "bytes": 2969,
+      "mode": 420,
+      "sha256": "6a3912073ddc2cdd3a765edd19f9a410be7ba368069a94357c0676903ac9b801"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/RESULT.json",
+      "type": "regular",
+      "bytes": 1651971,
+      "mode": 420,
+      "sha256": "c031715228f24c4bd48a231a87668f153ff7cf1ee2882fde7ac90ed372267a3a"
+    },
+    {
+      "path": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/virtual-bash-0.0.0.tgz",
+      "type": "regular",
+      "bytes": 872281,
+      "mode": 420,
+      "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+      "observation": "bounded stream hash only; no decompression"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/EVIDENCE-MANIFEST.json",
+      "type": "regular",
+      "bytes": 6683,
+      "mode": 420,
+      "sha256": "320bab5fc4e62a9f57e475e89be6075f6ede828e84803631e173355a8317a418"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/package-admission.mjs",
+      "type": "regular",
+      "bytes": 3895,
+      "mode": 420,
+      "sha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/parse-manifest.mjs",
+      "type": "regular",
+      "bytes": 2860,
+      "mode": 420,
+      "sha256": "0dd49a2e6fa0d222ada2477937a482aed613f220f28bef1f790cb06b61270f61"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/prospective-admission-v1/EXPECTED-MEMBERS.json",
+      "type": "regular",
+      "bytes": 166933,
+      "mode": 420,
+      "sha256": "9800c6e7b6025c548c7b6be8376ca4804b5d3601115578c264ba7f7dd5b35011"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/admission.mjs",
+      "type": "regular",
+      "bytes": 2193,
+      "mode": 420,
+      "sha256": "9a7273e21ff928b421728977daed70e4736352687c1b9e5b6fa449b4df510fae"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/run-v2.mjs",
+      "type": "regular",
+      "bytes": 30558,
+      "mode": 420,
+      "sha256": "27513d8c4c158999c42508fe797831280657e50f2f96eacd345871eb1d71dfac"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/source-strict-binding.json",
+      "type": "regular",
+      "bytes": 134560,
+      "mode": 420,
+      "sha256": "852ba942337c667c3bd5fd86447079c0b355008d3f352cf40a3ebec5f583bb87"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/moved-strict-binding.json",
+      "type": "regular",
+      "bytes": 134580,
+      "mode": 420,
+      "sha256": "36edbf3ba549e5c31d94c63b52bce858f1f9e0cde5519b1e4b2da09f74d0da87"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/source-strict-loads.jsonl",
+      "type": "regular",
+      "bytes": 49428,
+      "mode": 420,
+      "sha256": "00e88e0fbbde60b1573cfc4f3f27abd8cfad740a8c78d4be2022250f0419aa18"
+    }
+  ],
+  "sourceManifest": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "inputs": 293,
+  "blobAvailability": "293/293 stored blob/type/size rows verified from captured metadata command; content SHA256 must be checked freshly during reconstruction",
+  "archive": {
+    "path": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/virtual-bash-0.0.0.tgz",
+    "type": "regular",
+    "bytes": 872281,
+    "mode": 420,
+    "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49",
+    "observation": "bounded stream hash only; no decompression"
+  },
+  "shippingInventory": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/RESULT.json",
+    "field": "package.members",
+    "count": 954
+  },
+  "sourceMaterialization": {
+    "path": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/source",
+    "exists": true,
+    "qualification": "existence only, not fresh full content admission"
+  },
+  "tools": {
+    "node": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "typescript": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "version": "5.9.3",
+      "inventorySha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41"
+    },
+    "npm": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+      "version": "10.9.7",
+      "inventorySha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    "@types/node": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+      "version": "22.20.1",
+      "inventorySha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae"
+    },
+    "undici-types": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+      "version": "6.21.0",
+      "inventorySha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986"
+    }
+  },
+  "wrongLocator": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/actual-v2/evidence/BINDING-PROOF.json",
+    "status": "ENOENT in fully captured source/data helper; not a valid locator and not reused",
+    "qualification": "This guessed historical citation violated the no-guessed-locator instruction; preserved, no product/archive decoding occurred. Successor locators selected from authenticated inventory."
+  },
+  "reconstructionRequired": "source.inputs is authoritative; use each row.blob, not computedTree:path or optional revision:path"
+}
+
+{"authority":"2660137c","sourcePath":"tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/source-locator-handoff/HASH-DOMAINS.json","storedBlob":"b8315c2e9c647032f670591139d31acdc29e0501","bytes":3417,"sha256":"b68a42b5203b71280a36629db1cfe645de359d065862d19c1e205aa81c33c8a6","copy":"docs/core-domains.data"}
+{
+  "selectedInputBytes": 2689324,
+  "tools": {
+    "typescript": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "version": "5.9.3",
+      "count": 132,
+      "first": [
+        "LICENSE.txt",
+        420,
+        9197,
+        "a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47"
+      ],
+      "omittedInternalBinLinks": [],
+      "compactJsonSha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41",
+      "expected": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41"
+    },
+    "@types/node": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+      "version": "22.20.1",
+      "count": 74,
+      "first": [
+        "LICENSE",
+        420,
+        1141,
+        "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+      ],
+      "omittedInternalBinLinks": [],
+      "compactJsonSha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae",
+      "expected": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae"
+    },
+    "undici-types": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+      "version": "6.21.0",
+      "count": 41,
+      "first": [
+        "LICENSE",
+        420,
+        1090,
+        "a6db8096b2707bc0102d256917d4d33f298ba36d8c3f25de067a2b5bb379db27"
+      ],
+      "omittedInternalBinLinks": [],
+      "compactJsonSha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986",
+      "expected": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986"
+    },
+    "npm": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+      "version": "10.9.7",
+      "count": 2039,
+      "first": [
+        "LICENSE",
+        420,
+        9742,
+        "7610d223851f421d315df5e77974f1c68a04b97e02060e5bbbcf13d95e3ca257"
+      ],
+      "omittedInternalBinLinks": [
+        [
+          "node_modules/.bin/arborist",
+          "../@npmcli/arborist/bin/index.js"
+        ],
+        [
+          "node_modules/.bin/cssesc",
+          "../cssesc/bin/cssesc"
+        ],
+        [
+          "node_modules/.bin/glob",
+          "../glob/dist/esm/bin.mjs"
+        ],
+        [
+          "node_modules/.bin/installed-package-contents",
+          "../@npmcli/installed-package-contents/bin/index.js"
+        ],
+        [
+          "node_modules/.bin/node-gyp",
+          "../node-gyp/bin/node-gyp.js"
+        ],
+        [
+          "node_modules/.bin/node-which",
+          "../which/bin/which.js"
+        ],
+        [
+          "node_modules/.bin/nopt",
+          "../nopt/bin/nopt.js"
+        ],
+        [
+          "node_modules/.bin/pacote",
+          "../pacote/bin/index.js"
+        ],
+        [
+          "node_modules/.bin/qrcode-terminal",
+          "../qrcode-terminal/bin/qrcode-terminal.js"
+        ],
+        [
+          "node_modules/.bin/semver",
+          "../semver/bin/semver.js"
+        ],
+        [
+          "node_modules/@npmcli/metavuln-calculator/node_modules/.bin/pacote",
+          "../pacote/bin/index.js"
+        ],
+        [
+          "node_modules/cross-spawn/node_modules/.bin/node-which",
+          "../which/bin/node-which"
+        ]
+      ],
+      "compactJsonSha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55",
+      "expected": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    }
+  }
+}
+
+{"authority":"a2249d46","sourcePath":"tests/compatibility/bash-ere-design-20260829/README.md","storedBlob":"59ab4ec68c46ed524dd12199aa962377af9c3a97","bytes":19409,"sha256":"7fb1f7348ba43c9e036ed71806061206d8be45ec77f3853fb89425bc0719b615","copy":"docs/ere-design.data"}
+{"authority":"a2249d46","sourcePath":"tests/compatibility/bash-ere-design-20260829/REFERENCE-PROGRAMS.json","storedBlob":"550da67b9e1479bd8eecdcbcda510f4d786b5880","bytes":6174,"sha256":"5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7","copy":"docs/references.data"}
+{"authority":"a2249d46","sourcePath":"tests/compatibility/bash-ere-design-20260829/HOST-PROTOCOLS.json","storedBlob":"7ae38bf57184e7118faf1abd5d05cad347759068","bytes":2440,"sha256":"17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681","copy":"docs/hosts.data"}
+{"authority":"a2249d46","sourcePath":"tests/compatibility/bash-ere-design-20260829/SOURCE-BINDINGS.json","storedBlob":"ce76744ab6c706b359887c376deaf3bb2bd294dc","bytes":9486,"sha256":"b469b7d88a49600e7b54ccd2bc3856caa4cca41b0f827cfda7cab64ffffeec8a","copy":"docs/ere-source.data"}
+{"authority":"e2b4823c","sourcePath":"tests/compatibility/bash-ere-design-20260829/BUDGET-API-DECISIONS.md","storedBlob":"803208636dc065100e7aa8cad05013f978476b55","bytes":12374,"sha256":"41d64d942daeac3cded8f1575b6a9544fd9f609a834040be3ff55e3b0fdeec52","copy":"docs/budget-decisions.data"}
+{"authority":"aa16808c","sourcePath":"tests/compatibility/bash-ere-transport-design-20260829/ROOT-RATIFICATION-v1.md","storedBlob":"0114495037324756264c77b0c5feeca1c4aba013","bytes":2909,"sha256":"e565ff02c9385d14c4056b95579fbd7de08d0d9817cd9d8d6bed22b8c61b4008","copy":"docs/transport-choices.data"}
+{"authority":"6c68be44","sourcePath":"tests/compatibility/bash-ere-transport-author-20260829/HANDOFF.md","storedBlob":"6e799ae43f9ae678769d91e80348120c362bb8b7","bytes":5782,"sha256":"2e1bd9ee40b8a72f1c24d93142ec8b79a3c439ec127c7dcbda6f425bf0fa751d","copy":"docs/transport-handoff.data"}
+# Private ERE transport — SOURCE review handoff
+
+## Status and authority
+
+SOURCE/type-only packet, NOT transport or engine acceptance. ROOT explicitly
+retains the original phase's publication HOLD: six compiler children retired,
+but administrative/transitive process accounting cannot establish compliance
+with its64-process grant. This fresh publication does not repair that history.
+R01 seven reporting conflicts remain HELD; native12 and all32 transport families/
+60 runtime variants remain UNRUN. No Workers, product imports, Shell `=~`, native
+or private-engine execution occurred in either type-only cohort or publication.
+
+Source commits: `65f0e080` initial additive transport and `0f36459c` explicit owned
+Worker stdout/stderr refusal. Full commit identities are in PUBLICATION.json.
+No existing engine, expr/legacy transport, shell/runtime/conditional, public
+options/exports, package or shared documentation was edited by these commits.
+The provisional five-file engine is b5; only R02 has independent acceptance.
+
+## Complete source scope
+
+All files are under `src/commands/regex-execution/ere/transport/`:
+
+- `protocol.ts`: private request/result/failure schemas and private errors.
+- `accounting.ts`: seven engine counters, grant reconciliation, separate T/H.
+- `validation.ts`: exact own-data frames/identity/cardinality/span validation.
+- `wire-engine.ts`: same-local-ledger compile/match adapter; canonical nonmatch.
+- `worker-entry.ts`: static sibling entry, ready frame and serial request guard.
+- `owner.ts`: fixed Worker acquisition, output refusal, timeout/retirement owner.
+- `root.ts`: lazy invocation-root owner, sessions, shared serialized queue.
+
+Final source/tool/fixture seal SHA256:
+`f6ff74e59b15c98e230a2011af8c5c21d6922e44599bc88084a3705846cc55d1`.
+SEAL-v2.json binds12 source inputs (five unchanged engine, seven transport),
+241 tooling files, exact Node22.22.2 and declaration fixtures. Source selection
+is not current HEAD or a coherent whole-package/API integration claim.
+
+## Retained type evidence, not runtime tests
+
+TYPE-01 and TYPE-02 each contain three compiler child receipts: source/declaration
+compile0, positive declaration consumer0, negative consumer2 with exactly
+TS2353 at2:108, TS2322 at3:59, TS2345 at5:47. Both retain342 captured diagnostic
+bytes and24 emitted files (12JavaScript +12declarations). TYPE-02 does not rescore
+TYPE-01; the source-only output-ownership correction is REVISION-v2.md.
+
+Publication verifies the retained emitted hashes against each original RESULT,
+and the copied source/tool/consumer inputs against each committed seal. It checks
+raw output lengths/diagnostics and child IDs/status against retained receipts.
+Raw RESULT/OUTER files had no independent historical hash seal; their new hashes
+authenticate retained publication bytes, not retroactive tamper-proof history.
+There is no compiler retry or artifact regeneration. Work/tool trees remain
+owned retained staging; no cleanup, foreign staging or product modifications.
+
+## Runtime proposal — all UNRUN and awaiting a separate ROOT decision
+
+The authoritative VALIDATION.json remains the exact32-family/60-variant DATA
+manifest, with its hash and individual family/variant mapping in PUBLICATION.json.
+Preserve those identities rather than replacing them with type checks.
+Proposed later ceiling:40minutes inclusive cleanup/publication;48OS children,
+peak3;24actual Worker starts cumulative;128MiB capture/768MiB work;30s case and
+120s build. SOURCE/synthetic protocol/accounting/ownership precedes real Workers.
+Source, offline-installed and physically-moved static asset closures require a
+new finite dispatch/child/variant map, exact transform/fault controls and grant.
+These are proposed ceilings, not executions or a presently ready runtime seal.
+
+The sibling uses no legacy expr pool/reply changes. Original B/F feeds worker
+ledgers; grants share cumulative work/state/allocation/capture counters, with
+pattern/subject highwater and no refund for unknown sent consumption. Parent
+T=A/H=W is ADDITIONAL logical accounting, not a combined byte/RSS cap. Requests
+prepay2(47+4n+p+s); reply/result capacity479. Exact metadata/traversal/live-retention
+coverage still needs independent SOURCE review and future runtime contrasts.
+Queue interpretation is64waiting plus one active, as explicit in DECISIONS-v2.
+
+## Concrete qualifications for the SOURCE reviewer
+
+1. New static entry/engine import graph and Worker flags/output streams have no
+   inherited loader or application-Worker admission. Own-stream closure, startup,
+   handler-install failures, output refusal and termination joins are UNRUN.
+2. Session close marks active work cancelled and joins bounded settlement;
+   caller abort is checked around that settlement, not universal immediate
+   preemption. Unknown replies/crash/timeout cannot mint engine credit.
+3. Validate schema constants, actual metadata counts and all copied/retained
+   ownership independently. Types do not prove exact T/H accounting or any RSS
+   guarantee. Structured clone occurs before parent frame validation; hostile
+   compromised-Worker allocation containment is not claimed.
+4. Falsy caller/error/cleanup precedence and singleflight close paths require
+   actual fault-injection proof. No BASH_REMATCH writer/publication is present.
+5. New internal declarations may later ship through dist. No public package
+   exports/options changed; no promise that internal types are unobservable.
+6. Capture disambiguation remains the unchanged provisional engine behavior;
+   neither transport typechecking nor publication adjudicates R01/native parity.
+
+Publication's observed process events and qualification are in PUBLICATION.json
+and its outer/raw logs. No historical process probes or invented descendants.
+
+{"authority":"efcd8b49","sourcePath":"tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/HANDOFF.md","storedBlob":"78fe551a06d90351c57c1a53a5cb03ed038f2a45","bytes":6656,"sha256":"0e1619d65847db10a31d1fd155336ae0f14e11b039326f25e148a0824446f066","copy":"docs/gnu-handoff.data"}
+# Signed Bash source preparation — no build execution
+
+2026-08-29. ROOT's source/DATA-only grant; acquisition/provenance qualification
+does not qualify a native runtime, process fence, or differential oracle.
+
+## Exact authority and capture clarification
+
+- Signature result commit: `fe5d87a215310cbe847bee99bbe3c7650aa3f6e3`.
+- This procedure's preseal: `36a6722d9fe5fe1dc257b9dfb3d8691ead8322db`.
+- Reauthenticated all 133 committed verification-v2 blobs, then the 33 acquired
+  objects, 66 prior authority artifacts, 26 closure identities and controller.
+  All sixteen stored pair outcomes and literal machine streams still agree.
+- Every signature's signing and explicit primary fingerprint is
+  `7C0135FB088AAF6C66C650B9BB5869F064EA74AB`, attributed by the preserved official
+  GNU project → Ramey profile → published public-key chain, not signature hints.
+  This step reauthenticates the earlier signature evidence, not sixteen new runs.
+- Previous terminal-display truncation hid a commit summary. The actual owned
+  sixteen stdout/stderr pairs are complete: sizes match the original per-child
+  capture counters, content matches committed blobs, and stdout exactly matches
+  the preserved machine-status rows. No raw artifact was repaired or shortened.
+- Initial zero-child `keyring`/`KEYRING` collision, distinct-path correction,
+  previous trailing-space artifact, and every original signature result remain.
+
+## Actual source result
+
+Signed archive SHA256:
+`0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba`.
+Complete tar inventory: 1,603 members, 36,698,647 regular payload bytes,
+37,934,080 decompressed framing bytes. Zero links, special files, AGENTS-named
+members, aliases or excluded members. Every header checksum, regular payload
+hash, framing/padding, path and directory ancestor was checked before extraction.
+Unsupported tar metadata would refuse; this is not a general tar implementation.
+
+Fresh owned source: `/tmp/safe-bash-reference-source-20260829-fn91Rw/bash-5.3`.
+Fifteen unchanged, authenticated patch bodies applied serially, all exit 0 with
+zero fuzz and literal captured statuses. The old header prefixes resolve only
+inside the fresh owned work parent; no signed patch was rewritten. Patchlevel
+was checked before/after every patch, ending at the source declaration 15.
+No source-version-to-executed-version inference follows.
+
+Final inventory: 1,602 entries excluding the root directory; canonical tuple
+SHA256 `75c692f66095ad85848915f50e9357e506ed9664415f48ce6104cafa7269368e`.
+`RUN-01/FINAL-SOURCE-INVENTORY.json` defines the UTF-8 traversal ordering and
+no-LF JSON serialization. Fifteen distinct changed paths match patch headers;
+all other regular files retain archive payload hashes. The full pathname set is
+checked, not only old file hashes. Original archive modes are retained as data;
+staged files are 0600 and directories 0700, so source scripts are not executable.
+
+Twenty-three native children (8 metadata readers + 15 patch invocations) all
+reported close; source controller 21,668.0415 ms, combined native capture 4,811
+bytes. No configure, make, compiler, generated helper, Bash or native oracle ran.
+`RUN-01/INPUT-POSTCHECK.json` rechecks signed inputs/authority/closure after work.
+Fresh final publication separately rechecks staged-source membership and hashes.
+
+The decompressed scratch tar was removed only after its owned handle closed;
+the exact patched source tree remains deliberately retained for ROOT's next
+decision. No open child or file handle remains. Do not overwrite/reuse this
+source as a build directory; any build uses a newly admitted separate root.
+No private checkout or product file changed. GNU licensing and COPYING remain
+unaltered source data, not a shipped product dependency or copied instructions.
+
+## Tool and closure status
+
+Pinned `/usr/bin/patch` SHA256
+`ca8aaa5fa4bd9dfaf4b3be251b18372f25f07483946e7d06b505e5a5fb0a6a84`
+has only libSystem in its inspected load commands; existing system-cache/dyld
+identities were reauthenticated before/after its use. No external patch helper
+or shell command was requested. Trusted CLT llvm-otool read metadata only.
+
+`TOOLS.json` contains 26 finite observations (25 present, `/usr/bin/expr` absent).
+CLT clang is now stream-hashed (290,664,032 bytes), not executed, unlike the old
+survey's smaller per-file ceiling. Make, compiler, ar/ranlib, linker, shell and
+bootstrap utilities have explicit sizes/modes/hashes. Their path names are not
+version evidence. SDK link resolves to `MacOSX26.5.sdk`; SDK contents are NOT
+admitted yet. Linker requires unresolved `@rpath` libtapi, libcodedirectory,
+libLTO and libswiftDemangle; ranlib/libtool also references libLTO. Complete
+transitive build-tool/SDK/utility closure is a remaining admission obligation.
+No guessed rpath resolution or ambient Homebrew fallback is approved.
+
+`BUILD-RECIPE-DETAILS.json` and `RUN-01/BUILD-SOURCE-OBSERVATIONS.json` bind static
+recipe/header findings to source hashes and line indices without copying prose.
+Top-level Program is bash; the templates declare CC/CC_FOR_BUILD/AR/RANLIB and
+bundled Readline/termcap/localization dependencies. Source references include
+mkbuiltins, mkversion, mksignames, mksyntax, config.status and conftest programs.
+Reference presence is not a claim that every conditional helper will execute.
+
+## Resource accounting and limitations
+
+The launch ledger reserves 63 process roles through final publication: 13 tool
+shells before publication, 23 source-operation native children, the Git tree
+reader, controllers and explicit Git/editing commands; final publication adds
+its shell/editor/controller/add/commit/log. Missing initial command lookups were
+not successful executable starts. No CLI leaves or recursive build jobs ran.
+The exact per-call role breakdown is in `PROCESS-LEDGER.json`; this is declared
+launch accounting plus observed closes, not independent kernel descendant/RSS
+measurement. Peak requested process chain is shell → controller → native child.
+
+The 30-minute / 64-start / peak-3 / 128-MiB capture / 512-MiB work ceilings were
+not renewed. Actual source-operation body uses an additional 15-minute maximum
+within that grant, not a new allowance. Publication reports source/evidence
+logical bytes; transient tar plus staged source remained below 80 MiB, excluding
+unchanged external tool files that were streamed rather than copied. No hard
+memory, arbitrary-process preemption, race-free hostile-host or fence claim.
+
+Next action: review `BUILD-PROPOSAL.md`, resolve its admission conditions and
+request ROOT's separate build GO. Until then, wait; do not execute build recipes.
+
+{"authority":"7cdb62ac","sourcePath":"tests/compatibility/bash-ere-transport-author-20260829/PUBLICATION-FINAL.json","storedBlob":"a6ff68b6c393867e4212df312270eed7200e6b20","bytes":569,"sha256":"ef40afd58cf63544d6737f5ead526a3e540ca86923c940704ef940979b695418","copy":"docs/transport-auth-0.data"}
+{
+  "commit": "6c68be44446ad6f3251697f1be6a07910155c53f",
+  "sourceCommits": [
+    "65f0e08078a186d322b7ab975bac5972f09bef17",
+    "0f36459ccf38623906c5c80702c5d32111167f4d"
+  ],
+  "completed": "2026-08-29T10:04:50.911Z",
+  "elapsedMs": 1685,
+  "gitChildren": 8,
+  "retired": 8,
+  "newCaptureBytes": 132580,
+  "indexUnchanged": true,
+  "sourceAndRetainedEvidencePostcheck": true,
+  "compressedInputs": 0,
+  "newRuntime": 0,
+  "old64Compliance": "NOT CERTIFIED",
+  "outerAndGitRaw": "retained untracked append/finalization receipts; not claimed inside earlier commit"
+}
+

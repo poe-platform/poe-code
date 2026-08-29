@@ -1,0 +1,230 @@
+export interface GetoptsState {
+  readonly index: number;
+  readonly active?: { readonly argument: number; readonly offset: number };
+}
+
+export interface GetoptsWork {
+  readonly maxArguments: number;
+  readonly maxBytes: number;
+  readonly maxSteps: number;
+  readonly yieldEvery: number;
+  readonly signal?: AbortSignal;
+  readonly checkpoint: (steps: number) => void | Promise<void>;
+}
+
+export interface GetoptsScanOptions {
+  readonly reportErrors: boolean;
+  readonly work: GetoptsWork;
+}
+
+export type GetoptsDiagnostic = {
+  readonly kind: "unknown-option" | "missing-argument";
+  readonly option: string;
+};
+
+export interface GetoptsScanResult {
+  readonly state: GetoptsState;
+  readonly kind: "option" | "unknown-option" | "missing-argument" | "end";
+  readonly status: 0 | 1;
+  readonly option: string;
+  readonly optind: number;
+  readonly argument: { readonly kind: "set"; readonly value: string } | { readonly kind: "unset" };
+  readonly diagnostic: GetoptsDiagnostic | null;
+}
+
+export class GetoptsError extends Error {
+  constructor(readonly code: "INVALID_INPUT" | "NON_ASCII_OPTION" | "ARGUMENT_LIMIT" | "BYTE_LIMIT" | "STEP_LIMIT", message: string) {
+    super(message);
+    this.name = "GetoptsError";
+  }
+}
+
+function record(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function integer(value: unknown, minimum: number, name: string): asserts value is number {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < minimum) {
+    throw new GetoptsError("INVALID_INPUT", `${name} must be a safe integer >= ${minimum}`);
+  }
+}
+
+export function createGetoptsState(): GetoptsState {
+  return { index: 0 };
+}
+
+export function cloneGetoptsState(state: GetoptsState): GetoptsState {
+  if (!record(state)) throw new GetoptsError("INVALID_INPUT", "Invalid getopts state");
+  integer(state.index, 0, "index");
+  if (state.active === undefined) return { index: state.index };
+  if (!record(state.active)) throw new GetoptsError("INVALID_INPUT", "Invalid getopts active cursor");
+  integer(state.active.argument, 0, "active.argument");
+  integer(state.active.offset, 1, "active.offset");
+  return { index: state.index, active: { argument: state.active.argument, offset: state.active.offset } };
+}
+
+export function withGetoptsIndex(state: GetoptsState, index: number): GetoptsState {
+  const copy = cloneGetoptsState(state);
+  integer(index, Number.MIN_SAFE_INTEGER, "index");
+  return index <= 1 ? createGetoptsState() : { ...copy, index };
+}
+
+class ScanWork {
+  private steps = 0;
+  private pending = 0;
+  private bytes = 0;
+  readonly maxArguments: number;
+  private readonly maxBytes: number;
+  private readonly maxSteps: number;
+  private readonly yieldEvery: number;
+  private readonly signal: AbortSignal | undefined;
+  private readonly checkpoint: GetoptsWork["checkpoint"];
+
+  constructor(work: GetoptsWork) {
+    if (!record(work)) throw new GetoptsError("INVALID_INPUT", "Explicit getopts work controls are required");
+    integer(work.maxArguments, 0, "maxArguments");
+    integer(work.maxBytes, 0, "maxBytes");
+    integer(work.maxSteps, 0, "maxSteps");
+    integer(work.yieldEvery, 1, "yieldEvery");
+    if (typeof work.checkpoint !== "function") throw new GetoptsError("INVALID_INPUT", "A getopts checkpoint is required");
+    if (work.signal !== undefined && (!record(work.signal) || typeof work.signal.throwIfAborted !== "function" || typeof work.signal.addEventListener !== "function" || typeof work.signal.removeEventListener !== "function")) {
+      throw new GetoptsError("INVALID_INPUT", "Invalid getopts signal");
+    }
+    this.maxArguments = work.maxArguments;
+    this.maxBytes = work.maxBytes;
+    this.maxSteps = work.maxSteps;
+    this.yieldEvery = work.yieldEvery;
+    this.signal = work.signal;
+    this.checkpoint = work.checkpoint;
+    this.check();
+  }
+
+  check(): void {
+    this.signal?.throwIfAborted();
+  }
+
+  step(): Promise<void> | undefined {
+    this.check();
+    if (this.steps === this.maxSteps) throw new GetoptsError("STEP_LIMIT", "Getopts work step limit exceeded");
+    this.steps++;
+    this.pending++;
+    return this.pending === this.yieldEvery ? this.flush() : undefined;
+  }
+
+  addBytes(count: number): void {
+    if (count > this.maxBytes - this.bytes) throw new GetoptsError("BYTE_LIMIT", "Getopts input byte limit exceeded");
+    this.bytes += count;
+  }
+
+  async flush(): Promise<void> {
+    this.check();
+    if (this.pending) {
+      const steps = this.pending;
+      this.pending = 0;
+      const pending = Promise.resolve(this.checkpoint(steps));
+      const signal = this.signal;
+      if (!signal) await pending;
+      else await new Promise<void>((resolve, reject) => {
+        const abort = () => { signal.removeEventListener("abort", abort); reject(signal.reason); };
+        pending.then(
+          () => { signal.removeEventListener("abort", abort); resolve(); },
+          error => { signal.removeEventListener("abort", abort); reject(error); },
+        );
+        if (signal.aborted) abort();
+        else signal.addEventListener("abort", abort, { once: true });
+      });
+    }
+    this.check();
+  }
+}
+
+async function validateString(value: unknown, work: ScanWork, optstring = false): Promise<void> {
+  if (typeof value !== "string") throw new GetoptsError("INVALID_INPUT", "Getopts requires string inputs");
+  for (let position = 0; position < value.length; position++) {
+    const waiting = work.step();
+    if (waiting) await waiting;
+    const code = value.charCodeAt(position);
+    if (code === 0) throw new GetoptsError("INVALID_INPUT", "Getopts inputs must not contain NUL");
+    if (optstring && code > 127) throw new GetoptsError("NON_ASCII_OPTION", "Non-ASCII getopts option specifications are unsupported");
+    if (code < 128) work.addBytes(1);
+    else if (code < 2048) work.addBytes(2);
+    else if (code >= 0xd800 && code <= 0xdbff && value.charCodeAt(position + 1) >= 0xdc00 && value.charCodeAt(position + 1) <= 0xdfff) work.addBytes(4);
+    else if (code >= 0xdc00 && code <= 0xdfff && value.charCodeAt(position - 1) >= 0xd800 && value.charCodeAt(position - 1) <= 0xdbff) work.addBytes(0);
+    else work.addBytes(3);
+  }
+}
+
+export async function scanGetopts(state: GetoptsState, optstring: string, args: readonly string[], options: GetoptsScanOptions): Promise<GetoptsScanResult> {
+  if (!record(options) || typeof options.reportErrors !== "boolean") throw new GetoptsError("INVALID_INPUT", "Getopts requires explicit diagnostic policy and work controls");
+  const work = new ScanWork(options.work);
+  const original = cloneGetoptsState(state);
+  if (!Array.isArray(args)) throw new GetoptsError("INVALID_INPUT", "Getopts requires an argument array");
+  if (args.length > work.maxArguments) throw new GetoptsError("ARGUMENT_LIMIT", "Getopts argument limit exceeded");
+  const starting = work.step();
+  if (starting) await starting;
+  await validateString(optstring, work, true);
+  for (let argument = 0; argument < args.length; argument++) {
+    const waiting = work.step();
+    if (waiting) await waiting;
+    await validateString(args[argument], work);
+  }
+  const silent = optstring.startsWith(":");
+  const specification = new Int8Array(128).fill(-1);
+  for (let position = silent ? 1 : 0; position < optstring.length; position++) {
+    const waiting = work.step();
+    if (waiting) await waiting;
+    const code = optstring.charCodeAt(position);
+    if (code !== 58 && code !== 63 && specification[code] === -1) specification[code] = Number(optstring[position + 1] === ":");
+  }
+  let index = original.index || 1;
+  let active = original.index === 0 ? undefined : original.active;
+  const finish = async (kind: GetoptsScanResult["kind"], option: string, argument: GetoptsScanResult["argument"], diagnostic: GetoptsDiagnostic | null): Promise<GetoptsScanResult> => {
+    const waiting = work.step();
+    if (waiting) await waiting;
+    await work.flush();
+    return { state: active === undefined ? { index } : { index, active: { ...active } }, kind, status: kind === "end" ? 1 : 0, option, optind: index, argument, diagnostic };
+  };
+  const end = (): Promise<GetoptsScanResult> => {
+    active = undefined;
+    return finish("end", "?", { kind: "unset" }, null);
+  };
+  if (index > args.length) {
+    index = args.length + 1;
+    return end();
+  }
+  if (active && (args[active.argument] === undefined || active.offset >= args[active.argument]!.length)) active = undefined;
+  if (!active) {
+    const token = args[index - 1]!;
+    if (token.length < 2 || token[0] !== "-") return end();
+    if (token === "--") {
+      index++;
+      return end();
+    }
+    active = { argument: index - 1, offset: 1 };
+  }
+  const token = args[active.argument]!;
+  const option = token[active.offset]!;
+  const code = option.charCodeAt(0);
+  if (code > 127) throw new GetoptsError("NON_ASCII_OPTION", "Non-ASCII getopts option characters are unsupported");
+  const offset = active.offset + 1;
+  const attached = offset < token.length;
+  active = attached ? { argument: active.argument, offset } : undefined;
+  if (!attached) index++;
+  if (specification[code] === -1) {
+    return finish("unknown-option", "?", silent ? { kind: "set", value: option } : { kind: "unset" }, !silent && options.reportErrors ? { kind: "unknown-option", option } : null);
+  }
+  if (specification[code] === 1) {
+    if (attached) {
+      active = undefined;
+      index++;
+      return finish("option", option, { kind: "set", value: token.slice(offset) }, null);
+    }
+    if (index <= args.length) {
+      const value = args[index - 1]!;
+      index++;
+      return finish("option", option, { kind: "set", value }, null);
+    }
+    return finish("missing-argument", silent ? ":" : "?", silent ? { kind: "set", value: option } : { kind: "unset" }, !silent && options.reportErrors ? { kind: "missing-argument", option } : null);
+  }
+  return finish("option", option, { kind: "unset" }, null);
+}

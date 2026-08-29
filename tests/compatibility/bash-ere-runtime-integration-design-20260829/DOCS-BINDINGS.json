@@ -1,0 +1,101 @@
+{
+  "role": "SOURCE/DATA only; no imports or evaluation",
+  "files": [
+    {
+      "authority": "2660137c",
+      "sourcePath": "tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/source-locator-handoff/HANDOFF.md",
+      "storedBlob": "6443158944a20b0a3a688a9ba4144cbdd63331aa",
+      "bytes": 7985,
+      "sha256": "8716253cf34a62f846b1d7c6dfbf5eef58e9f57650118d101b885f38753ff45e",
+      "copy": "docs/core-handoff.data"
+    },
+    {
+      "authority": "2660137c",
+      "sourcePath": "tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/source-locator-handoff/LOCATORS.json",
+      "storedBlob": "78e40efc5f85b6f5c58c6d0020e912b3809a63c2",
+      "bytes": 8823,
+      "sha256": "f37c62ccab8b76ec5732b13d0b6545d25e4fb02bb34830f71ba2a53d996fe898",
+      "copy": "docs/core-locators.data"
+    },
+    {
+      "authority": "2660137c",
+      "sourcePath": "tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/source-locator-handoff/HASH-DOMAINS.json",
+      "storedBlob": "b8315c2e9c647032f670591139d31acdc29e0501",
+      "bytes": 3417,
+      "sha256": "b68a42b5203b71280a36629db1cfe645de359d065862d19c1e205aa81c33c8a6",
+      "copy": "docs/core-domains.data"
+    },
+    {
+      "authority": "a2249d46",
+      "sourcePath": "tests/compatibility/bash-ere-design-20260829/README.md",
+      "storedBlob": "59ab4ec68c46ed524dd12199aa962377af9c3a97",
+      "bytes": 19409,
+      "sha256": "7fb1f7348ba43c9e036ed71806061206d8be45ec77f3853fb89425bc0719b615",
+      "copy": "docs/ere-design.data"
+    },
+    {
+      "authority": "a2249d46",
+      "sourcePath": "tests/compatibility/bash-ere-design-20260829/REFERENCE-PROGRAMS.json",
+      "storedBlob": "550da67b9e1479bd8eecdcbcda510f4d786b5880",
+      "bytes": 6174,
+      "sha256": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+      "copy": "docs/references.data"
+    },
+    {
+      "authority": "a2249d46",
+      "sourcePath": "tests/compatibility/bash-ere-design-20260829/HOST-PROTOCOLS.json",
+      "storedBlob": "7ae38bf57184e7118faf1abd5d05cad347759068",
+      "bytes": 2440,
+      "sha256": "17da6ffa3e2bee29c1c46ff209c6989263ac735b896f564f601b982c14108681",
+      "copy": "docs/hosts.data"
+    },
+    {
+      "authority": "a2249d46",
+      "sourcePath": "tests/compatibility/bash-ere-design-20260829/SOURCE-BINDINGS.json",
+      "storedBlob": "ce76744ab6c706b359887c376deaf3bb2bd294dc",
+      "bytes": 9486,
+      "sha256": "b469b7d88a49600e7b54ccd2bc3856caa4cca41b0f827cfda7cab64ffffeec8a",
+      "copy": "docs/ere-source.data"
+    },
+    {
+      "authority": "e2b4823c",
+      "sourcePath": "tests/compatibility/bash-ere-design-20260829/BUDGET-API-DECISIONS.md",
+      "storedBlob": "803208636dc065100e7aa8cad05013f978476b55",
+      "bytes": 12374,
+      "sha256": "41d64d942daeac3cded8f1575b6a9544fd9f609a834040be3ff55e3b0fdeec52",
+      "copy": "docs/budget-decisions.data"
+    },
+    {
+      "authority": "aa16808c",
+      "sourcePath": "tests/compatibility/bash-ere-transport-design-20260829/ROOT-RATIFICATION-v1.md",
+      "storedBlob": "0114495037324756264c77b0c5feeca1c4aba013",
+      "bytes": 2909,
+      "sha256": "e565ff02c9385d14c4056b95579fbd7de08d0d9817cd9d8d6bed22b8c61b4008",
+      "copy": "docs/transport-choices.data"
+    },
+    {
+      "authority": "6c68be44",
+      "sourcePath": "tests/compatibility/bash-ere-transport-author-20260829/HANDOFF.md",
+      "storedBlob": "6e799ae43f9ae678769d91e80348120c362bb8b7",
+      "bytes": 5782,
+      "sha256": "2e1bd9ee40b8a72f1c24d93142ec8b79a3c439ec127c7dcbda6f425bf0fa751d",
+      "copy": "docs/transport-handoff.data"
+    },
+    {
+      "authority": "efcd8b49",
+      "sourcePath": "tests/compatibility/bash-reference-preparation-20260829/source-preparation-v1/HANDOFF.md",
+      "storedBlob": "78fe551a06d90351c57c1a53a5cb03ed038f2a45",
+      "bytes": 6656,
+      "sha256": "0e1619d65847db10a31d1fd155336ae0f14e11b039326f25e148a0824446f066",
+      "copy": "docs/gnu-handoff.data"
+    },
+    {
+      "authority": "7cdb62ac",
+      "sourcePath": "tests/compatibility/bash-ere-transport-author-20260829/PUBLICATION-FINAL.json",
+      "storedBlob": "a6ff68b6c393867e4212df312270eed7200e6b20",
+      "bytes": 569,
+      "sha256": "ef40afd58cf63544d6737f5ead526a3e540ca86923c940704ef940979b695418",
+      "copy": "docs/transport-auth-0.data"
+    }
+  ]
+}

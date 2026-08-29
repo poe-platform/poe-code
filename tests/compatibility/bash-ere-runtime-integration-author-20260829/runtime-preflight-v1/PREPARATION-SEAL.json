@@ -1,0 +1,101 @@
+{
+  "scope": "SOURCE/DATA materialization and16 synthetic controls ONLY",
+  "sourceTree": "da4e1cc187022255521879b00db2ac77674f79d9",
+  "archiveSha256": "4f90df04dba998f184473254bb450f9e085b9fc9d5994dc91a21a7ccf1d1d66e",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "rows": [
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/PRESEAL.md",
+      "size": 3539,
+      "mode": 420,
+      "sha256": "9b19e59d92c7543988d3d23752d60fb6a8bcb905a73094273fd00ad0bd60184a"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/cell.mjs",
+      "size": 5822,
+      "mode": 420,
+      "sha256": "0b06698891c38b9d17be2122fe57d21802b4cf9ae18ab5eb7cae03c084c0c84e"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/controller-core.mjs",
+      "size": 1973,
+      "mode": 420,
+      "sha256": "75dfdc7a8ae80a39c511c471bd9022892544616123578bdfd35624e33082e357"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/controls.mjs",
+      "size": 3029,
+      "mode": 420,
+      "sha256": "6d21990cf6dbe96130478012fb199db5a1fa58d0b021ef22736f1f2f58d5fefb"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/dispatch.mjs",
+      "size": 923,
+      "mode": 420,
+      "sha256": "3379ed618c6397b92caca1bcbe5a89d1fb85499bd434ebbce5283356e6f2a195"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/expectations.mjs",
+      "size": 4154,
+      "mode": 420,
+      "sha256": "b994fc0adc92ce0cea8d356f8871677583ed76d79ad48b9555d6052e487d9aa9"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/malformed-worker.mjs",
+      "size": 647,
+      "mode": 420,
+      "sha256": "7f775b71e1beab3105db50ee9e9a73181d249a5496945ef408ed19aea3f670e3"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/prepare.mjs",
+      "size": 16510,
+      "mode": 420,
+      "sha256": "07e2df05eac720ab3e89bd8a635591e7a2dd58806f8db263f24c7c15f35d1be8"
+    },
+    {
+      "path": "tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/worker-observer.mjs",
+      "size": 3858,
+      "mode": 420,
+      "sha256": "f28353c04285662ae0ed495eaba18d80da2cef561cdbf11460204c92113b23c8"
+    }
+  ],
+  "helperExecutions": [
+    "prepare.mjs",
+    "controls.mjs"
+  ],
+  "maximumHelperExecutions": 4,
+  "actualProductImports": 0,
+  "knownRolePlan": {
+    "A01": "startup",
+    "A02": "source reader",
+    "A03": "Git index",
+    "A04": "source reader",
+    "A05": "source reader",
+    "A06": "source reader",
+    "A07": "patch shell",
+    "A08": "apply_patch",
+    "A09": "patch shell",
+    "A10": "apply_patch",
+    "A11": "preparation seal coordinator",
+    "A12": "Git intent",
+    "A13": "Git seal commit",
+    "A14": "DATA materialization helper",
+    "A15": "SYNTHETIC controls helper",
+    "A16": "result/publication preparation",
+    "A17": "publication apply_patch",
+    "A18": "publication coordinator",
+    "A19": "Git intent",
+    "A20": "Git evidence commit",
+    "A21": "Git index"
+  },
+  "maximumKnownOs": 56,
+  "maximumPeak": 3,
+  "totalMilliseconds": 1500000,
+  "captureBytes": 100663296,
+  "workingBytes": 536870912
+}

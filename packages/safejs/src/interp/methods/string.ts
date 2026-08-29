@@ -2,14 +2,13 @@ import type { Expression } from "../../parse.js";
 import { Budget } from "../budget.js";
 import {
   createSandboxClosure,
-  getSandboxRegexPattern,
+  createSandboxRegex,
   isSandboxClosure,
   isSandboxRegex,
   type SandboxClosure,
   type SandboxRegex,
   type SandboxValue
 } from "../values.js";
-import { matchRegexFrom } from "../regex/engine.js";
 import { executeRegex, toMatchArray } from "./regex.js";
 
 const SPLIT_STRING_MESSAGE = "String#split only supports string separator values.";
@@ -253,6 +252,7 @@ async function replaceRegex(
   budget: Budget,
   callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>
 ): Promise<string> {
+  if (regex.flags.includes("g")) regex.lastIndex = 0;
   const matches = collectRegexMatches(regex, value, replaceAll || regex.flags.includes("g"));
   let result = "";
   let copiedThrough = 0;
@@ -369,11 +369,16 @@ function callSplit(value: string, args: readonly SandboxValue[], budget: Budget)
   if (args.some(isSandboxClosure))
     throw new TypeError("String#split does not support function arguments.");
   if (isSandboxRegex(args[0])) {
+    const regex = args[0];
+    const splitter = createSandboxRegex(
+      regex.source,
+      regex.flags.includes("g") ? regex.flags : `${regex.flags}g`
+    );
     const limit = asNumberOrUndefined(args[1]) ?? 2 ** 32 - 1;
     const result: SandboxValue[] = [];
     let copiedThrough = 0;
     let endedWithZeroWidthMatch = false;
-    for (const match of collectRegexMatches(args[0], value, true)) {
+    for (const match of collectRegexMatches(splitter, value, true)) {
       endedWithZeroWidthMatch = match.text.length === 0 && match.index === value.length;
       if (match.text.length === 0 && match.index === 0) continue;
       if (result.length >= limit) break;
@@ -416,7 +421,12 @@ function callMatchLikeMethod(
     throw new TypeError("String#matchAll requires a global regex.");
   if (methodName === "match" && !regex.flags.includes("g"))
     return toMatchArray(executeRegex(regex, value), value);
-  const matches = collectRegexMatches(regex, value, true);
+  if (methodName === "match") regex.lastIndex = 0;
+  const matcher =
+    methodName === "matchAll"
+      ? createSandboxRegex(regex.source, regex.flags, regex.lastIndex)
+      : regex;
+  const matches = collectRegexMatches(matcher, value, true);
   return methodName === "match"
     ? matches.map((match) => match.text)
     : matches.map((match) => toMatchArray(match, value));
@@ -424,13 +434,11 @@ function callMatchLikeMethod(
 
 function collectRegexMatches(regex: SandboxRegex, value: string, all: boolean) {
   const matches = [];
-  const pattern = getSandboxRegexPattern(regex);
-  let startIndex = 0;
   do {
-    const match = matchRegexFrom(pattern, value, startIndex);
+    const match = executeRegex(regex, value);
     if (match === null) break;
     matches.push(match);
-    startIndex = match.index + Math.max(match.text.length, 1);
+    if (all && match.text.length === 0) regex.lastIndex += 1;
   } while (all);
   return matches;
 }

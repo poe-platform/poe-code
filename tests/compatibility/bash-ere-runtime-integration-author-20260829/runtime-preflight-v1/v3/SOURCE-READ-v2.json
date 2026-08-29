@@ -1,0 +1,68 @@
+{
+  "status": "AUTHENTICATED_SOURCE_ONLY",
+  "pid": 33808,
+  "bindings": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v3/START.json",
+      "size": 197,
+      "sha256": "a5d1862e9962187c9d8b4bfe088671f02d72134a1f2ace3154db177b149a0baf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/SEAL.json",
+      "size": 717198,
+      "sha256": "b3a3844213fe34017bb4b413bafda2433fd52a0d9165aed5810b01db245dfe95"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/candidate/src/contracts/command.ts",
+      "size": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/candidate/src/shell/types.ts",
+      "size": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/candidate/src/shell/shell.ts",
+      "size": 15121,
+      "sha256": "6af40022b4648756450ce1c9582ab3d0be8de4b128f12a5c36c6dab56fe0eb9b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/candidate/src/shell/runtime.ts",
+      "size": 210813,
+      "sha256": "0c17850b1ceb4f09eec5458315dbb08433aa01721cf1b20fe7385481a20992e1"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/candidate/src/shell/arrays/ledger.ts",
+      "size": 9105,
+      "sha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/candidate/src/shell/arrays/state.ts",
+      "size": 13072,
+      "sha256": "14cee1539243675072a3e2ff6947d10d6343f63859610a79ca9170c78fe1df50"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/candidate/src/commands/regex-execution/ere/syntax.ts",
+      "size": 13070,
+      "sha256": "9136451259d3dfafe7aca8ffd592d43414ef4995fbe6811d7d8719f3085ee105"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/candidate/src/commands/regex-execution/ere/transport/owner.ts",
+      "size": 6765,
+      "sha256": "a3afbef015856679c63aee240787ace675ce85b64389ba07a822a5269f08cbaf"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/candidate/src/commands/regex-execution/ere/transport/root.ts",
+      "size": 12329,
+      "sha256": "1a0ac9feddf151a3ab2e2d6432dca259a7c0c93136adbc86bbac7627621e733b"
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/candidate/src/shell/cleanup.ts",
+      "size": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385"
+    }
+  ],
+  "correctedSchema": "sources[].bytes; original helper incorrectly compared missing .size",
+  "runtimeImports": 0
+}

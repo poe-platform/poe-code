@@ -1,0 +1,95 @@
+{
+  "role": "SOURCE_DATA_AUDIT_NOT_RUNTIME_ACCEPTANCE",
+  "date": "2026-08-29",
+  "elapsedMs": 667857,
+  "candidateTree": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "caseIdentities": 40,
+  "caseExecutions": 0,
+  "product": 0,
+  "nativeBash": 0,
+  "nativeOracles": 0,
+  "compiler": 0,
+  "builds": 0,
+  "installs": 0,
+  "private": 0,
+  "selectedSourceBlobs": 23,
+  "admittedPublicationReadBytes": 259223,
+  "inspections": 10,
+  "metadataChildren": [
+    {
+      "args": [
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=no"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdoutSha256": "73c8608f63e98c4c64d724cc319f832ba71828248751696c3f36fdce3726d61e",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBase64": "IE0gQUdFTlRTLm1kACBNIHNyYy9jb21tYW5kcy9ub2RlL2luZGV4LnRzACBNIHNyYy9jb21tYW5kcy9ub2RlL2xpZmVjeWNsZS50cwAgTSBzcmMvY29tbWFuZHMvbm9kZS9wcm9ncmFtLnRzACBNIHNyYy9jb21tYW5kcy9ub2RlL3dvcmtlci1wcm92aWRlci50cwA="
+    },
+    {
+      "args": [
+        "diff",
+        "--cached",
+        "--name-only",
+        "-z"
+      ],
+      "code": 0,
+      "signal": null,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBase64": ""
+    }
+  ],
+  "hashes": [
+    {
+      "path": "admit.mjs",
+      "bytes": 6474,
+      "sha256": "de3697a410d97eff593241601ea130facc6419fe9fb99a805661cb6a31a24107"
+    },
+    {
+      "path": "read.mjs",
+      "bytes": 3824,
+      "sha256": "158ffa34314febc37793c36e12876ebeaf6b2ff34c9f36dda87d89f07fb9ea3a"
+    },
+    {
+      "path": "seal.mjs",
+      "bytes": 6097,
+      "sha256": "a1c34b5ca501b5ade18bdd066bad2721cdc1edbb9f9d3fb4c6ac7c46da5c69ee"
+    },
+    {
+      "path": "CASES.json",
+      "bytes": 5682,
+      "sha256": "45ab3659b3769d33dc0a50fd9547ba96949540048aa7240385a674d85131ea29"
+    },
+    {
+      "path": "README.md",
+      "bytes": 9689,
+      "sha256": "f9f535f2e10731198f82b63c9374cb6e77af3daa1e092693aa12a2e548ccbd45"
+    },
+    {
+      "path": "REFERENCES.md",
+      "bytes": 2335,
+      "sha256": "3074537dd3ccb22d880209df242c1913837c8c5b9fd5e3dd2868f052972d610e"
+    },
+    {
+      "path": "ORACLE-PROPOSAL.md",
+      "bytes": 5723,
+      "sha256": "9beb0afdea013c1cf60544e344b67968837324cbfeb7b91547589d8637f0e4a8"
+    },
+    {
+      "path": "PREPARATION-INCIDENT.md",
+      "bytes": 1673,
+      "sha256": "163703333cdfb17be454aab87f435482fe09de0ae49c6170c387b540c40b19d3"
+    }
+  ],
+  "processQualification": "Serial direct source/data helpers and development Git only. No product children; no independent OS descendant census or universal cleanup claim. Tool transcript supplements per-helper closed-child receipts.",
+  "instructionQualification": "Fresh instruction reads context-only; no AGENTS bodies published. Original c3d79102 deleted-copy/evidence-loss incident unchanged.",
+  "captureRoot": "/tmp/bash-surface-source-v2-t3EFGu",
+  "retainedRoots": true,
+  "retries": 0,
+  "referenceQualification": "Official GNU listings/manual verified via hosted web tool, not a local binary version probe.",
+  "runtimeAcceptance": false
+}

@@ -1,0 +1,107 @@
+[
+  {
+    "path": "/tmp/bash-surface-source-v2-t3EFGu/START.json",
+    "size": 157,
+    "sha256": "dfbdef6c70aee904d5df865a37ec93120e4f42cb86630af5d3fc7b1c22468bef"
+  },
+  {
+    "path": "/tmp/bash-surface-source-v2-t3EFGu/ADMISSION.json",
+    "size": 10523,
+    "sha256": "b03aae0b65f6df8358224bb03fc9fdcea7471cb6a87a5a286b862882a65529d0"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-20260829/CASES.json",
+    "size": 5682,
+    "sha256": "45ab3659b3769d33dc0a50fd9547ba96949540048aa7240385a674d85131ea29"
+  },
+  {
+    "path": "/tmp/bash-surface-source-v2-t3EFGu/read-1.json",
+    "size": 15391,
+    "sha256": "1e2d6b66c4573173db09cde7550c84bf61946925184f33366a274b415ac70ffb"
+  },
+  {
+    "path": "/tmp/bash-surface-source-v2-t3EFGu/read-10.json",
+    "size": 10341,
+    "sha256": "88f1372da58a7765edb3d0be040022c83c79de1bfb02ccbe1a4e681880888364"
+  },
+  {
+    "path": "/tmp/bash-surface-source-v2-t3EFGu/read-2.json",
+    "size": 39569,
+    "sha256": "ceed88e86eef78ab0d9e5bbc13e77d5d26d9e13ddd98999e0ad83088eaad8432"
+  },
+  {
+    "path": "/tmp/bash-surface-source-v2-t3EFGu/read-3.json",
+    "size": 18249,
+    "sha256": "6a1c6284fee68ecf52620c1a7d7f1788be72ff1ba97c0a1fe933a8623933d506"
+  },
+  {
+    "path": "/tmp/bash-surface-source-v2-t3EFGu/read-4.json",
+    "size": 14114,
+    "sha256": "c935f5890bc6065c40d2fb66fbc1a38b61e93d8a7dc208d129c2fe31116d106a"
+  },
+  {
+    "path": "/tmp/bash-surface-source-v2-t3EFGu/read-5.json",
+    "size": 20011,
+    "sha256": "ffc552d04bf280b4e9a0db300423ec9300d71f657c6bfa4f788b9503b08f2373"
+  },
+  {
+    "path": "/tmp/bash-surface-source-v2-t3EFGu/read-6.json",
+    "size": 15607,
+    "sha256": "81ae8f0386a9e4255cfc826d85a34e9041c0d0ed0b3842ce8d50af87d8587c8f"
+  },
+  {
+    "path": "/tmp/bash-surface-source-v2-t3EFGu/read-7.json",
+    "size": 24493,
+    "sha256": "81a95723e4df5175c2f9352238814ff561c45d54ced42e44154a4070c9ec1d17"
+  },
+  {
+    "path": "/tmp/bash-surface-source-v2-t3EFGu/read-8.json",
+    "size": 27345,
+    "sha256": "0fc2d24bdd5c9fc2c50d1e13214d23a8ca837873d6890ec253f37c4a15b9da00"
+  },
+  {
+    "path": "/tmp/bash-surface-source-v2-t3EFGu/read-9.json",
+    "size": 16244,
+    "sha256": "fd8d55b20977a0859af99df7ef13fdac251d1e04e6dfb5927dcdd0d2793f8539"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-20260829/admit.mjs",
+    "size": 6474,
+    "sha256": "de3697a410d97eff593241601ea130facc6419fe9fb99a805661cb6a31a24107"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-20260829/read.mjs",
+    "size": 3824,
+    "sha256": "158ffa34314febc37793c36e12876ebeaf6b2ff34c9f36dda87d89f07fb9ea3a"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-20260829/seal.mjs",
+    "size": 6097,
+    "sha256": "a1c34b5ca501b5ade18bdd066bad2721cdc1edbb9f9d3fb4c6ac7c46da5c69ee"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-20260829/CASES.json",
+    "size": 5682,
+    "sha256": "45ab3659b3769d33dc0a50fd9547ba96949540048aa7240385a674d85131ea29"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-20260829/README.md",
+    "size": 9689,
+    "sha256": "f9f535f2e10731198f82b63c9374cb6e77af3daa1e092693aa12a2e548ccbd45"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-20260829/REFERENCES.md",
+    "size": 2335,
+    "sha256": "3074537dd3ccb22d880209df242c1913837c8c5b9fd5e3dd2868f052972d610e"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-20260829/ORACLE-PROPOSAL.md",
+    "size": 5723,
+    "sha256": "9beb0afdea013c1cf60544e344b67968837324cbfeb7b91547589d8637f0e4a8"
+  },
+  {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-20260829/PREPARATION-INCIDENT.md",
+    "size": 1673,
+    "sha256": "163703333cdfb17be454aab87f435482fe09de0ae49c6170c387b540c40b19d3"
+  }
+]

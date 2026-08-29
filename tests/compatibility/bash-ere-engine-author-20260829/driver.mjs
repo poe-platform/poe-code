@@ -8,15 +8,16 @@ import assert from 'node:assert/strict';
 
 const own = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(own, '../../..');
-const [mode, label] = process.argv.slice(2);
+const [mode, label, sealName = 'SEAL.json'] = process.argv.slice(2);
 if (!['seal', 'run'].includes(mode) || !/^[A-Z0-9-]{1,64}$/.test(label ?? '')) throw new Error('explicit mode and unique label required');
+if (!/^SEAL(?:-v[2-9])?\.json$/.test(sealName)) throw new Error('exact versioned seal name required');
 const start = Date.now();
 const output = join(own, label);
 await mkdir(output, { recursive: false });
 const outer = await open(join(output, 'outer.jsonl'), 'wx', 0o644);
 let bytes = 0, count = 0, active = 0, peak = 0;
 const receipts = [];
-const deadline = start + (mode === 'seal' ? 10 : 45) * 60_000;
+const deadline = sealName === 'SEAL.json' ? start + (mode === 'seal' ? 10 : 45) * 60_000 : (await lstat(join(own, 'ACTUAL-01'))).birthtimeMs - 1000 + 45 * 60_000;
 const sourceNames = ['types', 'errors', 'limits', 'syntax', 'matcher'];
 const fixtures = ['driver.mjs', 'suite.mjs', 'cases.json', 'consumer.mts', 'negative.mts', 'RECIPE.md'];
 async function event(value) { await outer.write(`${JSON.stringify({ elapsedMs: Date.now() - start, ...value })}\n`); }
@@ -95,10 +96,10 @@ try {
       if (!tools.some(entry => entry.path === join(repo, location))) tools.push(await hash(join(repo, location)));
     }
     const seal = { version: 1, baseline: '7a5c620005fb04518d44bb284f4e99284e4a7c33', derived: '74dfe69135a3fc5ba89396b20dd32d9c9daae131', standaloneOnly: true, node: await hash(process.execPath), sources, inputs, tools, compiler: join(repo, 'node_modules/typescript/lib/tsc.js'), tscFlags, noWorkers: true, noShellIntegration: true, limits: { children: 90, peak: 3, capture: 134217728, working: 805306368, elapsedMs: 2700000 } };
-    await writeFile(join(own, 'SEAL.json'), `${JSON.stringify(seal, null, 2)}\n`, { flag: 'wx' });
-    await event({ event: 'sealed', sources: sources.length, fixtures: inputs.length, tools: tools.length, seal: await hash(join(own, 'SEAL.json')) });
+    await writeFile(join(own, sealName), `${JSON.stringify(seal, null, 2)}\n`, { flag: 'wx' });
+    await event({ event: 'sealed', sources: sources.length, fixtures: inputs.length, tools: tools.length, seal: await hash(join(own, sealName)) });
   } else {
-    const seal = JSON.parse(await readFile(join(own, 'SEAL.json'), 'utf8'));
+    const seal = JSON.parse(await readFile(join(own, sealName), 'utf8'));
     await bound([seal.node, ...seal.sources, ...seal.inputs, ...seal.tools]);
     const work = join(output, 'work'); await mkdir(work);
     for (const entry of seal.tools) {

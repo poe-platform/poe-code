@@ -170,5 +170,5 @@ export async function matchEre(program: EreProgram, subject: string, ledger: Ere
   }
   ledger.charge("allocationUnits", 3, signal);
   ledger.check(signal);
-  return Object.freeze({ matched: false, captures: Object.freeze([]), values: Object.freeze([]) });
+  return Object.freeze({ matched: false, captures: Object.freeze([] as const), values: Object.freeze([] as const) });
 }

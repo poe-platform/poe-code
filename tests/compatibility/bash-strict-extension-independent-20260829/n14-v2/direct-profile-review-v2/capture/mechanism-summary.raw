@@ -1,0 +1,561 @@
+{
+  "status": "SCOPED_CONTROLS_PASS",
+  "data": [
+    {
+      "id": "D01",
+      "pass": true
+    },
+    {
+      "id": "D02",
+      "pass": true
+    },
+    {
+      "id": "D03",
+      "pass": true
+    },
+    {
+      "id": "D04",
+      "pass": true
+    },
+    {
+      "id": "D05",
+      "pass": true
+    },
+    {
+      "id": "D06",
+      "pass": true
+    }
+  ],
+  "harmless": [
+    {
+      "id": "H01",
+      "pass": true,
+      "lifecycle": {
+        "pid": 47422,
+        "status": 0,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "forced": false,
+        "knownOutstanding": 0
+      },
+      "observation": {
+        "id": "H01",
+        "denials": [
+          {
+            "api": "spawn",
+            "code": "ERR_ACCESS_DENIED",
+            "permission": "ChildProcess"
+          }
+        ],
+        "extraOwnedChildren": 0,
+        "extraWorkers": 0,
+        "publicSettlement": {
+          "execObserved": true,
+          "disposeSettled": true,
+          "disposeRejected": false
+        },
+        "profile": "bash-surface-direct-owned-child-functional-v1"
+      }
+    },
+    {
+      "id": "H02",
+      "pass": true,
+      "lifecycle": {
+        "pid": 47424,
+        "status": 0,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "forced": false,
+        "knownOutstanding": 0
+      },
+      "observation": {
+        "id": "H02",
+        "denial": {
+          "code": "ERR_ACCESS_DENIED",
+          "permission": "WorkerThreads"
+        },
+        "extraOwnedChildren": 0,
+        "extraWorkers": 0,
+        "publicSettlement": {
+          "execObserved": true,
+          "disposeSettled": true,
+          "disposeRejected": false
+        },
+        "profile": "bash-surface-direct-owned-child-functional-v1"
+      }
+    },
+    {
+      "id": "H03",
+      "pass": true,
+      "lifecycle": {
+        "pid": 47426,
+        "status": 0,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "forced": false,
+        "knownOutstanding": 0
+      },
+      "observation": {
+        "id": "H03",
+        "refusals": [
+          "AUTH_HASH",
+          "EDGE_REFUSED"
+        ],
+        "extraOwnedChildren": 0,
+        "extraWorkers": 0,
+        "publicSettlement": {
+          "execObserved": true,
+          "disposeSettled": true,
+          "disposeRejected": false
+        },
+        "profile": "bash-surface-direct-owned-child-functional-v1"
+      }
+    },
+    {
+      "id": "H04",
+      "pass": true,
+      "lifecycle": {
+        "pid": 47429,
+        "status": 0,
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "forced": false,
+        "knownOutstanding": 0
+      },
+      "observation": {
+        "id": "H04",
+        "events": [
+          "cleanup-registered",
+          "resource-acquired",
+          "cleanup-settled"
+        ],
+        "reason": 0,
+        "extraOwnedChildren": 0,
+        "extraWorkers": 0,
+        "qualification": "harmless fixture lifecycle, not product private cleanup census",
+        "publicSettlement": {
+          "execObserved": true,
+          "disposeSettled": true,
+          "disposeRejected": false
+        },
+        "profile": "bash-surface-direct-owned-child-functional-v1"
+      }
+    }
+  ],
+  "independent": [
+    {
+      "id": "I01",
+      "pass": true
+    },
+    {
+      "id": "I02",
+      "pass": true
+    },
+    {
+      "id": "I03",
+      "pass": true
+    },
+    {
+      "id": "I04",
+      "pass": true
+    },
+    {
+      "id": "I05",
+      "pass": true
+    },
+    {
+      "id": "I06",
+      "pass": true
+    },
+    {
+      "id": "I07",
+      "pass": true
+    },
+    {
+      "id": "I08",
+      "pass": true
+    }
+  ],
+  "outer": [
+    {
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-v1/controls.mjs",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v2/AUTHOR-REPEAT-SEAL.json",
+        "7fcff853f88a2e2bb5108fc63d0cbdfe7251fabedace3514e83a557b0c089ee7",
+        "/private/tmp/direct-profile-independent-v2-bShSbp"
+      ],
+      "exit": true,
+      "close": true,
+      "signals": [],
+      "pid": 47420,
+      "status": 0,
+      "signal": null
+    }
+  ],
+  "ledger": {
+    "starts": 4,
+    "maximum": 4,
+    "active": 0,
+    "captureBytes": 3935,
+    "captureMaximum": 8388608,
+    "rows": [
+      {
+        "id": "H01",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1787998915278
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1787998915281
+          },
+          {
+            "name": "spawn",
+            "at": 1787998915281
+          },
+          {
+            "name": "stderr-end",
+            "at": 1787998915339
+          },
+          {
+            "name": "stdout-end",
+            "at": 1787998915340
+          },
+          {
+            "name": "exit",
+            "at": 1787998915340
+          },
+          {
+            "name": "close",
+            "at": 1787998915341
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 281,
+            "sha256": "67731e244d2f171a19ddaf5e8096408a86310989e101a558dfaa6cba646f18ef",
+            "base64": "eyJpZCI6IkgwMSIsImRlbmlhbHMiOlt7ImFwaSI6InNwYXduIiwiY29kZSI6IkVSUl9BQ0NFU1NfREVOSUVEIiwicGVybWlzc2lvbiI6IkNoaWxkUHJvY2VzcyJ9XSwiZXh0cmFPd25lZENoaWxkcmVuIjowLCJleHRyYVdvcmtlcnMiOjAsInB1YmxpY1NldHRsZW1lbnQiOnsiZXhlY09ic2VydmVkIjp0cnVlLCJkaXNwb3NlU2V0dGxlZCI6dHJ1ZSwiZGlzcG9zZVJlamVjdGVkIjpmYWxzZX0sInByb2ZpbGUiOiJiYXNoLXN1cmZhY2UtZGlyZWN0LW93bmVkLWNoaWxkLWZ1bmN0aW9uYWwtdjEifQo=",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 47422,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1787998915345
+      },
+      {
+        "id": "H02",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1787998915412
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1787998915412
+          },
+          {
+            "name": "spawn",
+            "at": 1787998915412
+          },
+          {
+            "name": "stderr-end",
+            "at": 1787998915479
+          },
+          {
+            "name": "stdout-end",
+            "at": 1787998915480
+          },
+          {
+            "name": "exit",
+            "at": 1787998915480
+          },
+          {
+            "name": "close",
+            "at": 1787998915480
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 265,
+            "sha256": "d49620bad51bc4a501bfa95a415e54a9aad76320ec4955eb54f0c3877977bf71",
+            "base64": "eyJpZCI6IkgwMiIsImRlbmlhbCI6eyJjb2RlIjoiRVJSX0FDQ0VTU19ERU5JRUQiLCJwZXJtaXNzaW9uIjoiV29ya2VyVGhyZWFkcyJ9LCJleHRyYU93bmVkQ2hpbGRyZW4iOjAsImV4dHJhV29ya2VycyI6MCwicHVibGljU2V0dGxlbWVudCI6eyJleGVjT2JzZXJ2ZWQiOnRydWUsImRpc3Bvc2VTZXR0bGVkIjp0cnVlLCJkaXNwb3NlUmVqZWN0ZWQiOmZhbHNlfSwicHJvZmlsZSI6ImJhc2gtc3VyZmFjZS1kaXJlY3Qtb3duZWQtY2hpbGQtZnVuY3Rpb25hbC12MSJ9Cg==",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 47424,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1787998915483
+      },
+      {
+        "id": "H03",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1787998915549
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1787998915550
+          },
+          {
+            "name": "spawn",
+            "at": 1787998915550
+          },
+          {
+            "name": "stderr-end",
+            "at": 1787998915616
+          },
+          {
+            "name": "stdout-end",
+            "at": 1787998915617
+          },
+          {
+            "name": "exit",
+            "at": 1787998915617
+          },
+          {
+            "name": "close",
+            "at": 1787998915617
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 238,
+            "sha256": "9ea8e7c28de2943576ebcc29d825b8cad0640290b6529ad2e80bc8a404de3c43",
+            "base64": "eyJpZCI6IkgwMyIsInJlZnVzYWxzIjpbIkFVVEhfSEFTSCIsIkVER0VfUkVGVVNFRCJdLCJleHRyYU93bmVkQ2hpbGRyZW4iOjAsImV4dHJhV29ya2VycyI6MCwicHVibGljU2V0dGxlbWVudCI6eyJleGVjT2JzZXJ2ZWQiOnRydWUsImRpc3Bvc2VTZXR0bGVkIjp0cnVlLCJkaXNwb3NlUmVqZWN0ZWQiOmZhbHNlfSwicHJvZmlsZSI6ImJhc2gtc3VyZmFjZS1kaXJlY3Qtb3duZWQtY2hpbGQtZnVuY3Rpb25hbC12MSJ9Cg==",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 47426,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1787998915620
+      },
+      {
+        "id": "H04",
+        "events": [
+          {
+            "name": "capture-open",
+            "at": 1787998915689
+          },
+          {
+            "name": "listeners-enrolled",
+            "at": 1787998915690
+          },
+          {
+            "name": "spawn",
+            "at": 1787998915690
+          },
+          {
+            "name": "stderr-end",
+            "at": 1787998915747
+          },
+          {
+            "name": "stdout-end",
+            "at": 1787998915747
+          },
+          {
+            "name": "exit",
+            "at": 1787998915747
+          },
+          {
+            "name": "close",
+            "at": 1787998915747
+          }
+        ],
+        "exit": true,
+        "close": true,
+        "stdoutEOF": true,
+        "stderrEOF": true,
+        "captures": [
+          {
+            "kind": "stdout",
+            "bytes": 360,
+            "sha256": "20b96c322427fe133a5e42f390e28a368a7732b0e774bdab0ec9fd54cec112bc",
+            "base64": "eyJpZCI6IkgwNCIsImV2ZW50cyI6WyJjbGVhbnVwLXJlZ2lzdGVyZWQiLCJyZXNvdXJjZS1hY3F1aXJlZCIsImNsZWFudXAtc2V0dGxlZCJdLCJyZWFzb24iOjAsImV4dHJhT3duZWRDaGlsZHJlbiI6MCwiZXh0cmFXb3JrZXJzIjowLCJxdWFsaWZpY2F0aW9uIjoiaGFybWxlc3MgZml4dHVyZSBsaWZlY3ljbGUsIG5vdCBwcm9kdWN0IHByaXZhdGUgY2xlYW51cCBjZW5zdXMiLCJwdWJsaWNTZXR0bGVtZW50Ijp7ImV4ZWNPYnNlcnZlZCI6dHJ1ZSwiZGlzcG9zZVNldHRsZWQiOnRydWUsImRpc3Bvc2VSZWplY3RlZCI6ZmFsc2V9LCJwcm9maWxlIjoiYmFzaC1zdXJmYWNlLWRpcmVjdC1vd25lZC1jaGlsZC1mdW5jdGlvbmFsLXYxIn0K",
+            "flushed": true,
+            "closed": true
+          },
+          {
+            "kind": "stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "flushed": true,
+            "closed": true
+          }
+        ],
+        "signals": [],
+        "forced": false,
+        "capturesQualified": true,
+        "knownOutstanding": 0,
+        "pid": 47429,
+        "status": 0,
+        "signal": null,
+        "primaryPresent": false,
+        "secondary": [],
+        "qualified": true,
+        "finished": 1787998915751
+      }
+    ],
+    "stopped": false
+  },
+  "oldCapture": {
+    "path": "tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/direct-profile-review-v1/capture/initial.stdout.raw",
+    "retainedBytes": 2162688,
+    "sha256": "a1f636633c608d3e940e9358931ffaaf5fd711f0766c95d49c3784d93d3a1bd4",
+    "lostBytes": "UNKNOWN: ENOBUFS does not give total producer output",
+    "oldStatus": "immutable partial capture STOP"
+  }
+}
+179:       throw error;
+180:     }
+181:     const active = { scope, budget, owner };
+182:     this.#active.add(active);
+183:     let captured: CapturedCancellationOutcome<ShellResult>;
+184:     try { captured = await owner.capture(() => this.#execute(source, options, scope, budget, boundary, cancellationState, owner)); }
+185:     finally { await scope.close(); }
+186:     const selection = owner.finish(captured);
+187:     cancellationState.close();
+188:     this.#active.delete(active);
+189:     if (selection.outcome.kind === "throw") throw selection.outcome.reason;
+190:     throwCleanupFailures(scope.failures);
+191:     return selection.outcome.value;
+192:   }
+193: 
+194:   async #execute(
+195:     source: string,
+196:     options: ShellExecOptions,
+197:     scope: InvocationScope,
+198:     budget: Budget,
+199:     cancellation: CancellationBoundary,
+200:     cancellationState: RuntimeCancellationState,
+201:     owner: RootInvocationCancellationOwner,
+202:   ): Promise<ShellResult> {
+203:     if (typeof source !== "string") throw new TypeError("Shell source must be a string");
+204:     if (Buffer.byteLength(source) > budget.limits.maxSourceBytes) throw new ShellLimitError("maxSourceBytes");
+205:     budget.source(Buffer.byteLength(source));
+206:     budget.signal.throwIfAborted();
+207:     const stdout = new Capture();
+208:     const stderr = new Capture();
+209:     const sink = (capture: Capture, external?: ByteSink): ByteSink => budget.sink({
+210:       ...(external?.ownedOutput ? { ownedOutput: {
+211:         consumerClosed: external.ownedOutput.consumerClosed,
+212:         write: async (chunk: Uint8Array) => {
+213:           await capture.write(chunk);
+214:           await external.ownedOutput!.write(chunk);
+215:         },
+216:       } } : {}),
+217:       write: async (chunk) => {
+218:         await capture.write(chunk);
+219:         if (external) await external.write(chunk);
+220:       },
+221:     });
+222:     let stdin: ShellInput | undefined;
+223:     const io = {
+224:       [invocationScope]: scope,
+225:       stdin: toByteSource(""),
+226:       stdinIsDefault: options.stdin === undefined,
+227:       stdout: sink(stdout, options.stdout), stderr: sink(stderr, options.stderr),
+228:     };
+229:     let exitCode: number;
+230:     let failed = false;
+231:     try {
+232:       try {
+233:         let unit = parseShellUnit(source, 0, byteLocale({ ...this.#options.env, ...options.env }));
+234:         stdin = new ShellInput(typeof options.stdin === "string" || options.stdin instanceof Uint8Array ? toByteSource(options.stdin) : options.stdin ?? toByteSource(""), budget);
+235:         io.stdin = stdin;
+236:         await interruptible(this.#ready, budget.signal);
+237:         const cwd = resolvePath("/", options.cwd ?? this.#options.cwd ?? "/");
+238:         const variables = Object.assign(Object.create(null) as Record<string, string>, this.#options.env, options.env, { PWD: cwd });
+239:         for (const [name, value] of Object.entries(variables)) {
+240:           if (name.includes("\0") || name.includes("=") || typeof value !== "string" || value.includes("\0")) throw new TypeError("Invalid environment entry");
+241:         }
+242:         const exported = new Set(Object.keys(variables));
+243:         variables.OPTIND = "1";
+244:         variables.OPTERR = "1";
+245:         const state: State = {
+246:           cwd, variables, exported, functions: new Map(), positional: [], getopts: { cursor: { index: 0 }, integer: true },
+247:           directoryStack: { entries: [], bytes: 0 },
+248:           dotglob: false,
+249:           status: 0, substitutionStatus: 0, depth: 0, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, profile: "bash",
+250:         };
+251:         const admission = Runtime.rootCancellationAdmission(budget);
+252:         const runtime = new Runtime(
+253:           options.fs ?? this.#options.fs,
+254:           this.commands,
+255:           [...this.#middleware],

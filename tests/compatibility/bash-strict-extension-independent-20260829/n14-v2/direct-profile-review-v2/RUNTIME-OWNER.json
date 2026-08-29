@@ -1,0 +1,11 @@
+{
+  "owner": 47416,
+  "child": 47417,
+  "exit": true,
+  "close": true,
+  "signals": [],
+  "status": 0,
+  "signal": null,
+  "stdoutBytes": 265,
+  "stderrBytes": 0
+}

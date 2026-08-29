@@ -1,0 +1,96 @@
+{
+  "schema": "ROOT_SCOPED_OUTER_ADAPTER_ADJUDICATION_V1",
+  "status": "ACCEPTED_FOR_FINITE_PREEXECUTION_USE",
+  "authority": "Explicit root user adjudication following ff2cd02f3a9cd244aae9fc9bad9e4c2cd96c37cb; recorded by delegated reviewer",
+  "isAdmissionGrant": false,
+  "actualAdmissionAuthorized": false,
+  "newTests": 0,
+  "actualEngineExecutions": 0,
+  "actualAdmissionExecutions": 0,
+  "reviewCommit": "ff2cd02f3a9cd244aae9fc9bad9e4c2cd96c37cb",
+  "sourceCommit": "d32cc4d1a9abc9e4064243c3c9070d4df8a51b96",
+  "authorEvidenceCommit": "88036591c32067ffe86a5950198f9f73fbb5cb63",
+  "adapterSealSha256": "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4",
+  "existingRecordDirectory": "tests/comparison/v7-r3-independent-20260829/outer-adapter-review-v1",
+  "existingRecordSha256": {
+    "EVIDENCE-MANIFEST.json": "1c352f217accbf2add4cf63238de4f1c7d4296003e3833008ab1a57fc73fa968",
+    "RESULT.json": "385faed5df5d32cdc590b9f5e322611ea12f8834f9e2d62566367b7444b16b26",
+    "N02-ADJUDICATION.json": "3d2412d9f6665c8df8b0b7a6a708345468f366ddda2aa96c7276781f2c582919",
+    "POSTGUARDS.json": "a228a5132835a403c55c40ee6697df804696ba2601c23272dd6b83294c246b0f",
+    "FUTURE-READINESS.json": "fd0e789f9c2392735baa7052d50aed02c4e12b615f46da24cb5c3e555f1adc93",
+    "INPUTS.json": "a6a3f58de6ffb123125637adbb9610f7cb81fe6410bc78e5b65ca0923a423870",
+    "PRESEAL.json": "6c8f5312df27a90eed8f3fd0f959d646cd3c7c99b1b8d003115076c8aa4ad225"
+  },
+  "literalHistoricalResults": {
+    "original": { "passed": 25, "total": 25 },
+    "novel": { "passed": 7, "total": 8 },
+    "N02": {
+      "result": "FAIL",
+      "expected": { "observed": 65537, "retained": 65536, "lost": 1 },
+      "actual": { "observed": 66254, "retained": 65536, "lost": 718 },
+      "prefixMatches": true,
+      "prefixSha256": "dcb3cceeb89595b15abac3233c5871a9dc8d5e4af56443c0c5085386c9b50439",
+      "refusal": "OUTER_CAPTURE_CAP",
+      "retirementObserved": true,
+      "qualifiedClaimsOnly": ["observed fail-closed behavior", "observed minus retained equals reported loss"],
+      "tailContentsKnown": false,
+      "tailCauseEstablished": false,
+      "fullCaptureLosslessnessProved": false
+    },
+    "postguards": 32,
+    "harmlessChildrenRetired": 23,
+    "scope": "Existing sealed review only; no new replay or global process census"
+  },
+  "preservedHistory": {
+    "V6IrrecoverableStdoutBytes": 294045,
+    "priorHoldsUnchanged": true,
+    "consumedGrantsUnchanged": true,
+    "historicalScoresUnchanged": true,
+    "W07": "UNQUALIFIED_UNCREDITED"
+  },
+  "future": {
+    "freshRootGrantRequired": true,
+    "runId": "admission-20260829-v7r3-01",
+    "preparationDirectory": "tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-01-preparation",
+    "ownerRelativeToPreparation": "outer-adapter-v1/owner.mjs",
+    "ownerSha256": "6a1bee486d2a2f20ed9b6622660184c38cfb275c94146b131c777e9bf6757372",
+    "node": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "nodeSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+    "nodeFlags": ["--unhandled-rejections=strict", "--max-old-space-size=256"],
+    "ownerArguments": ["activation/AUTH.json resolved under the exact preparation directory", "EXACT_FRESH_AUTH_RAW_SHA256", "2c53f792822765e3ee582185996922eaf34301adec06bc82974a3f45d038d5c4"],
+    "grantRelativeToPreparation": "activation/ROOT-GRANT.json",
+    "unchangedMetadataSha256": {
+      "outer-adapter-v1/INACTIVE-GRANT-METADATA.json": "819cac67cfd66e0afd7b929f7e7df70aa880b466e4ad61748a3f4d0e00c55240",
+      "INACTIVE-AUTH.TEMPLATE.json": "30939cfa835a783343cd734b99c3bbd0719f56fabb569c4fc7f7197e9ca55fa2",
+      "INACTIVE-ROOT-GRANT.TEMPLATE.json": "567e1de4ed417ca21b21afa75d109f32e8a48405b5263fc4f0a60847ca5346c7"
+    },
+    "unchangedAuthReview": {
+      "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+      "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+      "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+    },
+    "adapterAdjudicationBinding": "Separate fresh root authorization reference; do not substitute AUTH.review or extend the strict legacy grant schema",
+    "grantFieldsUnchanged": ["role", "phase", "attempts", "runId", "outputRoot", "recipeSha256", "reviewSha256", "planSha256", "bootstrapProfile", "reportProtocol", "candidate", "packSha256", "command"],
+    "recipeSha256": "bd4690d595751b99b3a2bf020f0063f86c03b23ae2600ecaa637be7dc6096b1c",
+    "interfaceSha256": "f6c3965ad7b31747dad30b3357de8813a28b3c18963a39ad04582358e3f55c18",
+    "planSha256": "03463349729bdd298b0ff3ca8c1066c568daad4d5049532e957ce825374ce475",
+    "candidate": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "packSha256": "6608d255828d1a4f3b2810ef6c32a2b0b57a9aaf0dd685597ce6725d381d6e06",
+    "comparatorVersion": "3.4.2",
+    "bootstrapProfile": "JUST_BASH_3_4_2_UNAVAILABLE_BOOTSTRAP_V1",
+    "reportProtocol": "BOUNDED_TERMINAL_V3",
+    "plannedProcesses": { "runtime": 47, "administration": 8, "total": 55, "peak": 5, "allProcessCap": 128, "workers": 14, "workerCap": 27, "C11EmptySetups": 2, "semanticCalls": 0 },
+    "processQualification": "Declared owner/launcher/coordinator/worker/metadata callgraph, conditional on no additional owned waiting parent; not a global census",
+    "prospectiveCaptureBytes": {
+      "overall": 269484032, "inner": 268435456, "body": 260046848,
+      "innerCollector": 8388608, "outer": 524288, "publicationAdministration": 524288,
+      "outerPartitions": { "stdout": 65536, "stderr": 65536, "fd3": 262144, "intent": 16384, "events": 49152, "receipt": 65536 }
+    },
+    "prospectiveDurationMs": { "ownerIncludingReserves": 4500000, "termReserve": 2000, "killReserve": 1000, "worker": 30000, "metadata": 10000 },
+    "actualPayloadStagingProved": false,
+    "newAcquisitionRequiredByThisReview": false,
+    "remainingDuties": ["Fresh exact root grant and AUTH hashes", "Caller-owned startup outcome retention within admin budget", "Reauthenticate and stage actual frozen payloads only under future GO", "Durable terminal receipt reconciliation and inner load/cleanup/postguards", "Stop on safety/capture/integrity/unknown retirement; no automatic retry", "Separate semantic cohort authorization"]
+  },
+  "publicationOnlyBudget": { "minutes": 10, "allOwnedChildren": 16, "peak": 2, "captureBytes": 33554432, "workBytes": 134217728 },
+  "universalLosslessnessHardRssGlobalCensusOrAdmissionClaim": false
+}

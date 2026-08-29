@@ -22,7 +22,7 @@ function admitted(name, maximum = 4 * 1024 * 1024) {
   return fs.readFileSync(path.join(repo, name));
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const capture = path.join(JSON.parse(admitted(path.relative(repo, path.join(own, "PREP.json")))).root, "version2-seal");
+  const capture = path.join(JSON.parse(admitted(path.relative(repo, path.join(own, "PREP.json")))).root, "version3-seal");
   fs.mkdirSync(capture);
   fs.writeFileSync(path.join(capture, "seal-conditional-start.json"), JSON.stringify({ started: new Date().toISOString(), productRuns: 0 }), { flag: "wx" });
   try {
@@ -31,7 +31,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     assert.equal(sha(baseBytes), "75ac56902fdce22f8292c17c14d48287063a5544c46ac8c526b5d4572143bde2");
     const base = JSON.parse(baseBytes); assert.equal(base.computedTree, "26215b99cb379a9f825f803454f758fab5a3c8e9");
     const oldSeal = JSON.parse(admitted("tests/compatibility/bash-strict-mode-author-20260829/PRESEAL.json"));
-    const sourceCommit = fs.readFileSync(path.join(own, "SOURCE-COMMIT-v2.txt"), "utf8").trim();
+    const sourceCommit = fs.readFileSync(path.join(own, "SOURCE-COMMIT-v3.txt"), "utf8").trim();
     const paths = ["src/shell/parser.ts", "src/shell/runtime.ts", "src/shell/display.ts", "src/shell/conditional.ts"];
     const result = spawnSync("/usr/bin/git", ["ls-tree", "-r", "-z", sourceCommit, "--", ...paths], { cwd: repo, maxBuffer: 1048576, timeout: 10000 });
     fs.writeFileSync(path.join(capture, "source-rows.nul"), result.stdout, { flag: "wx" });
@@ -63,15 +63,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     assert.equal(source.inputs.length, 293);
     const seal = { ...oldSeal, role: source.role, base: source.base, baseSourceSha256: sha(baseBytes), sourceCommit: sourceCommit, bounds: { ...oldSeal.bounds, totalSeconds: 3600, children: 128, loaderAdmissions: 40, regexWorkers: 12, captureBytes: 268435456, scratchBytes: 1073741824 }, expectedInputs: 293, expectedPackageMembers: 954, cohorts: { conditional: 50, strict: 50, redirections: 48, gitPublic: 45, apply: 28, arrays: 12, coherence: 18 }, plannedChildren: { direct: 39, loaders: 29, regexWorkersMax: 12, outerAndDevelopmentReserve: 48 }, resources: "Serial admitted consumers; one fixed loader per consumer, at most two exact RegexWorkers at once; no generic Worker or kernel census claim", exclusions: "No native/oracle/private/network/engine/Node-command/XAN/fullgate; default80 unchanged. Eleven OPEN/OUTSIDE design identities unexecuted; arithmetic/member-length/invalid-tail/diagnostic GNU qualification absent.", executionsAtPreseal: 0 };
     const oldExecutor = JSON.parse(admitted("tests/compatibility/bash-strict-mode-author-20260829/EXECUTOR.json"));
-    seal.bounds = { ...seal.bounds, totalSeconds: 3000, children: 105, captureBytes: 262144000, scratchBytes: 943718400 };
+    seal.bounds = { ...seal.bounds, totalSeconds: 2700, children: 90, captureBytes: 251658240, scratchBytes: 838860800 };
     seal.masterGrantStarted = "2026-08-29T05:33:57.236Z";
-    const ownNames = ["prepare.mjs", "adapt.mjs", "run.mjs", "launch.mjs", "conditional.mjs", "PROFILE.md", "CAP-DECISION.md", "SOURCE-COMMIT-v2.txt", "VERSIONS.md"];
+    const ownNames = ["prepare.mjs", "adapt.mjs", "run.mjs", "launch.mjs", "conditional.mjs", "PROFILE.md", "CAP-DECISION.md", "SOURCE-COMMIT-v3.txt", "VERSIONS.md", "version3.mjs", "redirections-v3.mjs"];
     const names = [...new Set([...oldExecutor.files.map(row => row.path), ...ownNames.map(name => path.relative(repo, path.join(own, name))), "tests/compatibility/bash-strict-mode-design-20260829/CASES.json", "tests/compatibility/bash-redirection-author-20260829/redirections-v2.mjs"])];
     const files = names.map(name => { const bytes = admitted(name); return { path: name, bytes: bytes.length, sha256: sha(bytes) }; });
     for (const row of oldExecutor.files) assert.equal(files.find(file => file.path === row.path).sha256, row.sha256, row.path);
     const sourceText = JSON.stringify(source, null, 2) + "\n", sealText = JSON.stringify(seal, null, 2) + "\n";
-    files.push({ path: path.relative(repo, path.join(own, "PRESEAL-v2.json")), bytes: Buffer.byteLength(sealText), sha256: sha(Buffer.from(sealText)) });
-    for (const [name, value] of [["SOURCE-v2.json", sourceText], ["PRESEAL-v2.json", sealText], ["EXECUTOR-v2.json", JSON.stringify({ role: source.role, files, source: sha(Buffer.from(sourceText)), executions: 0 }, null, 2) + "\n"]]) fs.writeFileSync(path.join(own, name), value, { flag: "wx" });
+    files.push({ path: path.relative(repo, path.join(own, "PRESEAL-v3.json")), bytes: Buffer.byteLength(sealText), sha256: sha(Buffer.from(sealText)) });
+    for (const [name, value] of [["SOURCE-v3.json", sourceText], ["PRESEAL-v3.json", sealText], ["EXECUTOR-v3.json", JSON.stringify({ role: source.role, files, source: sha(Buffer.from(sourceText)), executions: 0 }, null, 2) + "\n"]]) fs.writeFileSync(path.join(own, name), value, { flag: "wx" });
     const record = { candidate: source.computedTree, sourceSha256: sha(Buffer.from(sourceText)), inputs: 293, overlay, toolBindings: source.toolBindings, productExecutions: 0 };
     fs.writeFileSync(path.join(capture, "seal-v2-result.json"), JSON.stringify(record, null, 2), { flag: "wx" }); console.log(JSON.stringify(record));
   } catch (error) { fs.writeFileSync(path.join(capture, "seal-v2-error.json"), JSON.stringify({ error: String(error), stack: error.stack }), { flag: "wx" }); throw error; }

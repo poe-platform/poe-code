@@ -12,9 +12,9 @@ let child, timer, rescue;
 try {
   if (process.argv.length !== 3 || process.argv[2] !== "--run") throw new Error("Explicit --run required");
   const own = path.dirname(fileURLToPath(import.meta.url));
-  const seal = JSON.parse(fs.readFileSync(path.join(own, "PRESEAL-v2.json")));
+  const seal = JSON.parse(fs.readFileSync(path.join(own, "PRESEAL-v3.json")));
   if (process.execPath !== seal.node.path || process.version !== seal.node.version) throw new Error("Pinned Node mismatch");
-  const file = path.join(own, "run.mjs"), executor = JSON.parse(fs.readFileSync(path.join(own, "EXECUTOR-v2.json")));
+  const file = path.join(own, "run.mjs"), executor = JSON.parse(fs.readFileSync(path.join(own, "EXECUTOR-v3.json")));
   const row = executor.files.find(row => row.path.endsWith("bash-conditional-author-20260829/run.mjs"));
   const stat = fs.lstatSync(file); if (!stat.isFile() || stat.size !== row.bytes || stat.size > 1048576) throw new Error("Runner admission");
   if (createHash("sha256").update(fs.readFileSync(file)).digest("hex") !== row.sha256) throw new Error("Runner hash mismatch");
@@ -28,7 +28,7 @@ try {
     try { process.kill(-child.pid, "SIGTERM"); } catch (error) { receipt.signalError = String(error); }
     rescue = setTimeout(() => { receipt.signals.push("SIGKILL"); try { process.kill(-child.pid, "SIGKILL"); } catch (error) { receipt.killError = String(error); } }, 5000);
   };
-  timer = setTimeout(() => terminate("outer-deadline"), Math.min(3000000, Date.parse(seal.masterGrantStarted) + 3600000 - Date.now()));
+  timer = setTimeout(() => terminate("outer-deadline"), Math.min(2700000, Date.parse(seal.masterGrantStarted) + 3600000 - Date.now()));
   for (const [stream, descriptor] of [[child.stdout, out], [child.stderr, err]]) stream.on("data", bytes => {
     receipt.bytes += bytes.length;
     if (receipt.bytes > 4 * 1024 * 1024) { terminate("outer-capture-cap"); return; }
@@ -44,4 +44,3 @@ finally {
   fs.writeFileSync(path.join(outer, "TERMINAL.json"), JSON.stringify(receipt, null, 2), { flag: "wx" });
   console.log(JSON.stringify(receipt));
 }
-

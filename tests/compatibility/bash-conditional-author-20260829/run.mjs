@@ -7,11 +7,11 @@ import { gunzipSync } from 'node:zlib';
 import { own, repo, sha, objectHash, hashExecutable } from './prepare.mjs';
 
 assert.deepEqual(process.argv.slice(2), ['--run']);
-const seal = JSON.parse(await fs.readFile(path.join(own, 'PRESEAL-v2.json')));
-const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR-v2.json')));
+const seal = JSON.parse(await fs.readFile(path.join(own, 'PRESEAL-v3.json')));
+const executor = JSON.parse(await fs.readFile(path.join(own, 'EXECUTOR-v3.json')));
 for (const row of executor.files) { const bytes = await fs.readFile(path.join(repo, row.path)); assert.equal(bytes.length, row.bytes); assert.equal(sha(bytes), row.sha256); }
-const manifest = JSON.parse(await fs.readFile(path.join(own, 'SOURCE-v2.json')));
-assert.equal(sha(await fs.readFile(path.join(own, 'SOURCE-v2.json'))), executor.source);
+const manifest = JSON.parse(await fs.readFile(path.join(own, 'SOURCE-v3.json')));
+assert.equal(sha(await fs.readFile(path.join(own, 'SOURCE-v3.json'))), executor.source);
 assert.equal(process.execPath, seal.node.path); assert.equal(process.version, seal.node.version); assert.equal(await hashExecutable(process.execPath), seal.node.sha256);
 const baseBytes = await fs.readFile(path.join(repo, 'tests/integration/coherent78-shell-independent-20260828/RAW-v2.json.gz.base64'));
 assert.equal(sha(baseBytes), seal.baseEvidence);
@@ -98,7 +98,7 @@ async function moduleCohort(label, product, script, expected) {
   receipt.cohorts.push({ label, ...summary }); if (summary.fail) receipt.failures.push({ label, cases: summary.cases.filter(row => row.status !== 'PASS') });
 }
 async function types(label, product) {
-  const original = await fs.readFile(path.join(harness, 'consumer.ts.fixture'), 'utf8') + '\nimport { parseShell as parseConditionalSource } from "virtual-bash/shell";\nconst conditionalNode = parseConditionalSource("[[ x ]]").lists[0]!.pipelines[0]!.commands[0]!;\nif (conditionalNode.kind === "conditional") { const expression = conditionalNode.expression; void expression;\n// @ts-expect-error\nconst invalid: string = conditionalNode.expression;\n// @ts-expect-error\nconditionalNode.notAProperty;\n}\n';
+  const original = await fs.readFile(path.join(harness, 'consumer.ts.fixture'), 'utf8') + '\nimport { parseShell as parseConditionalSource } from "virtual-bash";\nconst conditionalNode = parseConditionalSource("[[ x ]]").lists[0]!.pipelines[0]!.commands[0]!;\nif (conditionalNode.kind === "conditional") { const expression = conditionalNode.expression; void expression;\n// @ts-expect-error\nconst invalid: string = conditionalNode.expression;\n// @ts-expect-error\nconditionalNode.notAProperty;\n}\n';
   for (const negative of [false, true]) {
     const filename = path.join(consumers.get(await fs.realpath(product)), `consumer-${label}-${negative}.mts`);
     const text = original.replaceAll(negative ? '// @ts-expect-error' : 'NEVER_REPLACE', negative ? '// removed directive' : '');
@@ -143,7 +143,7 @@ try {
     ...['probe.mjs', 'names.mjs', 'CASES.json', 'CASES-v2-overlay.json'].map(name => ['coherence/' + name, 'tests/integration/coherent78-shell-author-20260828/' + name]),
     ['stream-consumer.mjs', 'tests/plugins/stream-five-public/consumer.mjs'],
   ];
-  harnessMap.push(['redirections.mjs', 'tests/compatibility/bash-redirection-author-20260829/redirections-v2.mjs'], ['redirection-cases.json', 'tests/compatibility/bash-redirection-author-20260829/CASES.json'], ['close-observer.mjs', 'tests/compatibility/bash-redirection-author-20260829/close-observer.mjs'], ['strict.mjs', 'tests/compatibility/bash-strict-mode-author-20260829/strict.mjs'], ['strict-design.json', 'tests/compatibility/bash-strict-mode-design-20260829/CASES.json']);
+  harnessMap.push(['redirections.mjs', 'tests/compatibility/bash-conditional-author-20260829/redirections-v3.mjs'], ['redirection-cases.json', 'tests/compatibility/bash-redirection-author-20260829/CASES.json'], ['close-observer.mjs', 'tests/compatibility/bash-redirection-author-20260829/close-observer.mjs'], ['strict.mjs', 'tests/compatibility/bash-strict-mode-author-20260829/strict.mjs'], ['strict-design.json', 'tests/compatibility/bash-strict-mode-design-20260829/CASES.json']);
   harnessMap.push(['conditional.mjs', 'tests/compatibility/bash-conditional-author-20260829/conditional.mjs']);
   for (const [destination, from] of harnessMap) { const row = executor.files.find(row => row.path === from), bytes = await fs.readFile(path.join(repo, from)); assert.equal(sha(bytes), row.sha256); await write(path.join(harness, destination), bytes); }
   const sourceBefore = await inventory(path.join(source, 'src'));
@@ -165,7 +165,7 @@ try {
   for (const row of tarRows) { const bytes = await fs.readFile(path.join(source, row.path)); assert.equal(sha(bytes), row.sha256); }
   const coherenceIds = Array.from({ length: 17 }, (_, index) => 'C' + String(index + 2).padStart(2, '0')).concat('R15').join(',');
   async function layout(label, product) {
-    await setupConsumer(product, label); await cohort(label + '-public', product, 'public.mjs', seal.cohorts.gitPublic); await cohort(label + '-apply', product, 'apply-public.mjs', 28); await cohort(label + '-redirections-v2', product, 'redirections.mjs', 48); await cohort(label + '-strict', product, 'strict.mjs', 50); await cohort(label + '-conditional', product, 'conditional.mjs', 50); await cohort(label + '-arrays', product, 'arrays.mjs', 12); await cohort(label + '-coherence', product, 'coherence/probe.mjs', 18, { CASE_IDS: coherenceIds }); await types(label, product);
+    await setupConsumer(product, label); await cohort(label + '-public', product, 'public.mjs', seal.cohorts.gitPublic); await cohort(label + '-apply', product, 'apply-public.mjs', 28); await cohort(label + '-redirections-v3', product, 'redirections.mjs', 48); await cohort(label + '-strict', product, 'strict.mjs', 50); await cohort(label + '-conditional', product, 'conditional.mjs', 50); await cohort(label + '-arrays', product, 'arrays.mjs', 12); await cohort(label + '-coherence', product, 'coherence/probe.mjs', 18, { CASE_IDS: coherenceIds }); await types(label, product);
   }
   await layout('source', source);
   const installed = path.join(output, 'installed'); await write(path.join(installed, 'package.json'), '{"private":true,"type":"module"}\n');
@@ -174,7 +174,7 @@ try {
   await layout('installed', installedRoot);
   const moved = path.join(output, 'moved package'); await fs.rename(installed, moved); const movedRoot = path.join(moved, 'node_modules/virtual-bash');
   consumers.set(await fs.realpath(movedRoot), await fs.realpath(moved));
-  await cohort('moved-public', movedRoot, 'public.mjs', seal.cohorts.gitPublic); await cohort('moved-apply', movedRoot, 'apply-public.mjs', 28); await cohort('moved-redirections-v2', movedRoot, 'redirections.mjs', 48); await cohort('moved-strict', movedRoot, 'strict.mjs', 50); await cohort('moved-conditional', movedRoot, 'conditional.mjs', 50); await cohort('moved-arrays', movedRoot, 'arrays.mjs', 12); await cohort('moved-coherence', movedRoot, 'coherence/probe.mjs', 18, { CASE_IDS: coherenceIds }); await types('moved', movedRoot);
+  await cohort('moved-public', movedRoot, 'public.mjs', seal.cohorts.gitPublic); await cohort('moved-apply', movedRoot, 'apply-public.mjs', 28); await cohort('moved-redirections-v3', movedRoot, 'redirections.mjs', 48); await cohort('moved-strict', movedRoot, 'strict.mjs', 50); await cohort('moved-conditional', movedRoot, 'conditional.mjs', 50); await cohort('moved-arrays', movedRoot, 'arrays.mjs', 12); await cohort('moved-coherence', movedRoot, 'coherence/probe.mjs', 18, { CASE_IDS: coherenceIds }); await types('moved', movedRoot);
   const mutant = path.join(output, 'operator-mutants'); await write(path.join(mutant, 'package.json'), '{"private":true,"type":"module"}\n');
   const mutantRoot = path.join(mutant, 'node_modules/virtual-bash');
   for (const row of tarRows) await write(path.join(mutantRoot, row.path), await fs.readFile(path.join(movedRoot, row.path)), row.mode);
@@ -222,5 +222,4 @@ receipt.actualScratchBytes = await scratchBytes();
 receipt.cleanup = { directChildren: childCount, observedProductWorkers: workerCount, implicitLoaderReservations: loaderReservations, boundedOwnedTotal: childCount + workerCount + loaderReservations, allClosed: receipt.children.every(row => row.closed), signals: receipt.children.flatMap(row => row.signals), noGlobalDescendantClaim: true };
 await save(); console.log(JSON.stringify({ output, status: receipt.status, failures: receipt.failures.length, package: receipt.package?.sha256 }));
 process.exitCode = receipt.status === 'AUTHOR_SCOPED_PASS' ? 0 : 1;
-
 

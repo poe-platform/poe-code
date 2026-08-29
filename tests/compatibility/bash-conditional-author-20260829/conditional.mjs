@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import * as api from 'virtual-bash';
-import { parseShell } from 'virtual-bash/shell';
+const { parseShell } = api;
 const shells = new Set(), rows = [];
 const capture = promise => promise.then(value => ({ value }), reason => ({ reason }));
 function create(memory = new api.MemoryFileSystem(), options = {}) { const shell = new api.Shell({ fs: memory, cwd: '/', ...options }).use(api.agentCommands()); shells.add(shell); return shell; }
@@ -26,7 +26,7 @@ const scripts = [
   ['A18', '[[ x || "" && "" ]]', 0], ['A19', '[[ ! ( x && "" ) ]]', 0],
   ['A20', 'x="||"; [[ $x == "||" ]]', 0],
   ['A21', '[[ $(printf once >> visits; printf value) == v* ]]', 0],
-  ['A22', '[[ -f file && -d dir && ! -f dir ]]', 0],
+  ['A22', '[[ -f file && -d dir && ! -f dir && ! -e "" ]]', 0],
   ['A23', '[[ -L dangling && ! -e dangling && -h link ]]', 0],
   ['A24', '[[ -s file && ! -s empty && -r file && -w file && -x executable ]]', 0],
   ['A25', 'unset x; [[ -v x ]]', 1], ['A26', 'x=; [[ -v x ]]', 0],

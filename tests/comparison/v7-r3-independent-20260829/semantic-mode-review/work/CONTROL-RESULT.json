@@ -1,0 +1,143 @@
+{
+  "schema": "SEMANTIC_MODE_PREEXECUTION_CONTROLS_V1",
+  "presealSha256": "357baeaa36eafdbd3e26c84b6483ec25a50061e22d179efec95ae362cafd065d",
+  "attempt": 1,
+  "newControls": 18,
+  "retainedAdmissionDataControls": 3,
+  "passed": 21,
+  "failed": 0,
+  "unrun": 0,
+  "rows": [
+    {
+      "id": "S01",
+      "pass": true,
+      "detail": {
+        "modeledRows": 99,
+        "realWorkers": 0,
+        "actualSemanticPrograms": 0
+      }
+    },
+    {
+      "id": "S02",
+      "pass": true,
+      "detail": {
+        "ordinaryMismatchContinues": 99,
+        "realWorkers": 0
+      }
+    },
+    {
+      "id": "S03",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "S04",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "S05",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "S06",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "S07",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "S08",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "S09",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "S10",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "S11",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "S12",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "S13",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "S14",
+      "pass": true,
+      "detail": {
+        "smallHelperBoundaryOnly": true,
+        "full248MiBBoundaryNotAllocated": true
+      }
+    },
+    {
+      "id": "S15",
+      "pass": true,
+      "detail": {
+        "primaryUndefinedPreserved": true,
+        "laterFalsePreserved": true,
+        "realChildren": 0
+      }
+    },
+    {
+      "id": "S16",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "S17",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "S18",
+      "pass": true,
+      "detail": {
+        "wrapperSourceOnly": true,
+        "ownerOrWrapperExecuted": false
+      }
+    },
+    {
+      "id": "A01",
+      "pass": true,
+      "detail": {
+        "retainedProtocolData": true,
+        "newAdmissionExecution": false
+      }
+    },
+    {
+      "id": "A02",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "id": "A03",
+      "pass": true,
+      "detail": null
+    }
+  ],
+  "realEngines": 0,
+  "realWorkers": 0,
+  "actualC11": 0,
+  "actualSemanticPrograms": 0,
+  "syntheticModelRows": 198,
+  "sourceProfileUnchanged": true
+}

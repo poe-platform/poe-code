@@ -104,6 +104,7 @@ async function unary(operator: string, value: string, context: ConditionalContex
   if (operator === "-v") return context.present(value);
   if (operator === "-o") return context.option(value);
   if (!["-e", "-a", "-f", "-d", "-s", "-L", "-h", "-r", "-w", "-x"].includes(operator)) unsupported(operator);
+  if (value === "") return false;
   if (/^\/dev\/(?:fd(?:\/|$)|stdin$|stdout$|stderr$)/u.test(value)) unsupported("descriptor predicate");
   const access = ["-r", "-w", "-x"].includes(operator);
   if (access && context.fs.capabilities.permissions !== true) unsupported("unobservable access permission");

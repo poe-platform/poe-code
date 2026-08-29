@@ -1,0 +1,454 @@
+{
+  "version": 2,
+  "date": "2026-08-29",
+  "verdict": "PREPARATION_COMPLETE_CANDIDATE_BINDING_PENDING_NOT_ACCEPTANCE",
+  "composition": "7fde32264d757ef856acf3ae92c8581b4a294341",
+  "sourceManifestSha256": "da431477e0cf1072370b8e55cdebce80e33dbf9cac8471656854572b363b9d0d",
+  "fullPackageSha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd",
+  "fullPackageMembers": 898,
+  "preExecutionSealSha256": "518dbb5feb92449a23b699a69208c520feedffb51bae327f358ac33f786c67d2",
+  "dataChecks": [
+    {
+      "name": "sealed bytes tests/commands/node-independent-20260829/preparation-v2/IDENTITY.json",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "sealed bytes tests/commands/node-independent-20260829/preparation-v2/PACKAGE-MEMBERS.json",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "sealed bytes tests/commands/node-independent-20260829/preparation-v2/MATRIX.json",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "sealed bytes tests/commands/node-independent-20260829/preparation-v2/FIXTURES.json",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "sealed bytes tests/commands/node-independent-20260829/preparation-v2/README.md",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "exact 38 semantic families",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "unique ordered N01-N38",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "no case executed",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "all fixture references resolve",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "all bindings resolve",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "roles finite and nonempty",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "separate type/load/control counts",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "negative control case references resolve",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "30 literal programs, three scripts",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "fixture program strings bounded",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "frozen vector and recipe counts",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "canonical even lowercase hex",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "exact positive output references",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "source tree independently rebuilt",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "archive exact hash/count",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "no Node in accepted input or package",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "zero runtime dependency metadata",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "zero execution seal",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "v1 files byte unchanged",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "all prior owned metadata children settled",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    },
+    {
+      "name": "28 error names are source reference only",
+      "passed": true,
+      "role": "DATA only, not product semantic assertion"
+    }
+  ],
+  "semanticExecutions": 0,
+  "workerExecutions": 0,
+  "guestExecutions": 0,
+  "compilerBuildInstallExecutions": 0,
+  "mutationExecutions": 0,
+  "nativePrivateNetworkAccess": false,
+  "candidateSourceInspected": false,
+  "counts": {
+    "semanticFamilies": 38,
+    "typeFamilies": 8,
+    "loadFamilies": 6,
+    "negativeControlFamilies": 10,
+    "literalPrograms": 30,
+    "literalShellScripts": 3,
+    "utf8Vectors": 5,
+    "rawReasonRecipes": 7,
+    "boundaryRecipes": 6,
+    "roleFamilies": {
+      "P": 22,
+      "E": 25,
+      "S": 33
+    },
+    "rolesOverlap": true
+  },
+  "sourceOnlyErrorReference": {
+    "path": "src/contracts/errors.ts",
+    "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+    "blob": "d466866ce93c4feced56e2bd5fe4c41637e62226",
+    "mode": "100644",
+    "bytes": 3457,
+    "sha256": "66455381fe9d9e5357d08942e73de6ea1d613a03b09acaab77a5ccccde0f2840",
+    "role": "accepted coherent78 unchanged",
+    "codes": [
+      "EACCES",
+      "EAGAIN",
+      "EBADF",
+      "EBUSY",
+      "ECANCELED",
+      "EEXIST",
+      "EFBIG",
+      "EINTR",
+      "EINVAL",
+      "EIO",
+      "EISDIR",
+      "ELOOP",
+      "EMFILE",
+      "ENAMETOOLONG",
+      "ENFILE",
+      "ENOENT",
+      "ENOMEM",
+      "ENOSPC",
+      "ENOSYS",
+      "ENOTDIR",
+      "ENOTEMPTY",
+      "ENOTSUP",
+      "EOPNOTSUPP",
+      "EPERM",
+      "EPIPE",
+      "EROFS",
+      "ETIMEDOUT",
+      "EXDEV"
+    ],
+    "qualification": "Names inspected, no FsError constructor/runtime or platform errno mapping executed; not 28 error transport tests."
+  },
+  "sourceHelperAttempts": [
+    {
+      "version": 1,
+      "result": "incomplete witness-cache traversal",
+      "detail": "unbound tree path src/commands/archive/README.md",
+      "role": "DATA-only helper: no corrupt object or source execution inferred"
+    },
+    {
+      "version": 2,
+      "result": "canonical reconstruction matches",
+      "repair": "Fetched exact missing referenced tree objects; canonical base-plus-replacements independently equals accepted derived root. No final-object-existence retry.",
+      "childrenActiveAtOriginalThrow": 0
+    }
+  ],
+  "resourcesAtDataCheckpoint": {
+    "elapsedMs": 819993,
+    "chargedChildSlots": 20,
+    "recordedDirectToolCompletions": 16,
+    "peakLiveChildUpperBound": 2,
+    "capturedGitAndPatchBytes": 3996774,
+    "additionalToolDisplayReserveBytes": 8388608,
+    "accountedDataBytes": 11231437,
+    "additionalWorkingReserveBytes": 67108864,
+    "wholePreparationChildCap": 48,
+    "reservedRemainingPublicationSlots": 12,
+    "qualification": "Conservative shell-mediated patch accounting; all tools serial and settled. Data-byte accounting with reserve, not an RSS/process memory measurement. Final publication totals reported separately."
+  },
+  "commands": [
+    {
+      "args": [
+        "show",
+        "bd772916c26dc87c54bafdaa784d18f058efa275:tests/integration/apply-patch-public-independent-20260829/ROOT-ACCEPTANCE.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 3176,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bd772916c26dc87c54bafdaa784d18f058efa275:tests/integration/apply-patch-public-20260829/HANDOFF.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 7623,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bd772916c26dc87c54bafdaa784d18f058efa275:tests/integration/apply-patch-public-independent-20260829/ROOT-ACCEPTANCE.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 3176,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bd772916c26dc87c54bafdaa784d18f058efa275:tests/integration/apply-patch-public-20260829/HANDOFF.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 7623,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bd772916c26dc87c54bafdaa784d18f058efa275:tests/integration/apply-patch-public-20260829/SOURCE-v2.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 196847,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--name-only",
+        "bd772916c26dc87c54bafdaa784d18f058efa275",
+        "tests/integration/apply-patch-public-20260829/results-v1",
+        "tests/commands/node-design-20260828",
+        "tests/commands/node-worker-independent-20260828/v12-production-readiness"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 3903,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "requested": 284,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 2635866,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "requested": 31,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 8819,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "requested": 6,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 1490,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bd772916c26dc87c54bafdaa784d18f058efa275:tests/integration/apply-patch-public-20260829/results-v1/PACKAGE.tgz.base64"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 1086177,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "1bd9948bd7ed6ece209b38f694adfce0547220f3:tests/commands/node-worker-independent-20260828/v12-production-readiness/REPORT.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 13617,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bd772916c26dc87c54bafdaa784d18f058efa275:tests/commands/node-design-20260828/worker-resource-quiescence-proposal-v3/CONTRACT.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 11184,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bd772916c26dc87c54bafdaa784d18f058efa275:tests/commands/node-design-20260828/np1-cjs-v1/CONTRACT.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 16806,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "apply_patch",
+        "owned-data-stdin"
+      ],
+      "files": [
+        "tests/commands/node-independent-20260829/preparation-v2/IDENTITY.json",
+        "tests/commands/node-independent-20260829/preparation-v2/PACKAGE-MEMBERS.json",
+        "tests/commands/node-independent-20260829/preparation-v2/MATRIX.json",
+        "tests/commands/node-independent-20260829/preparation-v2/FIXTURES.json",
+        "tests/commands/node-independent-20260829/preparation-v2/README.md",
+        "tests/commands/node-independent-20260829/preparation-v2/SEAL.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "Success. Updated the following files:\nA tests/commands/node-independent-20260829/preparation-v2/IDENTITY.json\nA tests/commands/node-independent-20260829/preparation-v2/PACKAGE-MEMBERS.json\nA tests/commands/node-independent-20260829/preparation-v2/MATRIX.json\nA tests/commands/node-independent-20260829/preparation-v2/FIXTURES.json\nA tests/commands/node-independent-20260829/preparation-v2/README.md\nA tests/commands/node-independent-20260829/preparation-v2/SEAL.json\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "diff",
+        "a653a19a827295939a35ff57641ea605126b71ea",
+        "--",
+        "tests/commands/node-independent-20260829/PREPARATION-PRESEAL.md",
+        "tests/commands/node-independent-20260829/INPUT-ADMISSION.json",
+        "tests/commands/node-independent-20260829/HANDOFF.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "diff",
+        "--cached",
+        "--raw",
+        "-z"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderr": ""
+    }
+  ],
+  "foreignIndexBeforePublication": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "history": {
+    "preservedCommit": "a653a19a827295939a35ff57641ea605126b71ea",
+    "v1FilesUnchanged": true,
+    "meaning": "Missing derived GitDB object observation retained; no longer treated as missing authenticated input."
+  },
+  "remainingBindings": [
+    "B01",
+    "B02",
+    "B03",
+    "B04",
+    "B05",
+    "B06",
+    "B07",
+    "B08",
+    "B09"
+  ],
+  "actualReviewAuthorization": false
+}

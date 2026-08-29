@@ -1,0 +1,53 @@
+{
+  "version": 2,
+  "date": "2026-08-29",
+  "role": "pre-execution semantic preparation seal; no actual module review",
+  "previousFailure": "a653a19a827295939a35ff57641ea605126b71ea",
+  "composition": "7fde32264d757ef856acf3ae92c8581b4a294341",
+  "fullPackageSha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd",
+  "files": [
+    {
+      "path": "tests/commands/node-independent-20260829/preparation-v2/IDENTITY.json",
+      "bytes": 110963,
+      "sha256": "03079727696715561a1728b9f04ead413f69dde12a1d5bb0df94c0a9394310f0"
+    },
+    {
+      "path": "tests/commands/node-independent-20260829/preparation-v2/PACKAGE-MEMBERS.json",
+      "bytes": 127711,
+      "sha256": "d2b4e401f065a12f2bdb8e0664fd2fc909de47f980c3a4139d176d4967637e66"
+    },
+    {
+      "path": "tests/commands/node-independent-20260829/preparation-v2/MATRIX.json",
+      "bytes": 33466,
+      "sha256": "823384752a1d7d48b457875744129fd9910591d38fecad1d649a2ef7150c34e3"
+    },
+    {
+      "path": "tests/commands/node-independent-20260829/preparation-v2/FIXTURES.json",
+      "bytes": 8363,
+      "sha256": "afe6af356cf3b163dbf087a176c0073d119324ee3604b17ebe6055da827bde83"
+    },
+    {
+      "path": "tests/commands/node-independent-20260829/preparation-v2/README.md",
+      "bytes": 6596,
+      "sha256": "5e2d7ffa6218e1901ae54e88011052db963220f609cb81ed1a1b40b9636bd579"
+    }
+  ],
+  "preseal": {
+    "path": "tests/commands/node-independent-20260829/preparation-v2/PRESEAL.md",
+    "sha256": "eebc4dce92463a18074c4053f6d8a4852b50489b6f5e9e733a1adace7e9de9d6"
+  },
+  "counts": {
+    "semanticFamilies": 38,
+    "typeFamilies": 8,
+    "loadFamilies": 6,
+    "mutantClasses": 10,
+    "programs": 30,
+    "shellScripts": 3,
+    "utf8Vectors": 5,
+    "reasonRecipes": 7,
+    "boundaryRecipes": 6
+  },
+  "actualExecutions": 0,
+  "typesCompiled": 0,
+  "candidateInspected": false
+}

@@ -1,0 +1,845 @@
+{
+  "version": 2,
+  "profile": "restricted NP1-CJS / Worker-L preparation; no actual review GO",
+  "timing": "post-author-start/pre-candidate-inspection",
+  "roles": {
+    "P": "raw or instrumented provider/ownership controls; not guest execution proof",
+    "E": "future actual trusted Worker + pinned public engine; no current execution",
+    "S": "future actual registered module through public Shell + actual VFS/stdio",
+    "SOURCE": "immutable source inspection, not dynamic measurement"
+  },
+  "cases": [
+    {
+      "id": "N01",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "fixture": "edit",
+      "arrange": "/work/main.cjs contains edit; explicit sourceRead/dataRead/dataWrite/stdout authority in configured VFS",
+      "expect": "exit0; stdout 3\\n; result.json exactly {\"count\":3}; input unchanged; no external IO",
+      "negative": "omit dataWrite: result absent; root or native fallback cannot rescue",
+      "bindings": [
+        "B01",
+        "B03"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N02",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "fixture": "cwd",
+      "arrange": "eval at cwd /work with an explicitly exported fixture env and literal argument tail",
+      "expect": "exit0, stdout /work\\n; parent env/cwd unaffected; no source-file or stdin acquisition",
+      "negative": "provider substitutes host cwd/env or rewrites argv => reject observation",
+      "bindings": [
+        "B01",
+        "B02"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N03",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "fixture": null,
+      "arrange": "primitive-p expressions: undefined, null, false, 0, -0, \"é\"; separate {} and function value controls",
+      "expect": "primitive exact stdout: undefined\\n/null\\n/false\\n/0\\n/0\\n/é\\n; objects/functions refuse without invoking coercion",
+      "negative": "object with user coercion must not cause a write or output; no eval host fallback",
+      "bindings": [
+        "B02"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N04",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "fixture": "stdinSource",
+      "arrange": "stdin source bytes are exactly stdinSource; source+stdinRead+stdout authorized",
+      "expect": "exit0 stdout 0\\n after source EOF; no replay of script bytes as data stdin; producer return rules traced separately",
+      "negative": "replay source or pull a second source iterator => fail",
+      "bindings": [
+        "B02",
+        "B06"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N05",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "fixture": null,
+      "arrange": "argv each: --inspect; -e with missing value; -p with missing value; --input-type=module",
+      "expect": "nonzero usage/profile refusal; zero builtin stdin next, zero source FS calls, zero provider start",
+      "negative": "poison stdin next/source read/start each raises distinct sentinel to prove no acquisition",
+      "bindings": [
+        "B02"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N06",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "fixture": null,
+      "arrange": "entry operands /work/main.js, /work/main.mjs, /work/main, /work/main.cjs/",
+      "expect": "refuse before source/stat/package lookup and guest start, no outputs except bounded diagnostic",
+      "negative": "place valid text at rejected suffix to kill acceptance-by-content",
+      "bindings": [
+        "B02"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N07",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "fixture": null,
+      "arrange": "authorized /work/main.cjs is directory; separate missing and EACCES observations",
+      "expect": "preserve actual typed source error classification; no guest entry; no fabricated success or package search",
+      "negative": "provider returns directory-like source without authorized observation => reject",
+      "bindings": [
+        "B02"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N08",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "fixture": "syntax",
+      "arrange": "eval entire malformed source; stdout/sources/write counters enabled",
+      "expect": "nonzero; zero guest-visible effects and no must-not-print; whole-source preflight before entry",
+      "negative": "delete final syntax check or run prefix before parse => fail",
+      "bindings": [
+        "B02"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N09",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "fixture": "literalDenied",
+      "arrange": "literalDenied and computedDenied run separately with stdout grant",
+      "expect": "literal unsupported target refuses before must-not-print; computed target may preserve before\\n then refuse at call; no subprocess",
+      "negative": "substring scan wrongly rejects a benign quoted child_process string; whitelist bypass must not import host",
+      "bindings": [
+        "B02"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N10",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "fixture": null,
+      "arrange": "separate literal sources: import x from \"x\"; await 1; Function(\"return 1\")(); eval(\"1\"); require(\"./other.cjs\"); require(\"fs/promises\"); process.exit(0)",
+      "expect": "explicit unsupported profile; no packages, ESM/TLA/async-fs/exit/native fallback; no forbidden operation effects",
+      "negative": "unsupported branches not counted as useful positive commands",
+      "bindings": [
+        "B02"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N11",
+      "roles": [
+        "E"
+      ],
+      "fixture": "promiseConstructor",
+      "arrange": "execute the preserved constructor-negative fixture",
+      "expect": "non-success/refusal in restricted profile; no constructor or polyfill parity claim",
+      "negative": "do not change source to Promise.race and call old constructor a pass",
+      "bindings": [
+        "B02"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N12",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "fixture": "pendingStatic",
+      "arrange": "unawaited supported Promise.race([]) then entry-return print",
+      "expect": "exit0 exact entry-return\\n, normal L cutoff and actual ownership retirement; pending race is NOT proven settled",
+      "negative": "deadline is a different nonpass, not accepted alternate success",
+      "bindings": [
+        "B01"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N13",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "fixture": "deniedRead",
+      "arrange": "only stdout authority; data grants absent; repeat deniedWrite separately",
+      "expect": "each catch prints ERR_VNODE_DENIED\\n with exit0; no data file read/write; denied.txt absent",
+      "negative": "sourceRead alone must not imply dataRead; permission mode cannot grant missing authority",
+      "bindings": [
+        "B03"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N14",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "fixture": "readText",
+      "arrange": "finite authorized namespace /data; allowed read; independent write-disabled and out-of-namespace controls",
+      "expect": "allowed bytes exactly Aé😀\\n plus console LF; denied operations no IO/effects; permissions do not expand grants",
+      "negative": "legitimate alias/symlink into outside backing cannot pass a lexical prefix test",
+      "bindings": [
+        "B03"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N15",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "fixture": "write",
+      "arrange": "explicit dataWrite; absent result.txt then existing result.txt; exclusive fixture against existing text.txt",
+      "expect": "write creates then overwrites with exact UTF8 c3a9f09f9880; wx refuses EEXIST or provider honest ENOTSUP before alteration",
+      "negative": "check-then-write wx overwrite mutation must fail source-data preservation",
+      "bindings": [
+        "B03"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N16",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "fixture": "write",
+      "arrange": "granted write through ReadonlyFileSystem of the same initialized VFS",
+      "expect": "actual FsError EROFS, bytes/namespace unchanged; not ERR_VNODE_DENIED and no grant override",
+      "negative": "typed-looking ordinary error cannot be used as FS authority",
+      "bindings": [
+        "B03"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N17",
+      "roles": [
+        "P",
+        "E",
+        "S"
+      ],
+      "fixture": "missing",
+      "arrange": "genuine missing read; scripted genuine FsError variants EACCES/ELOOP and optional own undefined fields; stack accessor is never read",
+      "expect": "guest missing fields name/code/path produce FsError:ENOENT:/missing\\n; actual error transport only on FS-origin route; optional absence/undefined and empty strings distinct",
+      "negative": "shape-only FsError from sink/control or getter field must not be serialized as genuine FS error",
+      "bindings": [
+        "B01",
+        "B07"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N18",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "fixture": "stdout",
+      "arrange": "each frozen reason token thrown by stdout, stderr and control separately; independent raw identity registry",
+      "expect": "preserve present=true and same raw value, not truthiness/equality-origin inference; public boundary follows existing mapping, not automatically every caught handler error becomes rejection",
+      "negative": "JSON text alone cannot certify raw object identity or undefined presence",
+      "bindings": [
+        "B07"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N19",
+      "roles": [
+        "P",
+        "E",
+        "S"
+      ],
+      "fixture": "readText",
+      "arrange": "valid UTF8 vector at all frozen splits; BOM/invalid/incomplete/NUL vectors separate",
+      "expect": "valid exact decoded string, raw bytes charged before decoding; no split corruption; malformed/BOM outcomes bind B04 rather than guessing fatal/replacement",
+      "negative": "count UTF16 units as UTF8 or discard carry/EOF bytes => fail",
+      "bindings": [
+        "B04",
+        "B05"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N20",
+      "roles": [
+        "P",
+        "E",
+        "S"
+      ],
+      "fixture": "stdin",
+      "arrange": "eval data stdin with shared reusable byte buffer and multiple chunks; later repeated fd0 read",
+      "expect": "retained chunks copied before advancing producer; no replay; no borrowed producer premature return; owned acquisition cleanup exactly once",
+      "negative": "return borrowed Shell iterator on first command settlement or retain Buffer.subarray => fail",
+      "bindings": [
+        "B06"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N21",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "fixture": "cache",
+      "arrange": "first/second/third JSON require as literal fixture; separate fsAlias; second fresh invocation",
+      "expect": "first prints true:true:7\\n while VFS input becomes {\"count\":99}; fsAlias true\\n; new invocation cache sees99 not7",
+      "negative": "host fresh copy per cache hit or cross-invocation object sharing => fail",
+      "bindings": [
+        "B03"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N22",
+      "roles": [
+        "P",
+        "E"
+      ],
+      "fixture": "cache",
+      "arrange": "revoke authority between first read and later hit; change bound backing before read completion",
+      "expect": "every hit reauthorized; no unvalidated late cache installation; namespaces are authority not fake disjoint identity",
+      "negative": "constant per-client token or retained authorization bypass => fail",
+      "bindings": [
+        "B03"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N23",
+      "roles": [
+        "E",
+        "S"
+      ],
+      "fixture": "keys",
+      "arrange": "own __proto__/constructor/toString JSON values and malformed JSON followed by corrected backing",
+      "expect": "exact inert data roundtrip; no prototype mutation; failed parse installs no cached result",
+      "negative": "compare via prototype identity or accept accessor-shaped DTO => fail",
+      "bindings": [
+        "B01",
+        "B03"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N24",
+      "roles": [
+        "P",
+        "E",
+        "S"
+      ],
+      "fixture": null,
+      "arrange": "boundary recipes source/path/operationText at L-1/L/L+1 after B05 binding",
+      "expect": "at inclusive admitted bounds useful operation; over bound refuses before prohibited allocation/acquisition/effect; shared counters never reset",
+      "negative": "lower byte accounting or per-frame resets must fail; memory profile remains logical not RSS",
+      "bindings": [
+        "B05"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N25",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "fixture": "stdout",
+      "arrange": "public Shell maxOutputBytes2; node stdout AB then E on stderr; separate diagnostic sink refusal",
+      "expect": "same existing ShellLimitError limit maxOutputBytes; no third byte, diagnostic budget bypass or output refund; cleanup barrier still honored",
+      "negative": "fresh sink budget or exempt diagnostic would incorrectly succeed",
+      "bindings": [
+        "B05",
+        "B07"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N26",
+      "roles": [
+        "S"
+      ],
+      "fixture": null,
+      "arrange": "script node -e \"\"; node -e \"\"; node -e \"\" with maxCommands2 and explicitly enabled module",
+      "expect": "third dispatch fails existing ShellLimitError maxCommands; at most two node starts; no new Shell/global budget reset",
+      "negative": "internal creation of new Shell or guest-byte-as-command charging => fail",
+      "bindings": [
+        "B01"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N27",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "fixture": "hello",
+      "arrange": "preaborted root before command admission; native delivered false/null/0/empty/object; exact undefined only synthetic own-data/preaborted branch",
+      "expect": "exact caller identity, zero source/provider acquisition, all registrations retired; no claim native abort(undefined) yields raw undefined",
+      "negative": "errno-shaped caller reason must not be mistaken for guest FsError",
+      "bindings": [
+        "B07"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N28",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "fixture": "hello",
+      "arrange": "nested context.invoke local signal cancels one blocked child, sibling completes; parent caller remains live",
+      "expect": "child reason exact; sibling stdout ok\\n; parent remains usable; env/getopts/state not poisoned; no shared cursor/cache aliases",
+      "negative": "child controller aborting caller or shared Worker of sibling => fail",
+      "bindings": [
+        "B01",
+        "B07"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N29",
+      "roles": [
+        "P",
+        "E",
+        "S"
+      ],
+      "fixture": "hello",
+      "arrange": "inert prepared session; trace registration, startup admission, acquisition, exit and parent job cleanup",
+      "expect": "registerCleanup before any possible startup/acquisition; same idempotent promise finally/runtime close; actual Worker exit AND job cleanup before public settlement",
+      "negative": "prepared-session constructor starts Worker before registered owner => fail",
+      "bindings": [
+        "B01"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N30",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "fixture": "hello",
+      "arrange": "proven-none setup rejection, constructor throw unconfirmed, late handle, failed cleanup registration; release finite cooperative holds explicitly",
+      "expect": "no fake exit; late acquired owner listened/retired once; unconfirmed acquisition cannot report clean success; all admitted jobs observed",
+      "negative": "eventual booleans without valid chronology or resolved numeric result despite unknown retirement => fail",
+      "bindings": [
+        "B01"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N31",
+      "roles": [
+        "P",
+        "E",
+        "S"
+      ],
+      "fixture": "entryRead",
+      "arrange": "actual blocked parent read; cancel child; hold cleanup until after observed Worker exit; separate already-committed write",
+      "expect": "wakes blocked sync; public unsettled until parent cleanup; admitted committed bytes survive, no rollback; no later unadmitted effects",
+      "negative": "terminate() resolution/ACK alone used as exit+cleanup proof => fail",
+      "bindings": [
+        "B01",
+        "B07"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N32",
+      "roles": [
+        "P",
+        "E",
+        "S"
+      ],
+      "fixture": "stdout",
+      "arrange": "hold awaited sink; then release; separate enrolled output pipeline node | head -n 1 with cooperative operation",
+      "expect": "no uncontrolled production while write pending; operation closes before public settlement, caller/sibling remain live; already-written bytes retained",
+      "negative": "whole caller abort or no-input-acquisition shortcut cannot substitute operation cleanup",
+      "bindings": [
+        "B06",
+        "B07"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N33",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "fixture": null,
+      "arrange": "inject a real parent-owned diagnostic publication failure with each raw reason token after actual provider failure; stdout and stderr sink faults recorded separately",
+      "expect": "publication failure retained by actual owner, no catch-and-discard; serialized text never substitutes raw failure presence; public priority follows accepted contract",
+      "negative": "publishing helper returns {fault} but caller ignores it => fail; if no production route exists B08 must resolve explicitly",
+      "bindings": [
+        "B07",
+        "B08"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N34",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "fixture": "hello",
+      "arrange": "numeric0 and numeric1 plus sole cleanup rejection; caller override; escaping execution rejection + cleanup; late losing handler mapped separately",
+      "expect": "caller > actual escaping execution rejection > cleanup > numeric; no status??0, no escalation of an already-mapped caught handler error; all failures observed",
+      "negative": "falsy cleanup discarded or nonzero numeric hides cleanup => fail",
+      "bindings": [
+        "B07"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N35",
+      "roles": [
+        "P",
+        "E"
+      ],
+      "fixture": null,
+      "arrange": "instrumented cutoff before complete payload versus after admitted effect; 5s admission from ownership enrollment before startup",
+      "expect": "no new effects after cutoff; already admitted normal work drains without false abort/rollback; elapsed5s is not cleanup deadline; retirement L not Q",
+      "negative": "reset admission clock at READY/ACK or claim all Promise jobs settled => fail",
+      "bindings": [
+        "B01",
+        "B05"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N36",
+      "roles": [
+        "P"
+      ],
+      "fixture": null,
+      "arrange": "finite exact-own-data protocol controls: missing/extra/accessor/hole fields, metadata-only FINAL_ACK, stale sequence/session, zero payload",
+      "expect": "invalid messages refuse before next operation; operation closure and actual guest delivery are separate; preserve original raw protocol fault",
+      "negative": "prototype-sensitive deep equality rejects valid cross-realm record; ACK counted as postcopy delivery => fail",
+      "bindings": [
+        "B01"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N37",
+      "roles": [
+        "P",
+        "E"
+      ],
+      "fixture": null,
+      "arrange": "bound trusted static Worker entry/public98->95 closure; ledger/SAB/V8 configuration observed at actual owner boundary",
+      "expect": "197056 SAB and 16777216 named ledger; admitted ownership only; worker exited and parentjobs cleaned; reused heap proof not a new guest/RSS proof",
+      "negative": "missing terminal or unknown exit cannot be converted to status0; no unseen work cleanup claims",
+      "bindings": [
+        "B01",
+        "B05"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    },
+    {
+      "id": "N38",
+      "roles": [
+        "P",
+        "S"
+      ],
+      "fixture": null,
+      "arrange": "provider absent; invalid provider; explicitly supplied qualifying provider; source/engine entry identities fixed before launch",
+      "expect": "no implicit engine discovery/native fallback; module-only registration does not change aggregate79; explicit registration creates node only in that registry",
+      "negative": "root/subpath/default wiring absent is not a module defect; native engine path guess is a defect",
+      "bindings": [
+        "B01",
+        "B09"
+      ],
+      "status": "PREPARED_UNEXECUTED"
+    }
+  ],
+  "typeFamilies": [
+    {
+      "id": "T01",
+      "title": "Factory roles",
+      "expect": "Candidate-defined single definition/list/plugin roles match existing CommandDefinition/VirtualShellPlugin, no guessed export identifiers.",
+      "status": "UNBOUND_TYPES_NOT_COMPILED"
+    },
+    {
+      "id": "T02",
+      "title": "Old context compatibility",
+      "expect": "Existing structural CommandContext without optional cleanup/invoke stays valid; optional invoke signal undefined accepted as before.",
+      "status": "UNBOUND_TYPES_NOT_COMPILED"
+    },
+    {
+      "id": "T03",
+      "title": "Provider configuration",
+      "expect": "Explicit qualifying provider accepted; incompatible/missing required provider members receive exact diagnostics; no auto-runtime overload implied.",
+      "status": "UNBOUND_TYPES_NOT_COMPILED"
+    },
+    {
+      "id": "T04",
+      "title": "Finite grants",
+      "expect": "Declared grant types accept valid finite data and reject unrecognized keys/wrong scalar types; own undefined behavior bound B03.",
+      "status": "UNBOUND_TYPES_NOT_COMPILED"
+    },
+    {
+      "id": "T05",
+      "title": "Lifecycle types",
+      "expect": "Inert prepared session and retirement outcome require typed ownership/cleanup obligations; no unsafe cast hiding async completion or optional receiver errors.",
+      "status": "UNBOUND_TYPES_NOT_COMPILED"
+    },
+    {
+      "id": "T06",
+      "title": "Sync text I/O",
+      "expect": "Declared Node-local request/result types keep guest text distinct from underlying Uint8Array; reject unsupported FD/encoding/request variants.",
+      "status": "UNBOUND_TYPES_NOT_COMPILED"
+    },
+    {
+      "id": "T07",
+      "title": "Unknown reasons",
+      "expect": "Raw error/control fields can represent present undefined and arbitrary unknown without Error-only or nonnullable narrowing.",
+      "status": "UNBOUND_TYPES_NOT_COMPILED"
+    },
+    {
+      "id": "T08",
+      "title": "No shared API edits",
+      "expect": "Accepted command/io/output/Shell declarations remain compatible; module phase adds only owned Node-local types; installed/moved declaration routes authenticated.",
+      "status": "UNBOUND_TYPES_NOT_COMPILED"
+    }
+  ],
+  "loadFamilies": [
+    {
+      "id": "A01",
+      "title": "Full composition",
+      "expect": "Accepted baseline constituents plus only exact candidate-owned files; complete new package identity and additions, not sparse projection/current HEAD.",
+      "status": "PREPARED_NOT_EXECUTED"
+    },
+    {
+      "id": "A02",
+      "title": "Source/installed/moved",
+      "expect": "Actual loaded paths and hashes, complete pre/post namespace inventory including new entries; physically moved imports no source fallback.",
+      "status": "PREPARED_NOT_EXECUTED"
+    },
+    {
+      "id": "A03",
+      "title": "Changed/missing module",
+      "expect": "One admitted edited-byte and one missing-file control refuse before guest; restores authenticated separately.",
+      "status": "PREPARED_NOT_EXECUTED"
+    },
+    {
+      "id": "A04",
+      "title": "Declaration route",
+      "expect": "Strict public declared module path routes to exact installed/moved .d.ts; no fallback to repo root or live source.",
+      "status": "PREPARED_NOT_EXECUTED"
+    },
+    {
+      "id": "A05",
+      "title": "Static entry/builtin boundary",
+      "expect": "Trusted entry and exact host-builtin importer edges; no global host-import allowlist, ambient fs/process/SAB exposure to guest.",
+      "status": "PREPARED_NOT_EXECUTED"
+    },
+    {
+      "id": "A06",
+      "title": "Public engine closure",
+      "expect": "Test-only existing PUBLIC98 sources/PUBLIC95 emissions complete hashes; same emitter metadata != strict typecheck; no private/deep import/vendor/install guess.",
+      "status": "PREPARED_NOT_EXECUTED"
+    }
+  ],
+  "negativeControlFamilies": [
+    {
+      "id": "M01",
+      "cases": [
+        "N13",
+        "N14"
+      ],
+      "change": "Default data write grant enabled",
+      "role": "future loaded source mutant; PREP does not apply or run",
+      "restore": "exact artifact hash and full namespace restored before next case"
+    },
+    {
+      "id": "M02",
+      "cases": [
+        "N08",
+        "N09"
+      ],
+      "change": "Run source prefix before complete syntax/admission",
+      "role": "future loaded source mutant; PREP does not apply or run",
+      "restore": "exact artifact hash and full namespace restored before next case"
+    },
+    {
+      "id": "M03",
+      "cases": [
+        "N19",
+        "N24"
+      ],
+      "change": "UTF16 units charged as bytes or split decoder carry lost",
+      "role": "future loaded source mutant; PREP does not apply or run",
+      "restore": "exact artifact hash and full namespace restored before next case"
+    },
+    {
+      "id": "M04",
+      "cases": [
+        "N29",
+        "N30"
+      ],
+      "change": "Register resource cleanup after startup",
+      "role": "future loaded source mutant; PREP does not apply or run",
+      "restore": "exact artifact hash and full namespace restored before next case"
+    },
+    {
+      "id": "M05",
+      "cases": [
+        "N30",
+        "N31"
+      ],
+      "change": "Termination request/ACK substituted for observed exit",
+      "role": "future loaded source mutant; PREP does not apply or run",
+      "restore": "exact artifact hash and full namespace restored before next case"
+    },
+    {
+      "id": "M06",
+      "cases": [
+        "N34"
+      ],
+      "change": "Numeric result hides present falsy cleanup failure",
+      "role": "future loaded source mutant; PREP does not apply or run",
+      "restore": "exact artifact hash and full namespace restored before next case"
+    },
+    {
+      "id": "M07",
+      "cases": [
+        "N33"
+      ],
+      "change": "Parent publication fault returned then discarded",
+      "role": "future loaded source mutant; PREP does not apply or run",
+      "restore": "exact artifact hash and full namespace restored before next case"
+    },
+    {
+      "id": "M08",
+      "cases": [
+        "N28",
+        "N32"
+      ],
+      "change": "Consumer or child cancel aborts root/sibling",
+      "role": "future loaded source mutant; PREP does not apply or run",
+      "restore": "exact artifact hash and full namespace restored before next case"
+    },
+    {
+      "id": "M09",
+      "cases": [
+        "N21",
+        "N22"
+      ],
+      "change": "Cache hit copied fresh or authorization reused",
+      "role": "future loaded source mutant; PREP does not apply or run",
+      "restore": "exact artifact hash and full namespace restored before next case"
+    },
+    {
+      "id": "M10",
+      "cases": [
+        "N25",
+        "N26"
+      ],
+      "change": "Shared Shell budget reset or diagnostic bypass",
+      "role": "future loaded source mutant; PREP does not apply or run",
+      "restore": "exact artifact hash and full namespace restored before next case"
+    }
+  ],
+  "openBindings": [
+    {
+      "id": "B01",
+      "topic": "Node-local provider/API and static entry",
+      "needed": "Exact immutable module composition and factory/type names; inert preparation/start/stop/retire receipt discriminants, allowed provider/public entry and typed adapter. Existing core contracts need no extension proved here.",
+      "fixed": "Ownership before acquisition; actual Worker exit AND parent-job cleanup; proven-none distinct from unconfirmed; no implicit provider."
+    },
+    {
+      "id": "B02",
+      "topic": "CLI/grammar/pre-entry policy",
+      "needed": "Bind exact accepted selectors/arity, usage/profile statuses and diagnostic templates; source grammar admission and literal-versus-computed require stage. Historical NP1-CJS recipe is an input proposal, not a fresh current module API acceptance.",
+      "fixed": "File .cjs, eval, primitive print and stdin useful modes; source preflight before entry; invalid flags no builtin stdin pull; .js/ESM/TLA/async-fs/exit/npm/npx/package search excluded; Promise constructor not supported."
+    },
+    {
+      "id": "B03",
+      "topic": "Finite grants and namespace binding",
+      "needed": "Concrete representation and path/symlink/alias authority. Historical boolean sourceRead/dataRead/dataWrite/jsonModules/stdinRead/stdoutWrite/stderrWrite are not assumed current export names. If authority is whole configured FS, bind a truthfully confined FS rather than invent per-path options.",
+      "fixed": "Read and write default deny; explicit output/source authority distinguished; no permission/capability metadata grants authority; readonly FsError remains real."
+    },
+    {
+      "id": "B04",
+      "topic": "UTF8 and BOM policy",
+      "needed": "Confirm replacement versus fatal decoding, source/JSON BOM treatment and lone surrogate encoding against ratified module profile before scoring these vectors. Historical NP1 recipe replacement is not silently promoted.",
+      "fixed": "Valid UTF8 preserved across chunks; count bytes before decoding; no UTF16-as-UTF8 accounting."
+    },
+    {
+      "id": "B05",
+      "topic": "Exact private limits",
+      "needed": "Bind all actual fixed maxima and allocation phases from immutable module policy. Proposed historical 256KiB source/1024-byte path/1MiB operation boundaries stay conditional, not fabricated public options.",
+      "fixed": "16MiB named command ledger;197056-byte SAB;V8 limits;5s admission before startup; separate unchanged shared Shell Budget; no RSS/allguest/alljobs/completion guarantee."
+    },
+    {
+      "id": "B06",
+      "topic": "stdin and output ownership",
+      "needed": "Map effective canonical stdin/cursor and actual owned-output enrollment; distinguish borrowed source iterator, command-owned acquisition and exhausted source input. Bind reusable producer test adapter without source replacement.",
+      "fixed": "No premature borrowed return; copy retained chunks before next; await sinks; no parent/sibling abort from consumer close."
+    },
+    {
+      "id": "B07",
+      "topic": "Failure roles and mapping",
+      "needed": "Exact raw provider outcome/accessors and public handler mapping; preserve undefined presence separately. Bind actual FsError recognition route and public caller/escaping execution/cleanup priority, not all caught errors as rejections.",
+      "fixed": "Raw reason identity precedes serialization; native live abort(undefined) is not raw undefined; numeric result cannot hide cleanup failure."
+    },
+    {
+      "id": "B08",
+      "topic": "Real parent diagnostic publisher",
+      "needed": "Identify actual production parent-owned publisher and how to inject/observe its genuine failing operation. If no distinct route exists, root must adjudicate the mapping; do not count stderr alone as that route or add public hooks solely for a test.",
+      "fixed": "Real publisher failure must be retained, never ignored returned fault; distinguish primary raw reason, secondary publication fault, bounded JSON and public stderr."
+    },
+    {
+      "id": "B09",
+      "topic": "Future execution/package admission",
+      "needed": "New immutable candidate and full package/declaration manifest; module-only import route; trusted provider test capsule/Public98 source+95 emission hash inventory; finite final Worker/guest/child/tool/cleanup grant.",
+      "fixed": "No root/default registration expectation at module phase; accepted baseline79 is not Node acceptance; no native/private/network/engine vendoring."
+    }
+  ]
+}

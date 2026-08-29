@@ -1,0 +1,27 @@
+{
+  "schema": "B2_R7_FINAL_BINDING_PRESEAL",
+  "started": "2026-08-29T15:44:28.070Z",
+  "expires": "2026-08-29T15:52:28.070Z",
+  "helper": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/final-binding-v1/bind.mjs",
+    "bytes": 8658,
+    "sha256": "556e9568bcc6601660912acbaf747771e92a33dd436b4c207e80ae3d628f9acd"
+  },
+  "caps": {
+    "knownOS": 24,
+    "peak": 3,
+    "captureBytes": 33554432,
+    "workBytes": 134217728,
+    "helpers": 1,
+    "actualRuntime": 0
+  },
+  "roles": {
+    "initialGitStatus": 1,
+    "reviewGitMetadata": 1,
+    "applyPatchConservative": 4,
+    "bindingHelper": 1,
+    "publicationGit": 3,
+    "reservedOtherAdministration": 14
+  },
+  "windowPolicy": "issued at final binding readiness; notBefore=issued+300s; active=notBefore+1620s; expires=notBefore+1800s; ROOT external latest=notBefore+300s; no scheduler"
+}

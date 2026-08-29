@@ -1,0 +1,306 @@
+{
+  "schema": "B2_R7_FINAL_BINDING_V1",
+  "grant": {
+    "path": "/private/tmp/B2-R7-ROOT-GO.json",
+    "bytes": 859,
+    "sha256": "720bee1710c078eb4c9ee606ae69cb101fe5fc688f5a420d715ddfe4d793f7d1",
+    "mode": "0600"
+  },
+  "packet": {
+    "bytes": 6519,
+    "sha256": "f97901065a7803f72edb92c19f219e66f35dc2f050917d10dd25cb411ba5f65a"
+  },
+  "reviewCommit": "7ad82903e3269de5527c8308c755eb1b132bb58c",
+  "reviewReceiptSha256": "5f627990643cbb13943ee33be52f0bacb6e665d600d553326a01970f2f32a416",
+  "sourceCandidate": "5d60457781b73783eecdd61e34d33ec7916d891b",
+  "issuedAt": "2026-08-29T15:47:01.060Z",
+  "notBefore": "2026-08-29T15:52:01.060Z",
+  "externalLatestStart": "2026-08-29T15:57:01.060Z",
+  "activeDeadline": "2026-08-29T16:19:01.060Z",
+  "deadline": "2026-08-29T16:22:01.060Z",
+  "command": "/bin/zsh /Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/launch.sh /private/tmp/B2-R7-ROOT-GO.json 6519",
+  "cwd": "/Users/kjopek/Workspace/safe-bash",
+  "login": false,
+  "rootActualGo": "STILL_REQUIRED_AFTER_DIFFERENT_FINAL_SLOT_REVIEW",
+  "loaderAuthority": "ROOT-approved fixed per-role file/hash admission and trusted Node builtin delegation; 34 functional async-loader admissions, not guest or Regex authority",
+  "caps": {
+    "seconds": 1800,
+    "reserveSeconds": 180,
+    "knownOsStarts": 64,
+    "peakOs": 3,
+    "rawBytes": 100663296,
+    "childRawBytes": 67108864,
+    "workBytes": 536870912,
+    "terminalReserveBytes": 4194304,
+    "traceBytesPerRole": 524288,
+    "loaderAdmissions": 34,
+    "regexWorkers": 0,
+    "regexLoaderAdmissions": 0,
+    "guestEngines": 0,
+    "loaderThreads": 34,
+    "peakLoaderThreads": 1,
+    "decoderBytes": 67108864,
+    "maximumInventoryEntries": 16384
+  },
+  "observations": [
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/PACKET.json",
+      "bytes": 6519,
+      "sha256": "f97901065a7803f72edb92c19f219e66f35dc2f050917d10dd25cb411ba5f65a",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/harness/ARRAY-CASES.json",
+      "bytes": 3019,
+      "sha256": "37b39949691b09c665c63e4d81babfebcbcfeb7b6b1c96f6bf2e154c91ab20b2",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/harness/arrays.mjs",
+      "bytes": 2507,
+      "sha256": "ac91a9c48b30e3a186468d2a22f44cfecdcf7b3adf54584cf270749f66448f24",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/harness/close-observer.mjs",
+      "bytes": 957,
+      "sha256": "06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/harness/conditional.mjs",
+      "bytes": 14524,
+      "sha256": "0c8216e79aeaadd22bededaf2cc72a8daf83e296584c4b31efa2fed0b5c917e7",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/harness/extension-design.json",
+      "bytes": 14968,
+      "sha256": "ba0e51037a4026f8bc1fe4783e334e466347cf0ebc5883fa65be5c6b9f2bdf0f",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/harness/extension.mjs",
+      "bytes": 14101,
+      "sha256": "3e04a9e35f303fad76b3dc05f5e70c1b6e40dd2f6827bc82defe696d12ea7edc",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/harness/loader.mjs",
+      "bytes": 1180,
+      "sha256": "a16e8d37942478cf9dc876e360cf7e7085c590515bdca82bf90be421df7cf6b3",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/harness/n14.mjs",
+      "bytes": 5599,
+      "sha256": "5dc5c979b280349944692856d87dca20c9a475e51bb9051fadd3ae0554a102a3",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/harness/names.mjs",
+      "bytes": 879,
+      "sha256": "7a098b1ff37d04e10096ba9db55880025dd39bca542f81a3407288685faed377",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/harness/redirection-cases.json",
+      "bytes": 2790,
+      "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/harness/redirections.mjs",
+      "bytes": 9613,
+      "sha256": "5d22e251da75541bc23a5b786dca6340586cf7bc426801f219f539b73a3e2561",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/harness/resources.mjs",
+      "bytes": 1978,
+      "sha256": "ee5d6c8ec02a2784232a04a9ca01e07a232bb8bc36a1d39b8e9f463c0ad49e92",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/harness/strict-design.json",
+      "bytes": 9222,
+      "sha256": "99468cfc96e56130fa65ce12835f4d8a3740002ec9519ea306d4e120cbe5adff",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/harness/strict.mjs",
+      "bytes": 11148,
+      "sha256": "c571a8977ac6553622493d743e18bdba9d23d17355a2f0d625e8fef8e1993ee8",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/stage-a-r2/common.mjs",
+      "bytes": 7095,
+      "sha256": "e56e611e245a3582a4b562e646b5f1186c455b31360766c4bea0b92b7b8d2bac",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/types/consumer-negative.mts.fixture",
+      "bytes": 1744,
+      "sha256": "01a2ed9b7b6eb42e03e163d6da2e762bf5a3663ebf548495c5788ffc385fe7ff",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/legacy/types/consumer-positive.mts.fixture",
+      "bytes": 1736,
+      "sha256": "c735d61e010e7f8e6528181d800c3e9e9aac6c22d20b03d1e4bcf68e3222b6ff",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/metadata/FROZEN-BINDINGS.json",
+      "bytes": 617256,
+      "sha256": "3e4ace73b6ef5f47a3f8eb7330cb22f5d8b51742e484032ae8f2a1864f35b0e9",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/metadata/RECIPE.json",
+      "bytes": 593493,
+      "sha256": "487065c4454c01102b578a4d7ef1524514bf74d90e3a6d8dc1d9bde513b2a091",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/metadata/REGEX-CLOSURE.json",
+      "bytes": 101812,
+      "sha256": "2d074a0fa78e95e5d16ede088bc2725ae9b5e7a3ed2a3c11a5bae428b4b4b4c4",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/classify.mjs",
+      "bytes": 4307,
+      "sha256": "356b94df4f61a5d43adf776b250580ea13289e292098e9b983f3edbefbe968bb",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/controls.mjs",
+      "bytes": 3703,
+      "sha256": "b3906776beb767b4fc5989a8ea0a6bf2b8a79ec41d60df48321f9e70e6e4e15b",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/coordinator.mjs",
+      "bytes": 13312,
+      "sha256": "8df4de4309ea18eb2c2e08fad3dd2a11e70c079d3f8f809e58316892f0556149",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/fixture.mjs",
+      "bytes": 861,
+      "sha256": "9bc2c8d6b7d25eebbcc74a5d8560efa097ba8b88c101c2d89ba998227b1a565e",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/launch.sh",
+      "bytes": 418,
+      "sha256": "8b2b817e767fe621d24ccff36a25a08cff7df9b72d5aea4c05d6475d2762f5b4",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/loader.mjs",
+      "bytes": 2726,
+      "sha256": "8cfc738cc4a4312d6cdb5b745317f1846025ed268da48eccda3b777146cb7a4e",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/outer.mjs",
+      "bytes": 1210,
+      "sha256": "01c6891d4c2214878edcc4e00c97d369f31bdc90dad5c0d330b44c637da3536f",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/owner.mjs",
+      "bytes": 9152,
+      "sha256": "1e9c95b612145717bf3dbb74fa119c1abd83f44e67cec5fde233e985decc64c5",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/support.mjs",
+      "bytes": 6852,
+      "sha256": "723ea89e416574904c5c24e1825011418d15367b9b90526c683a4a64d6120fdf",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/tar.mjs",
+      "bytes": 2436,
+      "sha256": "ab62ab9627e69558b8291f90fc92dee40cf12172c289187918a0da42bdc51865",
+      "mode": 384
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r7/staged/new/trace.mjs",
+      "bytes": 3040,
+      "sha256": "f735f64c5e93acf1becab940f959b9d89dbb834032f64cbfdc3e0345266bacfe",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r7-review/PUBLICATION.json",
+      "bytes": 7167,
+      "sha256": "5f627990643cbb13943ee33be52f0bacb6e665d600d553326a01970f2f32a416",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-a-r2/evidence/package/virtual-bash-0.0.0.tgz",
+      "bytes": 930368,
+      "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca",
+      "mode": 420
+    },
+    {
+      "path": "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/tools/typescript/bin/tsc",
+      "bytes": 45,
+      "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0",
+      "mode": 493
+    },
+    {
+      "path": "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/tools/npm/bin/npm-cli.js",
+      "bytes": 54,
+      "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+      "mode": 493
+    },
+    {
+      "path": "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/source/dist/shell/runtime.js",
+      "bytes": 232658,
+      "sha256": "309c181e03e093b31a5629e441f062ee7d0cea459123d9aebd6427fd44c9f9fb",
+      "mode": 420
+    },
+    {
+      "path": "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/source/dist/shell/shell.js",
+      "bytes": 15404,
+      "sha256": "e69be22e76a307071a708cf3fc5d16d075748ab9e6ef60668bde51a4058b57a8",
+      "mode": 420
+    },
+    {
+      "path": "/private/tmp/safe-bash-coherent-stage-a-20260829-r2/source/dist/index.js",
+      "bytes": 1718,
+      "sha256": "34c9a052d0c21b89a106f01caebd655d8c8bd8baa31e2d530760ba7e050703cc",
+      "mode": 420
+    },
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "mode": 493,
+      "streamed": true
+    },
+    {
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "mode": 493,
+      "freshLocalLauncherObservation": true
+    }
+  ],
+  "guards": {
+    "runtimeRootAbsent": true,
+    "outerCaptureAbsent": true,
+    "noScheduler": true,
+    "noRuntime": true,
+    "noWorker": true,
+    "noProductImports": true,
+    "noRecensus": true,
+    "packageNotInflated": true
+  },
+  "qualification": "Fresh 31-file packet, compressed package, review receipt, Node/launcher and sparse consumed entrypoint checks; retained authenticated 309/1012/1014 manifests are not a fresh full source/tool census. Runtime itself retains its full admission checks. Native helper thread totals and OS-wide census unobserved. Initial trusted host shell startup outside cohort; login:false does not suppress all zsh startup files."
+}

@@ -1,0 +1,770 @@
+{
+  "schema": "wrq-v10-first-actual-continuation-results",
+  "date": "2026-08-28",
+  "decision": "HOLD: L02 repeat and L03 qualify; L04 guestFailure; remaining7Worker/6guest slots unrun; grant spent, no retry",
+  "sourceCommit": "1afe801c1ce898b44ae202a63dfab81946958a59",
+  "evidencePreparationCommit": "f4212f96b4c15c53519a5d617cf06142976c0cae",
+  "reviewCommit": "498805a4a0999598ad1af9cedfdd476076cce936",
+  "grantCommit": "4fdde7f879bb9619ad618c28c8417ecdc6db5a4d",
+  "grantSha256": "c87ea79e04c2fd0d66e99091538bc077550f014d5cf665abfaf81b8a2b30fb0e",
+  "edgeAuthoritySha256": "0aa83a118add64a02fc447f4f6a59defdb1dd4a5319ecaa77b275c807108783a",
+  "continuationPresealSha256": "058965bf4c3fdc56d6921037d836ac581b7ca9ba69157020a0288e185cb1cf72",
+  "compositionSha256": "5e611bd8d1748944ff105ec9837388ccba788ac41cb543bb379e25b433d9a286",
+  "profileSha256": "61d005bfce187fc80aa9f827359d25141269ee2c10ec0066f048ecd65dc856da",
+  "counts": {
+    "authorizedWorkers": 10,
+    "authorizedGuests": 9,
+    "WorkersAcquired": 3,
+    "WorkerExits": 3,
+    "engineRunAttempts": 3,
+    "guestEntriesProvenByRPC": 2,
+    "guestEntryUnknown": 1,
+    "entryReturned": 2,
+    "guestFailureTerminals": 1,
+    "unrunWorkerSlots": 7,
+    "unrunGuestSlots": 6,
+    "qualifiedCases": 2,
+    "failedCases": 1,
+    "operationAdmissions": 11,
+    "finalAcknowledgements": 11,
+    "postcopyMarkers": 11,
+    "evidencedBridgeCallbacks": 22,
+    "operationCleanupCompletions": 11,
+    "parentCleanupCompletions": 3,
+    "parentCleanupSuccesses": 3,
+    "terminationRequests": 3,
+    "moduleAuthorizationOperations": 3,
+    "jsonAuthorizationOperations": 3,
+    "FSReadAttempts": 2,
+    "FSReadSuccesses": 1,
+    "FSReadBytes": 11,
+    "FSMissingTypedErrorsDelivered": 1,
+    "FSWrites": 1,
+    "FSWrittenBytes": 12,
+    "virtualOutputWrites": 2,
+    "virtualOutputBytes": 41,
+    "workerNativeStreamsClosed": 6,
+    "workerNativeCapturedBytes": 0,
+    "diagnosticSidecars": 3,
+    "diagnosticRawReasonsSerialized": 0,
+    "workerLoadRecords": 294,
+    "workerUniqueLoadedPaths": 98,
+    "engineModulesPerWorker": 93,
+    "OSParentChildren": 1,
+    "OSParentNaturalExits": 1,
+    "outerRawDescriptorsClosed": 2,
+    "outerRawBytes": 790,
+    "outerWriteCalls": 2,
+    "OSSignals": 0,
+    "slotRetries": 0,
+    "compilerRuns": 0,
+    "privateReads": 0,
+    "network": 0
+  },
+  "cases": [
+    {
+      "case": "WRQ02-L02-repeat-v10",
+      "expectedStatus": 0,
+      "actualStatus": 0,
+      "expectedStdout": "FsError:ENOENT:/missing\n",
+      "actualStdout": "FsError:ENOENT:/missing\n",
+      "stdoutBytes": 24,
+      "qualified": true,
+      "judgement": {
+        "case": "WRQ02-L02-repeat-v10",
+        "qualified": true,
+        "failures": [],
+        "clean": true
+      },
+      "raw": [],
+      "privateFailures": 0,
+      "facts": {
+        "admission": false,
+        "acquisition": "acquired",
+        "exited": true,
+        "exitCode": 1,
+        "ordinal": 4,
+        "cleanupClosed": true,
+        "cleanupSettled": true
+      },
+      "terminal": {
+        "v": 3,
+        "session": 1,
+        "kind": "entryReturned",
+        "lastSeq": 3,
+        "finalFrame": 11,
+        "deliveredSeq": 3
+      },
+      "outcomes": [
+        {
+          "seq": 1,
+          "kind": "void",
+          "finalAck": true,
+          "delivered": true,
+          "closed": true
+        },
+        {
+          "seq": 2,
+          "kind": "fsError",
+          "finalAck": true,
+          "delivered": true,
+          "closed": true
+        },
+        {
+          "seq": 3,
+          "kind": "void",
+          "finalAck": true,
+          "delivered": true,
+          "closed": true
+        }
+      ],
+      "effects": [
+        {
+          "path": "/data/input.json",
+          "utf8": "{\"count\":1}"
+        },
+        {
+          "path": "/data/object.json",
+          "utf8": "{\"count\":1}"
+        }
+      ],
+      "events": [
+        {
+          "kind": "ready",
+          "seq": 0,
+          "bytes": 0
+        },
+        {
+          "kind": "effect-admitted",
+          "seq": 1,
+          "bytes": 0
+        },
+        {
+          "kind": "operation-cleanup-closed",
+          "seq": 1,
+          "bytes": 0
+        },
+        {
+          "kind": "final-ack-not-delivery",
+          "seq": 1,
+          "bytes": 0
+        },
+        {
+          "kind": "postcopy-marker-received",
+          "seq": 1,
+          "bytes": 0
+        },
+        {
+          "kind": "effect-admitted",
+          "seq": 2,
+          "bytes": 0
+        },
+        {
+          "kind": "operation-cleanup-closed",
+          "seq": 2,
+          "bytes": 0
+        },
+        {
+          "kind": "final-ack-not-delivery",
+          "seq": 2,
+          "bytes": 0
+        },
+        {
+          "kind": "postcopy-marker-received",
+          "seq": 2,
+          "bytes": 0
+        },
+        {
+          "kind": "effect-admitted",
+          "seq": 3,
+          "bytes": 24
+        },
+        {
+          "kind": "output-published",
+          "seq": 3,
+          "bytes": 24
+        },
+        {
+          "kind": "operation-cleanup-closed",
+          "seq": 3,
+          "bytes": 0
+        },
+        {
+          "kind": "final-ack-not-delivery",
+          "seq": 3,
+          "bytes": 0
+        },
+        {
+          "kind": "postcopy-marker-received",
+          "seq": 3,
+          "bytes": 0
+        },
+        {
+          "kind": "cutoff",
+          "seq": 4,
+          "bytes": 0
+        },
+        {
+          "kind": "termination-requested",
+          "seq": 0,
+          "bytes": 0
+        },
+        {
+          "kind": "worker-exit",
+          "seq": 0,
+          "bytes": 0
+        },
+        {
+          "kind": "parent-cleanup-closed",
+          "seq": 0,
+          "bytes": 0
+        }
+      ],
+      "diagnostic": {
+        "schema": "wrq-diagnostic-v1",
+        "rawCount": 0,
+        "records": {},
+        "scope": "shape-only-not-origin-or-reason-identity"
+      },
+      "prePublicationReservationPeak": 15155648,
+      "workerLoads": 98,
+      "engineLoads": 93,
+      "guestEntry": "proven by guest-originated bridge operations"
+    },
+    {
+      "case": "WRQ03-L03-v3",
+      "expectedStatus": 0,
+      "actualStatus": 0,
+      "expectedStdout": "true:true:true:7\n",
+      "actualStdout": "true:true:true:7\n",
+      "stdoutBytes": 17,
+      "qualified": true,
+      "judgement": {
+        "case": "WRQ03-L03-v3",
+        "qualified": true,
+        "failures": [],
+        "clean": true
+      },
+      "raw": [],
+      "privateFailures": 0,
+      "facts": {
+        "admission": false,
+        "acquisition": "acquired",
+        "exited": true,
+        "exitCode": 1,
+        "ordinal": 9,
+        "cleanupClosed": true,
+        "cleanupSettled": true
+      },
+      "terminal": {
+        "v": 3,
+        "session": 2,
+        "kind": "entryReturned",
+        "lastSeq": 8,
+        "finalFrame": 30,
+        "deliveredSeq": 8
+      },
+      "outcomes": [
+        {
+          "seq": 1,
+          "kind": "void",
+          "finalAck": true,
+          "delivered": true,
+          "closed": true
+        },
+        {
+          "seq": 2,
+          "kind": "void",
+          "finalAck": true,
+          "delivered": true,
+          "closed": true
+        },
+        {
+          "seq": 3,
+          "kind": "void",
+          "finalAck": true,
+          "delivered": true,
+          "closed": true
+        },
+        {
+          "seq": 4,
+          "kind": "text",
+          "finalAck": true,
+          "delivered": true,
+          "closed": true
+        },
+        {
+          "seq": 5,
+          "kind": "void",
+          "finalAck": true,
+          "delivered": true,
+          "closed": true
+        },
+        {
+          "seq": 6,
+          "kind": "void",
+          "finalAck": true,
+          "delivered": true,
+          "closed": true
+        },
+        {
+          "seq": 7,
+          "kind": "void",
+          "finalAck": true,
+          "delivered": true,
+          "closed": true
+        },
+        {
+          "seq": 8,
+          "kind": "void",
+          "finalAck": true,
+          "delivered": true,
+          "closed": true
+        }
+      ],
+      "effects": [
+        {
+          "path": "/data/input.json",
+          "utf8": "{\"count\":1}"
+        },
+        {
+          "path": "/data/object.json",
+          "utf8": "{\"count\":99}"
+        }
+      ],
+      "events": [
+        {
+          "kind": "ready",
+          "seq": 0,
+          "bytes": 0
+        },
+        {
+          "kind": "effect-admitted",
+          "seq": 1,
+          "bytes": 0
+        },
+        {
+          "kind": "operation-cleanup-closed",
+          "seq": 1,
+          "bytes": 0
+        },
+        {
+          "kind": "final-ack-not-delivery",
+          "seq": 1,
+          "bytes": 0
+        },
+        {
+          "kind": "postcopy-marker-received",
+          "seq": 1,
+          "bytes": 0
+        },
+        {
+          "kind": "effect-admitted",
+          "seq": 2,
+          "bytes": 0
+        },
+        {
+          "kind": "operation-cleanup-closed",
+          "seq": 2,
+          "bytes": 0
+        },
+        {
+          "kind": "final-ack-not-delivery",
+          "seq": 2,
+          "bytes": 0
+        },
+        {
+          "kind": "postcopy-marker-received",
+          "seq": 2,
+          "bytes": 0
+        },
+        {
+          "kind": "effect-admitted",
+          "seq": 3,
+          "bytes": 0
+        },
+        {
+          "kind": "operation-cleanup-closed",
+          "seq": 3,
+          "bytes": 0
+        },
+        {
+          "kind": "final-ack-not-delivery",
+          "seq": 3,
+          "bytes": 0
+        },
+        {
+          "kind": "postcopy-marker-received",
+          "seq": 3,
+          "bytes": 0
+        },
+        {
+          "kind": "effect-admitted",
+          "seq": 4,
+          "bytes": 0
+        },
+        {
+          "kind": "operation-cleanup-closed",
+          "seq": 4,
+          "bytes": 0
+        },
+        {
+          "kind": "final-ack-not-delivery",
+          "seq": 4,
+          "bytes": 0
+        },
+        {
+          "kind": "postcopy-marker-received",
+          "seq": 4,
+          "bytes": 0
+        },
+        {
+          "kind": "effect-admitted",
+          "seq": 5,
+          "bytes": 0
+        },
+        {
+          "kind": "operation-cleanup-closed",
+          "seq": 5,
+          "bytes": 0
+        },
+        {
+          "kind": "final-ack-not-delivery",
+          "seq": 5,
+          "bytes": 0
+        },
+        {
+          "kind": "postcopy-marker-received",
+          "seq": 5,
+          "bytes": 0
+        },
+        {
+          "kind": "effect-admitted",
+          "seq": 6,
+          "bytes": 12
+        },
+        {
+          "kind": "file-effect",
+          "seq": 6,
+          "bytes": 12
+        },
+        {
+          "kind": "operation-cleanup-closed",
+          "seq": 6,
+          "bytes": 0
+        },
+        {
+          "kind": "final-ack-not-delivery",
+          "seq": 6,
+          "bytes": 0
+        },
+        {
+          "kind": "postcopy-marker-received",
+          "seq": 6,
+          "bytes": 0
+        },
+        {
+          "kind": "effect-admitted",
+          "seq": 7,
+          "bytes": 0
+        },
+        {
+          "kind": "operation-cleanup-closed",
+          "seq": 7,
+          "bytes": 0
+        },
+        {
+          "kind": "final-ack-not-delivery",
+          "seq": 7,
+          "bytes": 0
+        },
+        {
+          "kind": "postcopy-marker-received",
+          "seq": 7,
+          "bytes": 0
+        },
+        {
+          "kind": "effect-admitted",
+          "seq": 8,
+          "bytes": 17
+        },
+        {
+          "kind": "output-published",
+          "seq": 8,
+          "bytes": 17
+        },
+        {
+          "kind": "operation-cleanup-closed",
+          "seq": 8,
+          "bytes": 0
+        },
+        {
+          "kind": "final-ack-not-delivery",
+          "seq": 8,
+          "bytes": 0
+        },
+        {
+          "kind": "postcopy-marker-received",
+          "seq": 8,
+          "bytes": 0
+        },
+        {
+          "kind": "cutoff",
+          "seq": 9,
+          "bytes": 0
+        },
+        {
+          "kind": "termination-requested",
+          "seq": 0,
+          "bytes": 0
+        },
+        {
+          "kind": "worker-exit",
+          "seq": 0,
+          "bytes": 0
+        },
+        {
+          "kind": "parent-cleanup-closed",
+          "seq": 0,
+          "bytes": 0
+        }
+      ],
+      "diagnostic": {
+        "schema": "wrq-diagnostic-v1",
+        "rawCount": 0,
+        "records": {},
+        "scope": "shape-only-not-origin-or-reason-identity"
+      },
+      "prePublicationReservationPeak": 15204866,
+      "workerLoads": 98,
+      "engineLoads": 93,
+      "guestEntry": "proven by guest-originated bridge operations"
+    },
+    {
+      "case": "WRQ04-L04-v3",
+      "expectedStatus": 0,
+      "actualStatus": 1,
+      "expectedStdout": "entry-return\n",
+      "actualStdout": "",
+      "stdoutBytes": 0,
+      "qualified": false,
+      "judgement": {
+        "case": "WRQ04-L04-v3",
+        "qualified": false,
+        "failures": [
+          "exact status/mapping",
+          "exact channels",
+          "normal terminal and no escaping reason"
+        ],
+        "clean": false
+      },
+      "raw": [],
+      "privateFailures": 0,
+      "facts": {
+        "admission": false,
+        "acquisition": "acquired",
+        "exited": true,
+        "exitCode": 1,
+        "ordinal": 1,
+        "cleanupClosed": true,
+        "cleanupSettled": true
+      },
+      "terminal": {
+        "v": 3,
+        "session": 3,
+        "kind": "guestFailure",
+        "lastSeq": 0,
+        "finalFrame": 0,
+        "deliveredSeq": 0
+      },
+      "outcomes": [],
+      "effects": [
+        {
+          "path": "/data/input.json",
+          "utf8": "{\"count\":1}"
+        },
+        {
+          "path": "/data/object.json",
+          "utf8": "{\"count\":1}"
+        }
+      ],
+      "events": [
+        {
+          "kind": "ready",
+          "seq": 0,
+          "bytes": 0
+        },
+        {
+          "kind": "cutoff",
+          "seq": 1,
+          "bytes": 0
+        },
+        {
+          "kind": "termination-requested",
+          "seq": 0,
+          "bytes": 0
+        },
+        {
+          "kind": "worker-exit",
+          "seq": 0,
+          "bytes": 0
+        },
+        {
+          "kind": "parent-cleanup-closed",
+          "seq": 0,
+          "bytes": 0
+        }
+      ],
+      "diagnostic": {
+        "schema": "wrq-diagnostic-v1",
+        "rawCount": 0,
+        "records": {},
+        "scope": "shape-only-not-origin-or-reason-identity"
+      },
+      "prePublicationReservationPeak": 2556352,
+      "workerLoads": 98,
+      "engineLoads": 93,
+      "guestEntry": "unknown: engine run attempted; guestFailure before any bridge operation; selectedGuest entry not separately captured"
+    }
+  ],
+  "unrun": [
+    {
+      "instance": "WRQ05-L05-undefined-v3",
+      "fixture": "L05",
+      "guestEvaluations": 1
+    },
+    {
+      "instance": "WRQ05-L05-false-v3",
+      "fixture": "L05",
+      "guestEvaluations": 1
+    },
+    {
+      "instance": "WRQ05-L05-object-v3",
+      "fixture": "L05",
+      "guestEvaluations": 1
+    },
+    {
+      "instance": "WRQ06-L06a-v3",
+      "fixture": "L06a",
+      "guestEvaluations": 1
+    },
+    {
+      "instance": "WRQ06-L06b-v3",
+      "fixture": "L06b",
+      "guestEvaluations": 1
+    },
+    {
+      "instance": "WRQ07-L07-v3",
+      "fixture": "L07",
+      "guestEvaluations": 1
+    },
+    {
+      "instance": "WRQ08-L08-v3",
+      "fixture": "L08",
+      "guestEvaluations": 0
+    }
+  ],
+  "parentOutcome": {
+    "closed": true,
+    "code": 1,
+    "signal": null,
+    "ownerMs": 1544,
+    "pid": 16768,
+    "primary": {
+      "present": false,
+      "origin": null
+    },
+    "secondary": [],
+    "capture": {
+      "primary": {
+        "present": false,
+        "origin": null
+      },
+      "secondary": [],
+      "slots": [
+        {
+          "acquired": true,
+          "closeAttempted": true,
+          "closed": true
+        },
+        {
+          "acquired": true,
+          "closeAttempted": true,
+          "closed": true
+        }
+      ],
+      "bytesSeen": 790,
+      "bytesWritten": 790,
+      "writeCalls": 2,
+      "cleanupComplete": true
+    },
+    "qualification": "Natural parent exit1 from frozen case-outcome-mismatch; no OS signal or timeout; Worker exit1 in all3 cases is requested lifetime termination, distinct from guest status."
+  },
+  "publication": {
+    "caseEvidenceBytes": 48492,
+    "diagnosticBytes": 324,
+    "successfulCasePublications": 3,
+    "diagnosticReasonsSerialized": 0,
+    "parentEndLoadLogPresent": false,
+    "rawIdentity": "No parent raw reason populated in this actual continuation; no actual caller/sink/cleanup identity exercise or serialized identity inference.",
+    "newEdge": "Three sidecars plus exact guarded parent source demonstrate execution of approved parent-only diagnostic module; final parent LOADS.json missing because frozen assertion-stop.",
+    "limits": "Each diagnostic uses same per-case ledger with1MiB reservation; receipts sample peak before publication, not actual full-publication maximum. Enforced source bound is not peak/RSS measurement."
+  },
+  "roles": {
+    "engine": "Exact public bb23 engine core in three Workers;95 emitted inputs unchanged; public run/Budget, static fixture source, ordinary synchronous bridge; no private ABI/compiler retry.",
+    "guest": "2 positively evidenced selectedGuest entries;3 run attempts; L04 entry/body progress unknown. No claim3 successful guest evaluations.",
+    "FS": "Cooperative development Map fixture, not product FileSystem/service interoperability;11 operations categorized using fixed source+sequence traces.",
+    "cleanup": "11 operation cleanup events;3 actual Worker exits and3 settled successful parent cleanup records;6 native stream closes implied by awaited registered close promises; L-entry retirement not all-jobs-settled."
+  },
+  "K1": "Adds actual caught FsError values and canonical JSON/module-cache workflow. Not Node CLI/.cjs loader completeness, arbitrary provider compatibility, or full NP1 qualification.",
+  "K2": "Typed fsError ACK/delivery/guest catch and L03 cache identity output qualified;22 evidenced bridge entries=11operations+11postcopy callbacks, not arbitrary wrapper counter. Caller/control/sink/cleanup collision and refusal paths unrun.",
+  "K3": "Three Workers actually retire and owned parent work closes. L04 discarded-pending-Promise expected normal return fails; intended Promise creation/progress is not captured. Cancellation wakeup, cleanup-failure, unknown retirement, L08 heap enforcement unrun. No RSS/globalguest8MiB/Q guarantee.",
+  "K4": "125 capsule input hashes and95 emissions verified pre/post;294 Worker load records,98unique paths/93engine modules each. Full parent load journal absent; TERM→2s→KILL unexercised. No malicious-guest/global permission-sandbox assurance.",
+  "findings": [
+    {
+      "id": "L04-actual-failure",
+      "known": "Expected status0 and entry-return newline; observed status1 guestFailure, empty output/raw channel, zero bridge operations; Worker exit and cleanup successful.",
+      "unknown": "worker-body collapses both !result.ok and caught thrown reason to guestFailure and stores no detail; new parent-only diagnostics cannot distinguish these branches.",
+      "classification": "Actual fixture/provider qualification failure; not a diagnosed production Node command or engine defect."
+    },
+    {
+      "id": "FROZEN-ASSERTION-STOP",
+      "known": "parent-entry.mjs:60 throws on judgement.qualified=false, so no remaining slots executed.",
+      "qualification": "No approved-source edit, manual skip, retry or same-grant continuation. Results aggregate only the3 produced cases."
+    }
+  ],
+  "history": {
+    "original": "345b9851 original L01PASS/L02FAIL unchanged; noL01 replay",
+    "parentProbe": "4d7f8531 separate parent-only observation, not retroactive original detail",
+    "controls": "Author23guard/20publication and reviewer20publication unchanged; reviewer23guard UNRUN /tmp admission preserved",
+    "F05": "DEFERRED"
+  },
+  "archive": {
+    "files": 139,
+    "rawArtifactBytes": 1398430,
+    "compressedBytes": 374615,
+    "encodedBytes": 499489,
+    "sha256": "4a6a5fca360043530c8fedded41ccd5ddaf0fde0c8d1735cdac09507592ab4b7",
+    "roundtrip": true,
+    "retained": "Complete139-file actual root retained; no cleanup of evidence or capsule. All owned processes/Workers/descriptors/relevant parent work closed."
+  },
+  "integrity": {
+    "capsuleInputs": 125,
+    "appendAwareActualCensus": 139,
+    "unlistedArtifacts": 0,
+    "nodePrePostSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "resourceAccounting": {
+    "allOwnedOSStartsBeforePublication": 6,
+    "finalTwoGitStartsRemaining": 2,
+    "allOwnedOSStartsAfterPublication": 8,
+    "maximumOwnedOSStarts": 8,
+    "peakOwnedOSChildren": 1,
+    "outerOwnerAndParentProcesses": 2,
+    "allCaptureBelow64MiB": true,
+    "actualArtifactBytes": 1398430,
+    "archiveWorkingBytes": 2769647,
+    "elapsedToEvidenceMs": 262721,
+    "ownerStartupOutsideNumericOwnerClock": "existing tool scheduling/local module import is outside frozen owner-entry clock; outer artifact elapsed recorded separately"
+  }
+}

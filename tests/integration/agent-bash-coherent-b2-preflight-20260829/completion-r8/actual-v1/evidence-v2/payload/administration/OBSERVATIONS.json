@@ -1,0 +1,774 @@
+{
+  "schema": "B2_R8_ACTUAL_STOP_SUMMARY",
+  "status": "STOP_INSTALLED_MODE_IDENTITY",
+  "attempts": 1,
+  "retries": 0,
+  "recordedUTC": "2026-08-29T17:05:04.273Z",
+  "runtimeExit": 78,
+  "retained": {
+    "pass": 224,
+    "fail": 0,
+    "unrun": 448,
+    "groups": [
+      {
+        "role": "retained-source-built-redirections-v3",
+        "ids": [
+          "R01",
+          "R02",
+          "R03",
+          "R04",
+          "R05",
+          "R06",
+          "R07",
+          "R08",
+          "R09",
+          "R10",
+          "R11",
+          "R12",
+          "R13",
+          "R14",
+          "R15",
+          "R16",
+          "R17",
+          "R18",
+          "R19",
+          "R20",
+          "R21",
+          "R22",
+          "R23",
+          "R24",
+          "R25",
+          "R26",
+          "R27",
+          "R28",
+          "R29",
+          "R30",
+          "R31",
+          "R32",
+          "R33",
+          "R34",
+          "R35",
+          "R36",
+          "C01-default80-display",
+          "C02-versioned-conditional-support",
+          "C03-single-open-and-raw-bytes",
+          "C04-before-open-caller-identity",
+          "C05-blocked-write-caller-identity",
+          "C06-backpressure",
+          "C07-sink-fault-profile-preserved",
+          "C08-required-file-after-downstream-close",
+          "C09-open-failure-and-prior-effect",
+          "C10-output-limit-and-cleanup",
+          "C11-closed-descriptor-error",
+          "C12-owned-real-file"
+        ],
+        "cases": 48,
+        "pass": 48,
+        "summary": {
+          "cases": 48,
+          "pass": 48,
+          "fail": 0
+        }
+      },
+      {
+        "role": "retained-source-built-strict",
+        "ids": [
+          "U01",
+          "U02",
+          "U03",
+          "U04",
+          "U05",
+          "U08",
+          "U09",
+          "U10",
+          "U11",
+          "U12",
+          "U13",
+          "U14",
+          "U15",
+          "U16",
+          "U18",
+          "U19",
+          "U20",
+          "U21",
+          "U22",
+          "U23",
+          "U24",
+          "U25",
+          "U26",
+          "U29",
+          "U30",
+          "U37",
+          "U38",
+          "U39",
+          "U40",
+          "U41",
+          "U42",
+          "U43",
+          "U44",
+          "U45",
+          "U46",
+          "U47",
+          "U48",
+          "U49",
+          "U50",
+          "E01-active-file-stderr",
+          "E02-here-string",
+          "E03-ordered-redirect-effects",
+          "E04-lazy-array-zero",
+          "E05-function-option-state",
+          "E06-if-not-errexit",
+          "E07-here-document",
+          "E08-nested-sink-rejection",
+          "E09-invoke-sink-boundary",
+          "E10-primary-sink-cleanup",
+          "E11-substitution-errexit"
+        ],
+        "cases": 50,
+        "pass": 50,
+        "summary": {
+          "cases": 50,
+          "pass": 50,
+          "fail": 0
+        }
+      },
+      {
+        "role": "retained-source-built-conditional",
+        "ids": [
+          "A01",
+          "A02",
+          "A03",
+          "A04",
+          "A05",
+          "A06",
+          "A07",
+          "A08",
+          "A09",
+          "A10",
+          "A11",
+          "A12",
+          "A13",
+          "A14",
+          "A15",
+          "A16",
+          "A17",
+          "A18",
+          "A19",
+          "A20",
+          "A21",
+          "A22",
+          "A23",
+          "A24",
+          "A25",
+          "A26",
+          "A27",
+          "A28",
+          "A29",
+          "A30",
+          "A31",
+          "A32",
+          "A33",
+          "A34",
+          "A35",
+          "A36",
+          "A37",
+          "A38",
+          "A39",
+          "A40",
+          "H01",
+          "H02-v4",
+          "H03",
+          "H04",
+          "H05",
+          "H06",
+          "H07",
+          "H08",
+          "H09",
+          "H10",
+          "S01-registered",
+          "S02-at",
+          "S03-star",
+          "S04-skipped",
+          "S05-ENOENT",
+          "S06-ENOTDIR",
+          "S07-EACCES",
+          "S08-EPERM",
+          "S09-ENOTSUP",
+          "S10-EOPNOTSUPP",
+          "S11-ENOSYS",
+          "S12-untyped",
+          "S13-untyped",
+          "S14-untyped",
+          "S15-unclassified",
+          "S16-code-getter",
+          "S17-limit-caller"
+        ],
+        "cases": 67,
+        "pass": 67,
+        "summary": {
+          "cases": 67,
+          "pass": 67,
+          "fail": 0,
+          "native": 0
+        }
+      },
+      {
+        "role": "retained-source-built-extension",
+        "ids": [
+          "U06",
+          "U07",
+          "U17",
+          "U28",
+          "U31",
+          "U32",
+          "U33",
+          "U34",
+          "U35",
+          "U36",
+          "S-U06-PARTIAL-v1",
+          "S-U07-LIST-STATUS-v1",
+          "S-ARITH-SUBSHELL-v1",
+          "S-ARITH-SUBSTITUTION-v1",
+          "E19-plus-tail",
+          "E20-subset-listing",
+          "E21-write-only-chain",
+          "E22-function-fatal",
+          "H24-preabort",
+          "H25-falsy-sink",
+          "H26-read-budget",
+          "H27-registered-cleanup",
+          "H28-caller-during-diagnostic",
+          "X01-sh-policy",
+          "X02-positional-listing",
+          "X03-errexit",
+          "X04-lazy-fixed64",
+          "X05-optind-substring",
+          "X06-existing-refusals",
+          "X07-parameter-falsy-sink",
+          "X08-parameter-limit",
+          "X09-parameter-cleanup",
+          "X10a-parameter-isolated-status-v2",
+          "X10b-parameter-isolated-null-v2",
+          "X10c-parameter-caller-cleanup-v2"
+        ],
+        "cases": 35,
+        "pass": 35,
+        "summary": {
+          "cases": 35,
+          "pass": 35,
+          "fail": 0,
+          "native": 0
+        }
+      },
+      {
+        "role": "retained-source-built-arrays",
+        "ids": [
+          "A01",
+          "A02",
+          "A03",
+          "A04",
+          "A05",
+          "A06",
+          "A07",
+          "A08",
+          "A09",
+          "A10",
+          "A11",
+          "A12"
+        ],
+        "cases": 12,
+        "pass": 12,
+        "summary": {
+          "profile": "coherent78-array-author-v1",
+          "cases": 12,
+          "pass": 12,
+          "disposed": 12
+        }
+      },
+      {
+        "role": "retained-source-built-n14",
+        "ids": [
+          "N01",
+          "N02",
+          "N03",
+          "N04",
+          "N05",
+          "N06",
+          "N07",
+          "N08",
+          "N09",
+          "N10",
+          "N11",
+          "N12"
+        ],
+        "cases": 12,
+        "pass": 12,
+        "summary": {
+          "cases": 12,
+          "pass": 12,
+          "fail": 0
+        }
+      }
+    ]
+  },
+  "types": {
+    "executed": 2,
+    "unrun": 4,
+    "exactNegativeDiagnostics": [
+      {
+        "line": 9,
+        "column": 24,
+        "code": 2353,
+        "message": "Object literal may only specify known properties, and 'replace' does not exist in type 'Omit<GitCommandsOptions, \"replace\">'."
+      },
+      {
+        "line": 11,
+        "column": 15,
+        "code": 2353,
+        "message": "Object literal may only specify known properties, and 'limits' does not exist in type 'GitCommandsOptions'."
+      },
+      {
+        "line": 13,
+        "column": 20,
+        "code": 2322,
+        "message": "Type 'number' is not assignable to type 'string'."
+      },
+      {
+        "line": 15,
+        "column": 21,
+        "code": 2353,
+        "message": "Object literal may only specify known properties, and 'spawn' does not exist in type 'GitCommandsOptions'."
+      },
+      {
+        "line": 17,
+        "column": 30,
+        "code": 2353,
+        "message": "Object literal may only specify known properties, and 'maxPackBytes' does not exist in type 'Omit<GitCommandsOptions, \"replace\">'."
+      },
+      {
+        "line": 19,
+        "column": 15,
+        "code": 2353,
+        "message": "Object literal may only specify known properties, and 'executable' does not exist in type 'GitCommandsOptions'."
+      },
+      {
+        "line": 25,
+        "column": 7,
+        "code": 2322,
+        "message": "Type 'ConditionalExpression' is not assignable to type 'string'."
+      },
+      {
+        "line": 27,
+        "column": 17,
+        "code": 2339,
+        "message": "Property 'notAProperty' does not exist on type '{ kind: \"conditional\"; expression: ConditionalExpression; source: string; } & { redirects: Redirect[]; line?: number; sourceName?: string; }'."
+      }
+    ],
+    "remainingDiagnosticsUnrun": 16
+  },
+  "mutants": {
+    "executed": 0,
+    "unrun": 7
+  },
+  "restores": {
+    "executed": 0,
+    "unrun": 7
+  },
+  "bindings": {
+    "executed": 0,
+    "unrun": 2
+  },
+  "children": [
+    {
+      "role": "retained-source-built-redirections-v3",
+      "pid": 81469,
+      "exit": {
+        "role": "retained-source-built-redirections-v3",
+        "pid": 81469,
+        "event": "exit",
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 36491.058832999996
+      },
+      "close": {
+        "role": "retained-source-built-redirections-v3",
+        "pid": 81469,
+        "event": "close",
+        "status": 0,
+        "signal": null,
+        "stdoutBytes": 3854,
+        "stderrBytes": 807,
+        "storedStdout": 3854,
+        "storedStderr": 807,
+        "elapsedMs": 36491.233041
+      },
+      "retired": {
+        "role": "retained-source-built-redirections-v3",
+        "pid": 81469,
+        "groupObservation": "NOT_REQUESTED_KNOWN_ROLE_ONLY",
+        "exited": true,
+        "closed": true,
+        "unknown": false,
+        "elapsedMs": 36491.263915999996
+      }
+    },
+    {
+      "role": "retained-source-built-strict",
+      "pid": 81474,
+      "exit": {
+        "role": "retained-source-built-strict",
+        "pid": 81474,
+        "event": "exit",
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 37001.18325
+      },
+      "close": {
+        "role": "retained-source-built-strict",
+        "pid": 81474,
+        "event": "close",
+        "status": 0,
+        "signal": null,
+        "stdoutBytes": 8809,
+        "stderrBytes": 807,
+        "storedStdout": 8809,
+        "storedStderr": 807,
+        "elapsedMs": 37001.268583
+      },
+      "retired": {
+        "role": "retained-source-built-strict",
+        "pid": 81474,
+        "groupObservation": "NOT_REQUESTED_KNOWN_ROLE_ONLY",
+        "exited": true,
+        "closed": true,
+        "unknown": false,
+        "elapsedMs": 37001.30225
+      }
+    },
+    {
+      "role": "retained-source-built-conditional",
+      "pid": 81479,
+      "exit": {
+        "role": "retained-source-built-conditional",
+        "pid": 81479,
+        "event": "exit",
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 37534.423416
+      },
+      "close": {
+        "role": "retained-source-built-conditional",
+        "pid": 81479,
+        "event": "close",
+        "status": 0,
+        "signal": null,
+        "stdoutBytes": 11346,
+        "stderrBytes": 807,
+        "storedStdout": 11346,
+        "storedStderr": 807,
+        "elapsedMs": 37534.508041
+      },
+      "retired": {
+        "role": "retained-source-built-conditional",
+        "pid": 81479,
+        "groupObservation": "NOT_REQUESTED_KNOWN_ROLE_ONLY",
+        "exited": true,
+        "closed": true,
+        "unknown": false,
+        "elapsedMs": 37534.564666
+      }
+    },
+    {
+      "role": "retained-source-built-extension",
+      "pid": 81491,
+      "exit": {
+        "role": "retained-source-built-extension",
+        "pid": 81491,
+        "event": "exit",
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 38045.642291
+      },
+      "close": {
+        "role": "retained-source-built-extension",
+        "pid": 81491,
+        "event": "close",
+        "status": 0,
+        "signal": null,
+        "stdoutBytes": 20384,
+        "stderrBytes": 1405,
+        "storedStdout": 20384,
+        "storedStderr": 1405,
+        "elapsedMs": 38045.939875
+      },
+      "retired": {
+        "role": "retained-source-built-extension",
+        "pid": 81491,
+        "groupObservation": "NOT_REQUESTED_KNOWN_ROLE_ONLY",
+        "exited": true,
+        "closed": true,
+        "unknown": false,
+        "elapsedMs": 38045.967958
+      }
+    },
+    {
+      "role": "retained-source-built-arrays",
+      "pid": 81499,
+      "exit": {
+        "role": "retained-source-built-arrays",
+        "pid": 81499,
+        "event": "exit",
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 38498.863124999996
+      },
+      "close": {
+        "role": "retained-source-built-arrays",
+        "pid": 81499,
+        "event": "close",
+        "status": 0,
+        "signal": null,
+        "stdoutBytes": 3818,
+        "stderrBytes": 807,
+        "storedStdout": 3818,
+        "storedStderr": 807,
+        "elapsedMs": 38498.925749999995
+      },
+      "retired": {
+        "role": "retained-source-built-arrays",
+        "pid": 81499,
+        "groupObservation": "NOT_REQUESTED_KNOWN_ROLE_ONLY",
+        "exited": true,
+        "closed": true,
+        "unknown": false,
+        "elapsedMs": 38498.943290999996
+      }
+    },
+    {
+      "role": "retained-source-built-n14",
+      "pid": 81501,
+      "exit": {
+        "role": "retained-source-built-n14",
+        "pid": 81501,
+        "event": "exit",
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 38963.936375
+      },
+      "close": {
+        "role": "retained-source-built-n14",
+        "pid": 81501,
+        "event": "close",
+        "status": 0,
+        "signal": null,
+        "stdoutBytes": 3526,
+        "stderrBytes": 3647,
+        "storedStdout": 3526,
+        "storedStderr": 3647,
+        "elapsedMs": 38964.140791
+      },
+      "retired": {
+        "role": "retained-source-built-n14",
+        "pid": 81501,
+        "groupObservation": "NOT_REQUESTED_KNOWN_ROLE_ONLY",
+        "exited": true,
+        "closed": true,
+        "unknown": false,
+        "elapsedMs": 38964.173916
+      }
+    },
+    {
+      "role": "types-source-built-positive",
+      "pid": 81508,
+      "exit": {
+        "role": "types-source-built-positive",
+        "pid": 81508,
+        "event": "exit",
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 39740.979666
+      },
+      "close": {
+        "role": "types-source-built-positive",
+        "pid": 81508,
+        "event": "close",
+        "status": 0,
+        "signal": null,
+        "stdoutBytes": 22208,
+        "stderrBytes": 0,
+        "storedStdout": 22208,
+        "storedStderr": 0,
+        "elapsedMs": 39741.027040999994
+      },
+      "retired": {
+        "role": "types-source-built-positive",
+        "pid": 81508,
+        "groupObservation": "NOT_REQUESTED_KNOWN_ROLE_ONLY",
+        "exited": true,
+        "closed": true,
+        "unknown": false,
+        "elapsedMs": 39741.088166
+      }
+    },
+    {
+      "role": "types-source-built-negative",
+      "pid": 81518,
+      "exit": {
+        "role": "types-source-built-negative",
+        "pid": 81518,
+        "event": "exit",
+        "status": 2,
+        "signal": null,
+        "elapsedMs": 40648.482166
+      },
+      "close": {
+        "role": "types-source-built-negative",
+        "pid": 81518,
+        "event": "close",
+        "status": 2,
+        "signal": null,
+        "stdoutBytes": 23618,
+        "stderrBytes": 0,
+        "storedStdout": 23618,
+        "storedStderr": 0,
+        "elapsedMs": 40648.534208
+      },
+      "retired": {
+        "role": "types-source-built-negative",
+        "pid": 81518,
+        "groupObservation": "NOT_REQUESTED_KNOWN_ROLE_ONLY",
+        "exited": true,
+        "closed": true,
+        "unknown": false,
+        "elapsedMs": 40648.551458
+      }
+    },
+    {
+      "role": "offline-install",
+      "pid": 81531,
+      "exit": {
+        "role": "offline-install",
+        "pid": 81531,
+        "event": "exit",
+        "status": 0,
+        "signal": null,
+        "elapsedMs": 44496.625125
+      },
+      "close": {
+        "role": "offline-install",
+        "pid": 81531,
+        "event": "close",
+        "status": 0,
+        "signal": null,
+        "stdoutBytes": 23,
+        "stderrBytes": 0,
+        "storedStdout": 23,
+        "storedStderr": 0,
+        "elapsedMs": 44496.672458
+      },
+      "retired": {
+        "role": "offline-install",
+        "pid": 81531,
+        "groupObservation": "NOT_REQUESTED_KNOWN_ROLE_ONLY",
+        "exited": true,
+        "closed": true,
+        "unknown": false,
+        "elapsedMs": 44496.898583
+      }
+    }
+  ],
+  "plannedChildrenUnstarted": 32,
+  "completedClassifiedRoles": [
+    "retained-source-built-redirections-v3",
+    "retained-source-built-strict",
+    "retained-source-built-conditional",
+    "retained-source-built-extension",
+    "retained-source-built-arrays",
+    "retained-source-built-n14",
+    "types-source-built-positive",
+    "types-source-built-negative"
+  ],
+  "offlineInstall": {
+    "exit": 0,
+    "packageAdmission": "FAILED_MODE_COMPARISON"
+  },
+  "cleanup": {
+    "knownChildrenRetired": true,
+    "secondaryPresent": false,
+    "secondary": {
+      "type": "undefined"
+    }
+  },
+  "capture": {
+    "attemptedBytes": 105866,
+    "storedBytes": 105866
+  },
+  "cache": {
+    "phase": "quiescent",
+    "totalSnapshotRaces": 16,
+    "postCloseObservedBytes": 932606,
+    "sourceBoundProved": false,
+    "peakProof": false,
+    "atomic": false
+  },
+  "loaders": {
+    "admissions": 6,
+    "preparedTraceRecords": 1495,
+    "traceBytes": 420326,
+    "traces": [
+      {
+        "path": "retained-source-built-arrays.jsonl",
+        "bytes": 70012,
+        "sha256": "751b9b8f90cca372e5ccb4624e787b8b00bdc252c0d7cb37a5075b98620f32bc",
+        "records": 249,
+        "afterExitAndClose": true,
+        "crashDurability": false
+      },
+      {
+        "path": "retained-source-built-conditional.jsonl",
+        "bytes": 70022,
+        "sha256": "0cdf0d79b2565f201b573072f76793132fc718768301c4310e14e94e8aef922b",
+        "records": 249,
+        "afterExitAndClose": true,
+        "crashDurability": false
+      },
+      {
+        "path": "retained-source-built-extension.jsonl",
+        "bytes": 70018,
+        "sha256": "c91eedcc26dab5dea8f9757da29fb10feed3ab99f4f2c19dd961171fbc135415",
+        "records": 249,
+        "afterExitAndClose": true,
+        "crashDurability": false
+      },
+      {
+        "path": "retained-source-built-n14.jsonl",
+        "bytes": 70006,
+        "sha256": "ed419d7704763f910e20b7cdeff296ce37dc9ec734e48b33babe17eafbe7fb91",
+        "records": 249,
+        "afterExitAndClose": true,
+        "crashDurability": false
+      },
+      {
+        "path": "retained-source-built-redirections-v3.jsonl",
+        "bytes": 70256,
+        "sha256": "a3fc47108f188904f1ae3f89fee23436357b32c3b747b626cf900aa98e8793f4",
+        "records": 250,
+        "afterExitAndClose": true,
+        "crashDurability": false
+      },
+      {
+        "path": "retained-source-built-strict.jsonl",
+        "bytes": 70012,
+        "sha256": "f7449029dff55e7f8d78451d1936500bc3baf2337953ec5046fce6d282c04797",
+        "records": 249,
+        "afterExitAndClose": true,
+        "crashDurability": false
+      }
+    ],
+    "individualLoaderExits": "UNOBSERVED; enclosing six parents exited/closed",
+    "RegexWorkers": "No authorized construction; static closure qualification, not universal observation",
+    "guestEngines": 0
+  },
+  "primaryRaw": "PARTIAL-FAILURE.json preserves exact source-rendered error stack; owner retirement abbreviates reason as object, not a raw identity serialization",
+  "remainingDeadline": "2026-08-29T17:30:00.000Z"
+}

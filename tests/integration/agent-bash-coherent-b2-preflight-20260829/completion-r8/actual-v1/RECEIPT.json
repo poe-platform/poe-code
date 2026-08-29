@@ -1,0 +1,116 @@
+{
+  "schema": "B2_R8_ACTUAL_STOP_RECEIPT",
+  "status": "STOP_NOT_COHERENT_ACCEPTANCE",
+  "publishedUTC": "2026-08-29T17:07:44.383Z",
+  "source": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "packet": {
+    "bytes": 6945,
+    "sha256": "6df866e7990386218848061128777008bfbd6cdd93a7c0f658559fc0d0aa23f9"
+  },
+  "package": {
+    "members": 1014,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca"
+  },
+  "grant": {
+    "bytes": 1081,
+    "mode": "0600",
+    "sha256": "779253fa14627330e812e9522603f8e61895a91155d5e4f9fe943f0823573e80"
+  },
+  "authority": {
+    "root": "ONE_ACTUAL_ATTEMPT",
+    "preexec": "a54f318dedf6e80edd3ac12887f9e50ae4bff758",
+    "finalBinding": "c3ad53a515bf8f27c45dc2da01f8b179c70be5ff",
+    "differentBindingReview": "407a4cda70d5bdf66a50de9b3bb6c81b6f605585"
+  },
+  "runtime": {
+    "attempts": 1,
+    "retries": 0,
+    "toolSession": 10303,
+    "exit": 78,
+    "notBefore": "2026-08-29T17:00:00.000Z",
+    "preDispatch": "2026-08-29T17:00:25.604Z",
+    "latestStart": "2026-08-29T17:05:00.000Z",
+    "activeDeadline": "2026-08-29T17:27:00.000Z",
+    "absoluteDeadline": "2026-08-29T17:30:00.000Z"
+  },
+  "outcomes": {
+    "retainedPass": 224,
+    "retainedFail": 0,
+    "retainedUnrun": 448,
+    "typeRolesExecuted": 2,
+    "typeRolesUnrun": 4,
+    "diagnosticsMatched": 8,
+    "diagnosticsUnrun": 16,
+    "mutantsUnrun": 7,
+    "restoresUnrun": 7,
+    "bindingsUnrun": 2,
+    "offlineInstallExit": 0,
+    "guard": "1014 installed mode0600 versus expected0644; bytes/names all match"
+  },
+  "retirement": {
+    "runtimeChildren": 9,
+    "allNineExitAndClose": true,
+    "signals": 0,
+    "knownUnresolved": 0,
+    "ownerTerminal": "tool-exit78",
+    "timerTerminal": "tool-exit0",
+    "individualAsyncLoaderExits": "UNOBSERVED",
+    "universalCensus": false
+  },
+  "loaders": {
+    "admissions": 6,
+    "preparedRecords": 1495,
+    "traceBytes": 420326,
+    "traceOnlyEvaluationProof": false
+  },
+  "cache": {
+    "phase": "quiescent",
+    "totalSnapshotRaces": 16,
+    "postCloseObservedBytes": 932606,
+    "sourceBoundProved": false,
+    "peakProof": false,
+    "atomic": false
+  },
+  "publication": {
+    "rawManifest": {
+      "bytes": 29620,
+      "sha256": "d7f7b1f346a76e634e394767f1d930f79c1e8d8dc865719c6b2220a1afb7c078"
+    },
+    "copiedFiles": 55,
+    "payloadBytes": 2609331,
+    "logicalBytesAtReceipt": 17485801,
+    "logicalLimit": 536870912,
+    "captureLimit": 100663296,
+    "atomic": false,
+    "peakProof": false,
+    "GitInternalStorage": "not logical artifact quota"
+  },
+  "knownRoleAccounting": {
+    "runtimeChildren": 9,
+    "owner": 1,
+    "timer": 1,
+    "toolShellAllowances": 2,
+    "publicationPatchShellAndTool": 2,
+    "remainingGitRoles": 4,
+    "prospectiveConservativeTotal": 19,
+    "limit": 64,
+    "peakBound": 3,
+    "qualification": "Conservative known-role accounting, not full OS/transitive/native-thread census; final4Git closures retained externally"
+  },
+  "postguards": {
+    "packetFiles": 32,
+    "sourceBuiltMembers": 1014,
+    "installedMembers": 1014,
+    "allBytesAndNamesMatch": true,
+    "sourceModeMismatches": 0,
+    "installedModeMismatches": 1014,
+    "noPermissionRepair": true
+  },
+  "historical": [
+    "r6FSYNC/timer STOPs",
+    "r7 224PASS/448UNRUN and npmSIGTERM/ENOENT",
+    "r8 publication/binding helper failures",
+    "two recorded post-terminal DATA-reader failures"
+  ],
+  "productFailureClaim": false
+}

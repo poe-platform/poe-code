@@ -1,0 +1,5097 @@
+{
+  "checkedUTC": "2026-08-29T17:04:14.467Z",
+  "packageSets": [
+    {
+      "layout": "source-built",
+      "members": 1014,
+      "bytesAndNamesAllMatch": true,
+      "modeDifferences": []
+    },
+    {
+      "layout": "installed",
+      "members": 1014,
+      "bytesAndNamesAllMatch": true,
+      "modeDifferences": [
+        {
+          "path": "dist/commands/node/admission.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/real/allocation.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/apply.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/args.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/arguments.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/arguments.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/arguments.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arithmetic.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/authority.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/awk-runtime.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/awk-syntax.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/awk-values.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/awk.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/base.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/basic.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arrays/bindings.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/body.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/bre-worker.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/budget.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/budget.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/calendar.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/cancellation.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/channel.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/charset.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/chmod.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/file/classify.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/cleanup.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/cli.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/regex-execution/client.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/codec.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/column.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/comm.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/command.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/mount/comparison.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/conditional.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/config.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/copy-identity.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/crc.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/create.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/curl.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/date.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/delta.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/diagnostics.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/diff-format.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/diff.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/diff.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/display.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/display.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/du.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/timeout/duration.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/entities.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/env-split.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/errors.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/evaluate.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/execution.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/expand.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/extract.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/files.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/filesystem.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/filesystem.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/filesystem.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/filesystem.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/find.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/fold.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/format.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/format.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/format.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/getopts.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/glob.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/grep.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/gunzip.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/host.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/mount/identity.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/ignore.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/checksums/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/file/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/grep-aliases/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/timeout/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/which/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/memory/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/mount/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/overlay/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/readonly/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/real/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/webdav/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/plugins/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/index.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/input.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/input.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/input.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/internal.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/internal.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/internal.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/internal.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/internal.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/internal.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/interpreter.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/io.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/io.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/io.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/io.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/io.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/join.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/jq.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arrays/ledger.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/lifecycle.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/limits.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/limits.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/locale.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/lower.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/matcher.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/matcher.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/regex-execution/matching.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/mktemp.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/mock.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/move.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/names.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/nl.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/numbers.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/numeric-options.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/od.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/options.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/options.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/options.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/options.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/options.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/options.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/options.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/options.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/options.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/options.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/which/options.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/output.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/output.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/output.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/outputs.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/pack.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/parser.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/parser.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/parser.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/parser.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/paste.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-envelope.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-formats.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-gnu-paths.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-gnu-reject.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-path.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/path.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/pattern.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/pattern.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/plugin.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/predicates.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/printenv.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/program.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/regex-execution/protocol.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/queries.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/regex.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/render.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/render.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/repository.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/request.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/webdav/resource-id.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/rev.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/rg.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/rules.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/runtime.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/timeout/scheduler.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/sed.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/seq.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/shared.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/shared.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/shared.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/file/shared.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/shared.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/shared.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/shared.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/shared.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/shared.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/shared.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/shell.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/shell.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/signature.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/sleep.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/split.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/split.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/stat.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arrays/state.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/stats.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/stream.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/stream.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/streams.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/strings.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/syntax.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arrays/syntax.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/table.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/tac.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/text.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/transport.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/transport.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/transport.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/tree.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/types.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/types.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/types.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/types.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/types.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/unexpand.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/unified.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/values.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/values.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/values.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/walk.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/webdav/webdav.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/which/which.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/worker-main.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/worker-provider.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/worker-types.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/regex-execution/worker.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/xml.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/webdav/xml.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/xxd.js",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "package.json",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/admission.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/admission.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/real/allocation.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/real/allocation.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/apply.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/apply.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/args.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/args.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/arguments.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/arguments.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/arguments.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/arguments.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/arguments.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/arguments.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arithmetic.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arithmetic.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/authority.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/authority.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/awk-runtime.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/awk-runtime.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/awk-syntax.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/awk-syntax.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/awk-values.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/awk-values.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/awk.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/awk.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/base.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/base.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/basic.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/basic.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arrays/bindings.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arrays/bindings.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/body.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/body.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/bre-worker.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/bre-worker.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/budget.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/budget.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/budget.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/budget.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/calendar.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/calendar.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/cancellation.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/cancellation.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/channel.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/channel.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/charset.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/charset.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/chmod.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/chmod.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/file/classify.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/file/classify.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/cleanup.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/cleanup.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/cli.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/cli.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/regex-execution/client.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/regex-execution/client.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/codec.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/codec.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/column.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/column.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/comm.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/comm.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/command.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/command.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/mount/comparison.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/mount/comparison.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/conditional.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/conditional.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/config.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/config.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/copy-identity.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/copy-identity.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/crc.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/crc.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/create.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/create.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/curl.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/curl.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/date.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/date.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/delta.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/delta.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/diagnostics.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/diagnostics.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/diff-format.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/diff-format.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/diff.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/diff.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/diff.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/diff.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/display.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/display.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/display.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/display.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/du.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/du.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/timeout/duration.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/timeout/duration.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/entities.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/entities.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/env-split.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/env-split.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/errors.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/errors.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/evaluate.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/evaluate.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/execution.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/execution.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/expand.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/expand.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/extract.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/extract.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/files.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/files.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/filesystem.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/filesystem.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/filesystem.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/filesystem.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/filesystem.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/filesystem.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/filesystem.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/filesystem.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/find.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/find.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/fold.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/fold.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/format.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/format.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/format.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/format.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/format.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/format.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/getopts.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/getopts.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/glob.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/glob.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/grep.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/grep.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/gunzip.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/gunzip.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/host.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/host.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/mount/identity.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/mount/identity.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/ignore.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/ignore.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/checksums/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/file/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/grep-aliases/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/timeout/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/which/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/memory/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/mount/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/overlay/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/readonly/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/real/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/webdav/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/plugins/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/index.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/checksums/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/file/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/grep-aliases/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/timeout/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/which/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/memory/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/mount/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/overlay/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/readonly/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/real/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/webdav/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/plugins/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/index.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/input.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/input.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/input.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/input.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/input.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/input.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/internal.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/internal.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/internal.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/internal.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/internal.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/internal.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/internal.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/internal.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/internal.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/internal.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/internal.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/internal.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/interpreter.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/interpreter.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/io.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/io.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/io.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/io.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/io.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/io.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/io.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/io.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/io.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/io.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/join.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/join.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/jq.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/jq.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arrays/ledger.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arrays/ledger.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/lifecycle.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/lifecycle.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/limits.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/limits.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/limits.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/limits.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/locale.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/locale.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/lower.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/lower.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/matcher.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/matcher.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/matcher.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/matcher.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/regex-execution/matching.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/regex-execution/matching.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/mktemp.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/mktemp.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/mock.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/mock.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/move.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/move.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/names.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/names.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/nl.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/nl.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/numbers.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/numbers.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/numeric-options.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/numeric-options.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/od.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/od.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/options.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/options.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/options.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/options.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/options.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/options.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/options.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/options.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/options.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/options.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/which/options.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/options.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/options.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/options.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/options.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/options.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/options.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/options.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/options.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/options.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/options.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/which/options.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/output.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/output.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/output.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/output.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/output.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/output.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/outputs.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/outputs.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/pack.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/pack.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/parser.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/parser.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/parser.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/parser.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/parser.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/parser.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/parser.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/parser.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/paste.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/paste.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-envelope.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-envelope.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-formats.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-formats.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-gnu-paths.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-gnu-paths.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-gnu-reject.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-gnu-reject.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-path.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-path.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/path.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/path.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/pattern.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/pattern.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/pattern.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/pattern.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/plugin.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/plugin.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/predicates.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/predicates.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/printenv.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/printenv.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/program.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/program.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/regex-execution/protocol.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/regex-execution/protocol.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/queries.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/queries.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/regex.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/regex.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/render.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/render.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/render.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/render.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/repository.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/repository.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/request.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/request.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/webdav/resource-id.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/webdav/resource-id.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/rev.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/rev.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/rg.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/rg.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/rules.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/rules.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/runtime.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/runtime.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/timeout/scheduler.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/timeout/scheduler.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/sed.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/sed.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/seq.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/seq.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/shared.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/shared.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/shared.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/file/shared.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/shared.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/shared.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/shared.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/shared.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/shared.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/shared.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/shared.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/shared.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/shared.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/file/shared.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/shared.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/shared.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/shared.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/shared.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/shared.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/shared.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/shell.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/shell.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/shell.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/shell.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/signature.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/signature.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/sleep.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/sleep.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/split.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/split.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/split.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/split.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/stat.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/stat.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arrays/state.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arrays/state.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/stats.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/stats.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/stream.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/stream.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/stream.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/stream.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/streams.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/streams.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/strings.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/strings.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/syntax.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arrays/syntax.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/syntax.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arrays/syntax.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/table.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/table.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/tac.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/tac.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/text.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/text.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/transport.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/transport.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/transport.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/transport.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/transport.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/transport.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/tree.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/tree.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/types.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/types.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/types.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/types.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/types.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/types.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/types.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/types.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/types.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/types.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/unexpand.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/unexpand.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/unified.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/unified.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/values.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/values.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/values.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/values.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/values.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/values.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/walk.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/walk.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/webdav/webdav.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/webdav/webdav.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/which/which.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/which/which.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/worker-main.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/worker-main.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/worker-provider.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/worker-provider.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/worker-types.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/worker-types.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/regex-execution/worker.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/regex-execution/worker.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/xml.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/webdav/xml.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/xml.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/webdav/xml.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/xxd.d.ts.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/xxd.js.map",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "README.md",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/admission.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/real/allocation.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/apply.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/args.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/arguments.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/arguments.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/arguments.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arithmetic.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/authority.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/awk-runtime.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/awk-syntax.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/awk-values.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/awk.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/base.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/basic.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arrays/bindings.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/body.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/bre-worker.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/budget.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/budget.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/calendar.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/cancellation.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/channel.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/charset.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/chmod.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/file/classify.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/cleanup.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/cli.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/regex-execution/client.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/codec.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/column.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/comm.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/command.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/mount/comparison.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/conditional.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/config.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/copy-identity.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/crc.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/create.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/curl.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/date.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/delta.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/diagnostics.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/diff-format.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/diff.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/diff.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/display.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/display.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/du.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/timeout/duration.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/entities.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/env-split.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/errors.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/evaluate.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/execution.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/expand.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/extract.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/files.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/filesystem.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/filesystem.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/filesystem.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/filesystem.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/find.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/fold.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/format.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/format.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/format.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/getopts.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/glob.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/grep.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/gunzip.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/host.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/mount/identity.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/ignore.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/checksums/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/file/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/grep-aliases/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/timeout/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/which/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/memory/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/mount/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/overlay/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/readonly/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/real/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/webdav/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/plugins/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/index.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/input.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/input.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/input.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/internal.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/internal.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/internal.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/internal.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/internal.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/internal.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/interpreter.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/io.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/io.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/io.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/io.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/io.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/join.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/jq.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arrays/ledger.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/lifecycle.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/limits.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/limits.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/locale.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/lower.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/matcher.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/matcher.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/regex-execution/matching.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/mktemp.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/mock.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/move.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/names.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/nl.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/numbers.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/numeric-options.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/od.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/options.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/options.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/options.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/options.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/du/options.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/options.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/options.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/options.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/options.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/options.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/which/options.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/output.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/output.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/output.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/outputs.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/pack.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/parser.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/parser.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/parser.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/parser.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/table-text/paste.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-envelope.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-formats.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-gnu-paths.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-gnu-reject.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch-path.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/patch.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/path.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/pattern.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/pattern.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/contracts/plugin.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/predicates.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/printenv.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/program.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/regex-execution/protocol.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/queries.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/regex.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/render.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/render.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/git/repository.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/request.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/webdav/resource-id.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/rev.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/rg.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/rules.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/runtime.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/timeout/scheduler.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/sed.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/seq.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/apply-patch/shared.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/shared.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/shared.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/file/shared.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/shared.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/shared.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/shared.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/shared.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text-programs/shared.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/shared.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/shell.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/shell.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/signature.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/time-env/sleep.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/split/split.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/split.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/metadata/stat.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arrays/state.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/stats.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/archive/stream.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/compression/stream.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/streams.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/strings.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/expr/syntax.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/arrays/syntax.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/column/table.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-inspection/tac.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/html-to-markdown/text.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/text.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/transport.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/transport.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/transport.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/tree/tree.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/network/types.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/types.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/safejs/types.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/types.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/shell/types.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/stream-format/unexpand.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/diff-patch/unified.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/values.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/structured/values.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/integrations/safejs/values.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/search/walk.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/webdav/webdav.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/which/which.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/worker-main.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/worker-provider.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/node/worker-types.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/regex-execution/worker.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/s3/http/xml.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/fs/webdav/xml.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        },
+        {
+          "path": "dist/commands/bytes/encoding/xxd.d.ts",
+          "expectedMode": 420,
+          "actualMode": 384
+        }
+      ]
+    }
+  ],
+  "packetFiles": 32,
+  "logicalSnapshot": {
+    "bytes": 14670907,
+    "observedCacheBytes": 932606,
+    "entries": 2225,
+    "atomic": false,
+    "peakProof": false
+  },
+  "scope": "Post-retirement DATA only; no chmod, file repair or runtime retry. Inactive package-only snapshots use reservation0; actual cache reservation remains128MiB. Census uses frozen helper and invocation-local counters."
+}

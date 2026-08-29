@@ -1,0 +1,40 @@
+{
+  "schema": "ere-capture-reference-v1",
+  "runRoot": "/private/tmp/safe-bash-ere-native-observations-20260829-v1",
+  "limits": {
+    "totalMs": 600000,
+    "setupMs": 60000,
+    "finalizationTailMs": 60000,
+    "perCaseMs": 3000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "knownManagedProcessCeiling": 13,
+    "knownPeakCeiling": 2,
+    "allKnownProcessProposalCeiling": 40,
+    "allKnownPeakProposalCeiling": 3,
+    "ownerStarts": 1,
+    "nativeStarts": 12,
+    "administrativeChildStarts": 0,
+    "sourceInternalForkReservations": 0,
+    "perStreamBytes": 65536,
+    "aggregateCaptureBytes": 33554432,
+    "workingBytes": 134217728,
+    "emergencyReserveBytes": 65536,
+    "ownerWriteBytes": 262144,
+    "snapshotEntries": 32,
+    "snapshotFileBytes": 65536,
+    "snapshotBytes": 262144
+  },
+  "profile": "FUNCTIONAL_OBSERVATION_ONLY_NOT_CONTAINMENT",
+  "nativeGo": false,
+  "initialToolShellStartup": "TRUSTED_HOST_OUTSIDE_CHILD_FRESH_ENV_AND_RAW_CAPTURE",
+  "bashChildren": "exact six-key env, fresh empty HOME/TMPDIR/PATH, --noprofile --norc, empty closed stdin; no BASH_ENV/ENV/SHELLOPTS/BASHOPTS/functions",
+  "output": {
+    "format": "EREOBS1 NUL id NUL regexStatus NUL cardinality NUL then four [index NUL shellSlotPresent NUL rawValue NUL] records",
+    "status": "process exit equals recorded regex status; nonzero is an observation, not automatic test failure",
+    "hiddenRegexecSpans": "UNOBSERVABLE",
+    "emptyVsNativeNonparticipation": "NOT inferred from identical empty strings; shell-slot presence is not C regmatch_t participation"
+  },
+  "publication": "inclusive final deadline before/after writes, terminal/flush/credit; cleanup attempted independently; late cleanup cannot qualify",
+  "authorization": "independent review plus fresh runtime receipt/GO and resolved-slot DATA review plus exact require_escalated tool approval; no old authority reuse"
+}

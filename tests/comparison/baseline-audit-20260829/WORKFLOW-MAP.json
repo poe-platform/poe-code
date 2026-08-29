@@ -1,0 +1,366 @@
+{
+  "schema": "fair-priority-comparison-map-v1",
+  "classification": "STATIC_ELIGIBILITY_NOT_RESULTS",
+  "inputCommit": "5d432becbe385eb323c10feecfa5e982bfd3b099",
+  "casesSha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da",
+  "fixturesSha256": "2784e925e57619b9e0a1285c890f09293345ea414fee27a8d9aa507bfe0e00f1",
+  "originalCounts": {
+    "positiveWorkflows": 24,
+    "controls": 7,
+    "totalIdentities": 31
+  },
+  "globalRequirements": [
+    "Exact existing scripts/argv/fixture bytes/final stdout/stderr/status and filesystem effects remain bound, including known unsupported flags; do not silently filter predicted losses.",
+    "Every original per-stage exit/dispatch/iterator/read/cleanup predicate needs an authentic per-engine observation channel. Missing channels are UNQUALIFIED, never implicit PASS.",
+    "Namespace census separates bounded, exact engine scaffolding from workflow-owned paths; current whole-root target expectation cannot simply be applied to comparator defaults.",
+    "Source presence is only eligibility. No candidate/product/comparator evaluations, no historical rescore."
+  ],
+  "rows": [
+    {
+      "id": "P01",
+      "title": "Number actionable rows within a release-note slice",
+      "script": "sed -n '2,4p' notes | rg -n -F TODO | nl -ba -w 1 -s ':'",
+      "frozenCaseSha256": "e215f3b7db862f5b8d691e3ec8607518d6d601caceca94a0f921fab050798119",
+      "frozenExpectedSha256": "243357d116eef79b9a0e4734fd49a7477afc8e52341851eb891f4c3233cee742",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Core CLI/filesystem semantic comparison is meaningful after package/adapter admission; preserve every frozen expectation and qualify unavailable stage telemetry separately."
+    },
+    {
+      "id": "P02",
+      "title": "Isolate one deployment block before error search",
+      "script": "sed -n '/^BEGIN$/,/^END$/p' log | rg -n -F ERROR",
+      "frozenCaseSha256": "99d876aefacd3055f1ed62d6f11f09b21ea75d372ffae8cb660ca520d978dcbb",
+      "frozenExpectedSha256": "a5acbde98e9f087e8199cee17f27073df36e477f72dc74046113d2804c34bd88",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Core CLI/filesystem semantic comparison is meaningful after package/adapter admission; preserve every frozen expectation and qualify unavailable stage telemetry separately."
+    },
+    {
+      "id": "P03",
+      "title": "Reformat key/value captures before fixed-string review",
+      "script": "sed -E 's/^([a-z]+)=(.*)$/\\2 [\\1]/' config | rg -F '[owner]'",
+      "frozenCaseSha256": "e85298cda94fea5068f62ec4ff33220c07f4068f8c5ac49828a64912a0a99064",
+      "frozenExpectedSha256": "bf5e152def2a8ffcd38f54848ec74d679e4eacfc1919d2509a909ad282330631",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Core CLI/filesystem semantic comparison is meaningful after package/adapter admission; preserve every frozen expectation and qualify unavailable stage telemetry separately."
+    },
+    {
+      "id": "P04",
+      "title": "Replace repeated placeholders after the first occurrence",
+      "script": "sed 's/x/Y/2g' tokens | rg -x -F 'x Y Y'",
+      "frozenCaseSha256": "36aff87b8e011b79036a793e6eab48d8d39826bc00492ed51cfbdf61ecc34ae5",
+      "frozenExpectedSha256": "15de765bf82f7ccbc19478c2681a3e15545081705cff2374ce65c5ce01858e41",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Core CLI/filesystem semantic comparison is meaningful after package/adapter admission; preserve every frozen expectation and qualify unavailable stage telemetry separately."
+    },
+    {
+      "id": "P05",
+      "title": "Extract case-insensitive substitutions without duplicate auto-print",
+      "script": "sed -n 's/^todo/TASK/Ip' items | rg -n -F TASK",
+      "frozenCaseSha256": "49d5a7db11f5a208176c774dbf8bf6982cdb6c6cda618c66442ca31d87715408",
+      "frozenExpectedSha256": "82b3791b53ad99347fa0bf6de3a6c4e4143e22eda3ad64bc72c58e9e2fb4a66d",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Core CLI/filesystem semantic comparison is meaningful after package/adapter admission; preserve every frozen expectation and qualify unavailable stage telemetry separately."
+    },
+    {
+      "id": "P06",
+      "title": "Apply ordered inline and VFS programs to a config report",
+      "script": "sed -e 's/dev/prod/' -f rules -e '2d' config | rg -F 'prod listen='",
+      "frozenCaseSha256": "ef4ec4d54f0cbbbfee252a0564a142b2c6793f138917282b7a4ca5d14388d274",
+      "frozenExpectedSha256": "ba649db880b046cda54715528fafe37064ff5188ba3c3f550ceb44f48c5d564b",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Core CLI/filesystem semantic comparison is meaningful after package/adapter admission; preserve every frozen expectation and qualify unavailable stage telemetry separately."
+    },
+    {
+      "id": "P07",
+      "title": "Edit a spaced filename with a byte-exact backup",
+      "script": "sed -i.bak 's/dev/prod/g' 'config file' && rg -n -F prod 'config file' && cat 'config file.bak'",
+      "frozenCaseSha256": "79cce0a4b561c81851a2c8348df0456d2363f8d7e80c4f6fdedf13e1b349a261",
+      "frozenExpectedSha256": "1eb6d7920889bd9e5a8cb13da6f82bc89b7485591a6bf8c19436405326fef7af",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Core CLI/filesystem semantic comparison is meaningful after package/adapter admission; preserve every frozen expectation and qualify unavailable stage telemetry separately."
+    },
+    {
+      "id": "P08",
+      "title": "Compare first records across separate input files",
+      "script": "sed -s -n '1p' a b | rg -n -F TODO",
+      "frozenCaseSha256": "75146b043528f4188ca016f066528849870d37421e374872b6ee8723c0769e8f",
+      "frozenExpectedSha256": "5676ddbafe97fddafaf2737773694d9621369400928b0ec30f07fde6cbcf1a6b",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Core CLI/filesystem semantic comparison is meaningful after package/adapter admission; preserve every frozen expectation and qualify unavailable stage telemetry separately."
+    },
+    {
+      "id": "P09",
+      "title": "Join paired records before identifying an actionable pair",
+      "script": "sed -n 'N;s/\\n/:/p' pairs | rg -n -F ':TODO'",
+      "frozenCaseSha256": "80b59ef1b91c64e9dff04e9d7c0286df6e78ba0d8224e94ce42a84659fe41372",
+      "frozenExpectedSha256": "18fe2d55738634be6cdf7fa63c5cd8d31886f27e453a1517c2194afd8fdfb879",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Core CLI/filesystem semantic comparison is meaningful after package/adapter admission; preserve every frozen expectation and qualify unavailable stage telemetry separately."
+    },
+    {
+      "id": "P10",
+      "title": "Remove debug noise while preserving search context",
+      "script": "sed '/^DEBUG/d' log | rg -n -C 1 -F WARN",
+      "frozenCaseSha256": "ae353d8fe2e5d01cf018af825502cd9ccb384ed2a9681fa069371742d2abf3a7",
+      "frozenExpectedSha256": "f3c926b163e686740fb8815c2b8258effa7b3bacb767fb76d3c54221d55e9966",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Core CLI/filesystem semantic comparison is meaningful after package/adapter admission; preserve every frozen expectation and qualify unavailable stage telemetry separately."
+    },
+    {
+      "id": "P11",
+      "title": "Retain UTF-8 while changing an ASCII prefix",
+      "script": "sed 's/TODO/ok/' unicode | rg -n --column -F café",
+      "frozenCaseSha256": "3fd09f205828c55039c311bceda6acb2fbf9ea8c140a05433077a0d48059201e",
+      "frozenExpectedSha256": "d423bd456d58267a2349a907523d1a5183ac96e82db3e66394537ff715783eaf",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Core CLI/filesystem semantic comparison is meaningful after package/adapter admission; preserve every frozen expectation and qualify unavailable stage telemetry separately."
+    },
+    {
+      "id": "P12",
+      "title": "Inspect the final unterminated record",
+      "script": "sed -n '$p' note | rg -n -F TODO",
+      "frozenCaseSha256": "4e4a5766a1fe4f60fad5b2e1374a349078ff6f8a82f7e71af1d316d6ae7abc58",
+      "frozenExpectedSha256": "b3d60144f81e5cff227d3523c86fa23808dbb58f942ed11525f2533924935bb3",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Core CLI/filesystem semantic comparison is meaningful after package/adapter admission; preserve every frozen expectation and qualify unavailable stage telemetry separately."
+    },
+    {
+      "id": "P13",
+      "title": "Format argument pairs into searchable fixed-width rows",
+      "script": "echo 'name:count' > report && printf '%s\\t%03d\\n' alpha 7 beta 12 | sed 's/\\t/:/' | rg -n -F ':0' >> report; cat report",
+      "frozenCaseSha256": "4f70939f66a7bea6b9fd661077103157bced241ccd9923c00c6863bde790d31a",
+      "frozenExpectedSha256": "77d614468f75e90ed9d681336e31eb1a84aeb87cfd52f2ae8114f10b4cf95301",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Core CLI/filesystem semantic comparison is meaningful after package/adapter admission; preserve every frozen expectation and qualify unavailable stage telemetry separately."
+    },
+    {
+      "id": "P14",
+      "title": "Audit hidden TypeScript files while excluding generated matches",
+      "script": "rg --hidden -g '*.ts' -g '!skip.ts' -n -F TODO . | sed 's#^\\./##'",
+      "frozenCaseSha256": "ce0e0c7aab3212e43e799dd19db445128c96701a464563028f8c26a88f90ce9e",
+      "frozenExpectedSha256": "f84b139344dc410fa8c0be4e4a5349bcd6b71a496cded880a5f31e8ee29e1aa8",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Core CLI/filesystem semantic comparison is meaningful after package/adapter admission; preserve every frozen expectation and qualify unavailable stage telemetry separately."
+    },
+    {
+      "id": "P15",
+      "title": "Persist a full listing and number filtered discovery paths",
+      "script": "ls -A1 docs > listing && rg --files --hidden -g '*.txt' docs | sed 's#^docs/##' | nl -ba -w 1 -s ':'",
+      "frozenCaseSha256": "b62ac0bab5ebe27db2d980d4367ad05916ea10e40c764c8e30c002e055a2e076",
+      "frozenExpectedSha256": "bfc0eb22760687606f87f6998af7030bb65b42a8276d3e712350e3501e575f20",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Core CLI/filesystem semantic comparison is meaningful after package/adapter admission; preserve every frozen expectation and qualify unavailable stage telemetry separately."
+    },
+    {
+      "id": "P16",
+      "title": "Discover spaced paths and dispatch a literal search per file",
+      "script": "find notes -type f -name '*.txt' -exec rg -H -n -F TODO '{}' ';' | sed 's/TODO/TASK/'",
+      "frozenCaseSha256": "d58b6354d296fae2d61e232962f8bc36f3799b1b7eb32433525fc06b8d980f20",
+      "frozenExpectedSha256": "b76e7bb7e052ce8d21230bdfc9dc7ddb60bc95f1ce9aeb849f5a27d2e2c44b65",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Preserve exact literal find child argv/effects; observe real child dispatch only at an authentic route, not a replacement handler."
+    },
+    {
+      "id": "P17",
+      "title": "Return NUL-delimited matches for option-looking and unusual paths",
+      "script": "rg -l -0 -F -e '-TODO' -- -lead 'a b.txt' 'quo\"te.txt' \"it's.txt\" 'line\nbreak.txt' empty",
+      "frozenCaseSha256": "5a482ed22aa5e8ff1bdb73c7d09493f2513904a5ab482c393f909b3010f7ae7c",
+      "frozenExpectedSha256": "c218d62a00157a0e8181bbe694bbead3f031cbaec5314e609fc4bf5c43c2942f",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Preserve NUL and exact file bytes; prove terminal conversion for this fixture, no whitespace/newline splitting."
+    },
+    {
+      "id": "P18",
+      "title": "Read search patterns from stdin while searching a named file",
+      "script": "rg -n -F -f - hay | sed 's/TODO/TASK/;s/FIXME/FIX/'",
+      "frozenCaseSha256": "626ffe7c4c5ae42f99a1b1db620edd4a0cd86098103e89b86c55ee51a1c9ddc6",
+      "frozenExpectedSha256": "e7ea8bf7fd0c6c64336cb98238451d42dcdef05e86ecd2cf26dc7f3a6414f143",
+      "category": "STDIN_ADAPTER_REQUIRED",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Map explicit stdin bytes and omitted/empty distinction honestly. Original iterator/next/return predicates are target-specific, not qualified by buffering into a string."
+    },
+    {
+      "id": "P19",
+      "title": "Keep an empty search stream empty despite a matching cwd file",
+      "script": "rg -n -F TODO | sed 's/TODO/TASK/'",
+      "frozenCaseSha256": "829c8012e1a41d24f0224bb20cfa09f52e1389392a21f6be5a148665702562b4",
+      "frozenExpectedSha256": "76b6d5b85cf5d319d44b1bc08778498b41ca7fe9d84b314d5e693450d820b15e",
+      "category": "STDIN_ADAPTER_REQUIRED",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Map explicit stdin bytes and omitted/empty distinction honestly. Original iterator/next/return predicates are target-specific, not qualified by buffering into a string."
+    },
+    {
+      "id": "P20",
+      "title": "Prefer explicit file argv over unrelated incoming stdin",
+      "script": "rg -n -F TODO data | sed 's/chosen/file/'",
+      "frozenCaseSha256": "65d882d9a42abc17ebc00ebe3646215f5c2e8b10f6e215441cb784e3fb3db4b1",
+      "frozenExpectedSha256": "edc6e7647e28e05f1737d9c348831b12dca7edb425478b1447d59deecc4ae5b8",
+      "category": "STDIN_ADAPTER_REQUIRED",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Map explicit stdin bytes and omitted/empty distinction honestly. Original iterator/next/return predicates are target-specific, not qualified by buffering into a string."
+    },
+    {
+      "id": "P21",
+      "title": "Assemble file/stdin/file then review a bounded line window",
+      "script": "cat header - footer > merged && head -n 4 merged | tail -n +2 | sed 's/TODO/TASK/' | rg -n -F TASK",
+      "frozenCaseSha256": "bf72de5a06408e9685484549e7b625cb803d0b74f4d80e640ec11ae6c8a01797",
+      "frozenExpectedSha256": "7e0861d24b8ff8a17edf0de98188a92efc350824051f98fbf5eda90fce72752d",
+      "category": "STDIN_ADAPTER_REQUIRED",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Map explicit stdin bytes and omitted/empty distinction honestly. Original iterator/next/return predicates are target-specific, not qualified by buffering into a string."
+    },
+    {
+      "id": "P22",
+      "title": "Preserve NUL through byte windows and explicit text search",
+      "script": "printf '%b' 'A\\0B\\nC' > blob && head -c 4 blob | tail -c 3 > slice; rg -a -F B slice | sed 's/B/X/'",
+      "frozenCaseSha256": "94f3b740b811fd176ea7b1b1b79e4f50d9a842942e60098d04421025cd600922",
+      "frozenExpectedSha256": "e709691c8de4f9d46dcd729ee0d40fe4946282e624275fd519fee5be7e26af7c",
+      "category": "CLI_FS_SEMANTIC_CANDIDATE",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Preserve NUL and exact file bytes; prove terminal conversion for this fixture, no whitespace/newline splitting."
+    },
+    {
+      "id": "P23",
+      "title": "Download a mocked report into VFS and number action items",
+      "script": "curl -sS -D headers -o downloaded https://mock.example/report && sed 's/TODO/TASK/' downloaded | rg -n -F TASK | nl -ba -w 1 -s ':'",
+      "frozenCaseSha256": "1abd747399732d2774d07e2833d146b067f9edccab9b1530eb2e7e0809527409",
+      "frozenExpectedSha256": "0ef1cbf2451c938ed5d62652328cc1be2a07af626a24148ee35a0b41bdfe83ff",
+      "category": "OPT_IN_NETWORK_MOCK_REQUIRED",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Enable network explicitly; deterministic mock responses and no external requests. Test actual built-in policy separately from injected SecureFetch. Preserve -D/header bytes, all requests/auth rules; response iterator telemetry is not available at completed-body API."
+    },
+    {
+      "id": "P24",
+      "title": "Upload VFS bytes, follow authorized redirect, then search response",
+      "script": "curl -sS -L --data-binary @upload -H 'Authorization: Bearer scoped' -H 'X-Trace: private' -D headers -o reply https://mock.example/start && sed 's/item=TODO /item=TASK /' reply | rg -F 'TASK café'",
+      "frozenCaseSha256": "b66170a871401972a8a155adc8306b12061802acd1da3d1f4453f8c7b2af2680",
+      "frozenExpectedSha256": "c28c223c81fe8aedea637288c37f13dbf1bc9121c69c5d136ca3b1cf72322fce",
+      "category": "OPT_IN_NETWORK_MOCK_REQUIRED",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Enable network explicitly; deterministic mock responses and no external requests. Test actual built-in policy separately from injected SecureFetch. Preserve -D/header bytes, all requests/auth rules; response iterator telemetry is not available at completed-body API."
+    },
+    {
+      "id": "C01",
+      "title": "Declared sed NUL-record gap is not a supported workflow",
+      "script": "sed -z 's/TODO/DONE/g' names.bin",
+      "frozenCaseSha256": "1c4cf3ad64be907d64e86250395471c84e868e66a3a6578b0a2332a82f12cfb2",
+      "frozenExpectedSha256": "dc0e2543737e7bc8d14549f5adf6f01dc5aba432c731e44386a66c17277cac04",
+      "category": "TARGET_REFUSAL_PROFILE_CONTROL",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "A frozen target refusal of sed -z is not a general utility success criterion; report support/refusal profiles separately, no reward for shared non-support."
+    },
+    {
+      "id": "C02",
+      "title": "Reject stdin used simultaneously as patterns and searched data",
+      "script": "rg -F -f - -",
+      "frozenCaseSha256": "871bd0cca9ad226e3a74a7ce51690fc6af989a9fde55c8e86fdf0c644010b26c",
+      "frozenExpectedSha256": "5082fb3d9589dbbf15c820a9608b8cdee95f5697d85c6134583f93ddce534f7a",
+      "category": "TARGET_REFUSAL_PROFILE_CONTROL",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Target dual-use stdin diagnostic/no-consumption contract is not portable unchanged; compare only an explicitly approved semantic contract and mark iterator proof unavailable."
+    },
+    {
+      "id": "C03",
+      "title": "Read-only in-place edit fails without publication",
+      "script": "sed -i 's/TODO/DONE/' data",
+      "frozenCaseSha256": "487e2bca3950f191360e2c69c14c88f678a999253a0b6c47c83e25927536d113",
+      "frozenExpectedSha256": "1f8e53b6ae7fe9b480dacc86d55505106ee8c56a7a5fdcdf8a6d54f4b9269cae",
+      "category": "READONLY_API_EQUIVALENCE_REQUIRED",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Provide equivalent readonly IFileSystem refusal and no-publication census; keep target exact EROFS diagnostic as target-specific unless separately matched, not a broad diagnostic whitelist."
+    },
+    {
+      "id": "C04",
+      "title": "Provider read fault is visible even when final pipe succeeds",
+      "script": "rg -n -F TODO broken | cat",
+      "frozenCaseSha256": "099c07a10e1467baa69e20352926ab36d2c46e2dbab7613af725fe6962b07c35",
+      "frozenExpectedSha256": "8d3192b49e5f6b938397aaaf4020ca811bd1de83db7fcc17e7d3fe6bdc7d76d8",
+      "category": "FAULT_API_EQUIVALENCE_REQUIRED",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Comparator reads via readFileBuffer rather than target readStream fault route. A versioned fault-injection mapping and per-stage result observer are required; helper-thrown target text is not baseline behavior."
+    },
+    {
+      "id": "C05",
+      "title": "Caller cancellation drains admitted cooperative transport work",
+      "script": "curl -sS -o output https://mock.example/pending",
+      "frozenCaseSha256": "a45d07f3e24a42b8115d146711f6ca99028d31ce70c82baf0cf5acdabc5ee23c",
+      "frozenExpectedSha256": "0b9f717422a50b3b450814e2d0bedba0206ca21f696906863f055d2f800dc222",
+      "category": "TARGET_LIFECYCLE_API_NOT_EQUIVALENT",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "No equivalent target registerCleanup/cooperative acquisition raw-reason identity contract proven for SecureFetch/Bash. Separate baseline cancellation profile required."
+    },
+    {
+      "id": "C06",
+      "title": "Closed stdout does not cancel curl body/header destinations",
+      "script": "curl -sS -D headers -o downloaded -w 'finished\\n' https://mock.example/report",
+      "frozenCaseSha256": "e2b57b5f070ad8b3b4b3bd2693b6ae462e2711318e3b2d6d525ef51d2bab8afe",
+      "frozenExpectedSha256": "3088d4fb190d984a84aa8504e8e42f0c48e0e4f36bcde418b6708c85465cd441",
+      "category": "TARGET_LIFECYCLE_API_NOT_EQUIVALENT",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Public buffered-result API has no demonstrated owned-output-sink closure equivalent; exact target141/body-header persistence stays target-only. -D also unsupported in source."
+    },
+    {
+      "id": "C07",
+      "title": "Opaque authorizer is not falsely counted as preempted work",
+      "script": "curl -sS -o output https://mock.example/opaque",
+      "frozenCaseSha256": "d3cad5205af43dfc22a4bae1c62df062b455729861ab04cab9ed06476587939c",
+      "frozenExpectedSha256": "0b9f717422a50b3b450814e2d0bedba0206ca21f696906863f055d2f800dc222",
+      "category": "TARGET_LIFECYCLE_API_NOT_EQUIVALENT",
+      "execution": "NOT_EXECUTED",
+      "fullFrozenRowQualification": "UNQUALIFIED_PENDING_ACTUAL_ADAPTER_AND_RUNTIME",
+      "requirements": "Opaque-authorizer/raw-caller identity contract is target-specific. Do not fabricate comparator pending/late-rejection counters."
+    }
+  ],
+  "notCovered": [
+    "No git, node, or apply_patch positive workflows occur in these31 identities. They cannot establish those requested tools.",
+    "No JS engine invocation in these31; future JSON/file-edit programs need an explicit new equivalent-program profile with actual qualified engines. Do not substitute js-exec for node or SafeJS by name.",
+    "npm/npx remain excluded product requirements; development npm metadata is not product coverage."
+  ]
+}

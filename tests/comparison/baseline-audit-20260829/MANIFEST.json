@@ -1,0 +1,50 @@
+{
+  "schema": "baseline-audit-artifact-manifest-v1",
+  "scope": "All current owned artifacts except this self-referential manifest; commit binds manifest",
+  "presealCommit": "47810329",
+  "files": [
+    {
+      "path": "BASELINE.json",
+      "bytes": 14793,
+      "mode": "644",
+      "sha256": "d83fb1e99c4c636b7848db3523238204038e461ee6af178080ef2b69e79d86ae"
+    },
+    {
+      "path": "CAPABILITIES.json",
+      "bytes": 16857,
+      "mode": "644",
+      "sha256": "f51433e8546d814df45e30f32c67864510421bcc1f50066a6a97de1edc81fe75"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 3401,
+      "mode": "644",
+      "sha256": "cdff5499b564d4e62b574e14c0184da865e98e9c4da742e6e66588d4011282ab"
+    },
+    {
+      "path": "README.md",
+      "bytes": 9026,
+      "mode": "644",
+      "sha256": "22d3cf4ae59c16c6ede9ab20c1f78268cf98b01bf93015e06d604ce9e4229de3"
+    },
+    {
+      "path": "SOURCE-RECEIPTS.json",
+      "bytes": 37691,
+      "mode": "644",
+      "sha256": "5443374721da01391a3d37962c80788d98bbdce1582316480b1592cc92918746"
+    },
+    {
+      "path": "WORKFLOW-MAP.json",
+      "bytes": 24862,
+      "mode": "644",
+      "sha256": "42c96ca044153abaa3bf24851facbcd73568cda956faeb5eb85aa5ea4d535eae"
+    },
+    {
+      "path": "VALIDATION.json",
+      "bytes": 9288,
+      "mode": "644",
+      "sha256": "1ebd8d8984a768dcbfe0b0fb55044d9a7476f66158d6ef28be1cbec8e2c54da1"
+    }
+  ],
+  "history": "No old cases/scores/files modified. No runtime or benchmark authorization."
+}

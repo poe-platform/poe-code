@@ -1,0 +1,796 @@
+{
+  "schema": "bounded-primary-source-receipts-v1",
+  "retrievalPolicy": "Bounded bytes before UTF8; no tarballs/binaries. Raw sources are not materialized. Hash/size/URL/retrieval records retained; version record and provenance decoded JSON retained, whole registry history and source bodies not archived.",
+  "fetches": [
+    {
+      "url": "https://registry.npmjs.org/just-bash/latest",
+      "retrievedAt": "2026-08-29T01:19:34.684Z",
+      "httpStatus": 200,
+      "contentType": "application/json",
+      "advertisedBytes": null,
+      "bytes": 8127,
+      "sha256": "ef19c2318535bde2774c58b2ab7501178b6227e8cba98071bcb0ebdcc69d84b1",
+      "responseDate": "Sat, 29 Aug 2026 01:19:34 GMT",
+      "durationMilliseconds": 312
+    },
+    {
+      "url": "https://registry.npmjs.org/just-bash/3.4.2",
+      "retrievedAt": "2026-08-29T01:19:34.821Z",
+      "httpStatus": 200,
+      "contentType": "application/json",
+      "advertisedBytes": null,
+      "bytes": 8127,
+      "sha256": "ef19c2318535bde2774c58b2ab7501178b6227e8cba98071bcb0ebdcc69d84b1",
+      "responseDate": "Sat, 29 Aug 2026 01:19:34 GMT",
+      "durationMilliseconds": 137
+    },
+    {
+      "url": "https://registry.npmjs.org/-/package/just-bash/dist-tags",
+      "retrievedAt": "2026-08-29T01:19:35.014Z",
+      "httpStatus": 200,
+      "contentType": "application/json",
+      "advertisedBytes": "49",
+      "bytes": 49,
+      "sha256": "11c14dbe82620f7402a4a668a543737fd55c025b981b468e34c0b62988c48077",
+      "responseDate": "Sat, 29 Aug 2026 01:19:35 GMT",
+      "durationMilliseconds": 192
+    },
+    {
+      "url": "https://registry.npmjs.org/just-bash",
+      "retrievedAt": "2026-08-29T01:19:46.237Z",
+      "httpStatus": 200,
+      "contentType": "application/json",
+      "advertisedBytes": null,
+      "bytes": 614236,
+      "sha256": "0237c0e44b0499d3523f146e8be82c18999f1bf7400a1c19f8ac9397eb74b90d",
+      "responseDate": "Sat, 29 Aug 2026 01:19:46 GMT",
+      "durationMilliseconds": 205
+    },
+    {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/just-bash@3.4.2",
+      "retrievedAt": "2026-08-29T01:19:46.499Z",
+      "httpStatus": 200,
+      "contentType": "application/json",
+      "advertisedBytes": null,
+      "bytes": 14364,
+      "sha256": "e5fcfe90d7ddeaad2221d278dbe0d9b76d3251336f17525a6ae17e4934e96b9e",
+      "responseDate": "Sat, 29 Aug 2026 01:19:46 GMT",
+      "durationMilliseconds": 257
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/package.json",
+      "retrievedAt": "2026-08-29T01:20:17.946Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "2017",
+      "bytes": 7798,
+      "sha256": "91efbc19d567bd5269fef4eeab0be63221cdabf4ff31df0d8f2eeaadbc975b95",
+      "responseDate": "Sat, 29 Aug 2026 01:20:18 GMT",
+      "durationMilliseconds": 237
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/README.md",
+      "retrievedAt": "2026-08-29T01:20:17.953Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "11237",
+      "bytes": 28914,
+      "sha256": "3232b230a378c2d853029df513fc8740ce32819d531acc6faed41c2d780b44e2",
+      "responseDate": "Sat, 29 Aug 2026 01:20:18 GMT",
+      "durationMilliseconds": 243
+    },
+    {
+      "url": "https://api.github.com/repos/vercel-labs/just-bash/commits/a021f95f53f7e01df48dab71b46ffd4637fb4b53",
+      "retrievedAt": "2026-08-29T01:20:18.047Z",
+      "httpStatus": 200,
+      "contentType": "application/json; charset=utf-8",
+      "advertisedBytes": null,
+      "bytes": 11125,
+      "sha256": "d67cc3d8493dfbcff4e0295a031d27e9476b590f36c241ef3a0095333bff181c",
+      "responseDate": "Sat, 29 Aug 2026 01:20:18 GMT",
+      "durationMilliseconds": 340
+    },
+    {
+      "url": "https://api.github.com/repos/vercel-labs/just-bash/git/trees/a021f95f53f7e01df48dab71b46ffd4637fb4b53?recursive=1",
+      "retrievedAt": "2026-08-29T01:20:18.221Z",
+      "httpStatus": 200,
+      "contentType": "application/json; charset=utf-8",
+      "advertisedBytes": null,
+      "bytes": 516796,
+      "sha256": "8fbbc51b99e3ca704baa3d45a9e539cd6b882b31023bd7f48bd8a544d0308f3f",
+      "responseDate": "Sat, 29 Aug 2026 01:20:18 GMT",
+      "durationMilliseconds": 512
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/index.ts",
+      "retrievedAt": "2026-08-29T01:20:30.355Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "1110",
+      "bytes": 3440,
+      "sha256": "71dd48ffd2ba0346d23b6dccdbe0662103b69cc7619d48d27c9422932fc90eae",
+      "responseDate": "Sat, 29 Aug 2026 01:20:30 GMT",
+      "durationMilliseconds": 158,
+      "gitBlobSha1": "27ed46e963e740e4a86cfd2a85b4bae0c0246469",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/Bash.ts",
+      "retrievedAt": "2026-08-29T01:20:30.364Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "12767",
+      "bytes": 43213,
+      "sha256": "3cb4b0b65833c39fe8650a0f539e8e628ea6f042336bebdbf238084e8e20d617",
+      "responseDate": "Sat, 29 Aug 2026 01:20:30 GMT",
+      "durationMilliseconds": 168,
+      "gitBlobSha1": "4c7a3c53a21721a347feae50fff8879c585e4146",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/types.ts",
+      "retrievedAt": "2026-08-29T01:20:30.369Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "4436",
+      "bytes": 11891,
+      "sha256": "41200dc857e40a6141273f54367634adfa0c53fad099f0bfdf00b24505bd1b30",
+      "responseDate": "Sat, 29 Aug 2026 01:20:30 GMT",
+      "durationMilliseconds": 172,
+      "gitBlobSha1": "7f0337aa350fc89a5709664b6dc543307b62eac1",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts",
+      "retrievedAt": "2026-08-29T01:20:30.488Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "3411",
+      "bytes": 15541,
+      "sha256": "593eb7d65e49c27f7eb97b077d7798741a2d5ade5d4d421c09715fccdc76a591",
+      "responseDate": "Sat, 29 Aug 2026 01:20:30 GMT",
+      "durationMilliseconds": 293,
+      "gitBlobSha1": "09917e1b12309c29a1c554166c5d242971851d74",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/sed/sed.ts",
+      "retrievedAt": "2026-08-29T01:20:30.622Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "5665",
+      "bytes": 22180,
+      "sha256": "2b29029db0b41bcfc9a945ec8d3830fd475f90e110ae42d32ef25a23ca38e852",
+      "responseDate": "Sat, 29 Aug 2026 01:20:30 GMT",
+      "durationMilliseconds": 134,
+      "gitBlobSha1": "5a69ad3c2d89a883c55cbe76bf17f6e795c2bf35",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/find/find.ts",
+      "retrievedAt": "2026-08-29T01:20:30.630Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "10167",
+      "bytes": 39235,
+      "sha256": "8676d57ea7222ee097c51c7415305a99bafa20f1f014a6b362e7b21611fc20e0",
+      "responseDate": "Sat, 29 Aug 2026 01:20:30 GMT",
+      "durationMilliseconds": 142,
+      "gitBlobSha1": "e2f37ff4e813ac92d5a3d5f06d644cd81eab3377",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/curl/curl.ts",
+      "retrievedAt": "2026-08-29T01:20:30.669Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "4000",
+      "bytes": 11869,
+      "sha256": "3c5bc85d5e3b774300f36dfffd50895ba9b7896bb84dda67a49cb7b6a8ecb3e3",
+      "responseDate": "Sat, 29 Aug 2026 01:20:30 GMT",
+      "durationMilliseconds": 181,
+      "gitBlobSha1": "7d5bd4a6f771992accd3322aa121c633cd999bbd",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/rg/rg.ts",
+      "retrievedAt": "2026-08-29T01:20:30.698Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "2032",
+      "bytes": 6232,
+      "sha256": "5f94df60ea155e2460714946f325631e7bdea4a0b53dd2c3e6836618e54a848d",
+      "responseDate": "Sat, 29 Aug 2026 01:20:30 GMT",
+      "durationMilliseconds": 210,
+      "gitBlobSha1": "bea1e5415f7099db5e5d5e3b94895e9aac70a5ea",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/fs/interface.ts",
+      "retrievedAt": "2026-08-29T01:20:48.628Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "2546",
+      "bytes": 8382,
+      "sha256": "76bfe3b9a798f3ee39c0f8bd48990339ce0e5ff442212ff0a3f40ea3c7d6f2cb",
+      "responseDate": "Sat, 29 Aug 2026 01:20:48 GMT",
+      "durationMilliseconds": 175,
+      "gitBlobSha1": "d79aedfbe5820fd63331ecc7bb5b935941bf1007",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/js-exec/js-exec.ts",
+      "retrievedAt": "2026-08-29T01:20:48.654Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "6982",
+      "bytes": 23255,
+      "sha256": "6db79a4e01ccc816e94bcf07c7e7c47964e608d49783f284d89c5f451e173b42",
+      "responseDate": "Sat, 29 Aug 2026 01:20:48 GMT",
+      "durationMilliseconds": 203,
+      "gitBlobSha1": "2822fec04f8d895a7e66a85fbd450399cdc7d78b",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/js-exec/js-exec-worker.ts",
+      "retrievedAt": "2026-08-29T01:20:48.655Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "12708",
+      "bytes": 52904,
+      "sha256": "ae96f2e8b8596fc90aab36bdc9dadc6e493484a2ec9b857721505f06120b9e5b",
+      "responseDate": "Sat, 29 Aug 2026 01:20:48 GMT",
+      "durationMilliseconds": 203,
+      "gitBlobSha1": "6533bf3642ed94b7f9cb46c101558d16630e0d4f",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/js-exec/module-shims.ts",
+      "retrievedAt": "2026-08-29T01:20:48.662Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "7315",
+      "bytes": 27348,
+      "sha256": "5875f6c12c5e0a4c7d3d071405136e3bb67aef93e48b7a5b4689ff473b2061a7",
+      "responseDate": "Sat, 29 Aug 2026 01:20:48 GMT",
+      "durationMilliseconds": 210,
+      "gitBlobSha1": "f729ac92849f9562531b349460efc63b7019b64b",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/network/types.ts",
+      "retrievedAt": "2026-08-29T01:20:48.786Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "2240",
+      "bytes": 6037,
+      "sha256": "758490eb5ef0ea7f646d6e2dcbd18ec64c4109cbc4da6ea0d12d3920e1c5d590",
+      "responseDate": "Sat, 29 Aug 2026 01:20:48 GMT",
+      "durationMilliseconds": 124,
+      "gitBlobSha1": "a738a9e67054e751d4997a8d4ad19971c1fef9e2",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/network/fetch.ts",
+      "retrievedAt": "2026-08-29T01:20:48.791Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "5973",
+      "bytes": 19401,
+      "sha256": "ec96ff0622830df175b12553dc8774ef43a58cd0c154dc6c5881618021683d69",
+      "responseDate": "Sat, 29 Aug 2026 01:20:48 GMT",
+      "durationMilliseconds": 128,
+      "gitBlobSha1": "d6bf44da66954fdfadf2794d399907bcff5a3815",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/printf/printf.ts",
+      "retrievedAt": "2026-08-29T01:20:48.798Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "8687",
+      "bytes": 36320,
+      "sha256": "ff719310ed44dfc71ab4d377c892c8df4f54bdab8193fab7bc9f57c1bfdcdac3",
+      "responseDate": "Sat, 29 Aug 2026 01:20:48 GMT",
+      "durationMilliseconds": 135,
+      "gitBlobSha1": "81371249511806112421ac1bdb7c3e76204bab6c",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/nl/nl.ts",
+      "retrievedAt": "2026-08-29T01:20:48.916Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "2802",
+      "bytes": 11355,
+      "sha256": "a116712ada9a6111a39c5f9dc13bcec4885c3d39af2b163bbb49885c330fa712",
+      "responseDate": "Sat, 29 Aug 2026 01:20:48 GMT",
+      "durationMilliseconds": 253,
+      "gitBlobSha1": "a314bf2f924435626ef96cae91a6120c0bb295a3",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/ls/ls.ts",
+      "retrievedAt": "2026-08-29T01:20:49.038Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "5483",
+      "bytes": 23557,
+      "sha256": "7c9ab9792696f9487c617c7c7a47e92944163231a7a4e8e5b782195d52d28c23",
+      "responseDate": "Sat, 29 Aug 2026 01:20:49 GMT",
+      "durationMilliseconds": 122,
+      "gitBlobSha1": "00044d8ba714ae28f823df5a16a3dd832f785bd8",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/head/head.ts",
+      "retrievedAt": "2026-08-29T01:20:49.060Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "671",
+      "bytes": 1571,
+      "sha256": "fb5a2d746160e864c28273dfb063dbf78311869de56d7fb365b8d58cc5030753",
+      "responseDate": "Sat, 29 Aug 2026 01:20:49 GMT",
+      "durationMilliseconds": 144,
+      "gitBlobSha1": "ffa467d643816f989d7c1d8760a2e3c532d1a0e9",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/tail/tail.ts",
+      "retrievedAt": "2026-08-29T01:20:49.067Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "700",
+      "bytes": 1658,
+      "sha256": "b85506e7a960ac792879b8d497832bddf8e83ce8e4dae1ff20f10c155a7bf457",
+      "responseDate": "Sat, 29 Aug 2026 01:20:49 GMT",
+      "durationMilliseconds": 151,
+      "gitBlobSha1": "b95da7272d992200f7bf63c62e0b2ebeee721fbd",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/cat/cat.ts",
+      "retrievedAt": "2026-08-29T01:20:49.095Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "2949",
+      "bytes": 9012,
+      "sha256": "2307fe1e8493639f491b774b29d78ff7a5339c28427e72efb2d9b9781c07a01e",
+      "responseDate": "Sat, 29 Aug 2026 01:20:49 GMT",
+      "durationMilliseconds": 179,
+      "gitBlobSha1": "5c62410c8d3f037344a98a14374e69a89b15383a",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/fs/mountable-fs/mountable-fs.ts",
+      "retrievedAt": "2026-08-29T01:20:49.228Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "4563",
+      "bytes": 19941,
+      "sha256": "3f1eab3392ab5060c1e3f4b532a63e9a2ef701709de157680b5806846b4a2926",
+      "responseDate": "Sat, 29 Aug 2026 01:20:49 GMT",
+      "durationMilliseconds": 132,
+      "gitBlobSha1": "d11ba0d50c0d6571f179dba4639eccf5bcee533d",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/echo/echo.ts",
+      "retrievedAt": "2026-08-29T01:20:49.254Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "1434",
+      "bytes": 5659,
+      "sha256": "ed38f3f397c998cc1c64ffc7665d2af22fc20a4ccd622d526e64efd9a438ecf9",
+      "responseDate": "Sat, 29 Aug 2026 01:20:49 GMT",
+      "durationMilliseconds": 159,
+      "gitBlobSha1": "8275f11a95060e0fba9693bd53d194e959c0528f",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/fs/overlay-fs/overlay-fs.ts",
+      "retrievedAt": "2026-08-29T01:20:49.263Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "10344",
+      "bytes": 49541,
+      "sha256": "80111c27094c6f717d64c5baab0bf52196aedcfddb2873f23b6d22455ae00aae",
+      "responseDate": "Sat, 29 Aug 2026 01:20:49 GMT",
+      "durationMilliseconds": 169,
+      "gitBlobSha1": "38a2494a9b532607a8df5575990f9c5c30c93267",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/fs/read-write-fs/read-write-fs.ts",
+      "retrievedAt": "2026-08-29T01:20:49.297Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "12409",
+      "bytes": 60332,
+      "sha256": "90e3caaae007f960616e522c0f53186ad5c5fae9d138318fbe4e3ebaa3c78208",
+      "responseDate": "Sat, 29 Aug 2026 01:20:49 GMT",
+      "durationMilliseconds": 201,
+      "gitBlobSha1": "97817e0226c48736481e009dbb1dfb1d7619fe0e",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/rg/rg-parser.ts",
+      "retrievedAt": "2026-08-29T01:23:13.795Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "4649",
+      "bytes": 17945,
+      "sha256": "66065bf9394eb1d4c672eb412724301396e009d9a53ba000eacc56b9671b5bc9",
+      "responseDate": "Sat, 29 Aug 2026 01:23:13 GMT",
+      "durationMilliseconds": 158,
+      "gitBlobSha1": "fcbd1d22161a8a55cd0ac720038c44cfcd490da7",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/curl/parse.ts",
+      "retrievedAt": "2026-08-29T01:23:13.804Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "2739",
+      "bytes": 12171,
+      "sha256": "9627dbc02db8c43ae19332efaecef107bd762d436d31a526f40e4d3806c6115a",
+      "responseDate": "Sat, 29 Aug 2026 01:23:13 GMT",
+      "durationMilliseconds": 166,
+      "gitBlobSha1": "92ad6cf6ab00adabcfe6b254595a264897129586",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/rg/rg-search.ts",
+      "retrievedAt": "2026-08-29T01:23:13.808Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "10155",
+      "bytes": 40601,
+      "sha256": "45460be37d0f984b8d987101daeaf777fad0093c954ea09a3c32a233749ab114",
+      "responseDate": "Sat, 29 Aug 2026 01:23:13 GMT",
+      "durationMilliseconds": 170,
+      "gitBlobSha1": "b7f88349ce94d8b5dc5107ee1d8d71ce35112051",
+      "gitMode": "100644"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/fs/in-memory-fs/in-memory-fs.ts",
+      "retrievedAt": "2026-08-29T01:23:13.808Z",
+      "httpStatus": 200,
+      "contentType": "text/plain; charset=utf-8",
+      "advertisedBytes": "6542",
+      "bytes": 29660,
+      "sha256": "9ff9cc15f7ae6913005dda9ca417c193db7dfeaff8876f6957f30862b17d2e09",
+      "responseDate": "Sat, 29 Aug 2026 01:23:13 GMT",
+      "durationMilliseconds": 169,
+      "gitBlobSha1": "2a504a001523effa526cffa0adcb7bd2ed08dada",
+      "gitMode": "100644"
+    }
+  ],
+  "immutableSourceBlobs": [
+    {
+      "path": "packages/just-bash/package.json",
+      "gitMode": "100644",
+      "bytes": 7798,
+      "gitBlobSha1": "a4a4e02f1348996cb517604ba3d1156d6a61ce2b",
+      "sha256": "91efbc19d567bd5269fef4eeab0be63221cdabf4ff31df0d8f2eeaadbc975b95",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/package.json"
+    },
+    {
+      "path": "packages/just-bash/README.md",
+      "gitMode": "100644",
+      "bytes": 28914,
+      "gitBlobSha1": "4df55a9337c87351fcb383c70f2b1b771ba67e68",
+      "sha256": "3232b230a378c2d853029df513fc8740ce32819d531acc6faed41c2d780b44e2",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/README.md"
+    },
+    {
+      "path": "packages/just-bash/src/index.ts",
+      "gitMode": "100644",
+      "bytes": 3440,
+      "gitBlobSha1": "27ed46e963e740e4a86cfd2a85b4bae0c0246469",
+      "sha256": "71dd48ffd2ba0346d23b6dccdbe0662103b69cc7619d48d27c9422932fc90eae",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/index.ts"
+    },
+    {
+      "path": "packages/just-bash/src/Bash.ts",
+      "gitMode": "100644",
+      "bytes": 43213,
+      "gitBlobSha1": "4c7a3c53a21721a347feae50fff8879c585e4146",
+      "sha256": "3cb4b0b65833c39fe8650a0f539e8e628ea6f042336bebdbf238084e8e20d617",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/Bash.ts"
+    },
+    {
+      "path": "packages/just-bash/src/types.ts",
+      "gitMode": "100644",
+      "bytes": 11891,
+      "gitBlobSha1": "7f0337aa350fc89a5709664b6dc543307b62eac1",
+      "sha256": "41200dc857e40a6141273f54367634adfa0c53fad099f0bfdf00b24505bd1b30",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/types.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/registry.ts",
+      "gitMode": "100644",
+      "bytes": 15541,
+      "gitBlobSha1": "09917e1b12309c29a1c554166c5d242971851d74",
+      "sha256": "593eb7d65e49c27f7eb97b077d7798741a2d5ade5d4d421c09715fccdc76a591",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/registry.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/sed/sed.ts",
+      "gitMode": "100644",
+      "bytes": 22180,
+      "gitBlobSha1": "5a69ad3c2d89a883c55cbe76bf17f6e795c2bf35",
+      "sha256": "2b29029db0b41bcfc9a945ec8d3830fd475f90e110ae42d32ef25a23ca38e852",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/sed/sed.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/find/find.ts",
+      "gitMode": "100644",
+      "bytes": 39235,
+      "gitBlobSha1": "e2f37ff4e813ac92d5a3d5f06d644cd81eab3377",
+      "sha256": "8676d57ea7222ee097c51c7415305a99bafa20f1f014a6b362e7b21611fc20e0",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/find/find.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/curl/curl.ts",
+      "gitMode": "100644",
+      "bytes": 11869,
+      "gitBlobSha1": "7d5bd4a6f771992accd3322aa121c633cd999bbd",
+      "sha256": "3c5bc85d5e3b774300f36dfffd50895ba9b7896bb84dda67a49cb7b6a8ecb3e3",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/curl/curl.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/rg/rg.ts",
+      "gitMode": "100644",
+      "bytes": 6232,
+      "gitBlobSha1": "bea1e5415f7099db5e5d5e3b94895e9aac70a5ea",
+      "sha256": "5f94df60ea155e2460714946f325631e7bdea4a0b53dd2c3e6836618e54a848d",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/rg/rg.ts"
+    },
+    {
+      "path": "packages/just-bash/src/fs/interface.ts",
+      "gitMode": "100644",
+      "bytes": 8382,
+      "gitBlobSha1": "d79aedfbe5820fd63331ecc7bb5b935941bf1007",
+      "sha256": "76bfe3b9a798f3ee39c0f8bd48990339ce0e5ff442212ff0a3f40ea3c7d6f2cb",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/fs/interface.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/js-exec/js-exec.ts",
+      "gitMode": "100644",
+      "bytes": 23255,
+      "gitBlobSha1": "2822fec04f8d895a7e66a85fbd450399cdc7d78b",
+      "sha256": "6db79a4e01ccc816e94bcf07c7e7c47964e608d49783f284d89c5f451e173b42",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/js-exec/js-exec.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/js-exec/js-exec-worker.ts",
+      "gitMode": "100644",
+      "bytes": 52904,
+      "gitBlobSha1": "6533bf3642ed94b7f9cb46c101558d16630e0d4f",
+      "sha256": "ae96f2e8b8596fc90aab36bdc9dadc6e493484a2ec9b857721505f06120b9e5b",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/js-exec/js-exec-worker.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/js-exec/module-shims.ts",
+      "gitMode": "100644",
+      "bytes": 27348,
+      "gitBlobSha1": "f729ac92849f9562531b349460efc63b7019b64b",
+      "sha256": "5875f6c12c5e0a4c7d3d071405136e3bb67aef93e48b7a5b4689ff473b2061a7",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/js-exec/module-shims.ts"
+    },
+    {
+      "path": "packages/just-bash/src/network/types.ts",
+      "gitMode": "100644",
+      "bytes": 6037,
+      "gitBlobSha1": "a738a9e67054e751d4997a8d4ad19971c1fef9e2",
+      "sha256": "758490eb5ef0ea7f646d6e2dcbd18ec64c4109cbc4da6ea0d12d3920e1c5d590",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/network/types.ts"
+    },
+    {
+      "path": "packages/just-bash/src/network/fetch.ts",
+      "gitMode": "100644",
+      "bytes": 19401,
+      "gitBlobSha1": "d6bf44da66954fdfadf2794d399907bcff5a3815",
+      "sha256": "ec96ff0622830df175b12553dc8774ef43a58cd0c154dc6c5881618021683d69",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/network/fetch.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/printf/printf.ts",
+      "gitMode": "100644",
+      "bytes": 36320,
+      "gitBlobSha1": "81371249511806112421ac1bdb7c3e76204bab6c",
+      "sha256": "ff719310ed44dfc71ab4d377c892c8df4f54bdab8193fab7bc9f57c1bfdcdac3",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/printf/printf.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/nl/nl.ts",
+      "gitMode": "100644",
+      "bytes": 11355,
+      "gitBlobSha1": "a314bf2f924435626ef96cae91a6120c0bb295a3",
+      "sha256": "a116712ada9a6111a39c5f9dc13bcec4885c3d39af2b163bbb49885c330fa712",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/nl/nl.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/ls/ls.ts",
+      "gitMode": "100644",
+      "bytes": 23557,
+      "gitBlobSha1": "00044d8ba714ae28f823df5a16a3dd832f785bd8",
+      "sha256": "7c9ab9792696f9487c617c7c7a47e92944163231a7a4e8e5b782195d52d28c23",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/ls/ls.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/head/head.ts",
+      "gitMode": "100644",
+      "bytes": 1571,
+      "gitBlobSha1": "ffa467d643816f989d7c1d8760a2e3c532d1a0e9",
+      "sha256": "fb5a2d746160e864c28273dfb063dbf78311869de56d7fb365b8d58cc5030753",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/head/head.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/tail/tail.ts",
+      "gitMode": "100644",
+      "bytes": 1658,
+      "gitBlobSha1": "b95da7272d992200f7bf63c62e0b2ebeee721fbd",
+      "sha256": "b85506e7a960ac792879b8d497832bddf8e83ce8e4dae1ff20f10c155a7bf457",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/tail/tail.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/cat/cat.ts",
+      "gitMode": "100644",
+      "bytes": 9012,
+      "gitBlobSha1": "5c62410c8d3f037344a98a14374e69a89b15383a",
+      "sha256": "2307fe1e8493639f491b774b29d78ff7a5339c28427e72efb2d9b9781c07a01e",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/cat/cat.ts"
+    },
+    {
+      "path": "packages/just-bash/src/fs/mountable-fs/mountable-fs.ts",
+      "gitMode": "100644",
+      "bytes": 19941,
+      "gitBlobSha1": "d11ba0d50c0d6571f179dba4639eccf5bcee533d",
+      "sha256": "3f1eab3392ab5060c1e3f4b532a63e9a2ef701709de157680b5806846b4a2926",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/fs/mountable-fs/mountable-fs.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/echo/echo.ts",
+      "gitMode": "100644",
+      "bytes": 5659,
+      "gitBlobSha1": "8275f11a95060e0fba9693bd53d194e959c0528f",
+      "sha256": "ed38f3f397c998cc1c64ffc7665d2af22fc20a4ccd622d526e64efd9a438ecf9",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/echo/echo.ts"
+    },
+    {
+      "path": "packages/just-bash/src/fs/overlay-fs/overlay-fs.ts",
+      "gitMode": "100644",
+      "bytes": 49541,
+      "gitBlobSha1": "38a2494a9b532607a8df5575990f9c5c30c93267",
+      "sha256": "80111c27094c6f717d64c5baab0bf52196aedcfddb2873f23b6d22455ae00aae",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/fs/overlay-fs/overlay-fs.ts"
+    },
+    {
+      "path": "packages/just-bash/src/fs/read-write-fs/read-write-fs.ts",
+      "gitMode": "100644",
+      "bytes": 60332,
+      "gitBlobSha1": "97817e0226c48736481e009dbb1dfb1d7619fe0e",
+      "sha256": "90e3caaae007f960616e522c0f53186ad5c5fae9d138318fbe4e3ebaa3c78208",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/fs/read-write-fs/read-write-fs.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/rg/rg-parser.ts",
+      "gitMode": "100644",
+      "bytes": 17945,
+      "gitBlobSha1": "fcbd1d22161a8a55cd0ac720038c44cfcd490da7",
+      "sha256": "66065bf9394eb1d4c672eb412724301396e009d9a53ba000eacc56b9671b5bc9",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/rg/rg-parser.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/curl/parse.ts",
+      "gitMode": "100644",
+      "bytes": 12171,
+      "gitBlobSha1": "92ad6cf6ab00adabcfe6b254595a264897129586",
+      "sha256": "9627dbc02db8c43ae19332efaecef107bd762d436d31a526f40e4d3806c6115a",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/curl/parse.ts"
+    },
+    {
+      "path": "packages/just-bash/src/commands/rg/rg-search.ts",
+      "gitMode": "100644",
+      "bytes": 40601,
+      "gitBlobSha1": "b7f88349ce94d8b5dc5107ee1d8d71ce35112051",
+      "sha256": "45460be37d0f984b8d987101daeaf777fad0093c954ea09a3c32a233749ab114",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/commands/rg/rg-search.ts"
+    },
+    {
+      "path": "packages/just-bash/src/fs/in-memory-fs/in-memory-fs.ts",
+      "gitMode": "100644",
+      "bytes": 29660,
+      "gitBlobSha1": "2a504a001523effa526cffa0adcb7bd2ed08dada",
+      "sha256": "9ff9cc15f7ae6913005dda9ca417c193db7dfeaff8876f6957f30862b17d2e09",
+      "url": "https://raw.githubusercontent.com/vercel-labs/just-bash/a021f95f53f7e01df48dab71b46ffd4637fb4b53/packages/just-bash/src/fs/in-memory-fs/in-memory-fs.ts"
+    }
+  ],
+  "localInputs": [
+    {
+      "path": "tests/comparison/next-gap-inventory-20260828/HANDOFF.md",
+      "size": 3690,
+      "mode": "644",
+      "sha256": "baafd4f04871c40d8bda8267026cced17625be583cf40fca8b19bc60a64e543e",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/CASES.json",
+      "size": 47429,
+      "mode": "644",
+      "sha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/READY.md",
+      "size": 11419,
+      "mode": "644",
+      "sha256": "2810bc898e6368c87e3431396845358f9b13f3bf0d991141fdc966f59387b9f7",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/BINDINGS.json",
+      "size": 30714,
+      "mode": "644",
+      "sha256": "95a3a22316c56af800112335a3591dbd8590418f13b7f62525b3d9090193f11a",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/FIXTURES.json",
+      "size": 15139,
+      "mode": "644",
+      "sha256": "2784e925e57619b9e0a1285c890f09293345ea414fee27a8d9aa507bfe0e00f1",
+      "unchanged": true
+    },
+    {
+      "path": "tests/integration/priority-command-workflows-20260828/MANIFEST.json",
+      "size": 1542,
+      "mode": "644",
+      "sha256": "9f37ca652c21fb233923ca7ba2a387325e7a7e34e58ca1e7c620d92551b089a4",
+      "unchanged": true
+    },
+    {
+      "path": "tests/comparison/next-gap-inventory-20260828/INPUTS.json",
+      "size": 5594,
+      "mode": "644",
+      "sha256": "d31f05159460e383c3a39102306ca1edc5ec06897aca0ce7ad9788b481e798d2",
+      "unchanged": true
+    }
+  ],
+  "originalManifestChecks": [
+    {
+      "file": "READY.md",
+      "expectedSha256": "2810bc898e6368c87e3431396845358f9b13f3bf0d991141fdc966f59387b9f7",
+      "actualSha256": "2810bc898e6368c87e3431396845358f9b13f3bf0d991141fdc966f59387b9f7",
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "file": "CASES.json",
+      "expectedSha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da",
+      "actualSha256": "68a4def2ab0186cdfb4d3715358757a23bb7a2599c8c6ac579fd07f2b5b441da",
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "file": "FIXTURES.json",
+      "expectedSha256": "2784e925e57619b9e0a1285c890f09293345ea414fee27a8d9aa507bfe0e00f1",
+      "actualSha256": "2784e925e57619b9e0a1285c890f09293345ea414fee27a8d9aa507bfe0e00f1",
+      "bytesMatch": true,
+      "hashMatch": true
+    },
+    {
+      "file": "BINDINGS.json",
+      "expectedSha256": "95a3a22316c56af800112335a3591dbd8590418f13b7f62525b3d9090193f11a",
+      "actualSha256": "95a3a22316c56af800112335a3591dbd8590418f13b7f62525b3d9090193f11a",
+      "bytesMatch": true,
+      "hashMatch": true
+    }
+  ],
+  "caseCommit": "5d432becbe385eb323c10feecfa5e982bfd3b099",
+  "webDiscovery": "Official npm/GitHub only. Web tool search and rendered citation views are supplementary, not byte-authentication records. Direct metadata/source fetches provide authoritative byte bindings.",
+  "webQueries": 2,
+  "webOpenRequests": 8
+}

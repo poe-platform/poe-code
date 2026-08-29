@@ -1,0 +1,100 @@
+{
+  "schema": "ROOT_SEMANTIC_AUTHORITY_RECORD_V1",
+  "authority": "Latest ROOT SCOPED PREEXECUTION ACCEPTANCE plus CONDITIONAL ROOT ACTUAL SEMANTIC GO in this conversation; no invented root commit",
+  "recordedAt": "2026-08-29T05:59:24.580Z",
+  "activeConditional": true,
+  "runId": "semantic-20260829-v7r3-01",
+  "attempts": 1,
+  "review": {
+    "commit": "44ad2c88e380b981699cfa28e3b7485b44452231",
+    "path": "tests/comparison/v7-r3-independent-20260829/semantic-mode-review/REVIEW-RECEIPT.json",
+    "sha256": "fd937af091530487ecc2a5d6681df06c872dfdb9a54ce4fab797544a3468e65a"
+  },
+  "acceptedAdmission": {
+    "commit": "3c4eedf2f153e12bc59851f7bcf22273a44652b6",
+    "blob": "0f49800c36215b7a7c9f007131571c6f090d9dc5",
+    "sha256": "22d9624cb1cfd3154b6070a3cde96d0958a202f2042ef80df37b012430bd7de0"
+  },
+  "acceptedPublication": {
+    "commit": "aa36fe6225bad29d9fb4201ad5ea8006372a51e1",
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/comparison/breadth-continuation-20260828/executor-v7-r3/runs/admission-20260829-v7r3-02-preparation/activation/FINAL-PUBLICATION.json",
+    "bytes": 2531,
+    "mode": 420,
+    "sha256": "8bb67515818f0f0a6ee0f35e7e48a2c09a440d06b5cdea68658431f42897ed36"
+  },
+  "originalAdmissionAuthority": {
+    "commit": "d27fd9145ef27fa1f03e273fe0d4954e7680b147",
+    "path": "tests/comparison/v7-r3-independent-20260829/review-v2/REVIEW-RECEIPT.json",
+    "sha256": "203947e58e56c6249fc93485bb5c925a1549bafea19104c034658d71a2e7c293"
+  },
+  "sourceComposition": [
+    "f7b9f0d4dd2fc6edd721597ec9d3e7db05267c98",
+    "fe8037019610a48522a8b1b4fc8987657cfa6d7e",
+    "d306b837da24fa970ded9ca6a0a99fe7a76ae342"
+  ],
+  "successorCommit": "428cb8c0ec1c3aa1737c4138198bedce300ebea5",
+  "successorSealSha256": "357baeaa36eafdbd3e26c84b6483ec25a50061e22d179efec95ae362cafd065d",
+  "conditions": [
+    "fresh exact grant/AUTH committed",
+    "unused run namespace",
+    "real-payload preflight qualified",
+    "one execution; no retries"
+  ],
+  "deadlines": {
+    "administrationStartedEpochMs": 1787982975784,
+    "latestLaunchEpochMs": 1787983875784,
+    "totalDeadlineEpochMs": 1787988375784,
+    "ownerDurationMs": 4500000,
+    "administrationReserveMs": 900000,
+    "scope": "External activation receipt only; exact14-field grant has no deadline fields. All integer absolute values checked before dispatch; owner retains unchanged75min."
+  },
+  "processPlan": {
+    "runtime": {
+      "owner": 1,
+      "launcher": 1,
+      "coordinator": 1,
+      "caseWorkers": 99,
+      "authorityMetadata": 200,
+      "total": 302
+    },
+    "administration": 20,
+    "slack": 14,
+    "totalCap": 336,
+    "peak": 5,
+    "wrapperHelpersIncludedInAdministration": 2,
+    "noWaitingShell": true
+  },
+  "limits": {
+    "allProcesses": 336,
+    "plannedRuntime": 302,
+    "plannedAdministration": 20,
+    "slack": 14,
+    "peak": 5,
+    "concurrency": 1,
+    "ownerMs": 4500000,
+    "adminMs": 900000,
+    "totalMs": 5400000,
+    "workerMs": 30000,
+    "termMs": 2000,
+    "killMs": 1000,
+    "metadataMs": 10000,
+    "metadataBytes": 65536,
+    "captureBytes": 269484032,
+    "bodyBytes": 260046848,
+    "collectorBytes": 8388608,
+    "outerBytes": 524288,
+    "adminBytes": 524288,
+    "recordBytes": 262144,
+    "documentBytes": 33554432,
+    "newStdoutBytes": 65536,
+    "newStderrBytes": 65536,
+    "legacyCombinedBytes": 8388608,
+    "workerFD3Bytes": 262144,
+    "workingBytes": 805306368,
+    "oldSpaceMiB": 256,
+    "RSSClaim": false,
+    "hardPreemptionClaim": false,
+    "full99FitsAggregateGuarantee": false
+  },
+  "history": "Old failures/consumed grants/losses unchanged. W07 uncredited,W03partial. No overall winner/currentBash acceptance."
+}

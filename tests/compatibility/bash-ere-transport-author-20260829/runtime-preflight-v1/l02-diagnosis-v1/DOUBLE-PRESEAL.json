@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "role": "SECOND_AND_FINAL_PURE_HELPER",
+  "helper": {
+    "path": "host-doubles.mjs",
+    "size": 7801,
+    "sha256": "0fa1aa195b3156fe4aa472f6f0baa5f692a97321f42f9329c2357de6beb978e3",
+    "imports": [
+      "node:assert/strict",
+      "node:fs",
+      "node:crypto"
+    ]
+  },
+  "methodSourceReceipt": {
+    "path": "TERMINATE-SOURCE.json",
+    "size": 1497,
+    "sha256": "485ef75ae79da94d8e730de32b9fbf94b0056e41486dfeaa4216d4d9c6525dc7",
+    "methodSha256": "a418b39c68a6c0b6c8c839c5bedfbe01dc01f04fb0b4e7f5072f3b560dbd9b89"
+  },
+  "toolSha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+  "groups": 6,
+  "plannedResults": [
+    "D01 persistent hook: two installation faults, false rejected termination, unresolved owner dependency",
+    "D02 single setup fault: later termination registration succeeds, raw false separate",
+    "D03 raw false setup vs own undefined cleanup present; unresolved dependency",
+    "D04 independently delivered owner exit allows failed cleanup to settle as rejection",
+    "D05 false constructor failure has no acquired-resource exit waiter",
+    "D06 exit + both enrolled streams needed for normal close"
+  ],
+  "noProductImports": true,
+  "noWorkerConstruction": true,
+  "noNativeTerminateCall": true,
+  "noModelAsOSProof": true,
+  "helperCumulative": 2,
+  "limitsUnchanged": true
+}

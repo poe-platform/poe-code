@@ -1,0 +1,23 @@
+{
+  "role": "review-tree",
+  "pid": 40336,
+  "args": [
+    "ls-tree",
+    "-r",
+    "-l",
+    "-z",
+    "bab8cae4da9bdb780ad26c4123451df2549cc1c6",
+    "--",
+    "tests/integration/agent-bash-coherent-b2-preflight-20260829",
+    "tests/integration/agent-bash-coherent-independent-20260829"
+  ],
+  "started": "2026-08-29T14:51:41.462Z",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "role": "immutable-review-authority",
+  "pid": 40548,
+  "started": "2026-08-29T14:52:19.510Z",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  }
+}

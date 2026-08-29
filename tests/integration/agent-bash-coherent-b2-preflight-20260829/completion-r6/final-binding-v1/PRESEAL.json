@@ -1,0 +1,41 @@
+{
+  "schema": "B2_R6_FINAL_BINDING_DATA_PRESEAL",
+  "preparationDeadline": "2026-08-29T15:01:41.462Z",
+  "inputs": [
+    {
+      "path": "bind.mjs",
+      "bytes": 7036,
+      "sha256": "f6e972a03162a7d238fa53f37dbc8df945a887ce9c19316062147fac7872f441"
+    },
+    {
+      "path": "review-PENDING-AUTHORITY.json",
+      "bytes": 1720,
+      "sha256": "eeceea420098a00abcaa55a0568c5e07b59706532fdeae76d91c03ae7407eb61"
+    },
+    {
+      "path": "review-RECEIPT.json",
+      "bytes": 6709,
+      "sha256": "7d4e01900cd8630d2331a237283c7e6e43bfad5e00080d8099f3cbddca67a897"
+    },
+    {
+      "path": "../SOURCE-QUALIFICATION.json",
+      "bytes": 549883,
+      "sha256": "a9459f7ba69aaa53a3c471573212f733b434fe2a65dadbb72d4257dfb111ccf2"
+    }
+  ],
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "roles": [
+    {
+      "name": "bind-data-only",
+      "maximumChildren": 0
+    }
+  ],
+  "grantMaximumKnownOS": 28,
+  "grantPeak": 3,
+  "actualForbidden": true,
+  "clockRule": "notBefore = issuedAt + 20 minutes; full fixed 1800s interval; no early launch grace"
+}

@@ -1,0 +1,285 @@
+{
+  "schema": "ere-preexec-control-preseal-v2",
+  "role": "DATA_ONLY_NO_NATIVE_AUTHORITY",
+  "createdAt": "2026-08-29T09:33:52.229Z",
+  "grantStart": 1787995912053.47,
+  "deadline": 1787996632053.47,
+  "started": 1787996032129,
+  "files": [
+    {
+      "path": "preflight-v2/materialized/PRESEAL.json",
+      "bytes": 4527,
+      "mode": 384,
+      "sha256": "211483cbe1b12ad505345da5396a227c7da9931743d035ed365f7cc74bb4d457"
+    },
+    {
+      "path": "preflight-v2/materialized/COHORT.json",
+      "bytes": 13100,
+      "mode": 384,
+      "sha256": "4e5efbe3ad419ab32f073eb2cffebcd39e564ba9fe9c75d38e67a7f9d5e4201e"
+    },
+    {
+      "path": "preflight-v2/materialized/PROTOCOL.json",
+      "bytes": 1881,
+      "mode": 384,
+      "sha256": "948519ae3d428f24ae666c8d6f9961779e08e9e37e0a3a2708994f9630d91828"
+    },
+    {
+      "path": "preflight-v2/materialized/REQUESTS.json",
+      "bytes": 14844,
+      "mode": 384,
+      "sha256": "2678d8619553f9d8d9669f078c29847c65c31984ebd0ab6bdeeea271a213acc8"
+    },
+    {
+      "path": "preflight-v2/materialized/TOOLS.json",
+      "bytes": 3067,
+      "mode": 384,
+      "sha256": "afc1d0c9413671fd0b54192c7ab87ec21c4058900a96f3e535d6d4c6a3436f7a"
+    },
+    {
+      "path": "preflight-v2/materialized/admission.mjs",
+      "bytes": 9447,
+      "mode": 384,
+      "sha256": "5bb503cabae66da96f847697e34a9e8a19d954bc2137a2ce409fcba1aee265aa"
+    },
+    {
+      "path": "preflight-v2/materialized/capture.mjs",
+      "bytes": 1888,
+      "mode": 384,
+      "sha256": "189163f34934cad07540eda703611ad7c1f758e23f784a7d1935a31d16391009"
+    },
+    {
+      "path": "preflight-v2/materialized/entry.mjs",
+      "bytes": 6928,
+      "mode": 384,
+      "sha256": "4b4d8910c0843ca79c42f2b96ff388e512024b818a96770e33d5d28e8d194e8e"
+    },
+    {
+      "path": "preflight-v2/materialized/group-observer.mjs",
+      "bytes": 759,
+      "mode": 384,
+      "sha256": "ba7ec9ff06c8b0867b9183b1242ade0f4b1ca1d9d6bb0c6b1abdbb574d830417"
+    },
+    {
+      "path": "preflight-v2/materialized/lifecycle.mjs",
+      "bytes": 5280,
+      "mode": 384,
+      "sha256": "67f9674fac2dbe0ee5eee5fd3685263106b29ad80664094555731780b821e3fd"
+    },
+    {
+      "path": "preflight-v2/materialized/observation.mjs",
+      "bytes": 1763,
+      "mode": 384,
+      "sha256": "5f823a028913988d6dd65a66ec1900c0a279455bcff8f504fbaeb8b67cb90e13"
+    },
+    {
+      "path": "preflight-v2/materialized/observer-state.mjs",
+      "bytes": 1240,
+      "mode": 384,
+      "sha256": "14ad6fd00f476722676fd590b2fc0774d7c1eb242d6525e885b1bfb53d3bce74"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N01.bash.data",
+      "bytes": 522,
+      "mode": 384,
+      "sha256": "fae970d9c16fb57c0c25b022ac1f5576d6b6143a014ff854fe1740a0987237d8"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N02.bash.data",
+      "bytes": 523,
+      "mode": 384,
+      "sha256": "aebbf9e66581de06049b0efa81b69de0002ff92e02b747fa03c75bb31d5b10d6"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N03.bash.data",
+      "bytes": 527,
+      "mode": 384,
+      "sha256": "8759c0b41b2d5ef3d8b7facaa6f1d3dcbec1a8e537da074fa6a6bd0b5a0dfdfb"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N04.bash.data",
+      "bytes": 535,
+      "mode": 384,
+      "sha256": "9b5ec481108bb0a88a11f456cfb9ca0864375c518ac56b0a2031db9e5f570931"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N05.bash.data",
+      "bytes": 524,
+      "mode": 384,
+      "sha256": "7660daee58bd0aee45fe92a50df832e856d767307b8511e4b87a9f7ed1b6a56b"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N06.bash.data",
+      "bytes": 524,
+      "mode": 384,
+      "sha256": "c22e4e91bec435e61a12c70bdf3c874414e6c33c788ecb1bbd1eb074347dd8ce"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N07.bash.data",
+      "bytes": 523,
+      "mode": 384,
+      "sha256": "8eb5848ac4ff55db4dc344a5534f52c0897fc6021695d806f7e0a553363f57e2"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N08.bash.data",
+      "bytes": 521,
+      "mode": 384,
+      "sha256": "baabccf6822de2f828151262377087de08f626a143f5f22ba47a10985ea97a37"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N09.bash.data",
+      "bytes": 517,
+      "mode": 384,
+      "sha256": "c5d4b8bb303e46d12f4d29767cb6e9381cbc60ad7bf267e3c167fc3c6fbff373"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N10.bash.data",
+      "bytes": 517,
+      "mode": 384,
+      "sha256": "de8a08419505d8631802efb8ad1f8478f7763ba23af0ff017a67e6205cabffea"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N11.bash.data",
+      "bytes": 515,
+      "mode": 384,
+      "sha256": "349779fccfea64c43ff609fd67f335c03f24b0f63752c97e56acffc3d5335c97"
+    },
+    {
+      "path": "preflight-v2/materialized/programs/N12.bash.data",
+      "bytes": 513,
+      "mode": 384,
+      "sha256": "30419eefab37b3177fc0160bf274522d3299f567b0eae81a21bb57891c0deda8"
+    },
+    {
+      "path": "preflight-v2/materialized/state.mjs",
+      "bytes": 1824,
+      "mode": 384,
+      "sha256": "57a60758c3f59ed0d226f790be355a663702f004d2b1c5c8d6d58073bae2eaae"
+    },
+    {
+      "path": "preflight-v2/materialized/storage.mjs",
+      "bytes": 3583,
+      "mode": 384,
+      "sha256": "de44eb9eb8a4a20b4a20e793045b5590891189907cf1b9a7c2def32d0effb9c9"
+    },
+    {
+      "path": "preflight-v2/prepare.mjs",
+      "bytes": 8876,
+      "mode": 420,
+      "sha256": "e3344bc3b7fe684a1d867fd86cc10cd98f178fc0760c97d16263775515029343"
+    },
+    {
+      "path": "preflight-v2/controls.mjs",
+      "bytes": 19603,
+      "mode": 384,
+      "sha256": "df72c15c637b005a144460118069d2a4a40f060c5538478b940b544be3954f3b"
+    },
+    {
+      "path": "preflight-v2/C07.mjs.fragment.data",
+      "bytes": 3384,
+      "mode": 420,
+      "sha256": "b4bd4833880947cd54990a7e6d07c8ae37fb01549b4ee3ec393499ed9d3e7997"
+    },
+    {
+      "path": "preflight-v2/APPROVAL-PROPOSAL.template.json",
+      "bytes": 2621,
+      "mode": 384,
+      "sha256": "6e092362c293a54bdd108b44a59ad245346890265f3d16d3ff18918239cf7881"
+    },
+    {
+      "path": "preflight-v2/SOURCE-DELTA.json",
+      "bytes": 2020,
+      "mode": 384,
+      "sha256": "6b43cf7cab16a503cfa76c1ed10d1f2c15479c35bef2ec1cf905a6e5b77cdf30"
+    },
+    {
+      "path": "preflight-v2/node-fs-readSync-source.txt.data",
+      "bytes": 1026,
+      "mode": 384,
+      "sha256": "6f45e484cb5d59f604bb512278c0a7a4ede791a0ac251cab5e3389f7780fe675"
+    }
+  ],
+  "cases": [
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06",
+    "C07",
+    "C08",
+    "C09",
+    "C10",
+    "C11",
+    "C12"
+  ],
+  "fixtureChildren": 0,
+  "targetChildren": 0,
+  "controlProcessMs": 120000,
+  "rootPreparationCaps": {
+    "totalMs": 720000,
+    "knownStarts": 32,
+    "peak": 2,
+    "capture": 33554432,
+    "work": 134217728
+  },
+  "tools": [
+    {
+      "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "bytes": 112989184,
+      "mode": 493,
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011",
+      "observedAt": "2026-08-29T09:33:52.205Z"
+    },
+    {
+      "path": "/bin/bash",
+      "bytes": 1293840,
+      "mode": 365,
+      "sha256": "35536aea9733aa345b61134a98d00232380898e55b2ea2a07c497011f7dfc7a3",
+      "observedAt": "2026-08-29T09:33:52.208Z"
+    },
+    {
+      "path": "/usr/bin/env",
+      "bytes": 102368,
+      "mode": 493,
+      "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776",
+      "observedAt": "2026-08-29T09:33:52.208Z"
+    },
+    {
+      "path": "/bin/zsh",
+      "bytes": 1361216,
+      "mode": 493,
+      "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57",
+      "observedAt": "2026-08-29T09:33:52.209Z"
+    }
+  ],
+  "readSourceRole": "actual pinned Node public fs.readSync implementation; not decoded executable bytes; native binding internals not inspected",
+  "C07": {
+    "fileContents": [
+      "",
+      "ABCDE"
+    ],
+    "openRoles": [
+      "readwrite",
+      "readonly",
+      "writeonly"
+    ],
+    "position": 0,
+    "length": 1,
+    "cursorCheck": "initial sequential A, admission positional read, next sequential B",
+    "preAdmissionNegatives": [
+      "wrong inode",
+      "wrong mode",
+      "nonregular",
+      "wrong path",
+      "refused descriptor"
+    ],
+    "oldUnrun": [
+      "unchanged file bytes",
+      "valid provision",
+      "missing provision parent"
+    ],
+    "newTopLevelCases": 0
+  },
+  "nativeStatus": "12_UNRUN"
+}

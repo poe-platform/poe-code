@@ -1,0 +1,266 @@
+[
+  {
+    "id": "N01",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='(a(b)?)+'\nsubject='aba'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N01\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N01/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N01/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N01/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N01/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N02",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='((a)|(b))+'\nsubject='ab'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N02\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N02/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N02/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N02/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N02/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N03",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='((a(b)?)c)+'\nsubject='abcac'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N03\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N03/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N03/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N03/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N03/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N04",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='(ba(na)*s )*'\nsubject='bananas bas '\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N04\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N04/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N04/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N04/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N04/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N05",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='(a(b)?){2}'\nsubject='aba'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N05\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N05/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N05/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N05/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N05/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N06",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='((a)?b){2}'\nsubject='abb'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N06\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N06/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N06/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N06/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N06/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N07",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='((a)|(b))+'\nsubject='ba'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N07\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N07/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N07/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N07/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N07/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N08",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='(a(b)?)+'\nsubject='ab'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N08\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N08/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N08/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N08/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N08/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N09",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='(a)?b'\nsubject='b'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N09\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N09/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N09/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N09/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N09/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N10",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='(a*)b'\nsubject='b'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N10\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N10/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N10/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N10/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N10/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N11",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='(a)'\nsubject='b'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N11\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N11/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N11/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N11/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N11/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  },
+  {
+    "id": "N12",
+    "executable": "/bin/bash",
+    "argv": [
+      "--noprofile",
+      "--norc",
+      "-c",
+      "pattern='('\nsubject='a'\n[[ \"$subject\" =~ $pattern ]]\nmatch_status=$?\nrematch_count=${#BASH_REMATCH[@]}\nbuiltin printf 'EREOBS1\\000N12\\000%s\\000%s\\000' \"$match_status\" \"$rematch_count\"\nif (( rematch_count > 4 )); then\n  builtin printf 'CARDINALITY_OVERFLOW\\000'\n  exit 125\nfi\nfor slot in 0 1 2 3; do\n  if [[ ${BASH_REMATCH[$slot]+present} == present ]]; then\n    builtin printf '%s\\0001\\000%s\\000' \"$slot\" \"${BASH_REMATCH[$slot]}\"\n  else\n    builtin printf '%s\\0000\\000\\000' \"$slot\"\n  fi\ndone\nexit \"$match_status\"\n",
+      "ere-capture-case"
+    ],
+    "cwd": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N12/work",
+    "environment": {
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC",
+      "HOME": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N12/home",
+      "TMPDIR": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N12/tmp",
+      "PATH": "/private/tmp/safe-bash-ere-native-observations-20260829-v1/cases/N12/empty-path"
+    },
+    "stdinBase64": "",
+    "extraProcessReservation": 0
+  }
+]

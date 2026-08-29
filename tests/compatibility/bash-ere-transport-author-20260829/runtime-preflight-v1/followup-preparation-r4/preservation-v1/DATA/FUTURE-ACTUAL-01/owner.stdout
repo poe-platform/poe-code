@@ -1,0 +1,14 @@
+{"kind":"owner-entry","pid":84282}
+{"kind":"process-observation","cell":1,"pid":84286,"state":"RETIRED","closed":true,"code":0}
+{"kind":"process-observation","cell":2,"pid":84287,"state":"RETIRED","closed":true,"code":0}
+{"kind":"process-observation","cell":3,"pid":84288,"state":"RETIRED","closed":true,"code":0}
+{"kind":"process-observation","cell":4,"pid":84289,"state":"RETIRED","closed":true,"code":0}
+{"kind":"process-observation","cell":5,"pid":84291,"state":"RETIRED","closed":true,"code":0}
+{"kind":"process-observation","cell":6,"pid":84292,"state":"RETIRED","closed":true,"code":0}
+{"kind":"process-observation","cell":7,"pid":84293,"state":"RETIRED","closed":true,"code":0}
+{"kind":"process-observation","cell":8,"pid":84294,"state":"RETIRED","closed":true,"code":0}
+{"kind":"process-observation","cell":9,"pid":84295,"state":"RETIRED","closed":true,"code":0}
+{"kind":"process-observation","cell":10,"pid":84296,"state":"RETIRED","closed":true,"code":0}
+{"kind":"process-observation","cell":11,"pid":84297,"state":"RETIRED","closed":true,"code":0}
+{"kind":"process-observation","cell":12,"pid":84298,"state":"RETIRED","closed":true,"code":0}
+{"kind":"process-observation","cell":13,"pid":84299,"state":"RETIRED","closed":true,"code":2}

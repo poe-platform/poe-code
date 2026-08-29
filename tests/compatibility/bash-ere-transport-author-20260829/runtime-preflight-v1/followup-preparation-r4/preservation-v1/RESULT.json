@@ -1,0 +1,421 @@
+{
+  "schema": 1,
+  "phase": "SEPARATE_ROOT_AUTHORIZED_DATA_RETENTION_NOT_CAMPAIGN_PUBLICATION",
+  "startedAt": "2026-08-29T17:09:25.667Z",
+  "completedAt": "2026-08-29T17:09:25.787Z",
+  "files": 62,
+  "bytes": 60526,
+  "manifestSha256": "c7960c57323b815af215b0f5a13ceaf242406a1c41a0f0c002e837addb957785",
+  "controls": [
+    {
+      "id": "T01-bound-runtime-byte",
+      "pass": true
+    },
+    {
+      "id": "T02-sticky-false",
+      "pass": true
+    },
+    {
+      "id": "T03-final-retirement-fabrication",
+      "pass": true
+    },
+    {
+      "id": "T04-pass-count-contradiction",
+      "pass": true
+    }
+  ],
+  "authorObservedPass": 12,
+  "stopUnconfirmed": 1,
+  "unrun": 0,
+  "recordedWorkerExits": 9,
+  "finalRecordedExits": 0,
+  "finalRootRetirement": "UNCONFIRMED",
+  "retainedUnknown": true,
+  "ownerPID": 84282,
+  "toolSession": 98687,
+  "toolReturnCode": 2,
+  "toolObservationSource": "ROOT-supplied and prior tool return; not an OS census",
+  "caseSummaries": [
+    {
+      "cell": 1,
+      "purpose": "constructor",
+      "layout": "built",
+      "disposition": "PASS",
+      "WorkersReported": 0,
+      "recordedExits": 0,
+      "retirementState": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 0,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      },
+      "receiptSha256": "2e4e339959a994ed283298c455cb7413135a744c7cabe3d5c7f0253a13c731c5"
+    },
+    {
+      "cell": 2,
+      "purpose": "constructor",
+      "layout": "installed",
+      "disposition": "PASS",
+      "WorkersReported": 0,
+      "recordedExits": 0,
+      "retirementState": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 0,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      },
+      "receiptSha256": "4035d517ec0aca6bbbc54fc64748a6c382d5dbb05945efb799ea2360694820e9"
+    },
+    {
+      "cell": 3,
+      "purpose": "constructor",
+      "layout": "moved",
+      "disposition": "PASS",
+      "WorkersReported": 0,
+      "recordedExits": 0,
+      "retirementState": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 0,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      },
+      "receiptSha256": "9455d59a4964f47a5f8cb8da73bd833ebe4acf40ab386b3151d4bd8b36558bfb"
+    },
+    {
+      "cell": 4,
+      "purpose": "normal",
+      "layout": "built",
+      "disposition": "PASS",
+      "WorkersReported": 1,
+      "recordedExits": 1,
+      "retirementState": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      },
+      "receiptSha256": "32620130a82a5a0d9ca1d24dd7b27d2cf534722fe0276c0db9a876faf2f473e0"
+    },
+    {
+      "cell": 5,
+      "purpose": "normal",
+      "layout": "installed",
+      "disposition": "PASS",
+      "WorkersReported": 1,
+      "recordedExits": 1,
+      "retirementState": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      },
+      "receiptSha256": "6a17df59500b2041403c408e5d6bc75f6da8a798237808b6cc70d5e74ecabf22"
+    },
+    {
+      "cell": 6,
+      "purpose": "normal",
+      "layout": "moved",
+      "disposition": "PASS",
+      "WorkersReported": 1,
+      "recordedExits": 1,
+      "retirementState": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      },
+      "receiptSha256": "9b3eae3439b4b348dec5e4b891f8c12afb450eea7cb48478065a930fc116a368"
+    },
+    {
+      "cell": 7,
+      "purpose": "post",
+      "layout": "built",
+      "disposition": "PASS",
+      "WorkersReported": 1,
+      "recordedExits": 1,
+      "retirementState": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      },
+      "receiptSha256": "639ffa1719db04964865751eb4134a5370e734c4cadaec19922a08911026b261"
+    },
+    {
+      "cell": 8,
+      "purpose": "post",
+      "layout": "installed",
+      "disposition": "PASS",
+      "WorkersReported": 1,
+      "recordedExits": 1,
+      "retirementState": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      },
+      "receiptSha256": "6bf81a31290d58a0bc40d965de1f0dce87173375ce21731849320264f9b14386"
+    },
+    {
+      "cell": 9,
+      "purpose": "post",
+      "layout": "moved",
+      "disposition": "PASS",
+      "WorkersReported": 1,
+      "recordedExits": 1,
+      "retirementState": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      },
+      "receiptSha256": "04792a2471c475ec43415576b91f1d09f29726cf63fd9f07fa90ecc71a5e51e6"
+    },
+    {
+      "cell": 10,
+      "purpose": "single",
+      "layout": "built",
+      "disposition": "PASS",
+      "WorkersReported": 1,
+      "recordedExits": 1,
+      "retirementState": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      },
+      "receiptSha256": "b19bc39a14f1a93e1d7ddc57dea198238513ded2e15c2295f8797868b6e7359f"
+    },
+    {
+      "cell": 11,
+      "purpose": "single",
+      "layout": "installed",
+      "disposition": "PASS",
+      "WorkersReported": 1,
+      "recordedExits": 1,
+      "retirementState": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      },
+      "receiptSha256": "48e2af275c776592a9d2935f2ab790c751f7f52819575db3acb0f2a683ddf937"
+    },
+    {
+      "cell": 12,
+      "purpose": "single",
+      "layout": "moved",
+      "disposition": "PASS",
+      "WorkersReported": 1,
+      "recordedExits": 1,
+      "retirementState": "RETIRED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": false,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": false
+      },
+      "receiptSha256": "30d69dcecf95c29cc637934ecc47c3c8c0ad999aa014f30a3bcd952aa87a7929"
+    },
+    {
+      "cell": 13,
+      "purpose": "persistent",
+      "layout": "built",
+      "disposition": "STOP_UNCONFIRMED",
+      "WorkersReported": 1,
+      "recordedExits": 0,
+      "retirementState": "UNCONFIRMED",
+      "rootRetained": true,
+      "handlesRetained": 1,
+      "retainedCharges": true,
+      "primary": {
+        "present": true,
+        "kind": "boolean",
+        "value": false
+      },
+      "cleanup": {
+        "present": false
+      },
+      "termination": {
+        "present": true,
+        "kind": "boolean",
+        "value": false,
+        "route": "promise-rejection"
+      },
+      "receiptSha256": "f84400d8f1ad884b97084d4f739a31d4d35477d8af5d1383370dd742f85a7d4f"
+    }
+  ],
+  "missingOptionalOutputs": [
+    {
+      "case": "01-constructor-built",
+      "name": "EMERGENCY.json"
+    },
+    {
+      "case": "02-constructor-installed",
+      "name": "EMERGENCY.json"
+    },
+    {
+      "case": "03-constructor-moved",
+      "name": "EMERGENCY.json"
+    },
+    {
+      "case": "04-normal-built",
+      "name": "EMERGENCY.json"
+    },
+    {
+      "case": "05-normal-installed",
+      "name": "EMERGENCY.json"
+    },
+    {
+      "case": "06-normal-moved",
+      "name": "EMERGENCY.json"
+    },
+    {
+      "case": "07-post-built",
+      "name": "EMERGENCY.json"
+    },
+    {
+      "case": "08-post-installed",
+      "name": "EMERGENCY.json"
+    },
+    {
+      "case": "09-post-moved",
+      "name": "EMERGENCY.json"
+    },
+    {
+      "case": "10-single-built",
+      "name": "EMERGENCY.json"
+    },
+    {
+      "case": "11-single-installed",
+      "name": "EMERGENCY.json"
+    },
+    {
+      "case": "12-single-moved",
+      "name": "EMERGENCY.json"
+    }
+  ],
+  "startupOuterBytes": [
+    0,
+    0
+  ],
+  "startupQualification": "RESERVED_POSTCHECKED_NO_EOF_OR_PREWRITE_ENFORCEMENT_CLAIM",
+  "logicalHandleQualification": "receipt records retained root/handle/charges; no claim a live JavaScript reference survives known process close",
+  "sourceProfileReference": "dbb576cdb97945543ef15cb02548f3cbe12875cbeab4bb01af2d60addf5dbffa",
+  "activationSha256": "c69f61ffb6c553d4adc395ef40aec044412939ab945e5c4068cefdb4153c8417",
+  "runtimeSha256": "56f2df9e895c86d289682754dac22e83cc26d0a77d9e96631eb4fa0488f02811",
+  "stopSha256": "c104c1eb9bb08f258bb063f8a84c925137081439a7e2a81019f8a6f0c38738d7",
+  "NodeTool": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "size": 112989184,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "helperSha256": "6cb86ac64296b76a012831b1b161ec048f9439e5413c42a94ec4d59520d59caf",
+  "actualWorkersStartedThisPhase": 0,
+  "childProcessesThisHelper": 0,
+  "recovery": false,
+  "signals": false,
+  "cleanup": false,
+  "originalBudgetNotRescored": true
+}

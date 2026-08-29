@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { identity } from '../admin-owner-r1/tracked-owner.mjs';
+import { ownerLedger, admitPrior, completePreimport, admitPublisher, countPublication } from './ledger.mjs';
+export async function controls(owner, node, root) {
+  const result = [], entry = identity(path.join(root, 'prepare.mjs'), 131072);
+  const base = ownerLedger(owner.snapshot(), 'PURE-NOT-ACTUAL-AUTHORITY', entry);
+  const observation = { parentPid: process.pid, selfPid: 99999991, startedUTC: new Date().toISOString() };
+  const check = (id, body) => { body(); result.push({ id, role: 'PURE', outcome: 'PASS' }); };
+  check('C01-one-live-owner', () => { const accepted = admitPrior(base, observation); assert.equal(accepted.preimport.closeObserved, false); assert.equal(accepted.prior[0].state, 'LIVE_ADMIN_OWNER'); });
+  check('C02-extra-live-role', () => { const changed = structuredClone(base); changed.starts.push({ ...changed.starts[0], id: 'other', pid: 99999990, role: 'unknown-child' }); assert.throws(() => admitPrior(changed, observation), /PRIOR_NOT_CLOSED/); });
+  check('C03-parent-mismatch', () => assert.throws(() => admitPrior(base, { ...observation, parentPid: 99999989 })));
+  check('C04-false-closed-owner', () => { const changed = structuredClone(base); changed.starts[0].exitObserved = changed.starts[0].closeObserved = true; assert.throws(() => admitPrior(changed, observation), /LIVE_OWNER_BINDING/); });
+  check('C05-reservation-over-cap', () => { const changed = structuredClone(base); while (changed.starts.length < 32) changed.starts.push({ id: 'extra-' + changed.starts.length, pid: 80000000 + changed.starts.length, role: 'collector', startedUTC: observation.startedUTC, state: 'CLOSED', startObserved: true, exitObserved: true, closeObserved: true }); assert.throws(() => admitPrior(changed, observation), /RESERVATION_OVER_CAP/); });
+  check('C06-reservation-identity', () => { const changed = structuredClone(base); changed.reservations[1].role = 'publication-preimport'; assert.throws(() => admitPrior(changed, observation)); });
+  check('C07-own-data', () => { for (const mode of ['hidden', 'symbol', 'accessor']) { const changed = structuredClone(base); if (mode === 'hidden') Object.defineProperty(changed, 'hidden', { value: 1 }); if (mode === 'symbol') changed[Symbol('extra')] = 1; if (mode === 'accessor') Object.defineProperty(changed, 'authorization', { enumerable: true, get() { throw new Error('MUST_NOT_READ_ACCESSOR'); } }); assert.throws(() => admitPrior(changed, observation)); } });
+  check('C08-no-doublecount-unclosed', () => { const admitted = admitPrior(base, observation); assert.throws(() => completePreimport(admitted, { pid: observation.selfPid, role: 'publication-preimport', startObserved: true, exitObserved: true, closeObserved: false })); const complete = completePreimport(admitted, { pid: observation.selfPid, role: 'publication-preimport', startObserved: true, exitObserved: true, closeObserved: true }); assert.throws(() => admitPublisher(complete, observation), /PUBLISHER_ALREADY_COUNTED/); const publisher = admitPublisher(complete, { ...observation, selfPid: 99999988 }); assert.equal(countPublication(complete, publisher, []).knownStarts, base.starts.length + 2); });
+  const ledger = ownerLedger(owner.snapshot(), 'HARMLESS-NOT-B1', entry);
+  const saved = owner.persist(path.join(owner.config.raw, 'probe-ledger.json'), ledger);
+  const first = await owner.run('publication-preimport', node, [path.join(root, 'probe.mjs'), 'preimport-like', saved.path, saved.sha256, String(saved.bytes)], 5000);
+  assert.equal(first.faults.primaryPresent, false); assert.equal(first.row.exitCode, 0);
+  const admitted = JSON.parse(fs.readFileSync(first.files[0], 'utf8'));
+  assert.equal(admitted.owner.pid, process.pid); assert.equal(admitted.preimport.pid, first.row.pid);
+  result.push({ id: 'C09-parent-preimport', role: 'ACTUAL_HARMLESS_CHILD', outcome: 'PASS', pid: first.row.pid, exitObserved: first.row.exitObserved, closeObserved: first.row.closeObserved });
+  const complete = completePreimport(admitted, first.row);
+  const publication = owner.persist(path.join(owner.config.raw, 'probe-publisher.json'), complete);
+  const second = await owner.run('publisher', node, [path.join(root, 'probe.mjs'), 'publisher-like', publication.path, publication.sha256, String(publication.bytes)], 5000);
+  assert.equal(second.faults.primaryPresent, false); assert.equal(second.row.exitCode, 0);
+  const receipt = JSON.parse(fs.readFileSync(second.files[0], 'utf8'));
+  assert.equal(receipt.knownStarts, owner.snapshot().knownStarts); assert.equal(receipt.publisher.pid, second.row.pid); assert.equal(receipt.ownerDisposition, 'EXIT_PENDING_EXTERNAL_OBSERVATION');
+  result.push({ id: 'C10-parent-publisher-count', role: 'ACTUAL_HARMLESS_CHILD', outcome: 'PASS', pid: second.row.pid, knownStarts: receipt.knownStarts, exitObserved: second.row.exitObserved, closeObserved: second.row.closeObserved });
+  return result;
+}

@@ -1,0 +1,124 @@
+{
+  "role": "RETAINED_RECEIPT_BINDING_NOT_REEXECUTION",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "fullPackage": {
+    "members": 950,
+    "sha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156"
+  },
+  "sourceManifest": {
+    "path": "tests/integration/git-public-independent-20260829/successor-bindings-v2/SOURCE.json",
+    "bytes": 220097,
+    "sha256": "14a2a6a50d7748b677c4cc1261d6f69a411c1c21926c7acd884c86f2077e9450"
+  },
+  "fixtureV2": "2764c0541ebe1a517965bdc73f33b1651cb15935",
+  "baseline": {
+    "candidate": "7fde32264d757ef856acf3ae92c8581b4a294341",
+    "packageSha256": "643939eb315c4869de456bb24e371257e3d85b442f3ca401c57ae93c631c7edd"
+  },
+  "module": {
+    "commit": "fca6f81d2d96db2bbceabf3247cd57ffe240bde6",
+    "acceptance": "db8b818db983f32c9522ebe4c9589ca8766a5454"
+  },
+  "handoffCommit": "4ade014242d6b6ceac254c41f53b46ca00102fbe",
+  "receipts": [
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/AUTHENTICATION.json",
+      "bytes": 199487,
+      "sha256": "c9a76dec1027baf09942b3ae4394d50a0707fc41f902c84921c388c6de554a34"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/BASE-ARCHIVE-BINDING.json",
+      "bytes": 884,
+      "sha256": "ddcc3e673bbd26947cdc405ac456b76b8472874730f030844fa5c669d5433c76"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/BASE-ARCHIVE-LOCATOR.json",
+      "bytes": 384,
+      "sha256": "15f683a441f707d498451ba26e23d4bab125a0934897623dc1d1e12c18faa7bc"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/CANONICAL-PROJECTION.json",
+      "bytes": 374,
+      "sha256": "5e9dc6bc0c05d0319e246c948ecb96c9f2151073f7f5ada7ba4cce1ccf3cd2bc"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/PUBLIC-INVENTORY.json",
+      "bytes": 3118,
+      "sha256": "bcd4ce63d79f880f44dee4042042466677f907f979a1474a9bbffb1463c0c831"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/TOOLS-DATA-v2.json",
+      "bytes": 2894,
+      "sha256": "3d3431ab4a1a672a79a246903daefe3ccdcd1cc0c466858be5523b4ee062f084"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/WORKER-CLOSURE-v3.json",
+      "bytes": 1699,
+      "sha256": "0c354e642401f5d3d0e547cd1849118679cbba07728c3cd4f520ec9b5d487e94"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/RETAINED-CONTROL-BINDINGS.json",
+      "bytes": 3237,
+      "sha256": "a0f0e2755f795412d48095edd356c6186bf6eb41bc0281b703e1f6ba234996fd"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/EXECUTION-SEAL.json",
+      "bytes": 5303,
+      "sha256": "869671472a272d3b7b1f620815a5afe969d69992aa795a428e0e58ad47d7aec5"
+    },
+    {
+      "path": "tests/integration/git-public-independent-20260829/preparation-v3/FINAL-RECEIPT.json",
+      "bytes": 3188,
+      "sha256": "a3fb632bbc42200aa44faa98cc0344e625a7e4ced0b7e4082738d181a0ea5794"
+    }
+  ],
+  "repair": {
+    "commit": "7b2a72e98c50d43fe4d06ded0773ca857e5d233a",
+    "seal": {
+      "path": "tests/integration/git-public-independent-20260829/internal-loader-repair-v1/REPAIR-PRESEAL-V2.json",
+      "bytes": 4245,
+      "sha256": "3a191d40be1e7da93f9ce1947050411a5f0278e92a47ce362ab95a2e740dcb7d"
+    }
+  },
+  "cohortHistory": {
+    "oldActual": "7bd3fc8e35b65d4bbda68f155ec9eb72534a1977 CONSUMED/HOLD",
+    "oldControls": "14PASS/8FAIL coordinator1",
+    "versionedCorrections": "3PASS coordinator0; deliberately nonclean child7 retained",
+    "hashData": "3PASS; original whole-buffer method qualification retained"
+  },
+  "tools": {
+    "node": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "version": "v22.22.2",
+      "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+    },
+    "typescript": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/typescript",
+      "version": "5.9.3",
+      "inventorySha256": "795fdf528d284319ca578873e6a6f0d145860022c0fe8ea2231bc608889e9b41"
+    },
+    "npm": {
+      "origin": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+      "version": "10.9.7",
+      "inventorySha256": "76ddb347ab8dce68f6ce84513b57e6489eb5f4a6492a87748db863ef11f9be55"
+    },
+    "@types/node": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/@types/node",
+      "version": "22.20.1",
+      "inventorySha256": "e113c1687ab6020f64ac29d870556eea9048cc09c7f07720f1c31a83173d3bae"
+    },
+    "undici-types": {
+      "origin": "/Users/kjopek/Workspace/safe-bash/node_modules/undici-types",
+      "version": "6.21.0",
+      "inventorySha256": "e0f1f3f618db2ed230f15d2f74810541aeced3f5334a5167a8cc469a5b05f986"
+    }
+  },
+  "python": {
+    "path": "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+    "realpath": "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/bin/python3.14",
+    "bytes": 34640,
+    "sha256": "87d4df53fd91304be5bac391fb204643c36b7df2023c04a0953bcbc7d4fdf634",
+    "qualification": "Direct regular interpreter selected through recorded local symlink metadata, then SHA256 bound; version is path metadata, not an executed version probe. Standard-library/native dependency closure is not freshly attested."
+  },
+  "qualification": "No candidate, archive, tool census or semantic receipt replay here. Existing authenticated inputs retained by exact hashes; future actual launcher/coordinator must re-admit runtime bytes."
+}

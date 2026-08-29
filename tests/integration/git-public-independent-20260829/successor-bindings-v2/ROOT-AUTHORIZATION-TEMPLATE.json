@@ -1,0 +1,16 @@
+{
+  "kind": "FRESH_ONE_PUBLIC80_INDEPENDENT_REVIEW",
+  "candidate": "c83f352f057c64917f219eb938f54aa42cdab829",
+  "packageSha256": "4671ed60875c87f8cc32b735fde5d9b57301f427ecd5a376ad1123afb951e156",
+  "executionSealSha256": "af99d459a60679a7e0b466eabbcfbf8bf841c0da8ac25d8b27e1d2b7a839d808",
+  "repairSealSha256": "3a191d40be1e7da93f9ce1947050411a5f0278e92a47ce362ab95a2e740dcb7d",
+  "runDirectory": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2",
+  "maxSeconds": 3600,
+  "maxAllOsProcesses": 128,
+  "maxRegexWorkers": 32,
+  "maxInternalLoaderAdmissions": 32,
+  "acceptHistoricalFailuresUnrescored": true,
+  "nonce": "ROOT_MUST_SUPPLY_FRESH",
+  "expiresUnix": 0,
+  "preparationOnly": true
+}

@@ -1,0 +1,121 @@
+{
+  "direct": {
+    "developmentBlobs": 1,
+    "productionBuild": 1,
+    "offlinePack": 1,
+    "offlineInstall": 1,
+    "public": 3,
+    "apply": 3,
+    "m1a": 3,
+    "packs": 3,
+    "arrays": 3,
+    "coherence": 3,
+    "novel": 3,
+    "types": 6,
+    "maintainedCompile": 1,
+    "maintainedBodiesSingleProcess": 1,
+    "maintainedMovedStream": 1,
+    "controls": 9,
+    "directTotal": 43,
+    "loaderReservations": 32,
+    "expectedRegexWorkers": 4,
+    "maxRegexWorkers": 32,
+    "maxRegexActive": 2,
+    "conservativeInternalCeiling": 110,
+    "outerAdministrativeReserve": 18,
+    "totalAllCeiling": 128,
+    "peakOsProcesses": 4
+  },
+  "internalLoader": {
+    "maximumAdmissions": 32,
+    "labels": [
+      "source-public",
+      "source-apply",
+      "source-m1a",
+      "source-packs",
+      "source-arrays",
+      "source-coherence",
+      "source-novel",
+      "installed-public",
+      "installed-apply",
+      "installed-m1a",
+      "installed-packs",
+      "installed-arrays",
+      "installed-coherence",
+      "installed-novel",
+      "moved-public",
+      "moved-apply",
+      "moved-m1a",
+      "moved-packs",
+      "moved-arrays",
+      "moved-coherence",
+      "moved-novel",
+      "maintained-four-bodies",
+      "maintained-stream-consumer",
+      "registration-mutant",
+      "registration-restored",
+      "binding-missing",
+      "binding-changed",
+      "binding-outside",
+      "missing-explicit-export",
+      "explicit-export-restored",
+      "root-export-mutant",
+      "root-export-restored"
+    ],
+    "retirement": "known hosting process close, not independent per-loader Worker exit events",
+    "starts": "source-backed expectation, not runtime events in unchanged product loader"
+  },
+  "regex": {
+    "maximumCumulative": 32,
+    "expectedMaintained": 4,
+    "maximumActive": 2,
+    "roles": [
+      "maintained-four-bodies"
+    ],
+    "allOtherGuardedRolesAllowance": 0
+  },
+  "arithmetic": {
+    "coordinatorDirect": 43,
+    "internalAdmissionMaximum": 32,
+    "regexMaximum": 32,
+    "subtotal": 107,
+    "innerReserve": 3,
+    "outerOwnerControllerAdminReserve": 18,
+    "conservativeOverallMaximum": 128
+  },
+  "os": {
+    "maximumCumulative": 128,
+    "maximumPeak": 4,
+    "includesOwner": true,
+    "serialCoordinatorChildren": true,
+    "threadsNotOSProcesses": true
+  },
+  "witnesses": {
+    "harmlessInternalStarts": 11,
+    "harmlessInternalAttempts": 12,
+    "shippingInternalStarts": "No added per-Worker hook; admissions only, bootstrap witness after loader initialization, hosting process close",
+    "internalIndividualExitEvents": "UNOBSERVED",
+    "regex": "constructor/exit event pairs on admitted exact entry",
+    "globalCensus": false
+  },
+  "bounds": {
+    "totalSeconds": 3540,
+    "children": 110,
+    "peak": 4,
+    "serial": true,
+    "caseSeconds": 30,
+    "childSeconds": 120,
+    "cleanupSeconds": 5,
+    "captureBytes": 234881024,
+    "scratchBytes": 1006632960,
+    "childCaptureBytes": 8388608,
+    "outer": {
+      "totalSeconds": 3600,
+      "cleanupSeconds": 5,
+      "captureBytes": 16777216,
+      "maxAllOsProcesses": 128,
+      "peakOsProcesses": 4
+    }
+  },
+  "noExecutionThisPhase": true
+}

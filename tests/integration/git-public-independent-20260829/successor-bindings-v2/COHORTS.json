@@ -1,0 +1,171 @@
+{
+  "role": "FUTURE_FIXED_MEMBERSHIP_ALL_UNRUN",
+  "layouts": [
+    "source-built",
+    "installed",
+    "physically-moved"
+  ],
+  "perLayout": [
+    {
+      "id": "public",
+      "count": 45,
+      "fixture": "tests/integration/git-public-20260829/public.mjs"
+    },
+    {
+      "id": "apply",
+      "count": 28,
+      "fixture": "tests/integration/git-public-20260829/apply-public.mjs"
+    },
+    {
+      "id": "m1a",
+      "count": 140,
+      "fixture": "tests/integration/git-public-20260829/m1a-public-v2.mjs",
+      "version": "2764c0541ebe1a517965bdc73f33b1651cb15935",
+      "historical": "Original139/140 perlayout/root-export failures remain unchanged."
+    },
+    {
+      "id": "packs",
+      "count": 93,
+      "fixture": "tests/integration/git-public-20260829/packs.mjs"
+    },
+    {
+      "id": "arrays",
+      "count": 12,
+      "fixture": "tests/integration/coherent78-arrays-author-20260828/arrays.mjs"
+    },
+    {
+      "id": "coherence",
+      "count": 18,
+      "ids": [
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08",
+        "C09",
+        "C10",
+        "C11",
+        "C12",
+        "C13",
+        "C14",
+        "C15",
+        "C16",
+        "C17",
+        "C18",
+        "R15"
+      ]
+    },
+    {
+      "id": "novel",
+      "count": 12,
+      "ids": [
+        "I01-literal-inventory",
+        "I02-root-subpath",
+        "I03-standalone",
+        "I04-options-boundary",
+        "I05-nul-pipeline",
+        "I06-packed-show",
+        "I07-patch-effect",
+        "I08-array-argv",
+        "I09-readonly",
+        "I10-middleware",
+        "I11-corrupt-index",
+        "I12-abort-reason"
+      ]
+    }
+  ],
+  "types": {
+    "groups": 6,
+    "layouts": 3,
+    "positivePerLayout": 1,
+    "negativePerLayout": 1,
+    "negativeCodes": [
+      "2353",
+      "2353",
+      "2322",
+      "2353",
+      "2353",
+      "2353",
+      "2540",
+      "2540"
+    ],
+    "negativeLines": [
+      9,
+      11,
+      13,
+      15,
+      17,
+      19,
+      21,
+      23
+    ],
+    "expectedPositiveExit": 0,
+    "expectedNegativeExit": "nonzero, actual value retained",
+    "exactDiagnosticCountPerNegative": 8,
+    "declarationBinding": "All observed dist declarations resolve within actual layout and match package member hashes.",
+    "emitSkippedAssumption": false
+  },
+  "maintained": {
+    "fourBodies": 83,
+    "movedStreamConsumer": 21,
+    "fixtures": [
+      {
+        "path": "tests/commands/split/integration.test.ts",
+        "mode": "100644",
+        "blob": "87f16f73d1e8b66e6f38a2d081a1676004b22d29",
+        "bytes": 5201,
+        "sha256": "17f6a9e05defd210280bd81a5582ffa349a2bc587786cbc4aac9fc35b0f3b5c7",
+        "revision": "75527b5949326d4c82cc027881e772345c4d6a51"
+      },
+      {
+        "path": "tests/commands/stream-format-author-stress/contracts.test.ts",
+        "mode": "100644",
+        "blob": "580dbcd9eac6a01e6b663ad43e80961ac06e4508",
+        "bytes": 8978,
+        "sha256": "bff4dc35f4571438b70d794867006b0744e90ca5e69f6824c1fd49761ebd864d",
+        "revision": "75527b5949326d4c82cc027881e772345c4d6a51"
+      },
+      {
+        "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+        "mode": "100644",
+        "blob": "79338b334cc5980a7c2372cfdeea2bc5908fcb21",
+        "bytes": 9848,
+        "sha256": "2f392897044b73da34ab14468d1138bd5223ffd3290d47ae491ce1d8ba11f86d",
+        "revision": "75527b5949326d4c82cc027881e772345c4d6a51"
+      },
+      {
+        "path": "tests/plugins/agent-commands.test.ts",
+        "mode": "100644",
+        "blob": "204525bf191ca1570dd2c175fd46ac5f93d99c05",
+        "bytes": 9969,
+        "sha256": "457d64bf87b9418a829e47146489fdcda42eb73e8239e0cc648611f559e956a4",
+        "revision": "75527b5949326d4c82cc027881e772345c4d6a51"
+      },
+      {
+        "path": "tests/plugins/stream-five-public/consumer.mjs",
+        "mode": "100644",
+        "blob": "0d939bd7d103532f7b8f589f118c85bef7b966f8",
+        "bytes": 7809,
+        "sha256": "c4ecd6aac0f6883872785b3590ea0a7718e88afc9bc5f6dc406a29d8da4d8c65",
+        "revision": "75527b5949326d4c82cc027881e772345c4d6a51"
+      }
+    ],
+    "transformation": "Existing exact source-import-only routing to authenticated public package; native helper calls refused. No old79/83 rescore."
+  },
+  "controls": [
+    "registration mutant",
+    "registration restore",
+    "missing root member binding",
+    "changed Git member binding",
+    "outside root fallback binding",
+    "explicit subpath mutant",
+    "explicit subpath restore",
+    "root export mutant",
+    "root export restore"
+  ],
+  "namespace": "/Users/kjopek/Workspace/safe-bash/tests/integration/git-public-independent-20260829/actual-v2",
+  "namespaceCreated": false,
+  "sourceBodiesUnchanged": true
+}

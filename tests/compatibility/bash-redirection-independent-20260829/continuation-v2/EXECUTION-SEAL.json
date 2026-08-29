@@ -1,0 +1,139 @@
+{
+  "role": "VERSIONED_ORDINARY_HELPER_CONTINUATION_NO_REBUILD",
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "version": "v22.22.2",
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "candidate": "ed0e0d09cf71bed7f4aee075750b60a30df4ef52",
+  "packageSha256": "e0e63b0319f0b7b77e68a6e6284021bd747c60ce9f93291a5090048fa835e296",
+  "originalGlobalStart": 1787977926793,
+  "files": [
+    {
+      "path": "CASES.json",
+      "bytes": 2790,
+      "mode": 420,
+      "sha256": "ac48ca9999caef45a1f08ea3ae5e9a189864f41e5e96069e63ac06c092d156dc"
+    },
+    {
+      "path": "EXECUTOR.json",
+      "bytes": 11392,
+      "mode": 420,
+      "sha256": "f72fb76c6901d1d6117ba08313e849fcb4ec2627901ac206b8343aaadb47ddc4"
+    },
+    {
+      "path": "HELPER-SYNTAX.json",
+      "bytes": 320,
+      "mode": 420,
+      "sha256": "fd7856f0b8f32961142331dc8fba3928fc36ac3760181982749a3203104c2c3c"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 4832,
+      "mode": 420,
+      "sha256": "1f5018dd41120edf49bc16386892d9b649e663461622fbbecfaef235caf2fece"
+    },
+    {
+      "path": "RECIPE.md",
+      "bytes": 2827,
+      "mode": 420,
+      "sha256": "7ee84b9404e7ac27c8f1069b58706ce4ad08a5ec4e4321be673b8184db88c44a"
+    },
+    {
+      "path": "REUSE.json",
+      "bytes": 836,
+      "mode": 420,
+      "sha256": "d7e9657b404306aef7814c9182edd352e5345c762484192d72267d1a801e762f"
+    },
+    {
+      "path": "SOURCE.json",
+      "bytes": 222390,
+      "mode": 420,
+      "sha256": "d181f7d3b5acfcb5521dd5cc26be0aa4f2ac15b3fed1df4b8c729f25b5e34b17"
+    },
+    {
+      "path": "TOOL-CENSUS.json",
+      "bytes": 558347,
+      "mode": 420,
+      "sha256": "6cbe2ac733f6975057db6caa4349a7222b0a3e7ac6fe6a4de0190f5f7e0d3791"
+    },
+    {
+      "path": "close-observer.mjs",
+      "bytes": 957,
+      "mode": 420,
+      "sha256": "06d716ab762a6800b031a8fa50b4f5bee3295978822f29039403825c88680840"
+    },
+    {
+      "path": "hash-regular-file.mjs",
+      "bytes": 1255,
+      "mode": 420,
+      "sha256": "cb904897cfca73ee954ae006cd7b8f2b21bd6b11db867fb327f5c3b8aad7bdc7"
+    },
+    {
+      "path": "internal-loader-arguments.mjs",
+      "bytes": 1391,
+      "mode": 420,
+      "sha256": "5eeea7916cb8c141864cc540ac6245ead44e6e1748d9e66dbce6e25320985de1"
+    },
+    {
+      "path": "launch.mjs",
+      "bytes": 5035,
+      "mode": 420,
+      "sha256": "c01efe9a312eb2d0471cc9c588c44d6f524bb3694d8f1ce6e3a7c0fab00a132c"
+    },
+    {
+      "path": "loader.mjs",
+      "bytes": 1355,
+      "mode": 420,
+      "sha256": "9b0bd410ae4a18401f00da6ba2caddc122771b7b1bca910c0affd93a1753e342"
+    },
+    {
+      "path": "novel.mjs",
+      "bytes": 7229,
+      "mode": 420,
+      "sha256": "d0e02b8eb227b289ea6980d9498fa73a9bf3b7117e67a8b2d36b70df3abd4d7d"
+    },
+    {
+      "path": "prepare.mjs",
+      "bytes": 597,
+      "mode": 420,
+      "sha256": "f0f29708352a2426d806dc67118495c12175ea421c8619cfa3a0b113d5e59a8a"
+    },
+    {
+      "path": "redirections-v2.mjs",
+      "bytes": 9508,
+      "mode": 420,
+      "sha256": "b7a74ff38df3a587545c2d28b6ac9adfd6baab9938e54eebdde7e1b3eb094148"
+    },
+    {
+      "path": "resources.mjs",
+      "bytes": 4271,
+      "mode": 420,
+      "sha256": "a16dd74d5e8be7e9fbaa4f8de407c019332780c6ae182a65562fd1d01f81ce2f"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 35910,
+      "mode": 420,
+      "sha256": "d797658b9c157c14d275c328f75e7384b2fc2f7498574decfecfaf1221265a3b"
+    },
+    {
+      "path": "tool-closure.mjs",
+      "bytes": 1367,
+      "mode": 420,
+      "sha256": "9b66741f1191a28f06e175f42d1e2437a36204a96ab213a94f06ace7dd04500d"
+    },
+    {
+      "path": "worker-policy.mjs",
+      "bytes": 1445,
+      "mode": 420,
+      "sha256": "5731fdd33bb41981c190c373dece0e1d8f7a5e76f9f2de85c8479931403bd782"
+    }
+  ],
+  "remaining": {
+    "children": 40,
+    "loader": 32,
+    "regex": 12
+  },
+  "prohibited": "build/repack/replay121passed/native/private/network/newcaps"
+}

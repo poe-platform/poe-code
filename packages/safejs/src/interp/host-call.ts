@@ -763,15 +763,18 @@ function stableStringify(value: unknown): string {
 }
 
 function normalize(value: unknown, seen: WeakSet<object>): unknown {
-  if (value === undefined) return { $type: "undefined" };
+  if (typeof value === "function") return undefined;
+  if (typeof value === "bigint") throw new TypeError("Do not know how to serialize a BigInt");
+  if (value === undefined) return Object.assign(Object.create(null), { $type: "undefined" });
   if (typeof value === "number" && !Number.isFinite(value))
-    return { $type: "number", value: String(value) };
+    return Object.assign(Object.create(null), { $type: "number", value: String(value) });
   if (value === null || typeof value !== "object") return value;
   if (seen.has(value)) throw new TypeError("Host call arguments cannot contain cycles.");
   seen.add(value);
   try {
     if (Array.isArray(value)) {
       const normalized = new Array<unknown>(value.length);
+      Object.setPrototypeOf(normalized, null);
       for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
         if (!isArrayIndexKey(key)) continue;
         if (!("value" in descriptor)) {
@@ -781,11 +784,17 @@ function normalize(value: unknown, seen: WeakSet<object>): unknown {
       }
       return normalized;
     }
-    return Object.fromEntries(
-      Object.keys(value as object)
-        .sort()
-        .map((key) => [key, normalize((value as Record<string, unknown>)[key], seen)])
-    );
+    const normalized = Object.create(null) as Record<string, unknown>;
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    for (const key of Object.keys(descriptors).sort()) {
+      const descriptor = descriptors[key]!;
+      if (!descriptor.enumerable) continue;
+      if (!("value" in descriptor)) {
+        throw new TypeError("Host call arguments cannot contain accessor properties.");
+      }
+      defineOwnDataProperty(normalized, key, normalize(descriptor.value, seen));
+    }
+    return normalized;
   } finally {
     seen.delete(value);
   }

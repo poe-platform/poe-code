@@ -1,0 +1,3 @@
+{"event":"early-operation","binding":{"path":"/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/regex-worker-v4-review/faults/unknown/EARLY.json","bytes":203,"mode":384,"dev":16777232,"ino":186947029,"sha256":"76303ce82e3e2f6d6576f9dfe3853ae3913fc546b28df532623b46f99c4680ab"}}
+{"event":"early-operation","binding":{"path":"/Users/kjopek/Workspace/safe-bash/tests/comparison/v7-r3-independent-20260829/regex-worker-v4-review/faults/zero/EARLY.json","bytes":208,"mode":384,"dev":16777232,"ino":186947031,"sha256":"8f18751e70b5467ddb8a779c962465b6710463451f0fdeaafa72f2ca604d5180"}}
+{"status":"SCOPED_CONTROLS_PASS","small":2,"novel":12,"message":null,"Workers":0}

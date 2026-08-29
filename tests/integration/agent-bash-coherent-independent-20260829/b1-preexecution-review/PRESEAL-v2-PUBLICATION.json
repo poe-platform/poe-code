@@ -1,0 +1,28 @@
+[
+  {
+    "role": "v2-add",
+    "start": "2026-08-29T12:47:43.838Z",
+    "pid": 42445,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  {
+    "role": "v2-seal",
+    "start": "2026-08-29T12:47:43.910Z",
+    "pid": 42446,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    }
+  }
+]

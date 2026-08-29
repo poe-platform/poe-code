@@ -1,0 +1,42 @@
+{
+  "checkedAt": "2026-08-29T11:58:18.673Z",
+  "source309": 309,
+  "sealedDependencies": 24,
+  "entryAndReviewFiles": 6,
+  "tools": {
+    "regular": 2274,
+    "links": 12,
+    "entries": 2286,
+    "unexpectedEntries": 0
+  },
+  "actualDist": {
+    "regular": 1012,
+    "links": 0,
+    "entries": 1012,
+    "unexpectedEntries": 0
+  },
+  "package": {
+    "bytes": 930368,
+    "sha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca",
+    "inflated": false,
+    "members": 1014,
+    "membersAuthority": "accepted Stage-A proof reused"
+  },
+  "nodeHashMatched": true,
+  "slotsAbsent": [
+    "/private/tmp/safe-bash-coherent-b0-20260829-r3",
+    "/private/tmp/coherent-b0-39-20260829-r3.launch.stdout",
+    "/private/tmp/coherent-b0-39-20260829-r3.launch.stderr"
+  ],
+  "window": {
+    "issuedAt": "2026-08-29T11:53:14.522Z",
+    "latestStartAt": "2026-08-29T12:13:14.522Z",
+    "expiresAt": "2026-08-29T12:43:14.522Z",
+    "fresh": true,
+    "externalPolicyOnly": true
+  },
+  "boundsUnchanged": true,
+  "idsUnchanged": true,
+  "bodyExecution": 0,
+  "hashReadChunk": 65536
+}

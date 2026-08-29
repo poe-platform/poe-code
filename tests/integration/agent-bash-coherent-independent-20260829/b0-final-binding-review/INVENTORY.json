@@ -1,0 +1,139 @@
+[
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "fe2f51632182ede899b463e562ef978226dcca27",
+    "bytes": 10124,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/BINDING.json"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "2f7f7233ec3dbe8af4e34d8c4eec9e15053caa44",
+    "bytes": 441,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/CENSUS.json"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "017b412c6b8af606dd702d16936f8406373f32d6",
+    "bytes": 4077,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/HANDOFF.md",
+    "sha256": "f375403a7900a4ea0fec2d8c33ccb500e1fb703f8fe7d3d4d31371ed33347859",
+    "body": "IyBGaW5hbCBwcm9zcGVjdGl2ZSBCMCBiaW5kaW5nIOKAlCBOT1QgYWN0aXZhdGlvbgoKQ2FuZGlkYXRlOGFiMGIyODc1YzY5NWM3Y2Y2ZmJlOTAwODBjZDA4M2Y2OWVmNzE0Niwgc2VhbGVkIHByZXNlYWwxMTk1MkIvU0hBCjc4ZTZjOTQ1Y2VhZGZiNTRkNTFkODA2ZmJlNTczOTlhYjVhNTUyYWQ0NTcxNzkxY2I5MTZjMDg1NzM2ZTI3YTcgdW5jaGFuZ2VkLgpST09UIGZpbml0ZS1zb3VyY2UvMjQtUFVSRSBhY2NlcHRhbmNlMzYwYjIyZmIgaXMgYXV0aGVudGljYXRlZCBieSBleGFjdDM0NjBCCnJlY2VpcHQgZDQ5MGE1YTJkMWVmZTM2ZGZjOGI3MzcyNjdjZjM3NjJkMDRkMWQyNzNjYmNiYTMwYjYzNmUwMTIzYmY5MWEzNS4KSGlzdG9yaWNhbCBlZmYxNWViYSBIT0xEL2dyb3VwIFVOS05PV04gaXMgbm90IHJlc2NvcmVkLiBGdW5jdGlvbmFsIHByb2ZpbGUgY292ZXJzCmtub3duIHJvbGVzIG9ubHk7IG5vIGdyb3VwLWFic2VuY2UvZnVsbC1jZW5zdXMgYWNjZXB0YW5jZSBjbGFpbS4gRXhpc3Rpbmcgb3duZXIKY2hlY2tzIHN0YXkgaW50YWN0OiBmdXR1cmUgZ3VhcmQgZmFpbHVyZXMgYXJlIG5vdCB3YWl2ZWQgYnkgdGhpcyBtZXRhZGF0YS4KCiMjIEV4YWN0IHBlcm1pdHRlZCByb3V0ZSwgcGVuZGluZyBmaW5hbCByZXZpZXcgYW5kIGZyZXNoIFJPT1QgYWN0aXZhdGlvbgoKICAgIEIwX1JPT1RfR089Uk9PVF9CMF8zOV9FWFBMSUNJVF9GUkVTSF9BVVRIT1JJWkFUSU9OIC9iaW4venNoIHRlc3RzL2ludGVncmF0aW9uL2FnZW50LWJhc2gtY29oZXJlbnQtYXV0aG9yLTIwMjYwODI5L3N0YWdlLWIwLXIzL2xhdW5jaC5zaCB0ZXN0cy9pbnRlZ3JhdGlvbi9hZ2VudC1iYXNoLWNvaGVyZW50LWF1dGhvci0yMDI2MDgyOS9zdGFnZS1iMC1yMy9QUkVTRUFMLmpzb24gNzhlNmM5NDVjZWFkZmI1NGQ1MWQ4MDZmYmU1NzM5OWFiNWE1NTJhZDQ1NzE3OTFjYjkxNmMwODU3MzZlMjdhNyAxMTk1MgoKQ3dkIC9Vc2Vycy9ram9wZWsvV29ya3NwYWNlL3NhZmUtYmFzaC4gRXhhY3QgbGF1bmNoL2Jvb3RzdHJhcC9ydW4gYmxvYnMgYW5kCmJ5dGUgaGFzaGVzIGFyZSBpbiBCSU5ESU5HLmpzb24sIGF1dGhlbnRpY2F0ZWQgZnJvbSBjYW5kaWRhdGU4YWIsIG5vdCBIRUFELgpObyBkaXJlY3QtbWFpbi9hbHRlcm5hdGUgZW50cnkgb3IgcmV0cnkgaXMgYXV0aG9yaXplZC4KCiMjIEZpeGVkIFVUQyB3aW5kb3cKCi0gSXNzdWVkIGF0IGxvY2FsLWNsb2NrIG9ic2VydmF0aW9uOiAqKjIwMjYtMDgtMjlUMTE6NTM6MTQuNTIyWioqLgotIExhdGVzdCBzdGFydCAoKzIwbWluKTogKioyMDI2LTA4LTI5VDEyOjEzOjE0LjUyMloqKi4KLSBFeHBpcmVzICgrNTBtaW4pOiAqKjIwMjYtMDgtMjlUMTI6NDM6MTQuNTIyWioqLgoKVGhlIHBsYXRmb3JtIHRpbWVzdGFtcCBvZiBST09UJ3MgbWVzc2FnZSB3YXMgbm90IHN1cHBsaWVkOyBpc3N1YW5jZSBpcyBleHBsaWNpdGx5CnRoZSBvYnNlcnZlZCBiaW5kaW5nLXByZXBhcmF0aW9uIFVUQyB0aW1lLiBUaGlzIGlzIGFuIE9VVFNJREUtY2FuZGlkYXRlIHBvbGljeQpiaW5kaW5nOiBzZWFsZWQgY29kZSBoYXMgbm8gVVRDIGFjdGl2YXRpb24td2luZG93IGZpZWxkcy4gRG8gbm90IGNoYW5nZSBpdCBvcgpwcmV0ZW5kIHRoZSBlbnZpcm9ubWVudCBzdHJpbmcgY3J5cHRvZ3JhcGhpY2FsbHkgZW5mb3JjZXMgYXV0aG9yaXphdGlvbi93aW5kb3cuCkZyZXNoIFJPT1QgYWN0aXZhdGlvbiBtdXN0IHJlZmVyZW5jZSB0aGUgZmluYWwgcGFja2V0IGFuZCBpbmRlcGVuZGVudCBmaW5hbApiaW5kaW5nIGFjY2VwdGFuY2UsIHN0YXJ0IGJ5IGxhdGVzdFN0YXJ0IGFuZCBlbmQgYnkgZXhwaXJlcy4gRXhwaXJ5IG1lYW5zIEhPTEQsCm5vdCBhdXRvbWF0aWMgcmVuZXdhbC4gTW9ub3RvbmljMTgwMHMgZW5mb3JjZW1lbnQgaW5zaWRlIGNhbmRpZGF0ZSBpcyB1bmNoYW5nZWQuCgojIyBTbG90IGFuZCBwaGFzZSBiaW5kaW5nCgpXb3JrIHJvb3QgL3ByaXZhdGUvdG1wL3NhZmUtYmFzaC1jb2hlcmVudC1iMC0yMDI2MDgyOS1yMyBhbmQgZXhjbHVzaXZlIG91dGVyCi9wcml2YXRlL3RtcC9jb2hlcmVudC1iMC0zOS0yMDI2MDgyOS1yMy5sYXVuY2guc3Rkb3V0IC8gLnN0ZGVyciB3ZXJlIGFic2VudCBkdXJpbmcKcHJlcGFyYXRpb24uIFJlY2hlY2sgYXQgYWN0aXZhdGlvbjsgbm8gcm9vdC9jYXB0dXJlIHdhcyBjcmVhdGVkIG9yIHJlbmFtZWQuClNsb3QgZGlmZmVyZW5jZSBmcm9tIHByaW9yIHByb3Bvc2FsOiBubyBwYXRoIGNoYW5nZXM7IGV4cGxpY2l0IFVUQyB3aW5kb3csCmFjY2VwdGVkIHJldmlldyBwcm92ZW5hbmNlIGFuZCBwcm9zcGVjdGl2ZSBrbm93bi1yb2xlIHByb2ZpbGUgYXJlIG5vdyBib3VuZC4KQWN0dWFsIGF1dGhvcml0eSBpcyBzdGlsbCBmYWxzZTsgb2xkIHByZXNlYWwvcHJvc3BlY3RpdmUgbWV0YWRhdGEgaXMgbm90IGEgR08uCgpGb3VyIHNlcXVlbnRpYWwgY2hpbGRyZW46IG9mZmxpbmUtaW5zdGFsbCx3b3JrZmxvdy1zb3VyY2UtYnVpbHQsd29ya2Zsb3ctaW5zdGFsbGVkLAp3b3JrZmxvdy1waHlzaWNhbGx5LW1vdmVkLjEzIHVuY2hhbmdlZCBJRHMgQzAx4oCTQzA5LEMxMuKAk0MxNCxDMTcgcGVyIGxheW91dD0zOS4KMzIga25vd24gT1Mgc3RhcnRzL3BlYWszOyBSZWdleCBtYXgyL2xheW91dDZ0b3RhbC9saXZlMmNvbnN1bWVyOyB0aHJlZSBmaXhlZAppbnRlcm5hbC1sb2FkZXIgYWRtaXNzaW9ucyBzZXBhcmF0ZWx5OyB6ZXJvIGd1ZXN0IFdvcmtlcnMvUFVCTElDOTUuCjE4MDBzIGluY2x1c2l2ZS8xNjIwIGFjdGl2ZSsxODAgcmVzZXJ2ZTsgaW5zdGFsbDEyMC9sYXlvdXQ0MjAvY2FzZTMwL2NsZWFudXA1czsKY2FwdHVyZTY3MTA4ODY0Qi93b3JrODA1MzA2MzY4Qi4gS25vd24gdW5yZXNvbHZlZCB3b3JrIG9yIGd1YXJkIGZhaWx1cmUgU1RPUHM7Cm5vIHdpZGVyIHBlcm1pc3Npb25zLCBleHRyYSByb2xlcywgcmV0cmllcyBvciB1bmFjY2VwdGVkIHNvdXJjZSBvdmVybGF5cy4KCiMjIEZyZXNoIHNvdXJjZS9kYXRhIGFkbWlzc2lvbgoKQWxsIHNlYWxlZCBzb3VyY2UgZmlsZXMgYW5kMzA5IHNlbGVjdGVkIFN0YWdlQSBpbnB1dHMgbWF0Y2hlZC4gQWN0dWFsIHJldGFpbmVkCmRpc3QxMDEyIHJlY2VpdmVkIGNvbXBsZXRlIGZpbGUvZGlyZWN0b3J5IGNlbnN1cywgaW5jbHVkaW5nIHVuZXhwZWN0ZWQgZW50cmllcy4KVG9vbHMyMjc0IHJlZ3VsYXIrMTIgYWRtaXR0ZWQgbGlua3MgcmVjZWl2ZWQgY29tcGxldGUgaGFzaC9saW5rL21vZGUgY2Vuc3VzLgpUaGlzIGlzIG5vdCBhIHdob2xlIGNoZWNrb3V0L09TL3Byb2Nlc3MgY2Vuc3VzLiBOb2RlIGJpbmFyeSBpcyBwaW5uZWQgYW5kIGhhc2hlZDsKbm8gdG9vbC9uYXRpdmUvcHJvZHVjdCBleGVjdXRpb24gaXMgaW5mZXJyZWQuIFRoZTkzMDM2OEIgcGFja2FnZSBTSEEyZmUwNzFlMiB3YXMKZnJlc2hseSBhZG1pdHRlZCB3aXRob3V0IGluZmxhdGlvbi4gTm8gY29tcGlsZXIvaW5zdGFsbC8zOS9wcm9kdWN0L1dvcmtlci9lbmdpbmUKb3IgbmF0aXZlIG9yYWNsZSByYW4uIFBhY2thZ2UgcmVtYWluczEwMTQgbWVtYmVycyBmcm9tIGFjY2VwdGVkIHByb2R1Y2VyIHByb29mLgoKUEFDS0VULmpzb24gYmluZHMgQklORElORy5qc29uIGFuZCBmcmVzaCBDRU5TVVMuanNvbi4gUEFDS0VULVJFQ0VJUFQuanNvbiBnaXZlcwpmdWxsIHBhY2tldCBTSEEvc2l6ZSBhbmQgcHJlcGFyYXRpb24gYWNjb3VudGluZy4gU291cmNlL2V4YW1wbGUgY29kZSBpcyB1bmNoYW5nZWQuCkxhcmdlclN0YWdlQjcyNi9hbGw1MFVuaXQyL2xheW91dC90eXBlcy9tdXRhbnRzL1BVQkxJQzk1IHJlbWFpbiBsYXRlci9VTlJVTi4KClN1Z2dlc3RlZCBmdXR1cmUgYWN0aXZhdGlvbiB0ZXh0IChST09ULCBub3QgYXV0aG9yKToKIkFjY2VwdCBmaW5hbCBiaW5kaW5nIHJldmlldyA8cmV2aWV3IFNIQT4uIEFjdGl2YXRlIE9ORSBCMCBhdHRlbXB0IGZvciBleGFjdAo8UEFDS0VUIFNIQT4sIGNhbmRpZGF0ZThhYi9wcmVzZWFsNzhlNiwgZXhhY3QgY29tbWFuZCBhbmQgVVRDIHdpbmRvdyBhYm92ZS4KS25vd24tcm9sZS1vbmx5IGZ1bmN0aW9uYWwgcHJvZmlsZTsgcHJlc2VydmUgYWxsIGd1YXJkcyBhbmQgZmFpbHVyZXM7IG5vIHJldHJ5LiIK"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "b33f010e672bf3a55197fcea30922e92a72466c0",
+    "bytes": 358,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/PACKET-RECEIPT.json"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "ed4113fd7ea0a65897713deb8c44409108b441ed",
+    "bytes": 1643,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/PACKET.json",
+    "sha256": "0c1fe3ac4c6dde32caab52c0575254bae3ad8071943ce48e5bf404f1af2b5f39",
+    "body": "ewogICJzY2hlbWEiOiAiYjAtZmluYWwtYmluZGluZy1wYWNrZXQtdjEiLAogICJiaW5kaW5nIjogewogICAgInBhdGgiOiAiQklORElORy5qc29uIiwKICAgICJieXRlcyI6IDEwMTI0LAogICAgInNoYTI1NiI6ICJjMmYyM2NjNzUzZTk2YzYzNDRkZDU4MDM3OTJkNmE4YmI4ODUwYzUyMmRjMTIxYmNjOTIzZGUzNTQ0NTMyNTkwIgogIH0sCiAgImNlbnN1cyI6IHsKICAgICJwYXRoIjogIkNFTlNVUy5qc29uIiwKICAgICJieXRlcyI6IDQ0MSwKICAgICJzaGEyNTYiOiAiZjIwNzQwMTMwMTk5YTdmZTQzNTE1Y2I4OWY4ZmUzODJjMTExOWNhMTJhNTcyZmY2NzJiNDJmMjIwYzU5ZDJmYiIKICB9LAogICJjYW5kaWRhdGUiOiAiOGFiMGIyODc1YzY5NWM3Y2Y2ZmJlOTAwODBjZDA4M2Y2OWVmNzE0NiIsCiAgInByZXNlYWwiOiB7CiAgICAiY29tbWl0IjogIjhhYjBiMjg3NWM2OTVjN2NmNmZiZTkwMDgwY2QwODNmNjllZjcxNDYiLAogICAgInBhdGgiOiAidGVzdHMvaW50ZWdyYXRpb24vYWdlbnQtYmFzaC1jb2hlcmVudC1hdXRob3ItMjAyNjA4Mjkvc3RhZ2UtYjAtcjMvUFJFU0VBTC5qc29uIiwKICAgICJibG9iIjogIjVhODczNzE3YjZhYzIwNDM5ZTkzZDU5NDA0NTI2ZDc0YTdhNDNhYmUiLAogICAgImJ5dGVzIjogMTE5NTIsCiAgICAic2hhMjU2IjogIjc4ZTZjOTQ1Y2VhZGZiNTRkNTFkODA2ZmJlNTczOTlhYjVhNTUyYWQ0NTcxNzkxY2I5MTZjMDg1NzM2ZTI3YTciCiAgfSwKICAiY29tbWFuZCI6ICJCMF9ST09UX0dPPVJPT1RfQjBfMzlfRVhQTElDSVRfRlJFU0hfQVVUSE9SSVpBVElPTiAvYmluL3pzaCB0ZXN0cy9pbnRlZ3JhdGlvbi9hZ2VudC1iYXNoLWNvaGVyZW50LWF1dGhvci0yMDI2MDgyOS9zdGFnZS1iMC1yMy9sYXVuY2guc2ggdGVzdHMvaW50ZWdyYXRpb24vYWdlbnQtYmFzaC1jb2hlcmVudC1hdXRob3ItMjAyNjA4Mjkvc3RhZ2UtYjAtcjMvUFJFU0VBTC5qc29uIDc4ZTZjOTQ1Y2VhZGZiNTRkNTFkODA2ZmJlNTczOTlhYjVhNTUyYWQ0NTcxNzkxY2I5MTZjMDg1NzM2ZTI3YTcgMTE5NTIiLAogICJ0aW1lV2luZG93IjogewogICAgImlzc3VlZEF0IjogIjIwMjYtMDgtMjlUMTE6NTM6MTQuNTIyWiIsCiAgICAibGF0ZXN0U3RhcnRBdCI6ICIyMDI2LTA4LTI5VDEyOjEzOjE0LjUyMloiLAogICAgImV4cGlyZXNBdCI6ICIyMDI2LTA4LTI5VDEyOjQzOjE0LjUyMloiCiAgfSwKICAicmV2aWV3UmVjZWlwdCI6IHsKICAgICJjb21taXQiOiAiMzYwYjIyZmJhMmYxODAwMzFmZTRjNGJkMWVjY2RhNDZlNmQ5MGIwOCIsCiAgICAicGF0aCI6ICJ0ZXN0cy9pbnRlZ3JhdGlvbi9hZ2VudC1iYXNoLWNvaGVyZW50LWluZGVwZW5kZW50LTIwMjYwODI5L3IzLW9ic2VydmF0aW9uLWFkanVkaWNhdGlvbi9ST09ULUIwLVBSRUVYRUNVVElPTi1BQ0NFUFRBTkNFLVJFQ0VJUFQuanNvbiIsCiAgICAiYmxvYiI6ICIzOThlNzljNjQ3MzdiN2U1MWE3MTNhODcyN2YxZjgwZjAyMWQ2OWU4IiwKICAgICJieXRlcyI6IDM0NjAsCiAgICAic2hhMjU2IjogImQ0OTBhNWEyZDFlZmUzNmRmYzhiNzM3MjY3Y2YzNzYyZDA0ZDFkMjczY2JjYmEzMGI2MzZlMDEyM2JmOTFhMzUiCiAgfSwKICAicm9vdEFjdGl2YXRpb24iOiBmYWxzZSwKICAicmVxdWlyZXNEaWZmZXJlbnRGaW5hbFJldmlldyI6IHRydWUKfQo="
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "4c0ef3647eeff7dc06ac4dbb7310eeeda193f97f",
+    "bytes": 186,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/RECEIPT.json"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "714ff1090ce785c6e6e4ef0320f587e0c7069a3f",
+    "bytes": 605,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/capture/events.jsonl"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/capture/git-0.stderr"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "3a60b85ca7f44b70cb65c31c260cfe7520ff0f9c",
+    "bytes": 81,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/capture/git-0.stdout"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/capture/git-1.stderr"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/capture/git-1.stdout"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/capture/git-2.stderr"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "4d940d8ae118fdc2563f9cc5d0719e9769d68502",
+    "bytes": 254,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/capture/git-2.stdout"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/capture/git-3.stderr"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "05cbdc022b732e9a6ee80a2a83b1fccd03909170",
+    "bytes": 307,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/capture/git-3.stdout"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+    "bytes": 0,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/capture/git-4.stderr"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "0686f0e56c0dc5e09a36fb7997ab74a7d736a8c9",
+    "bytes": 35247,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/capture/git-4.stdout"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "a2c3208e037325153a032856a1ef67d66101e3b4",
+    "bytes": 8642,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/prepare.mjs"
+  },
+  {
+    "mode": "100644",
+    "type": "blob",
+    "oid": "54b94a1e3cb1964df9eb426fa39fef74277205da",
+    "bytes": 4500,
+    "path": "tests/integration/agent-bash-coherent-author-20260829/stage-b0-final-binding/publish.mjs"
+  }
+]

@@ -1,0 +1,131 @@
+{
+  "role": "SOURCE_DATA_ONLY_DESIGN",
+  "date": "2026-08-29",
+  "product": {
+    "manifest": "tests/compatibility/bash-conditional-author-20260829/SOURCE-v4.json",
+    "manifestSha256": "4f196057df98c3aed05519b78eaa725fc9d7eb3c73634613662ac6b927715d32",
+    "candidate": "74dfe69135a3fc5ba89396b20dd32d9c9daae131",
+    "inputs": [
+      {
+        "path": "src/contracts/command.md",
+        "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+        "blob": "ef94adf238122441a66c2232fb3055aaee62d290",
+        "mode": "100644",
+        "bytes": 9253,
+        "sha256": "ace3670c3820fff94055c6a9d6bee7ac1206a06bcb7607fdafe30f340c0234c6",
+        "role": "accepted coherent78 unchanged"
+      },
+      {
+        "path": "src/contracts/command.ts",
+        "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+        "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+        "mode": "100644",
+        "bytes": 2968,
+        "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+        "role": "accepted coherent78 unchanged"
+      },
+      {
+        "path": "src/shell/arithmetic.ts",
+        "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+        "blob": "223101946d13ac9b44f4a898f58fd16004ba86b9",
+        "mode": "100644",
+        "bytes": 9922,
+        "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+        "role": "accepted coherent78 unchanged"
+      },
+      {
+        "path": "src/shell/arrays/bindings.ts",
+        "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+        "mode": "100644",
+        "blob": "c686048897bbd7fa797ba6982a255a543afbe6a3",
+        "bytes": 9989,
+        "sha256": "1f842c3b1a89d0332a8a81c0001384fe3b42a1057721456a14334141182dd356",
+        "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+        "role": "accepted ARRAY overlay"
+      },
+      {
+        "path": "src/shell/arrays/ledger.ts",
+        "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+        "mode": "100644",
+        "blob": "c0c1a4ba292e26696b792b024019a79ce241cb89",
+        "bytes": 9105,
+        "sha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45",
+        "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+        "role": "accepted ARRAY overlay"
+      },
+      {
+        "path": "src/shell/arrays/state.ts",
+        "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+        "mode": "100644",
+        "blob": "021459790e7aa5d03b6cac2d786a77643fa2f2aa",
+        "bytes": 13072,
+        "sha256": "14cee1539243675072a3e2ff6947d10d6343f63859610a79ca9170c78fe1df50",
+        "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+        "role": "accepted ARRAY overlay"
+      },
+      {
+        "path": "src/shell/arrays/syntax.ts",
+        "commit": "c0adae539c736db0e4023d401562ce958d9ebb00",
+        "mode": "100644",
+        "blob": "d74d8f5fde70dfd7b4fa44213f29e6fdf38e7564",
+        "bytes": 5471,
+        "sha256": "6868288c25bc6c2760adb327528e616890dddd18f2739452432f152ff0c40da0",
+        "revision": "c0adae539c736db0e4023d401562ce958d9ebb00",
+        "role": "accepted ARRAY overlay"
+      },
+      {
+        "path": "src/shell/parser.ts",
+        "mode": "100644",
+        "blob": "27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe",
+        "bytes": 42620,
+        "sha256": "5a927b2c93dc62c8ca74e8f16c8e3211022b244916faa2c0c4ce1191930a9690"
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "mode": "100644",
+        "blob": "1ee224beec343378532681239a737b746d5ab2b9",
+        "bytes": 200102,
+        "sha256": "6f42b2a8b649a0c6c6377be407cf7d3b2e248bf0081a25e8e1d8a89c80cba46b"
+      },
+      {
+        "path": "src/shell/shell.ts",
+        "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+        "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+        "mode": "100644",
+        "bytes": 15081,
+        "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+        "role": "accepted coherent78 unchanged"
+      }
+    ]
+  },
+  "references": [
+    {
+      "path": "tests/compatibility/bash-strict-reference-source-20260829/FIXTURES-v1.json",
+      "mode": "100644",
+      "blob": "39bf95cbe2e03a1ed8c1a5e39be378f61f9a9622",
+      "bytes": 7177,
+      "sha256": "61206ef94a35c76af639f625c7681417b32df3ed8fdc72f16742e6ea19249311",
+      "revision": "41d4880614cdb02659f7cdbe1f94cc3564c68d26"
+    },
+    {
+      "path": "tests/compatibility/bash-strict-reference-source-20260829/REPORT.md",
+      "mode": "100644",
+      "blob": "1a601af7ceb524a9de60cb76004fa969246b732f",
+      "bytes": 11930,
+      "sha256": "573e49ad6f9732168ec494476f876f129ff100f4939e1200189884bb9b368f21",
+      "revision": "41d4880614cdb02659f7cdbe1f94cc3564c68d26"
+    }
+  ],
+  "productionWriteSet": [],
+  "executions": {
+    "product": 0,
+    "native": 0,
+    "compiler": 0,
+    "worker": 0,
+    "engine": 0
+  },
+  "plannedFutureWriteSet": [
+    "src/shell/runtime.ts"
+  ],
+  "qualification": "No implementation authority or native binary qualification. Current unit3 provisional; original Unit2 rows remain OPEN."
+}

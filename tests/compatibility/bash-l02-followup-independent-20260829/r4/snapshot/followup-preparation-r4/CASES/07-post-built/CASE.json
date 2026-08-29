@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "id": "L02-followup/post-v1",
+  "purpose": "post",
+  "layout": "built",
+  "Workers": 1,
+  "packageSha256": "dc20c2be0ea41ff11edeef105c9e93ab349a0601a14d77ecc2d6ac984dfb43b0",
+  "packageRelative": "package",
+  "originAbsent": null,
+  "modules": [
+    {
+      "path": "case-runner.mjs",
+      "size": 7083,
+      "sha256": "49908e79d25b03b18092f1a3fb82c4d587d1e8a2fd264b250c7a47b4ac5e7d28"
+    },
+    {
+      "path": "journal.mjs",
+      "size": 2588,
+      "sha256": "28121fabb77b19342e82c221148960bc6ccc8d28e468a85177fc0efcaee8643a"
+    },
+    {
+      "path": "package/ere/errors.js",
+      "size": 1045,
+      "sha256": "10a06f3058e1203f5ecee58701603bc03af92b7d5ba37cf9bcb70b98fb277a44"
+    },
+    {
+      "path": "package/ere/limits.js",
+      "size": 3265,
+      "sha256": "ca2cbed4e8db3ef7afe4e8825abf8ba75d46d8cae3d6603da21c498ce7a4e1e6"
+    },
+    {
+      "path": "package/ere/matcher.js",
+      "size": 9747,
+      "sha256": "194822e62db2ba5304f7d65e1956de9fd1f3a53c420488765810126484335891"
+    },
+    {
+      "path": "package/ere/syntax.js",
+      "size": 14270,
+      "sha256": "a7dc2acbd4e1ea53aa1a0068061e044615e8e62b4f37a764d586f89442d2c6ee"
+    },
+    {
+      "path": "package/ere/transport/accounting.js",
+      "size": 7003,
+      "sha256": "a2efde0057aad148fd90e410cfc85a33c17be8c0ac9725868f8836b4d4d2ec48"
+    },
+    {
+      "path": "package/ere/transport/owner.js",
+      "size": 9897,
+      "sha256": "14a1325d8f160c21ae6e97fa1e6ea3784ba7c3aa4533901298fd7966296f7464"
+    },
+    {
+      "path": "package/ere/transport/protocol.js",
+      "size": 1198,
+      "sha256": "a5191e0f98c15a34f1740c5eaafc759013a621cc8564b79b60f3a2dc01d91b5f"
+    },
+    {
+      "path": "package/ere/transport/root.js",
+      "size": 14619,
+      "sha256": "41fd1b7cb5d9d78c23a65e8fb02d96181df2e5fa80bb50e36a9ce67816d997f4"
+    },
+    {
+      "path": "package/ere/transport/validation.js",
+      "size": 12831,
+      "sha256": "94400abdbe0afb2101e98e866c19f4b7fe3fbcb85efec68badfebcc0aafe374b"
+    },
+    {
+      "path": "package/ere/transport/wire-engine.js",
+      "size": 2514,
+      "sha256": "4c0d20d2c63b7081158091eee5599440569a2cb767679982a51cb64b398296d2"
+    },
+    {
+      "path": "package/ere/transport/worker-entry.js",
+      "size": 1502,
+      "sha256": "289d6f45264aa38d32deb1f1fa2aa06635351399ba9954abfadcb802ab9cb434"
+    },
+    {
+      "path": "package/ere/types.js",
+      "size": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "state.mjs",
+      "size": 299,
+      "sha256": "736dacf3ef2e413b0d382b46e622fd66595ab8a4b41a24ae9a6da9fc4a550221"
+    },
+    {
+      "path": "worker-bridge.mjs",
+      "size": 2490,
+      "sha256": "a1a3a501eabb5f8b33d0102992838e702887f1f3c44b25574ea8274176b05129"
+    }
+  ],
+  "builtins": {
+    "case-runner.mjs": [
+      "node:assert",
+      "node:module",
+      "node:fs",
+      "node:crypto",
+      "node:url",
+      "node:path"
+    ],
+    "journal.mjs": [
+      "node:fs",
+      "node:util"
+    ],
+    "package/ere/errors.js": [],
+    "package/ere/limits.js": [
+      "node:timers/promises"
+    ],
+    "package/ere/matcher.js": [],
+    "package/ere/syntax.js": [],
+    "package/ere/transport/accounting.js": [],
+    "package/ere/transport/owner.js": [
+      "node:worker_threads"
+    ],
+    "package/ere/transport/protocol.js": [],
+    "package/ere/transport/root.js": [],
+    "package/ere/transport/validation.js": [
+      "node:util"
+    ],
+    "package/ere/transport/wire-engine.js": [],
+    "package/ere/transport/worker-entry.js": [
+      "node:worker_threads"
+    ],
+    "package/ere/types.js": [],
+    "state.mjs": [],
+    "worker-bridge.mjs": [
+      "node:worker_threads"
+    ]
+  }
+}

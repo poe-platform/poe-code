@@ -1,0 +1,15 @@
+publication_utc_epoch=1787995933.4393448830
+regular_files=30
+working_bytes_before_publication=292550
+capture_bytes_before_publication=222983
+product_executions=0
+new_data_control_executions=0
+observed_helper_git_children=5
+helper_git_signals=0
+seal_helper_git_children=0
+full_transitive_pgid_census=UNOBSERVED
+conservative_administrative_start_charge_upper_bound=40
+start_charge_is_not_measured_pid_census=true
+prior_publication_exit=1
+prior_publication_cause=set-e-on-zero-arithmetic-before-add-or-commit
+final_development_commit_transcript=/tmp/coherent-v4-publication-20260829-final.stdout

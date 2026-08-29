@@ -1,0 +1,13 @@
+{
+  "role": "SOURCE_DATA_ONLY",
+  "fixtureEquality": true,
+  "presealSha256": "4911f32f621e33adf8cacd0eabbc13b0644586fc3efd36ca42abf3c85765734c",
+  "presealBytes": 8922,
+  "workflowSha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b",
+  "sourceInputCount": 309,
+  "productExecutions": 0,
+  "newDataControlExecutions": 0,
+  "children": 0,
+  "finished": "2026-08-29T09:31:07.724Z",
+  "executionReady": false
+}

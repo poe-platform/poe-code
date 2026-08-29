@@ -1,0 +1,40 @@
+{
+  "role": "EXACT_BYTE_ADJUDICATION_NOT_RUNTIME",
+  "eligible": true,
+  "intended": {
+    "bytes": 15763,
+    "sha256": "6d8a19854a6e96986013ed3d94ee15dd774e225259dea922bf4749799c60d89b",
+    "derivedBlob": "05eee3df033e442f7549bc632342d0be5d7badae",
+    "storedObjectClaim": false,
+    "terminalLF": 1
+  },
+  "committed": {
+    "commit": "aed62f65",
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v3/workflows.mjs",
+    "reference": "aed62f65:tests/integration/agent-bash-coherent-author-20260829/v3/workflows.mjs",
+    "blob": "28ff2fb1752975479ba283fe4cc1e4aeda4cf192",
+    "mode": "100644",
+    "bytes": 15764,
+    "sha256": "298fce206c0c4abf5a9960e9140d5b430267cf9819089a0bbfbb3936af9dabbc",
+    "terminalLF": 2
+  },
+  "materialized": {
+    "bytes": 15764,
+    "sha256": "298fce206c0c4abf5a9960e9140d5b430267cf9819089a0bbfbb3936af9dabbc",
+    "equalsCommitted": true
+  },
+  "firstDifference": 15763,
+  "identicalPrefixBytes": 15763,
+  "extraBytesHex": "0a",
+  "identicalNonterminalSha256": "24ff4b8cf1ad089d212bee37256e7d3d8a1209f2913daeca25cfe808ecaaf596",
+  "nonterminalEndsWith": "}",
+  "generator": {
+    "reference": "aed62f65:tests/integration/agent-bash-coherent-author-20260829/v3/finish.mjs",
+    "blob": "737406a55a8937194e022c810739c048f1067706",
+    "sha256": "40e920b689fa7ed0b412edf1d1494424de6ce7241b82a2c73d0449e5f67ce4a9",
+    "operation": "corrected.split('\\n').map(line=>'+'+line).join('\\n')",
+    "addedLines": 147,
+    "modelByteMatchesCommitted": true
+  },
+  "qualification": "No trim/normalization applied to either observed input. Exact equality outside the terminal LF suffix; no token bytes differ. No parser/product/native execution."
+}

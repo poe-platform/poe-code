@@ -1,0 +1,146 @@
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+
+export const defaultNames = Object.freeze(['[','apply_patch','awk','base32','base64','basename','cat','chmod','cksum','column','comm','cp','cut','date','diff','dirname','du','echo','egrep','env','expand','expr','false','fgrep','file','find','fold','git','grep','gunzip','gzip','head','html-to-markdown','join','jq','ln','ls','md5sum','mkdir','mktemp','mv','nl','od','paste','patch','printenv','printf','pwd','readlink','realpath','rev','rg','rm','rmdir','sed','seq','sha1sum','sha256sum','sleep','sort','split','stat','strings','tac','tail','tar','tee','test','timeout','touch','tr','tree','true','unexpand','uniq','wc','which','xargs','xxd','zcat']);
+export const workflowIds = Object.freeze(Array.from({ length: 18 }, (_, index) => 'C' + String(index + 1).padStart(2, '0')));
+export const engineIds = Object.freeze(['C10','C11','C15','C16','C18']);
+export const engineFreeIds = Object.freeze(workflowIds.filter(id => !engineIds.includes(id)));
+const encode = value => new TextEncoder().encode(value);
+const text = value => new TextDecoder().decode(value);
+const outcome = promise => promise.then(value => ({ kind: 'return', value }), reason => ({ kind: 'throw', reason }));
+const turn = () => new Promise(resolve => setImmediate(resolve));
+function deferred() { let resolve; const promise = new Promise(accept => { resolve = accept; }); return { promise, resolve }; }
+function quote(value) { return "'" + value.replaceAll("'", "'\\''") + "'"; }
+const gitBlob = value => { const body = Buffer.from(value); return createHash('sha1').update('blob ' + body.length + '\0').update(body).digest('hex'); };
+const expectedDiff = replacement => 'diff --git a/README.md b/README.md\nindex ' + gitBlob('hello staged\n').slice(0, 7) + '..' + gitBlob(replacement + '\n').slice(0, 7) + ' 100644\n--- a/README.md\n+++ b/README.md\n@@ -1 +1 @@\n-hello staged\n+' + replacement + '\n';
+
+export async function runWorkflow(id, context) {
+  assert.ok(workflowIds.includes(id));
+  const { api, nodeApi, fixture } = context;
+  if (engineIds.includes(id)) assert.equal(context.engine?.role, 'SEPARATELY_AUTHENTICATED_PUBLIC_ENGINE');
+  const shells = [], releases = new Set(), events = [], memory = new api.MemoryFileSystem();
+  let prepares = 0, failure, failed = false;
+  const facts = { id, role: engineIds.includes(id) ? 'PUBLIC_ENGINE_REQUIRED' : 'ENGINE_FREE_PRODUCT_PROFILE', status: 'UNRUN', events };
+  const inert = { profile: nodeApi.NODE_PROFILE, identity: 'coherent-never-started-provider', prepare() { prepares++; throw new Error('unexpected provider preparation'); } };
+  const make = (filesystem = memory, cwd = '/') => { const shell = new api.Shell({ fs: filesystem, cwd, env: {} }); shell.use(api.agentCommands()); shells.push(shell); return shell; };
+  const addNode = (shell, grants = {}, provider = inert, replace = false) => shell.use(nodeApi.nodeCommands({ provider, grants, replace }));
+  const realProvider = () => {
+    const provider = context.engine.createProvider();
+    return { profile: provider.profile, identity: provider.identity, prepare(request, services) { prepares++; facts.requests ??= []; facts.requests.push({ argv: [...request.argv], cwd: request.cwd, filename: request.filename, selector: request.selector }); return provider.prepare(request, services); } };
+  };
+  const expect = async (shell, script, stdout, status = 0) => { const result = await shell.exec(script); assert.equal(result.exitCode, status); assert.equal(result.stdout, stdout); assert.equal(result.stderr, ''); return result; };
+  const fixtureSetup = async () => {
+    assert.equal(fixture.virtualRoot, '/repo'); assert.equal(fixture.oids.headCommit, '1cec77171d8321d533b3aa50b7a1a9df02b10816');
+    for (const entry of fixture.files) {
+      const filename = '/repo/' + entry.path; assert.ok(!entry.path.split('/').includes('..') && !entry.path.startsWith('/'));
+      await memory.mkdir(filename.slice(0, filename.lastIndexOf('/')), { recursive: true });
+      if (Object.hasOwn(entry, 'symlink')) await memory.symlink(entry.symlink, filename);
+      else await memory.writeFile(filename, Object.hasOwn(entry, 'base64') ? new Uint8Array(Buffer.from(entry.base64, 'base64')) : encode(entry.text), { mode: entry.mode });
+    }
+  };
+  const gitSnapshot = async () => Promise.all(fixture.files.filter(entry => entry.path.startsWith('.git/')).map(async entry => [entry.path, Buffer.from(await memory.readFile('/repo/' + entry.path)).toString('base64')]));
+  const curl = (shell, redirect = false) => {
+    const authorized = [], requests = [], disposals = [];
+    shell.use(api.networkCommands({ authorize(request) { authorized.push(request.url); return ['https://one.invalid/start','https://two.invalid/end'].includes(request.url); }, async transport(request) {
+      requests.push({ url: request.url, headers: request.headers.map(pair => [...pair]) });
+      const isRedirect = redirect && request.url === 'https://one.invalid/start';
+      return { status: isRedirect ? 302 : 200, statusText: isRedirect ? 'Found' : 'OK', headers: isRedirect ? [['location','https://two.invalid/end']] : [], body: (async function* () { if (!isRedirect) yield encode('{"text":"hello changed\\n"}\n'); })(), async dispose() { disposals.push(request.url); } };
+    } }));
+    return { authorized, requests, disposals };
+  };
+  try {
+    if (id === 'C01') {
+      const shell = make(); await expect(shell, 'true', ''); assert.deepEqual(shell.commands.list().map(row => row.name).sort(), defaultNames);
+      for (const name of ['createNodeCommand','createNodeCommands','nodeCommands','createNodeWorkerProvider','NODE_PROFILE','NODE_ENGINE_ABI','nodeLimits','NodeProfileError','NodeUsageError']) assert.equal(api[name], nodeApi[name], name);
+      assert.equal(shell.commands.has('node'), false); assert.equal(shell.commands.has('curl'), false); assert.equal(shell.commands.has('safejs'), false);
+      const optional = make(); addNode(optional); curl(optional); await expect(optional, 'true', ''); assert.equal(optional.commands.list().length, 82); assert.equal(prepares, 0);
+      assert.throws(() => nodeApi.nodeCommands({}));
+    } else if (id === 'C02') await expect(make(), 'set -eu -o pipefail; value=\'a b\'; [[ "$value" == \'a b\' && ( x == x || $missing == z ) ]]; printf \'%s\\n\' "$value" | cat', 'a b\n');
+    else if (id === 'C03') await expect(make(), "[[ abc == a* ]]; printf '%s\\n' \"$?\"; [[ abc == 'a*' ]]; printf '%s\\n' \"$?\"", '0\n1\n');
+    else if (id === 'C04') await expect(make(), 'set -u; a=(zero one); f(){ printf \'%s\\n\' "${a[1]}"; }; f', 'one\n');
+    else if (id === 'C05') await expect(make(), 'set -o pipefail; false | cat; printf \'%s\\n\' "$?"', '1\n');
+    else if (id === 'C06') { await expect(make(), 'f(){ printf out; printf err >&2; }; f 2>/audit |& cat', 'outerr'); assert.equal(text(await memory.readFile('/audit')), ''); }
+    else if (id === 'C07') {
+      await expect(make(), 'f(){ printf out; printf err >&2; }; f &>/both 1>/out', '');
+      assert.equal(text(await memory.readFile('/both')), 'err'); assert.equal(text(await memory.readFile('/out')), 'out');
+      facts.writerQualification = 'Effects here; close-count/alias controls remain in authenticated retained48 Unit1 cohort, not inferred from these effects.';
+    } else if (id === 'C08') { await memory.writeFile('/source.sh', encode("let 'n+=3'")); await expect(make(), 'n=2; . /source.sh; printf \'%s\\n\' "$n"', '5\n'); }
+    else if (id === 'C09') {
+      const shell = make(); addNode(shell); const result = await shell.exec('set -u; printf \'%s\' "$missing"; node -p \'1\'');
+      assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /missing/); assert.equal(prepares, 0);
+      facts.diagnostic = 'name/presence only; exact GNU status/bytes unqualified';
+    } else if (id === 'C10') {
+      await memory.writeFile('/entry.cjs', encode('console.log(process.argv[2]);'));
+      const shell = make(); addNode(shell, { sourceRead: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+      await expect(shell, "node /entry.cjs 'a b' '*' ''", 'a b\n'); assert.deepEqual(facts.requests[0].argv.slice(-3), ['a b','*','']);
+    } else if (id === 'C11') {
+      await fixtureSetup(); const before = await gitSnapshot(), shell = make(); const network = curl(shell);
+      addNode(shell, { dataRead: true, dataWrite: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+      await expect(shell, `curl -sS -o /payload.json https://one.invalid/start; node -e ${quote('const fs=require("fs");const data=JSON.parse(fs.readFileSync("/payload.json","utf8"));fs.writeFileSync("/repo/README.md",data.text);')}`, '');
+      assert.equal(text(await memory.readFile('/repo/README.md')), 'hello changed\n');
+      await expect(make(new api.ReadOnlyFileSystem(memory), '/repo'), 'git diff -- README.md', expectedDiff('hello changed'));
+      assert.deepEqual(await gitSnapshot(), before); assert.deepEqual(network.authorized, ['https://one.invalid/start']);
+    } else if (id === 'C12') {
+      const shell = make(), network = curl(shell, true);
+      await expect(shell, "curl -sS -L -H 'Authorization: Bearer synthetic' -o /payload.json https://one.invalid/start", '');
+      assert.deepEqual(network.authorized, ['https://one.invalid/start','https://two.invalid/end']); assert.equal(network.requests.length, 2);
+      assert.equal(network.requests[1].headers.some(([name]) => name.toLowerCase() === 'authorization'), false);
+      assert.equal(text(await memory.readFile('/payload.json')), '{"text":"hello changed\\n"}\n'); assert.equal(network.disposals.length, 2);
+    } else if (id === 'C13') {
+      await fixtureSetup(); const before = await gitSnapshot(), shell = make(new api.ReadOnlyFileSystem(memory), '/repo');
+      await expect(shell, 'git status --short', 'M  README.md\nD  obsolete.txt\n M src/app.txt\n?? notes.txt\n');
+      await expect(shell, 'git rev-parse HEAD', fixture.oids.headCommit + '\n'); await expect(shell, 'git ls-files', 'README.md\nsrc/app.txt\n');
+      assert.deepEqual(await gitSnapshot(), before);
+    } else if (id === 'C14') {
+      await fixtureSetup(); const before = await gitSnapshot(), shell = make(memory, '/repo');
+      const patch = '*** Begin Patch\n*** Update File: /repo/README.md\n@@\n-hello staged\n+hello patched\n*** End Patch\n';
+      await expect(shell, `printf '%s' ${quote(patch)} | apply_patch >/patch.audit; git diff -- README.md`, expectedDiff('hello patched'));
+      assert.equal(text(await memory.readFile('/repo/README.md')), 'hello patched\n'); assert.deepEqual(await gitSnapshot(), before);
+      facts.patchStdout = 'redirected; not an exact diagnostic-format oracle';
+    } else if (id === 'C15') {
+      await memory.writeFile('/keep', encode('original')); const shell = make(new api.ReadOnlyFileSystem(memory));
+      addNode(shell, { dataWrite: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+      const result = await shell.exec(`node -e ${quote('require("fs").writeFileSync("/keep","changed");')}`);
+      assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /EROFS/); assert.equal(text(await memory.readFile('/keep')), 'original');
+    } else if (id === 'C16') {
+      const entered = deferred(), release = deferred(), controller = new AbortController(); const original = memory.readFile.bind(memory);
+      const releaseOwned = () => { events.push('release'); release.resolve(); }; releases.add(releaseOwned);
+      memory.readFile = async (filename, options) => { if (filename !== '/held') return original(filename, options); events.push('read-enter'); entered.resolve(); await release.promise; events.push('read-finalized'); throw options.signal.reason; };
+      const shell = make(); addNode(shell, { dataRead: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+      shell.commands.register({ name: 'guard', execute(command) { command.registerCleanup(async () => { events.push('cleanup-enter'); await release.promise; events.push('cleanup-finished'); }); return command.invoke('node', ['-e','require("fs").readFileSync("/held","utf8");']); } });
+      const pending = outcome(shell.exec('guard', { signal: controller.signal })).then(result => { events.push('settled'); return result; });
+      try { await entered.promise; controller.abort(false); events.push('abort'); } finally { releaseOwned(); releases.delete(releaseOwned); }
+      const result = await pending; assert.equal(result.kind, 'throw'); assert.equal(result.reason, false);
+      assert.ok(events.indexOf('cleanup-finished') < events.indexOf('settled')); assert.ok(events.includes('read-finalized'));
+      facts.providerFinalization = 'controlled release only; no opaque preemption';
+    } else if (id === 'C17') {
+      const entered = deferred(), gate = deferred(), shell = make(); addNode(shell); let writes = 0, settled = false;
+      const release = () => { events.push('release'); gate.resolve(); }; releases.add(release);
+      shell.commands.register({ name: 'guard', execute(command) {
+        command.registerCleanup(async () => { events.push('cleanup-enter'); entered.resolve(); await gate.promise; events.push('cleanup-finished'); throw false; });
+        events.push('registered'); return command.invoke('f', []);
+      } });
+      const pending = outcome(shell.exec('f(){ printf "%s" "${absent:?required}"; }; guard; node -p \'1\'', { stderr: { async write() { writes++; events.push('diagnostic'); throw 0; } } })).then(result => { settled = true; events.push('settled'); return result; });
+      try { await entered.promise; await turn(); assert.equal(settled, false); } finally { release(); releases.delete(release); }
+      const result = await pending; assert.equal(result.kind, 'throw'); assert.equal(result.reason, 0); assert.equal(writes, 1); assert.equal(prepares, 0);
+      assert.ok(events.indexOf('cleanup-finished') < events.indexOf('settled'));
+    } else if (id === 'C18') {
+      const collided = make(); const original = { name: 'node', execute() { return { exitCode: 99 }; } }; collided.commands.register(original); addNode(collided);
+      const result = await outcome(collided.exec('true')); assert.equal(result.kind, 'throw'); assert.equal(result.reason.message, 'Command already registered: node'); assert.equal(collided.commands.get('node'), original);
+      const ownerIndex = shells.indexOf(collided); shells.splice(ownerIndex, 1); const disposed = await outcome(collided.dispose()); assert.equal(disposed.kind, 'throw'); assert.equal(disposed.reason.message, 'Command already registered: node');
+      const shell = make(), options = { provider: realProvider(), grants: { stdoutWrite: true, stderrWrite: true }, replace: true };
+      shell.commands.register(original); const plugin = nodeApi.nodeCommands(options); options.replace = false; options.provider = null; options.grants.stdoutWrite = false;
+      shell.use(plugin); await expect(shell, "node -p '8'", '8\n');
+    }
+    facts.status = 'PASS';
+  } catch (reason) { failed = true; failure = reason; facts.status = 'FAIL'; }
+  finally {
+    for (const release of releases) release();
+    const cleanup = await Promise.allSettled(shells.map(shell => shell.dispose()));
+    facts.shells = shells.length; facts.cleanup = cleanup.map(result => result.status); facts.prepares = prepares;
+    const rejected = cleanup.filter(result => result.status === 'rejected');
+    if (rejected.length) { facts.cleanupFailure = true; if (!failed) { failed = true; failure = rejected[0].reason; } }
+  }
+  if (failed) { facts.status = 'FAIL'; throw Object.assign(new Error('workflow ' + id + ' failed', { cause: failure }), { facts }); }
+  return facts;
+}

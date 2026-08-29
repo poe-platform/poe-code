@@ -1,0 +1,35 @@
+{
+  "started": "2026-08-29T05:18:42.261Z",
+  "role": "SOURCE_DATA_PUBLICATION",
+  "product": 0,
+  "native": 0,
+  "children": [
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--name-only",
+        "-z",
+        "--",
+        "tests/compatibility/bash-surface-20260829"
+      ],
+      "status": 0,
+      "signal": null
+    }
+  ],
+  "completed": "2026-08-29T05:18:42.386Z",
+  "elapsedMs": 612598,
+  "dataEntries": 61,
+  "capturedBytes": 1228071,
+  "capsuleSha256": "c42904683a18558794a1bf23a723966607cb023c0e6bfe7424432a69d9f6029c",
+  "sourceBlobs": 38,
+  "sourceGitChildren": 4,
+  "newPublicationGitChildren": 1,
+  "allNativeProductBuildWorkerEngineExecutions": 0,
+  "preparationProcessCap": 48,
+  "peakAdmittedIncludingToolShell": 3,
+  "processAccounting": "Tool launches plus five synchronous development Git children; no product children, background sessions or workers. Direct context instruction reads excluded from evidence.",
+  "differentialUnrun": 40,
+  "hostProtocolsUnrun": 10,
+  "existingSurfaceWorkingDiffBytes": 0
+}

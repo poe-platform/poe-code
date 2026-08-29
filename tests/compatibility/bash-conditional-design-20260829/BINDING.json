@@ -1,0 +1,393 @@
+{
+  "candidate": "26215b99cb379a9f825f803454f758fab5a3c8e9",
+  "sourceManifestSha256": "75ac56902fdce22f8292c17c14d48287063a5544c46ac8c526b5d4572143bde2",
+  "sourceRole": "Accepted public80+c83/unit1 with frozen provisional unit2 928be558, not live HEAD or independent unit2 acceptance",
+  "unit1AcceptedBy": "b0934e90c13f43c6a9b929e10c31388b2054036d",
+  "selected": [
+    {
+      "path": "src/commands/internal.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "b13134023b32f79e76df8cc2de3c93c36b7f608f",
+      "mode": "100644",
+      "bytes": 8820,
+      "sha256": "ade20c95a7d3dac5250a214d112ab25d710ce7909a4c6605f18ee21781949654",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/regex-execution/README.md",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "3be6ea55e45b28c0492474d4d11d238e058579c2",
+      "mode": "100644",
+      "bytes": 11189,
+      "sha256": "914db79131dd4543e69746c73786df72e4f62055818e6cee17fd57eddcea4481",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/regex-execution/client.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "5bece2d5d06ca6c1ded7b3b99da6a3cb53253ed6",
+      "mode": "100644",
+      "bytes": 15319,
+      "sha256": "5d086314898c38390753a07ef1c37001890ac2b47f3d0e05e221048b9db42ebc",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/regex-execution/matching.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "9f1f53ec5fd78ddc2e6062bccaafd038fdec1f07",
+      "mode": "100644",
+      "bytes": 11796,
+      "sha256": "1d21b81ebbfe361405556aa59b58f6e2cf9f6d487e9518c5d77a90af36690737",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/regex-execution/protocol.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "99f39e111b0e105d8a3c0373266d90f2bd356433",
+      "mode": "100644",
+      "bytes": 10890,
+      "sha256": "3610a50b436e083b2633e08c841978999b5fa61759fcaea224aeec97230c8bc1",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/regex-execution/worker.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "8da7d8566d17ab7d81ff4d440f632e8127312000",
+      "mode": "100644",
+      "bytes": 1930,
+      "sha256": "a442bb67cda6aff313cf3909cbfb0d3d8c12ebc420437d5fd9d7bd51fc6c9da6",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/tree/pattern.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "10856009329db0d2729fe911ab022c638239ab25",
+      "mode": "100644",
+      "bytes": 3061,
+      "sha256": "114de00a12f9e32e0593a22abe753d27e079fe504e13e8b35289ae90afdbb215",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/contracts/command.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "9c5f2d150df8681f2688fe6aee7ed2d5dfcd22b8",
+      "mode": "100644",
+      "bytes": 2968,
+      "sha256": "d2f6c788a48b3bb0bed9570f0e69bb2bfab845528376a7fe9288d1c07556df7c",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/contracts/filesystem.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "5c1a59a85e47bc9bc242a2e92b22680d785fcc89",
+      "mode": "100644",
+      "bytes": 3897,
+      "sha256": "e2343faf818a15ad7afc06618b3f8856cf14f36c86574cc49c85d51a13e7e522",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/arithmetic.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "223101946d13ac9b44f4a898f58fd16004ba86b9",
+      "mode": "100644",
+      "bytes": 9922,
+      "sha256": "5e2d784b8fd333972e6e413f4c3478163462a3c1abf8cc5ff7173963420440bd",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/arrays/bindings.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "c686048897bbd7fa797ba6982a255a543afbe6a3",
+      "bytes": 9989,
+      "sha256": "1f842c3b1a89d0332a8a81c0001384fe3b42a1057721456a14334141182dd356",
+      "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/arrays/ledger.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "c0c1a4ba292e26696b792b024019a79ce241cb89",
+      "bytes": 9105,
+      "sha256": "05f079ad55c285bba3f99f3c2f3b3f0c51385404294b20697e8188c5e8a45e45",
+      "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/arrays/state.ts",
+      "commit": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "mode": "100644",
+      "blob": "021459790e7aa5d03b6cac2d786a77643fa2f2aa",
+      "bytes": 13072,
+      "sha256": "14cee1539243675072a3e2ff6947d10d6343f63859610a79ca9170c78fe1df50",
+      "revision": "c7dae6e884d1a144266dfc1bb80785bf007a667f",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/arrays/syntax.ts",
+      "commit": "c0adae539c736db0e4023d401562ce958d9ebb00",
+      "mode": "100644",
+      "blob": "d74d8f5fde70dfd7b4fa44213f29e6fdf38e7564",
+      "bytes": 5471,
+      "sha256": "6868288c25bc6c2760adb327528e616890dddd18f2739452432f152ff0c40da0",
+      "revision": "c0adae539c736db0e4023d401562ce958d9ebb00",
+      "role": "accepted ARRAY overlay"
+    },
+    {
+      "path": "src/shell/cancellation.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "a0e68c7bfb2d541964194d38ef30a4a590bec1de",
+      "mode": "100644",
+      "bytes": 31986,
+      "sha256": "2685ad5723036ef217881e3c3b5f62882a2647e287f518d3cfd4f8416fc330a2",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/cleanup.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "eae04650a553e4820da9c7b08b0255a6b20fc01c",
+      "mode": "100644",
+      "bytes": 1947,
+      "sha256": "134f55641d6437681cd185960a2923d68086096921758717c5b8059595304385",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/display.ts",
+      "mode": "100644",
+      "blob": "1bd9c7110aa82c6b3c9817bfc4ffdf08db99bee2",
+      "bytes": 2798,
+      "sha256": "293c7d058c5d959134334ba432ad4baa906a3b99608b38140d82887dbebfd6f8"
+    },
+    {
+      "path": "src/shell/getopts.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "bb502b076063c0fb95766911648dba788000f8b4",
+      "mode": "100644",
+      "bytes": 9964,
+      "sha256": "bf0bcfd9f370861504e9561c54cfd12c8706663ee7dc3ca8a28b70f66290e9ee",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/index.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "0110bd9d5c0388dc6fe15abc27f27a18dd7a6b38",
+      "mode": "100644",
+      "bytes": 275,
+      "sha256": "235ad982a7bfe23823b4e07d714ed73e924a5d7759a8664f8533b03517ffa383",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/input.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "3eec71b72f87dd48ddac572d6e7feb9097d32be4",
+      "mode": "100644",
+      "bytes": 9881,
+      "sha256": "4214a448a1a076acb297c3ba6a02d72482d488cf8b6df4549498148a012e5c32",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/locale.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "5a2cda6417f2f28af38b33f2d32a56271c0f5a58",
+      "mode": "100644",
+      "bytes": 207,
+      "sha256": "1b0687b8401c3f0886a793bf6f212a1731d4bd973be6ac2c7642254e6e1fb2d2",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/parser.ts",
+      "mode": "100644",
+      "blob": "40857123df98fb3696cc457733863ad77bc55109",
+      "bytes": 39122,
+      "sha256": "e8c19ffc7a5c2ffcd63608f0fd4722466e1999e647bc2e676b12710555a0e9a4"
+    },
+    {
+      "path": "src/shell/pattern.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "be8739ee6b6c9e9323c559aff15f2dd27ce8271c",
+      "mode": "100644",
+      "bytes": 4863,
+      "sha256": "eaf798a7f92c050734e97ef77e07397b3e5710a822575899cca81a527985609a",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/runtime.ts",
+      "mode": "100644",
+      "blob": "6c4ec49fc2eaf3f540c6a40d3a6de32a16b01021",
+      "bytes": 197605,
+      "sha256": "d47946f659af53880de53e65f93d26b934404a56b31183d937174d0f46221f66"
+    },
+    {
+      "path": "src/shell/shell.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "mode": "100644",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/shell/types.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "763d2ee0ad2b15c7ed7af31e7c6171f739c98486",
+      "mode": "100644",
+      "bytes": 2223,
+      "sha256": "aaef878966d35d1c671cf84e5b416f10f6a31433f1ec264ef1730b9c6570f990",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/basic.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "4180a22e83a6246287b5a2d169cfbf039f6e4b37",
+      "mode": "100644",
+      "bytes": 8605,
+      "sha256": "635d6956e728277f78387c0a03a00d5567ba608f39bb2b9b65a8f1ffdf79017f",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/copy-identity.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "020bedd35a95893736aae453330c96cff58a112b",
+      "mode": "100644",
+      "bytes": 2179,
+      "sha256": "f1a03403fadc0138377bd3b215dafecf4b28a187549da8e80764a3fd08238dfe",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/env-split.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "437c36d72c12e985d39c5dc9e09b6bb644753500",
+      "mode": "100644",
+      "bytes": 7492,
+      "sha256": "b005331bff0dd207a65b9001d235020f005eed45b813cca912851502c3f9dcf4",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/execution.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "61e49c6d8684ccdb5c2f80624d9c8fda9f1d5d2c",
+      "mode": "100644",
+      "bytes": 9269,
+      "sha256": "61940d3b86593243c13cab716be87f84647e42b69476757482dfebafc7d693a6",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/filesystem.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "470911e2a7cb9fe051d3b3616a6730e415d9f87c",
+      "mode": "100644",
+      "bytes": 22388,
+      "sha256": "74fb5fdd66c2eaf7a8f31d2be8c6be0e94c09ff65892c561bbc0c6bc6f875a8f",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/find.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "cc1854873f02be5a6ede00fa78283f3b80f647ee",
+      "mode": "100644",
+      "bytes": 9193,
+      "sha256": "534a5359a42bb7bf0020f21092740262edbe9053744e29d153fa9e6319539db2",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/grep.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "68ebe72c37722cddb5f939be13653115b883429e",
+      "mode": "100644",
+      "bytes": 5742,
+      "sha256": "a5e93d8dd97c35f1a1530792b38478942647e6e66ac01fcd44fbea05fbfa78d1",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/index.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "ced15c531fe849ac874f2b3825bda12a0928daa5",
+      "mode": "100644",
+      "bytes": 2292,
+      "sha256": "67a0e34ea9a8518d2349b4707ef5214e9da0de790ea5c1973daac71dabc70aa9",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/move.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "c8b98b9b354594c5c8797b7a5d6d5b1b66ec3f3b",
+      "mode": "100644",
+      "bytes": 8000,
+      "sha256": "31e1fe6a2c0fc9efb9efa44b636d9478d4cab273de4c4e809d4f572b28084042",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/predicates.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "4a7ce27295d6347a26bd9edf4c0d2769afec0297",
+      "mode": "100644",
+      "bytes": 5535,
+      "sha256": "ca98df3ffbc6939007fd73939ad40b67028dfe66c1129a3647fbb061213bd347",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/streams.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "3ea14daa9679a18f03e9d819cb829b18f6ea43c8",
+      "mode": "100644",
+      "bytes": 17782,
+      "sha256": "1a00a55bf30b1c917041e9c32011988a29b539b0876e46d41e311d3e469dc45d",
+      "role": "accepted coherent78 unchanged"
+    },
+    {
+      "path": "src/commands/text.ts",
+      "revision": "67eab12e315054907ef4ef435c6bbca2f59e0c36",
+      "blob": "b28fc2e65e84cde94ab6ed25ffc3381903ecfe3e",
+      "mode": "100644",
+      "bytes": 19301,
+      "sha256": "9a66dc0e320c62aad86d78da9c55580cf6910a537a47db8a330e5122f63a1895",
+      "role": "accepted coherent78 unchanged"
+    }
+  ],
+  "children": [
+    {
+      "label": "source",
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "code": 0,
+      "signal": null,
+      "bytes": 434741
+    },
+    {
+      "label": "status",
+      "args": [
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "--untracked-files=no"
+      ],
+      "code": 0,
+      "signal": null,
+      "bytes": 0
+    },
+    {
+      "label": "index",
+      "args": [
+        "diff",
+        "--cached",
+        "--name-only",
+        "-z"
+      ],
+      "code": 0,
+      "signal": null,
+      "bytes": 0
+    },
+    {
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "productExecutions": 0
+}

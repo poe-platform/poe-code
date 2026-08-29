@@ -1,0 +1,104 @@
+{
+  "schema": "virtual-comparison-preparation-final-seal-v1",
+  "sourcePacketCommit": "bff9022a479ba4683dce7fb1830b4e3c6f2be03e",
+  "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+  "rows": [
+    {
+      "path": "CAPTURE-MANIFEST.json",
+      "bytes": 13464,
+      "sha256": "194f5d49e82a7216a363e8fad419b7fe6339a7668756075a1affa6f74b33ecb2"
+    },
+    {
+      "path": "CAPTURE.json.gz.base64",
+      "bytes": 1856125,
+      "sha256": "6898f171a3b44687a008b4db2db4e5dfe4ba5c7f9864e958a64a1ef99a26c3f9"
+    },
+    {
+      "path": "DATA-CONTROLS.json",
+      "bytes": 1264,
+      "sha256": "00a854a1d53f958164bf0f720ee179fe6d71d3f9a5bbbda2c1e3621659996cdb"
+    },
+    {
+      "path": "DATA-RESULTS.json",
+      "bytes": 1917,
+      "sha256": "2c60cf9a26b6a5c9aaaaaef0e0899f718589bd06ce0e4029a42f83c758dbc441"
+    },
+    {
+      "path": "MATRIX.json",
+      "bytes": 201975,
+      "sha256": "b7aa013cdc2d74a8ebdf400b4db1cc475479a13eb62aaa2303d8f28f1295c74e"
+    },
+    {
+      "path": "NATIVE-BINDING.json",
+      "bytes": 1705,
+      "sha256": "24db9df6c98896bc831d233134f7fc8338964d514fd8e7b6b799adec8361efb7"
+    },
+    {
+      "path": "ORACLE-ACCEPTANCE-ADDENDUM.md",
+      "bytes": 2676,
+      "sha256": "17d995d0dbfadd43939b90d19eb209eb3269bff052ff63ecd99a793f4bcaaf59"
+    },
+    {
+      "path": "ORACLE-ACCEPTANCE.json",
+      "bytes": 662,
+      "sha256": "7e1b83310bfe4dd115058adf2a456798e1197097e5af01333d319b08a34ffbe3"
+    },
+    {
+      "path": "PACKAGE-MEMBERS.json",
+      "bytes": 166933,
+      "sha256": "9800c6e7b6025c548c7b6be8376ca4804b5d3601115578c264ba7f7dd5b35011"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 1423,
+      "sha256": "ca4d9d85e0e6d9eb316ef631b76d338b2728d2a548d8def0e33f508850951aae"
+    },
+    {
+      "path": "PROTOCOL.json",
+      "bytes": 3304,
+      "sha256": "f907c86640d19c453e797ed7fe6b1fa8a1316048b587e7f2ad89820e064c82fe"
+    },
+    {
+      "path": "READ-MANIFEST.json",
+      "bytes": 66389,
+      "sha256": "1dc269ea05cecc7d41118a131bd0be3753d0e097a9aefc3d7dd78ac4961a8883"
+    },
+    {
+      "path": "README.md",
+      "bytes": 8836,
+      "sha256": "c3b397717e5c043299ac513f60aae507f4ba0dd2b9e1d632b63caff934bbd854"
+    },
+    {
+      "path": "SOURCE-BINDING.json",
+      "bytes": 195389,
+      "sha256": "be7bef586f9edee892dca4e0f8d0d70d8ce34b73c44ae0b39f99ace9da9b31f0"
+    },
+    {
+      "path": "case-adapter.mjs",
+      "bytes": 3942,
+      "sha256": "74f8d607858cb34adf7bbbbecf54412fbb6ef798aae2c532f5391ef9bfff8460"
+    },
+    {
+      "path": "data.mjs",
+      "bytes": 3196,
+      "sha256": "603395125167a99419ceb198d35b6a51689e9580cb7a4affabdcc5ce15366b52"
+    },
+    {
+      "path": "publication-admin.mjs",
+      "bytes": 4009,
+      "sha256": "86550b80a143d66db24fb62940f74fcfdca2e65101b5d5b3fd748f95a860c473"
+    }
+  ],
+  "selectedCases": 37,
+  "layouts": 3,
+  "proposedCalls": 111,
+  "actualCalls": 0,
+  "dataControls": {
+    "passed": 8,
+    "failed": 0
+  },
+  "nativeAuditAccepted": "3afa86d9d43d47a6dbc755feb86f3916d91c935a",
+  "productAcceptance": "PENDING_ROOT; no target build or invocation permitted",
+  "sourceOnlyAdapter": "NOT imported or executed; needs independent source/closure review",
+  "executionGate": "NO grant is created by this packet"
+}

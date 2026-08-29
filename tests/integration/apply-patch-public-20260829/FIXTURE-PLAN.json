@@ -1,0 +1,130 @@
+{
+  "role": "Explicit pre-migration current fixture plan, no historical fixed78/77 artifact edits",
+  "defaultBefore": 78,
+  "defaultAfter": 79,
+  "customBefore": 79,
+  "customAfter": 80,
+  "addition": "apply_patch",
+  "files": [
+    {
+      "path": "tests/plugins/agent-commands.test.ts",
+      "role": "maintained current inventory assertions; historical committed bytes retained",
+      "originalSha256": "03ff459fcf2ab8ad73a4016dc5bb05eccc431bf1fc7f2693d7c5be6951f1327f",
+      "replacements": [
+        {
+          "before": "\"which\", \"timeout\",",
+          "after": "\"which\", \"timeout\", \"apply_patch\",",
+          "occurrences": 1
+        },
+        {
+          "before": "expected.length, 78",
+          "after": "expected.length, 79",
+          "occurrences": 1
+        },
+        {
+          "before": "new Set(expected).size, 78",
+          "after": "new Set(expected).size, 79",
+          "occurrences": 1
+        },
+        {
+          "before": "target.commands.list().length, 79",
+          "after": "target.commands.list().length, 80",
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "path": "tests/commands/split/integration.test.ts",
+      "role": "maintained current inventory assertions; historical committed bytes retained",
+      "originalSha256": "e81cdd80c614fb1d4f91b3ceb24a0bbc0d3f9c4fe382f9e9a508a929eabe9677",
+      "replacements": [
+        {
+          "before": "contains 78 including",
+          "after": "contains 79 including",
+          "occurrences": 1
+        },
+        {
+          "before": "createAgentCommands().length, 78",
+          "after": "createAgentCommands().length, 79",
+          "occurrences": 1
+        },
+        {
+          "before": "shell.commands.list().length, 78",
+          "after": "shell.commands.list().length, 79",
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "path": "tests/commands/stream-format-author-stress/contracts.test.ts",
+      "role": "maintained current inventory assertions; historical committed bytes retained",
+      "originalSha256": "da291fed298d325451216204ead362ee0120053699efe9638cf356a9eac3a5da",
+      "replacements": [
+        {
+          "before": "contains78 and",
+          "after": "contains79 and",
+          "occurrences": 1
+        },
+        {
+          "before": "createAgentCommands().length, 78",
+          "after": "createAgentCommands().length, 79",
+          "occurrences": 1
+        },
+        {
+          "before": "instance.commands.list().length, 78",
+          "after": "instance.commands.list().length, 79",
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "path": "tests/integration/stream-inspection-public-author/public.test.ts",
+      "role": "maintained current inventory assertions; historical committed bytes retained",
+      "originalSha256": "adcb35fe82ab64d717856377dd7db36f91363becff81786184ab0f91e26c2722",
+      "replacements": [
+        {
+          "before": "78-command aggregate",
+          "after": "79-command aggregate",
+          "occurrences": 1
+        },
+        {
+          "before": "definitions.length, 78",
+          "after": "definitions.length, 79",
+          "occurrences": 1
+        },
+        {
+          "before": "new Set(definitions).size, 78",
+          "after": "new Set(definitions).size, 79",
+          "occurrences": 1
+        },
+        {
+          "before": "target.commands.list().length, 79",
+          "after": "target.commands.list().length, 80",
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "path": "tests/plugins/stream-five-public/consumer.mjs",
+      "role": "maintained current inventory assertions; historical committed bytes retained",
+      "originalSha256": "ea2e09c7f4fd1089e50ccb380a45a0249878fa4627f189ff5a8a08585bfc8020",
+      "replacements": [
+        {
+          "before": "names.length, 78",
+          "after": "names.length, 79",
+          "occurrences": 1
+        },
+        {
+          "before": "new Set(names).size, 78",
+          "after": "new Set(names).size, 79",
+          "occurrences": 1
+        },
+        {
+          "before": "commands.list().length, 78",
+          "after": "commands.list().length, 79",
+          "occurrences": 1
+        }
+      ]
+    }
+  ]
+}

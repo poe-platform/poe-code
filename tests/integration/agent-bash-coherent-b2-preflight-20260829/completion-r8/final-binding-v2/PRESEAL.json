@@ -1,0 +1,14 @@
+{
+  "schema":"B2-R8-FIXED-WINDOW-BINDING-2",
+  "startedUTC":"2026-08-29T16:46:50.289Z",
+  "preparationDeadlineUTC":"2026-08-29T16:51:50.289Z",
+  "limits":{"knownOS":16,"peak":3,"captureBytes":16777216,"logicalWorkBytes":67108864,"dataHelpers":1},
+  "previousFailure":"9f3d9efa02f78ed5d1c540e5f9f19e4dcc222da6",
+  "independentPreexec":"a54f318dedf6e80edd3ac12887f9e50ae4bff758",
+  "packet":{"bytes":6945,"sha256":"6df866e7990386218848061128777008bfbd6cdd93a7c0f658559fc0d0aa23f9"},
+  "rootWindow":{"notBefore":"2026-08-29T17:00:00.000Z","externalLatestStart":"2026-08-29T17:05:00.000Z","activeDeadline":"2026-08-29T17:27:00.000Z","deadline":"2026-08-29T17:30:00.000Z"},
+  "policy":"Fixed anchored deadlines. Delayed start shrinks remaining time; no promise of full672 completion.180 seconds publication reserve. Previous17:10/17:40 proposal withdrawn unactivated.",
+  "checks":["32 files/package/source metadata/publisher/tools hashes","existing grant keys and exact caps only","absolute-path postchecks","runtime/capture/grant slots absent before and after","command hash and fixed-window arithmetic"],
+  "runtime":false,
+  "grantInstallation":false
+}

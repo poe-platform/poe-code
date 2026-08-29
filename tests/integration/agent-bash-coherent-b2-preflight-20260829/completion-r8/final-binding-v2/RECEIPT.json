@@ -1,0 +1,100 @@
+{
+  "schema": "B2-R8-FIXED-WINDOW-BINDING-HELPER-HOLD-2",
+  "status": "HOLD_AUTHOR_METADATA_SHAPE_ASSERTION",
+  "windowPolicyResolved": true,
+  "actualGo": false,
+  "grantProduced": false,
+  "grantInstalled": false,
+  "helperExecuted": 1,
+  "helperExit": 1,
+  "helperClose": 1,
+  "knownUnresolved": 0,
+  "originalSourcePreserved": true,
+  "sourceCorrectionExecuted": false,
+  "startedUTC": "2026-08-29T16:46:50.289Z",
+  "publishedUTC": "2026-08-29T16:49:38.294Z",
+  "preparationDeadlineUTC": "2026-08-29T16:51:50.289Z",
+  "knownRolesBeforeGit": 6,
+  "reservedGitPublication": 4,
+  "knownOSCap": 16,
+  "peakKnown": 2,
+  "rawStderrBytes": 199832,
+  "window": {
+    "notBefore": "2026-08-29T17:00:00.000Z",
+    "externalLatestStart": "2026-08-29T17:05:00.000Z",
+    "activeDeadline": "2026-08-29T17:27:00.000Z",
+    "deadline": "2026-08-29T17:30:00.000Z"
+  },
+  "files": [
+    {
+      "path": "evidence/01-role.json",
+      "bytes": 152,
+      "sha256": "83ea37f89f96a69c8721eb61b620db267c76094915476a0ba370c6314a39935d"
+    },
+    {
+      "path": "evidence/01-state.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/01-state.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/02-patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/02-patch.stdout",
+      "bytes": 314,
+      "sha256": "70c46e80918c7e8f7fda65ca8b9f4b1a0cb69bccb8c4a7d5bb9870089f8816cd"
+    },
+    {
+      "path": "evidence/03-bind.stderr",
+      "bytes": 199832,
+      "sha256": "0da00e7f607ca494de40d4aa5e981cf8158b4f6f74fbcfeb020669e5634dd22f"
+    },
+    {
+      "path": "evidence/03-bind.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/03-role.json",
+      "bytes": 152,
+      "sha256": "eca46ac67160a249276d9bacf00a0c6ee0c158d24d8beca0aa46ce7a21e46b14"
+    },
+    {
+      "path": "evidence/04-patch.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/04-patch.stdout",
+      "bytes": 312,
+      "sha256": "db1fc416042e9f9063bec68ae49148d4b4b7ea0979426b8f6f4a9a50b4462890"
+    },
+    {
+      "path": "PRESEAL.json",
+      "bytes": 1152,
+      "sha256": "0b65c1eb80cb1f23085a965b87eec6cccf3682023fe29ff80efdd7f33818b7cf"
+    },
+    {
+      "path": "bind.mjs",
+      "bytes": 6944,
+      "sha256": "47748f34917ab61aefae73920e9c6469a730319c881f2e5aa18c0d6f0372eca2"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 2502,
+      "sha256": "4ad9409969000baa43f177d5bdd5a727a174de388d33febc809ee3ccfbceb3c5"
+    },
+    {
+      "path": "evidence/bind-attempt-1.mjs.data",
+      "bytes": 6937,
+      "sha256": "c927f5830d2baa980f1419a69330387534c6ba4375d6e7f27ca79042e85566b5"
+    }
+  ]
+}

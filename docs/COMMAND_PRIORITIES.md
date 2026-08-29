@@ -37,6 +37,21 @@ zero runtime dependencies, no virtual-command host subprocess/eval/native fallba
 and explicit host capabilities remain requirements. This table does not supply a
 subcommand/flag distribution; recommendations below are engineering judgment.
 
+## Git public integration candidate
+
+ROOT-qualified M1B module `fca6f81d2d96db2bbceabf3247cd57ffe240bde6` is now
+being wired as default80 on the fixed apply79 candidate
+`7fde32264d757ef856acf3ae92c8581b4a294341`. The selected module/full910 package
+`cc0e75c2d0d12f713f0458e608ddeae157cf3432b4e0b48277a329a98115aa1a` has
+274 finite versioned review identities, not universal resource/native coverage.
+S02/H09/private-writer source qualifications, old bare-OID/deadline failures and
+six unrun native workflows remain. Both the79 baseline public review and this80
+public composition require separate acceptance. This is genuine bounded read-only
+VFS object/index/pack parsing, not development Git or a native fallback. All24
+fixed limits remain unchanged; only discoveryBoundary/replacement are options.
+Node remains unqualified and absent, not a stub. Curl stays optional; YQ/XAN,
+declare/mapfile/npm/npx are not added. Evidence: `tests/integration/git-public-20260829/`.
+
 ## Apply-patch public integration candidate
 
 ROOT-qualified module acceptance is now bound to
@@ -47,12 +62,12 @@ two cleanup-count assertion failures, legacy11 failures and21 uncredited
 observations remain unchanged. Two separate cleanup owners fulfilled in the
 successful L07 cases; this is not a rescore or universal backend/resource proof.
 
-Current root wiring adds `apply_patch` as default79 onto the accepted coherent78
+The preceding root wiring adds `apply_patch` as default79 onto the accepted coherent78
 plus arrays composition, with independent public review still required. Root and
 `virtual-bash/commands/apply-patch` provide the three factories/plugin and typed
 limits; aggregate `applyPatch` forwards limits with top-level replacement authority.
 This is bounded literal UTF-8 VFS patching, not a host subprocess or generic native
-patch compatibility. Git remains module-only (M1B correction under review); Node
+patch compatibility. The newer Git80 candidate is qualified separately above; Node
 provider/contract remains unqualified. No YQ/XAN/npm/npx commands are added, and
 curl remains optional. The original user table and historical audit below are
 unchanged. Evidence: `tests/integration/apply-patch-public-20260829/`.

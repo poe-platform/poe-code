@@ -139,7 +139,7 @@ time/environment (`date`, `sleep`, `printenv`), tree (`tree`), file (`file`),
 grep aliases (`egrep`, `fgrep`), table layout (`column`), bounded HTML conversion
 (`html-to-markdown`), usage accounting (`du`), expressions (`expr`), virtual
 executable lookup (`which`), cooperative deadlines (`timeout`) and VFS editing
-(`apply_patch`), totaling 79 unique registered
+(`apply_patch`) and read-only Git (`git`), totaling 80 unique registered
 plugin names. These families have separate scoped evidence;
 name registration is not proof of complete utility semantics.
 Do not also install those families unless you deliberately request replacement.
@@ -577,7 +577,7 @@ pre-first-byte `head -n 0` custom lifecycle issue is not fixed by this checkpoin
 it does not prevent delivery of the verified curl scope. Current root assignments
 govern source/test ownership; historical assignments are recorded in the ledger.
 
-The current default aggregate has 79 unique plugin names; optional `curl` and `safejs`
+The current default aggregate has 80 unique plugin names; optional `curl` and `safejs`
 add one each only when explicitly installed. At curl finalization, the committed
 aggregate still had 49 names while uncommitted metadata wiring exposed 52 in
 the working tree and its built package. That historical build/smoke remains a
@@ -630,8 +630,51 @@ distinct registered owners fulfilled, not the fixture's expected one. Legacy11
 failures and21 uncredited observations retain their original qualifications. See
 [the module adjudication](tests/commands/apply-patch-independent-20260828/u12-l07-continuation-v1/ACCEPTANCE-ADJUDICATION.md)
 and [the public integration evidence](tests/integration/apply-patch-public-20260829/).
-Git is not yet registered; curl/SafeJS stay explicit opt-ins. No whole-product or
+Curl/SafeJS stay explicit opt-ins. No whole-product or
 full native-utility parity follows from this integration.
+
+## Read-only VFS Git
+
+The current root wiring adds `git` as default80. Root and
+`virtual-bash/commands/git` export `createGitCommand`, `createGitCommands`,
+`gitCommands` and `GitCommandsOptions`. Aggregate `git` accepts
+`discoveryBoundary`; top-level `replace` wins over untyped nested replacement.
+Direct factories retain their own replacement setting. There are no numeric
+Git limit overrides; unknown module options are refused.
+
+```ts
+import { Shell, MemoryFileSystem, agentCommands } from "virtual-bash";
+
+const fs = new MemoryFileSystem();
+// Populate /repo with genuine Git files through the VFS before querying it.
+const shell = new Shell({ fs, cwd: "/repo" }).use(agentCommands({
+  git: { discoveryBoundary: "/repo" },
+}));
+try {
+  const status = await shell.exec("git status --porcelain=v1");
+  const tracked = await shell.exec("git ls-files | head -n 10");
+} finally {
+  await shell.dispose();
+}
+```
+
+This reads supplied VFS repositories, never the host checkout. It supports a
+bounded `.git` directory/bare, SHA-1/index-v2/loose/packed-ref/pack-v2/idx-v2
+profile, including verified OFS/REF deltas, status, selected diff/log/show,
+rev-parse and ls-files forms. See `src/commands/git/README.md` for the exact
+grammar, text domain, config allowlist and storage refusals. Gitfiles/linked
+worktrees, shallow/promisor/alternates, thin packs, write commands, hooks, filters,
+network, native subprocess fallback and arbitrary config are not supported.
+All packs are eagerly verified, including metadata queries. Fixed cumulative
+read/inflate/work budgets can refuse otherwise valid repositories far below the
+individual pack-size cap; this is not general packed-repository readiness.
+Logical resident accounting is not a hard RSS bound or opaque-provider preemption.
+
+ROOT-qualified M1B module `fca6f81d` retains S02/H09/private-writer source gaps and
+six unrun native workflows. The new80 composition and its79 apply-patch baseline
+still require their distinct public reviews; module acceptance alone does not
+accept this composition. Author evidence is in
+`tests/integration/git-public-20260829/`. No full Git/GNU or whole-product claim.
 
 ## Grep Aliases and Column
 

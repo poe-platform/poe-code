@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "/private/tmp/coherent-b1-r5-runtime/source-built/source-built-engine-receipt.json",
+    "bytes": 76582,
+    "sha256": "a4d3614d6d944660aaddc1fd95c8fe6ebef1d92fc0dd8607400578d9a82254de",
+    "mode": 420,
+    "dev": 16777232,
+    "ino": 190026919,
+    "mtimeMs": 1788021738018.8594,
+    "origin": {
+      "finalSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "locator": "/private/tmp/coherent-b1-r5-runtime/source-built/source-built-engine-receipt.json"
+    },
+    "role": "layout-source-built-engine-receipt.json"
+  },
+  "dataPath": "data/ee555a45c084d4dcc20312e9d98aac8a7941ff5df661e04e53df56f89c945388.raw",
+  "identityPath": "identities/ee555a45c084d4dcc20312e9d98aac8a7941ff5df661e04e53df56f89c945388.json",
+  "copiedBytes": 76582,
+  "copiedMode": 420,
+  "copiedSha256": "a4d3614d6d944660aaddc1fd95c8fe6ebef1d92fc0dd8607400578d9a82254de"
+}

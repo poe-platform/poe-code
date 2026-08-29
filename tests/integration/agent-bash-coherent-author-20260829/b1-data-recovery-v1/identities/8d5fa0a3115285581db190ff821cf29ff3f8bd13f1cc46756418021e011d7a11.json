@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/RUNTIME-PRESEAL.json",
+    "bytes": 20784,
+    "sha256": "576f604888158f8114c6e25dddf976820ef91c7cc4859b763b2dd55fad40aec5",
+    "mode": 420,
+    "dev": 16777232,
+    "ino": 189862593,
+    "mtimeMs": 1788018107955.2507,
+    "origin": {
+      "finalSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "locator": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/RUNTIME-PRESEAL.json"
+    },
+    "role": "runtime-preseal-authority"
+  },
+  "dataPath": "data/8d5fa0a3115285581db190ff821cf29ff3f8bd13f1cc46756418021e011d7a11.raw",
+  "identityPath": "identities/8d5fa0a3115285581db190ff821cf29ff3f8bd13f1cc46756418021e011d7a11.json",
+  "copiedBytes": 20784,
+  "copiedMode": 420,
+  "copiedSha256": "576f604888158f8114c6e25dddf976820ef91c7cc4859b763b2dd55fad40aec5"
+}

@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "/private/tmp/coherent-b1-r5-runtime/physically-moved/physically-moved-workers.jsonl",
+    "bytes": 1053,
+    "sha256": "30e8022bdba3f7e055e9406b0579836a3b43ed7b4e83b4397d4517b6d4f24f11",
+    "mode": 420,
+    "dev": 16777232,
+    "ino": 190027226,
+    "mtimeMs": 1788021748032.5264,
+    "origin": {
+      "finalSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "locator": "/private/tmp/coherent-b1-r5-runtime/physically-moved/physically-moved-workers.jsonl"
+    },
+    "role": "layout-physically-moved-workers.jsonl"
+  },
+  "dataPath": "data/5c9a61500846644960d622f7bd25a7f0ca03c9ccd3b9ab3f346ada01177c135a.raw",
+  "identityPath": "identities/5c9a61500846644960d622f7bd25a7f0ca03c9ccd3b9ab3f346ada01177c135a.json",
+  "copiedBytes": 1053,
+  "copiedMode": 420,
+  "copiedSha256": "30e8022bdba3f7e055e9406b0579836a3b43ed7b4e83b4397d4517b6d4f24f11"
+}

@@ -1,0 +1,3 @@
+# Separate DATA recovery
+
+ROOT authorized this new evidence copy only. Original FINAL89f3c55c and failed publication remain unchanged. Exact identical source references may collapse only in this new manifest after origin/size/hash/mode identity equality; conflict refuses. No reinterpretation of the old publisher as PASS. No product/runtime/Worker/compiler/npm/native replay. All copies are regular nonsymlink exact bytes and source modes. Raw Worker exit1, runtime stream EOF UNOBSERVED, controlled provider release and known-role-only retirement remain qualified. Git internal physical storage is excluded as trusted/unobserved. Recovery startup/Git/postpublication streams use reserved bounded tail, not a claim of kernel write interception or zero post-census bytes.

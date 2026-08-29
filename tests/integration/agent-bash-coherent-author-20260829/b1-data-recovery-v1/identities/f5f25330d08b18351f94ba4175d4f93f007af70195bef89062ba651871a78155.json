@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "/private/tmp/coherent-b1-r5-admin/capture/runtime-coordinator.stdout",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mode": 420,
+    "dev": 16777232,
+    "ino": 190022484,
+    "mtimeMs": 1788021734338.8398,
+    "origin": {
+      "finalSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "locator": "/private/tmp/coherent-b1-r5-admin/capture/runtime-coordinator.stdout"
+    },
+    "role": "fixed-capture-directory-member"
+  },
+  "dataPath": "data/f5f25330d08b18351f94ba4175d4f93f007af70195bef89062ba651871a78155.raw",
+  "identityPath": "identities/f5f25330d08b18351f94ba4175d4f93f007af70195bef89062ba651871a78155.json",
+  "copiedBytes": 0,
+  "copiedMode": 420,
+  "copiedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

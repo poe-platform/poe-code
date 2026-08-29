@@ -1,0 +1,172 @@
+{
+  "primaryPresent": true,
+  "primary": {
+    "type": "object"
+  },
+  "detail": "Expected values to be strictly equal:\n\n78 !== 0\n",
+  "snapshot": {
+    "schema": "administrative-owner-r1",
+    "self": {
+      "id": "owner-67010",
+      "role": "administrative-owner",
+      "pid": 67010,
+      "startUTC": "2026-08-29T16:42:14.216Z",
+      "startObserved": true,
+      "exitObserved": false,
+      "closeObserved": false,
+      "state": "LIVE_COORDINATOR"
+    },
+    "starts": [
+      {
+        "id": "runtime-coordinator-67012",
+        "role": "runtime-coordinator",
+        "pid": 67012,
+        "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/bootstrap.mjs",
+          "--run",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/RUNTIME-PRESEAL.json",
+          "576f604888158f8114c6e25dddf976820ef91c7cc4859b763b2dd55fad40aec5",
+          "20784"
+        ],
+        "startUTC": "2026-08-29T16:42:14.341Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 0,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T16:42:28.889Z",
+        "closeCode": 0,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T16:42:28.889Z"
+      },
+      {
+        "id": "runtime-child-67020",
+        "role": "offline-install",
+        "pid": 67020,
+        "startUTC": "2026-08-29T16:42:15.350Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": null,
+        "stderrEnd": null,
+        "qualification": "Runtime events report exit/close. Stream EOF not separately observed. Start wallclock derived from recorded elapsed time.",
+        "exitCode": 0,
+        "closeCode": 0
+      },
+      {
+        "id": "runtime-child-67031",
+        "role": "workflow-source-built",
+        "pid": 67031,
+        "startUTC": "2026-08-29T16:42:17.989Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": null,
+        "stderrEnd": null,
+        "qualification": "Runtime events report exit/close. Stream EOF not separately observed. Start wallclock derived from recorded elapsed time.",
+        "exitCode": 0,
+        "closeCode": 0
+      },
+      {
+        "id": "runtime-child-67042",
+        "role": "workflow-installed",
+        "pid": 67042,
+        "startUTC": "2026-08-29T16:42:21.441Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": null,
+        "stderrEnd": null,
+        "qualification": "Runtime events report exit/close. Stream EOF not separately observed. Start wallclock derived from recorded elapsed time.",
+        "exitCode": 0,
+        "closeCode": 0
+      },
+      {
+        "id": "runtime-child-67053",
+        "role": "workflow-physically-moved",
+        "pid": 67053,
+        "startUTC": "2026-08-29T16:42:24.857Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": null,
+        "stderrEnd": null,
+        "qualification": "Runtime events report exit/close. Stream EOF not separately observed. Start wallclock derived from recorded elapsed time.",
+        "exitCode": 0,
+        "closeCode": 0
+      },
+      {
+        "id": "publication-preimport-67098",
+        "role": "publication-preimport",
+        "pid": 67098,
+        "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/preimport.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/FINAL.json",
+          "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+          "25661",
+          "54c5c835c073567e8f55622830ab2346e1e7eeb0cc2ea39be64c3f9beb81a1fe",
+          "425",
+          "2999c369c5eb3bdbf61c343c098d9061f12fad995694760e7aa3a9879b54cc85",
+          "2533"
+        ],
+        "startUTC": "2026-08-29T16:42:28.947Z",
+        "startObserved": true,
+        "exitObserved": true,
+        "closeObserved": true,
+        "stdoutEnd": true,
+        "stderrEnd": true,
+        "signals": [],
+        "exitCode": 78,
+        "exitSignal": null,
+        "exitUTC": "2026-08-29T16:42:28.999Z",
+        "closeCode": 78,
+        "closeSignal": null,
+        "closeUTC": "2026-08-29T16:42:28.999Z"
+      }
+    ],
+    "attempts": [
+      {
+        "role": "runtime-coordinator",
+        "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/stage-b1-r4/bootstrap.mjs",
+          "--run",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/final-admin-r5/RUNTIME-PRESEAL.json",
+          "576f604888158f8114c6e25dddf976820ef91c7cc4859b763b2dd55fad40aec5",
+          "20784"
+        ],
+        "atUTC": "2026-08-29T16:42:14.339Z",
+        "spawned": true
+      },
+      {
+        "role": "publication-preimport",
+        "tool": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "argv": [
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/admin-owner-r2/preimport.mjs",
+          "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/b1-r6-window-v2/FINAL.json",
+          "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+          "25661",
+          "54c5c835c073567e8f55622830ab2346e1e7eeb0cc2ea39be64c3f9beb81a1fe",
+          "425",
+          "2999c369c5eb3bdbf61c343c098d9061f12fad995694760e7aa3a9879b54cc85",
+          "2533"
+        ],
+        "atUTC": "2026-08-29T16:42:28.946Z",
+        "spawned": true
+      }
+    ],
+    "knownStarts": 7,
+    "activeKnownPIDs": [],
+    "captureBytes": 1046,
+    "metadataBytes": 3298,
+    "elapsedMs": 14718.500792,
+    "poisoned": false
+  },
+  "ownerDisposition": "EXIT_PENDING_EXTERNAL_OBSERVATION",
+  "result": "UNKNOWN_OR_STOP_NO_RETRY"
+}

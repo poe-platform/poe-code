@@ -1,0 +1,21 @@
+{
+  "source": {
+    "path": "/private/tmp/coherent-b1-r6-window-v2-owner.stdout",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "mode": 420,
+    "dev": 16777232,
+    "ino": 190022477,
+    "mtimeMs": 1788021734182.0693,
+    "origin": {
+      "finalSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+      "locator": "/private/tmp/coherent-b1-r6-window-v2-owner.stdout"
+    },
+    "role": "original-outer-capture"
+  },
+  "dataPath": "data/ffe971366cc736ba4abca9ebec381353bccd8d0bb1bc2c50cbd843a88761ab4a.raw",
+  "identityPath": "identities/ffe971366cc736ba4abca9ebec381353bccd8d0bb1bc2c50cbd843a88761ab4a.json",
+  "copiedBytes": 0,
+  "copiedMode": 420,
+  "copiedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

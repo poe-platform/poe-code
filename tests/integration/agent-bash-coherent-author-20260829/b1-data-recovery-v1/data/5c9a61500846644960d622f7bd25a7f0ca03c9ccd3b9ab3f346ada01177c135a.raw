@@ -1,0 +1,11 @@
+{"kind":"node-policy-bootstrap"}
+{"kind":"node-worker-create","id":1,"entry":"/private/tmp/coherent-b1-r5-runtime/physically-moved/node_modules/virtual-bash/dist/commands/node/worker-main.js"}
+{"kind":"node-worker-exit","id":1,"code":1}
+{"kind":"node-worker-create","id":2,"entry":"/private/tmp/coherent-b1-r5-runtime/physically-moved/node_modules/virtual-bash/dist/commands/node/worker-main.js"}
+{"kind":"node-worker-exit","id":2,"code":1}
+{"kind":"node-worker-create","id":3,"entry":"/private/tmp/coherent-b1-r5-runtime/physically-moved/node_modules/virtual-bash/dist/commands/node/worker-main.js"}
+{"kind":"node-worker-exit","id":3,"code":1}
+{"kind":"node-worker-create","id":4,"entry":"/private/tmp/coherent-b1-r5-runtime/physically-moved/node_modules/virtual-bash/dist/commands/node/worker-main.js"}
+{"kind":"node-worker-exit","id":4,"code":1}
+{"kind":"node-worker-create","id":5,"entry":"/private/tmp/coherent-b1-r5-runtime/physically-moved/node_modules/virtual-bash/dist/commands/node/worker-main.js"}
+{"kind":"node-worker-exit","id":5,"code":1}

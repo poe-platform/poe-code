@@ -1,0 +1,9 @@
+{
+  "action": "ROOT_B1_PUBLIC15_ACTUAL",
+  "authorization": "ROOT_B1_R6_LIVE_ADMIN_20260829_ONE_ACTUAL_AFTER_FINAL_ACCEPTANCE",
+  "finalPacketSha256": "89f3c55c91dc664a94df815ef23d5ddbbe6fb7376a1ef5a8e490255c475dd72b",
+  "startedUTC": "2026-08-29T16:42:14.216Z",
+  "latestStartUTC": "2026-08-29T16:50:22.830Z",
+  "expiresUTC": "2026-08-29T17:20:22.830Z",
+  "metadataHome": "/private/tmp/coherent-b1-r5-admin/metadata-home"
+}

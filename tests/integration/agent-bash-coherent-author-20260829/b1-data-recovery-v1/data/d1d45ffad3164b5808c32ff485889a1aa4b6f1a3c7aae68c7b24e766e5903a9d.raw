@@ -1,0 +1,38 @@
+{
+  "action": "ROOT_RUN_COHERENT_B1_PUBLIC15",
+  "sourceTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "packageSha256": "2fe071e2bfac5ef5c81dc7e475e059091f6add65cd7411dfcfbf0ce7f51f2eca",
+  "layout": "physically-moved",
+  "ids": [
+    "C10",
+    "C11",
+    "C15",
+    "C16",
+    "C18"
+  ],
+  "packageRoot": "/private/tmp/coherent-b1-r5-runtime/physically-moved/node_modules/virtual-bash",
+  "engineRoot": "/private/tmp/coherent-b1-r5-runtime/physically-moved/harness-physically-moved/node",
+  "membership": {
+    "path": "/private/tmp/coherent-b1-r5-runtime/physically-moved/physically-moved-members.json",
+    "bytes": 177394,
+    "sha256": "8d50d58c52875c6ba12c02c21bc0181565e2430d5dad1886ed6c859a7da70a57"
+  },
+  "fixture": {
+    "path": "/private/tmp/coherent-b1-r5-runtime/physically-moved/harness-physically-moved/node/neutral.json",
+    "bytes": 4160,
+    "sha256": "fcb7bae1505a86b2b676396742d7bf362ad779c77192770ed94085646f8d0074"
+  },
+  "engineReceipt": {
+    "path": "/private/tmp/coherent-b1-r5-runtime/physically-moved/physically-moved-engine-receipt.json",
+    "bytes": 76582,
+    "sha256": "a4d3614d6d944660aaddc1fd95c8fe6ebef1d92fc0dd8607400578d9a82254de"
+  },
+  "adapter": {
+    "commit": "30ac56acbf12a69b90e1923810958bcbcf367fe0",
+    "path": "/private/tmp/coherent-b1-r5-runtime/physically-moved/harness-physically-moved/node/engine-adapter-v1.mjs",
+    "absolute": "/Users/kjopek/Workspace/safe-bash/tests/commands/node-author-20260829/validation-v2/author-v5/engine-adapter-v1.mjs",
+    "blob": "18cf64b44ccdcc9ccfcfc015293d6feb13146181",
+    "bytes": 1484,
+    "sha256": "2108bf2e7eee28ecd16c7e644c0684518cbfd68219c2971d2df67b155bf4e80d"
+  }
+}

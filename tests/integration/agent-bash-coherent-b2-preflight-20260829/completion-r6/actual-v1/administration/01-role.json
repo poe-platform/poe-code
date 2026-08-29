@@ -1,0 +1,21 @@
+{
+  "role": "actual-admin-final-slot-paths",
+  "pid": 60557,
+  "args": [
+    "diff-tree",
+    "--no-commit-id",
+    "--name-only",
+    "-r",
+    "-z",
+    "a64cee5b0df3d4e2608a8753bc4fd0f06130f226"
+  ],
+  "started": "2026-08-29T15:05:03.028Z",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  }
+}

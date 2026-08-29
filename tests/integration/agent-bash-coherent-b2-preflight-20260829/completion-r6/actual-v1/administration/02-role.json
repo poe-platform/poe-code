@@ -1,0 +1,14 @@
+{
+  "role": "actual-admin-final-receipt",
+  "pid": 62128,
+  "spec": "a64cee5b0df3d4e2608a8753bc4fd0f06130f226:tests/integration/agent-bash-coherent-b2-independent-20260829/completion-r6-review/activation-review-v1/RECEIPT.json",
+  "started": "2026-08-29T15:05:17.716Z",
+  "exit": {
+    "code": 0,
+    "signal": null
+  },
+  "close": {
+    "code": 0,
+    "signal": null
+  }
+}

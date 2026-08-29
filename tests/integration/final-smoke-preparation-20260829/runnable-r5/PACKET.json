@@ -145,7 +145,11 @@
   "workerGuard": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/producer-binding-r3/worker-denial.mjs",
   "workRoot": "/private/tmp/final-coherent-smoke-r5-20260829",
   "evidenceRoot": "/Users/kjopek/Workspace/safe-bash/tests/integration/final-smoke-preparation-20260829/runnable-r5/actual-evidence",
-  "producerReview": "PENDING",
+  "producerReview": "fc4afd513d7dec3c288a68e9b5deda9ac3a46b34",
+  "producerReviewReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-coherent-producer-independent-20260829/data-completion-v4/RESULT.json",
+    "sha256": "708f5ec08e39a86efa848699c3fb1c8fb840b6eb72df16e0885fae765877ea47"
+  },
   "preexecReview": "PENDING",
   "activationSchema": "FINAL_SMOKE_FIXED_ACTIVATION_R4",
   "clock": {

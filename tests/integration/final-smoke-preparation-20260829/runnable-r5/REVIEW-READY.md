@@ -1,5 +1,7 @@
 # Review-ready executable binding
 
+ROOT producer DATA acceptance is now bound to fc4afd513d7dec3c288a68e9b5deda9ac3a46b34 and receipt708f5ec0. The current packet/hash/size and exact command are in COMMANDS.json and ACTIVATION-BINDING.json. The original packet hash below is historical preparation evidence, superseded only by this producer-review metadata binding; executable bytes and syntax evidence are unchanged. Only executable review and actual ROOT authorization remain pending.
+
 - Packet: 9149 bytes, SHA256 `4b8c9b8c8c937cb14e2978a0a123824ed066072839d5ea4a2101c2e847edd3db`.
 - Eight PURE/SOURCE controls completed; RESULT SHA256 `70844ecba7f4c7e3542377bdfa1408736e1f9a6a0f42dddef811afcd873a9c42`.
 - Three real Node syntax checks completed with exit0, no product evaluation. SYNTAX-RESULT.json resolves the earlier syntax-pending field.

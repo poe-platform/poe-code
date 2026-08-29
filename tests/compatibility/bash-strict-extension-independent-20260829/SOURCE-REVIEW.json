@@ -1,0 +1,28 @@
+{
+  "role": "SOURCE_DATA_ONLY",
+  "sourceSha256": "9924773241f116d4cd5008fa7cd7f7fc3d95521f5e57b33299dbf2ed7cc2bf69",
+  "baseSha256": "4f196057df98c3aed05519b78eaa725fc9d7eb3c73634613662ac6b927715d32",
+  "runtimeOnlyDelta": {
+    "path": "src/shell/runtime.ts",
+    "mode": "100644",
+    "blob": "180e6c8f8b86e17bee8723fda638b359531a6e79",
+    "bytes": 202882,
+    "sha256": "b14268b38f9a156c45cae80e6871a646086746654803c2b05eb0a7ec7438443b"
+  },
+  "selected293PathLookup": "125 tree witnesses including37 fetched stored subtrees; exact derived root is not required stored",
+  "first32FixturePrefixEqualBytes": 10779,
+  "initialAuthorV2Failed35vs33Retained": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n35 !== 33\n\n    at cohort (file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-author-20260829/run-v2.mjs:94:171)\n    at async file:///Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-strict-extension-author-20260829/run-v2.mjs:183:205",
+  "main636": 636,
+  "tailControlsExcludedFromMain": 6,
+  "oldX10DeadlineCleanupUnknown": true,
+  "profile": "Ratified project status1/three-option table; no GNU runtime goldens",
+  "openIds": [
+    "U27",
+    "S-U27-INPUT-UNIT-v1",
+    "S-U28-PRESENCE-v1",
+    "S-U31-STDIN-v1",
+    "E23-source-discard"
+  ],
+  "preparationRefusals": "Editing expression parse had zero evaluation; sparse-tree lookup refused before exact stored tree retrieval; initial history sum incorrectly included6 restored controls, refusal retained before corrected role accounting",
+  "inspection": "Source diff checks evaluated proxy read gate and typed catches; no pre-execution product bug claimed"
+}

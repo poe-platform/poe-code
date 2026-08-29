@@ -1,0 +1,26 @@
+{
+  "role": "EXECUTABLE_PRESEAL_NO_PRODUCT_YET",
+  "candidate": "37e793ce6dce48a958030e7cc86fa8315d0b112e",
+  "source": "9924773241f116d4cd5008fa7cd7f7fc3d95521f5e57b33299dbf2ed7cc2bf69",
+  "executorSha256": "14ca819b762451089662f07e27e94ae9bdd56d75235da2bc701edb3ffb9d8f86",
+  "presealSha256": "7c5a0722f168345f1971f17a3b76497f1638612083e1489522d73b563ee91962",
+  "sourceCommit": "9bb91c370a0672687399c0a9da4ce1b161f79615",
+  "expectedPackageSha256": "aaabea71bc3a7f1982a2ded488cbf5a905de304f0bc6f39302d15e293da8495f",
+  "expectedPackageMembers": 954,
+  "knownPlannedDirectChildren": 42,
+  "fixedLoaderPlan": 32,
+  "rootKnownAllOS": 128,
+  "syntaxChecks": 5,
+  "sourceDataControls": {
+    "pass": 8,
+    "fail": 0
+  },
+  "novelCases": 16,
+  "author212PerLayout": true,
+  "namespace": "tests/compatibility/bash-strict-extension-independent-20260829/actual-v1",
+  "mustBeUnused": true,
+  "grant": "ROOT conditional actual60min/128knownOS/peak4/40fixedloaders/8Regex; after this executable preseal committed. No Native/private/Node/oldgate.",
+  "timestamp": "2026-08-29T07:24:41.920Z",
+  "novelVersion": 2,
+  "novelCorrectionSha256": "6c15acaa34bb381f8796b53cc6b8945ec7715485d2b19850e775bc146e586129"
+}

@@ -1,0 +1,2 @@
+{"role":"source commit metadata","status":0,"stdout":"9bb91c370a0672687399c0a9da4ce1b161f79615\n","stderr":""}
+{"status":0,"stdout":"Success. Updated the following files:\nA tests/compatibility/bash-strict-extension-author-20260829/prepare.mjs\nA tests/compatibility/bash-strict-extension-author-20260829/run.mjs\nA tests/compatibility/bash-strict-extension-author-20260829/launch.mjs\nA tests/compatibility/bash-strict-extension-author-20260829/ACTIVATION.json\n","stderr":""}

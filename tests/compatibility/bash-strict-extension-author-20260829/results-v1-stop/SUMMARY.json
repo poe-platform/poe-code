@@ -1,0 +1,291 @@
+{
+  "role": "AUTHOR_STOP_NO_ACCEPTANCE_NO_RETRY",
+  "date": "2026-08-29",
+  "sourceCommit": "9bb91c370a0672687399c0a9da4ce1b161f79615",
+  "computedTree": "37e793ce6dce48a958030e7cc86fa8315d0b112e",
+  "sourceManifestSha256": "9924773241f116d4cd5008fa7cd7f7fc3d95521f5e57b33299dbf2ed7cc2bf69",
+  "preseal": "f5895188",
+  "package": {
+    "file": "virtual-bash-0.0.0.tgz",
+    "bytes": 871837,
+    "sha256": "aaabea71bc3a7f1982a2ded488cbf5a905de304f0bc6f39302d15e293da8495f",
+    "members": 954
+  },
+  "build": 0,
+  "retained": [
+    {
+      "label": "source-redirections-v3",
+      "pass": 48,
+      "fail": 0
+    },
+    {
+      "label": "source-strict",
+      "pass": 50,
+      "fail": 0
+    },
+    {
+      "label": "source-conditional",
+      "pass": 67,
+      "fail": 0
+    }
+  ],
+  "extension": {
+    "completed": 32,
+    "pass": 32,
+    "ordinaryFailureRows": 0,
+    "deadline": "X10-parameter-isolation-caller",
+    "deadlineChildExit": 78,
+    "deadlineCount": 1,
+    "summaryNotEmitted": true,
+    "rows": [
+      {
+        "id": "U06",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "U07",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "U17",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "U28",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "U31",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "U32",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "U33",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "U34",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "U35",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "U36",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "S-U06-PARTIAL-v1",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "S-U07-LIST-STATUS-v1",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "S-ARITH-SUBSHELL-v1",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "S-ARITH-SUBSTITUTION-v1",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "E19-plus-tail",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "E20-subset-listing",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "E21-write-only-chain",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "E22-function-fatal",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "H24-preabort",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "H25-falsy-sink",
+        "created": 5,
+        "disposed": 5,
+        "cleanupFailure": false
+      },
+      {
+        "id": "H26-read-budget",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "H27-registered-cleanup",
+        "created": 2,
+        "disposed": 2,
+        "cleanupFailure": false
+      },
+      {
+        "id": "H28-caller-during-diagnostic",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "X01-sh-policy",
+        "created": 2,
+        "disposed": 2,
+        "cleanupFailure": false
+      },
+      {
+        "id": "X02-positional-listing",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "X03-errexit",
+        "created": 2,
+        "disposed": 2,
+        "cleanupFailure": false
+      },
+      {
+        "id": "X04-lazy-fixed64",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      },
+      {
+        "id": "X05-optind-substring",
+        "created": 2,
+        "disposed": 2,
+        "cleanupFailure": false
+      },
+      {
+        "id": "X06-existing-refusals",
+        "created": 2,
+        "disposed": 2,
+        "cleanupFailure": false
+      },
+      {
+        "id": "X07-parameter-falsy-sink",
+        "created": 6,
+        "disposed": 6,
+        "cleanupFailure": false
+      },
+      {
+        "id": "X08-parameter-limit",
+        "created": 2,
+        "disposed": 2,
+        "cleanupFailure": false
+      },
+      {
+        "id": "X09-parameter-cleanup",
+        "created": 1,
+        "disposed": 1,
+        "cleanupFailure": false
+      }
+    ]
+  },
+  "aggregate": {
+    "exit": 1,
+    "observedCompletedPassRows": 197,
+    "notFull630": true,
+    "safetyStop": true
+  },
+  "unexecuted": [
+    "source-arrays12",
+    "all installed and physically moved semantic consumers",
+    "all6 consumer type groups/24 negative diagnostics",
+    "all6 loaded mutants/6 restores",
+    "both binding refusals"
+  ],
+  "nativeExecutions": 0,
+  "privateExecutions": 0,
+  "openDesignIds": [
+    "U27",
+    "S-U27-INPUT-UNIT-v1",
+    "S-U28-PRESENCE-v1",
+    "S-U31-STDIN-v1",
+    "E23-source-discard"
+  ],
+  "cleanup": {
+    "directChildren": 7,
+    "observedProductWorkers": 0,
+    "implicitLoaderReservations": 4,
+    "boundedOwnedTotal": 11,
+    "allClosed": true,
+    "signals": [],
+    "noGlobalDescendantClaim": true,
+    "outerClosed": true,
+    "outerSignals": [],
+    "completedExtensionShells": 47,
+    "completedExtensionDisposals": 47,
+    "x10Cleanup": "UNOBSERVED_AT_FORCED_PROCESS_EXIT",
+    "noGlobalResourceCleanClaim": true
+  },
+  "measurements": {
+    "elapsedMs": 41413,
+    "runnerCaptureBytes": 2855932,
+    "runnerScratchBytes": 56169951,
+    "publicationBytes": 5538964
+  },
+  "censusQualification": "Measured7 runner child processes +1 outer runner;4 fixed-loader reservations,0 observed RegexWorker births. Administrative/development/publication tools separate; preseal reserve is not a measured global OS census.",
+  "sourceInspectionAfterStop": {
+    "inputs": 293,
+    "members": 954,
+    "allHashesMatch": true,
+    "runtimeContinuation": false
+  },
+  "retainedRoots": [
+    "/tmp/conditional-author-dEbqvd",
+    "/tmp/strict-extension-launch-aUwe2j",
+    "/tmp/strict-extension-prep-8wtcJy"
+  ],
+  "sourceFinding": "X10 returns from guard after registering cleanup that awaits gate; per-dispatch finally awaits scope.close before subsequent diagnostic command. gate release is reached only after diagnostic entered. This is a source-proven fixture wait cycle; no per-substep telemetry proves the actual suspended X10 await."
+}

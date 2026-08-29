@@ -1,1 +1,85 @@
-{"status":"NOT_LAUNCHED","authorization":"ROOT_PIPESTATUS_20260829_ONE_ACTUAL_AFTER_18b0c0e6"}
+{
+  "status": "HOLD_PREGRANT_HELPER_FAILURE_NO_RETRY",
+  "authorization": "ROOT_PIPESTATUS_20260829_ONE_ACTUAL_AFTER_18b0c0e6",
+  "rootReceipt": "200993b448ae5a788481784d16be1504b4a6b1ac",
+  "sealSha256": "f61b8fb41db61be3ed89fba296f5cbb9a6e8b4c80dd019202b065fe4f5a093d5",
+  "failure": {
+    "phase": "grant preparation before grant creation or terminal exec",
+    "status": 1,
+    "stderr": "zsh:37: unknown function: int\n",
+    "expression": "started=$(( int(EPOCHREALTIME * 1000) ))",
+    "classification": "Reviewer preparation-shell error; not a product, archive, loader, permission or PIPESTATUS result",
+    "repairProposal": "Future separately authorized preparation must use an authenticated supported safe-integer conversion; no correction/retry applied here"
+  },
+  "raw": [
+    {
+      "source": "/private/tmp/safe-bash-pipestatus-actual-grant-v1.stdout",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v1/raw/01-safe-bash-pipestatus-actual-grant-v1.stdout",
+      "bytes": 58,
+      "mode": 420,
+      "sha256": "f6e67e9060f8aebdc91cbde40b7dfc36891704470a2b27cf2fbaa96a6e01c02b"
+    },
+    {
+      "source": "/private/tmp/safe-bash-pipestatus-actual-grant-v1.stderr",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v1/raw/02-safe-bash-pipestatus-actual-grant-v1.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/private/tmp/safe-bash-pipestatus-actual-preparation-v1.stdout",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v1/raw/03-safe-bash-pipestatus-actual-preparation-v1.stdout",
+      "bytes": 415,
+      "mode": 420,
+      "sha256": "76574ab4826b3d3ebcf66913dac5ecb78955a0feb4b7ac437611176c9977414c"
+    },
+    {
+      "source": "/private/tmp/safe-bash-pipestatus-actual-preparation-v1.stderr",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v1/raw/04-safe-bash-pipestatus-actual-preparation-v1.stderr",
+      "bytes": 30,
+      "mode": 420,
+      "sha256": "ac44b60082bde5394e8b5c0262f2583cd562cb9cd58802bb0121d2ac818db666"
+    },
+    {
+      "source": "/private/tmp/safe-bash-pipestatus-actual-authorization-commit.stdout",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v1/raw/05-safe-bash-pipestatus-actual-authorization-commit.stdout",
+      "bytes": 339,
+      "mode": 420,
+      "sha256": "48734bb0cc86b94120acb7b0377f184d8f3ada3e9584021118008b25ac15b313"
+    },
+    {
+      "source": "/private/tmp/safe-bash-pipestatus-actual-stop-inspection.stdout",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v1/raw/06-safe-bash-pipestatus-actual-stop-inspection.stdout",
+      "bytes": 1036,
+      "mode": 420,
+      "sha256": "7a78ba7d7922a3b7fdcd9cdfd2517a782f616201a22d156f5bf1484d38c83705"
+    },
+    {
+      "source": "/private/tmp/safe-bash-pipestatus-actual-stop-inspection.stderr",
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v1/raw/07-safe-bash-pipestatus-actual-stop-inspection.stderr",
+      "bytes": 0,
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "absentSlotsAtPublication": [
+    "/private/tmp/safe-bash-pipestatus-actual-78-v1",
+    "/private/tmp/safe-bash-pipestatus-actual-78-v1-outer",
+    "/private/tmp/safe-bash-pipestatus-actual-78-v1.startup.stdout",
+    "/private/tmp/safe-bash-pipestatus-actual-78-v1.startup.stderr",
+    "/private/tmp/safe-bash-pipestatus-actual-78-v1.node.sha256",
+    "/Users/kjopek/Workspace/safe-bash/tests/shell/pipestatus-author-20260829/preexec-v1/actual-v1/grant.json"
+  ],
+  "productCasesExecuted": 0,
+  "publicExecCalls": 0,
+  "contextInvokes": 0,
+  "Workers": 0,
+  "compilerBuildInstallCalls": 0,
+  "ownerOrCollectorStarted": false,
+  "grantCreated": false,
+  "knownStartsThroughInspection": 6,
+  "retirement": "Both preparation shells and apply_patch/Git children returned; no owner, collector or product child was launched. Publication roles are captured separately.",
+  "attempt": "No actual launch occurred. This authorization is left closed/HOLD pending ROOT disposition; no implicit retry or reused grant.",
+  "sourceAndHistory": "No production or sealed executable changes; original preexec/independent holds, H01/H07 source-only and manual artifact qualifiers remain unchanged.",
+  "recordedAt": "2026-08-29T16:42:26.952Z"
+}

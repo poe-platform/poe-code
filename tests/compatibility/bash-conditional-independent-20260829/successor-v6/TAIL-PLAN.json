@@ -1,0 +1,58 @@
+{
+  "candidate": "74dfe69135a3fc5ba89396b20dd32d9c9daae131",
+  "sourceCommit": "7a5c620005fb04518d44bb284f4e99284e4a7c33",
+  "packageSha256": "46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09",
+  "originStarted": 1787985986890,
+  "prior": {
+    "attempt1": {
+      "result": "079a4ed04837784fa6b7ce5e05ccef50fcea43a7eff648a0aa83108aaf8799c7",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-01"
+    },
+    "attempt2": {
+      "result": "5aaa6245af4d173c5699c0a71ccb729bd7fb9ea75239bb1fccc4165d06d4120e",
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-conditional-independent-20260829/successor-v6/ACTUAL-02"
+    }
+  },
+  "selections": [
+    {
+      "label": "source-affected",
+      "ids": [
+        "N01",
+        "N10",
+        "N11"
+      ]
+    },
+    {
+      "label": "installed-affected",
+      "ids": [
+        "N01",
+        "N10",
+        "N11"
+      ]
+    },
+    {
+      "label": "moved-affected",
+      "ids": [
+        "N01",
+        "N10",
+        "N11"
+      ]
+    },
+    {
+      "label": "M04-restored-v3",
+      "ids": [
+        "N10"
+      ]
+    }
+  ],
+  "newChildren": 5,
+  "loaderAdmissions": 4,
+  "regexWorkers": 0,
+  "builds": 0,
+  "compiler": 0,
+  "deadlineResets": 0,
+  "sourceRole": "verified copy of previously built exact source/emits, no new compiler",
+  "restoreRole": "copy of byte-exact restored ACTUAL-02 mutant package; original restored child load exists but its collector failed",
+  "mutantM06": "preserved survived: preaborted H01 exits owner.activate catch before mutated owner.finish selection; changed module loaded, branch activation NOT proved; no repair/retry"
+}
+

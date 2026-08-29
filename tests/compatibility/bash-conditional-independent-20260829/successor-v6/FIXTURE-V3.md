@@ -1,0 +1,10 @@
+# Bounded file collector correction and affected-only tail
+
+ACTUAL-02 completed all three layouts and all guards after safe ordinary-failure aggregation: per-layout author67 and retained201 pass, novel9/12; twelve type groups pass. The only novel failures N01/N10/N11 are TextDecoder.decode receiving an AsyncGenerator: the declared readBytes returns AsyncGenerator<Uint8Array>, not collected bytes. They occur after status/stdout/stderr/root-inventory assertions. Novel-v3 changes only this reader to existing collectText(source,{maxBytes:4096}) and adds fixed-case selection for affected-tail dispatch. Script, exact expected bytes and VFS state expectations stay unchanged. Four existing fixture-file outputs all fit this bounded test collector; no product limit changed.
+
+Original nine novel failures and M04-restored collector failure remain. M04 mutant actually omitted the out file and failed root-inventory before the reader; its mutated module was loaded. Tail includes restored exact-package copy N10 after the actual original restored-module load, not a new mutation kill.
+
+M06 is NOT dynamically activated despite original generic receipt activated:true. It loaded the mutated module but H01 pre-aborts; source shows owner.activate catch exits before the modified owner.finish selected-reason branch. Survived H01 and restored H01 remain, no kill/branch-coverage claim. Nine other detected mutants must be individually qualified; no ten-kill claim.
+
+Plan: source-existing-emits, fresh offline-installed, physically moved original-absent app N01/N10/N11 (9 versioned outcomes), plus M04 restored-copy N10 (one companion). One offline scripts-disabled install; four fixed internal loader admissions, zero RegexWorkers. No build/compiler/full cohort rerun. Cumulative loader admissions35+4=39<=40, not a new allowance; original activation deadline stays 1787985986890. No old package/source/rawfiles modified. All five direct children must retire; capture/integrity/cap/unknown-retirement stop.
+

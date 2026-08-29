@@ -1,0 +1,27 @@
+[
+  {
+    "path": "/private/tmp/safe-bash-pipestatus-author-fresh/candidate/dist/shell/pipestatus.js",
+    "bytes": 3154,
+    "sha256": "cd65e73ab0bf94b08546b9d2b86c979f74be6b1dec13581f59340ee80d966c39"
+  },
+  {
+    "path": "/private/tmp/safe-bash-pipestatus-author-fresh/candidate/dist/shell/arrays/ledger.js",
+    "bytes": 9152,
+    "sha256": "d2dc9cb6ecb727d7854468f5aacb3eca8dedf09239e6ec325f25a5ac8510b43d"
+  },
+  {
+    "path": "/private/tmp/safe-bash-pipestatus-author-fresh/candidate/dist/shell/arrays/bindings.js",
+    "bytes": 10249,
+    "sha256": "7ce8b06641fae9420bf2d09870c2db3447bf2124a376e8d8b2a39b18a62a9484"
+  },
+  {
+    "path": "/private/tmp/safe-bash-pipestatus-author-fresh/candidate/dist/shell/arrays/state.js",
+    "bytes": 14264,
+    "sha256": "a0e3a403cb892f1fe54aaab9ef5d61abdd43d2ae434d6e228e19b85a16a0ce72"
+  },
+  {
+    "path": "/private/tmp/safe-bash-pipestatus-author-fresh/candidate/dist/shell/cleanup.js",
+    "bytes": 2148,
+    "sha256": "f29a3f3e220019dd5dba62bbcdd0fddc336c4924d30f7066f0839556fb65db29"
+  }
+]

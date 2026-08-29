@@ -1,0 +1,26 @@
+{
+  "originalSourceSeal": "ac0a0b3066a9e89667336cb9f3012fd7896abc9d59d1a53a47669a59336b0994",
+  "unchangedRuntime": {
+    "path": "/Users/kjopek/Workspace/safe-bash/src/shell/runtime.ts",
+    "size": 214992,
+    "mode": 420,
+    "sha256": "4265d397ae45c686ec564828b019237a00286ad75ec212f0668667a89149fd42"
+  },
+  "originalHelper": {
+    "path": "src/shell/pipestatus.ts",
+    "bytes": 3047,
+    "sha256": "31c3c50175a0b4b43674c63c3138ab9b30ee23af52e8a91b3a2c45bbb9309d6b",
+    "blob": "ec859bf758e1ddb42281180e7ad996770ce40ffc",
+    "mode": "100644",
+    "origin": "PIPESTATUS author source"
+  },
+  "correctedHelper": {
+    "path": "/Users/kjopek/Workspace/safe-bash/src/shell/pipestatus.ts",
+    "size": 3145,
+    "mode": 420,
+    "sha256": "f63902e8be1774de81973d4477f8317a6045b637b40bddbed025e2f43bb72eb1"
+  },
+  "strictBuildOfCorrection": "NOT RUN: one compiler authorization consumed",
+  "pureCorrectionReplay": "NOT RUN",
+  "expectedSourceCount": 307
+}

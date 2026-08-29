@@ -74,7 +74,7 @@ export function createNodeCommand(options: NodeCommandOptions): CommandDefinitio
           if (!owner.started || !host) { const error = new NodeProfileError("inactive provider session"); owner.failure(error, "profile"); throw error; }
           return host;
         };
-        const services: NodeHostServices = Object.freeze({
+        const services: NodeHostServices = Object.freeze<NodeHostServices>({
           signal: owner.signal,
           request: async value => {
             const activeHost = sessionHost();

@@ -705,6 +705,8 @@ function wrapSandboxClosureForHost(
     );
     return pending;
   };
+  if (closure.length !== undefined)
+    Object.defineProperty(wrapped, "length", { value: closure.length });
   callbacks?.seen.set(closure, wrapped);
   callbacks?.entries.set(id, invoke);
   callbacks?.hostFunctions.set(id, wrapped);

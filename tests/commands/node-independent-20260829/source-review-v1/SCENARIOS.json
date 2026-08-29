@@ -1,0 +1,150 @@
+{
+  "role": "SOURCE-only future reproduction recipes, none executed",
+  "checkpoint": "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4",
+  "cases": [
+    {
+      "finding": "F01",
+      "argv": [
+        "-e",
+        "require('fs').readFileSync('/data/blocked.txt', 'utf8');"
+      ],
+      "grants": {
+        "dataRead": true
+      },
+      "events": [
+        "prepare inert",
+        "register already before prepare",
+        "start actual provider",
+        "authorizeModule request1 and delivered1",
+        "readText request2 enters FS.readFile with options.signal=owner.signal",
+        "read promise is cooperative: rejects only after its supplied signal aborts",
+        "provider.start rejects distinct raw Worker/control error",
+        "provider.retire supplies observed actual exit in E role, explicitly synthetic receipt only in P role",
+        "baseline SOURCE: owner signal remains live, admission timer cleared, close awaits the read"
+      ],
+      "futureControls": [
+        "Normal entry cutoff must not abort preadmitted work.",
+        "Caller abort still wins by identity.",
+        "Finite test owner always releases held read after recording baseline pending, then closes every resource.",
+        "A fabricated retirement receipt is not counted as actual Worker exit."
+      ]
+    },
+    {
+      "finding": "F02",
+      "fsRejectionOwnData": {
+        "name": "FsError",
+        "message": "lookalike",
+        "code": "ENOENT",
+        "errno": -1,
+        "path": "/missing"
+      },
+      "genuineFsError": false,
+      "request": {
+        "sequence": 1,
+        "op": "readText",
+        "authority": "data",
+        "path": "/missing",
+        "flag": "r",
+        "text": null,
+        "moduleKey": null
+      },
+      "predicted": "fsError response then delivered clears raw pending failure; not dynamically observed",
+      "futureControls": [
+        "Real selected FsError remains catchable.",
+        "Non-FS sink/control lookalikes remain raw.",
+        "Unread stack/optional own undefined rules retained.",
+        "No hostile-host containment inference."
+      ]
+    },
+    {
+      "finding": "F03",
+      "argv": [
+        "--inspect"
+      ],
+      "grants": {
+        "stderrWrite": true
+      },
+      "predicted": {
+        "exitCode": 2,
+        "stderrWrites": 0,
+        "providerPrepareCalls": 0,
+        "stdinPulls": 0
+      },
+      "role": "Static branch prediction, not captured runtime values",
+      "futureControls": [
+        "Missing -e operand.",
+        "Denied stderr stays quiet.",
+        "Diagnostic sink rejection preserves exact raw identity.",
+        "No source/VFS/session acquisition to print usage."
+      ]
+    }
+  ],
+  "unscoredQuestions": [
+    {
+      "id": "Q01",
+      "title": "Private profile error forwarded through start loses origin",
+      "anchors": [
+        {
+          "file": "lifecycle.ts",
+          "lines": [
+            85,
+            86,
+            114,
+            115
+          ]
+        },
+        {
+          "file": "index.ts",
+          "lines": [
+            79,
+            80,
+            105,
+            107
+          ]
+        },
+        {
+          "file": "host.ts",
+          "lines": [
+            249
+          ]
+        }
+      ],
+      "scenario": "services.reserve or request records a local profile failure; a provider faithfully propagates that rejected operation through start(). start catch captures it again as execution and upgrades the owner origin.",
+      "need": "Bind whether provider must produce profileFailure versus reject for locally selected private failure, and provide a trustworthy owner disposition if needed. NodeReason alone carries present/value, not origin. Do not classify by error class/equality; externally thrown NodeProfileError must remain raw.",
+      "role": "Node-local handoff ambiguity/source trace, not counted as an executed bug; do not duplicate unfinished provider implementation."
+    },
+    {
+      "id": "Q02",
+      "title": "Publisher helper only captures synchronous callback throws",
+      "anchors": [
+        {
+          "file": "diagnostics.ts",
+          "lines": [
+            26,
+            28,
+            29
+          ]
+        }
+      ],
+      "scenario": "An asynchronous publish callback returns a rejected Promise; the helper does not inspect/await its return and reports publisherFault undefined. The nine files do not call this helper yet.",
+      "need": "Explicitly bind a synchronous publisher-only contract and enforce it in the provider, or enroll/await real asynchronous publication and retain raw rejection. A TS void callback is not by itself a runtime completion guarantee. Future N33 must target actual publisher ownership, not a successful helper return.",
+      "role": "Existing helper/interface readiness question; real publisher wiring intentionally unfinished, no dynamic/typechecker claim."
+    },
+    {
+      "id": "Q03",
+      "title": "Strict field whitelist excludes a genuine FsError cause",
+      "anchors": [
+        {
+          "file": "host.ts",
+          "lines": [
+            13,
+            15
+          ]
+        }
+      ],
+      "scenario": "The public FsError constructor accepts ErrorOptions.cause, but fsDescriptor refuses every own field except its whitelist/stack.",
+      "need": "Confirm whether the finite error-transport profile intentionally leaves genuine FsError-with-cause raw. Do not blindly allow/serialize arbitrary fields. Accepted RealFS operation() reconstructs public errors without cause; therefore this review does NOT claim its ordinary missing-file route fails.",
+      "role": "Unscored compatibility question, not an adapter regression assertion."
+    }
+  ]
+}

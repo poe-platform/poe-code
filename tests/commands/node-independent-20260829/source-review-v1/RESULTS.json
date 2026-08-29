@@ -1,0 +1,403 @@
+{
+  "version": 1,
+  "checkpoint": "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4",
+  "verdict": "SOURCE_REPAIR_AND_POLICY_BINDINGS_REQUIRED_NOT_ACCEPTANCE",
+  "dataChecks": [
+    {
+      "name": "nine authenticated source files",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "source bytes74702",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "all original38 IDs mapped once",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "all original8 type IDs mapped",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "all original6 load IDs mapped",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "all source anchors valid",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "all findings scenario IDs valid",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "no source-mapped family executed",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "fatal close branch has no local abort",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "failure branch has no local abort",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "FS descriptor lacks genuine isFsError guard",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "early diagnostic host conditional exists",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "publisher has no caller within nine-file draft",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "publication exact tests/commands/node-independent-20260829/source-review-v1/SOURCE-INPUTS.json",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "publication exact tests/commands/node-independent-20260829/source-review-v1/FINDINGS.json",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "publication exact tests/commands/node-independent-20260829/source-review-v1/MAP.json",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "publication exact tests/commands/node-independent-20260829/source-review-v1/SCENARIOS.json",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "publication exact tests/commands/node-independent-20260829/source-review-v1/REPORT.md",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    },
+    {
+      "name": "all owned tools settled",
+      "passed": true,
+      "role": "SOURCE/DATA not runtime"
+    }
+  ],
+  "sourceFindings": [
+    "F01",
+    "F02",
+    "F03"
+  ],
+  "questions": [
+    "Q01",
+    "Q02",
+    "Q03"
+  ],
+  "executions": {
+    "product": 0,
+    "worker": 0,
+    "guest": 0,
+    "compiler": 0,
+    "typechecker": 0,
+    "build": 0,
+    "install": 0,
+    "mutation": 0,
+    "engine": 0,
+    "native": 0
+  },
+  "privateNetwork": false,
+  "resourcesAtCheckpoint": {
+    "elapsedMs": 960856,
+    "chargedChildSlots": 25,
+    "recordedDirectToolCompletions": 22,
+    "peakUpperBound": 2,
+    "captureBytes": 284484,
+    "extraToolDisplayReserve": 8388608,
+    "accountedDataBytes": 401176,
+    "extraWorkingReserve": 67108864,
+    "remainingPublicationChildReserve": 12,
+    "scopeCap": {
+      "elapsedMs": 1200000,
+      "children": 48,
+      "peak": 2,
+      "captureBytes": 67108864,
+      "workBytes": 268435456
+    }
+  },
+  "tools": [
+    {
+      "args": [
+        "show",
+        "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4:tests/commands/node-author-20260829/IMPLEMENTATION-CHECKPOINT-v1.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 4072,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4:tests/commands/node-author-20260829/SOURCE-CHECKPOINT-v1.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 6048,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4:tests/commands/node-author-20260829/API-v2.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 6251,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4:src/commands/node/admission.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 15584,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4:src/commands/node/cli.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 2797,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4:src/commands/node/diagnostics.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 1727,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4:src/commands/node/host.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 17496,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4:src/commands/node/index.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 7244,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4:src/commands/node/lifecycle.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 7886,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4:src/commands/node/program.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 12040,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4:src/commands/node/types.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 4150,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4:src/commands/node/values.ts"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 5778,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4:tests/commands/node-author-20260829/API-v1.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 8649,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "ls-tree",
+        "-rz",
+        "--name-only",
+        "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4",
+        "tests/commands/node-author-20260829"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 391,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4:tests/commands/node-author-20260829/CONTRACT.md"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 11690,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "797aa13996f04a332f37a84888d151f2352efee9:tests/commands/node-independent-20260829/preparation-v2/IDENTITY.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 110963,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "cat-file",
+        "blob",
+        "d466866ce93c4feced56e2bd5fe4c41637e62226"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 3457,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "cat-file",
+        "blob",
+        "fd2e528075dd2f4be46eb18e2a72fa44dbfb57c4"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 23656,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "show",
+        "797aa13996f04a332f37a84888d151f2352efee9:tests/commands/node-independent-20260829/preparation-v2/MATRIX.json"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 33466,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "ls-tree",
+        "-rz",
+        "bf9a7a3e397a1efdf3600ed3f841a311f3910cf4",
+        "src/commands/node"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 734,
+      "stderr": ""
+    },
+    {
+      "args": [
+        "apply_patch",
+        "owned-data"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "Success. Updated the following files:\nA tests/commands/node-independent-20260829/source-review-v1/SOURCE-INPUTS.json\nA tests/commands/node-independent-20260829/source-review-v1/FINDINGS.json\nA tests/commands/node-independent-20260829/source-review-v1/MAP.json\nA tests/commands/node-independent-20260829/source-review-v1/SCENARIOS.json\nA tests/commands/node-independent-20260829/source-review-v1/REPORT.md\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "diff",
+        "--cached",
+        "--raw",
+        "-z"
+      ],
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "stdoutBytes": 0,
+      "stderr": ""
+    }
+  ],
+  "foreignStagingBefore": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "sourceHelperFailures": [],
+  "activeOwnedProcesses": 0,
+  "qualification": "Only metadata/patch tools; no actual Node command or engine admission. Final publication counts returned in handoff."
+}

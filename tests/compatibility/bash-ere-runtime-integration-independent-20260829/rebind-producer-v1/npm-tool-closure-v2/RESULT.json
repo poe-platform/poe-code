@@ -1,0 +1,326 @@
+{
+  "at": "2026-08-29T12:41:00.929Z",
+  "verdict": "QUALIFIED_DATA_ACCEPT",
+  "declaredRoot": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+  "canonicalRoot": "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm",
+  "rootIdentity": {
+    "dev": 16777232,
+    "ino": 123515479
+  },
+  "manifestSha256": "eebea839e8a061259a257245540485f8e7df5b64aebc2f77d0803de0f4141aca",
+  "regularFiles": 2027,
+  "links": 12,
+  "regularBytes": 12446245,
+  "entries": 2039,
+  "directories": 517,
+  "extraEntries": [],
+  "missingEntries": [],
+  "extraDirectories": [],
+  "missingDirectories": [],
+  "canonicalRowsSha256": "63310df0713c0a6d54e153f43f881ca6bd6c4d710f9fc06c756064029c9f9241",
+  "canonicalDomain": "UTF8 JSON of fixed field objects, full relative POSIX paths sorted by UTF8 bytes; directories reported separately",
+  "checks": [
+    {
+      "name": "complete fresh exact rows",
+      "pass": true
+    },
+    {
+      "name": "before exact membership",
+      "pass": true
+    },
+    {
+      "name": "after exact membership",
+      "pass": true
+    },
+    {
+      "name": "regular byte total",
+      "pass": true
+    },
+    {
+      "name": "producer entry belongs to declared npm root",
+      "pass": true
+    },
+    {
+      "name": "producer uses same tool manifest",
+      "pass": true
+    },
+    {
+      "name": "fixed package manifest",
+      "pass": true
+    },
+    {
+      "name": "fixed private assets",
+      "pass": true
+    }
+  ],
+  "controls": [
+    {
+      "name": "parent traversal",
+      "pass": true
+    },
+    {
+      "name": "absolute entry",
+      "pass": true
+    },
+    {
+      "name": "wrong link text",
+      "pass": true
+    },
+    {
+      "name": "wrong file size",
+      "pass": true
+    }
+  ],
+  "linksObserved": [
+    {
+      "path": "node_modules/.bin/arborist",
+      "kind": "link",
+      "mode": 493,
+      "text": "../@npmcli/arborist/bin/index.js",
+      "target": "node_modules/@npmcli/arborist/bin/index.js",
+      "targetSha256": "bbf30a5caa388ef12374b22baddc8914d567842fb216e24eb1c6f18c189530fe",
+      "targetSize": 3346
+    },
+    {
+      "path": "node_modules/.bin/cssesc",
+      "kind": "link",
+      "mode": 493,
+      "text": "../cssesc/bin/cssesc",
+      "target": "node_modules/cssesc/bin/cssesc",
+      "targetSha256": "d46f3b9e3de9d4a40489fe2fb144429de2aa53ea5d7e4c856b1fa3ccaecc6e44",
+      "targetSize": 3103
+    },
+    {
+      "path": "node_modules/.bin/glob",
+      "kind": "link",
+      "mode": 493,
+      "text": "../glob/dist/esm/bin.mjs",
+      "target": "node_modules/glob/dist/esm/bin.mjs",
+      "targetSha256": "eb77a6b359958f341aa9cca28270b1f73939c7e698d38fa6ea8b494c562cf021",
+      "targetSize": 12645
+    },
+    {
+      "path": "node_modules/.bin/installed-package-contents",
+      "kind": "link",
+      "mode": 493,
+      "text": "../@npmcli/installed-package-contents/bin/index.js",
+      "target": "node_modules/@npmcli/installed-package-contents/bin/index.js",
+      "targetSha256": "9a7da3ca72951dee31cdcc04ae700361c003d9c30c29403d3063499be60e613a",
+      "targetSize": 1109
+    },
+    {
+      "path": "node_modules/.bin/node-gyp",
+      "kind": "link",
+      "mode": 493,
+      "text": "../node-gyp/bin/node-gyp.js",
+      "target": "node_modules/node-gyp/bin/node-gyp.js",
+      "targetSha256": "fe32cca2954bb37ac0c600ade11cf8a204184d04c3ce0176ca6a7831c644d0ab",
+      "targetSize": 3414
+    },
+    {
+      "path": "node_modules/.bin/node-which",
+      "kind": "link",
+      "mode": 493,
+      "text": "../which/bin/which.js",
+      "target": "node_modules/which/bin/which.js",
+      "targetSha256": "7c37493fcac8af6526f51f4d83606a733ca7ca3c7b943d1e9239bb30346b019d",
+      "targetSize": 960
+    },
+    {
+      "path": "node_modules/.bin/nopt",
+      "kind": "link",
+      "mode": 493,
+      "text": "../nopt/bin/nopt.js",
+      "target": "node_modules/nopt/bin/nopt.js",
+      "targetSha256": "95527c67ac7a1e294f7fcb09e648d1e454f6cfef06346a18a297173389b97d21",
+      "targetSize": 644
+    },
+    {
+      "path": "node_modules/.bin/pacote",
+      "kind": "link",
+      "mode": 493,
+      "text": "../pacote/bin/index.js",
+      "target": "node_modules/pacote/bin/index.js",
+      "targetSha256": "fbcdd6e4d3ea97e03d45a908cc143760e8908b59aadf7c27384a148ae19455c7",
+      "targetSize": 3982
+    },
+    {
+      "path": "node_modules/.bin/qrcode-terminal",
+      "kind": "link",
+      "mode": 493,
+      "text": "../qrcode-terminal/bin/qrcode-terminal.js",
+      "target": "node_modules/qrcode-terminal/bin/qrcode-terminal.js",
+      "targetSha256": "ca492212f6251d730aaaf738262819c9a9aa3fc81d5af51fab47094913e69f74",
+      "targetSize": 1836
+    },
+    {
+      "path": "node_modules/.bin/semver",
+      "kind": "link",
+      "mode": 493,
+      "text": "../semver/bin/semver.js",
+      "target": "node_modules/semver/bin/semver.js",
+      "targetSha256": "82c28f9bc9e598d255edd507d1e9b157f37b8dac0f2da25a813b5e7121600be8",
+      "targetSize": 4748
+    },
+    {
+      "path": "node_modules/@npmcli/metavuln-calculator/node_modules/.bin/pacote",
+      "kind": "link",
+      "mode": 493,
+      "text": "../pacote/bin/index.js",
+      "target": "node_modules/@npmcli/metavuln-calculator/node_modules/pacote/bin/index.js",
+      "targetSha256": "fbcdd6e4d3ea97e03d45a908cc143760e8908b59aadf7c27384a148ae19455c7",
+      "targetSize": 3982
+    },
+    {
+      "path": "node_modules/cross-spawn/node_modules/.bin/node-which",
+      "kind": "link",
+      "mode": 493,
+      "text": "../which/bin/node-which",
+      "target": "node_modules/cross-spawn/node_modules/which/bin/node-which",
+      "targetSha256": "055f0ac4eed1a1591d033d59462972968bf3483b4cc07e163589569c0fb999f0",
+      "targetSize": 985
+    }
+  ],
+  "authorBindings": {
+    "commit": "439138a0e13595a41e84841f83e4f2f51b36ff68",
+    "pins": [
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/RESULT.json",
+        "bytes": 3918,
+        "sha256": "28f00b32905246d286350d4c5e1f31e6993e577f13fc4492a1ba30fd90be2c29"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/runner.mjs",
+        "bytes": 17671,
+        "sha256": "9a8544306c48c76851b92da7600fc6674625af3789438df8d5eeff9ca1d4d84c"
+      },
+      {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/produce.outer.jsonl",
+        "bytes": 7509,
+        "sha256": "27b59d82a1346c3f33bba8b372c2e3a82fa6662ea7c7d27cfb3c0fc5b9332235"
+      }
+    ]
+  },
+  "authorResult": {
+    "pass": true,
+    "archive": {
+      "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package/virtual-bash-0.0.0.tgz",
+      "size": 908381,
+      "mode": 420,
+      "sha256": "4f90df04dba998f184473254bb450f9e085b9fc9d5994dc91a21a7ccf1d1d66e",
+      "sha1": "ecebdb80aa7b03e442f444aa156ab87f99d3ef70",
+      "integrity": "sha512-KzzqUOrAYgMJiCTY0WssQ+gsD2RnEqqQUWHUkNB3eM534WmoU6cGo7bPtHflQbnDgioe5kDiH7KsYTZrM1AV7Q=="
+    },
+    "memberCount": 1002,
+    "privateAssets": 48,
+    "sourceInputs": 305,
+    "compiledPostguard": 1305,
+    "toolPostguard": {
+      "typescript": 241,
+      "npmRegular": 2027,
+      "npmLinks": 12
+    },
+    "receipts": [
+      {
+        "role": "A10",
+        "pid": 92613,
+        "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+        "args": [
+          "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+          "pack",
+          "--offline",
+          "--ignore-scripts",
+          "--json",
+          "--pack-destination",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/candidate",
+        "retired": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "A11",
+        "pid": 92630,
+        "executable": "/usr/bin/git",
+        "args": [
+          "-c",
+          "gc.auto=0",
+          "-c",
+          "maintenance.auto=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "commit.gpgsign=false",
+          "-c",
+          "core.abbrev=40",
+          "add",
+          "-N",
+          "--",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package/virtual-bash-0.0.0.tgz",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/PRE-INFLATE-RECEIPT.json",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A10.stdout",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A10.stderr"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash",
+        "retired": true,
+        "code": 0,
+        "signal": null
+      },
+      {
+        "role": "A12",
+        "pid": 92632,
+        "executable": "/usr/bin/git",
+        "args": [
+          "-c",
+          "gc.auto=0",
+          "-c",
+          "maintenance.auto=false",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "-c",
+          "commit.gpgsign=false",
+          "-c",
+          "core.abbrev=40",
+          "commit",
+          "--only",
+          "-m",
+          "test: freeze actual ERE package receipt before bounded inflation",
+          "--",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/package/virtual-bash-0.0.0.tgz",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/PRE-INFLATE-RECEIPT.json",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A10.stdout",
+          "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-author-20260829/rebind-v1/producer-v2/A10.stderr"
+        ],
+        "cwd": "/Users/kjopek/Workspace/safe-bash",
+        "retired": true,
+        "code": 0,
+        "signal": null
+      }
+    ],
+    "capture": 114732,
+    "storageBytesBeforeFinalManifests": 3332398,
+    "elapsedMs": 214842,
+    "producerStarts": 1,
+    "compilers": 0,
+    "runtimeImports": 0,
+    "Workers": 0,
+    "oldFailure": "22260dd7 unrescored",
+    "obligations": "70 UNRUN"
+  },
+  "authorSourceGuardLines": [
+    {
+      "line": 129,
+      "text": "  same(inventory(tools.npmRoot, true), tools.npm, 'complete npm tool');"
+    },
+    {
+      "line": 185,
+      "text": "    const argv = [path.join(input.tools.npmRoot, 'bin/npm-cli.js'), 'pack', '--offline', '--ignore-scripts', '--json', '--pack-destination', path.join(own, 'package')];"
+    },
+    {
+      "line": 245,
+      "text": "    save('RESULT.json', { pass: true, archive, memberCount: members.length, privateAssets: 48, sourceInputs: 305, compiledPostguard: 1305, toolPostguard: { typescript: input.tools.typescript.length, npmRegular: input.tools.npm.rows.filter(row => row.kind === 'file').length, npmLinks: input.tools.npm.rows.filter(row => row.kind === 'link').length }, receipts, capture, storageBytesBeforeFinalManifests: storage.bytes, elapsedMs: Date.now() - begin, producerStarts: 1, compilers: 0, runtimeImports: 0, Workers: 0, oldFailure: '22260dd7 unrescored', obligations: '70 UNRUN' });"
+    }
+  ],
+  "qualification": "Current full tool DATA reauthentication matches bound author inventory; no npm execution, observed load trace, compiler/type pass, atomic snapshot, hostile-race security or runtime acceptance. Fixed1002 package and48-assets/30-edge proofs inherited without inflation."
+}

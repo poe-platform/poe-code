@@ -1,0 +1,7 @@
+{"at":"2026-08-29T12:41:00.349Z","event":"owner-start","pid":30178,"mode":"audit"}
+{"at":"2026-08-29T12:41:00.356Z","event":"capture-open","label":"audit"}
+{"at":"2026-08-29T12:41:00.361Z","event":"enrolled","label":"audit","pid":30179,"exe":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","args":["/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/audit.mjs"]}
+{"at":"2026-08-29T12:41:00.939Z","event":"exit","label":"audit","pid":30179,"code":0,"signal":null}
+{"at":"2026-08-29T12:41:00.950Z","event":"close","label":"audit","pid":30179,"code":0,"signal":null,"exitSeen":true,"timedOut":false,"failurePresent":false}
+{"at":"2026-08-29T12:41:00.953Z","event":"capture-closed","label":"audit"}
+{"at":"2026-08-29T12:41:00.959Z","event":"owner-complete","pid":30178,"mode":"audit","code":0}

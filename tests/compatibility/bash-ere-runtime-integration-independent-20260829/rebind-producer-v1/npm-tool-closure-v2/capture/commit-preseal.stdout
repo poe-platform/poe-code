@@ -1,0 +1,48 @@
+[main a7605b8137355d02e8f426361ff7f105f42efc33] test: preseal npm relative-tool closure audit
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly:
+
+    git config --global user.name "Your Name"
+    git config --global user.email you@example.com
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 34 files changed, 16384 insertions(+)
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/AUTHOR-INPUTS.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/INPUTS.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/PRESEAL.md
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/SEAL.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/START.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/TOOL-SHAPE.json
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/audit-patch.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/audit-patch.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/audit.mjs
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/bind.outer.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/bind.outer.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/capture/bind.events.jsonl
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/capture/committed-producer-records.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/capture/committed-producer-records.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/capture/committed-tools.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/capture/committed-tools.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/capture/inspect.events.jsonl
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/capture/seal.events.jsonl
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/capture/stage-preseal.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/capture/stage-preseal.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/capture/syntax-audit.mjs.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/capture/syntax-audit.mjs.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/capture/syntax-supervise.mjs.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/capture/syntax-supervise.mjs.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/capture/syntax.events.jsonl
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/inspect.outer.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/inspect.outer.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/seal.outer.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/seal.outer.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/supervise.mjs
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/syntax-owner.outer.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/syntax-owner.outer.stdout
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/syntax.outer.stderr
+ create mode 100644 tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/npm-tool-closure-v2/syntax.outer.stdout

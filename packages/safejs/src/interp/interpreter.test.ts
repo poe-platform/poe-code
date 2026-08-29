@@ -2414,7 +2414,7 @@ describe("interpret", () => {
     }
   );
 
-  it("does not expose custom or inherited properties from host arrays", async () => {
+  it("reads own custom properties but not inherited properties from host arrays", async () => {
     const inherited = Object.assign(Object.create(Array.prototype), { inherited: "host value" });
     const value = Object.assign(["element"], { custom: "host value" });
     Object.setPrototypeOf(value, inherited);
@@ -2425,7 +2425,7 @@ describe("interpret", () => {
       })
     ).resolves.toMatchObject({
       ok: true,
-      returnValue: ["element", "undefined", "undefined"]
+      returnValue: ["element", "string", "undefined"]
     });
   });
 

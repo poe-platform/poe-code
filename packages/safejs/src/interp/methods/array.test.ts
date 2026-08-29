@@ -29,7 +29,7 @@ describe("array methods", () => {
     expect(isSandboxClosure(getArrayMember(values, "findLast", options))).toBe(true);
     expect(isSandboxClosure(getArrayMember(values, "toSorted", options))).toBe(true);
     expect(isSandboxClosure(getArrayMember(values, "with", options))).toBe(true);
-    expect(getArrayMember(values, "custom", options)).toBeUndefined();
+    expect(getArrayMember(values, "custom", options)).toBe("host value");
     expect(getArrayMember(values, "01", options)).toBeUndefined();
     expect(getArrayMember(values, -1, options)).toBeUndefined();
     expect(getArrayMember(values, 1.5, options)).toBeUndefined();

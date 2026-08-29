@@ -2602,7 +2602,11 @@ async function evaluateMemberCallExpression(
     return evaluateNumberMethodCall(node, member.object, member.property, context);
   }
 
-  if (Array.isArray(member.object) && isArrayMethodName(member.property)) {
+  if (
+    Array.isArray(member.object) &&
+    isArrayMethodName(member.property) &&
+    !Object.hasOwn(member.object, member.property)
+  ) {
     return evaluateArrayMethodCall(node, member.object, member.property, context);
   }
 
@@ -2634,7 +2638,7 @@ async function evaluateMemberCallExpression(
     );
   }
 
-  if (Array.isArray(member.object)) {
+  if (Array.isArray(member.object) && !Object.hasOwn(member.object, member.property)) {
     return evaluatePrimitiveMemberCall(
       node,
       "Array",
@@ -3259,7 +3263,7 @@ function getArrayMemberValue(
   property: string | number,
   context: EvaluationContext
 ): SandboxValue | undefined {
-  if (property === "raw") {
+  if (property === "raw" && taggedTemplateRawArrays.has(target)) {
     return taggedTemplateRawArrays.get(target);
   }
 
@@ -3322,25 +3326,21 @@ async function evaluateResolvedCallExpression(
   context: EvaluationContext,
   thisValue: SandboxValue = undefined
 ): Promise<EvaluationResult> {
-  if (callee === null || callee === undefined) {
-    if (node.optional) {
-      return {
-        kind: "normal",
-        hasValue: true,
-        value: undefined
-      };
-    }
-
-    throw new TypeError("Attempted to call a non-function value.");
-  }
-
-  if (!isSandboxClosure(callee)) {
-    throw new TypeError("Attempted to call a non-function value.");
+  if ((callee === null || callee === undefined) && node.optional) {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: undefined
+    };
   }
 
   const args = await evaluateCallArguments(node.arguments, context);
   if (!args.ok) {
     return args.result;
+  }
+
+  if (!isSandboxClosure(callee)) {
+    throw new TypeError("Attempted to call a non-function value.");
   }
 
   return {

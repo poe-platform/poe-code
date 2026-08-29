@@ -105,6 +105,10 @@ export function getArrayMember(
     return value.length;
   }
 
+  if (Object.hasOwn(value, property)) {
+    return (value as unknown as Record<string, SandboxValue>)[String(property)];
+  }
+
   if (isArrayMethodName(property)) {
     return createSandboxClosure({
       sandbox: true,

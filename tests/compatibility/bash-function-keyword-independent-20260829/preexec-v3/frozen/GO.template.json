@@ -1,0 +1,37 @@
+{
+  "schema": "b35-runtime-grant-v3",
+  "decision": "PENDING",
+  "preseal": "60f526f043e7e94b1526f8146d792b342a148efb261ffb3435dfb8b5ea2cc1ff",
+  "work": "/private/tmp/safe-bash-b35-v3-lfyWzQ/future",
+  "calls": 54,
+  "issuedAtEpochMs": null,
+  "latestStartEpochMs": null,
+  "expiresEpochMs": null,
+  "limits": {
+    "durationMs": 1500000,
+    "finalizationTailMs": 60000,
+    "captureBytes": 100663296,
+    "workBytes": 536870912,
+    "streamBytes": 65536,
+    "ownerCaptureReservation": 196608,
+    "caseMs": 30000,
+    "buildMs": 120000
+  },
+  "roles": {
+    "owner": 1,
+    "build": 1,
+    "strictTypes": 3,
+    "primaryCases": 54,
+    "mutants": 3,
+    "bindingRefusals": 2,
+    "totalRuntimeKnownStarts": 65,
+    "extraSyntaxMetadataPublication": 7,
+    "maximumAllKnownStarts": 72,
+    "peakMaximum": 3,
+    "sourceDerivedInternalChildForks": 0,
+    "caseChildProcessPermission": 0,
+    "caseWorkerPermission": 0,
+    "asyncLoaders": 0,
+    "collector": 1
+  }
+}

@@ -1,0 +1,1 @@
+process.stdout.write('B35_CANONICAL_READY\n');

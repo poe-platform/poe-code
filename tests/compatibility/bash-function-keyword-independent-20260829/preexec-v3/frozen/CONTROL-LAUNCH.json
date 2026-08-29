@@ -1,0 +1,45 @@
+{
+  "node": {
+    "path": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+    "bytes": 112989184,
+    "mode": 493,
+    "sha256": "5c899797c4eb8f1db5563eea56538342ddb3e9276ee1b04a5a1f0f1023d2b011"
+  },
+  "zsh": {
+    "path": "/bin/zsh",
+    "bytes": 1361216,
+    "mode": 493,
+    "sha256": "450b2d89ac587adea6397bb67c8e909f692af9b8bf63a0fca8064347e8a0aa57"
+  },
+  "env": {
+    "path": "/usr/bin/env",
+    "bytes": 102368,
+    "mode": 493,
+    "sha256": "9eb7c5aed7f3c7fe07b77d9a84d0a7c6a8c68c17a15aa3dace0d8ff02d352776"
+  },
+  "controlLaunch": {
+    "bytes": 766,
+    "sha256": "fd1d92ef473f28d2c58ba863c60921b16f88732ecb84d7c82104e9295c3fcbfd"
+  },
+  "controlSeal": {
+    "bytes": 12830,
+    "sha256": "8fea1b62502ad77f730e68e89a529b339f22b5cb92e121ec6da88b2a09c2172c"
+  },
+  "permission": "No product/native Bash; zsh is a fixed administrative exec/rebinding bootstrap; no subprocess multiplication by exec",
+  "actualCommand": {
+    "executable": "/bin/zsh",
+    "args": [
+      "-f",
+      "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/preexec-v3/control-launch.sh"
+    ],
+    "cwd": "/private/tmp/safe-bash-b35-v3-lfyWzQ",
+    "env": {
+      "HOME": "/private/tmp/safe-bash-b35-v3-lfyWzQ/home",
+      "TMPDIR": "/private/tmp/safe-bash-b35-v3-lfyWzQ/tmp",
+      "PATH": "/private/tmp/safe-bash-b35-v3-lfyWzQ/empty-path",
+      "LC_ALL": "C",
+      "LANG": "C",
+      "TZ": "UTC"
+    }
+  }
+}

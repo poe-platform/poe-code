@@ -1,0 +1,52 @@
+  try {
+    if (id === 'C01') {
+      const shell = make(); await expect(shell, 'true', ''); assert.deepEqual(shell.commands.list().map(row => row.name).sort(), defaultNames);
+      for (const name of ['createNodeCommand','createNodeCommands','nodeCommands','createNodeWorkerProvider','NODE_PROFILE','NODE_ENGINE_ABI','nodeLimits','NodeProfileError','NodeUsageError']) assert.equal(api[name], nodeApi[name], name);
+      assert.equal(shell.commands.has('node'), false); assert.equal(shell.commands.has('curl'), false); assert.equal(shell.commands.has('safejs'), false);
+      const optional = make(); addNode(optional); curl(optional); await expect(optional, 'true', ''); assert.equal(optional.commands.list().length, 82); assert.equal(prepares, 0);
+      assert.throws(() => nodeApi.nodeCommands({}));
+    } else if (id === 'C02') await expect(make(), 'set -eu -o pipefail; value=\'a b\'; [[ "$value" == \'a b\' && ( x == x || $missing == z ) ]]; printf \'%s\\n\' "$value" | cat', 'a b\n');
+    else if (id === 'C03') await expect(make(), "[[ abc == a* ]]; printf '%s\\n' \"$?\"; [[ abc == 'a*' ]]; printf '%s\\n' \"$?\"", '0\n1\n');
+    else if (id === 'C04') await expect(make(), 'set -u; a=(zero one); f(){ printf \'%s\\n\' "${a[1]}"; }; f', 'one\n');
+    else if (id === 'C05') await expect(make(), 'set -o pipefail; false | cat; printf \'%s\\n\' "$?"', '1\n');
+    else if (id === 'C06') { await expect(make(), 'f(){ printf out; printf err >&2; }; f 2>/audit |& cat', 'outerr'); assert.equal(text(await memory.readFile('/audit')), ''); }
+    else if (id === 'C07') {
+      await expect(make(), 'f(){ printf out; printf err >&2; }; f &>/both 1>/out', '');
+      assert.equal(text(await memory.readFile('/both')), 'err'); assert.equal(text(await memory.readFile('/out')), 'out');
+      facts.writerQualification = 'Effects here; close-count/alias controls remain in authenticated retained48 Unit1 cohort, not inferred from these effects.';
+    } else if (id === 'C08') { await memory.writeFile('/source.sh', encode("let 'n+=3'")); await expect(make(), 'n=2; . /source.sh; printf \'%s\\n\' "$n"', '5\n'); }
+    else if (id === 'C09') {
+      const shell = make(); addNode(shell); const result = await shell.exec('set -u; printf \'%s\' "$missing"; node -p \'1\'');
+      assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /missing/); assert.equal(prepares, 0);
+      facts.diagnostic = 'name/presence only; exact GNU status/bytes unqualified';
+    } else if (id === 'C10') {
+      await memory.writeFile('/entry.cjs', encode('console.log(process.argv[2]);'));
+      const shell = make(); addNode(shell, { sourceRead: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+      await expect(shell, "node /entry.cjs 'a b' '*' ''", 'a b\n'); assert.deepEqual(facts.requests[0].argv.slice(-3), ['a b','*','']);
+    } else if (id === 'C11') {
+      await fixtureSetup(); const before = await gitSnapshot(), shell = make(); const network = curl(shell);
+      addNode(shell, { dataRead: true, dataWrite: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+      await expect(shell, `curl -sS -o /payload.json https://one.invalid/start; node -e ${quote('const fs=require("fs");const data=JSON.parse(fs.readFileSync("/payload.json","utf8"));fs.writeFileSync("/repo/README.md",data.text);')}`, '');
+      assert.equal(text(await memory.readFile('/repo/README.md')), 'hello changed\n');
+      await expect(make(new api.ReadOnlyFileSystem(memory), '/repo'), 'git diff -- README.md', expectedDiff('hello changed'));
+      assert.deepEqual(await gitSnapshot(), before); assert.deepEqual(network.authorized, ['https://one.invalid/start']);
+    } else if (id === 'C12') {
+      const shell = make(), network = curl(shell, true);
+      await expect(shell, "curl -sS -L -H 'Authorization: Bearer synthetic' -o /payload.json https://one.invalid/start", '');
+      assert.deepEqual(network.authorized, ['https://one.invalid/start','https://two.invalid/end']); assert.equal(network.requests.length, 2);
+      assert.equal(network.requests[1].headers.some(([name]) => name.toLowerCase() === 'authorization'), false);
+      assert.equal(text(await memory.readFile('/payload.json')), '{"text":"hello changed\\n"}\n'); assert.equal(network.disposals.length, 2);
+    } else if (id === 'C13') {
+      await fixtureSetup(); const before = await gitSnapshot(), shell = make(new api.ReadOnlyFileSystem(memory), '/repo');
+      await expect(shell, 'git status --short', 'M  README.md\nD  obsolete.txt\n M src/app.txt\n?? notes.txt\n');
+      await expect(shell, 'git rev-parse HEAD', fixture.oids.headCommit + '\n'); await expect(shell, 'git ls-files', 'README.md\nsrc/app.txt\n');
+      assert.deepEqual(await gitSnapshot(), before);
+    } else if (id === 'C14') {
+      await fixtureSetup(); const before = await gitSnapshot(), shell = make(memory, '/repo');
+      const patch = '*** Begin Patch\n*** Update File: /repo/README.md\n@@\n-hello staged\n+hello patched\n*** End Patch\n';
+      await expect(shell, `printf '%s' ${quote(patch)} | apply_patch >/patch.audit; git diff -- README.md`, expectedDiff('hello patched'));
+      assert.equal(text(await memory.readFile('/repo/README.md')), 'hello patched\n'); assert.deepEqual(await gitSnapshot(), before);
+      facts.patchStdout = 'redirected; not an exact diagnostic-format oracle';
+    } else if (id === 'C15') {
+      await memory.writeFile('/keep', encode('original')); const shell = make(new api.ReadOnlyFileSystem(memory));
+      addNode(shell, { dataWrite: true, stdoutWrite: true, stderrWrite: true }, realProvider());

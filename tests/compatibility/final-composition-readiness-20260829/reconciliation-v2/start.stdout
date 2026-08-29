@@ -1,0 +1,86 @@
+2026-08-29T16:49:51Z
+
+ORIGINAL PRODUCER CODE PATHS
+tests/integration/agent-bash-coherent-author-20260829/v2/admission.mjs
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs
+tests/integration/agent-bash-coherent-author-20260829/v2/workflow-entry.mjs
+tests/integration/agent-bash-coherent-author-20260829/v2/workflows.mjs
+tests/integration/agent-bash-coherent-author-20260829/inspect.mjs
+tests/integration/agent-bash-coherent-author-20260829/stage-b/audit-detail.mjs
+tests/integration/agent-bash-coherent-author-20260829/stage-b/audit.mjs
+tests/integration/agent-bash-coherent-author-20260829/stage-b/dispatch.mjs
+tests/integration/agent-bash-coherent-author-20260829/stage-b/engine-select.mjs
+tests/integration/agent-bash-coherent-author-20260829/stage-b/engine.mjs
+tests/integration/agent-bash-coherent-author-20260829/stage-b/inspect.mjs
+tests/integration/agent-bash-coherent-author-20260829/stage-b/io.mjs
+tests/integration/agent-bash-coherent-author-20260829/stage-b/retain.mjs
+tests/integration/agent-bash-coherent-author-20260829/stage-b/seal.mjs
+tests/integration/agent-bash-coherent-author-20260829/v2/workflow-entry.mjs-24-      else { assert.ok(entry.isFile()); const row = expected.get(relative); assert.ok(row, relative); admitFile(filename, row, 16777216); observed.push(relative); }
+tests/integration/agent-bash-coherent-author-20260829/v2/workflow-entry.mjs-25-    }
+tests/integration/agent-bash-coherent-author-20260829/v2/workflow-entry.mjs-26-  }
+tests/integration/agent-bash-coherent-author-20260829/v2/workflow-entry.mjs:27:  walk(packageRoot); assert.deepEqual(observed.sort(), [...expected.keys()].sort());
+tests/integration/agent-bash-coherent-author-20260829/v2/workflow-entry.mjs-28-  const metadata = JSON.parse(admitFile(path.join(packageRoot, 'package.json'), expected.get('package.json'), 1048576));
+tests/integration/agent-bash-coherent-author-20260829/v2/workflow-entry.mjs-29-  assert.equal(metadata.name, 'virtual-bash'); assert.deepEqual(metadata.dependencies ?? {}, {});
+tests/integration/agent-bash-coherent-author-20260829/v2/workflow-entry.mjs-30-  const rootUrl = import.meta.resolve('virtual-bash'), nodeUrl = import.meta.resolve('virtual-bash/commands/node');
+--
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-100-    const references = [design + ':' + oldPath + 'COMPOSITION.json', design + ':' + oldPath + 'TREE-WITNESSES.json', design + ':' + oldPath + 'SOURCE-TREE-INVENTORY.json', n14 + ':tests/compatibility/bash-strict-extension-author-20260829/n14-v4/SOURCE.json', n14 + ':tests/compatibility/bash-strict-extension-author-20260829/n14-v4/prepare.mjs', n14 + ':tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json', n14 + ':tests/compatibility/bash-strict-extension-author-20260829/n14-v4/run-v5.mjs'];
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-101-    const records = blobs(references);
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-102-    const prior = JSON.parse(records.get(references[0]).body), previousTrees = JSON.parse(records.get(references[1]).body), srcInventory = JSON.parse(records.get(references[2]).body), replacement = JSON.parse(records.get(references[3]).body);
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs:103:    assert.equal(prior.computedTree, 'df748fb93484479a695928b6849d1df8fbfaee3c');
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs:104:    assert.equal(replacement.computedTree, 'bf079ada185a79aec864b068f3738ddc5520822e');
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-105-    const runtime = replacement.inputs.find(row => row.path === 'src/shell/runtime.ts');
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-106-    assert.equal(runtime.blob, 'df6b2c0dfad8d7412f93f434d07a20b2b9375a86');
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-107-    const inputs = prior.shippingInputPaths.map(row => row.path === runtime.path ? { ...runtime, origin: 'ROOT_ACCEPTED_719_N14_QUALIFIED_SOURCE' } : row);
+--
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-122-      const next = Buffer.concat(rows.map(row => Buffer.concat([Buffer.from(row.mode + ' ' + row.name + '\0'), Buffer.from(row.blob, 'hex')])));
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-123-      const identity = oid('tree', next); trees.set(identity, next); changedTrees.push({ oid: identity, base64: next.toString('base64') }); return identity;
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-124-    }
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs:125:    const computedTree = update(prior.computedTree, runtime.path.split('/'));
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-126-    const nodeFiles = inputs.filter(row => row.path.startsWith('src/commands/node/')); assert.equal(nodeFiles.length, 16);
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-127-    for (const row of nodeFiles) assert.deepEqual(row, prior.shippingInputPaths.find(old => old.path === row.path));
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-128-    const sourceRows = srcInventory.map(row => row.path === runtime.path ? { ...row, blob: runtime.blob } : row);
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs:129:    function traverse(tree, prefix) { const result = []; for (const row of entries(trees.get(tree))) { const name = prefix ? prefix + '/' + row.name : row.name; if (row.mode === '40000') result.push(...traverse(row.blob, name)); else result.push({ path: name, mode: row.mode, blob: row.blob }); } return result; }
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs:130:    const srcTree = entries(trees.get(computedTree)).find(row => row.name === 'src');
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs:131:    const walked = traverse(srcTree.blob, 'src').sort((left, right) => Buffer.compare(Buffer.from(left.path), Buffer.from(right.path)));
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-132-    assert.equal(walked.length, 305);
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-133-    for (const row of walked) { const expected = sourceRows.find(item => item.path === row.path); assert.ok(expected); assert.equal(row.blob, expected.blob); assert.equal(Number.parseInt(row.mode, 8), Number.parseInt(expected.mode, 8)); }
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-134-    const pkg = JSON.parse(objects.get(inputs.find(row => row.path === 'package.json').blob).body);
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-135-    assert.deepEqual(pkg.dependencies ?? {}, {}); assert.deepEqual(pkg.files, ['dist']);
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs:136:    const source = { role: 'PROPOSED_ACCEPTED_COMPONENT_COMPOSITION_SOURCE_DATA_ONLY', date: '2026-08-29', base: prior.base, previousDesign: prior.computedTree, computedTree, derivedOnly: true, inputs, inputCount: inputs.length, sourceTsCount: inputs.filter(row => row.path.startsWith('src/') && row.path.endsWith('.ts')).length, completeSrcFiles: walked.length, exactReplacement: runtime, unchangedNodeFiles: nodeFiles, reconstructedTrees: changedTrees, priorTreeWitnesses: { ...records.get(references[1]), body: undefined }, prerequisites: { node: 'ROOT_ACCEPTED_6f449bf4', unit3: 'ROOT_ACCEPTED_cccd876f', n14: 'ROOT_ACCEPTED_FINITE_SOURCE_SEMANTICS; old campaign admission noncompliant; prospective aede1639 not retrospective' }, package: { expectedNames: 80, predictedMembers: 1014, actualMembers: null, sha256: null, metadata: pkg, noRuntimeDependencies: true }, productExecutions: 0 };
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-137-    put('SOURCE.json', source); put('SOURCE-TREE.json', walked); put('TREE-WITNESSES.json', [...trees].map(([identity, body]) => ({ oid: identity, base64: body.toString('base64') })));
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-138-    fs.writeFileSync(path.join(own, 'SHIPPING-PATHS.nul'), Buffer.concat(inputs.map(row => Buffer.from(row.path + '\0'))), { flag: 'wx' });
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-139-    fs.writeFileSync(path.join(own, 'NEUTRAL-FIXTURE.json'), records.get(references[5]).body, { flag: 'wx' });
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-140-    put('SOURCE-AUTHORITIES.json', [...records.values()].map(({ body, ...row }) => row));
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-141-    put('INHERITED-TOOL-BINDINGS.json', replacement.toolBindings);
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs:142:    console.log(JSON.stringify({ computedTree, inputs: inputs.length, ts: source.sourceTsCount, src: walked.length, predictedPackageMembers: 1014, runtime, fixture: JSON.parse(records.get(references[5]).body) }, null, 2));
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-143-    for (const name of ['src/commands/node/types.ts', 'src/commands/network/types.ts', 'src/fs/readonly.ts', 'src/index.ts', 'src/shell/parser.ts']) {
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-144-      const row = inputs.find(item => item.path === name);
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-145-      if (row) { const text = objects.get(row.blob).body.toString(); console.log('SOURCE_VIEW', name, row.blob, name.endsWith('parser.ts') ? text.slice(0,5000) : text.slice(0,18000)); }
+--
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-175-    for (const name of ['typescript','npm','@types/node','undici-types']) {
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-176-      const root = fs.realpathSync(inherited[name].origin), rows = []; let bytesTotal = 0, packageBody;
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-177-      async function visit(directory, prefix = '') {
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs:178:        for (const entry of fs.readdirSync(directory, { withFileTypes: true }).sort((left, right) => Buffer.compare(Buffer.from(left.name), Buffer.from(right.name)))) {
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-179-          const relative = prefix ? prefix + '/' + entry.name : entry.name, filename = path.join(directory, entry.name), stat = fs.lstatSync(filename);
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-180-          assert.ok(entry.name !== 'AGENTS.md'); assert.ok(rows.length < 4096);
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-181-          if (stat.isSymbolicLink()) { const target = fs.readlinkSync(filename), resolved = fs.realpathSync(filename); assert.ok(resolved.startsWith(root + path.sep)); rows.push({ path: relative, type: 'symlink', target, resolvedRelative: path.relative(root, resolved) }); }
+--
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-221-    put('ADMISSION-CONTROLS.json', { controls, productExecutions:0, nativeExecutions:0, decodeQualification:'Only harmless task-owned DATA; no product package inflated.' });
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-222-    const sourceBytes = local(path.join(own,'SOURCE.json')), source = JSON.parse(sourceBytes);
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-223-    const planned = { layouts:['source-built','installed','physically-moved'], retainedPerLayout:{unit1:48,unit2:50,conditional:67,extension:35,arrays:12}, retainedTotal:636, n14Separate:36, authorWorkflows:{engineFree:39,publicEngineSeparateGrant:15,totalFuture:54}, independentProposals:{engineFree:18,publicEngine:6,total:24,implementedHere:false}, unit2Rule:'All50 exact IDs/layout; collector rejects duplicate IDs; do not add a second Unit2 corpus.', node61AndPublic24:'Separate future engine regression recipes with exact version maps; not included in engine-free count or claimed executed.' };
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs:224:    const files = fs.readdirSync(own).filter(name => /\.(mjs|sh|fixture|json|nul)$/.test(name) && !['EXECUTABLE-PRESEAL.json'].includes(name)).sort().map(name => { const body=local(path.join(own,name)); return {path:name,bytes:body.length,sha256:sha(body)}; });
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs:225:    put('EXECUTABLE-PRESEAL.json', { role:'SOURCE_DATA_PREPARATION_ONLY_ACTUAL_GRANT_REQUIRED', date:'2026-08-29', sourceTree:source.computedTree, sourceManifestSha256:sha(sourceBytes), files, predictedPackageMembers:1014, actualPackageSha256:null, actualExecutions:0, planned, proposedActual:{seconds:2700,knownOSStarts:112,peak:4,captureBytes:201326592,workingBytes:1073741824,caseSeconds:30,buildSeconds:120,loaderAdmissions:40,regexWorkers:8,publicEngineWorkers:0,privateInputs:0}, admission:'same authenticated Buffer after regular-file/exact-size/bounded-read/SHA256 before JSON/inflate/import; no reread; each actual phase repeats contemporary checks', runAuthority:'NONE. Do not execute workflow-entry or any build/install/product under preparation grant.' });
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs:226:    console.log(JSON.stringify({ sourceTree:source.computedTree, sourceManifestSha256:sha(sourceBytes), controls:controls.length, syntaxChecks:3, toolEntries:Object.fromEntries(Object.entries(toolRows).map(([name,row])=>[name,row.rows.length])), planned, children, productExecutions:0 }));
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-227-  }
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-228-  note({ finished: new Date().toISOString(), children, closed: true, productExecutions: 0 });
+tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs-229-} catch (error) {
+--
+tests/integration/agent-bash-coherent-author-20260829/v2/workflows.mjs-48-  };
+tests/integration/agent-bash-coherent-author-20260829/v2/workflows.mjs-49-  try {
+tests/integration/agent-bash-coherent-author-20260829/v2/workflows.mjs-50-    if (id === 'C01') {
+tests/integration/agent-bash-coherent-author-20260829/v2/workflows.mjs:51:      const shell = make(); await expect(shell, 'true', ''); assert.deepEqual(shell.commands.list().map(row => row.name).sort(), defaultNames);
+tests/integration/agent-bash-coherent-author-20260829/v2/workflows.mjs-52-      for (const name of ['createNodeCommand','createNodeCommands','nodeCommands','createNodeWorkerProvider','NODE_PROFILE','NODE_ENGINE_ABI','nodeLimits','NodeProfileError','NodeUsageError']) assert.equal(api[name], nodeApi[name], name);
+tests/integration/agent-bash-coherent-author-20260829/v2/workflows.mjs-53-      assert.equal(shell.commands.has('node'), false); assert.equal(shell.commands.has('curl'), false); assert.equal(shell.commands.has('safejs'), false);
+tests/integration/agent-bash-coherent-author-20260829/v2/workflows.mjs-54-      const optional = make(); addNode(optional); curl(optional); await expect(optional, 'true', ''); assert.equal(optional.commands.list().length, 82); assert.equal(prepares, 0);
+
+EXISTING PUBLIC WORKFLOW CASES

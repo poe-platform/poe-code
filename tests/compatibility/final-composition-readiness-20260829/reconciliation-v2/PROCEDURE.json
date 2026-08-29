@@ -1,0 +1,89 @@
+{
+  "status": "READY_PROCEDURE_ONLY_WAIT_PIPESTATUS",
+  "candidate": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/CANDIDATE-INPUTS.json",
+    "bytes": 178749,
+    "mode": 292,
+    "sha256": "ef910f1c3bccf4f0345a7d938cf9f2969a8d0e03ceaaafa55bf93b837e40cdbd"
+  },
+  "tools": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/TYPE-AND-TOOL-BINDINGS.json",
+    "bytes": 53567,
+    "mode": 292,
+    "sha256": "17c10b52c12c62d58d65a4e98297f8f210459b7316490fdfdfb1c64e7b0c0cdf"
+  },
+  "reconciliation": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/TREE-RECONCILIATION.json",
+    "bytes": 3698,
+    "mode": 292,
+    "sha256": "1c6e9ad570cf971f3e2f309434c658713f18884f3fd503b8cc6e9b040a6e815e"
+  },
+  "gates": [
+    "Plato exact PIPESTATUS 78-cell/exit2 assertion cause and ROOT candidate verdict required before final input freeze",
+    "If candidate source changes, regenerate selected input/tool bindings; do not bless prior PIPESTATUS bytes by these hashes",
+    "Fresh ROOT build authorization and unchanged input/tool admission required before executing any command"
+  ],
+  "finalFreezeAuthorized": false,
+  "buildAuthorized": false,
+  "productAuthorized": false,
+  "outputRoot": "/private/tmp/safe-bash-final-composition-20260829",
+  "sourceRoot": "/private/tmp/safe-bash-final-composition-20260829/source",
+  "materialize": "Only the 323 explicitly authenticated input rows; accepted README from its pinned Git blob; exclude 40 tracked extras without deleting or editing them",
+  "environment": {
+    "PATH": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin",
+    "HOME": "/private/tmp/safe-bash-final-composition-20260829/home",
+    "TMPDIR": "/private/tmp/safe-bash-final-composition-20260829/tmp",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "TZ": "UTC",
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_CONFIG_GLOBAL": "/dev/null",
+    "GIT_OPTIONAL_LOCKS": "0",
+    "npm_config_userconfig": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/user.npmrc",
+    "npm_config_globalconfig": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/global.npmrc",
+    "npm_config_cache": "/private/tmp/safe-bash-final-composition-20260829/cache",
+    "npm_config_offline": "true",
+    "npm_config_ignore_scripts": "true",
+    "npm_config_audit": "false",
+    "npm_config_fund": "false"
+  },
+  "commands": {
+    "compiler": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "cwd": "/private/tmp/safe-bash-final-composition-20260829/source",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
+        "-p",
+        "/private/tmp/safe-bash-final-composition-20260829/source/tsconfig.build.json",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v3/type-tools/node_modules/@types"
+      ],
+      "maximumInvocations": 1,
+      "requiredExit": 0
+    },
+    "pack": {
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "cwd": "/private/tmp/safe-bash-final-composition-20260829/source",
+      "args": [
+        "/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm/bin/npm-cli.js",
+        "pack",
+        "--offline",
+        "--ignore-scripts",
+        "--json",
+        "--userconfig=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/user.npmrc",
+        "--globalconfig=/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/global.npmrc",
+        "--pack-destination=/private/tmp/safe-bash-final-composition-20260829/package"
+      ],
+      "maximumInvocations": 1,
+      "requiresCompilerExitZero": true
+    }
+  },
+  "artifactAdmission": {
+    "perDataFileMaximum": 16777216,
+    "noInheritedOutputCounts": true,
+    "completeEmitAndShippingInventoryRequired": true,
+    "archiveAndReceiptCommittedBeforeDecode": true,
+    "sameAuthenticatedBufferDecode": true
+  },
+  "noNewDependency": true
+}

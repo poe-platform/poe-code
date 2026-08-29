@@ -1,0 +1,60 @@
+{
+  "status": "UNRUN_FUTURE_PRODUCT_AUTHORITY_REQUIRED",
+  "source": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/integration/agent-bash-coherent-author-20260829/v2/workflows.mjs",
+    "bytes": 15458,
+    "mode": 420,
+    "sha256": "6dfaa3f6447703515994a3145264ae6eb9184c1dd7f73b2b764f6945aabd544c"
+  },
+  "selectedIds": [
+    "C01",
+    "C02",
+    "C07",
+    "C12",
+    "C13",
+    "C14"
+  ],
+  "caseCount": 6,
+  "layouts": [
+    "source-built",
+    "installed",
+    "physically-moved"
+  ],
+  "prospectiveObservations": 18,
+  "cases": [
+    {
+      "id": "C01",
+      "covers": "Public root/node export equality, explicit opt-in, default80 inventory, inert provider"
+    },
+    {
+      "id": "C02",
+      "covers": "Strict shell quoting/conditional/printf-to-cat pipeline"
+    },
+    {
+      "id": "C07",
+      "covers": "Memory FS and stdout/stderr redirection effects"
+    },
+    {
+      "id": "C12",
+      "covers": "Mock curl redirect authorization, sensitive-header stripping, Memory FS output, disposal"
+    },
+    {
+      "id": "C13",
+      "covers": "Public Git status/rev-parse/ls-files over ReadOnlyFileSystem, no repository mutation"
+    },
+    {
+      "id": "C14",
+      "covers": "apply_patch through stdin, Memory FS effects, Git diff and preserved repository metadata"
+    }
+  ],
+  "noNewCasesOrAssertions": true,
+  "noRealNetworkOrNativeOracle": true,
+  "noNodeEngineOrWorkers": true,
+  "noClaimAllCommandsOrFilesystems": true,
+  "excluded": [
+    "Real/S3/WebDAV backend integration claims",
+    "Full public Node guest execution",
+    "Replacement for failed PIPESTATUS78 or CORE210"
+  ],
+  "existingRunnerCaution": "Reuse existing public-API workflow bodies/fixture only; rebind source/package/grant to the eventual final candidate. Never execute the old runner with its hardcoded 3adc/1014 assumptions on a different package."
+}

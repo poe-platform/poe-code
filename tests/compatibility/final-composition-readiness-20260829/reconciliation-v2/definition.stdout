@@ -1,0 +1,229 @@
+
+--- tests/integration/agent-bash-coherent-author-20260829/v2/prepare.mjs ---
+    assert.ok(Array.isArray(composition.shippingInputPaths)); assert.ok(Array.isArray(source.inputs));
+    put('TOOLS-PREP.json', tools);
+    console.log(JSON.stringify({ keys: Object.keys(composition), sourceKeys: Object.keys(source), sourceRow: source.inputs.find(row => row.path === 'src/shell/runtime.ts'), nodeFiles: composition.shippingInputPaths.filter(row => row.path.startsWith('src/commands/node/')), toolBindings: source.toolBindings }, null, 2));
+    console.log('NODE_PUBLIC_FIXTURE\n' + admitted.get(references[6]).body.toString());
+    console.log('EVIDENCE\n' + admitted.get(references[3]).body.toString());
+    console.log('INDEPENDENT_PROBES\n' + admitted.get(references[7]).body.toString());
+    const status = git(['status', '--porcelain=v1', '-z', '--untracked-files=no'], undefined, 1048576);
+    console.log('TRACKED_STATUS_BYTES', status.length);
+    git(['diff', '--cached', '--name-only', '-z'], undefined, 1048576);
+  } else if (mode === '--compose') {
+    const references = [design + ':' + oldPath + 'COMPOSITION.json', design + ':' + oldPath + 'TREE-WITNESSES.json', design + ':' + oldPath + 'SOURCE-TREE-INVENTORY.json', n14 + ':tests/compatibility/bash-strict-extension-author-20260829/n14-v4/SOURCE.json', n14 + ':tests/compatibility/bash-strict-extension-author-20260829/n14-v4/prepare.mjs', n14 + ':tests/commands/git-design-20260828/NEUTRAL-FIXTURE.json', n14 + ':tests/compatibility/bash-strict-extension-author-20260829/n14-v4/run-v5.mjs'];
+    const records = blobs(references);
+    const prior = JSON.parse(records.get(references[0]).body), previousTrees = JSON.parse(records.get(references[1]).body), srcInventory = JSON.parse(records.get(references[2]).body), replacement = JSON.parse(records.get(references[3]).body);
+    assert.equal(prior.computedTree, 'df748fb93484479a695928b6849d1df8fbfaee3c');
+    assert.equal(replacement.computedTree, 'bf079ada185a79aec864b068f3738ddc5520822e');
+    const runtime = replacement.inputs.find(row => row.path === 'src/shell/runtime.ts');
+    assert.equal(runtime.blob, 'df6b2c0dfad8d7412f93f434d07a20b2b9375a86');
+    const inputs = prior.shippingInputPaths.map(row => row.path === runtime.path ? { ...runtime, origin: 'ROOT_ACCEPTED_719_N14_QUALIFIED_SOURCE' } : row);
+    assert.equal(inputs.length, 309); assert.equal(new Set(inputs.map(row => row.path)).size, 309);
+    assert.ok(inputs.every(row => !row.path.split('/').includes('AGENTS.md') && !row.path.startsWith('dist/') && !row.path.startsWith('tests/') && !/^src\/commands\/(yq|xan)\//.test(row.path)));
+    const objects = blobs([...new Set(inputs.map(row => row.blob))]);
+    for (const row of inputs) { const object = objects.get(row.blob); assert.equal(object.bytes, row.bytes, row.path); assert.equal(object.sha256, row.sha256, row.path); }
+    const trees = new Map(previousTrees.map(row => { const body = Buffer.from(row.base64, 'base64'); assert.equal(oid('tree', body), row.oid); return [row.oid, body]; }));
+    function entries(body) {
+      const result = []; let cursor = 0;
+      while (cursor < body.length) { const space = body.indexOf(32, cursor), nul = body.indexOf(0, space); assert.ok(space > cursor && nul > space && nul + 21 <= body.length); const nameBytes = body.subarray(space + 1, nul), name = nameBytes.toString(); assert.ok(Buffer.from(name).equals(nameBytes) && !name.includes('/')); result.push({ mode: body.subarray(cursor, space).toString(), name, blob: body.subarray(nul + 1, nul + 21).toString('hex') }); cursor = nul + 21; }
+      return result;
+    }
+    const changedTrees = [];
+    function update(tree, components) {
+      const body = trees.get(tree); assert.ok(body, tree); const rows = entries(body), target = rows.find(row => row.name === components[0]); assert.ok(target);
+      target.blob = components.length === 1 ? runtime.blob : update(target.blob, components.slice(1));
+      const next = Buffer.concat(rows.map(row => Buffer.concat([Buffer.from(row.mode + ' ' + row.name + '\0'), Buffer.from(row.blob, 'hex')])));
+      const identity = oid('tree', next); trees.set(identity, next); changedTrees.push({ oid: identity, base64: next.toString('base64') }); return identity;
+    }
+    const computedTree = update(prior.computedTree, runtime.path.split('/'));
+    const nodeFiles = inputs.filter(row => row.path.startsWith('src/commands/node/')); assert.equal(nodeFiles.length, 16);
+    for (const row of nodeFiles) assert.deepEqual(row, prior.shippingInputPaths.find(old => old.path === row.path));
+    const sourceRows = srcInventory.map(row => row.path === runtime.path ? { ...row, blob: runtime.blob } : row);
+    function traverse(tree, prefix) { const result = []; for (const row of entries(trees.get(tree))) { const name = prefix ? prefix + '/' + row.name : row.name; if (row.mode === '40000') result.push(...traverse(row.blob, name)); else result.push({ path: name, mode: row.mode, blob: row.blob }); } return result; }
+    const srcTree = entries(trees.get(computedTree)).find(row => row.name === 'src');
+    const walked = traverse(srcTree.blob, 'src').sort((left, right) => Buffer.compare(Buffer.from(left.path), Buffer.from(right.path)));
+    assert.equal(walked.length, 305);
+    for (const row of walked) { const expected = sourceRows.find(item => item.path === row.path); assert.ok(expected); assert.equal(row.blob, expected.blob); assert.equal(Number.parseInt(row.mode, 8), Number.parseInt(expected.mode, 8)); }
+    const pkg = JSON.parse(objects.get(inputs.find(row => row.path === 'package.json').blob).body);
+    assert.deepEqual(pkg.dependencies ?? {}, {}); assert.deepEqual(pkg.files, ['dist']);
+    const source = { role: 'PROPOSED_ACCEPTED_COMPONENT_COMPOSITION_SOURCE_DATA_ONLY', date: '2026-08-29', base: prior.base, previousDesign: prior.computedTree, computedTree, derivedOnly: true, inputs, inputCount: inputs.length, sourceTsCount: inputs.filter(row => row.path.startsWith('src/') && row.path.endsWith('.ts')).length, completeSrcFiles: walked.length, exactReplacement: runtime, unchangedNodeFiles: nodeFiles, reconstructedTrees: changedTrees, priorTreeWitnesses: { ...records.get(references[1]), body: undefined }, prerequisites: { node: 'ROOT_ACCEPTED_6f449bf4', unit3: 'ROOT_ACCEPTED_cccd876f', n14: 'ROOT_ACCEPTED_FINITE_SOURCE_SEMANTICS; old campaign admission noncompliant; prospective aede1639 not retrospective' }, package: { expectedNames: 80, predictedMembers: 1014, actualMembers: null, sha256: null, metadata: pkg, noRuntimeDependencies: true }, productExecutions: 0 };
+    put('SOURCE.json', source); put('SOURCE-TREE.json', walked); put('TREE-WITNESSES.json', [...trees].map(([identity, body]) => ({ oid: identity, base64: body.toString('base64') })));
+    fs.writeFileSync(path.join(own, 'SHIPPING-PATHS.nul'), Buffer.concat(inputs.map(row => Buffer.from(row.path + '\0'))), { flag: 'wx' });
+    fs.writeFileSync(path.join(own, 'NEUTRAL-FIXTURE.json'), records.get(references[5]).body, { flag: 'wx' });
+    put('SOURCE-AUTHORITIES.json', [...records.values()].map(({ body, ...row }) => row));
+    put('INHERITED-TOOL-BINDINGS.json', replacement.toolBindings);
+    console.log(JSON.stringify({ computedTree, inputs: inputs.length, ts: source.sourceTsCount, src: walked.length, predictedPackageMembers: 1014, runtime, fixture: JSON.parse(records.get(references[5]).body) }, null, 2));
+    for (const name of ['src/commands/node/types.ts', 'src/commands/network/types.ts', 'src/fs/readonly.ts', 'src/index.ts', 'src/shell/parser.ts']) {
+      const row = inputs.find(item => item.path === name);
+      if (row) { const text = objects.get(row.blob).body.toString(); console.log('SOURCE_VIEW', name, row.blob, name.endsWith('parser.ts') ? text.slice(0,5000) : text.slice(0,18000)); }
+
+--- tests/integration/agent-bash-coherent-author-20260829/v2/workflows.mjs ---
+import assert from 'node:assert/strict';
+
+export const defaultNames = Object.freeze(['[','apply_patch','awk','base32','base64','basename','cat','chmod','cksum','column','comm','cp','cut','date','diff','dirname','du','echo','egrep','env','expand','expr','false','fgrep','file','find','fold','git','grep','gunzip','gzip','head','html-to-markdown','join','jq','ln','ls','md5sum','mkdir','mktemp','mv','nl','od','paste','patch','printenv','printf','pwd','readlink','realpath','rev','rg','rm','rmdir','sed','seq','sha1sum','sha256sum','sleep','sort','split','stat','strings','tac','tail','tar','tee','test','timeout','touch','tr','tree','true','unexpand','uniq','wc','which','xargs','xxd','zcat']);
+export const workflowIds = Object.freeze(Array.from({ length: 18 }, (_, index) => 'C' + String(index + 1).padStart(2, '0')));
+export const engineIds = Object.freeze(['C10','C11','C15','C16','C18']);
+export const engineFreeIds = Object.freeze(workflowIds.filter(id => !engineIds.includes(id)));
+const encode = value => new TextEncoder().encode(value);
+const text = value => new TextDecoder().decode(value);
+const outcome = promise => promise.then(value => ({ kind: 'return', value }), reason => ({ kind: 'throw', reason }));
+const turn = () => new Promise(resolve => setImmediate(resolve));
+function deferred() { let resolve; const promise = new Promise(accept => { resolve = accept; }); return { promise, resolve }; }
+function quote(value) { return "'" + value.replaceAll("'", "'\\''") + "'"; }
+const expectedDiff = replacement => 'diff --git a/README.md b/README.md\n--- a/README.md\n+++ b/README.md\n@@ -1 +1 @@\n-hello staged\n+' + replacement + '\n';
+
+export async function runWorkflow(id, context) {
+  assert.ok(workflowIds.includes(id));
+  const { api, nodeApi, fixture } = context;
+  if (engineIds.includes(id)) assert.equal(context.engine?.role, 'SEPARATELY_AUTHENTICATED_PUBLIC_ENGINE');
+  const shells = [], releases = new Set(), events = [], memory = new api.MemoryFileSystem();
+  let prepares = 0, failure, failed = false;
+  const facts = { id, role: engineIds.includes(id) ? 'PUBLIC_ENGINE_REQUIRED' : 'ENGINE_FREE_PRODUCT_PROFILE', status: 'UNRUN', events };
+  const inert = { profile: nodeApi.NODE_PROFILE, identity: 'coherent-never-started-provider', prepare() { prepares++; throw new Error('unexpected provider preparation'); } };
+  const make = (filesystem = memory, cwd = '/') => { const shell = new api.Shell({ fs: filesystem, cwd, env: {} }); shell.use(api.agentCommands()); shells.push(shell); return shell; };
+  const addNode = (shell, grants = {}, provider = inert, replace = false) => shell.use(nodeApi.nodeCommands({ provider, grants, replace }));
+  const realProvider = () => {
+    const provider = context.engine.createProvider();
+    return { profile: provider.profile, identity: provider.identity, prepare(request, services) { prepares++; facts.requests ??= []; facts.requests.push({ argv: [...request.argv], cwd: request.cwd, filename: request.filename, selector: request.selector }); return provider.prepare(request, services); } };
+  };
+  const expect = async (shell, script, stdout, status = 0) => { const result = await shell.exec(script); assert.equal(result.exitCode, status); assert.equal(result.stdout, stdout); assert.equal(result.stderr, ''); return result; };
+  const fixtureSetup = async () => {
+    assert.equal(fixture.virtualRoot, '/repo'); assert.equal(fixture.oids.headCommit, '1cec77171d8321d533b3aa50b7a1a9df02b10816');
+    for (const entry of fixture.files) {
+      const filename = '/repo/' + entry.path; assert.ok(!entry.path.split('/').includes('..') && !entry.path.startsWith('/'));
+      await memory.mkdir(filename.slice(0, filename.lastIndexOf('/')), { recursive: true });
+      if (Object.hasOwn(entry, 'symlink')) await memory.symlink(entry.symlink, filename);
+      else await memory.writeFile(filename, Object.hasOwn(entry, 'base64') ? new Uint8Array(Buffer.from(entry.base64, 'base64')) : encode(entry.text), { mode: entry.mode });
+    }
+  };
+  const gitSnapshot = async () => Promise.all(fixture.files.filter(entry => entry.path.startsWith('.git/')).map(async entry => [entry.path, Buffer.from(await memory.readFile('/repo/' + entry.path)).toString('base64')]));
+  const curl = (shell, redirect = false) => {
+    const authorized = [], requests = [], disposals = [];
+    shell.use(api.networkCommands({ authorize(request) { authorized.push(request.url); return ['https://one.invalid/start','https://two.invalid/end'].includes(request.url); }, async transport(request) {
+      requests.push({ url: request.url, headers: request.headers.map(pair => [...pair]) });
+      const isRedirect = redirect && request.url === 'https://one.invalid/start';
+      return { status: isRedirect ? 302 : 200, statusText: isRedirect ? 'Found' : 'OK', headers: isRedirect ? [['location','https://two.invalid/end']] : [], body: (async function* () { if (!isRedirect) yield encode('{"text":"hello changed\\n"}\n'); })(), async dispose() { disposals.push(request.url); } };
+    } }));
+    return { authorized, requests, disposals };
+  };
+  try {
+    if (id === 'C01') {
+      const shell = make(); await expect(shell, 'true', ''); assert.deepEqual(shell.commands.list().map(row => row.name).sort(), defaultNames);
+      for (const name of ['createNodeCommand','createNodeCommands','nodeCommands','createNodeWorkerProvider','NODE_PROFILE','NODE_ENGINE_ABI','nodeLimits','NodeProfileError','NodeUsageError']) assert.equal(api[name], nodeApi[name], name);
+      assert.equal(shell.commands.has('node'), false); assert.equal(shell.commands.has('curl'), false); assert.equal(shell.commands.has('safejs'), false);
+      const optional = make(); addNode(optional); curl(optional); await expect(optional, 'true', ''); assert.equal(optional.commands.list().length, 82); assert.equal(prepares, 0);
+      assert.throws(() => nodeApi.nodeCommands({}));
+    } else if (id === 'C02') await expect(make(), 'set -eu -o pipefail; value=\'a b\'; [[ "$value" == \'a b\' && ( x == x || $missing == z ) ]]; printf \'%s\\n\' "$value" | cat', 'a b\n');
+    else if (id === 'C03') await expect(make(), "[[ abc == a* ]]; printf '%s\\n' \"$?\"; [[ abc == 'a*' ]]; printf '%s\\n' \"$?\"", '0\n1\n');
+    else if (id === 'C04') await expect(make(), 'set -u; a=(zero one); f(){ printf \'%s\\n\' "${a[1]}"; }; f', 'one\n');
+    else if (id === 'C05') await expect(make(), 'set -o pipefail; false | cat; printf \'%s\\n\' "$?"', '1\n');
+    else if (id === 'C06') { await expect(make(), 'f(){ printf out; printf err >&2; }; f 2>/audit |& cat', 'outerr'); assert.equal(text(await memory.readFile('/audit')), ''); }
+    else if (id === 'C07') {
+      await expect(make(), 'f(){ printf out; printf err >&2; }; f &>/both 1>/out', '');
+      assert.equal(text(await memory.readFile('/both')), 'err'); assert.equal(text(await memory.readFile('/out')), 'out');
+      facts.writerQualification = 'Effects here; close-count/alias controls remain in authenticated retained48 Unit1 cohort, not inferred from these effects.';
+    } else if (id === 'C08') { await memory.writeFile('/source.sh', encode("let 'n+=3'")); await expect(make(), 'n=2; . /source.sh; printf \'%s\\n\' "$n"', '5\n'); }
+    else if (id === 'C09') {
+      const shell = make(); addNode(shell); const result = await shell.exec('set -u; printf \'%s\' "$missing"; node -p \'1\'');
+      assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /missing/); assert.equal(prepares, 0);
+      facts.diagnostic = 'name/presence only; exact GNU status/bytes unqualified';
+    } else if (id === 'C10') {
+      await memory.writeFile('/entry.cjs', encode('console.log(process.argv[2]);'));
+      const shell = make(); addNode(shell, { sourceRead: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+      await expect(shell, "node /entry.cjs 'a b' '*' ''", 'a b\n'); assert.deepEqual(facts.requests[0].argv.slice(-3), ['a b','*','']);
+    } else if (id === 'C11') {
+      await fixtureSetup(); const before = await gitSnapshot(), shell = make(); const network = curl(shell);
+      addNode(shell, { dataRead: true, dataWrite: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+      await expect(shell, `curl -sS -o /payload.json https://one.invalid/start; node -e ${quote('const fs=require("fs");const data=JSON.parse(fs.readFileSync("/payload.json","utf8"));fs.writeFileSync("/repo/README.md",data.text);')}`, '');
+      assert.equal(text(await memory.readFile('/repo/README.md')), 'hello changed\n');
+      await expect(make(new api.ReadOnlyFileSystem(memory), '/repo'), 'git diff -- README.md', expectedDiff('hello changed'));
+      assert.deepEqual(await gitSnapshot(), before); assert.deepEqual(network.authorized, ['https://one.invalid/start']);
+    } else if (id === 'C12') {
+      const shell = make(), network = curl(shell, true);
+      await expect(shell, "curl -sS -L -H 'Authorization: Bearer synthetic' -o /payload.json https://one.invalid/start", '');
+      assert.deepEqual(network.authorized, ['https://one.invalid/start','https://two.invalid/end']); assert.equal(network.requests.length, 2);
+      assert.equal(network.requests[1].headers.some(([name]) => name.toLowerCase() === 'authorization'), false);
+      assert.equal(text(await memory.readFile('/payload.json')), '{"text":"hello changed\\n"}\n'); assert.equal(network.disposals.length, 2);
+    } else if (id === 'C13') {
+      await fixtureSetup(); const before = await gitSnapshot(), shell = make(new api.ReadOnlyFileSystem(memory), '/repo');
+      await expect(shell, 'git status --short', 'M  README.md\nD  obsolete.txt\n M src/app.txt\n?? notes.txt\n');
+      await expect(shell, 'git rev-parse HEAD', fixture.oids.headCommit + '\n'); await expect(shell, 'git ls-files', 'README.md\nsrc/app.txt\n');
+      assert.deepEqual(await gitSnapshot(), before);
+    } else if (id === 'C14') {
+      await fixtureSetup(); const before = await gitSnapshot(), shell = make(memory, '/repo');
+      const patch = '*** Begin Patch\n*** Update File: /repo/README.md\n@@\n-hello staged\n+hello patched\n*** End Patch\n';
+      await expect(shell, `printf '%s' ${quote(patch)} | apply_patch >/patch.audit; git diff -- README.md`, expectedDiff('hello patched'));
+      assert.equal(text(await memory.readFile('/repo/README.md')), 'hello patched\n'); assert.deepEqual(await gitSnapshot(), before);
+      facts.patchStdout = 'redirected; not an exact diagnostic-format oracle';
+    } else if (id === 'C15') {
+      await memory.writeFile('/keep', encode('original')); const shell = make(new api.ReadOnlyFileSystem(memory));
+      addNode(shell, { dataWrite: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+      const result = await shell.exec(`node -e ${quote('require("fs").writeFileSync("/keep","changed");')}`);
+      assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /EROFS/); assert.equal(text(await memory.readFile('/keep')), 'original');
+    } else if (id === 'C16') {
+      const entered = deferred(), release = deferred(), controller = new AbortController(); const original = memory.readFile.bind(memory);
+      const releaseOwned = () => { events.push('release'); release.resolve(); }; releases.add(releaseOwned);
+      memory.readFile = async (filename, options) => { if (filename !== '/held') return original(filename, options); events.push('read-enter'); entered.resolve(); await release.promise; events.push('read-finalized'); throw options.signal.reason; };
+      const shell = make(); addNode(shell, { dataRead: true, stdoutWrite: true, stderrWrite: true }, realProvider());
+      shell.commands.register({ name: 'guard', execute(command) { command.registerCleanup(async () => { events.push('cleanup-enter'); await release.promise; events.push('cleanup-finished'); }); return command.invoke('node', ['-e','require("fs").readFileSync("/held","utf8");']); } });
+      const pending = outcome(shell.exec('guard', { signal: controller.signal })).then(result => { events.push('settled'); return result; });
+      try { await entered.promise; controller.abort(false); events.push('abort'); } finally { releaseOwned(); releases.delete(releaseOwned); }
+      const result = await pending; assert.equal(result.kind, 'throw'); assert.equal(result.reason, false);
+      assert.ok(events.indexOf('cleanup-finished') < events.indexOf('settled')); assert.ok(events.includes('read-finalized'));
+      facts.providerFinalization = 'controlled release only; no opaque preemption';
+    } else if (id === 'C17') {
+      const entered = deferred(), gate = deferred(), shell = make(); addNode(shell); let writes = 0, settled = false;
+      const release = () => { events.push('release'); gate.resolve(); }; releases.add(release);
+      shell.commands.register({ name: 'guard', execute(command) {
+        command.registerCleanup(async () => { events.push('cleanup-enter'); entered.resolve(); await gate.promise; events.push('cleanup-finished'); throw false; });
+        events.push('registered'); return command.invoke('f', []);
+      } });
+      const pending = outcome(shell.exec('f(){ printf "%s" "${absent:?required}"; }; guard; node -p \'1\'', { stderr: { async write() { writes++; events.push('diagnostic'); throw 0; } } })).then(result => { settled = true; events.push('settled'); return result; });
+      try { await entered.promise; await turn(); assert.equal(settled, false); } finally { release(); releases.delete(release); }
+      const result = await pending; assert.equal(result.kind, 'throw'); assert.equal(result.reason, 0); assert.equal(writes, 1); assert.equal(prepares, 0);
+      assert.ok(events.indexOf('cleanup-finished') < events.indexOf('settled'));
+    } else if (id === 'C18') {
+      const collided = make(); const original = { name: 'node', execute() { return { exitCode: 99 }; } }; collided.commands.register(original); addNode(collided);
+      const result = await outcome(collided.exec('true')); assert.equal(result.kind, 'throw'); assert.equal(result.reason.message, 'Command already registered: node'); assert.equal(collided.commands.get('node'), original);
+      const ownerIndex = shells.indexOf(collided); shells.splice(ownerIndex, 1); const disposed = await outcome(collided.dispose()); assert.equal(disposed.kind, 'throw'); assert.equal(disposed.reason.message, 'Command already registered: node');
+      const shell = make(), options = { provider: realProvider(), grants: { stdoutWrite: true, stderrWrite: true }, replace: true };
+      shell.commands.register(original); const plugin = nodeApi.nodeCommands(options); options.replace = false; options.provider = null; options.grants.stdoutWrite = false;
+      shell.use(plugin); await expect(shell, "node -p '8'", '8\n');
+    }
+    facts.status = 'PASS';
+  } catch (reason) { failed = true; failure = reason; facts.status = 'FAIL'; }
+  finally {
+    for (const release of releases) release();
+    const cleanup = await Promise.allSettled(shells.map(shell => shell.dispose()));
+    facts.shells = shells.length; facts.cleanup = cleanup.map(result => result.status); facts.prepares = prepares;
+    const rejected = cleanup.filter(result => result.status === 'rejected');
+    if (rejected.length) { facts.cleanupFailure = true; if (!failed) { failed = true; failure = rejected[0].reason; } }
+  }
+  if (failed) { facts.status = 'FAIL'; throw Object.assign(new Error('workflow ' + id + ' failed', { cause: failure }), { facts }); }
+  return facts;
+}
+
+BASELINE TREE RECORD FIELDS
+12:  "computedTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+3223:  "reconstructedTrees": [
+3225:      "oid": "f23e026fbafe1b8e3fea07d08576f4418e19f7ec",
+3226:      "base64": "MTAwNjQ0IGFyaXRobWV0aWMudHMAIjEBlG0TrJtE9KiY9Y/RYAS6hrk0MDAwMCBhcnJheXMACBw7Fx5EqX6pnFDsB97tnNK6fhUxMDA2NDQgY2FuY2VsbGF0aW9uLnRzAKDmjHv7LVQZZBlNOO8wpKWQvsHeMTAwNjQ0IGNsZWFudXAudHMA6uBGUKVT5IINqcewiwJVprIPwBwxMDA2NDQgY29uZGl0aW9uYWwudHMAyqthct9bjlutLR2wB7FW8Gfila0xMDA2NDQgZGlzcGxheS50cwCpSdCzflSxh0wpcDCkmJXVwrv/CDEwMDY0NCBnZXRvcHRzLnRzALtQKwdgY8D7lXZpEWSNuniAAPi0MTAwNjQ0IGluZGV4LnRzAAEQvZ1cA4jcb+FavCfyehjdems4MTAwNjQ0IGlucHV0LnRzAD7scbcvh91I3axXLW5/65CX0yvkMTAwNjQ0IGxvY2FsZS50cwBaLNpkF/LyivOLM/LTKlYnHA9aWDEwMDY0NCBwYXJzZXIudHMAJ7ysxsmnMf8Cxu83AOlqeh+OTr4xMDA2NDQgcGF0dGVybi50cwC+hznua2yekyPFWa/xXy3SfOgnHDEwMDY0NCBydW50aW1lLnRzAN9rLA362NdBL5P0NNB6ILK5N1qGMTAwNjQ0IHNoZWxsLnRzACINbCim5Q9Fmkiq7iAw8kqEH0q3MTAwNjQ0IHR5cGVzLnRzAHY9LuCtKxXH7XrzHnxhcfc5yYSG"
+3229:      "oid": "1dddba003fc16429efe896479d180bcb4d2d44b3",
+3230:      "base64": "NDAwMDAgY29tbWFuZHMA7BcWMiS/odoauauraxtCmIgMbG80MDAwMCBjb250cmFjdHMABUAXwF7wlGOs1Bsg5tM2Bi6So5w0MDAwMCBmcwCxzgop/CEemMFnIQDT3Ebysjp6xDEwMDY0NCBpbmRleC50cwA92KjI5n5cGS5PselOINolJE9l7TQwMDAwIGludGVncmF0aW9ucwBGpkwD0vI8BAMipGqdteqqJQmwazQwMDAwIHBsdWdpbnMAcWvQTCxNekoOp9BacFkqYNqN6x40MDAwMCBzaGVsbADyPgJvuv4bjj/qB9CFdvRBjhn37A=="
+3233:      "oid": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+3234:      "base64": "MTAwNjQ0IC5naXRpZ25vcmUASjpjj79qK4Sr++QGk9OCaguHY9gxMDA2NDQgQUdFTlRTLm1kANJPnlD8JxrL7fFMa/QVOTVyN2YiMTAwNjQ0IFJFQURNRS5tZADUYYohcPU+2PbyD+GjIKsy6E2rIzQwMDAwIGJlbmNobWFya3MAf6OxDM+PvgF7cz5y1nZwp/FPIKg0MDAwMCBkb2NzAMNVv8XzhYW5L/UWNhFMcNDFr7waMTAwNjQ0IHBhY2thZ2UtbG9jay5qc29uAF1lYtpmOqGzY8XOXxAe2Eac7OTaMTAwNjQ0IHBhY2thZ2UuanNvbgBiPSSTuUr6d1LYcjLI62L7YaI3DzQwMDAwIHNjcmlwdHMApeb6njlLw0Awzpy9U1xPEeuDNdw0MDAwMCBzcmMAHd26AD/BZCnv6JZHnRgLy00tRLM0MDAwMCB0ZXN0cwAQzhspz5PynbpX0ETisTUszccO/zEwMDY0NCB0c2NvbmZpZy5idWlsZC5qc29uAInmtWF7lJhYxukJU7Vhs4CJx43XMTAwNjQ0IHRzY29uZmlnLmpzb24Aal8GiMforB1j1i7vkVmX0vzKMbY="
+3237:  "priorTreeWitnesses": {
+
+LOCAL DESIGN SOURCE METADATA
+tests/integration/agent-bash-coherent-design-20260829/COMPOSITION.json
+tests/integration/agent-bash-coherent-design-20260829/EVIDENCE.md
+tests/integration/agent-bash-coherent-design-20260829/README.md
+tests/integration/agent-bash-coherent-design-20260829/SHIPPING-INPUT-PATHS.nul
+tests/integration/agent-bash-coherent-design-20260829/SOURCE-TREE-INVENTORY.json
+tests/integration/agent-bash-coherent-design-20260829/STATUS.md
+tests/integration/agent-bash-coherent-design-20260829/TREE-WITNESSES.json
+tests/integration/agent-bash-coherent-design-20260829/VALIDATION-PROPOSAL.md
+tests/integration/agent-bash-coherent-design-20260829/WORKFLOWS.md
+tests/integration/agent-bash-coherent-design-20260829/compose.mjs
+tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE-TREE.json
+tests/integration/agent-bash-coherent-author-20260829/v2/TREE-WITNESSES.json

@@ -1,0 +1,24 @@
+{
+  "status": "READY_PROCEDURE_ONLY_WAIT_REVIEWED_LOCAL_ARRAY_DELTA_AND_FRESH_ROOT_PRODUCER_GO",
+  "authority": "ROOT message received during reconciliation publication",
+  "diagnosis": "0989ed9b",
+  "observedPipeStatusCells": { "total": 78, "pass": 75, "fail": 3, "failedCase": "R17", "cause": "Existing local builtin does not support local -a", "scalarPublisher": "correct and preserved" },
+  "rootChoice": "Narrow product local -a NAME support; not a fixture bypass",
+  "excludedExpansion": ["other local flags", "declare", "typeset", "associative arrays", "public API additions"],
+  "sourceOwner": "Plato SOURCE/PURE correction and independent review pending",
+  "currentCandidate": "CANDIDATE-INPUTS.json is the authenticated 323-input pre-local-fix snapshot, not the final build source",
+  "effectiveGates": [
+    "Wait for the exact reviewed and accepted runtime/local-helper delta",
+    "Compose that delta into the existing union without losing CORE, public Node, arithmetic or PIPESTATUS correction",
+    "Recompute complete path union/count/origins/blob hashes and projection identity; do not assume a new helper leaves the count at 323",
+    "Keep ROOT-selected accepted PUBLIC309 README; retain current working README untouched",
+    "Require fresh ROOT producer GO before final input freeze, one strict build or one offline ignore-scripts pack"
+  ],
+  "priorCauseGate": "Cause is now supplied by ROOT; remaining blocker is accepted correction plus fresh producer authorization",
+  "procedure": "PROCEDURE.json commands/tool bindings remain prepared; its earlier WAIT_PIPESTATUS_CAUSE status is historical and refined by this update",
+  "finalFreezeAuthorized": false,
+  "compilerAuthorized": false,
+  "packAuthorized": false,
+  "productAuthorized": false,
+  "campaignEndpoint": "2026-08-29T18:02:36Z"
+}

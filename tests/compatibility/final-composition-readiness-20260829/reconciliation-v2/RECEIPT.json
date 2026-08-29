@@ -1,0 +1,75 @@
+{
+  "at": "2026-08-29T16:53:39.124Z",
+  "status": "RECONCILIATION_AND_PROCEDURE_READY_WAIT_PIPESTATUS",
+  "candidate": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/CANDIDATE-INPUTS.json",
+    "bytes": 178749,
+    "mode": 292,
+    "sha256": "ef910f1c3bccf4f0345a7d938cf9f2969a8d0e03ceaaafa55bf93b837e40cdbd"
+  },
+  "tools": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/TYPE-AND-TOOL-BINDINGS.json",
+    "bytes": 53567,
+    "mode": 292,
+    "sha256": "17c10b52c12c62d58d65a4e98297f8f210459b7316490fdfdfb1c64e7b0c0cdf"
+  },
+  "reconciliation": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/TREE-RECONCILIATION.json",
+    "bytes": 3698,
+    "mode": 292,
+    "sha256": "1c6e9ad570cf971f3e2f309434c658713f18884f3fd503b8cc6e9b040a6e815e"
+  },
+  "procedure": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/PROCEDURE.json",
+    "bytes": 4274,
+    "mode": 292,
+    "sha256": "2f842ee215a7ed5d2c9d5f42ad72aafdc2d6da89c9870079fce2f479f6fdf230"
+  },
+  "smoke": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/final-composition-readiness-20260829/reconciliation-v2/SMOKE-PROPOSAL.json",
+    "bytes": 1859,
+    "mode": 292,
+    "sha256": "e58aac8dd93a3b281cddac9e10699ef60af49686c2fbcf808be7f9bab9f1fe87"
+  },
+  "helperFiles": 1,
+  "helperInvocations": 1,
+  "child": {
+    "executable": "/usr/bin/git",
+    "args": [
+      "cat-file",
+      "--batch"
+    ],
+    "pid": 76469,
+    "exit": 0,
+    "signal": null,
+    "capturedBytes": 3384740
+  },
+  "knownStartsThroughHelper": 12,
+  "maximumKnownStarts": 24,
+  "conservativePeak": 3,
+  "maximumPeak": 3,
+  "capturedBytes": 3447197,
+  "retainedLogicalBytes": 3706123,
+  "publicationReserve": 16777216,
+  "captureMaximum": 25165824,
+  "workMaximum": 134217728,
+  "deadline": "2026-08-29T16:57:51Z",
+  "campaignEndpoint": "2026-08-29T18:02:36Z",
+  "priorFailuresPreserved": [
+    "c314acb2 canonicalization/refused-helper evidence",
+    "58ba544 TS2688 and failed emits",
+    "PIPESTATUS78 aggregate exit2 assertions; exact cause pending Plato"
+  ],
+  "product": 0,
+  "Workers": 0,
+  "compiler": 0,
+  "npm": 0,
+  "installs": 0,
+  "noFinalFreeze": true,
+  "noWorkingSourceEdits": true,
+  "exclusions": [
+    "Git internal physical storage",
+    "allocated disk blocks",
+    "RSS"
+  ]
+}

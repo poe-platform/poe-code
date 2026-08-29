@@ -1,0 +1,120 @@
+{
+  "wholeRepositoryTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+  "wholeRootBytes": 449,
+  "wholeRootSha256": "25c93df0685f4d93f94f3c130c029dc94475fed1e450a337c85d0affd49c3214",
+  "rootEntries": [
+    {
+      "mode": "100644",
+      "name": ".gitignore",
+      "blob": "4a3a638fbf6a2b84abfbe40693d3826a0b8763d8"
+    },
+    {
+      "mode": "100644",
+      "name": "AGENTS.md",
+      "blob": "d24f9e50fc271acbedf14c6bf415393572376622"
+    },
+    {
+      "mode": "100644",
+      "name": "README.md",
+      "blob": "d4618a2170f53ed8f6f20fe1a320ab32e84dab23"
+    },
+    {
+      "mode": "40000",
+      "name": "benchmarks",
+      "blob": "7fa3b10ccf8fbe017b733e72d67670a7f14f20a8"
+    },
+    {
+      "mode": "40000",
+      "name": "docs",
+      "blob": "c355bfc5f38585b92ff51636114c70d0c5afbc1a"
+    },
+    {
+      "mode": "100644",
+      "name": "package-lock.json",
+      "blob": "5d6562da663aa1b363c5ce5f101ed8469cece4da"
+    },
+    {
+      "mode": "100644",
+      "name": "package.json",
+      "blob": "623d2493b94afa7752d87232c8eb62fb61a2370f"
+    },
+    {
+      "mode": "40000",
+      "name": "scripts",
+      "blob": "a5e6fa9e394bc34030ce9cbd535c4f11eb8335dc"
+    },
+    {
+      "mode": "40000",
+      "name": "src",
+      "blob": "1dddba003fc16429efe896479d180bcb4d2d44b3"
+    },
+    {
+      "mode": "40000",
+      "name": "tests",
+      "blob": "10ce1b29cf93f29dba57d044e2b1352ccdc70eff"
+    },
+    {
+      "mode": "100644",
+      "name": "tsconfig.build.json",
+      "blob": "89e6b5617b949858c6e90953b561b38089c78dd7"
+    },
+    {
+      "mode": "100644",
+      "name": "tsconfig.json",
+      "blob": "6a5f0688c7e8ac1d63d62eef915997d2fcca31b6"
+    }
+  ],
+  "nonBuildRootEntries": [
+    {
+      "mode": "100644",
+      "name": ".gitignore",
+      "blob": "4a3a638fbf6a2b84abfbe40693d3826a0b8763d8"
+    },
+    {
+      "mode": "100644",
+      "name": "AGENTS.md",
+      "blob": "d24f9e50fc271acbedf14c6bf415393572376622"
+    },
+    {
+      "mode": "40000",
+      "name": "benchmarks",
+      "blob": "7fa3b10ccf8fbe017b733e72d67670a7f14f20a8"
+    },
+    {
+      "mode": "40000",
+      "name": "docs",
+      "blob": "c355bfc5f38585b92ff51636114c70d0c5afbc1a"
+    },
+    {
+      "mode": "100644",
+      "name": "package-lock.json",
+      "blob": "5d6562da663aa1b363c5ce5f101ed8469cece4da"
+    },
+    {
+      "mode": "40000",
+      "name": "scripts",
+      "blob": "a5e6fa9e394bc34030ce9cbd535c4f11eb8335dc"
+    },
+    {
+      "mode": "40000",
+      "name": "tests",
+      "blob": "10ce1b29cf93f29dba57d044e2b1352ccdc70eff"
+    }
+  ],
+  "selectedPathChecks": 309,
+  "witnessCount": 200,
+  "allWitnessTreesHashAndGitOrderVerified": true,
+  "baselineBuildInputProjectionTree": "c5e49e70c295d7e354eba53d1a91141ad701e3f6",
+  "explanation": "The original root preserves non-shipping repository entries; the reviewer rebuilt only the 309 build inputs. Different pathname domains, not corrupt input bytes or an ordering disagreement.",
+  "encoding": {
+    "names": "UTF-8, exact byte round-trip, slash separates tree levels",
+    "row": "ASCII octal mode + ASCII space + UTF-8 basename + NUL + raw 20-byte SHA1 object ID",
+    "directoryMode": "40000",
+    "fileMode": "100644 as individually bound",
+    "order": "unsigned UTF-8 basename bytes, compare directory names with trailing slash (Git tree ordering)",
+    "identity": "SHA1(ASCII tree + space + decimal byte count + NUL + concatenated entry bytes)",
+    "inputList": "full repository-relative UTF-8 pathname byte ordering; JSON.stringify of exact input rows for canonicalRowsSha256"
+  },
+  "preservedFailure": "../resolution.stderr",
+  "priorError": "Reviewer compared a full-repository derived root with a selected-build-input projection"
+}

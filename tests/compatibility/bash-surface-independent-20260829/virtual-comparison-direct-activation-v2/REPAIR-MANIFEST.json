@@ -1,0 +1,420 @@
+{
+  "schema": "final-census-versioned-repair-v1",
+  "original": {
+    "sourceCommit": "faebb8dc019a6920f56c47b7d48c2c8036b8f5f6",
+    "evidenceCommit": "b38463b727373e11261f05a43b580f6012112baf",
+    "sealSha256": "254e4d2bf3f12583c625b627b9230829f839745fb490abb8421b47d0fdc73781",
+    "scope": "tests/compatibility/bash-surface-independent-20260829/virtual-comparison-direct-activation-v1"
+  },
+  "rootReportedReviews": {
+    "mechanismAccept": "f690495782aef9b7d354e2612c6768cc2251403a",
+    "wiringHold": "cc84c2f0fa27f74df0af7fa6a21d2416367d2539"
+  },
+  "mapping": [
+    {
+      "path": "CANDIDATE-CLOSURE.json",
+      "original": {
+        "bytes": 1037,
+        "sha256": "9abf05556193781055c06b68b3b82fbbec4c4c00de42a83c009f4a2a9dc29102"
+      },
+      "successor": {
+        "bytes": 1037,
+        "sha256": "9abf05556193781055c06b68b3b82fbbec4c4c00de42a83c009f4a2a9dc29102"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "COMMAND-PLAN.json",
+      "original": {
+        "bytes": 276365,
+        "sha256": "a059c018cd445e93f5fec10b7903128006e748bfcb71f552f58bf94654b8394f"
+      },
+      "successor": {
+        "bytes": 276365,
+        "sha256": "38b71a12a800e1c3ff07a2db33aabeace73b15620ff0fad8032becd13028d38f"
+      },
+      "disposition": "versioned-delta"
+    },
+    {
+      "path": "DATA-CHECKS.json",
+      "original": {
+        "bytes": 2320,
+        "sha256": "974d2e139751ecf1967358b213c329f6e5f5fe939b6ce58622c513637ba3f4e0"
+      },
+      "successor": null,
+      "disposition": "historical-only-not-replayed"
+    },
+    {
+      "path": "LIMITS.json",
+      "original": {
+        "bytes": 555,
+        "sha256": "e970e2009cf812e3a88df56cc84643fc5411d6d0843b8e5fa554bf60788c342f"
+      },
+      "successor": {
+        "bytes": 555,
+        "sha256": "e970e2009cf812e3a88df56cc84643fc5411d6d0843b8e5fa554bf60788c342f"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "PREPROVISION-RECEIPT.json",
+      "original": {
+        "bytes": 335,
+        "sha256": "425f98c0bf9640af274c33a7a1ff5eadc1443f44e31873379d7f90e26133b738"
+      },
+      "successor": {
+        "bytes": 335,
+        "sha256": "369ee5a991a6d14d6c4e1bfd9daf5c4d5046d9a1c38f4072f12822e93cee73a8"
+      },
+      "disposition": "versioned-delta"
+    },
+    {
+      "path": "README.md",
+      "original": {
+        "bytes": 2922,
+        "sha256": "ee01c33c485a2e2d8881e43cbfd218eb142c1a3a1f10d82a9295af15b3c24cfc"
+      },
+      "successor": {
+        "bytes": 2250,
+        "sha256": "80949a252d4521fdbc2ddbb5f2c5a72a8cc0be9267fef4513a03b2ef2f9f6d10"
+      },
+      "disposition": "versioned-delta"
+    },
+    {
+      "path": "SOURCE-CAPSULE.json.gz.base64",
+      "original": {
+        "bytes": 1516833,
+        "sha256": "822a65c19b19d3c6373d7bd05af396cb5a731e49954102ec4ce935d8989f3754"
+      },
+      "successor": {
+        "bytes": 1516833,
+        "sha256": "822a65c19b19d3c6373d7bd05af396cb5a731e49954102ec4ce935d8989f3754"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "SOURCE-PROVENANCE.json",
+      "original": {
+        "bytes": 5575,
+        "sha256": "314ada7036fff47feb6c056e35497b374c0311bd367629170e7ec907533fedb5"
+      },
+      "successor": {
+        "bytes": 5575,
+        "sha256": "314ada7036fff47feb6c056e35497b374c0311bd367629170e7ec907533fedb5"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "TOOLS.json",
+      "original": {
+        "bytes": 51333,
+        "sha256": "cddc3188fdf926a9387039c3878a0e8e537e80c1332f48160242dd01458c4b1d"
+      },
+      "successor": {
+        "bytes": 51333,
+        "sha256": "cddc3188fdf926a9387039c3878a0e8e537e80c1332f48160242dd01458c4b1d"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "outer.mjs",
+      "original": {
+        "bytes": 6096,
+        "sha256": "a0e523a93301429496b6fe887fb4df803ec5bbb4139244b1400260cc77dfce9e"
+      },
+      "successor": {
+        "bytes": 6096,
+        "sha256": "4c836d1bdc703801966a328de7d6090599edf32263094dbbb1275125781f036e"
+      },
+      "disposition": "versioned-delta"
+    },
+    {
+      "path": "packet-io.mjs",
+      "original": {
+        "bytes": 1869,
+        "sha256": "c1a9b2b5831264dd9f58eae9fb1595256f3e6b858af5a68f2fdf7c9488222293"
+      },
+      "successor": {
+        "bytes": 1869,
+        "sha256": "c1a9b2b5831264dd9f58eae9fb1595256f3e6b858af5a68f2fdf7c9488222293"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/MATRIX.json",
+      "original": {
+        "bytes": 201975,
+        "sha256": "b7aa013cdc2d74a8ebdf400b4db1cc475479a13eb62aaa2303d8f28f1295c74e"
+      },
+      "successor": {
+        "bytes": 201975,
+        "sha256": "b7aa013cdc2d74a8ebdf400b4db1cc475479a13eb62aaa2303d8f28f1295c74e"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/NODE.json",
+      "original": {
+        "bytes": 304,
+        "sha256": "e676eb89a43070cef8b34bda26e167fe321911b7b41ec6d411a3daa303ce3a03"
+      },
+      "successor": {
+        "bytes": 304,
+        "sha256": "e676eb89a43070cef8b34bda26e167fe321911b7b41ec6d411a3daa303ce3a03"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/PACKAGE-MEMBERS.json",
+      "original": {
+        "bytes": 166933,
+        "sha256": "9800c6e7b6025c548c7b6be8376ca4804b5d3601115578c264ba7f7dd5b35011"
+      },
+      "successor": {
+        "bytes": 166933,
+        "sha256": "9800c6e7b6025c548c7b6be8376ca4804b5d3601115578c264ba7f7dd5b35011"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/SOURCE-MEMBERS.json",
+      "original": {
+        "bytes": 68225,
+        "sha256": "c9b257ad4471df5443ff5218f309db643d91ba943be18836bc9017cb2e3cdee3"
+      },
+      "successor": {
+        "bytes": 68225,
+        "sha256": "c9b257ad4471df5443ff5218f309db643d91ba943be18836bc9017cb2e3cdee3"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/STATIC-EDGES.json",
+      "original": {
+        "bytes": 31738,
+        "sha256": "cc55415de22f5acc7cfb0a4afa5a6e830eff66ffeeb8aab4464e6f4182832cf0"
+      },
+      "successor": {
+        "bytes": 31738,
+        "sha256": "cc55415de22f5acc7cfb0a4afa5a6e830eff66ffeeb8aab4464e6f4182832cf0"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/auth.mjs",
+      "original": {
+        "bytes": 3951,
+        "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+      },
+      "successor": {
+        "bytes": 3951,
+        "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/case-adapter.mjs",
+      "original": {
+        "bytes": 4448,
+        "sha256": "19fa37788d57472a67ca699f70d59abcb08aa8222b1ff45c6e204bbf3ba27b2e"
+      },
+      "successor": {
+        "bytes": 4448,
+        "sha256": "19fa37788d57472a67ca699f70d59abcb08aa8222b1ff45c6e204bbf3ba27b2e"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/case-driver.mjs",
+      "original": {
+        "bytes": 1504,
+        "sha256": "c443a3669cca52abebe86cf82afa2d74c19ac2a3aad1c0a73eab16cb2ac0480c"
+      },
+      "successor": {
+        "bytes": 1504,
+        "sha256": "c443a3669cca52abebe86cf82afa2d74c19ac2a3aad1c0a73eab16cb2ac0480c"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/case-launch.mjs",
+      "original": {
+        "bytes": 2722,
+        "sha256": "a19197b3048cd985f7db55f47f7a853c66e60c4b5df687ad3eadbdd927b8f746"
+      },
+      "successor": {
+        "bytes": 2722,
+        "sha256": "a19197b3048cd985f7db55f47f7a853c66e60c4b5df687ad3eadbdd927b8f746"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/data.mjs",
+      "original": {
+        "bytes": 3196,
+        "sha256": "603395125167a99419ceb198d35b6a51689e9580cb7a4affabdcc5ce15366b52"
+      },
+      "successor": {
+        "bytes": 3196,
+        "sha256": "603395125167a99419ceb198d35b6a51689e9580cb7a4affabdcc5ce15366b52"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/direct-child.mjs",
+      "original": {
+        "bytes": 4583,
+        "sha256": "7542288b4cae1649d80851785aa6369f36f8d57f4ca497cab6829443f70974ec"
+      },
+      "successor": {
+        "bytes": 4583,
+        "sha256": "7542288b4cae1649d80851785aa6369f36f8d57f4ca497cab6829443f70974ec"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/guard.mjs",
+      "original": {
+        "bytes": 2245,
+        "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9"
+      },
+      "successor": {
+        "bytes": 2245,
+        "sha256": "2459d87f4447024f6e622d38407cd72310cc95ecf914dc81a74839f47eb0b9a9"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/mechanism.mjs",
+      "original": {
+        "bytes": 2506,
+        "sha256": "dcfe9557af108fdd521d43a179286ca78d0320c11c0e3b9cb68193c34382bbf0"
+      },
+      "successor": {
+        "bytes": 2506,
+        "sha256": "dcfe9557af108fdd521d43a179286ca78d0320c11c0e3b9cb68193c34382bbf0"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/package-admission.mjs",
+      "original": {
+        "bytes": 3895,
+        "sha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6"
+      },
+      "successor": {
+        "bytes": 3895,
+        "sha256": "9ce5c2829716f8b0734ac1dcb0a571f758df8874ab5d6e450c4ec03a307094a6"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/parse-manifest.mjs",
+      "original": {
+        "bytes": 2860,
+        "sha256": "0dd49a2e6fa0d222ada2477937a482aed613f220f28bef1f790cb06b61270f61"
+      },
+      "successor": {
+        "bytes": 2860,
+        "sha256": "0dd49a2e6fa0d222ada2477937a482aed613f220f28bef1f790cb06b61270f61"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/profile.mjs",
+      "original": {
+        "bytes": 2114,
+        "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc"
+      },
+      "successor": {
+        "bytes": 2114,
+        "sha256": "731f3425f48c20b0c027de45f0df79739b63bba22a07faf9e71fe93f46e896cc"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "profile/setup.mjs",
+      "original": {
+        "bytes": 4088,
+        "sha256": "701f410894358b08830c545a430a47f38c00882f2bf3664235486da2f1d42628"
+      },
+      "successor": {
+        "bytes": 4088,
+        "sha256": "701f410894358b08830c545a430a47f38c00882f2bf3664235486da2f1d42628"
+      },
+      "disposition": "unchanged"
+    },
+    {
+      "path": "publication-admin.mjs",
+      "original": {
+        "bytes": 4027,
+        "sha256": "8b49cc6fc23df835ab3b173062762993b8fde1fb5cbc4b06bd2e2be2db055278"
+      },
+      "successor": {
+        "bytes": 4080,
+        "sha256": "6251514e58edd139751bfa94e38cb1dbbeb3c0055116a5d971eac610d1b7d994"
+      },
+      "disposition": "versioned-delta"
+    },
+    {
+      "path": "supervisor.mjs",
+      "original": {
+        "bytes": 11663,
+        "sha256": "aee84c8dc73dce7182ef6483dc5c757ccb5610b71e5d8cc9e96cf82f94623099"
+      },
+      "successor": {
+        "bytes": 11962,
+        "sha256": "2bde7e3d1ac042c562e4987f1f6ff272ff8cf82d4518872f09205b50440c0da2"
+      },
+      "disposition": "versioned-delta"
+    }
+  ],
+  "permittedBehaviorDelta": "final census and terminal publication independently guarded; raw presence not truthiness; new physical namespace/role hashes only",
+  "casePlanComparison": "Path-normalized and role-hash-excluded plan exactly equals original; all111 program SHA256s unchanged",
+  "rawReasonBoundary": "Pure finalizer preserves Object.is for undefined/null/false/0; errorRecord only at serialized public evidence boundary",
+  "finalizationSecondary": "Explicit presence, phase and serialized reason; existing earlier secondary records retained separately",
+  "unchangedActual": {
+    "candidate": "bf079ada185a79aec864b068f3738ddc5520822e",
+    "archive": {
+      "path": "/private/tmp/strict-n14-independent-active-1AKd2V/strict-extension-independent-iRrorS/virtual-bash-0.0.0.tgz",
+      "bytes": 872281,
+      "sha256": "3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49"
+    },
+    "limits": {
+      "inclusiveMs": 1800000,
+      "knownOSMaximum": 144,
+      "knownPeak": 3,
+      "captureBytes": 134217728,
+      "workingBytes": 536870912,
+      "setupAggregateMs": 180000,
+      "typecheckAggregateMs": 180000,
+      "finalizationTailMs": 120000,
+      "caseDriverAbortMs": 3000,
+      "caseProcessMs": 8000,
+      "termGraceMs": 2000,
+      "killGraceMs": 1000,
+      "perStreamBytes": 65536,
+      "customLoaderThreads": 0,
+      "productWorkers": 0,
+      "caseSubprocessPermission": 0,
+      "administrativeRoleAllowance": 28,
+      "ownerRoles": 1,
+      "buildRoles": 1,
+      "typecheckRoles": 3,
+      "caseRoles": 111
+    },
+    "productCalls": 111,
+    "status": "UNRUN"
+  },
+  "phase": {
+    "started": 1788000941179,
+    "deadline": 1788001841179,
+    "maximumKnownOS": 32,
+    "knownPeak": 3,
+    "captureBytes": 33554432,
+    "workingBytes": 134217728
+  },
+  "presealControlGroups": 6,
+  "controlStatus": "UNRUN at source freeze",
+  "runtimeAuthority": "NONE; ROOT/review templates PENDING"
+}

@@ -1,0 +1,23 @@
+{
+  "inclusiveMs": 1800000,
+  "knownOSMaximum": 144,
+  "knownPeak": 3,
+  "captureBytes": 134217728,
+  "workingBytes": 536870912,
+  "setupAggregateMs": 180000,
+  "typecheckAggregateMs": 180000,
+  "finalizationTailMs": 120000,
+  "caseDriverAbortMs": 3000,
+  "caseProcessMs": 8000,
+  "termGraceMs": 2000,
+  "killGraceMs": 1000,
+  "perStreamBytes": 65536,
+  "customLoaderThreads": 0,
+  "productWorkers": 0,
+  "caseSubprocessPermission": 0,
+  "administrativeRoleAllowance": 28,
+  "ownerRoles": 1,
+  "buildRoles": 1,
+  "typecheckRoles": 3,
+  "caseRoles": 111
+}

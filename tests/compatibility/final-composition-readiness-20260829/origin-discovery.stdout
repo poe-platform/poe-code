@@ -1,0 +1,40 @@
+
+SCOPED EVIDENCE DIRECTORIES
+tests/compatibility/bash-function-pipestatus-native-preflight-review-20260829
+tests/compatibility/bash-function-pipestatus-native-reference-20260829
+tests/compatibility/bash-pipestatus-typed-native-independent-20260829
+tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829
+tests/compatibility/bash-pipestatus-typed-native-reference-20260829
+tests/compatibility/bash-function-keyword-actual-independent-20260829
+tests/compatibility/bash-function-keyword-author-20260829
+tests/compatibility/bash-function-keyword-independent-20260829
+tests/compatibility/bash-function-keyword-k08-actual-independent-20260829
+tests/compatibility/bash-ere-core-producer-independent-20260829
+tests/compatibility/bash-ere-core-public-pilot-preparation-20260829
+tests/compatibility/bash-ere-core-transport-rebind-20260829
+tests/compatibility/bash-ere-core-writer-independent-20260829
+
+REVISION OBJECT TYPES
+3adc676a missing
+e013f817fd7700c59a144c395c80dc25856e4157 commit 274
+72187e5abc1179883f85a63e1ef558f2e141c542 commit 277
+46611a5b67ad7af276154421ac7f50dd536ec570 commit 280
+4abbdeec8e34de88ed2cf7bd32be9c06b413c631 commit 281
+52b6711e888361015acc38017be2a6b08509d8a7 commit 284
+ffac894aa98b8cd98476b8ea109ef2e2425c2a07 commit 269
+73d9e74d44b63a2bf853090be155362c2e228aa0 commit 267
+43050e861bfeb6dcc8c3e97784b80ce18dc8f793 commit 275
+5c2ef0795ca402344b5b0d28869b64db46d73b86 commit 272
+
+SCOPED TRACKED CONFIG PATHS
+AGENTS.md
+package.json
+scripts/typecheck-consumers.mjs
+scripts/typecheck-inputs.mjs
+scripts/typecheck-staged-inputs.mjs
+scripts/typecheck.mjs
+scripts/verify-current-consumers.mjs
+scripts/verify-qualified-release.mjs
+scripts/verify-whole-gate.mjs
+tsconfig.build.json
+tsconfig.json

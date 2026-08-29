@@ -1,0 +1,392 @@
+[
+  {
+    "path": "tests/shell/ansi-words.test.ts",
+    "size": 3417,
+    "sha256": "879708ac4acb09bce02382160fa2525a1d81d10de01a96b0fcf4917477da7ab8"
+  },
+  {
+    "path": "tests/shell/bom-capture.test.ts",
+    "size": 9072,
+    "sha256": "d5433e05d3bf3b13399aac376c64471c2338f9fc5c87e6bbc6743cb571e5dcfb"
+  },
+  {
+    "path": "tests/shell/case.test.ts",
+    "size": 4661,
+    "sha256": "9672000fe4ea5e9d4d2b969c6c964a5f202d587adc16363515625348b678d470"
+  },
+  {
+    "path": "tests/shell/core.test.ts",
+    "size": 8121,
+    "sha256": "73f978e9461f0bfe1df6ba74af0fba3d557dea71501683d4e1e242ba6e6685c1"
+  },
+  {
+    "path": "tests/shell/deferred-heredoc.test.ts",
+    "size": 4198,
+    "sha256": "a89785e0438f0bba2eafc238ad31428fa8e4584bc898f6a010607b9dfa6f2d68"
+  },
+  {
+    "path": "tests/shell/descriptor-inheritance.test.ts",
+    "size": 2538,
+    "sha256": "a6a9452b417044d9466d490b7ee4f6b443571988c0c1c184cff7f58f289bdde0"
+  },
+  {
+    "path": "tests/shell/descriptor-moves.test.ts",
+    "size": 5124,
+    "sha256": "6d505b35287b68ea3bd2b2d8822846f01599f7991c673e73c34bf1f985e4b6e4"
+  },
+  {
+    "path": "tests/shell/diagnostic-context-bounds.test.ts",
+    "size": 875,
+    "sha256": "3ea904e89a8eeccbe45eeed7b6242742944ddc2d7b5026c9ad76ae5fee81e648"
+  },
+  {
+    "path": "tests/shell/diagnostic-context.test.ts",
+    "size": 724,
+    "sha256": "3c02fe818c8da28829c0266b2bef011fb332b33ff2aed14e7f72ec9577bbe185"
+  },
+  {
+    "path": "tests/shell/diagnostic-regressions.test.ts",
+    "size": 1809,
+    "sha256": "006380415e5e359b40917ef79535a3ed55641fe641d33a48774335d3646de264"
+  },
+  {
+    "path": "tests/shell/env-replacement-bounds.test.ts",
+    "size": 863,
+    "sha256": "c78e88edec0c9baaa2d00e7b84921139f12d78965f2bc3fb79a0becbd26033a3"
+  },
+  {
+    "path": "tests/shell/env-replacement.test.ts",
+    "size": 8288,
+    "sha256": "089d0a4157b35602c85e0ad7d12cca3c699487e4a512b2bbc8ff6c7399f066f1"
+  },
+  {
+    "path": "tests/shell/env-shebang-host.test.ts",
+    "size": 14750,
+    "sha256": "1d94c3d9bf4008915c85f373c0e14b1acc0818f4c0f7a850d4ddabb51d669537"
+  },
+  {
+    "path": "tests/shell/env-shebang.test.ts",
+    "size": 30087,
+    "sha256": "ac45453fa01328c5eb783952c384446d68a8cceaaa39e54b2b23c6a74d1a4341"
+  },
+  {
+    "path": "tests/shell/env-split-host.test.ts",
+    "size": 2493,
+    "sha256": "f0a9ff72bb7a9565b6441c5a1126d8f4d4719ccbbaa3e31a67ccaec679ff227a"
+  },
+  {
+    "path": "tests/shell/env-split-limits.test.ts",
+    "size": 1744,
+    "sha256": "fba477e846b9a5d827c8cd8a12e9c3d329ccba9907e5e8cb3cd6465668b82ff8"
+  },
+  {
+    "path": "tests/shell/env-split-native.test.ts",
+    "size": 1636,
+    "sha256": "20191b28aaeb2abf249814f709722f9812840d2faef2afd46a7a29382487b433"
+  },
+  {
+    "path": "tests/shell/errexit-extra.test.ts",
+    "size": 699,
+    "sha256": "6015f0864311eef87bf94fe3bc5aebc05d234ccabcb1f50fddf05cd452941c4e"
+  },
+  {
+    "path": "tests/shell/errexit-host.test.ts",
+    "size": 9140,
+    "sha256": "38a6372d6e518338a2379bef1b58cada12e5c06aceafc59b40e5afeda9fa2d36"
+  },
+  {
+    "path": "tests/shell/errexit-native.test.ts",
+    "size": 663,
+    "sha256": "c0c5974c0b072e56a77456cbc740cd1d205a537d527b4f20f5b3b2edf9dcea83"
+  },
+  {
+    "path": "tests/shell/expanded-gaps-bounds.test.ts",
+    "size": 747,
+    "sha256": "a73800b64c82581641f62b183fc2d79e2314b819cd38c67a3376ca2fec5241ff"
+  },
+  {
+    "path": "tests/shell/expanded-gaps-env-host.test.ts",
+    "size": 1955,
+    "sha256": "d01394e6938cfc4758c6ee3c88a4f0660b0f6cf0aa2596a181ad71a26216628e"
+  },
+  {
+    "path": "tests/shell/expanded-gaps-env.test.ts",
+    "size": 781,
+    "sha256": "d18c41b71991ad27d0ac1157e3783e3b84acfb0dd61718b89ba0c7145ab0736f"
+  },
+  {
+    "path": "tests/shell/expanded-gaps-fallback-host.test.ts",
+    "size": 2095,
+    "sha256": "73e77cc4788e67ea1769c5a060e5bc92e86fb01845d10ea747a65d03a76759a0"
+  },
+  {
+    "path": "tests/shell/expanded-gaps-fallback.test.ts",
+    "size": 786,
+    "sha256": "5b82097129f02f25cc30afd60bfb3f42b30eff2d9d88e71ff8a64e15fb2f2bec"
+  },
+  {
+    "path": "tests/shell/expanded-gaps-parameter.test.ts",
+    "size": 787,
+    "sha256": "ac71efa4eb937c54eb3d4bd9605ce837e6e5a2c5e0030fe8cf1c0fa95ca1a0fc"
+  },
+  {
+    "path": "tests/shell/fatal-diagnostics.test.ts",
+    "size": 1058,
+    "sha256": "1ca21d05e9a3caf6d365b7b7b89620b1ca866b86d68f8866516bc378638f13e0"
+  },
+  {
+    "path": "tests/shell/fatal-expansion.test.ts",
+    "size": 2381,
+    "sha256": "1e06b0353dccedbeaedb62a18b5875036ca407fd042db4503c79ce272e3c6e4d"
+  },
+  {
+    "path": "tests/shell/file-shortcut.test.ts",
+    "size": 4090,
+    "sha256": "48c16e8e636d0f6e4003642ff4d4546bda2c9b0b8b96e0fd73dbd4bade705b47"
+  },
+  {
+    "path": "tests/shell/fs-error-diagnostics.test.ts",
+    "size": 6791,
+    "sha256": "5ac1508bc8416b6de0824577dab5ae518fad28bbf05f7c2e9fd5bc01c05befea"
+  },
+  {
+    "path": "tests/shell/glob-budget.test.ts",
+    "size": 1743,
+    "sha256": "103188376375d16e335edef7de7ae4fa1c24e51a1c46ee6deedb51d4e98b5b50"
+  },
+  {
+    "path": "tests/shell/here-string.test.ts",
+    "size": 6884,
+    "sha256": "083f1185e1f763ef01aca1f12b4922e3a70cc4a638b77733b2d02abac3e7815f"
+  },
+  {
+    "path": "tests/shell/heredoc.test.ts",
+    "size": 9973,
+    "sha256": "769b452ba51a3c0a42665751607d9b39c5e8e1becddad061ad6bbb032c2518b6"
+  },
+  {
+    "path": "tests/shell/inline-input-fatal-scope.test.ts",
+    "size": 3468,
+    "sha256": "75b0f753f73134911e789562942fed56d516b4dd3bcd9f6846c16b9265960d1a"
+  },
+  {
+    "path": "tests/shell/inline-input-independent.test.ts",
+    "size": 6797,
+    "sha256": "2c422ca644159eeb34f9df8f5f7aac7440813220d1d8f9901fdb1ab2272ed889"
+  },
+  {
+    "path": "tests/shell/inline-input-limits.test.ts",
+    "size": 4131,
+    "sha256": "5a4b86562564b8b3346dde2cb4b28fad81aa4e5312ae569c58e6fcc8e7b2102f"
+  },
+  {
+    "path": "tests/shell/inline-input-scope.test.ts",
+    "size": 2424,
+    "sha256": "13c131f4f1fcc2843ee779a2a9f5e246cede18aabd21f93adc7fccf777799646"
+  },
+  {
+    "path": "tests/shell/input-return-cleanup.test.ts",
+    "size": 10828,
+    "sha256": "f2b0543ab8a6a3a02935d384a19a2a8a25f681286507cbc54d6c42eefad3fe8b"
+  },
+  {
+    "path": "tests/shell/input-units.test.ts",
+    "size": 1626,
+    "sha256": "f1b6917a96cd9a58e6cc3bc79d8ef539616cfbffa976d7eb7b3a9f5941ea4a8c"
+  },
+  {
+    "path": "tests/shell/invocation-cleanup-lifecycle.test.ts",
+    "size": 15642,
+    "sha256": "e61b1d76d32ba85c97de6ed73510adea26a9a6ef40b21d1ebce4ea5eb1be2dca"
+  },
+  {
+    "path": "tests/shell/invocation-cleanup-pipeline.test.ts",
+    "size": 7431,
+    "sha256": "80e943b54723fe2e72894ee3cce6920039b1e99131faa0399efecd033e166987"
+  },
+  {
+    "path": "tests/shell/invocation-cleanup-public.test.ts",
+    "size": 3157,
+    "sha256": "04d89950adb9eae86407154f913be7b9c257df16ff55fc377a1006c456642568"
+  },
+  {
+    "path": "tests/shell/invocation-cleanup-setup.test.ts",
+    "size": 8823,
+    "sha256": "6b39db101c9ed9f1cf6cd4b79ba195a96d885aaee425adc5f9330af3a126bf5e"
+  },
+  {
+    "path": "tests/shell/invocation-cleanup.test.ts",
+    "size": 5113,
+    "sha256": "5574c28fac6a1f69c2d0e1e0ff2f749fef13f5c0df6bd617295a0359fad417c0"
+  },
+  {
+    "path": "tests/shell/invocation-closure-discovery.test.ts",
+    "size": 6037,
+    "sha256": "ba0ad2beba49d9f6e715b1928bbfebb5495a496b368630384d556180776eafbc"
+  },
+  {
+    "path": "tests/shell/invocation-closure-read.test.ts",
+    "size": 4264,
+    "sha256": "80894abd1a7514f92dde935c5092ea341edc1955251d0a520c32f9ed8d5138d0"
+  },
+  {
+    "path": "tests/shell/invocation-closure-sh.test.ts",
+    "size": 5429,
+    "sha256": "52d7696d5c46745204cb9472437de7e35fbe7543eaa87b2e88e54e430ecb760b"
+  },
+  {
+    "path": "tests/shell/invocation-discovery-fixes.test.ts",
+    "size": 6902,
+    "sha256": "602cc5a95845bd22ed547a3305f58732adde5ff27817ba7918467bf5e411a0aa"
+  },
+  {
+    "path": "tests/shell/invocation-modes.test.ts",
+    "size": 13840,
+    "sha256": "cc78026cb6c000faedfe1d8edbd93436effb072b5c5e9462dd0af89c74348ac1"
+  },
+  {
+    "path": "tests/shell/invoke.test.ts",
+    "size": 4853,
+    "sha256": "314848095b66f3911a755e00dc3fb0bcb1286d35f285f72d7a29723f3f8ac310"
+  },
+  {
+    "path": "tests/shell/lifecycle.test.ts",
+    "size": 5318,
+    "sha256": "f6dcd75da9ed5ffdd74d51c6473541af91c65f47085e27a48a042e6e3dc8002d"
+  },
+  {
+    "path": "tests/shell/newline-patterns.test.ts",
+    "size": 1656,
+    "sha256": "782a2b8703ab701884849548a4263a699355f6005e970199a89961a09a96d7aa"
+  },
+  {
+    "path": "tests/shell/output-accounting-bounds.test.ts",
+    "size": 748,
+    "sha256": "7af1ed8652f1b30d594a61c8b10291ae15caed24d8fb19ea73405008ff54b1ce"
+  },
+  {
+    "path": "tests/shell/output-accounting.test.ts",
+    "size": 7433,
+    "sha256": "6705878fb8b7c1394e0d31b18ba200c90de341d2c7d9b11f7aae1ff882972778"
+  },
+  {
+    "path": "tests/shell/parser-regressions.test.ts",
+    "size": 5120,
+    "sha256": "472aaeb11f94d053a03caf14736033458ba7a0564fe0508c5aefc3f74e601761"
+  },
+  {
+    "path": "tests/shell/pathname-classes.test.ts",
+    "size": 2078,
+    "sha256": "aeea80341b801b73994a10a31e263adae79b877138b93a9b1df6b7e05e84aa4b"
+  },
+  {
+    "path": "tests/shell/pipeline-effects.test.ts",
+    "size": 2573,
+    "sha256": "1d822ac591af947cb9a65bc65a8abe0f36f132863c5ae9e7d824d177453468df"
+  },
+  {
+    "path": "tests/shell/positional-ifs.test.ts",
+    "size": 712,
+    "sha256": "af123530a22b00a2bae42bf77f12e68c7ccc1c0bc6965841d1f9234cfecf2592"
+  },
+  {
+    "path": "tests/shell/quoted-patterns.test.ts",
+    "size": 1183,
+    "sha256": "606c60e3ea77a305d228d8b6490e3fe834225fb1d2d2f60c47383e0188e0a565"
+  },
+  {
+    "path": "tests/shell/read-fields.test.ts",
+    "size": 2081,
+    "sha256": "a573d136bd1d50b86d21d5cdf87fe823667d4c27115e2b7b0b6cf4c50d761ab5"
+  },
+  {
+    "path": "tests/shell/read-options.test.ts",
+    "size": 5424,
+    "sha256": "2f53869af5ec03039aad1d9bb3bf45e33c06bf1462d76e8a752541cf39b754f8"
+  },
+  {
+    "path": "tests/shell/remote-close.test.ts",
+    "size": 3270,
+    "sha256": "df8b0057e07aee50ff1072edab156c5b72ee54412524d6d3d1e3c76abdc49986"
+  },
+  {
+    "path": "tests/shell/review-lifecycle.test.ts",
+    "size": 5980,
+    "sha256": "d8f3ce1d089addee37329076e7ad79eed82ee24e795e09165d1a19417766e7b2"
+  },
+  {
+    "path": "tests/shell/runtime-regressions.test.ts",
+    "size": 8123,
+    "sha256": "6667018d27bc26dcbf0b2dd7dae19e02081ece2689b33683d8c5fb4a8496a5b5"
+  },
+  {
+    "path": "tests/shell/script-entrypoint.test.ts",
+    "size": 18632,
+    "sha256": "0cff83ce0c7403a3e8c97debdb6d2d7de4a0cf38a4a40c8c740f3c2bfdfbf2df"
+  },
+  {
+    "path": "tests/shell/source-dot-eval-diagnostics.test.ts",
+    "size": 602,
+    "sha256": "43c47c6ded2d2a5d0f62a34b8c0c4240bf1ff09629666f59f39e5a5c9680ee8f"
+  },
+  {
+    "path": "tests/shell/source-dot-eval-eval-host.test.ts",
+    "size": 653,
+    "sha256": "cc055f2d81d289175ad9bcd87f2fab7c75ad5088d65484fd4b1cce25619be9bc"
+  },
+  {
+    "path": "tests/shell/source-dot-eval-eval.test.ts",
+    "size": 799,
+    "sha256": "6ded6b6c37d5f495f8b0a0c28a0c7924cb3ffba2adc87116966f318da07233c3"
+  },
+  {
+    "path": "tests/shell/source-dot-eval-source-host.test.ts",
+    "size": 664,
+    "sha256": "00a146e9a164d0ea6427e2bb7cc91c7e38ccb2ef8ea1717f913101cf2abddd17"
+  },
+  {
+    "path": "tests/shell/source-dot-eval-source.test.ts",
+    "size": 807,
+    "sha256": "9b90d7b30120e76481c3bcab4bd639117fc951fb7610eca6908277fb1456a969"
+  },
+  {
+    "path": "tests/shell/stdin-origin.test.ts",
+    "size": 10438,
+    "sha256": "02c14713e81afb384913aeb84703a7551aabab3f941570d5a9ae36cc47b3a585"
+  },
+  {
+    "path": "tests/shell/streaming.test.ts",
+    "size": 6161,
+    "sha256": "cfd61d72b7b7a33081e43c5f96dbe7c1161e27e72d6057489394283608ffe585"
+  },
+  {
+    "path": "tests/shell/substitution-nul.test.ts",
+    "size": 1366,
+    "sha256": "3a9ef28345586bd79d2eb478a29966ab86770623177a9edd4b9bc47eb55ae3d1"
+  },
+  {
+    "path": "tests/shell/substring-bounds.test.ts",
+    "size": 862,
+    "sha256": "db4eb6693e4208e92b00016ec3b330da59f50efb475be5ce823f764839e01a61"
+  },
+  {
+    "path": "tests/shell/substring-positional.test.ts",
+    "size": 778,
+    "sha256": "53a049eac0848a10121f34f1a83c4e939269c6243560b9d34c7ef8868f286717"
+  },
+  {
+    "path": "tests/shell/substring.test.ts",
+    "size": 1087,
+    "sha256": "93a862c9a96ec229720c828bf2147c521beab85c833b74b15acd5491b9b0a8af"
+  },
+  {
+    "path": "tests/shell/unsupported-options.test.ts",
+    "size": 1561,
+    "sha256": "9541fa2e990a74f9cd26c0c78b9b3eebcc316c671e4b756ba89581fef0308cda"
+  },
+  {
+    "path": "tests/shell/variable-scope.test.ts",
+    "size": 1414,
+    "sha256": "17b790ccaed68150e51c550c40ac94e337d379b507ff26290998edc87fcb675f"
+  }
+]

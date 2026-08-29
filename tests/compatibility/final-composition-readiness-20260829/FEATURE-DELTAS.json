@@ -1,0 +1,601 @@
+[
+  {
+    "feature": "ere-core",
+    "commit": "e013f817fd7700c59a144c395c80dc25856e4157",
+    "parent": "a9bd2aa67c59928e2f798ff3594fa30bb6d35f28",
+    "subject": "feat(shell): prepare private ERE integration source and type seal",
+    "changed": [
+      {
+        "path": "src/shell/conditional.ts",
+        "feature": "ere-core",
+        "commit": "e013f817fd7700c59a144c395c80dc25856e4157",
+        "parent": "a9bd2aa67c59928e2f798ff3594fa30bb6d35f28",
+        "before": {
+          "path": "src/shell/conditional.ts",
+          "mode": "100644",
+          "blob": "caab6172df5b8e5bad2d1db007b156f067e295ad",
+          "size": 8890,
+          "sha256": "47dc81401b2c88f9e422fbce4b55734722aea594385d8b394eeba87df16928f0"
+        },
+        "after": {
+          "path": "src/shell/conditional.ts",
+          "mode": "100644",
+          "blob": "45aa9dda1fb3eaa22fadbd45dda53db38fa6faa2",
+          "size": 9130,
+          "sha256": "60de623fc278fb16990c0a9f191ed4ec42c5dc25d3c5d0c096e1142352031f77"
+        },
+        "working": {
+          "path": "src/shell/conditional.ts",
+          "mode": "100644",
+          "indexBlob": "45aa9dda1fb3eaa22fadbd45dda53db38fa6faa2",
+          "workingBlob": "45aa9dda1fb3eaa22fadbd45dda53db38fa6faa2",
+          "size": 9130,
+          "sha256": "60de623fc278fb16990c0a9f191ed4ec42c5dc25d3c5d0c096e1142352031f77",
+          "differsFromIndex": false
+        },
+        "status": "EXACT_ACCEPTED_VERSION"
+      },
+      {
+        "path": "src/shell/parser.ts",
+        "feature": "ere-core",
+        "commit": "e013f817fd7700c59a144c395c80dc25856e4157",
+        "parent": "a9bd2aa67c59928e2f798ff3594fa30bb6d35f28",
+        "before": {
+          "path": "src/shell/parser.ts",
+          "mode": "100644",
+          "blob": "27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe",
+          "size": 42620,
+          "sha256": "5a927b2c93dc62c8ca74e8f16c8e3211022b244916faa2c0c4ce1191930a9690"
+        },
+        "after": {
+          "path": "src/shell/parser.ts",
+          "mode": "100644",
+          "blob": "c9065ec21a934b5ab4197e80c620b432f7b060cb",
+          "size": 44045,
+          "sha256": "733396745b510a5d76fc83b7c1a6eb51e512e3941585786652a524a28b36686c"
+        },
+        "working": {
+          "path": "src/shell/parser.ts",
+          "mode": "100644",
+          "indexBlob": "8072ffd47be227c39e5725d3ffae36f355c6b984",
+          "workingBlob": "8072ffd47be227c39e5725d3ffae36f355c6b984",
+          "size": 44537,
+          "sha256": "038b5ba63429b7f190295bd8aacc096f31d5222a5a0a280542a081b17bdc476a",
+          "differsFromIndex": false
+        },
+        "status": "DIFFERS_REQUIRES_HUNK_REVIEW"
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "feature": "ere-core",
+        "commit": "e013f817fd7700c59a144c395c80dc25856e4157",
+        "parent": "a9bd2aa67c59928e2f798ff3594fa30bb6d35f28",
+        "before": {
+          "path": "src/shell/runtime.ts",
+          "mode": "100644",
+          "blob": "df6b2c0dfad8d7412f93f434d07a20b2b9375a86",
+          "size": 203623,
+          "sha256": "4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058"
+        },
+        "after": {
+          "path": "src/shell/runtime.ts",
+          "mode": "100644",
+          "blob": "4e5c0747a564efa2fb19f8bbe72fa256b9a0ed5c",
+          "size": 210813,
+          "sha256": "0c17850b1ceb4f09eec5458315dbb08433aa01721cf1b20fe7385481a20992e1"
+        },
+        "working": {
+          "path": "src/shell/runtime.ts",
+          "mode": "100644",
+          "indexBlob": "f21ed950fb8a96318e7e34f5d41f3ca2522dc138",
+          "workingBlob": "f21ed950fb8a96318e7e34f5d41f3ca2522dc138",
+          "size": 214992,
+          "sha256": "4265d397ae45c686ec564828b019237a00286ad75ec212f0668667a89149fd42",
+          "differsFromIndex": false
+        },
+        "status": "DIFFERS_REQUIRES_HUNK_REVIEW"
+      },
+      {
+        "path": "src/shell/shell.ts",
+        "feature": "ere-core",
+        "commit": "e013f817fd7700c59a144c395c80dc25856e4157",
+        "parent": "a9bd2aa67c59928e2f798ff3594fa30bb6d35f28",
+        "before": {
+          "path": "src/shell/shell.ts",
+          "mode": "100644",
+          "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+          "size": 15081,
+          "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba"
+        },
+        "after": {
+          "path": "src/shell/shell.ts",
+          "mode": "100644",
+          "blob": "08e332c471d01fe5eabfb3403f885e6090a43e9a",
+          "size": 15121,
+          "sha256": "6af40022b4648756450ce1c9582ab3d0be8de4b128f12a5c36c6dab56fe0eb9b"
+        },
+        "working": {
+          "path": "src/shell/shell.ts",
+          "mode": "100644",
+          "indexBlob": "08e332c471d01fe5eabfb3403f885e6090a43e9a",
+          "workingBlob": "08e332c471d01fe5eabfb3403f885e6090a43e9a",
+          "size": 15121,
+          "sha256": "6af40022b4648756450ce1c9582ab3d0be8de4b128f12a5c36c6dab56fe0eb9b",
+          "differsFromIndex": false
+        },
+        "status": "EXACT_ACCEPTED_VERSION"
+      }
+    ]
+  },
+  {
+    "feature": "ere-engine",
+    "commit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+    "parent": "83f750e57470546a95782cb9ce54a81d4900127a",
+    "subject": "fix: reset descendant ERE reporting without clearing ranking history",
+    "changed": [
+      {
+        "path": "src/commands/regex-execution/ere/matcher.ts",
+        "feature": "ere-engine",
+        "commit": "72187e5abc1179883f85a63e1ef558f2e141c542",
+        "parent": "83f750e57470546a95782cb9ce54a81d4900127a",
+        "before": {
+          "path": "src/commands/regex-execution/ere/matcher.ts",
+          "mode": "100644",
+          "blob": "4999c609ebef6c7c750cf77b01b3664ac0d9c910",
+          "size": 8543,
+          "sha256": "455c506467353c96eea0d55349c04c013be8ee53d6f8282982a9dd5d438871e8"
+        },
+        "after": {
+          "path": "src/commands/regex-execution/ere/matcher.ts",
+          "mode": "100644",
+          "blob": "c2b1e086b61c92a740dbb7f0bdf43b5be0bf27cf",
+          "size": 9759,
+          "sha256": "89aa1e08536cd30ea77b5a488a5e1374813a55787d4738aca80d4f4fa341362a"
+        },
+        "working": {
+          "path": "src/commands/regex-execution/ere/matcher.ts",
+          "mode": "100644",
+          "indexBlob": "c2b1e086b61c92a740dbb7f0bdf43b5be0bf27cf",
+          "workingBlob": "c2b1e086b61c92a740dbb7f0bdf43b5be0bf27cf",
+          "size": 9759,
+          "sha256": "89aa1e08536cd30ea77b5a488a5e1374813a55787d4738aca80d4f4fa341362a",
+          "differsFromIndex": false
+        },
+        "status": "EXACT_ACCEPTED_VERSION"
+      }
+    ]
+  },
+  {
+    "feature": "ere-transport",
+    "commit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+    "parent": "5c45aced892ede0ddecfaa196dff71c6556adf75",
+    "subject": "fix private ERE Worker validation work prepayment (S-C01)",
+    "changed": [
+      {
+        "path": "src/commands/regex-execution/ere/transport/accounting.ts",
+        "feature": "ere-transport",
+        "commit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+        "parent": "5c45aced892ede0ddecfaa196dff71c6556adf75",
+        "before": {
+          "path": "src/commands/regex-execution/ere/transport/accounting.ts",
+          "mode": "100644",
+          "blob": "f6c8ea489ff6adff5aad577753e1141f6cbc7305",
+          "size": 6780,
+          "sha256": "ac027226bbfc3851b4db3781ade874f7acceefc006d1b403f05df4812298a144"
+        },
+        "after": {
+          "path": "src/commands/regex-execution/ere/transport/accounting.ts",
+          "mode": "100644",
+          "blob": "e4534f7aa145f7b1ba6a476b175b522e0acbceaa",
+          "size": 7115,
+          "sha256": "66bab552db94e11764dad9e91d2dfb61c7e9655e2f1f0babdd75bd41431ca3a0"
+        },
+        "working": {
+          "path": "src/commands/regex-execution/ere/transport/accounting.ts",
+          "mode": "100644",
+          "indexBlob": "e4534f7aa145f7b1ba6a476b175b522e0acbceaa",
+          "workingBlob": "e4534f7aa145f7b1ba6a476b175b522e0acbceaa",
+          "size": 7115,
+          "sha256": "66bab552db94e11764dad9e91d2dfb61c7e9655e2f1f0babdd75bd41431ca3a0",
+          "differsFromIndex": false
+        },
+        "status": "EXACT_ACCEPTED_VERSION"
+      },
+      {
+        "path": "src/commands/regex-execution/ere/transport/root.ts",
+        "feature": "ere-transport",
+        "commit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+        "parent": "5c45aced892ede0ddecfaa196dff71c6556adf75",
+        "before": {
+          "path": "src/commands/regex-execution/ere/transport/root.ts",
+          "mode": "100644",
+          "blob": "47293e5221cba40be652132cccbd8c148bb08faa",
+          "size": 12107,
+          "sha256": "9e0496ee8113ffb0d6a1e1044cdc04e72c2932b9cc9bcc154d641b5fbf49efd7"
+        },
+        "after": {
+          "path": "src/commands/regex-execution/ere/transport/root.ts",
+          "mode": "100644",
+          "blob": "0e7c7ab6fc007813baf1afccd4251416462b9fde",
+          "size": 12329,
+          "sha256": "1a0ac9feddf151a3ab2e2d6432dca259a7c0c93136adbc86bbac7627621e733b"
+        },
+        "working": {
+          "path": "src/commands/regex-execution/ere/transport/root.ts",
+          "mode": "100644",
+          "indexBlob": "fb608736efd9aa63675521659f98b4b212d5b970",
+          "workingBlob": "fb608736efd9aa63675521659f98b4b212d5b970",
+          "size": 13958,
+          "sha256": "32ee1931ed070ba9b169a97d4ebbd705e77562884da5d6ecde5b529544d0f4cb",
+          "differsFromIndex": false
+        },
+        "status": "DIFFERS_REQUIRES_HUNK_REVIEW"
+      },
+      {
+        "path": "src/commands/regex-execution/ere/transport/validation.ts",
+        "feature": "ere-transport",
+        "commit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+        "parent": "5c45aced892ede0ddecfaa196dff71c6556adf75",
+        "before": {
+          "path": "src/commands/regex-execution/ere/transport/validation.ts",
+          "mode": "100644",
+          "blob": "df1964e3b8e1d5c461b911faa483656c7a4bd26e",
+          "size": 12676,
+          "sha256": "4a16dbca55444310fd7c1cf55a70c71ec8d653bd387cd379d3eee593bc3516fc"
+        },
+        "after": {
+          "path": "src/commands/regex-execution/ere/transport/validation.ts",
+          "mode": "100644",
+          "blob": "ea8d1f765b85e4a33eddc8a8f684df944e565981",
+          "size": 13090,
+          "sha256": "e57d7085c97f703f8dbb2b51296d40f2bfcf61ad66639001e0109493fbb17cae"
+        },
+        "working": {
+          "path": "src/commands/regex-execution/ere/transport/validation.ts",
+          "mode": "100644",
+          "indexBlob": "ea8d1f765b85e4a33eddc8a8f684df944e565981",
+          "workingBlob": "ea8d1f765b85e4a33eddc8a8f684df944e565981",
+          "size": 13090,
+          "sha256": "e57d7085c97f703f8dbb2b51296d40f2bfcf61ad66639001e0109493fbb17cae",
+          "differsFromIndex": false
+        },
+        "status": "EXACT_ACCEPTED_VERSION"
+      },
+      {
+        "path": "src/commands/regex-execution/ere/transport/wire-engine.ts",
+        "feature": "ere-transport",
+        "commit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+        "parent": "5c45aced892ede0ddecfaa196dff71c6556adf75",
+        "before": {
+          "path": "src/commands/regex-execution/ere/transport/wire-engine.ts",
+          "mode": "100644",
+          "blob": "c4dcb4dc8c16db3884080ae83c9e7c51eae63269",
+          "size": 1803,
+          "sha256": "5888ebad9513c26731f9b7e1f44ef5f7916bbc215e792360ef760c0820ce0234"
+        },
+        "after": {
+          "path": "src/commands/regex-execution/ere/transport/wire-engine.ts",
+          "mode": "100644",
+          "blob": "9cade833764cd15289a5f609de24e29612735b46",
+          "size": 2481,
+          "sha256": "9b2f15733c71d0cc0080ee033c8867a6160f9aabd3a784a9a9868cf01c4fbb24"
+        },
+        "working": {
+          "path": "src/commands/regex-execution/ere/transport/wire-engine.ts",
+          "mode": "100644",
+          "indexBlob": "9cade833764cd15289a5f609de24e29612735b46",
+          "workingBlob": "9cade833764cd15289a5f609de24e29612735b46",
+          "size": 2481,
+          "sha256": "9b2f15733c71d0cc0080ee033c8867a6160f9aabd3a784a9a9868cf01c4fbb24",
+          "differsFromIndex": false
+        },
+        "status": "EXACT_ACCEPTED_VERSION"
+      },
+      {
+        "path": "src/commands/regex-execution/ere/transport/worker-entry.ts",
+        "feature": "ere-transport",
+        "commit": "46611a5b67ad7af276154421ac7f50dd536ec570",
+        "parent": "5c45aced892ede0ddecfaa196dff71c6556adf75",
+        "before": {
+          "path": "src/commands/regex-execution/ere/transport/worker-entry.ts",
+          "mode": "100644",
+          "blob": "f27ea90106d71eb51b3e9bbb41eb43d1ff2b0b16",
+          "size": 1291,
+          "sha256": "b9b8bfdcedd2879075142589c13a459e5a5acf747d95897b89ce017598207208"
+        },
+        "after": {
+          "path": "src/commands/regex-execution/ere/transport/worker-entry.ts",
+          "mode": "100644",
+          "blob": "e6022d2ac2f169cc87e242ca1ef25f53ac9938f6",
+          "size": 1460,
+          "sha256": "ecbbaa11b7df31549a0b9f9fa916f97bdd4a9712a7575363b30c51080c168a37"
+        },
+        "working": {
+          "path": "src/commands/regex-execution/ere/transport/worker-entry.ts",
+          "mode": "100644",
+          "indexBlob": "e6022d2ac2f169cc87e242ca1ef25f53ac9938f6",
+          "workingBlob": "e6022d2ac2f169cc87e242ca1ef25f53ac9938f6",
+          "size": 1460,
+          "sha256": "ecbbaa11b7df31549a0b9f9fa916f97bdd4a9712a7575363b30c51080c168a37",
+          "differsFromIndex": false
+        },
+        "status": "EXACT_ACCEPTED_VERSION"
+      }
+    ]
+  },
+  {
+    "feature": "transport-repair",
+    "commit": "4abbdeec8e34de88ed2cf7bd32be9c06b413c631",
+    "parent": "8800f4051faeaa0b9c87d15a3add47a0edf88bad",
+    "subject": "fix private ERE ownership on unconfirmed retirement and seal L02 doubles",
+    "changed": [
+      {
+        "path": "src/commands/regex-execution/ere/transport/owner.ts",
+        "feature": "transport-repair",
+        "commit": "4abbdeec8e34de88ed2cf7bd32be9c06b413c631",
+        "parent": "8800f4051faeaa0b9c87d15a3add47a0edf88bad",
+        "before": {
+          "path": "src/commands/regex-execution/ere/transport/owner.ts",
+          "mode": "100644",
+          "blob": "547a529f9522d8b22788947e2114694497e3b241",
+          "size": 6765,
+          "sha256": "a3afbef015856679c63aee240787ace675ce85b64389ba07a822a5269f08cbaf"
+        },
+        "after": {
+          "path": "src/commands/regex-execution/ere/transport/owner.ts",
+          "mode": "100644",
+          "blob": "7ca56c0bc512fabf0f7786bf7605fbc344290976",
+          "size": 8747,
+          "sha256": "3be71f829880b141a07add2a22322787ad56a3e52c305c46fd46698cacc14098"
+        },
+        "working": {
+          "path": "src/commands/regex-execution/ere/transport/owner.ts",
+          "mode": "100644",
+          "indexBlob": "7ca56c0bc512fabf0f7786bf7605fbc344290976",
+          "workingBlob": "7ca56c0bc512fabf0f7786bf7605fbc344290976",
+          "size": 8747,
+          "sha256": "3be71f829880b141a07add2a22322787ad56a3e52c305c46fd46698cacc14098",
+          "differsFromIndex": false
+        },
+        "status": "EXACT_ACCEPTED_VERSION"
+      },
+      {
+        "path": "src/commands/regex-execution/ere/transport/root.ts",
+        "feature": "transport-repair",
+        "commit": "4abbdeec8e34de88ed2cf7bd32be9c06b413c631",
+        "parent": "8800f4051faeaa0b9c87d15a3add47a0edf88bad",
+        "before": {
+          "path": "src/commands/regex-execution/ere/transport/root.ts",
+          "mode": "100644",
+          "blob": "0e7c7ab6fc007813baf1afccd4251416462b9fde",
+          "size": 12329,
+          "sha256": "1a0ac9feddf151a3ab2e2d6432dca259a7c0c93136adbc86bbac7627621e733b"
+        },
+        "after": {
+          "path": "src/commands/regex-execution/ere/transport/root.ts",
+          "mode": "100644",
+          "blob": "fb608736efd9aa63675521659f98b4b212d5b970",
+          "size": 13958,
+          "sha256": "32ee1931ed070ba9b169a97d4ebbd705e77562884da5d6ecde5b529544d0f4cb"
+        },
+        "working": {
+          "path": "src/commands/regex-execution/ere/transport/root.ts",
+          "mode": "100644",
+          "indexBlob": "fb608736efd9aa63675521659f98b4b212d5b970",
+          "workingBlob": "fb608736efd9aa63675521659f98b4b212d5b970",
+          "size": 13958,
+          "sha256": "32ee1931ed070ba9b169a97d4ebbd705e77562884da5d6ecde5b529544d0f4cb",
+          "differsFromIndex": false
+        },
+        "status": "EXACT_ACCEPTED_VERSION"
+      }
+    ]
+  },
+  {
+    "feature": "function-keyword",
+    "commit": "52b6711e888361015acc38017be2a6b08509d8a7",
+    "parent": "4103ecbd2cc073cba4d5805c44f83ad7f0eaa5ed",
+    "subject": "feat(shell): parse bounded function keyword brace definitions",
+    "changed": [
+      {
+        "path": "src/shell/parser.ts",
+        "feature": "function-keyword",
+        "commit": "52b6711e888361015acc38017be2a6b08509d8a7",
+        "parent": "4103ecbd2cc073cba4d5805c44f83ad7f0eaa5ed",
+        "before": {
+          "path": "src/shell/parser.ts",
+          "mode": "100644",
+          "blob": "c9065ec21a934b5ab4197e80c620b432f7b060cb",
+          "size": 44045,
+          "sha256": "733396745b510a5d76fc83b7c1a6eb51e512e3941585786652a524a28b36686c"
+        },
+        "after": {
+          "path": "src/shell/parser.ts",
+          "mode": "100644",
+          "blob": "8072ffd47be227c39e5725d3ffae36f355c6b984",
+          "size": 44537,
+          "sha256": "038b5ba63429b7f190295bd8aacc096f31d5222a5a0a280542a081b17bdc476a"
+        },
+        "working": {
+          "path": "src/shell/parser.ts",
+          "mode": "100644",
+          "indexBlob": "8072ffd47be227c39e5725d3ffae36f355c6b984",
+          "workingBlob": "8072ffd47be227c39e5725d3ffae36f355c6b984",
+          "size": 44537,
+          "sha256": "038b5ba63429b7f190295bd8aacc096f31d5222a5a0a280542a081b17bdc476a",
+          "differsFromIndex": false
+        },
+        "status": "EXACT_ACCEPTED_VERSION"
+      }
+    ]
+  },
+  {
+    "feature": "positional-arithmetic",
+    "commit": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+    "parent": "ecec4d2da9f6af36cba67124d4056e99028cdbdc",
+    "subject": "fix(shell): expand positional text before arithmetic parsing",
+    "changed": [
+      {
+        "path": "src/shell/arithmetic-parameters.ts",
+        "feature": "positional-arithmetic",
+        "commit": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+        "parent": "ecec4d2da9f6af36cba67124d4056e99028cdbdc",
+        "before": null,
+        "after": {
+          "path": "src/shell/arithmetic-parameters.ts",
+          "mode": "100644",
+          "blob": "53d313e748d34aea20d33107df7006ae3f90c572",
+          "size": 5221,
+          "sha256": "cedcbab5ece5b8b109b37a6a2d61945f79168d679040e67feb519d23219f516a"
+        },
+        "working": {
+          "path": "src/shell/arithmetic-parameters.ts",
+          "mode": "100644",
+          "indexBlob": "53d313e748d34aea20d33107df7006ae3f90c572",
+          "workingBlob": "53d313e748d34aea20d33107df7006ae3f90c572",
+          "size": 5221,
+          "sha256": "cedcbab5ece5b8b109b37a6a2d61945f79168d679040e67feb519d23219f516a",
+          "differsFromIndex": false
+        },
+        "status": "EXACT_ACCEPTED_VERSION"
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "feature": "positional-arithmetic",
+        "commit": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+        "parent": "ecec4d2da9f6af36cba67124d4056e99028cdbdc",
+        "before": {
+          "path": "src/shell/runtime.ts",
+          "mode": "100644",
+          "blob": "4e5c0747a564efa2fb19f8bbe72fa256b9a0ed5c",
+          "size": 210813,
+          "sha256": "0c17850b1ceb4f09eec5458315dbb08433aa01721cf1b20fe7385481a20992e1"
+        },
+        "after": {
+          "path": "src/shell/runtime.ts",
+          "mode": "100644",
+          "blob": "39d776bf90ddd8fe128ed8a682e565dc6cfd13cc",
+          "size": 211843,
+          "sha256": "52b916030e4ca6e5c36bf858d16e26be8e39d124707597e3e601c94641185df6"
+        },
+        "working": {
+          "path": "src/shell/runtime.ts",
+          "mode": "100644",
+          "indexBlob": "f21ed950fb8a96318e7e34f5d41f3ca2522dc138",
+          "workingBlob": "f21ed950fb8a96318e7e34f5d41f3ca2522dc138",
+          "size": 214992,
+          "sha256": "4265d397ae45c686ec564828b019237a00286ad75ec212f0668667a89149fd42",
+          "differsFromIndex": false
+        },
+        "status": "DIFFERS_REQUIRES_HUNK_REVIEW"
+      }
+    ]
+  },
+  {
+    "feature": "pipestatus",
+    "commit": "73d9e74d44b63a2bf853090be155362c2e228aa0",
+    "parent": "ee76c365fbbce1e04e8c01c9454476efcb06a07e",
+    "subject": "feat(shell): stage typed PIPESTATUS completion publication",
+    "changed": [
+      {
+        "path": "src/shell/pipestatus.ts",
+        "feature": "pipestatus",
+        "commit": "73d9e74d44b63a2bf853090be155362c2e228aa0",
+        "parent": "ee76c365fbbce1e04e8c01c9454476efcb06a07e",
+        "before": null,
+        "after": {
+          "path": "src/shell/pipestatus.ts",
+          "mode": "100644",
+          "blob": "ec859bf758e1ddb42281180e7ad996770ce40ffc",
+          "size": 3047,
+          "sha256": "31c3c50175a0b4b43674c63c3138ab9b30ee23af52e8a91b3a2c45bbb9309d6b"
+        },
+        "working": {
+          "path": "src/shell/pipestatus.ts",
+          "mode": "100644",
+          "indexBlob": "e4b769a8d1ff3d87f60c7bc01aaa6ed4b3f6dc31",
+          "workingBlob": "e4b769a8d1ff3d87f60c7bc01aaa6ed4b3f6dc31",
+          "size": 3145,
+          "sha256": "f63902e8be1774de81973d4477f8317a6045b637b40bddbed025e2f43bb72eb1",
+          "differsFromIndex": false
+        },
+        "status": "DIFFERS_REQUIRES_HUNK_REVIEW"
+      },
+      {
+        "path": "src/shell/runtime.ts",
+        "feature": "pipestatus",
+        "commit": "73d9e74d44b63a2bf853090be155362c2e228aa0",
+        "parent": "ee76c365fbbce1e04e8c01c9454476efcb06a07e",
+        "before": {
+          "path": "src/shell/runtime.ts",
+          "mode": "100644",
+          "blob": "39d776bf90ddd8fe128ed8a682e565dc6cfd13cc",
+          "size": 211843,
+          "sha256": "52b916030e4ca6e5c36bf858d16e26be8e39d124707597e3e601c94641185df6"
+        },
+        "after": {
+          "path": "src/shell/runtime.ts",
+          "mode": "100644",
+          "blob": "f21ed950fb8a96318e7e34f5d41f3ca2522dc138",
+          "size": 214992,
+          "sha256": "4265d397ae45c686ec564828b019237a00286ad75ec212f0668667a89149fd42"
+        },
+        "working": {
+          "path": "src/shell/runtime.ts",
+          "mode": "100644",
+          "indexBlob": "f21ed950fb8a96318e7e34f5d41f3ca2522dc138",
+          "workingBlob": "f21ed950fb8a96318e7e34f5d41f3ca2522dc138",
+          "size": 214992,
+          "sha256": "4265d397ae45c686ec564828b019237a00286ad75ec212f0668667a89149fd42",
+          "differsFromIndex": false
+        },
+        "status": "EXACT_ACCEPTED_VERSION"
+      }
+    ]
+  },
+  {
+    "feature": "pipestatus-correction",
+    "commit": "43050e861bfeb6dcc8c3e97784b80ce18dc8f793",
+    "parent": "611f96affffcf33577091847cbfb8202a92f41d1",
+    "subject": "fix(shell): guard PIPESTATUS publication against state epoch drift",
+    "changed": [
+      {
+        "path": "src/shell/pipestatus.ts",
+        "feature": "pipestatus-correction",
+        "commit": "43050e861bfeb6dcc8c3e97784b80ce18dc8f793",
+        "parent": "611f96affffcf33577091847cbfb8202a92f41d1",
+        "before": {
+          "path": "src/shell/pipestatus.ts",
+          "mode": "100644",
+          "blob": "ec859bf758e1ddb42281180e7ad996770ce40ffc",
+          "size": 3047,
+          "sha256": "31c3c50175a0b4b43674c63c3138ab9b30ee23af52e8a91b3a2c45bbb9309d6b"
+        },
+        "after": {
+          "path": "src/shell/pipestatus.ts",
+          "mode": "100644",
+          "blob": "e4b769a8d1ff3d87f60c7bc01aaa6ed4b3f6dc31",
+          "size": 3145,
+          "sha256": "f63902e8be1774de81973d4477f8317a6045b637b40bddbed025e2f43bb72eb1"
+        },
+        "working": {
+          "path": "src/shell/pipestatus.ts",
+          "mode": "100644",
+          "indexBlob": "e4b769a8d1ff3d87f60c7bc01aaa6ed4b3f6dc31",
+          "workingBlob": "e4b769a8d1ff3d87f60c7bc01aaa6ed4b3f6dc31",
+          "size": 3145,
+          "sha256": "f63902e8be1774de81973d4477f8317a6045b637b40bddbed025e2f43bb72eb1",
+          "differsFromIndex": false
+        },
+        "status": "EXACT_ACCEPTED_VERSION"
+      }
+    ]
+  },
+  {
+    "feature": "ere-producer-independent-data",
+    "commit": "5c2ef0795ca402344b5b0d28869b64db46d73b86",
+    "parent": "3b72d9933d2efb431bf34ad0ae64bd7a78d0bce2",
+    "subject": "review: accept corrected CORE producer DATA with qualifications",
+    "changed": []
+  }
+]

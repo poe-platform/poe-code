@@ -1,0 +1,58 @@
+[
+  {
+    "id": "tracked-source",
+    "args": [
+      "ls-files",
+      "--stage",
+      "-z",
+      "--",
+      "src",
+      "package.json",
+      "README.md",
+      "tsconfig*.json",
+      "types",
+      "scripts",
+      "build"
+    ],
+    "pid": 66197,
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "id": "evidence-paths",
+    "args": [
+      "ls-files",
+      "-z",
+      "--",
+      "tests/integration/node-public-author-20260829",
+      "tests/integration/node-public-independent-20260829",
+      "tests/compatibility/bash-function-keyword-author-20260829",
+      "tests/compatibility/bash-function-keyword-k08-actual-independent-20260829",
+      "tests/compatibility/bash-pipestatus-typed-native-reference-20260829",
+      "tests/compatibility/bash-pipestatus-typed-native-independent-20260829",
+      "tests/compatibility/bash-ere-core-public-pilot-preparation-20260829",
+      "tests/compatibility/bash-ere-core-producer-independent-20260829"
+    ],
+    "pid": 66200,
+    "status": 0,
+    "signal": null,
+    "error": null
+  },
+  {
+    "id": "objects",
+    "pid": 66201,
+    "exit": {
+      "code": 0,
+      "signal": null
+    },
+    "close": {
+      "code": 0,
+      "signal": null
+    },
+    "stdoutEOF": true,
+    "stderrEOF": true,
+    "captureBytes": 1200997,
+    "uniqueObjects": 148
+  }
+]

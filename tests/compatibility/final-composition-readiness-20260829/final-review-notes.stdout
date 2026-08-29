@@ -1,0 +1,189 @@
+
+HUNK STATUS
+    "feature": "ere-core",
+    "path": "src/shell/parser.ts",
+    "allAddedBlocksPresent": true,
+    "allExactContextsPresent": true,
+    "feature": "ere-core",
+    "path": "src/shell/runtime.ts",
+    "allAddedBlocksPresent": true,
+    "allExactContextsPresent": true,
+    "feature": "ere-transport",
+    "path": "src/commands/regex-execution/ere/transport/root.ts",
+    "allAddedBlocksPresent": true,
+    "allExactContextsPresent": false,
+    "feature": "positional-arithmetic",
+    "path": "src/shell/runtime.ts",
+    "allAddedBlocksPresent": true,
+    "allExactContextsPresent": true,
+
+RECEIPT RESOURCE FIELDS
+{
+  "at": "2026-08-29T16:45:13.977Z",
+  "finalComposition": {
+    "path": "FINAL-COMPOSITION.json",
+    "sha256": "2253d8b49e5d5122416fb736a4dfd876d50ffdbfcd19709dbbb30e4fd4113f83"
+  },
+  "baseline": {
+    "path": "tests/integration/agent-bash-coherent-author-20260829/v2/SOURCE.json",
+    "sha256": "ef0b79dbd30cebec3f8b939a98928b9441947ff4be724e5031b2ee03925f26ae",
+    "derivedTree": "3adc676a0ab638c9788ef007e465931d65d2c6fe",
+    "reviewerGitOrderTree": "c5e49e70c295d7e354eba53d1a91141ad701e3f6",
+    "canonicalizationDiscrepancyPreserved": true,
+    "count": 309
+  },
+  "selectedCount": 323,
+  "selectedDerivedTree": "da3d47fea4e75e5a0766e823454f434324ad416a",
+  "selectedCanonicalRowsSha256": "0099757441f2486b451eb44d27349f9eb862f3c275a57815bd692ac2743cd63e",
+  "trackedCount": 363,
+  "trackedDirty": 0,
+  "sourceHelperFiles": 2,
+  "sourceHelperInvocations": 3,
+  "helperQualification": "Second helper first refused a reviewer tree canonicalization assumption before any child; original failure preserved; two distinct source helper files, three invocations",
+  "knownStartsThroughHelper": 30,
+  "publicationStartsReserved": 6,
+  "knownMaximum": 36,
+  "conservativePeak": 3,
+  "peakMaximum": 3,
+  "logicalRetainedBytes": 8351931,
+  "captureBytes": 4651558,
+  "publicationReserveBytes": 16777216,
+  "workMaximum": 201326592,
+  "captureMaximum": 33554432,
+  "deadline": "2026-08-29T16:51:32Z",
+  "campaignEndpoint": "2026-08-29T18:02:36Z",
+  "exclusions": [
+    "Git internal physical storage",
+    "allocated blocks",
+    "RSS"
+  ],
+  "product": 0,
+  "Workers": 0,
+  "compiler": 0,
+  "npm": 0,
+  "installs": 0,
+  "nativeOracles": 0,
+  "sourceOrForeignStagingEdits": 0,
+  "retained": [
+    {
+      "path": "CURRENT-TRACKED.json",
+      "bytes": 127294,
+      "sha256": "9e117a62a0a6bf59147a95cfe6c99481cad9a68bdde73b92ebb1dd4265cb3378"
+    },
+    {
+      "path": "EXISTING-SMOKE-FILES.json",
+      "bytes": 12572,
+
+CURRENT SELECTED IMPORTS
+
+src/commands/structured/jq.ts
+import { FsError, readBytes, resolvePath, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "../../contracts/index.js";
+import { Budget, copyObject, interruptible, JqError, JqLimitError, object, put, resolveJqLimits, truth, wellFormed, type InputLocation, type JqLimits, type Json, type StructuredCommandsOptions } from "./limits.js";
+import { jsonValues, parseJson, rawValues, stringify } from "./input.js";
+import { Interpreter } from "./interpreter.js";
+import { parse } from "./parser.js";
+      if (!flags || !/^[rRjcsne]+$/u.test(flags)) throw new JqError(`unsupported option ${argument}`, 2);
+    if (options.nullInput) await emit(null);
+      budget.value(values); await emit(values);
+    } else for await (const value of inputs(context, options, budget)) await emit(value);
+export function jqCommand(options: StructuredCommandsOptions = {}): CommandDefinition {
+
+src/commands/structured/index.ts
+import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
+import { jqCommand } from "./jq.js";
+import type { StructuredCommandsOptions } from "./limits.js";
+export { defaultJqLimits } from "./limits.js";
+export type { JqLimits, StructuredCommandsOptions } from "./limits.js";
+export function createStructuredCommands(options: StructuredCommandsOptions = {}): readonly CommandDefinition[] {
+export function structuredCommands(options: StructuredCommandsOptions = {}): VirtualShellPlugin {
+
+src/index.ts
+export * from "./contracts/index.js";
+export * from "./plugins/index.js";
+export * from "./shell/index.js";
+export * from "./commands/index.js";
+export type { RegexExecutionOptions } from "./commands/regex-execution/protocol.js";
+export * from "./commands/text-programs/index.js";
+export * from "./commands/structured/index.js";
+export * from "./commands/search/index.js";
+export * from "./commands/bytes/index.js";
+export * from "./commands/diff-patch/index.js";
+export * from "./commands/safejs/index.js";
+export * from "./commands/network/index.js";
+export * from "./commands/node/index.js";
+export * from "./commands/metadata/index.js";
+export * from "./commands/archive/index.js";
+export * from "./commands/table-text/index.js";
+export * from "./commands/stream-inspection/index.js";
+export * from "./commands/stream-format/index.js";
+export * from "./commands/split/index.js";
+export * from "./commands/time-env/index.js";
+export * from "./commands/tree/index.js";
+export * from "./commands/file/index.js";
+export * from "./commands/grep-aliases/index.js";
+export * from "./commands/column/index.js";
+export * from "./commands/html-to-markdown/index.js";
+export * from "./commands/du/index.js";
+export * from "./commands/expr/index.js";
+export * from "./commands/which/index.js";
+export * from "./commands/timeout/index.js";
+export * from "./commands/apply-patch/index.js";
+export * from "./commands/git/index.js";
+export * from "./fs/memory/index.js";
+export * from "./fs/real/index.js";
+export * from "./fs/s3/index.js";
+export * from "./fs/s3/http/index.js";
+export * from "./fs/webdav/index.js";
+export * from "./fs/readonly/index.js";
+export * from "./fs/mount/index.js";
+export * from "./fs/overlay/index.js";
+export * from "./integrations/safejs/index.js";
+
+tests/shell/parser-regressions.test.ts
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { parseShell, ShellSyntaxError } from "../../src/shell/index.js";
+import { setup } from "./helpers.js";
+test("non-shell whitespace remains literal and never stalls tokenization", { timeout: 1000 }, async () => {
+test("continuations preserve keyword, operator and descriptor recognition", async () => {
+test("misplaced negation and unsupported expansion syntax reject before effects", async () => {
+test("parameter alternates inherit outer double-quote rules", async () => {
+test("compound commands require separators before quoted and expanded words without effects", async () => {
+test("missing compound separators reject recursively in skipped branches and functions", async () => {
+test("compound commands still accept separators, list operators, closing parentheses and EOF", async () => {
+
+tests/shell/runtime-regressions.test.ts
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { writeText } from "../../src/contracts/index.js";
+import type { ByteSource } from "../../src/contracts/index.js";
+import { setup } from "./helpers.js";
+test("synchronous cancellation observes already-rejected command promises", async () => {
+test("synchronous cancellation observes already-rejected input promises", async () => {
+test("blocked upstream reads require caller cancellation, not consumer completion", { timeout: 2000 }, async () => {
+test("broken-pipe writes cancel signal-waiting upstream commands", { timeout: 2000 }, async () => {
+test("redirected input resources close after partial, zero and failed consumption", async () => {
+test("independent truncate descriptors maintain offsets, duplicated descriptors share them", async () => {
+test("redirection failure diagnostics honor descriptors already established", async () => {
+test("declarations preserve expanded whitespace and functions export prefix values", async () => {
+test("builtins honor middleware cwd and environment overlays", async () => {
+test("read and repeated commands share one non-replayable stdin offset", async () => {
+test("syntax validation does not even initialize inherited input", async () => {
+test("arithmetic stays bounded and handles short circuit, updates and overflow", async () => {
+
+tests/shell/pipeline-effects.test.ts
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { writeText } from "../../src/contracts/index.js";
+import { bashResult } from "./bash-bugfix-helpers.js";
+import { setup } from "./helpers.js";
+  test(`pipeline completion preserves independent producer effects: ${source}`, { timeout: 3000 }, async () => {
+test("downstream exit does not interrupt an upstream asynchronous effect", { timeout: 3000 }, async () => {
+test("a producer that writes a broken pipe cannot continue later effects", { timeout: 3000 }, async () => {
+
+tests/shell/positional-ifs.test.ts
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { bashResult } from "./bash-bugfix-helpers.js";
+import { setup } from "./helpers.js";
+  test(`quoted star joins using the first IFS character: ${prefix}`, async () => {

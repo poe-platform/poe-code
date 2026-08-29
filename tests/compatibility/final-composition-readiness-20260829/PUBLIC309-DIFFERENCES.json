@@ -1,0 +1,436 @@
+[
+  {
+    "path": "README.md",
+    "before": {
+      "path": "README.md",
+      "mode": "100644",
+      "blob": "d4618a2170f53ed8f6f20fe1a320ab32e84dab23",
+      "bytes": 56527,
+      "sha256": "f035946288322e23951aba9f92e278fb13dac3c3a2bb21271a516cd6f2329621",
+      "role": "authorized public integration overlay",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    "working": {
+      "path": "README.md",
+      "mode": "100644",
+      "indexBlob": "5f20342c9aa9b0ebcee7f715eb9f9af378bac795",
+      "workingBlob": "5f20342c9aa9b0ebcee7f715eb9f9af378bac795",
+      "size": 59803,
+      "sha256": "2386c97145bad9eac46725e64ff77f3456e15a503857a36089a489e88ff2ead5",
+      "differsFromIndex": false
+    },
+    "blocks": [
+      {
+        "removed": "**Explicit opt-in Node integration candidate (August 29, 2026):** `nodeCommands`,",
+        "added": "**Qualified explicit opt-in Node integration (August 29, 2026):** `nodeCommands`,",
+        "beforeContext": "## Status\n\n**Explicit opt-in Node integration candidate (August 29, 2026):** `nodeCommands`,\n`createNodeCommands` and `createNodeCommand` require a trusted qualifying provider.\nThe exact `virtual-bash/commands/node` subpath and root expose the restricted",
+        "afterContext": "## Status\n\n**Qualified explicit opt-in Node integration (August 29, 2026):** `nodeCommands`,\n`createNodeCommands` and `createNodeCommand` require a trusted qualifying provider.\nThe exact `virtual-bash/commands/node` subpath and root expose the restricted"
+      },
+      {
+        "removed": "ROOT accepted module `a2f3983d` with its finite coverage/resource qualifications;\npublic integration still requires separate independent review and ROOT acceptance.",
+        "added": "ROOT accepted public source `bb4dd057` / selected composition `a6d20781` through\nindependent review `27f557ad`, retaining module `a2f3983d`'s qualifications.\nThis includes accepted Unit2, not Unit3/Unit4 or the moving worktree; the separate\nUnit3 profile acceptance below does not compose it with Node.",
+        "beforeContext": "The exact `virtual-bash/commands/node` subpath and root expose the restricted\nNP1-CJS-WRQ-L-SYNC-1 / Worker-L APIs; **default80 does not include Node**.\nROOT accepted module `a2f3983d` with its finite coverage/resource qualifications;\npublic integration still requires separate independent review and ROOT acceptance.\nNo engine is bundled, discovered, installed or imported implicitly; npm/npx and\nnative evaluation/subprocess fallbacks remain excluded. The static adapter URL and",
+        "afterContext": "The exact `virtual-bash/commands/node` subpath and root expose the restricted\nNP1-CJS-WRQ-L-SYNC-1 / Worker-L APIs; **default80 does not include Node**.\nROOT accepted public source `bb4dd057` / selected composition `a6d20781` through\nindependent review `27f557ad`, retaining module `a2f3983d`'s qualifications.\nThis includes accepted Unit2, not Unit3/Unit4 or the moving worktree; the separate\nUnit3 profile acceptance below does not compose it with Node.\nNo engine is bundled, discovered, installed or imported implicitly; npm/npx and\nnative evaluation/subprocess fallbacks remain excluded. The static adapter URL and"
+      },
+      {
+        "removed": "Proposed consumer usage below is part of the author validation candidate, not yet\nan independent public acceptance. The host supplies an already authorized adapter\nand VFS; the adapter implements the documented default-only engine ABI.",
+        "added": "The usage below requires a host-supplied, already authorized adapter and VFS;\nthe adapter implements the documented default-only engine ABI. Public import,\ninstallation and relocation checks do not authenticate that host-supplied engine.",
+        "beforeContext": "identity are configuration, not byte authentication or host authorization.\n\nProposed consumer usage below is part of the author validation candidate, not yet\nan independent public acceptance. The host supplies an already authorized adapter\nand VFS; the adapter implements the documented default-only engine ABI.\n\n```ts",
+        "afterContext": "identity are configuration, not byte authentication or host authorization.\n\nThe usage below requires a host-supplied, already authorized adapter and VFS;\nthe adapter implements the documented default-only engine ABI. Public import,\ninstallation and relocation checks do not authenticate that host-supplied engine.\n\n```ts"
+      },
+      {
+        "removed": "async FS or `process.exit`. See [module limits](src/commands/node/README.md) and\n[author integration evidence](tests/integration/node-public-author-20260829/README.md).",
+        "added": "async FS or `process.exit`. See [module limits](src/commands/node/README.md),\n[qualified ROOT acceptance](tests/integration/node-public-independent-20260829/ROOT-ACCEPTANCE.md)\nand [independent evidence](tests/integration/node-public-independent-20260829/REPORT.md).\nThe 942 expected outcomes are not all successful guest commands. W23 diagnostic\ndetail, E09/partial-family coverage, individual internal-loader exits and universal\nprocess/resource accounting remain qualified; no full Node/Bash or overall-winner\nclaim follows. Original author/module failures remain preserved.",
+        "beforeContext": "inline eval/primitive print and noninteractive stdin have a finite synchronous\ntext/JSON/path profile, not ESM/TLA, package search, local JS require, Buffer,\nasync FS or `process.exit`. See [module limits](src/commands/node/README.md) and\n[author integration evidence](tests/integration/node-public-author-20260829/README.md).\n\nTypeScript, ESM, Node.js 22 or newer; zero runtime dependencies. Development uses",
+        "afterContext": "inline eval/primitive print and noninteractive stdin have a finite synchronous\ntext/JSON/path profile, not ESM/TLA, package search, local JS require, Buffer,\nasync FS or `process.exit`. See [module limits](src/commands/node/README.md),\n[qualified ROOT acceptance](tests/integration/node-public-independent-20260829/ROOT-ACCEPTANCE.md)\nand [independent evidence](tests/integration/node-public-independent-20260829/REPORT.md).\nThe 942 expected outcomes are not all successful guest commands. W23 diagnostic\ndetail, E09/partial-family coverage, individual internal-loader exits and universal\nprocess/resource accounting remain qualified; no full Node/Bash or overall-winner\nclaim follows. Original author/module failures remain preserved.\n\nTypeScript, ESM, Node.js 22 or newer; zero runtime dependencies. Development uses"
+      },
+      {
+        "removed": "",
+        "added": "**ROOT-qualified conditional Unit3 profile (August 29, 2026):** exact source\n`7a5c620005fb04518d44bb284f4e99284e4a7c33`, derived\n`74dfe69135a3fc5ba89396b20dd32d9c9daae131`, full954 SHA256\n`46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09`\nadds a separate `[[ ]]` AST with lazy visited expansion, no IFS/pathname globbing,\nquote-aware C basic patterns, limited numeric literal comparisons and typed VFS\nerror handling. `-v` supports scalar/canonical numeric indexes only. Reached ERE,\nunsupported extglob/aggregate predicates/timestamps remain refusals, not GNU passes.\nPrivate4096-node/depth64 grammar caps use `ShellSyntaxError`; actual resource,\ncaller, sink and cleanup contracts are separate. The\n[qualified acceptance](tests/compatibility/bash-conditional-independent-20260829/ROOT-ACCEPTANCE.md)\nmaps840 version-qualified outcomes (831 original positives +9 fresh), **not one840\nrerun**:67 author +201 retained +12 novel per layout. Types, mutation pairs and\nbinding refusals remain separate; original failures and source/loader/AST/census\nlimits are retained. Default80 and prior core/opt-in Node acceptances are unchanged.\nNo native GNU5.3/full-Bash, coherent Node-plus-Unit3, Unit4, live-HEAD or global-gate\nacceptance follows.\n\n**ROOT-qualified Unit4/N14 source and semantic profile (August 29, 2026):** source\n`7196bace8ea2c141d5ed1020fef5bf721c321ace`, selected\n`bf079ada185a79aec864b068f3738ddc5520822e`, full954 SHA256\n`3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49`\nextends the accepted core with evaluated-scalar arithmetic nounset, incremental\nsupported `set` option mutation, the three-option listing/replay subset, and\ndiagnostic-failure propagation through an **exact, non-async returned invocation\nPromise**. Transformed/async promises are outside that N14 guarantee; raw falsy\nidentity and caller/cleanup priorities remain intact. Default80 is unchanged.\nThe basis is744 literal outcomes plus separate type/mutation/binding evidence;\n**the old campaign remains CLOSED/noncompliant** because expected package hash\nadmission followed inflation. Package/loader identity was verified before consumer\nexecution. A separate12-control prospective proof and one authenticated954-member\nparse correct the admission gate without rerunning or rescoring those outcomes.\nThis is bounded source/semantic acceptance, not a compliant old end-to-end run.\nFive design IDs and native parity remain open; no full GNU listing/status, Bash,\nNode-plus-Unit4, live-HEAD or global-gate claim. See\n[the exact acceptance and limits](tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/ROOT-ACCEPTANCE.md).\n",
+        "beforeContext": "[exact ROOT acceptance and inherited limits](tests/compatibility/bash-strict-mode-independent-20260829/ROOT-ACCEPTANCE.md).\n\n**Scoped priority-workflow acceptance (August 28, 2026):** ROOT accepts the\nfinite 31-case × three-layout membership on selected `8437e4ed` and its exact",
+        "afterContext": "[exact ROOT acceptance and inherited limits](tests/compatibility/bash-strict-mode-independent-20260829/ROOT-ACCEPTANCE.md).\n\n**ROOT-qualified conditional Unit3 profile (August 29, 2026):** exact source\n`7a5c620005fb04518d44bb284f4e99284e4a7c33`, derived\n`74dfe69135a3fc5ba89396b20dd32d9c9daae131`, full954 SHA256\n`46a845f6c12933308aef11dbbf8f861afcc38ff9973b83bcccea13c3329c0a09`\nadds a separate `[[ ]]` AST with lazy visited expansion, no IFS/pathname globbing,\nquote-aware C basic patterns, limited numeric literal comparisons and typed VFS\nerror handling. `-v` supports scalar/canonical numeric indexes only. Reached ERE,\nunsupported extglob/aggregate predicates/timestamps remain refusals, not GNU passes.\nPrivate4096-node/depth64 grammar caps use `ShellSyntaxError`; actual resource,\ncaller, sink and cleanup contracts are separate. The\n[qualified acceptance](tests/compatibility/bash-conditional-independent-20260829/ROOT-ACCEPTANCE.md)\nmaps840 version-qualified outcomes (831 original positives +9 fresh), **not one840\nrerun**:67 author +201 retained +12 novel per layout. Types, mutation pairs and\nbinding refusals remain separate; original failures and source/loader/AST/census\nlimits are retained. Default80 and prior core/opt-in Node acceptances are unchanged.\nNo native GNU5.3/full-Bash, coherent Node-plus-Unit3, Unit4, live-HEAD or global-gate\nacceptance follows.\n\n**ROOT-qualified Unit4/N14 source and semantic profile (August 29, 2026):** source\n`7196bace8ea2c141d5ed1020fef5bf721c321ace`, selected\n`bf079ada185a79aec864b068f3738ddc5520822e`, full954 SHA256\n`3f3ae85116f12ab4354a6103c0c95e967c4e88bd2eb133e63236148a2734af49`\nextends the accepted core with evaluated-scalar arithmetic nounset, incremental\nsupported `set` option mutation, the three-option listing/replay subset, and\ndiagnostic-failure propagation through an **exact, non-async returned invocation\nPromise**. Transformed/async promises are outside that N14 guarantee; raw falsy\nidentity and caller/cleanup priorities remain intact. Default80 is unchanged.\nThe basis is744 literal outcomes plus separate type/mutation/binding evidence;\n**the old campaign remains CLOSED/noncompliant** because expected package hash\nadmission followed inflation. Package/loader identity was verified before consumer\nexecution. A separate12-control prospective proof and one authenticated954-member\nparse correct the admission gate without rerunning or rescoring those outcomes.\nThis is bounded source/semantic acceptance, not a compliant old end-to-end run.\nFive design IDs and native parity remain open; no full GNU listing/status, Bash,\nNode-plus-Unit4, live-HEAD or global-gate claim. See\n[the exact acceptance and limits](tests/compatibility/bash-strict-extension-independent-20260829/n14-v2/ROOT-ACCEPTANCE.md).\n\n**Scoped priority-workflow acceptance (August 28, 2026):** ROOT accepts the\nfinite 31-case × three-layout membership on selected `8437e4ed` and its exact"
+      },
+      {
+        "removed": "compatibility. The Node scaffold/provider remain pending, not accepted product\nNode support. This status does not certify the moving worktree.",
+        "added": "compatibility. Restricted Node now has qualified public opt-in acceptance with an\nexplicit trusted provider; it is not a default command or full Node compatibility.\nThis status does not certify the moving worktree.",
+        "beforeContext": "and exactly 80 defaults. Git keeps all 24 fixed numeric caps and its declared\nstorage/configuration/format refusals; packed support is bounded, not full Git\ncompatibility. The Node scaffold/provider remain pending, not accepted product\nNode support. This status does not certify the moving worktree.\n`safejs` is not Node, and `patch` is not `apply_patch`.\n“Without the npm stuff” excludes npm/npx product commands only; npm, Node and",
+        "afterContext": "and exactly 80 defaults. Git keeps all 24 fixed numeric caps and its declared\nstorage/configuration/format refusals; packed support is bounded, not full Git\ncompatibility. Restricted Node now has qualified public opt-in acceptance with an\nexplicit trusted provider; it is not a default command or full Node compatibility.\nThis status does not certify the moving worktree.\n`safejs` is not Node, and `patch` is not `apply_patch`.\n“Without the npm stuff” excludes npm/npx product commands only; npm, Node and"
+      }
+    ]
+  },
+  {
+    "path": "src/shell/conditional.ts",
+    "before": {
+      "path": "src/shell/conditional.ts",
+      "mode": "100644",
+      "blob": "caab6172df5b8e5bad2d1db007b156f067e295ad",
+      "bytes": 8890,
+      "sha256": "47dc81401b2c88f9e422fbce4b55734722aea594385d8b394eeba87df16928f0",
+      "origin": "UNIT3_7a5c6200_PENDING_INDEPENDENT",
+      "replacedBlob": null
+    },
+    "working": {
+      "path": "src/shell/conditional.ts",
+      "mode": "100644",
+      "indexBlob": "45aa9dda1fb3eaa22fadbd45dda53db38fa6faa2",
+      "workingBlob": "45aa9dda1fb3eaa22fadbd45dda53db38fa6faa2",
+      "size": 9130,
+      "sha256": "60de623fc278fb16990c0a9f191ed4ec42c5dc25d3c5d0c096e1142352031f77",
+      "differsFromIndex": false
+    },
+    "blocks": [
+      {
+        "removed": "",
+        "added": "  regex?(subject: string, pattern: Word): Promise<number>;",
+        "beforeContext": "  readonly work: { remaining: number; signal: AbortSignal; exhausted: () => never };\n  expand(word: Word, pattern?: boolean): Promise<string>;\n  present(name: string): boolean;\n  option(name: string): boolean;",
+        "afterContext": "  readonly work: { remaining: number; signal: AbortSignal; exhausted: () => never };\n  expand(word: Word, pattern?: boolean): Promise<string>;\n  regex?(subject: string, pattern: Word): Promise<number>;\n  present(name: string): boolean;\n  option(name: string): boolean;"
+      },
+      {
+        "removed": "async function leaf(node: Extract<ConditionalExpression, { kind: \"nonempty\" | \"unary\" | \"binary\" }>, context: ConditionalContext): Promise<boolean> {",
+        "added": "async function leaf(node: Extract<ConditionalExpression, { kind: \"nonempty\" | \"unary\" | \"binary\" }>, context: ConditionalContext): Promise<boolean | number> {",
+        "beforeContext": "}\n\nasync function leaf(node: Extract<ConditionalExpression, { kind: \"nonempty\" | \"unary\" | \"binary\" }>, context: ConditionalContext): Promise<boolean> {\n  if (node.kind === \"nonempty\") return (await context.expand(node.operand)).length > 0;\n  if (node.kind === \"unary\") return unary(node.operator, await context.expand(node.operand), context);",
+        "afterContext": "}\n\nasync function leaf(node: Extract<ConditionalExpression, { kind: \"nonempty\" | \"unary\" | \"binary\" }>, context: ConditionalContext): Promise<boolean | number> {\n  if (node.kind === \"nonempty\") return (await context.expand(node.operand)).length > 0;\n  if (node.kind === \"unary\") return unary(node.operator, await context.expand(node.operand), context);"
+      },
+      {
+        "removed": "",
+        "added": "  if (node.operator === \"=~\" && context.regex) return context.regex(left, node.right);",
+        "beforeContext": "  if (node.kind === \"unary\") return unary(node.operator, await context.expand(node.operand), context);\n  const left = await context.expand(node.left);\n  const pattern = [\"=\", \"==\", \"!=\"].includes(node.operator);\n  const right = await context.expand(node.right, pattern);",
+        "afterContext": "  if (node.kind === \"unary\") return unary(node.operator, await context.expand(node.operand), context);\n  const left = await context.expand(node.left);\n  if (node.operator === \"=~\" && context.regex) return context.regex(left, node.right);\n  const pattern = [\"=\", \"==\", \"!=\"].includes(node.operator);\n  const right = await context.expand(node.right, pattern);"
+      },
+      {
+        "removed": "export async function evaluateConditional(expression: ConditionalExpression, context: ConditionalContext): Promise<boolean> {",
+        "added": "export async function evaluateConditional(expression: ConditionalExpression, context: ConditionalContext): Promise<number> {",
+        "beforeContext": "}\n\nexport async function evaluateConditional(expression: ConditionalExpression, context: ConditionalContext): Promise<boolean> {\n  const stack: { node: ConditionalExpression; stage: number }[] = [{ node: expression, stage: 0 }];\n  let result = false;",
+        "afterContext": "}\n\nexport async function evaluateConditional(expression: ConditionalExpression, context: ConditionalContext): Promise<number> {\n  const stack: { node: ConditionalExpression; stage: number }[] = [{ node: expression, stage: 0 }];"
+      },
+      {
+        "removed": "  let result = false;",
+        "added": "  let result = 1;",
+        "beforeContext": "  const stack: { node: ConditionalExpression; stage: number }[] = [{ node: expression, stage: 0 }];\n  let result = false;\n  while (stack.length) {\n    await charge(context);",
+        "afterContext": "export async function evaluateConditional(expression: ConditionalExpression, context: ConditionalContext): Promise<number> {\n  const stack: { node: ConditionalExpression; stage: number }[] = [{ node: expression, stage: 0 }];\n  let result = 1;\n  while (stack.length) {\n    await charge(context);"
+      },
+      {
+        "removed": "      else { result = !result; stack.pop(); }",
+        "added": "      else { result = result === 0 ? 1 : 0; stack.pop(); }",
+        "beforeContext": "    if (node.kind === \"not\") {\n      if (frame.stage++ === 0) stack.push({ node: node.operand, stage: 0 });\n      else { result = !result; stack.pop(); }\n    } else if (node.kind === \"and\" || node.kind === \"or\") {\n      if (frame.stage === 0) { frame.stage = 1; stack.push({ node: node.left, stage: 0 }); }",
+        "afterContext": "    if (node.kind === \"not\") {\n      if (frame.stage++ === 0) stack.push({ node: node.operand, stage: 0 });\n      else { result = result === 0 ? 1 : 0; stack.pop(); }\n    } else if (node.kind === \"and\" || node.kind === \"or\") {\n      if (frame.stage === 0) { frame.stage = 1; stack.push({ node: node.left, stage: 0 }); }"
+      },
+      {
+        "removed": "      else if (frame.stage === 1 && (node.kind === \"and\" ? result : !result)) { frame.stage = 2; stack.push({ node: node.right, stage: 0 }); }",
+        "added": "      else if (frame.stage === 1 && (node.kind === \"and\" ? result === 0 : result !== 0)) { frame.stage = 2; stack.push({ node: node.right, stage: 0 }); }",
+        "beforeContext": "    } else if (node.kind === \"and\" || node.kind === \"or\") {\n      if (frame.stage === 0) { frame.stage = 1; stack.push({ node: node.left, stage: 0 }); }\n      else if (frame.stage === 1 && (node.kind === \"and\" ? result : !result)) { frame.stage = 2; stack.push({ node: node.right, stage: 0 }); }\n      else stack.pop();\n    } else { result = await leaf(node, context); stack.pop(); }",
+        "afterContext": "    } else if (node.kind === \"and\" || node.kind === \"or\") {\n      if (frame.stage === 0) { frame.stage = 1; stack.push({ node: node.left, stage: 0 }); }\n      else if (frame.stage === 1 && (node.kind === \"and\" ? result === 0 : result !== 0)) { frame.stage = 2; stack.push({ node: node.right, stage: 0 }); }\n      else stack.pop();"
+      },
+      {
+        "removed": "    } else { result = await leaf(node, context); stack.pop(); }",
+        "added": "    } else { const value = await leaf(node, context); result = typeof value === \"number\" ? value : Number(!value); stack.pop(); }",
+        "beforeContext": "      else stack.pop();\n    } else { result = await leaf(node, context); stack.pop(); }\n  }\n  context.signal.throwIfAborted();",
+        "afterContext": "      else if (frame.stage === 1 && (node.kind === \"and\" ? result === 0 : result !== 0)) { frame.stage = 2; stack.push({ node: node.right, stage: 0 }); }\n      else stack.pop();\n    } else { const value = await leaf(node, context); result = typeof value === \"number\" ? value : Number(!value); stack.pop(); }\n  }\n  context.signal.throwIfAborted();"
+      }
+    ]
+  },
+  {
+    "path": "src/shell/parser.ts",
+    "before": {
+      "path": "src/shell/parser.ts",
+      "mode": "100644",
+      "blob": "27bcacc6c9a731ff02c6ef3700e96a7a1f8e4ebe",
+      "bytes": 42620,
+      "sha256": "5a927b2c93dc62c8ca74e8f16c8e3211022b244916faa2c0c4ce1191930a9690",
+      "origin": "UNIT3_7a5c6200_PENDING_INDEPENDENT",
+      "replacedBlob": "40857123df98fb3696cc457733863ad77bc55109"
+    },
+    "working": {
+      "path": "src/shell/parser.ts",
+      "mode": "100644",
+      "indexBlob": "8072ffd47be227c39e5725d3ffae36f355c6b984",
+      "workingBlob": "8072ffd47be227c39e5725d3ffae36f355c6b984",
+      "size": 44537,
+      "sha256": "038b5ba63429b7f190295bd8aacc096f31d5222a5a0a280542a081b17bdc476a",
+      "differsFromIndex": false
+    },
+    "blocks": [
+      {
+        "removed": "",
+        "added": "    let regexBracket = false;\n    let regexBracketFirst = false;\n    let regexBracketNegation = false;\n    let regexClass = \"\";",
+        "beforeContext": "    let conditionals = 0;\n    let patternParentheses = 0;\n    const conditionalPattern = terminator === undefined ? this.conditionalPattern : undefined;\n    let plain = true;",
+        "afterContext": "    let conditionals = 0;\n    let patternParentheses = 0;\n    let regexBracket = false;\n    let regexBracketFirst = false;\n    let regexBracketNegation = false;\n    let regexClass = \"\";\n    const conditionalPattern = terminator === undefined ? this.conditionalPattern : undefined;\n    let plain = true;"
+      },
+      {
+        "removed": "",
+        "added": "      if (conditionalPattern === \"regex\" && regexBracket && quoted && value.length) { regexBracketFirst = false; regexBracketNegation = false; }",
+        "beforeContext": "    let plain = true;\n    const text = (value: string, quoted: boolean, synthetic = false) => {\n      const previous = parts.at(-1);\n      if (previous?.kind === \"text\" && previous.quoted === quoted) {",
+        "afterContext": "    let plain = true;\n    const text = (value: string, quoted: boolean, synthetic = false) => {\n      if (conditionalPattern === \"regex\" && regexBracket && quoted && value.length) { regexBracketFirst = false; regexBracketNegation = false; }\n      const previous = parts.at(-1);\n      if (previous?.kind === \"text\" && previous.quoted === quoted) {"
+      },
+      {
+        "removed": "        if (current === \"(\" && (conditionalPattern === \"regex\" || patternParentheses > 0 || \"?*+@!\".includes(this.source[this.position - 1] ?? \" \"))) {",
+        "added": "        const bracketMaterial = conditionalPattern === \"regex\" && (regexBracket || current === \"[\");\n        if (bracketMaterial) {\n          if (!regexBracket) { regexBracket = true; regexBracketFirst = true; regexBracketNegation = true; }\n          else if (regexClass) {\n            if (current === \"]\" && this.source[this.position - 1] === regexClass) regexClass = \"\";\n          } else if (current === \"[\" && [\":\", \".\", \"=\"].includes(this.source[this.position + 1] ?? \"\")) { regexClass = this.source[this.position + 1]!; regexBracketFirst = false; }\n          else if (current === \"]\" && !regexBracketFirst) regexBracket = false;\n          else if (current === \"^\" && regexBracketFirst && regexBracketNegation) regexBracketNegation = false;\n          else { regexBracketFirst = false; regexBracketNegation = false; }\n        } else if (current === \"(\" && (conditionalPattern === \"regex\" || patternParentheses > 0 || \"?*+@!\".includes(this.source[this.position - 1] ?? \" \"))) {",
+        "beforeContext": "      if (conditionalPattern) {\n        if (/[ \\t\\n;]/u.test(current)) break;\n        if (current === \"(\" && (conditionalPattern === \"regex\" || patternParentheses > 0 || \"?*+@!\".includes(this.source[this.position - 1] ?? \" \"))) {\n          if (++patternParentheses > 64) this.error(\"Conditional syntax nesting exceeds 64\");\n        } else if (current === \")\" && patternParentheses > 0) patternParentheses--;",
+        "afterContext": "      if (conditionalPattern) {\n        if (/[ \\t\\n;]/u.test(current)) break;\n        const bracketMaterial = conditionalPattern === \"regex\" && (regexBracket || current === \"[\");\n        if (bracketMaterial) {\n          if (!regexBracket) { regexBracket = true; regexBracketFirst = true; regexBracketNegation = true; }\n          else if (regexClass) {\n            if (current === \"]\" && this.source[this.position - 1] === regexClass) regexClass = \"\";\n          } else if (current === \"[\" && [\":\", \".\", \"=\"].includes(this.source[this.position + 1] ?? \"\")) { regexClass = this.source[this.position + 1]!; regexBracketFirst = false; }\n          else if (current === \"]\" && !regexBracketFirst) regexBracket = false;\n          else if (current === \"^\" && regexBracketFirst && regexBracketNegation) regexBracketNegation = false;\n          else { regexBracketFirst = false; regexBracketNegation = false; }\n        } else if (current === \"(\" && (conditionalPattern === \"regex\" || patternParentheses > 0 || \"?*+@!\".includes(this.source[this.position - 1] ?? \" \"))) {\n          if (++patternParentheses > 64) this.error(\"Conditional syntax nesting exceeds 64\");\n        } else if (current === \")\" && patternParentheses > 0) patternParentheses--;"
+      },
+      {
+        "removed": "",
+        "added": "    if (conditionalPattern === \"regex\" && patternParentheses > 0) this.error(\"Unterminated conditional regular expression group\");",
+        "beforeContext": "      }\n    }\n    const printedNewlines = this.source.slice(offset, this.position).split(\"\\n\").length - 1 - (this.printedNewlineReduction - reduction);\n    return { parts, offset, ...(unprinted === this.unprintedWords ? { printedNewlines } : {}), ...(plain ? { plain: parts.map((part) => part.kind === \"text\" ? part.value : \"\").join(\"\") } : {}) };",
+        "afterContext": "      }\n    }\n    if (conditionalPattern === \"regex\" && patternParentheses > 0) this.error(\"Unterminated conditional regular expression group\");\n    const printedNewlines = this.source.slice(offset, this.position).split(\"\\n\").length - 1 - (this.printedNewlineReduction - reduction);\n    return { parts, offset, ...(unprinted === this.unprintedWords ? { printedNewlines } : {}), ...(plain ? { plain: parts.map((part) => part.kind === \"text\" ? part.value : \"\").join(\"\") } : {}) };"
+      },
+      {
+        "removed": "",
+        "added": "      const grouped = new WeakSet<ConditionalExpression>();",
+        "beforeContext": "      this.advance();\n      let nodes = 0;\n      const admit = (): void => { if (nodes >= 4096) this.error(\"Conditional syntax exceeds 4096 nodes\"); nodes++; };\n      const operand = (): Word => {",
+        "afterContext": "      this.advance();\n      let nodes = 0;\n      const grouped = new WeakSet<ConditionalExpression>();\n      const admit = (): void => { if (nodes >= 4096) this.error(\"Conditional syntax exceeds 4096 nodes\"); nodes++; };\n      const operand = (): Word => {"
+      },
+      {
+        "removed": "        if (this.is(\"!\")) { admit(); this.advance(); return { kind: \"not\", operand: primary(depth + 1) }; }\n        if (this.is(\"(\")) { this.advance(); const expression = disjunction(depth + 1); this.expect(\")\"); return expression; }",
+        "added": "        if (this.is(\"!\")) { admit(); this.advance(); const expression = primary(depth + 1); return expression.kind === \"not\" && !grouped.has(expression) ? expression.operand : { kind: \"not\", operand: expression }; }\n        if (this.is(\"(\")) { this.advance(); const expression = disjunction(depth + 1); this.expect(\")\"); grouped.add(expression); return expression; }",
+        "beforeContext": "      const primary = (depth: number): ConditionalExpression => {\n        if (depth > 64) this.error(\"Conditional syntax nesting exceeds 64\");\n        if (this.is(\"!\")) { admit(); this.advance(); return { kind: \"not\", operand: primary(depth + 1) }; }\n        if (this.is(\"(\")) { this.advance(); const expression = disjunction(depth + 1); this.expect(\")\"); return expression; }\n        admit();\n        const first = operand();",
+        "afterContext": "      const primary = (depth: number): ConditionalExpression => {\n        if (depth > 64) this.error(\"Conditional syntax nesting exceeds 64\");\n        if (this.is(\"!\")) { admit(); this.advance(); const expression = primary(depth + 1); return expression.kind === \"not\" && !grouped.has(expression) ? expression.operand : { kind: \"not\", operand: expression }; }\n        if (this.is(\"(\")) { this.advance(); const expression = disjunction(depth + 1); this.expect(\")\"); grouped.add(expression); return expression; }\n        admit();\n        const first = operand();"
+      },
+      {
+        "removed": "",
+        "added": "    } else if (this.is(\"function\")) {\n      this.advance();\n      if (this.current.kind !== \"word\" || !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(this.current.value)) this.error(\"Invalid function name\");\n      const name = this.advance().value;\n      if (this.is(\"(\")) {\n        this.advance();\n        this.expect(\")\");\n      }\n      this.newlines();\n      if (!this.is(\"{\")) this.error(\"Expected brace function body\");\n      command = { kind: \"function\", name, body: this.command(), redirects: [] };",
+        "beforeContext": "      this.expect(\"done\");\n      command = { kind: \"for\", name, ...(words ? { words } : {}), body, redirects: [] };\n    } else if (this.current.kind === \"word\" && !compoundHead(this.current.word!) && this.peek().value === \"(\") {\n      const name = this.advance().value;",
+        "afterContext": "      this.expect(\"done\");\n      command = { kind: \"for\", name, ...(words ? { words } : {}), body, redirects: [] };\n    } else if (this.is(\"function\")) {\n      this.advance();\n      if (this.current.kind !== \"word\" || !/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(this.current.value)) this.error(\"Invalid function name\");\n      const name = this.advance().value;\n      if (this.is(\"(\")) {\n        this.advance();\n        this.expect(\")\");\n      }\n      this.newlines();\n      if (!this.is(\"{\")) this.error(\"Expected brace function body\");\n      command = { kind: \"function\", name, body: this.command(), redirects: [] };\n    } else if (this.current.kind === \"word\" && !compoundHead(this.current.word!) && this.peek().value === \"(\") {\n      const name = this.advance().value;"
+      }
+    ]
+  },
+  {
+    "path": "src/shell/runtime.ts",
+    "before": {
+      "path": "src/shell/runtime.ts",
+      "mode": "100644",
+      "blob": "df6b2c0dfad8d7412f93f434d07a20b2b9375a86",
+      "bytes": 203623,
+      "sha256": "4e67e4e5d1d4a0c6b9b479d4381edbab5948a7b2b292f219a46067aeee7ce058",
+      "revision": "7196bace8ea2c141d5ed1020fef5bf721c321ace",
+      "origin": "ROOT_ACCEPTED_719_N14_QUALIFIED_SOURCE"
+    },
+    "working": {
+      "path": "src/shell/runtime.ts",
+      "mode": "100644",
+      "indexBlob": "f21ed950fb8a96318e7e34f5d41f3ca2522dc138",
+      "workingBlob": "f21ed950fb8a96318e7e34f5d41f3ca2522dc138",
+      "size": 214992,
+      "sha256": "4265d397ae45c686ec564828b019237a00286ad75ec212f0668667a89149fd42",
+      "differsFromIndex": false
+    },
+    "blocks": [
+      {
+        "removed": "",
+        "added": "import { evaluatePositionalArithmetic } from \"./arithmetic-parameters.js\";",
+        "beforeContext": "import { ShellInput } from \"./input.js\";\nimport { evaluateArithmetic, prepareArithmetic } from \"./arithmetic.js\";\nimport { compilePattern, matchesPattern } from \"./pattern.js\";\nimport { byteLocale } from \"./locale.js\";",
+        "afterContext": "import { ShellInput } from \"./input.js\";\nimport { evaluateArithmetic, prepareArithmetic } from \"./arithmetic.js\";\nimport { evaluatePositionalArithmetic } from \"./arithmetic-parameters.js\";\nimport { compilePattern, matchesPattern } from \"./pattern.js\";\nimport { byteLocale } from \"./locale.js\";"
+      },
+      {
+        "removed": "",
+        "added": "import { publishPipelineStatus } from \"./pipestatus.js\";",
+        "beforeContext": "import { controlNames, IndexedBinding, textToken } from \"./arrays/bindings.js\";\nimport { arrayStore, requireArrays, snapshotState, stateMonitor, trackState } from \"./arrays/state.js\";\nimport type { Restoration } from \"./arrays/state.js\";\nimport type { Admission } from \"./arrays/ledger.js\";",
+        "afterContext": "import { controlNames, IndexedBinding, textToken } from \"./arrays/bindings.js\";\nimport { arrayStore, requireArrays, snapshotState, stateMonitor, trackState } from \"./arrays/state.js\";\nimport { publishPipelineStatus } from \"./pipestatus.js\";\nimport type { Restoration } from \"./arrays/state.js\";\nimport type { Admission } from \"./arrays/ledger.js\";"
+      },
+      {
+        "removed": "",
+        "added": "import { EreTransportRoot } from \"../commands/regex-execution/ere/transport/root.js\";\nimport { EreTransportProfileLimitError, EreTransportSemanticError } from \"../commands/regex-execution/ere/transport/protocol.js\";\nimport type { EreTransportResult } from \"../commands/regex-execution/ere/transport/protocol.js\";\nimport { EreProfileLimitError, EreUnsupportedError } from \"../commands/regex-execution/ere/errors.js\";\nimport type { EreFragment } from \"../commands/regex-execution/ere/types.js\";",
+        "beforeContext": "import type { Admission } from \"./arrays/ledger.js\";\nimport type { BindingWatch, OwnedText } from \"./arrays/bindings.js\";\n\nexport const defaultLimits: Required<ShellLimits> = {",
+        "afterContext": "import type { Admission } from \"./arrays/ledger.js\";\nimport type { BindingWatch, OwnedText } from \"./arrays/bindings.js\";\nimport { EreTransportRoot } from \"../commands/regex-execution/ere/transport/root.js\";\nimport { EreTransportProfileLimitError, EreTransportSemanticError } from \"../commands/regex-execution/ere/transport/protocol.js\";\nimport type { EreTransportResult } from \"../commands/regex-execution/ere/transport/protocol.js\";\nimport { EreProfileLimitError, EreUnsupportedError } from \"../commands/regex-execution/ere/errors.js\";\nimport type { EreFragment } from \"../commands/regex-execution/ere/types.js\";\n\nexport const defaultLimits: Required<ShellLimits> = {"
+      },
+      {
+        "removed": "",
+        "added": "const completedFlows = new WeakSet<Flow>();\n\nfunction completedExit(status: number, kind: Flow[\"kind\"] = \"exit\", levels = 1): Flow {\n  const flow = new Flow(kind, status, levels);\n  completedFlows.add(flow);\n  return flow;\n}\n",
+        "beforeContext": "}\n\nclass ExecutionFailure extends Error {\n  constructor(readonly original: unknown, readonly io: IO, readonly diagnostic?: string) { super(message(original)); }",
+        "afterContext": "}\n\nconst completedFlows = new WeakSet<Flow>();\n\nfunction completedExit(status: number, kind: Flow[\"kind\"] = \"exit\", levels = 1): Flow {\n  const flow = new Flow(kind, status, levels);\n  completedFlows.add(flow);\n  return flow;\n}\n\nclass ExecutionFailure extends Error {\n  constructor(readonly original: unknown, readonly io: IO, readonly diagnostic?: string) { super(message(original)); }"
+      },
+      {
+        "removed": "",
+        "added": "  static readonly #ereRoots = new WeakMap<Budget, { root?: EreTransportRoot; cleanup?: () => Promise<void>; closed: boolean }>();\n\n  static registerEreRoot(budget: Budget, scope: InvocationScope): void {\n    const entry: { root?: EreTransportRoot; cleanup?: () => Promise<void>; closed: boolean } = { closed: false };\n    scope.register(async () => {\n      entry.closed = true;\n      try { await entry.cleanup?.(); } finally { Runtime.#ereRoots.delete(budget); }\n    });\n    Runtime.#ereRoots.set(budget, entry);\n  }\n",
+        "beforeContext": "\nexport class Runtime {\n  constructor(\n    readonly fs: FileSystem,",
+        "afterContext": "\nexport class Runtime {\n  static readonly #ereRoots = new WeakMap<Budget, { root?: EreTransportRoot; cleanup?: () => Promise<void>; closed: boolean }>();\n\n  static registerEreRoot(budget: Budget, scope: InvocationScope): void {\n    const entry: { root?: EreTransportRoot; cleanup?: () => Promise<void>; closed: boolean } = { closed: false };\n    scope.register(async () => {\n      entry.closed = true;\n      try { await entry.cleanup?.(); } finally { Runtime.#ereRoots.delete(budget); }\n    });\n    Runtime.#ereRoots.set(budget, entry);\n  }\n\n  constructor(\n    readonly fs: FileSystem,"
+      },
+      {
+        "removed": "",
+        "added": "  private async ereDiagnostic(io: IO, detail: string): Promise<void> {\n    try { await this.diagnostic(io, detail); }\n    catch (reason) {\n      this.signal.throwIfAborted();\n      if (reason instanceof ShellLimitError) throw reason;\n      throw new NounsetDiagnosticFailure(reason);\n    }\n  }\n\n  private async ere(subject: string, pattern: Word, state: State, io: IO): Promise<number> {\n    const scope = io[invocationScope];\n    scope.assertOpen();\n    const store = requireArrays(state);\n    let operation: ArrayOwner | undefined;\n    let holding: ReturnType<ArrayOwner[\"hold\"]> | undefined;\n    let staged: IndexedBinding | undefined;\n    let closing: Promise<void> | undefined;\n    const close = (): Promise<void> => closing ??= Promise.resolve().then(async () => {\n      try { await staged?.release(); } finally { try { await operation?.close(); } finally { holding?.release(); } }\n    });\n    let primary = false;\n    try {\n      operation = ArrayOwner.create(store.owner.ledger, store.owner);\n      holding = store.owner.hold();\n      await this.prepareArrayObservers(state, operation);\n      operation.reserve({ metadata: 64, allocatedSlots: 1, work: 2 });\n      const fragments: EreFragment[] = [];\n      await this.word(pattern, state, io, false, false, false, false, (text, literal) => {\n        operation!.reserve({ metadata: 64, allocatedSlots: 1, payload: Buffer.byteLength(text), work: text.length + 2 });\n        fragments.push({ text, literal });\n      });\n      const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || \"C\";\n      const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || \"C\";\n      if (![collation, characters].every(locale => locale === \"C\" || locale === \"POSIX\")) {\n        await this.ereDiagnostic(io, \"[[ unsupported ERE profile: locale must be C or POSIX\");\n        return 2;\n      }\n      await textToken(operation, subject, this.signal);\n      const name = \"BASH_REMATCH\";\n      const watch = await store.watch(name, operation, this.signal);\n      const entry = Runtime.#ereRoots.get(this.budget);\n      if (!entry || entry.closed) throw new Error(\"ERE invocation owner is closed\");\n      if (!entry.root) entry.root = new EreTransportRoot({ maxExpansionBytes: this.budget.limits.maxExpansionBytes, maxExpansionFields: this.budget.limits.maxExpansionFields }, cleanup => {\n        scope.assertOpen();\n        if (entry.closed) throw new Error(\"ERE invocation owner is closed\");\n        entry.cleanup = cleanup;\n      });\n      const session = entry.root.openSession(cleanup => scope.register(cleanup));\n      let result: EreTransportResult;\n      let sessionEscaping = false;\n      try { result = await session.execute({ pattern: fragments, subject }, this.signal); }\n      catch (error) {\n        sessionEscaping = true;\n        this.signal.throwIfAborted();\n        if (error instanceof EreTransportSemanticError || error instanceof EreUnsupportedError) {\n          await this.ereDiagnostic(io, `[[ ${error.message}`);\n          sessionEscaping = false;\n          return 2;\n        }\n        throw error;\n      } finally {\n        try { await session.close(); }\n        catch (error) { if (sessionEscaping) scope.failures.push(error); else throw new NounsetDiagnosticFailure(error); }\n      }\n      const status = result.matched ? 0 : 1;\n      this.signal.throwIfAborted();\n      scope.assertOpen();\n      if (state.readonlyVariables?.has(name)) { await this.ereDiagnostic(io, `${name}: readonly variable`); return status; }\n      if (state.exported.has(name)) throw new ArrayFailure(\"exported binding cannot be indexed\");\n      if (!watch.valid()) throw new ArrayFailure(\"stale binding\");\n      const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);\n      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });\n      const prepared = await store.prepareName(name, operation, this.signal);\n      staged = IndexedBinding.create(store.owner);\n      if (result.matched) for (let index = 0; index < result.spans.length; index++) {\n        const span = result.spans[index]!;\n        const size = span === null ? 0 : span.end - span.start;\n        operation.reserve({ payload: size, metadata: 32, work: size + 2 });\n        const value = span === null ? \"\" : subject.slice(span.start, span.end);\n        const token = await textToken(staged.owner, value, this.signal);\n        try { staged.insert(index, token); } catch (error) { token.release(); throw error; }\n      }\n      this.signal.throwIfAborted();\n      scope.assertOpen();\n      if (state.readonlyVariables?.has(name)) { await this.ereDiagnostic(io, `${name}: readonly variable`); return status; }\n      if (state.exported.has(name)) throw new ArrayFailure(\"exported binding cannot be indexed\");\n      if (!watch.valid()) throw new ArrayFailure(\"stale binding\");\n      let released: Promise<void> | undefined;\n      stateMonitor(state)!.publish(tickets, name, () => {\n        supersede();\n        delete state.variables[name];\n        released = store.publish(name, staged!, tickets, prepared);\n      });\n      staged = undefined;\n      watch.close();\n      await released;\n      return status;\n    } catch (error) { primary = true; throw error; }\n    finally {\n      try { await close(); }\n      catch (error) { if (primary) scope.failures.push(error); else throw new NounsetDiagnosticFailure(error); }\n    }\n  }\n",
+        "beforeContext": "  ) {}\n\n  static rootCancellationAdmission(budget: Budget): CancellationAdmissionSnapshot {\n    const maxDepth = saturatedSum(budget.limits.maxCommands, saturatedSum(budget.limits.maxSubstitutionDepth, 1));",
+        "afterContext": "  ) {}\n\n  private async ereDiagnostic(io: IO, detail: string): Promise<void> {\n    try { await this.diagnostic(io, detail); }\n    catch (reason) {\n      this.signal.throwIfAborted();\n      if (reason instanceof ShellLimitError) throw reason;\n      throw new NounsetDiagnosticFailure(reason);\n    }\n  }\n\n  private async ere(subject: string, pattern: Word, state: State, io: IO): Promise<number> {\n    const scope = io[invocationScope];\n    scope.assertOpen();\n    const store = requireArrays(state);\n    let operation: ArrayOwner | undefined;\n    let holding: ReturnType<ArrayOwner[\"hold\"]> | undefined;\n    let staged: IndexedBinding | undefined;\n    let closing: Promise<void> | undefined;\n    const close = (): Promise<void> => closing ??= Promise.resolve().then(async () => {\n      try { await staged?.release(); } finally { try { await operation?.close(); } finally { holding?.release(); } }\n    });\n    let primary = false;\n    try {\n      operation = ArrayOwner.create(store.owner.ledger, store.owner);\n      holding = store.owner.hold();\n      await this.prepareArrayObservers(state, operation);\n      operation.reserve({ metadata: 64, allocatedSlots: 1, work: 2 });\n      const fragments: EreFragment[] = [];\n      await this.word(pattern, state, io, false, false, false, false, (text, literal) => {\n        operation!.reserve({ metadata: 64, allocatedSlots: 1, payload: Buffer.byteLength(text), work: text.length + 2 });\n        fragments.push({ text, literal });\n      });\n      const collation = state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || \"C\";\n      const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || \"C\";\n      if (![collation, characters].every(locale => locale === \"C\" || locale === \"POSIX\")) {\n        await this.ereDiagnostic(io, \"[[ unsupported ERE profile: locale must be C or POSIX\");\n        return 2;\n      }\n      await textToken(operation, subject, this.signal);\n      const name = \"BASH_REMATCH\";\n      const watch = await store.watch(name, operation, this.signal);\n      const entry = Runtime.#ereRoots.get(this.budget);\n      if (!entry || entry.closed) throw new Error(\"ERE invocation owner is closed\");\n      if (!entry.root) entry.root = new EreTransportRoot({ maxExpansionBytes: this.budget.limits.maxExpansionBytes, maxExpansionFields: this.budget.limits.maxExpansionFields }, cleanup => {\n        scope.assertOpen();\n        if (entry.closed) throw new Error(\"ERE invocation owner is closed\");\n        entry.cleanup = cleanup;\n      });\n      const session = entry.root.openSession(cleanup => scope.register(cleanup));\n      let result: EreTransportResult;\n      let sessionEscaping = false;\n      try { result = await session.execute({ pattern: fragments, subject }, this.signal); }\n      catch (error) {\n        sessionEscaping = true;\n        this.signal.throwIfAborted();\n        if (error instanceof EreTransportSemanticError || error instanceof EreUnsupportedError) {\n          await this.ereDiagnostic(io, `[[ ${error.message}`);\n          sessionEscaping = false;\n          return 2;\n        }\n        throw error;\n      } finally {\n        try { await session.close(); }\n        catch (error) { if (sessionEscaping) scope.failures.push(error); else throw new NounsetDiagnosticFailure(error); }\n      }\n      const status = result.matched ? 0 : 1;\n      this.signal.throwIfAborted();\n      scope.assertOpen();\n      if (state.readonlyVariables?.has(name)) { await this.ereDiagnostic(io, `${name}: readonly variable`); return status; }\n      if (state.exported.has(name)) throw new ArrayFailure(\"exported binding cannot be indexed\");\n      if (!watch.valid()) throw new ArrayFailure(\"stale binding\");\n      const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);\n      const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });\n      const prepared = await store.prepareName(name, operation, this.signal);\n      staged = IndexedBinding.create(store.owner);\n      if (result.matched) for (let index = 0; index < result.spans.length; index++) {\n        const span = result.spans[index]!;\n        const size = span === null ? 0 : span.end - span.start;\n        operation.reserve({ payload: size, metadata: 32, work: size + 2 });\n        const value = span === null ? \"\" : subject.slice(span.start, span.end);\n        const token = await textToken(staged.owner, value, this.signal);\n        try { staged.insert(index, token); } catch (error) { token.release(); throw error; }\n      }\n      this.signal.throwIfAborted();\n      scope.assertOpen();\n      if (state.readonlyVariables?.has(name)) { await this.ereDiagnostic(io, `${name}: readonly variable`); return status; }\n      if (state.exported.has(name)) throw new ArrayFailure(\"exported binding cannot be indexed\");\n      if (!watch.valid()) throw new ArrayFailure(\"stale binding\");\n      let released: Promise<void> | undefined;\n      stateMonitor(state)!.publish(tickets, name, () => {\n        supersede();\n        delete state.variables[name];\n        released = store.publish(name, staged!, tickets, prepared);\n      });\n      staged = undefined;\n      watch.close();\n      await released;\n      return status;\n    } catch (error) { primary = true; throw error; }\n    finally {\n      try { await close(); }\n      catch (error) { if (primary) scope.failures.push(error); else throw new NounsetDiagnosticFailure(error); }\n    }\n  }\n\n  static rootCancellationAdmission(budget: Budget): CancellationAdmissionSnapshot {\n    const maxDepth = saturatedSum(budget.limits.maxCommands, saturatedSum(budget.limits.maxSubstitutionDepth, 1));"
+      },
+      {
+        "removed": "    if (pipeline.commands.length === 1) status = await this.command(pipeline.commands[0]!, state, io);",
+        "added": "    if (pipeline.commands.length === 1) status = await this.command(pipeline.commands[0]!, state, io, false, pipeline.negate);",
+        "beforeContext": "    this.signal.throwIfAborted();\n    let status: number;\n    if (pipeline.commands.length === 1) status = await this.command(pipeline.commands[0]!, state, io);\n    else {\n      const pipes = pipeline.commands.slice(1).map(() => createBytePipe({",
+        "afterContext": "    this.signal.throwIfAborted();\n    let status: number;\n    if (pipeline.commands.length === 1) status = await this.command(pipeline.commands[0]!, state, io, false, pipeline.negate);\n    else {\n      const pipes = pipeline.commands.slice(1).map(() => createBytePipe({"
+      },
+      {
+        "removed": "",
+        "added": "      let statuses: number[];",
+        "beforeContext": "        return selection.outcome.value.exitCode;\n      });\n      try {\n        const statuses = await interruptible(Promise.all(tasks), this.signal);",
+        "afterContext": "        return selection.outcome.value.exitCode;\n      });\n      let statuses: number[];\n      try {"
+      },
+      {
+        "removed": "        const statuses = await interruptible(Promise.all(tasks), this.signal);\n        status = state.pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;",
+        "added": "        statuses = await interruptible(Promise.all(tasks), this.signal);",
+        "beforeContext": "      try {\n        const statuses = await interruptible(Promise.all(tasks), this.signal);\n        status = state.pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;\n      } finally {\n        for (const close of closing) clearImmediate(close);",
+        "afterContext": "      let statuses: number[];\n      try {\n        statuses = await interruptible(Promise.all(tasks), this.signal);\n      } finally {\n        for (const close of closing) clearImmediate(close);"
+      },
+      {
+        "removed": "",
+        "added": "      await this.publishStatus(state, statuses, io);\n      status = state.pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;",
+        "beforeContext": "        await Promise.all(pipes.map((pipe) => pipe.abort()));\n      }\n    }\n    if (pipeline.commands.length > 1) this.errexit(status, state, io);",
+        "afterContext": "        await Promise.all(pipes.map((pipe) => pipe.abort()));\n      }\n      await this.publishStatus(state, statuses, io);\n      status = state.pipefail ? statuses.findLast((status) => status !== 0) ?? 0 : statuses.at(-1)!;\n    }\n    if (pipeline.commands.length > 1) this.errexit(status, state, io);"
+      },
+      {
+        "removed": "  async command(command: Command, state: State, io: IO, fileShortcut = false): Promise<number> {",
+        "added": "  private async publishStatus(state: State, statuses: readonly number[], io: IO): Promise<void> {\n    this.signal.throwIfAborted();\n    if (io[invocationScope].failures.length) throw new NounsetDiagnosticFailure(io[invocationScope].failures[0]);\n    await publishPipelineStatus(trackState(state, this.budget, io[invocationScope]), statuses, this.signal, io[invocationScope]);\n  }\n\n  async command(command: Command, state: State, io: IO, fileShortcut = false, publicationNegate = false): Promise<number> {",
+        "beforeContext": "  }\n\n  async command(command: Command, state: State, io: IO, fileShortcut = false): Promise<number> {\n    io[invocationScope].assertOpen();\n    const status = await this.executeCommand(command, state, io, fileShortcut);",
+        "afterContext": "  }\n\n  private async publishStatus(state: State, statuses: readonly number[], io: IO): Promise<void> {\n    this.signal.throwIfAborted();\n    if (io[invocationScope].failures.length) throw new NounsetDiagnosticFailure(io[invocationScope].failures[0]);\n    await publishPipelineStatus(trackState(state, this.budget, io[invocationScope]), statuses, this.signal, io[invocationScope]);\n  }\n\n  async command(command: Command, state: State, io: IO, fileShortcut = false, publicationNegate = false): Promise<number> {\n    io[invocationScope].assertOpen();"
+      },
+      {
+        "removed": "    const status = await this.executeCommand(command, state, io, fileShortcut);\n    if (command.kind === \"simple\" || command.kind === \"subshell\" || command.kind === \"arithmetic\" || command.kind === \"conditional\") this.errexit(status, state, io);",
+        "added": "    const publishes = command.kind === \"simple\" || command.kind === \"subshell\" || command.kind === \"arithmetic\" || command.kind === \"conditional\";\n    let status: number;\n    try { status = await this.executeCommand(command, state, io, fileShortcut); }\n    catch (error) {\n      if (publishes && error instanceof Flow && completedFlows.has(error)) {\n        completedFlows.delete(error);\n        this.signal.throwIfAborted();\n        if (!io[invocationScope].failures.length) await this.publishStatus(state, [error.status], io);\n      }\n      throw error;\n    }\n    if (publishes) {\n      const reported = publicationNegate && (command.kind === \"conditional\" || command.kind === \"arithmetic\") ? Number(status === 0) : status;\n      await this.publishStatus(state, [reported], io);\n      this.errexit(status, state, io);\n    }",
+        "beforeContext": "    io[invocationScope].assertOpen();\n    const status = await this.executeCommand(command, state, io, fileShortcut);\n    if (command.kind === \"simple\" || command.kind === \"subshell\" || command.kind === \"arithmetic\" || command.kind === \"conditional\") this.errexit(status, state, io);\n    return status;\n  }",
+        "afterContext": "  async command(command: Command, state: State, io: IO, fileShortcut = false, publicationNegate = false): Promise<number> {\n    io[invocationScope].assertOpen();\n    const publishes = command.kind === \"simple\" || command.kind === \"subshell\" || command.kind === \"arithmetic\" || command.kind === \"conditional\";\n    let status: number;\n    try { status = await this.executeCommand(command, state, io, fileShortcut); }\n    catch (error) {\n      if (publishes && error instanceof Flow && completedFlows.has(error)) {\n        completedFlows.delete(error);\n        this.signal.throwIfAborted();\n        if (!io[invocationScope].failures.length) await this.publishStatus(state, [error.status], io);\n      }\n      throw error;\n    }\n    if (publishes) {\n      const reported = publicationNegate && (command.kind === \"conditional\" || command.kind === \"arithmetic\") ? Number(status === 0) : status;\n      await this.publishStatus(state, [reported], io);\n      this.errexit(status, state, io);\n    }\n    return status;\n  }"
+      },
+      {
+        "removed": "          return Number(!await evaluateConditional(command.expression, {",
+        "added": "          return await evaluateConditional(command.expression, {",
+        "beforeContext": "      if (command.kind === \"conditional\") {\n        try {\n          return Number(!await evaluateConditional(command.expression, {\n            fs: this.fs, cwd: state.cwd, signal: this.signal,\n            locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || \"C\",",
+        "afterContext": "      if (command.kind === \"conditional\") {\n        try {\n          return await evaluateConditional(command.expression, {\n            fs: this.fs, cwd: state.cwd, signal: this.signal,\n            locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || \"C\","
+      },
+      {
+        "removed": "",
+        "added": "            regex: (subject, pattern) => this.ere(subject, pattern, state, io),",
+        "beforeContext": "            work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail(\"maxExpansionBytes\") },\n            expand: async (word, pattern = false) => (await this.word(word, state, io, false, pattern, false, pattern)).join(\"\"),\n            option: name => name === \"errexit\" ? !!state.errexit : name === \"nounset\" ? !!state.nounset : name === \"pipefail\" ? state.pipefail : false,\n            present: name => {",
+        "afterContext": "            work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail(\"maxExpansionBytes\") },\n            expand: async (word, pattern = false) => (await this.word(word, state, io, false, pattern, false, pattern)).join(\"\"),\n            regex: (subject, pattern) => this.ere(subject, pattern, state, io),\n            option: name => name === \"errexit\" ? !!state.errexit : name === \"nounset\" ? !!state.nounset : name === \"pipefail\" ? state.pipefail : false,\n            present: name => {"
+      },
+      {
+        "removed": "          }));",
+        "added": "          });",
+        "beforeContext": "              return binding ? binding.get(index) !== undefined : index === 0 && this.variable(state, match[1]!) !== undefined;\n            },\n          }));\n        } catch (error) {\n          this.signal.throwIfAborted();",
+        "afterContext": "              return binding ? binding.get(index) !== undefined : index === 0 && this.variable(state, match[1]!) !== undefined;\n            },\n          });\n        } catch (error) {\n          this.signal.throwIfAborted();"
+      },
+      {
+        "removed": "",
+        "added": "          if (error instanceof NounsetDiagnosticFailure) { diagnosticFailure = error; throw error; }\n          if (error instanceof EreProfileLimitError || error instanceof EreTransportProfileLimitError) {\n            try { await this.diagnostic(io, `[[ ${error.message}`); }\n            catch (reason) { this.signal.throwIfAborted(); if (reason instanceof ShellLimitError) throw reason; diagnosticFailure = new NounsetDiagnosticFailure(reason); throw diagnosticFailure; }\n            return 3;\n          }",
+        "beforeContext": "        } catch (error) {\n          this.signal.throwIfAborted();\n          if (error instanceof ConditionalUnsupported) {\n            try { await this.diagnostic(io, error.message); }",
+        "afterContext": "        } catch (error) {\n          this.signal.throwIfAborted();\n          if (error instanceof NounsetDiagnosticFailure) { diagnosticFailure = error; throw error; }\n          if (error instanceof EreProfileLimitError || error instanceof EreTransportProfileLimitError) {\n            try { await this.diagnostic(io, `[[ ${error.message}`); }\n            catch (reason) { this.signal.throwIfAborted(); if (reason instanceof ShellLimitError) throw reason; diagnosticFailure = new NounsetDiagnosticFailure(reason); throw diagnosticFailure; }\n            return 3;\n          }\n          if (error instanceof ConditionalUnsupported) {\n            try { await this.diagnostic(io, error.message); }"
+      },
+      {
+        "removed": "          if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;",
+        "added": "          if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError || error instanceof ArrayFailure) throw error;",
+        "beforeContext": "            return 2;\n          }\n          if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;\n          diagnosticFailure = new NounsetDiagnosticFailure(error);\n          throw diagnosticFailure;",
+        "afterContext": "            return 2;\n          }\n          if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError || error instanceof ArrayFailure) throw error;\n          diagnosticFailure = new NounsetDiagnosticFailure(error);\n          throw diagnosticFailure;"
+      },
+      {
+        "removed": "        try { return Number(evaluateArithmetic(command.expression, this.arithmeticVariables(state, io.diagnosticLine)) === 0n); }",
+        "added": "        try {\n          return Number(evaluatePositionalArithmetic(command.expression, {\n            positional: state.positional, arg0: state.arg0 ?? \"virtual-bash\", owner: arrayStore(state)?.owner,\n            maximumBytes: this.budget.limits.maxExpansionBytes,\n            checkpoint: () => this.signal.throwIfAborted(),\n            requireParameter: (name, value) => this.requireParameter(value, name, state, io),\n            limit: () => this.budget.fail(\"maxExpansionBytes\"),\n          }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine))) === 0n);\n        }",
+        "beforeContext": "      }\n      if (command.kind === \"arithmetic\") {\n        try { return Number(evaluateArithmetic(command.expression, this.arithmeticVariables(state, io.diagnosticLine)) === 0n); }\n        catch (error) { this.rethrowArithmeticControl(error); throw new Error(`((: ${message(error)}`); }\n      }",
+        "afterContext": "      }\n      if (command.kind === \"arithmetic\") {\n        try {\n          return Number(evaluatePositionalArithmetic(command.expression, {\n            positional: state.positional, arg0: state.arg0 ?? \"virtual-bash\", owner: arrayStore(state)?.owner,\n            maximumBytes: this.budget.limits.maxExpansionBytes,\n            checkpoint: () => this.signal.throwIfAborted(),\n            requireParameter: (name, value) => this.requireParameter(value, name, state, io),\n            limit: () => this.budget.fail(\"maxExpansionBytes\"),\n          }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine))) === 0n);\n        }\n        catch (error) { this.rethrowArithmeticControl(error); throw new Error(`((: ${message(error)}`); }\n      }"
+      },
+      {
+        "removed": "        this.errexit(1, state, io);",
+        "added": "        if (command.kind !== \"simple\" && command.kind !== \"subshell\" && command.kind !== \"arithmetic\" && command.kind !== \"conditional\") this.errexit(1, state, io);",
+        "beforeContext": "      if (error instanceof HereDocumentSyntaxError) {\n        await writeText(io.stderr, error.diagnostic);\n        this.errexit(1, state, io);\n        return 1;\n      }",
+        "afterContext": "      if (error instanceof HereDocumentSyntaxError) {\n        await writeText(io.stderr, error.diagnostic);\n        if (command.kind !== \"simple\" && command.kind !== \"subshell\" && command.kind !== \"arithmetic\" && command.kind !== \"conditional\") this.errexit(1, state, io);\n        return 1;\n      }"
+      },
+      {
+        "removed": "      if (errorCode(error) === \"EPIPE\") { this.errexit(141, state, io); return 141; }",
+        "added": "      if (errorCode(error) === \"EPIPE\") {\n        if (command.kind !== \"simple\" && command.kind !== \"subshell\" && command.kind !== \"arithmetic\" && command.kind !== \"conditional\") this.errexit(141, state, io);\n        return 141;\n      }",
+        "beforeContext": "        return 1;\n      }\n      if (errorCode(error) === \"EPIPE\") { this.errexit(141, state, io); return 141; }\n      const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;\n      if (error instanceof NounsetFailure || error instanceof ParameterExpansionFailure) {",
+        "afterContext": "        return 1;\n      }\n      if (errorCode(error) === \"EPIPE\") {\n        if (command.kind !== \"simple\" && command.kind !== \"subshell\" && command.kind !== \"arithmetic\" && command.kind !== \"conditional\") this.errexit(141, state, io);\n        return 141;\n      }\n      const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;\n      if (error instanceof NounsetFailure || error instanceof ParameterExpansionFailure) {"
+      },
+      {
+        "removed": "        throw new Flow(\"exit\", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);",
+        "added": "        throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);",
+        "beforeContext": "          throw diagnosticFailure;\n        }\n        throw new Flow(\"exit\", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);\n      }\n      if (error instanceof ArrayFailure) await writeText(io.stderr, `${io.scriptName ?? \"shell\"}: line ${line}: ${diagnostic ?? message(error)}\\n`);",
+        "afterContext": "          throw diagnosticFailure;\n        }\n        throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);\n      }\n      if (error instanceof ArrayFailure) await writeText(io.stderr, `${io.scriptName ?? \"shell\"}: line ${line}: ${diagnostic ?? message(error)}\\n`);"
+      },
+      {
+        "removed": "      if (error instanceof ExpansionFailure) throw new Flow(\"exit\", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);\n      if (error instanceof FatalCommandFailure) throw new Flow(\"exit\", error.status);",
+        "added": "      if (error instanceof ExpansionFailure) throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);\n      if (error instanceof FatalCommandFailure) throw completedExit(error.status);",
+        "beforeContext": "        catch { this.signal.throwIfAborted(); }\n      }\n      if (error instanceof ExpansionFailure) throw new Flow(\"exit\", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);\n      if (error instanceof FatalCommandFailure) throw new Flow(\"exit\", error.status);\n      const status = error instanceof CommandFailure ? error.status : 1;\n      this.errexit(status, state, io);",
+        "afterContext": "        catch { this.signal.throwIfAborted(); }\n      }\n      if (error instanceof ExpansionFailure) throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);\n      if (error instanceof FatalCommandFailure) throw completedExit(error.status);\n      const status = error instanceof CommandFailure ? error.status : 1;"
+      },
+      {
+        "removed": "      this.errexit(status, state, io);",
+        "added": "      if (command.kind !== \"simple\" && command.kind !== \"subshell\" && command.kind !== \"arithmetic\" && command.kind !== \"conditional\") this.errexit(status, state, io);",
+        "beforeContext": "      const status = error instanceof CommandFailure ? error.status : 1;\n      this.errexit(status, state, io);\n      return status;\n    } finally {",
+        "afterContext": "      if (error instanceof FatalCommandFailure) throw completedExit(error.status);\n      const status = error instanceof CommandFailure ? error.status : 1;\n      if (command.kind !== \"simple\" && command.kind !== \"subshell\" && command.kind !== \"arithmetic\" && command.kind !== \"conditional\") this.errexit(status, state, io);\n      return status;\n    } finally {"
+      },
+      {
+        "removed": "",
+        "added": "          if (name === \"PIPESTATUS\" && arrayStore(state)?.get(name)) {\n            await this.prepareVariable(state, name, saved);\n            const store = requireArrays(state);\n            const operation = ArrayOwner.create(store.owner.ledger, store.owner);\n            const holding = store.owner.hold();\n            try {\n              const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });\n              const value = match[2] ?? \"\";\n              await textToken(operation, value, this.signal);\n              this.signal.throwIfAborted();\n              if (state.readonlyVariables?.has(name)) throw new ArrayFailure(\"readonly binding\");\n              if (!typedSavedVariables.get(saved)!.watch.valid()) throw new ArrayFailure(\"stale binding\");\n              let released: Promise<void> | undefined;\n              stateMonitor(state)!.publish(tickets, name, () => {\n                locals!.set(name, saved);\n                released = store.remove(name, tickets);\n                state.variables[name] = value;\n              });\n              await released;\n            } finally { try { await operation.close(); } finally { holding.release(); } }\n            assignments.delete(name);\n            continue;\n          }",
+        "beforeContext": "        if (command === \"local\" && !locals!.has(name)) {\n          const saved = assignments.get(name) ?? saveVariable(state, name);\n          if (arrayStore(state)?.get(name)) {\n            await this.prepareVariable(state, name, saved);",
+        "afterContext": "        if (command === \"local\" && !locals!.has(name)) {\n          const saved = assignments.get(name) ?? saveVariable(state, name);\n          if (name === \"PIPESTATUS\" && arrayStore(state)?.get(name)) {\n            await this.prepareVariable(state, name, saved);\n            const store = requireArrays(state);\n            const operation = ArrayOwner.create(store.owner.ledger, store.owner);\n            const holding = store.owner.hold();\n            try {\n              const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });\n              const value = match[2] ?? \"\";\n              await textToken(operation, value, this.signal);\n              this.signal.throwIfAborted();\n              if (state.readonlyVariables?.has(name)) throw new ArrayFailure(\"readonly binding\");\n              if (!typedSavedVariables.get(saved)!.watch.valid()) throw new ArrayFailure(\"stale binding\");\n              let released: Promise<void> | undefined;\n              stateMonitor(state)!.publish(tickets, name, () => {\n                locals!.set(name, saved);\n                released = store.remove(name, tickets);\n                state.variables[name] = value;\n              });\n              await released;\n            } finally { try { await operation.close(); } finally { holding.release(); } }\n            assignments.delete(name);\n            continue;\n          }\n          if (arrayStore(state)?.get(name)) {\n            await this.prepareVariable(state, name, saved);"
+      },
+      {
+        "removed": "          if (!assignments.has(name) && match[2] === undefined) delete state.variables[name];",
+        "added": "          if (!assignments.has(name) && match[2] === undefined) {\n            if (name === \"PIPESTATUS\") state.variables[name] = \"\";\n            else delete state.variables[name];\n          }",
+        "beforeContext": "          if (arrayStore(state)) await this.prepareVariable(state, name, saved);\n          locals!.set(name, saved);\n          if (!assignments.has(name) && match[2] === undefined) delete state.variables[name];\n          if (name === \"OPTIND\") {\n            state.getopts ??= cloneGetoptsBinding(state);",
+        "afterContext": "          if (arrayStore(state)) await this.prepareVariable(state, name, saved);\n          locals!.set(name, saved);\n          if (!assignments.has(name) && match[2] === undefined) {\n            if (name === \"PIPESTATUS\") state.variables[name] = \"\";\n            else delete state.variables[name];\n          }\n          if (name === \"OPTIND\") {\n            state.getopts ??= cloneGetoptsBinding(state);"
+      },
+      {
+        "removed": "        throw new Flow(command, 2);",
+        "added": "        throw completedExit(2, command);",
+        "beforeContext": "      if (args[0] !== undefined && !/^[+-]?\\d+$/u.test(args[0])) {\n        await writeText(stderr, `${command}: ${args[0]}: numeric argument required\\n`);\n        throw new Flow(command, 2);\n      }\n      const status = args[0] === undefined ? state.status : Number((BigInt(args[0]) % 256n + 256n) % 256n);",
+        "afterContext": "      if (args[0] !== undefined && !/^[+-]?\\d+$/u.test(args[0])) {\n        await writeText(stderr, `${command}: ${args[0]}: numeric argument required\\n`);\n        throw completedExit(2, command);\n      }\n      const status = args[0] === undefined ? state.status : Number((BigInt(args[0]) % 256n + 256n) % 256n);"
+      },
+      {
+        "removed": "      throw new Flow(command, status);",
+        "added": "      throw completedExit(status, command);",
+        "beforeContext": "      }\n      const status = args[0] === undefined ? state.status : Number((BigInt(args[0]) % 256n + 256n) % 256n);\n      throw new Flow(command, status);\n    }\n    if (command === \"break\" || command === \"continue\") {",
+        "afterContext": "      }\n      const status = args[0] === undefined ? state.status : Number((BigInt(args[0]) % 256n + 256n) % 256n);\n      throw completedExit(status, command);\n    }\n    if (command === \"break\" || command === \"continue\") {"
+      },
+      {
+        "removed": "      throw new Flow(command, 0, Math.min(levels, state.loopDepth));",
+        "added": "      throw completedExit(0, command, Math.min(levels, state.loopDepth));",
+        "beforeContext": "      if (args.length > 1 || !Number.isSafeInteger(levels) || levels < 1) { await writeText(stderr, `${command}: invalid loop count\\n`); return 1; }\n      if (!state.loopDepth) { await writeText(stderr, `${command}: only meaningful in a loop\\n`); return 0; }\n      throw new Flow(command, 0, Math.min(levels, state.loopDepth));\n    }\n    return undefined;",
+        "afterContext": "      if (args.length > 1 || !Number.isSafeInteger(levels) || levels < 1) { await writeText(stderr, `${command}: invalid loop count\\n`); return 1; }\n      if (!state.loopDepth) { await writeText(stderr, `${command}: only meaningful in a loop\\n`); return 0; }\n      throw completedExit(0, command, Math.min(levels, state.loopDepth));\n    }\n    return undefined;"
+      },
+      {
+        "removed": "      try { return String(evaluateArithmetic(part.expression, this.arithmeticVariables(state, io.diagnosticLine ?? part.line))); }",
+        "added": "      try {\n        return String(evaluatePositionalArithmetic(part.expression, {\n          positional: state.positional, arg0: state.arg0 ?? \"virtual-bash\", owner: arrayStore(state)?.owner,\n          maximumBytes: this.budget.limits.maxExpansionBytes,\n          checkpoint: () => this.signal.throwIfAborted(),\n          requireParameter: (name, value) => this.requireParameter(value, name, state, io, part.line),\n          limit: () => this.budget.fail(\"maxExpansionBytes\"),\n        }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine ?? part.line))));\n      }",
+        "beforeContext": "    }\n    if (part.kind === \"arithmetic\") {\n      try { return String(evaluateArithmetic(part.expression, this.arithmeticVariables(state, io.diagnosticLine ?? part.line))); }\n      catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error), io.diagnosticLine ?? part.line); }\n    }",
+        "afterContext": "    }\n    if (part.kind === \"arithmetic\") {\n      try {\n        return String(evaluatePositionalArithmetic(part.expression, {\n          positional: state.positional, arg0: state.arg0 ?? \"virtual-bash\", owner: arrayStore(state)?.owner,\n          maximumBytes: this.budget.limits.maxExpansionBytes,\n          checkpoint: () => this.signal.throwIfAborted(),\n          requireParameter: (name, value) => this.requireParameter(value, name, state, io, part.line),\n          limit: () => this.budget.fail(\"maxExpansionBytes\"),\n        }, (prepared) => evaluateArithmetic(prepared, this.arithmeticVariables(state, io.diagnosticLine ?? part.line))));\n      }\n      catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error), io.diagnosticLine ?? part.line); }\n    }"
+      },
+      {
+        "removed": "  async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false): Promise<string[]> {",
+        "added": "  async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean) => void): Promise<string[]> {",
+        "beforeContext": "  }\n\n  async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false): Promise<string[]> {\n    const arrayOwned = word.parts.some(part => part.kind === \"variable\" && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));\n    const owner = arrayOwned ? requireArrays(state).owner : undefined;",
+        "afterContext": "  }\n\n  async word(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean) => void): Promise<string[]> {\n    const arrayOwned = word.parts.some(part => part.kind === \"variable\" && (getArraySelector(part) !== undefined || arrayStore(state)?.get(part.name) !== undefined));\n    const owner = arrayOwned ? requireArrays(state).owner : undefined;"
+      },
+      {
+        "removed": "",
+        "added": "      regexAppend?.(value, !glob);",
+        "beforeContext": "      if (size > this.budget.limits.maxExpansionBytes - expansionBytes) this.budget.fail(\"maxExpansionBytes\");\n      expansionBytes += size;\n      const field = fields.at(-1)!;\n      if (owner) owner.reserve({ payload: exactSum(Buffer.byteLength(field.value) + size, Buffer.byteLength(field.pattern) + (glob ? size : size * 2)), metadata: 64, work: value.length + 8 });",
+        "afterContext": "      if (size > this.budget.limits.maxExpansionBytes - expansionBytes) this.budget.fail(\"maxExpansionBytes\");\n      expansionBytes += size;\n      regexAppend?.(value, !glob);\n      const field = fields.at(-1)!;\n      if (owner) owner.reserve({ payload: exactSum(Buffer.byteLength(field.value) + size, Buffer.byteLength(field.pattern) + (glob ? size : size * 2)), metadata: 64, work: value.length + 8 });"
+      }
+    ]
+  },
+  {
+    "path": "src/shell/shell.ts",
+    "before": {
+      "path": "src/shell/shell.ts",
+      "revision": "d2502aae3c8458e0ac92662f2af07e7f9fc3923a",
+      "blob": "220d6c28a6e50f459a48aaee2030f24a841f4ab7",
+      "mode": "100644",
+      "bytes": 15081,
+      "sha256": "126438b132a9f1863bf25b20f02ca6473cb24aa86e0a91869ab98bcbf3309cba",
+      "role": "accepted coherent78 unchanged",
+      "origin": "ACCEPTED_PUBLIC_NODE_a6"
+    },
+    "working": {
+      "path": "src/shell/shell.ts",
+      "mode": "100644",
+      "indexBlob": "08e332c471d01fe5eabfb3403f885e6090a43e9a",
+      "workingBlob": "08e332c471d01fe5eabfb3403f885e6090a43e9a",
+      "size": 15121,
+      "sha256": "6af40022b4648756450ce1c9582ab3d0be8de4b128f12a5c36c6dab56fe0eb9b",
+      "differsFromIndex": false
+    },
+    "blocks": [
+      {
+        "removed": "    try { owner.activate(boundary); }",
+        "added": "    try { Runtime.registerEreRoot(budget, scope); owner.activate(boundary); }",
+        "beforeContext": "      controls: [{ role: \"budget-control\", signal: budget.controller.signal }],\n    });\n    try { owner.activate(boundary); }\n    catch (error) {\n      scope.failures.push(...boundary.close().failures);",
+        "afterContext": "      controls: [{ role: \"budget-control\", signal: budget.controller.signal }],\n    });\n    try { Runtime.registerEreRoot(budget, scope); owner.activate(boundary); }\n    catch (error) {\n      scope.failures.push(...boundary.close().failures);"
+      }
+    ]
+  }
+]

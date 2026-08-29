@@ -1,0 +1,27 @@
+{
+  "schema": "k08-v2-canonical-binding-correction",
+  "basis": "canonical.mjs assertOwned requires sourceApp under work; no broad/private permission added",
+  "old": {
+    "work": "/private/tmp/safe-bash-k08-preexec-v2-1O68JM/future",
+    "sourceApp": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app",
+    "seal": {
+      "bytes": 199109,
+      "sha256": "76f316ee62182275a84485f86c39b39abd44aac7134577aaa1d749f970f3220a"
+    }
+  },
+  "new": {
+    "work": "/private/tmp/safe-bash-k08-author-RAvH2m",
+    "sourceApp": "/private/tmp/safe-bash-k08-author-RAvH2m/source-app",
+    "seal": {
+      "bytes": 199449,
+      "sha256": "430e9024238b1e4bf90c5aa61e20a18d8b001ca01abbf3cac2acaaed68c2df49"
+    }
+  },
+  "literalFiles": [
+    "collector.mjs",
+    "launch.sh"
+  ],
+  "futureCaptureWasEmpty": true,
+  "productCalls": 0,
+  "notRuntimeProof": true
+}

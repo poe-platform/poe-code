@@ -1,0 +1,135 @@
+{
+  "schema": "k08-harness-v2-prepublication-evidence",
+  "at": "2026-08-29T15:16:49.558Z",
+  "phase": {
+    "started": 1788015912721,
+    "deadline": 1788017112721,
+    "knownMaximum": 48,
+    "adminSubcap": 32,
+    "peak": 3,
+    "captureMaximum": 67108864,
+    "logicalWorkMaximum": 402653184
+  },
+  "sourceProduct": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+  "package": {
+    "bytes": 981948,
+    "sha256": "0b6ae3340691c1c91b26f40454b8095d2ed346389353aa93e9a43c64d5a1132c"
+  },
+  "finalSeal": {
+    "bytes": 199109,
+    "sha256": "76f316ee62182275a84485f86c39b39abd44aac7134577aaa1d749f970f3220a"
+  },
+  "authenticatedFiles": [
+    {
+      "name": "auth.mjs",
+      "bytes": 3951,
+      "sha256": "da5f0fa015cf56acfe86a1be24a50ea1a767320fc5bb2e3c814ef0b327f6f5d9"
+    },
+    {
+      "name": "direct-child.mjs",
+      "bytes": 5895,
+      "sha256": "97b818b690af71f59e85e8c0f5f87536aabdc5352fa391fcb0fb3495e66c3120"
+    },
+    {
+      "name": "collector-core.mjs",
+      "bytes": 121,
+      "sha256": "7056edbb3beaad8e12e667498c1e469a89004b1bb83708ec7df92c70f0992b61"
+    },
+    {
+      "name": "preauth.mjs",
+      "bytes": 339,
+      "sha256": "04af67d6b441ca5433b895033075fee43361f0f9af969add6f439a2a6cacb22e"
+    },
+    {
+      "name": "helper-driver.mjs",
+      "bytes": 3013,
+      "sha256": "fe537fc9dfced47c536311b0de817bbfffad6f86d657bf0cff44e168c6bd6c9d"
+    },
+    {
+      "name": "case-adapter.mjs",
+      "bytes": 4474,
+      "sha256": "0200f5240559bf0b09a132d68e378d566475a2454cc89ae7401be01f678544bc"
+    },
+    {
+      "name": "CASES.json",
+      "bytes": 10895,
+      "sha256": "a6018734d7e717a2efaed63125da154466b317f18796f6687e3e90efa4031bc5"
+    },
+    {
+      "name": "PRODUCT-EDGES.json",
+      "bytes": 29973,
+      "sha256": "7ed98d6a1937ed667983adc2846daea35f699bc82632b331db199e5a9ccaaa88"
+    },
+    {
+      "name": "target-owner.mjs",
+      "bytes": 14438,
+      "sha256": "86b966889a70c5ac3c0e866ef5d796dca5b162b9a33a33cb46780414428fc5cc"
+    },
+    {
+      "name": "collector.mjs",
+      "bytes": 4517,
+      "sha256": "ad15994b325ff28ae4300a2ceac4abe2eed4290c7f95bb1aab2c6745827d6eba"
+    },
+    {
+      "name": "case-driver.mjs",
+      "bytes": 2829,
+      "sha256": "e9e89d46c104f62acaf7d2e1a5f095d0f0fa65afa60b2ce8f5860e797c2b7351"
+    },
+    {
+      "name": "activation.mjs",
+      "bytes": 2129,
+      "sha256": "f75cb6265047125c49f66b5f52d280359dbdabad9c734c4fd7daa54e892c8934"
+    },
+    {
+      "name": "launch.sh",
+      "bytes": 751,
+      "sha256": "d28205c317431feb9370fd3873aec6e1e191d2444f8fd77d35dd40bb21111f8e"
+    },
+    {
+      "name": "qualification.mjs",
+      "bytes": 4426,
+      "sha256": "5ccf67fdf7cda3f5ade85fe10ce8013cebc7ce74dc16e0b9970234b215625fd1"
+    },
+    {
+      "name": "M01-DISCRIMINATOR.json",
+      "bytes": 657,
+      "sha256": "8fe84f291c362efaa892c3f0b5be2bb8773cdf530ff6d433e6bcf49804472e2a"
+    }
+  ],
+  "caseBytesUnchanged": true,
+  "counts": {
+    "pureHelperStarts": 3,
+    "pureDistinctGroups": 16,
+    "finalPurePass": 16,
+    "harmlessRoles": 2,
+    "productCalls": 0,
+    "builds": 0,
+    "workers": 0,
+    "native": 0
+  },
+  "administration": {
+    "knownAtSnapshot": 22,
+    "additionalChildKnown": 1,
+    "totalAtSnapshot": 23,
+    "allDirectAdminExitClose": true,
+    "captureBytes": 11133,
+    "childCaptureBytes": 6
+  },
+  "snapshots": [
+    {
+      "root": "/private/tmp/safe-bash-k08-preexec-v2-1O68JM",
+      "at": 1788016547229,
+      "bytes": 29114,
+      "entries": 55,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    },
+    {
+      "root": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-function-keyword-author-20260829/k08-harness-v2",
+      "at": 1788016547230,
+      "bytes": 533867,
+      "entries": 37,
+      "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+    }
+  ],
+  "qualification": "Prepublication immutable snapshot. Subsequent publication roles remain recorded in retained capture/LEDGER.json and are reported separately."
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "k08-m01-exact-v2",
+  "basis": "Previously captured virtual K08 failure, not a new native golden.",
+  "observationSource": {
+    "path": "tests/compatibility/bash-function-keyword-author-20260829/k08-source-investigation-v1/OBSERVATIONS.json",
+    "sha256": "2af73bbdc90d48661cee34b55e7ed6353d37edeec6dcefdae96e4f88072c4292"
+  },
+  "stderrBase64": "c2hlbGw6IGxpbmUgMTogJDEgLSAxOiBhcml0aG1ldGljIHN5bnRheCBlcnJvciBpbiBleHByZXNzaW9uIChlcnJvciB0b2tlbiBpcyAiJDEgLSAxIikK",
+  "baselineSha256": "9bc23fc6879c735aa46222faa48d2738edaa82785cd3e089e868fc91324601e9",
+  "mutantSha256": "b3f167969a3771def4ebeb4a3e363826f86f2277d5c000313a9743c2a8282256"
+}

@@ -1,0 +1,38 @@
+{
+  "schema": "k08-target-result-v1",
+  "sourceCommit": "ffac894aa98b8cd98476b8ea109ef2e2425c2a07",
+  "started": 1788018173920,
+  "ownerStarted": 1788018174072,
+  "observations": [],
+  "helpers": [],
+  "mutants": [],
+  "refusals": [],
+  "ledger": {
+    "starts": 1,
+    "maximum": 78,
+    "active": 0,
+    "stopped": false,
+    "captureBytes": 196608,
+    "captureMaximum": 100663296,
+    "rows": []
+  },
+  "primaryPresent": true,
+  "primary": {
+    "kind": "object",
+    "name": "Error",
+    "message": "manifest cardinality or tar alignment"
+  },
+  "secondary": [],
+  "sampledWorkPresent": true,
+  "sampledWork": {
+    "root": "/private/tmp/safe-bash-k08-author-RAvH2m",
+    "at": 1788018174352,
+    "bytes": 44107687,
+    "entries": 2948,
+    "qualification": "fresh sampled logical owned files, not RSS/continuous quota"
+  },
+  "finished": 1788018174353,
+  "semanticFailures": 0,
+  "controlFailures": 0,
+  "status": "STOP"
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "k08-actual-publication-administration-v1",
+  "at": "2026-08-29T15:46:31.030Z",
+  "runtimeStartsObserved": 2,
+  "administrativeStartsAtSnapshot": 1,
+  "administrativeMaximum": 7,
+  "allPriorAdministrativeExitClose": true,
+  "deadlineUTC": "2026-08-29T16:07:46.057Z",
+  "ledgerPath": "/private/tmp/safe-bash-k08-actual-record-v1-9snTQP/capture/LEDGER.json",
+  "ledgerSha256AtSnapshot": "cda31fe97e41cab803d0ccf685b62210e7fd55170f38dc0ed27cb79103683245",
+  "captureBytesAtSnapshot": 1599,
+  "qualification": "This snapshot precedes remaining patch/Git publication. Final actual counts come from the completed file-based ledger; no planned starts counted as observed."
+}

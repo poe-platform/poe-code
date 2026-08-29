@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "fixture": "one PURE exact-receipt/hash-negative fixture",
+  "correctReceiptAccepted": true,
+  "modifiedHashRejected": true,
+  "slotReceipt": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-preflight-review-20260829/activation-slot-v1/RECEIPT.json",
+    "sha256": "fd1a6b994c79a0f9346d1458d5fa29ee1f44808cca76d0e87abf0d63bf7d40a2",
+    "blob": "d6e04329ee5ced7ebf61c7e6da3e65b4bd923072",
+    "bytes": 34022
+  },
+  "nativeStarts": 0
+}

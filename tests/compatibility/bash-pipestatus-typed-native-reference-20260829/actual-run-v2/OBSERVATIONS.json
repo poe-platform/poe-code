@@ -1,0 +1,1543 @@
+{
+  "schema": "typed6-native-observations-v2",
+  "at": "2026-08-29T14:31:18.328Z",
+  "phaseDeadline": 1788014344559.4192,
+  "source": "e10e371dc9c70583681add9c1747c85a710b1f59",
+  "binding": "32ceae3a52c52e9cb23f327801c1d1b80238143c",
+  "observations": [
+    {
+      "id": "P19",
+      "status": 1,
+      "retired": true,
+      "stop": null,
+      "regularCaptureCompletion": true,
+      "channels": {
+        "stdout": [
+          {
+            "path": "captures/P19/stdout",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "text": ""
+          }
+        ],
+        "stderr": [
+          {
+            "path": "captures/P19/stderr",
+            "bytes": 62,
+            "sha256": "89854f3eb2a7b31eee61c71967d75447463f4bc8a959737321643655be91b936",
+            "base64": "cGlwZXN0YXR1cy10eXBlZC1jYXNlOiBsaW5lIDA6IGRlY2xhcmU6IFBJUEVTVEFUVVM6IG5vdCBmb3VuZAo=",
+            "text": "pipestatus-typed-case: line 0: declare: PIPESTATUS: not found\n"
+          }
+        ]
+      },
+      "lifecycle": {
+        "id": "P19",
+        "started": 1788013872514,
+        "exit": true,
+        "close": true,
+        "status": 1,
+        "signal": null,
+        "stop": null,
+        "errors": [],
+        "signals": [],
+        "groupObservations": [
+          {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            },
+            "at": 1788013872536,
+            "afterKill": false
+          }
+        ],
+        "group": {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          }
+        },
+        "capture": [
+          {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 62,
+            "sha256": "89854f3eb2a7b31eee61c71967d75447463f4bc8a959737321643655be91b936",
+            "base64": "cGlwZXN0YXR1cy10eXBlZC1jYXNlOiBsaW5lIDA6IGRlY2xhcmU6IFBJUEVTVEFUVVM6IG5vdCBmb3VuZAo="
+          }
+        ],
+        "filesVerified": true,
+        "receiptPublished": false,
+        "regularCaptureCompletion": true,
+        "streamEOF": null,
+        "pid": 90893,
+        "spawnObserved": true,
+        "stdinFinished": true,
+        "retired": true,
+        "finished": 1788013872543,
+        "filesBefore": [
+          {
+            "path": "empty-path",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "home",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "tmp",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "work",
+            "type": "directory",
+            "mode": 448
+          }
+        ],
+        "filesAfter": [
+          {
+            "path": "empty-path",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "home",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "tmp",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "work",
+            "type": "directory",
+            "mode": 448
+          }
+        ],
+        "observation": {
+          "format": "FNPIPEOBS1",
+          "bytes": 645,
+          "sha256": "04a52d08149460635ed971ee7bc5b7b4b7e66c9e8b5a650ba692d41383e39bbf"
+        }
+      }
+    },
+    {
+      "id": "P20",
+      "status": 1,
+      "retired": true,
+      "stop": null,
+      "regularCaptureCompletion": true,
+      "channels": {
+        "stdout": [
+          {
+            "path": "captures/P20/stdout",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "text": ""
+          }
+        ],
+        "stderr": [
+          {
+            "path": "captures/P20/stderr",
+            "bytes": 62,
+            "sha256": "89854f3eb2a7b31eee61c71967d75447463f4bc8a959737321643655be91b936",
+            "base64": "cGlwZXN0YXR1cy10eXBlZC1jYXNlOiBsaW5lIDA6IGRlY2xhcmU6IFBJUEVTVEFUVVM6IG5vdCBmb3VuZAo=",
+            "text": "pipestatus-typed-case: line 0: declare: PIPESTATUS: not found\n"
+          }
+        ]
+      },
+      "lifecycle": {
+        "id": "P20",
+        "started": 1788013872566,
+        "exit": true,
+        "close": true,
+        "status": 1,
+        "signal": null,
+        "stop": null,
+        "errors": [],
+        "signals": [],
+        "groupObservations": [
+          {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            },
+            "at": 1788013872589,
+            "afterKill": false
+          }
+        ],
+        "group": {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          }
+        },
+        "capture": [
+          {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          },
+          {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 62,
+            "sha256": "89854f3eb2a7b31eee61c71967d75447463f4bc8a959737321643655be91b936",
+            "base64": "cGlwZXN0YXR1cy10eXBlZC1jYXNlOiBsaW5lIDA6IGRlY2xhcmU6IFBJUEVTVEFUVVM6IG5vdCBmb3VuZAo="
+          }
+        ],
+        "filesVerified": true,
+        "receiptPublished": false,
+        "regularCaptureCompletion": true,
+        "streamEOF": null,
+        "pid": 90894,
+        "spawnObserved": true,
+        "stdinFinished": true,
+        "retired": true,
+        "finished": 1788013872595,
+        "filesBefore": [
+          {
+            "path": "empty-path",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "home",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "tmp",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "work",
+            "type": "directory",
+            "mode": 448
+          }
+        ],
+        "filesAfter": [
+          {
+            "path": "empty-path",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "home",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "tmp",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "work",
+            "type": "directory",
+            "mode": 448
+          }
+        ],
+        "observation": {
+          "format": "FNPIPEOBS1",
+          "bytes": 645,
+          "sha256": "8e8bb5728d03d45776178733ee2332d6101941bca39f10387a175c1ce9c1ebba"
+        }
+      }
+    },
+    {
+      "id": "P21",
+      "status": 0,
+      "retired": true,
+      "stop": null,
+      "regularCaptureCompletion": true,
+      "channels": {
+        "stdout": [
+          {
+            "path": "captures/P21/stdout",
+            "bytes": 35,
+            "sha256": "2701cce8db563deeca2c5403d6cf3266a52f02c83a4b655203ee20f14d8b8d1c",
+            "base64": "ZGVjbGFyZSAtYXIgUElQRVNUQVRVUz0nKFswXT0iMCIpJwo=",
+            "text": "declare -ar PIPESTATUS='([0]=\"0\")'\n"
+          }
+        ],
+        "stderr": [
+          {
+            "path": "captures/P21/stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "text": ""
+          }
+        ]
+      },
+      "lifecycle": {
+        "id": "P21",
+        "started": 1788013872622,
+        "exit": true,
+        "close": true,
+        "status": 0,
+        "signal": null,
+        "stop": null,
+        "errors": [],
+        "signals": [],
+        "groupObservations": [
+          {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            },
+            "at": 1788013872646,
+            "afterKill": false
+          }
+        ],
+        "group": {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          }
+        },
+        "capture": [
+          {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 35,
+            "sha256": "2701cce8db563deeca2c5403d6cf3266a52f02c83a4b655203ee20f14d8b8d1c",
+            "base64": "ZGVjbGFyZSAtYXIgUElQRVNUQVRVUz0nKFswXT0iMCIpJwo="
+          },
+          {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          }
+        ],
+        "filesVerified": true,
+        "receiptPublished": false,
+        "regularCaptureCompletion": true,
+        "streamEOF": null,
+        "pid": 90895,
+        "spawnObserved": true,
+        "stdinFinished": true,
+        "retired": true,
+        "finished": 1788013872649,
+        "filesBefore": [
+          {
+            "path": "empty-path",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "home",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "tmp",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "work",
+            "type": "directory",
+            "mode": 448
+          }
+        ],
+        "filesAfter": [
+          {
+            "path": "empty-path",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "home",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "tmp",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "work",
+            "type": "directory",
+            "mode": 448
+          }
+        ],
+        "observation": {
+          "format": "FNPIPEOBS1",
+          "bytes": 609,
+          "sha256": "d3fd33824a1f710f325a69d6fae552f5ff6e5aaea640f29abd3af66982e9141d"
+        }
+      }
+    },
+    {
+      "id": "P22",
+      "status": 0,
+      "retired": true,
+      "stop": null,
+      "regularCaptureCompletion": true,
+      "channels": {
+        "stdout": [
+          {
+            "path": "captures/P22/stdout",
+            "bytes": 59,
+            "sha256": "6c50f66ea0957474ae7a91541c13aff39db7c41ee13429c4143b0a1f6c14a387",
+            "base64": "ZGVjbGFyZSAtLSBQSVBFU1RBVFVTPSIiCmRlY2xhcmUgLWEgUElQRVNUQVRVUz0nKFswXT0iMCIpJwo=",
+            "text": "declare -- PIPESTATUS=\"\"\ndeclare -a PIPESTATUS='([0]=\"0\")'\n"
+          }
+        ],
+        "stderr": [
+          {
+            "path": "captures/P22/stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "text": ""
+          }
+        ]
+      },
+      "lifecycle": {
+        "id": "P22",
+        "started": 1788013872682,
+        "exit": true,
+        "close": true,
+        "status": 0,
+        "signal": null,
+        "stop": null,
+        "errors": [],
+        "signals": [],
+        "groupObservations": [
+          {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            },
+            "at": 1788013872713,
+            "afterKill": false
+          }
+        ],
+        "group": {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          }
+        },
+        "capture": [
+          {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 59,
+            "sha256": "6c50f66ea0957474ae7a91541c13aff39db7c41ee13429c4143b0a1f6c14a387",
+            "base64": "ZGVjbGFyZSAtLSBQSVBFU1RBVFVTPSIiCmRlY2xhcmUgLWEgUElQRVNUQVRVUz0nKFswXT0iMCIpJwo="
+          },
+          {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          }
+        ],
+        "filesVerified": true,
+        "receiptPublished": false,
+        "regularCaptureCompletion": true,
+        "streamEOF": null,
+        "pid": 90896,
+        "spawnObserved": true,
+        "stdinFinished": true,
+        "retired": true,
+        "finished": 1788013872716,
+        "filesBefore": [
+          {
+            "path": "empty-path",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "home",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "tmp",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "work",
+            "type": "directory",
+            "mode": 448
+          }
+        ],
+        "filesAfter": [
+          {
+            "path": "empty-path",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "home",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "tmp",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "work",
+            "type": "directory",
+            "mode": 448
+          }
+        ],
+        "observation": {
+          "format": "FNPIPEOBS1",
+          "bytes": 641,
+          "sha256": "baccc7d6c4e7ff71f2e30aa76aa462931a0cdcc19715055392fe995e241659b8"
+        }
+      }
+    },
+    {
+      "id": "P23",
+      "status": 0,
+      "retired": true,
+      "stop": null,
+      "regularCaptureCompletion": true,
+      "channels": {
+        "stdout": [
+          {
+            "path": "captures/P23/stdout",
+            "bytes": 76,
+            "sha256": "c0bff9f55c27954bae43621bf6fa34e31a863524884eb6513e376cef360c0b6d",
+            "base64": "ZGVjbGFyZSAtYSBQSVBFU1RBVFVTPScoWzBdPSIxIiBbMV09IjAiKScKZGVjbGFyZSAtYSBQSVBFU1RBVFVTPScoWzBdPSIwIiknCg==",
+            "text": "declare -a PIPESTATUS='([0]=\"1\" [1]=\"0\")'\ndeclare -a PIPESTATUS='([0]=\"0\")'\n"
+          }
+        ],
+        "stderr": [
+          {
+            "path": "captures/P23/stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "text": ""
+          }
+        ]
+      },
+      "lifecycle": {
+        "id": "P23",
+        "started": 1788013872755,
+        "exit": true,
+        "close": true,
+        "status": 0,
+        "signal": null,
+        "stop": null,
+        "errors": [],
+        "signals": [],
+        "groupObservations": [
+          {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            },
+            "at": 1788013872786,
+            "afterKill": false
+          }
+        ],
+        "group": {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          }
+        },
+        "capture": [
+          {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 76,
+            "sha256": "c0bff9f55c27954bae43621bf6fa34e31a863524884eb6513e376cef360c0b6d",
+            "base64": "ZGVjbGFyZSAtYSBQSVBFU1RBVFVTPScoWzBdPSIxIiBbMV09IjAiKScKZGVjbGFyZSAtYSBQSVBFU1RBVFVTPScoWzBdPSIwIiknCg=="
+          },
+          {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          }
+        ],
+        "filesVerified": true,
+        "receiptPublished": false,
+        "regularCaptureCompletion": true,
+        "streamEOF": null,
+        "pid": 90903,
+        "spawnObserved": true,
+        "stdinFinished": true,
+        "retired": true,
+        "finished": 1788013872789,
+        "filesBefore": [
+          {
+            "path": "empty-path",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "home",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "tmp",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "work",
+            "type": "directory",
+            "mode": 448
+          }
+        ],
+        "filesAfter": [
+          {
+            "path": "empty-path",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "home",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "tmp",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "work",
+            "type": "directory",
+            "mode": 448
+          }
+        ],
+        "observation": {
+          "format": "FNPIPEOBS1",
+          "bytes": 665,
+          "sha256": "ba6372b0a352bdbcbad5e51102c5f072dbb505792575bb080d1b353dadb282a3"
+        }
+      }
+    },
+    {
+      "id": "P24",
+      "status": 0,
+      "retired": true,
+      "stop": null,
+      "regularCaptureCompletion": true,
+      "channels": {
+        "stdout": [
+          {
+            "path": "captures/P24/stdout",
+            "bytes": 29,
+            "sha256": "8f65e0c3cff51dbc37d0c1b93e35ac3b27e59f63557ec1bc1bb95bc8ce34562f",
+            "base64": "ZGVjbGFyZSAtLSBQSVBFU1RBVFVTPSJzZWVkIgo=",
+            "text": "declare -- PIPESTATUS=\"seed\"\n"
+          }
+        ],
+        "stderr": [
+          {
+            "path": "captures/P24/stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": "",
+            "text": ""
+          }
+        ]
+      },
+      "lifecycle": {
+        "id": "P24",
+        "started": 1788013872822,
+        "exit": true,
+        "close": true,
+        "status": 0,
+        "signal": null,
+        "stop": null,
+        "errors": [],
+        "signals": [],
+        "groupObservations": [
+          {
+            "state": "absent",
+            "error": {
+              "thrownType": "object",
+              "fields": {
+                "name": {
+                  "presence": "value",
+                  "value": "Error"
+                },
+                "code": {
+                  "presence": "value",
+                  "value": "ESRCH"
+                },
+                "errno": {
+                  "presence": "value",
+                  "value": -3
+                },
+                "syscall": {
+                  "presence": "value",
+                  "value": "kill"
+                }
+              }
+            },
+            "at": 1788013872850,
+            "afterKill": false
+          }
+        ],
+        "group": {
+          "state": "absent",
+          "error": {
+            "thrownType": "object",
+            "fields": {
+              "name": {
+                "presence": "value",
+                "value": "Error"
+              },
+              "code": {
+                "presence": "value",
+                "value": "ESRCH"
+              },
+              "errno": {
+                "presence": "value",
+                "value": -3
+              },
+              "syscall": {
+                "presence": "value",
+                "value": "kill"
+              }
+            }
+          }
+        },
+        "capture": [
+          {
+            "name": "stdout",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 29,
+            "sha256": "8f65e0c3cff51dbc37d0c1b93e35ac3b27e59f63557ec1bc1bb95bc8ce34562f",
+            "base64": "ZGVjbGFyZSAtLSBQSVBFU1RBVFVTPSJzZWVkIgo="
+          },
+          {
+            "name": "stderr",
+            "flush": true,
+            "size": true,
+            "hash": true,
+            "close": true,
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "base64": ""
+          }
+        ],
+        "filesVerified": true,
+        "receiptPublished": false,
+        "regularCaptureCompletion": true,
+        "streamEOF": null,
+        "pid": 90906,
+        "spawnObserved": true,
+        "stdinFinished": true,
+        "retired": true,
+        "finished": 1788013872853,
+        "filesBefore": [
+          {
+            "path": "empty-path",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "home",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "tmp",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "work",
+            "type": "directory",
+            "mode": 448
+          }
+        ],
+        "filesAfter": [
+          {
+            "path": "empty-path",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "home",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "tmp",
+            "type": "directory",
+            "mode": 448
+          },
+          {
+            "path": "work",
+            "type": "directory",
+            "mode": 448
+          }
+        ],
+        "observation": {
+          "format": "FNPIPEOBS1",
+          "bytes": 601,
+          "sha256": "11fc0b924ceafbb4c425e75f457c6ff7e6f2150ca436946d79571ab6761db595"
+        }
+      }
+    }
+  ],
+  "results": {
+    "schema": "pipestatus-typed-native-observations-v1",
+    "completed": 6,
+    "halted": false,
+    "rows": [
+      {
+        "id": "P19",
+        "status": 1,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "P20",
+        "status": 1,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "P21",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "P22",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "P23",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      },
+      {
+        "id": "P24",
+        "status": 0,
+        "stop": null,
+        "retired": true
+      }
+    ],
+    "ledger": {
+      "max": 7,
+      "peak": 2,
+      "starts": 7,
+      "active": 1,
+      "peakCharged": 2,
+      "confirmedStarts": 7,
+      "activeConfirmed": 1,
+      "peakConfirmed": 2,
+      "confirmedRoles": {
+        "owner": 1,
+        "case": 6
+      },
+      "roles": {
+        "owner": 1,
+        "case": 6
+      },
+      "sourceForkReservations": 4
+    },
+    "outer": [
+      {
+        "name": "stdout",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      },
+      {
+        "name": "stderr",
+        "flush": true,
+        "size": true,
+        "hash": true,
+        "close": true,
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "base64": ""
+      }
+    ],
+    "sourceForkCounts": "PLANNED_NOT_OBSERVED",
+    "osContainment": false,
+    "version": "Bash3.2.57",
+    "notStarted": [],
+    "deadline": 1788014472435
+  },
+  "inventory": [
+    {
+      "path": "JOURNAL.jsonl",
+      "type": "file",
+      "mode": 384,
+      "bytes": 9523,
+      "sha256": "b6428af727aba715959e1b8905fc26b6f57c1f62b92e66daa5c72f6574853c3a",
+      "copiedAs": "native-artifacts/JOURNAL.jsonl.data"
+    },
+    {
+      "path": "P19.json",
+      "type": "file",
+      "mode": 384,
+      "bytes": 1816,
+      "sha256": "ce8b2bf93e30ce1f7018221b9bc6df2e41452309a647d93b86cccd0c308a1bad",
+      "copiedAs": "native-artifacts/P19.json.data"
+    },
+    {
+      "path": "P19.observation.nul",
+      "type": "file",
+      "mode": 384,
+      "bytes": 645,
+      "sha256": "04a52d08149460635ed971ee7bc5b7b4b7e66c9e8b5a650ba692d41383e39bbf",
+      "copiedAs": "native-artifacts/P19.observation.nul.data"
+    },
+    {
+      "path": "P20.json",
+      "type": "file",
+      "mode": 384,
+      "bytes": 1816,
+      "sha256": "6d8f837a51297459e8d0328b9b1c4b3a174a323de11c9e67fe2d0ba973484416",
+      "copiedAs": "native-artifacts/P20.json.data"
+    },
+    {
+      "path": "P20.observation.nul",
+      "type": "file",
+      "mode": 384,
+      "bytes": 645,
+      "sha256": "8e8bb5728d03d45776178733ee2332d6101941bca39f10387a175c1ce9c1ebba",
+      "copiedAs": "native-artifacts/P20.observation.nul.data"
+    },
+    {
+      "path": "P21.json",
+      "type": "file",
+      "mode": 384,
+      "bytes": 1780,
+      "sha256": "eb9f3cd242befdad2aaf5a3ead366434cf99799db528834f1e5f9426877a3a19",
+      "copiedAs": "native-artifacts/P21.json.data"
+    },
+    {
+      "path": "P21.observation.nul",
+      "type": "file",
+      "mode": 384,
+      "bytes": 609,
+      "sha256": "d3fd33824a1f710f325a69d6fae552f5ff6e5aaea640f29abd3af66982e9141d",
+      "copiedAs": "native-artifacts/P21.observation.nul.data"
+    },
+    {
+      "path": "P22.json",
+      "type": "file",
+      "mode": 384,
+      "bytes": 1812,
+      "sha256": "475dc532573499aa76b8ae395b7e97ac5260a9465b6af1db0b9815925f70ef8d",
+      "copiedAs": "native-artifacts/P22.json.data"
+    },
+    {
+      "path": "P22.observation.nul",
+      "type": "file",
+      "mode": 384,
+      "bytes": 641,
+      "sha256": "baccc7d6c4e7ff71f2e30aa76aa462931a0cdcc19715055392fe995e241659b8",
+      "copiedAs": "native-artifacts/P22.observation.nul.data"
+    },
+    {
+      "path": "P23.json",
+      "type": "file",
+      "mode": 384,
+      "bytes": 1836,
+      "sha256": "b8234576fad3dd4d61c2cd39a49333a9632acbcf684b02a83fa41e960db30175",
+      "copiedAs": "native-artifacts/P23.json.data"
+    },
+    {
+      "path": "P23.observation.nul",
+      "type": "file",
+      "mode": 384,
+      "bytes": 665,
+      "sha256": "ba6372b0a352bdbcbad5e51102c5f072dbb505792575bb080d1b353dadb282a3",
+      "copiedAs": "native-artifacts/P23.observation.nul.data"
+    },
+    {
+      "path": "P24.json",
+      "type": "file",
+      "mode": 384,
+      "bytes": 1772,
+      "sha256": "eefbde9a3be911703c2077a6d77516a89e98c6941b0c6118d0a069a63b01a740",
+      "copiedAs": "native-artifacts/P24.json.data"
+    },
+    {
+      "path": "P24.observation.nul",
+      "type": "file",
+      "mode": 384,
+      "bytes": 601,
+      "sha256": "11fc0b924ceafbb4c425e75f457c6ff7e6f2150ca436946d79571ab6761db595",
+      "copiedAs": "native-artifacts/P24.observation.nul.data"
+    },
+    {
+      "path": "RESULTS.json",
+      "type": "file",
+      "mode": 384,
+      "bytes": 1085,
+      "sha256": "534e8f947fc954a0e148d2c6de519db66ebcc6746e20b4017c2a5efcb61d0a5e",
+      "copiedAs": "native-artifacts/RESULTS.json.data"
+    },
+    {
+      "path": "captures",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "captures/P19",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "captures/P19/stderr",
+      "type": "file",
+      "mode": 384,
+      "bytes": 62,
+      "sha256": "89854f3eb2a7b31eee61c71967d75447463f4bc8a959737321643655be91b936",
+      "copiedAs": "native-artifacts/captures/P19/stderr.data"
+    },
+    {
+      "path": "captures/P19/stdout",
+      "type": "file",
+      "mode": 384,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "copiedAs": "native-artifacts/captures/P19/stdout.data"
+    },
+    {
+      "path": "captures/P20",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "captures/P20/stderr",
+      "type": "file",
+      "mode": 384,
+      "bytes": 62,
+      "sha256": "89854f3eb2a7b31eee61c71967d75447463f4bc8a959737321643655be91b936",
+      "copiedAs": "native-artifacts/captures/P20/stderr.data"
+    },
+    {
+      "path": "captures/P20/stdout",
+      "type": "file",
+      "mode": 384,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "copiedAs": "native-artifacts/captures/P20/stdout.data"
+    },
+    {
+      "path": "captures/P21",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "captures/P21/stderr",
+      "type": "file",
+      "mode": 384,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "copiedAs": "native-artifacts/captures/P21/stderr.data"
+    },
+    {
+      "path": "captures/P21/stdout",
+      "type": "file",
+      "mode": 384,
+      "bytes": 35,
+      "sha256": "2701cce8db563deeca2c5403d6cf3266a52f02c83a4b655203ee20f14d8b8d1c",
+      "copiedAs": "native-artifacts/captures/P21/stdout.data"
+    },
+    {
+      "path": "captures/P22",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "captures/P22/stderr",
+      "type": "file",
+      "mode": 384,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "copiedAs": "native-artifacts/captures/P22/stderr.data"
+    },
+    {
+      "path": "captures/P22/stdout",
+      "type": "file",
+      "mode": 384,
+      "bytes": 59,
+      "sha256": "6c50f66ea0957474ae7a91541c13aff39db7c41ee13429c4143b0a1f6c14a387",
+      "copiedAs": "native-artifacts/captures/P22/stdout.data"
+    },
+    {
+      "path": "captures/P23",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "captures/P23/stderr",
+      "type": "file",
+      "mode": 384,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "copiedAs": "native-artifacts/captures/P23/stderr.data"
+    },
+    {
+      "path": "captures/P23/stdout",
+      "type": "file",
+      "mode": 384,
+      "bytes": 76,
+      "sha256": "c0bff9f55c27954bae43621bf6fa34e31a863524884eb6513e376cef360c0b6d",
+      "copiedAs": "native-artifacts/captures/P23/stdout.data"
+    },
+    {
+      "path": "captures/P24",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "captures/P24/stderr",
+      "type": "file",
+      "mode": 384,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "copiedAs": "native-artifacts/captures/P24/stderr.data"
+    },
+    {
+      "path": "captures/P24/stdout",
+      "type": "file",
+      "mode": 384,
+      "bytes": 29,
+      "sha256": "8f65e0c3cff51dbc37d0c1b93e35ac3b27e59f63557ec1bc1bb95bc8ce34562f",
+      "copiedAs": "native-artifacts/captures/P24/stdout.data"
+    },
+    {
+      "path": "cases",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P19",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P19/empty-path",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P19/home",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P19/tmp",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P19/work",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P20",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P20/empty-path",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P20/home",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P20/tmp",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P20/work",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P21",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P21/empty-path",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P21/home",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P21/tmp",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P21/work",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P22",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P22/empty-path",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P22/home",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P22/tmp",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P22/work",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P23",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P23/empty-path",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P23/home",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P23/tmp",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P23/work",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P24",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P24/empty-path",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P24/home",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P24/tmp",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "cases/P24/work",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "outer",
+      "type": "directory",
+      "mode": 448
+    },
+    {
+      "path": "outer/bootstrap.stderr",
+      "type": "file",
+      "mode": 384,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "copiedAs": "native-artifacts/outer/bootstrap.stderr.data"
+    },
+    {
+      "path": "outer/bootstrap.stdout",
+      "type": "file",
+      "mode": 384,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "copiedAs": "native-artifacts/outer/bootstrap.stdout.data"
+    }
+  ],
+  "rawBytes": 25569,
+  "oldPrelaunchHold": "e66b4440fbfdb8b03b167f2402a6a9a77dbbfb1c unchanged",
+  "qualifiedMeaning": "local Bash3.2.57 observations, not expected goldens/parity passes or policy selection; no repeat version probe",
+  "processMeaning": "managed observations only; four source-stage reservations unobserved; owner retirement additionally requires exec tool completion"
+}

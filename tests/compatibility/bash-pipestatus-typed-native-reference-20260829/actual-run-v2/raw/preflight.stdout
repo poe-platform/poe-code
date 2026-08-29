@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "at": "2026-08-29T14:30:57.620Z",
+  "phaseDeadline": 1788014344559.4192,
+  "approval": {
+    "cmd": "umask 077; unsetopt MULTIOS; set -C; exec /usr/bin/env -i LC_ALL=C LANG=C TZ=UTC PATH=/usr/bin:/bin /Users/kjopek/.nvm/versions/node/v22.22.2/bin/node /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/entry.mjs --grant /Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-pipestatus-typed-native-reference-20260829/materialized/GO.json --grant-sha256 9d971fe4c4546fa9a90d1184af9d05c573fb6e343f6dcea6546cfef762383772 >/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stdout 1<>/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stdout 2>/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stderr 2<>/private/tmp/safe-bash-pipestatus-typed-observations-20260829-v1/outer/bootstrap.stderr",
+    "workdir": "/Users/kjopek/Workspace/safe-bash",
+    "shell": "/bin/zsh",
+    "login": false,
+    "sandbox_permissions": "require_escalated",
+    "justification": "Allow only six freshly reviewed literal P19–P24 local Bash3.2.57 typed PIPESTATUS observations, builtins only with zero input fixtures or effects, outside the custom test sandbox; initial tool-shell startup is trusted host, not clean-env/capture or containment qualified?",
+    "yield_time_ms": 1000,
+    "max_output_tokens": 4096
+  }
+}

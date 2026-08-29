@@ -1,0 +1,302 @@
+8:import { HereDocumentSyntaxError, hereDocumentWords, parseShellInputUnit, parseShellUnit } from "./parser.js";
+9:import { ShellLimitError, ShellSyntaxError } from "./types.js";
+10:import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
+11:import { ShellInput } from "./input.js";
+12:import { evaluateArithmetic, prepareArithmetic } from "./arithmetic.js";
+13:import { compilePattern, matchesPattern } from "./pattern.js";
+14:import { byteLocale } from "./locale.js";
+15:import { functionDisplay } from "./display.js";
+16:import { ConditionalUnsupported, evaluateConditional } from "./conditional.js";
+17:import { invocationScope, type InvocationScope } from "./cleanup.js";
+18:import { executionCommands } from "../commands/execution.js";
+19:import { cloneGetoptsState, createGetoptsState, GetoptsError, scanGetopts, withGetoptsIndex } from "./getopts.js";
+20:import type { GetoptsState } from "./getopts.js";
+21:import {
+22:  activateChildCancellation, prepareChildCancellation, selectRuntimeCancellationOutcome, subscribeCancellation,
+23:} from "./cancellation.js";
+24:import type {
+25:  CancellationAdmissionSnapshot, CancellationBoundary, CancellationControlOriginInput, CancellationOrigin,
+26:  CancellationReport, CancellationSelection, CapturedCancellationOutcome, PreparedChildCancellation,
+27:} from "./cancellation.js";
+28:import { getArrayAssignment, getArraySelector, copyArraySelector, numericIndex, literalIndex, isQuoteMarker } from "./arrays/syntax.js";
+29:import type { ArrayAssignment } from "./arrays/syntax.js";
+30:import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
+31:import { controlNames, IndexedBinding, textToken } from "./arrays/bindings.js";
+32:import { arrayStore, requireArrays, snapshotState, stateMonitor, trackState } from "./arrays/state.js";
+33:import type { Restoration } from "./arrays/state.js";
+34:import type { Admission } from "./arrays/ledger.js";
+35:import type { BindingWatch, OwnedText } from "./arrays/bindings.js";
+36:
+37:export const defaultLimits: Required<ShellLimits> = {
+38:  maxOutputBytes: 16 * 1024 * 1024,
+39:  maxCommands: 10_000,
+40:  maxLoopIterations: 10_000,
+1054:    if (state.readonlyVariables?.has(name)) throw new Error(`${name}: readonly variable`);
+1055:    delete state.variables[name];
+1056:    state.exported.delete(name);
+1057:    if (name === "OPTIND" && !internal) this.syncGetopts(state);
+1058:  }
+1059:
+1060:  private rethrowArithmeticControl(error: unknown): void {
+1061:    this.signal.throwIfAborted();
+1062:    if (error instanceof NounsetFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
+1063:  }
+1064:
+1065:  arithmeticVariables(state: State, line?: number): Record<string, string> {
+1066:    return new Proxy(state.variables, {
+1067:      get: (target, key) => {
+1068:        this.signal.throwIfAborted();
+1069:        if (arrayStore(state)?.get(String(key))) throw new ArrayFailure("indexed arithmetic is unsupported");
+1070:        const value = Reflect.get(target, key);
+1071:        if (state.nounset && typeof key === "string" && value === undefined) throw new NounsetFailure(`${key}: unbound variable`, line);
+1072:        return value;
+1073:      },
+1074:      set: (_target, key, value: string) => { this.writeVariable(state, String(key), value, "arithmetic"); return true; },
+1075:    });
+1076:  }
+1077:
+1078:  variable(state: State, name: string): string | undefined {
+1079:    const binding = arrayStore(state)?.get(name);
+1080:    return binding ? binding.get(0) : state.variables[name];
+1081:  }
+1082:
+1083:  private requireParameter(value: string | undefined, name: string, state: State, io: IO, line?: number): void {
+1084:    if (state.nounset && value === undefined) throw new NounsetFailure(`${name}: unbound variable`, io.diagnosticLine ?? line);
+1085:  }
+1086:
+1376:          if (completion) completion.apply(() => { state.status = status; });
+1377:          else state.status = status;
+1378:        } finally { completion?.close(); }
+1379:      }
+1380:    }
+1381:    return script.lists.length ? state.status : 0;
+1382:  }
+1383:
+1384:  async pipeline(pipeline: Pipeline, state: State, io: IO): Promise<number> {
+1385:    this.signal.throwIfAborted();
+1386:    let status: number;
+1387:    if (pipeline.commands.length === 1) status = await this.command(pipeline.commands[0]!, state, io);
+1388:    else {
+1389:      const pipes = pipeline.commands.slice(1).map(() => createBytePipe({
+1390:        highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal,
+1391:      }));
+1392:      const controllers = pipeline.commands.map(() => new AbortController());
+1393:      const written = new Set<number>();
+1394:      const completed = new Set<number>();
+1395:      const closing = new Set<ReturnType<typeof setImmediate>>();
+1396:      const tasks = pipeline.commands.map(async (command, index) => {
+1397:        const incoming = pipes[index - 1];
+1398:        const outgoing = pipes[index];
+1399:        const childDepth = this.cancellationDepth + 1;
+1400:        const controls: readonly CancellationControlOriginInput[] = [
+1401:          { role: "pipeline-control", signal: controllers[index]!.signal },
+1402:        ];
+1403:        const prepared = prepareChildCancellation(
+1404:          this.cancellation,
+1405:          undefined,
+1406:          this.cancellationAdmission(childDepth, controls.length),
+1407:          controls,
+1408:        );
+1535:        }
+1536:        state.functions.set(command.name, { ...command.body, sourceName: io.scriptName ?? "shell" });
+1537:        return 0;
+1538:      }
+1539:      if (command.kind === "simple") return await this.simple(command, state, originalIO, inputs, outputs, fileShortcut);
+1540:      io = await this.redirect(command.redirects, state, io, inputs, outputs, command.kind === "subshell", command.kind !== "subshell");
+1541:      if (command.kind === "conditional") {
+1542:        try {
+1543:          return Number(!await evaluateConditional(command.expression, {
+1544:            fs: this.fs, cwd: state.cwd, signal: this.signal,
+1545:            locale: state.variables.LC_ALL || state.variables.LC_COLLATE || state.variables.LANG || "C",
+1546:            work: { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") },
+1547:            expand: async (word, pattern = false) => (await this.word(word, state, io, false, pattern, false, pattern)).join(""),
+1548:            option: name => name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : false,
+1549:            present: name => {
+1550:              const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(?:\[(0|[1-9][0-9]*|[@*])\])?$/u.exec(name);
+1551:              if (!match) throw new ConditionalUnsupported("[[ variable selector: unsupported conditional profile");
+1552:              const binding = arrayStore(state)?.get(match[1]!);
+1553:              const selector = match[2];
+1554:              if (selector === "@" || selector === "*") return binding ? binding.values.size > 0 : this.variable(state, match[1]!) !== undefined;
+1555:              const index = selector === undefined ? 0 : numericIndex({ decimal: selector });
+1556:              if (index === undefined) throw new ConditionalUnsupported("[[ variable index: unsupported conditional profile");
+1557:              return binding ? binding.get(index) !== undefined : index === 0 && this.variable(state, match[1]!) !== undefined;
+1558:            },
+1559:          }));
+1560:        } catch (error) {
+1561:          this.signal.throwIfAborted();
+1562:          if (error instanceof ConditionalUnsupported) {
+1563:            try { await this.diagnostic(io, error.message); }
+1564:            catch (reason) { this.signal.throwIfAborted(); if (reason instanceof ShellLimitError) throw reason; diagnosticFailure = new NounsetDiagnosticFailure(reason); throw diagnosticFailure; }
+1565:            return 2;
+1566:          }
+1567:          if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
+1568:          diagnosticFailure = new NounsetDiagnosticFailure(error);
+1569:          throw diagnosticFailure;
+1570:        }
+1571:      }
+1572:      if (command.kind === "arithmetic") {
+1573:        try { return Number(evaluateArithmetic(command.expression, this.arithmeticVariables(state, io.diagnosticLine)) === 0n); }
+1574:        catch (error) { this.rethrowArithmeticControl(error); throw new Error(`((: ${message(error)}`); }
+1575:      }
+1576:      if (command.kind === "subshell") {
+1577:        const child = await cloneState(state, this.signal);
+1578:        child.isolated = true;
+1579:        child.loopDepth = 0;
+1580:        return await this.run(command.body, child, io);
+1581:      }
+1582:      if (command.kind === "group") return await this.script(command.body, state, io);
+1583:      if (command.kind === "if") {
+1584:        for (const branch of command.branches) {
+1585:          if (await this.script(branch.condition, state, { ...io, execution: { ignoreErrexit: true } }) === 0) return await this.script(branch.body, state, io);
+1586:        }
+1587:        return command.otherwise ? await this.script(command.otherwise, state, io) : 0;
+1588:      }
+1589:      if (command.kind === "case") {
+1590:        const subject = (await this.word(command.subject, state, io, false)).join("");
+1591:        const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+1634:        else state.loopDepth--;
+1635:      }
+1636:      return status;
+1637:    } catch (error) {
+1638:      const diagnostic = error instanceof ExecutionFailure ? error.diagnostic : undefined;
+1639:      if (error instanceof ExecutionFailure) { io = error.io; error = error.original; }
+1640:      if (error instanceof NounsetDiagnosticFailure) diagnosticFailure = error;
+1641:      this.signal.throwIfAborted();
+1642:      if (error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
+1643:      this.clearOutcomeReport();
+1644:      if (error instanceof HereDocumentSyntaxError) {
+1645:        await writeText(io.stderr, error.diagnostic);
+1646:        this.errexit(1, state, io);
+1647:        return 1;
+1648:      }
+1649:      if (errorCode(error) === "EPIPE") { this.errexit(141, state, io); return 141; }
+1650:      const line = error instanceof ExpansionFailure ? error.line ?? io.diagnosticLine ?? 1 : io.diagnosticLine ?? 1;
+1651:      if (error instanceof NounsetFailure || error instanceof ParameterExpansionFailure) {
+1652:        const detail = error instanceof ParameterExpansionFailure ? diagnostic ?? message(error) : message(error);
+1653:        try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${detail}\n`); }
+1654:        catch (reason) {
+1655:          this.signal.throwIfAborted();
+1656:          if (reason instanceof ShellLimitError) throw reason;
+1657:          diagnosticFailure = new NounsetDiagnosticFailure(reason);
+1658:          throw diagnosticFailure;
+1659:        }
+1660:        throw new Flow("exit", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
+1661:      }
+1662:      if (error instanceof ArrayFailure) await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`);
+1663:      else {
+1664:        try { await writeText(io.stderr, `${io.scriptName ?? "shell"}: line ${line}: ${diagnostic ?? message(error)}\n`); }
+1665:        catch { this.signal.throwIfAborted(); }
+1666:      }
+1667:      if (error instanceof ExpansionFailure) throw new Flow("exit", error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
+1668:      if (error instanceof FatalCommandFailure) throw new Flow("exit", error.status);
+1669:      const status = error instanceof CommandFailure ? error.status : 1;
+1670:      this.errexit(status, state, io);
+1671:      return status;
+1672:    } finally {
+1673:      try {
+1674:        for (const close of outputs) close();
+1675:        await Promise.all([...inputs].map((input) => input.close()));
+1676:      } catch (error) {
+1677:        if (diagnosticFailure) io[invocationScope].failures.push(error);
+1678:        else throw error;
+1679:      }
+1680:    }
+1985:        await pipeBytes(input, io.stdout, this.signal);
+1986:        return 0;
+1987:      }
+1988:      return words.length ? await this.dispatch(words[0]!, words.slice(1), state, io, previous) : state.substitutionStatus;
+1989:    } catch (error) {
+1990:      if (error instanceof Flow) throw error;
+1991:      this.signal.throwIfAborted();
+1992:      const original = error instanceof ExecutionFailure ? error.original : error;
+1993:      if (special && !(original instanceof ShellLimitError) && !(original instanceof ExpansionFailure) && !(original instanceof Flow) && !(original instanceof ShellSyntaxError)) {
+1994:        throw new ExecutionFailure(new FatalCommandFailure(message(original), 1), error instanceof ExecutionFailure ? error.io : io, error instanceof ExecutionFailure ? error.diagnostic : undefined);
+1995:      }
+1996:      if (error instanceof ExecutionFailure) throw error;
+1997:      throw new ExecutionFailure(error, io);
+1998:    } finally {
+1999:      try {
+2000:        if (words.length) for (const [key, saved] of previous) {
+2001:          if (saved.superseded) await this.discardVariable(saved);
+2002:          else await restoreVariable(state, key, saved);
+2003:        }
+2004:      } finally { if (words.length) stateMonitor(state)?.closeOverlay(previous); }
+2005:    }
+2006:  }
+2007:
+2008:  async dispatch(name: string, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false): Promise<number> {
+2009:    const scope = io[invocationScope].child();
+2010:    const runtime = new Runtime(
+2011:      this.fs, this.commands, this.middleware, this.budget,
+2012:      AbortSignal.any([this.signal, scope.signal]), this.fileWrites, this.outputFiles, this.commandSignal,
+2013:      this.cancellation, this.cancellationState, this.cancellationOwner,
+2014:      this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame,
+2015:    );
+2016:    try { return await runtime.dispatchScoped(name, args, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions); }
+2017:    finally { await scope.close(); }
+2679:        if (!environmentInterpreter) {
+2680:          const bash = /^(\/bin\/bash|\/usr\/bin\/bash)(?:[ \t]+([-+]e+))?$/u.exec(interpreter);
+2681:          if (!bash) throw new CommandFailure(`${target}: unsupported interpreter: ${interpreter}`, 126);
+2682:          if (direct && bash[2]) errexit = bash[2].startsWith("-");
+2683:        }
+2684:      }
+2685:    } catch (error) {
+2686:      this.signal.throwIfAborted();
+2687:      if (error instanceof ShellLimitError || error instanceof CommandFailure) throw error;
+2688:      if (errorCode(error) === "EFBIG") this.budget.fail("maxSourceBytes");
+2689:      throw new CommandFailure(filesystemDiagnostic(error, target) ?? `${target}: ${message(error)}`, errorCode(error) === "ENOENT" ? 127 : 126);
+2690:    }
+2691:    if (direct && environmentInterpreter) return this.envShebang(context, state, io, environmentInterpreter[1], target, args, { path, source });
+2692:    const units: Script[] = [];
+2693:    try {
+2694:      let position = 0;
+2695:      do {
+2696:        this.signal.throwIfAborted();
+2697:        const unit = parseShellUnit(source, position, byteLocale(context.env));
+2698:        units.push(unit.script);
+2699:        position = unit.next;
+2700:      } while (position < source.length);
+2701:    } catch (error) {
+2702:      if (!(error instanceof ShellSyntaxError)) throw error;
+2703:      const line = source.slice(0, error.offset).split("\n").length;
+2704:      await writeText(context.stderr, `${target}: line ${line}: syntax error: ${error.reason}\n`);
+2705:      return error.exitCode;
+2706:    }
+2707:    const child = this.processState(context, state, target, args);
+2708:    child.errexit = errexit;
+2709:    if (direct && !source.startsWith("#!")) child.profile = state.profile ?? "bash";
+2710:    const childIO = isolateIO({ ...io, ...context, execution: { ignoreErrexit: false }, diagnosticLine: 1, diagnosticOffset: 0, scriptName: target });
+2711:    let status = 0;
+2819:      await interruptible(this.fs.access(path, ACCESS_MODES.R_OK, options), this.signal);
+2820:      const maxBytes = this.budget.limits.maxSourceBytes - this.budget.sourceBytes;
+2821:      if (stat.size > maxBytes) this.budget.fail("maxSourceBytes");
+2822:      const bytes = await interruptible(this.fs.readFile(path, { ...options, maxBytes }), this.signal);
+2823:      this.budget.source(bytes.byteLength);
+2824:      source = this.sourceText(bytes, target);
+2825:    } catch (error) {
+2826:      this.signal.throwIfAborted();
+2827:      if (error instanceof ShellLimitError) throw error;
+2828:      if (errorCode(error) === "EFBIG") this.budget.fail("maxSourceBytes");
+2829:      const diagnostic = error instanceof CommandFailure ? error.message : filesystemDiagnostic(error, target) ?? `${target}: ${message(error)}`;
+2830:      if (special) throw new FatalCommandFailure(diagnostic, 1);
+2831:      throw new CommandFailure(diagnostic, error instanceof CommandFailure ? error.status : 1);
+2832:    }
+2833:    const positional = state.positional;
+2834:    const version = state.positionalSetVersion ?? 0;
+2835:    const sourceDepth = state.sourceDepth ?? 0;
+2836:    const monitor = stateMonitor(state);
+2837:    const restoration = monitor?.restoration(true);
+2838:    try {
+2839:      const owner = arrayStore(state)?.owner;
+2840:      if (owner) {
+2841:        owner.reserve({ metadata: 64 + args.length * 32, allocatedSlots: args.length, work: args.length + 4 });
+2842:        monitor!.prepareCollection(args, "positional");
+2843:      }
+2844:      const entry = () => {
+2845:        if (args.length) state.positional = args;
+2846:        state.sourceDepth = (state.sourceDepth ?? 0) + 1;
+2847:        state.depth++;
+2848:      };
+2849:      if (owner) {
+2850:        const tickets = owner.reserve({ epoch: true, work: 8 });
+2851:        monitor!.publish(tickets, undefined, entry);

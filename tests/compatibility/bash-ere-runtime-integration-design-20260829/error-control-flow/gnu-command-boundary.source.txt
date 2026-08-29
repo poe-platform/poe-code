@@ -1,0 +1,80 @@
+1125:    case cm_arith:
+1126:#endif
+1127:#if defined (COND_COMMAND)
+1128:    case cm_cond:
+1129:#endif
+1130:    case cm_function_def:
+1131:      was_error_trap = signal_is_trapped (ERROR_TRAP) && signal_is_ignored (ERROR_TRAP) == 0;
+1132:#if defined (DPAREN_ARITHMETIC)
+1133:      if (ignore_return && command->type == cm_arith)
+1134:	command->value.Arith->flags |= CMD_IGNORE_RETURN;
+1135:#endif
+1136:#if defined (COND_COMMAND)
+1137:      if (ignore_return && command->type == cm_cond)
+1138:	command->value.Cond->flags |= CMD_IGNORE_RETURN;
+1139:#endif
+1140:
+1141:      line_number_for_err_trap = save_line_number = line_number;	/* XXX */
+1142:      begin_unwind_frame ("misc_compound");
+1143:      add_unwind_protect (uw_restore_lineno, (void *) (intptr_t) save_line_number);
+1144:
+1145:#if defined (DPAREN_ARITHMETIC)
+1146:      if (command->type == cm_arith)
+1147:	exec_result = execute_arith_command (command->value.Arith);
+1148:      else
+1149:#endif
+1150:#if defined (COND_COMMAND)
+1151:      if (command->type == cm_cond)
+1152:	exec_result = execute_cond_command (command->value.Cond);
+1153:      else
+1154:#endif
+1155:      if (command->type == cm_function_def)
+1156:	exec_result = execute_intern_function (command->value.Function_def->name,
+1157:					       command->value.Function_def);
+1158:      line_number = save_line_number;
+1159:      discard_unwind_frame ("misc_compound");
+1160:
+1161:      if (was_error_trap && ignore_return == 0 && invert == 0 && exec_result != EXECUTION_SUCCESS)
+1162:	{
+1163:	  last_command_exit_value = exec_result;
+1164:	  save_line_number = line_number;
+1165:	  line_number = line_number_for_err_trap;
+1166:	  run_error_trap ();
+1167:	  line_number = save_line_number;
+1168:	}
+1169:
+1170:      if (ignore_return == 0 && invert == 0 && exit_immediately_on_error && exec_result != EXECUTION_SUCCESS)
+1171:	{
+1172:	  last_command_exit_value = exec_result;
+1173:	  run_pending_traps ();
+1174:	  jump_to_top_level (ERREXIT);
+1175:	}
+1176:
+1177:      break;
+1178:
+1190:    discard_unwind_frame ("loop_redirections");
+1191:
+1192:#if defined (PROCESS_SUBSTITUTION)
+1193:  if (saved_fifo)
+1194:    {
+1195:      nfifo = num_fifos ();
+1196:      if (nfifo > ofifo)
+1197:	close_new_fifos (ofifo_list, osize);
+1198:      free (ofifo_list);
+1199:      discard_unwind_frame ("internal_fifos");
+1200:    }
+1201:#endif
+1202:
+1203:  /* Invert the return value if we have to */
+1204:  if (invert)
+1205:    exec_result = (exec_result == EXECUTION_SUCCESS)
+1206:		    ? EXECUTION_FAILURE
+1207:		    : EXECUTION_SUCCESS;
+1208:
+1209:#if defined (DPAREN_ARITHMETIC) || defined (COND_COMMAND)
+1210:  /* This is where we set PIPESTATUS from the exit status of the appropriate
+1211:     compound commands (the ones that look enough like simple commands to
+1212:     cause confusion).  We might be able to optimize by not doing this if
+1213:     subshell_environment != 0. */
+1214:  switch (command->type)
+1215:    {

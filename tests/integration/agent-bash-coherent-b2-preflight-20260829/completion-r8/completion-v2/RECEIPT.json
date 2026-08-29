@@ -1,0 +1,176 @@
+{
+  "schema": "B2_R8_COMPLETION_AUTHOR_RECEIPT",
+  "status": "READY_FOR_DIFFERENT_DELTA_REVIEW_NO_RUNTIME_GO",
+  "created": "2026-08-29T16:23:22.712Z",
+  "groupsPassed": 2,
+  "sourceIdentityPostchecks": 4,
+  "helper": {
+    "pid": 57184,
+    "exitCode": 0,
+    "closeCode": 0,
+    "stderrBytes": 0,
+    "children": 0
+  },
+  "presealSha256": "f7dd1f0d77217ddf01548272e2fc187ae7b1e5c0593869a8fae6ca44c906a708",
+  "publicationV2Sha256": "f8ede5c4890135e0e68020cfc39007bd74f9d39d6402d6a31a6b031df2c9bf5f",
+  "packet": {
+    "bytes": 6945,
+    "sha256": "6df866e7990386218848061128777008bfbd6cdd93a7c0f658559fc0d0aa23f9",
+    "unchangedRuntimeFiles": 32
+  },
+  "cachePolicyRootAccepted": true,
+  "policyQualification": "128MiB reservation inside512MiB, best-effort native-tool boundary, no source-derived bound/peak/atomicity/quota claim; strict mandatory post-close reconciliation",
+  "runtimeDateFieldsNull": true,
+  "rootActualGo": false,
+  "product": 0,
+  "npm": 0,
+  "workers": 0,
+  "compiler": 0,
+  "install": 0,
+  "nativeOracle": 0,
+  "knownOS": {
+    "initialGit": 1,
+    "patchShellAndToolConservative": 6,
+    "presealGit": 2,
+    "helper": 1,
+    "finalGitPlanned": 3,
+    "totalConservative": 13,
+    "maximum": 24,
+    "peakConservative": 2,
+    "fullTransitiveCensus": false
+  },
+  "captures": {
+    "copiedBytes": 8078,
+    "files": [
+      {
+        "path": "raw/administration/startup.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "raw/administration/startup.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "raw/administration/status.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "raw/administration/status.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "raw/administration/status-retirement.json",
+        "bytes": 78,
+        "sha256": "ae729fefc0f5073478a4b447bcc98e7a21182d386e2bca09eed1c0f31de1c623"
+      },
+      {
+        "path": "raw/administration/preseal-add.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "raw/administration/preseal-add.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "raw/administration/preseal-commit.stdout",
+        "bytes": 1273,
+        "sha256": "3d542fce5fc556213f08d2ac3830e523902f1e1cbb99eca48a8699e3f3e0db25"
+      },
+      {
+        "path": "raw/administration/preseal-commit.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "raw/administration/preseal-git.json",
+        "bytes": 205,
+        "sha256": "7924d61f909d5af3f54bdce5ded3faa6038199f22b2263d2ad97637c5ed233c6"
+      },
+      {
+        "path": "raw/administration/helper.stdout",
+        "bytes": 69,
+        "sha256": "425639b9ce3e20a985abdc52d53f09efc12e13bdaa920c80ff002d0a48d64c8d"
+      },
+      {
+        "path": "raw/administration/helper.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "raw/administration/helper-start.json",
+        "bytes": 99,
+        "sha256": "62fef3c8e8ed51c966f17967c5ef13e872f7e6f132c1271ceb71b24eacad418b"
+      },
+      {
+        "path": "raw/administration/helper-retirement.json",
+        "bytes": 232,
+        "sha256": "a6a40c306949ab914cda857d505c904f0b2fdd6ac101891a7f0dcd2788d1382f"
+      },
+      {
+        "path": "raw/controls/RESULT.json",
+        "bytes": 5414,
+        "sha256": "70c4eed8b1a751d504404405ac23e7a268e40049977f60e6b2f2df14d864e3dd"
+      },
+      {
+        "path": "raw/controls/identities/0bbf207a692edcc1652b61813eb72e1cfdfb61109eabe41d9152774dc7efcee2.json",
+        "bytes": 188,
+        "sha256": "dd51364f059df471be5c101197e74b645213522abb87d02ac0faa910038cb16e"
+      },
+      {
+        "path": "raw/controls/identities/168352c19754df446752bfe4b5e2f1ccea496b7b449c78592479ffc0a8fe2e18.json",
+        "bytes": 200,
+        "sha256": "bdc06f131183a8a73ea87695cf01cfdbc84d1068ed2401c5499b42bc3f908128"
+      },
+      {
+        "path": "raw/controls/identities/69c2bd390097b129a412bb1590a24c122a78fdf51e881ff38c2b038673a30a34.json",
+        "bytes": 188,
+        "sha256": "dd51364f059df471be5c101197e74b645213522abb87d02ac0faa910038cb16e"
+      },
+      {
+        "path": "raw/controls/payload/copy",
+        "bytes": 12,
+        "sha256": "0ea4714806a9b812be9880c4ff0e7aad6a8fd2393cff0cc8dc5778313c9a7903"
+      },
+      {
+        "path": "raw/controls/payload/copy.source.json",
+        "bytes": 34,
+        "sha256": "02b9ee4f40bf94fe3a1890cff317558b54abed1dd51521a54572848ebff85294"
+      },
+      {
+        "path": "raw/controls/payload/tamper-control",
+        "bytes": 12,
+        "sha256": "dc7c8974cd58fbd2c57aefd45a4239d3be4c44aaa68bac4fe2cb49a4a485231b"
+      },
+      {
+        "path": "raw/controls/sources/copy",
+        "bytes": 12,
+        "sha256": "0ea4714806a9b812be9880c4ff0e7aad6a8fd2393cff0cc8dc5778313c9a7903"
+      },
+      {
+        "path": "raw/controls/sources/copy.source.json",
+        "bytes": 34,
+        "sha256": "02b9ee4f40bf94fe3a1890cff317558b54abed1dd51521a54572848ebff85294"
+      },
+      {
+        "path": "raw/controls/sources/different",
+        "bytes": 16,
+        "sha256": "78442dda3e5642ce405f6dc6a36797ab67d4c6bef4f46eb5e19d2c66d7f1595c"
+      },
+      {
+        "path": "raw/controls/sources/same-other-source",
+        "bytes": 12,
+        "sha256": "0ea4714806a9b812be9880c4ff0e7aad6a8fd2393cff0cc8dc5778313c9a7903"
+      }
+    ]
+  },
+  "logicalControlRootBytesBeforeResult": 708,
+  "workQualification": "Control-root snapshot708B excludes RESULT/source/evidence copies, no full physical/RSS measurement; explicit raw copies bounded8MiB, manifest-admitted source files reused without full baseline materialization",
+  "priorHistory": "v1 collision and0b13a5b8 224PASS/448UNRUN+2types8diagnostics unrescored",
+  "phaseDeadline": "2026-08-29T16:26:29.323Z"
+}

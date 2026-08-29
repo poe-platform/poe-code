@@ -1,0 +1,20 @@
+[main 8bb8e5830] test: seal r8 accepted cache policy and two publication controls
+ Committer: Kamil Jopek <kjopek@bamboo.quora.net>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 7 files changed, 593 insertions(+), 3 deletions(-)
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/completion-v2/AUTHORITY-before-root-policy.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/completion-v2/PACKET-before-root-policy.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/completion-v2/PRESEAL.json
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/completion-v2/ROOT-POLICY-ACCEPTANCE.md
+ create mode 100644 tests/integration/agent-bash-coherent-b2-preflight-20260829/completion-r8/completion-v2/check.mjs

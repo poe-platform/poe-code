@@ -1,0 +1,466 @@
+ROOT-authorized versioned contract and producer phase; capture starts before external children.
+START 2026-08-29T15:43:17Z
+Limits:25min/56knownOS/peak3/96MiBcapture/512MiBlogical inclpublication; DATA files <=16MiB.
+
+--- immutable baseline drift ---
+
+--- qualified producer ROOT evidence ---
+c9326e1726b58ff17a15da4c80f637e174148574 docs: record composed ERE producer and tool DATA acceptance
+diff --git a/tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/ROOT-REBOUND-PRODUCER-ACCEPTANCE.md b/tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/ROOT-REBOUND-PRODUCER-ACCEPTANCE.md
+new file mode 100644
+index 000000000..5dc933b88
+--- /dev/null
++++ b/tests/compatibility/bash-ere-runtime-integration-independent-20260829/rebind-producer-v1/ROOT-REBOUND-PRODUCER-ACCEPTANCE.md
+@@ -0,0 +1,61 @@
++# ROOT acceptance — rebound ERE source/producer/tool DATA
++
++Date: **2026-08-29**. Authority: explicit ROOT acceptance of the composed, finite SOURCE/PRODUCER+TOOL-DATA evidence below. This document does not grant runtime execution or accept current HEAD.
++
++## Accepted composition and separate cohorts
++
++Selected derived tree: **da4e1cc187022255521879b00db2ac77674f79d9**.
++
++- Accepted CORE bf079ada185a79aec864b068f3738ddc5520822e with exactly four integration overrides from **e013f817fd7700c59a144c395c80dc25856e4157**.
++- Engine **72187e5abc1179883f85a63e1ef558f2e141c542** and transport **46611a5b67ad7af276154421ac7f50dd536ec570** under their separately scoped authority.
++- Complete selected source catalog: **305 inputs**. No requirement that the derived identifier be stored as a Git object.
++- **B35/new-parser changes and the newer coherent Node overlay are excluded. Current HEAD is not accepted by this record.**
++
++ROOT composes, without merging historical outcomes:
++
++1. **dcc9e5e725639fb7688823211ad68379d94dfc55**: **1396 source/package checks +8 controls**, complete305-source tree,1305 retained source/compiled members, full1002-member archive,48 private assets and30 literal static edges. Its then-missing npm-relative/12-link proof remains recorded as the original qualification.
++2. **7633c44f4bb35e77855c552380caf3fa189ba4be**: separate fresh npm-tool DATA rebind, **8 binding checks +4 controls**; **2027 regular files,12 exact links,12,446,245 regular-file bytes,517 directories**, zero extra/missing entries or directories. This addresses the earlier identity-proof gap prospectively; it does not rescore the first cohort.
++
++There is no combined runtime pass count. The earlier source/path/type/npm-config/administrative failures and limitations remain unchanged, including the old full305 unqualified closure, TS2724 mismatch, same-user/global-config producer failure and administrative64 uncertainty.
++
++## Exact identity domains
++
++| Artifact/domain | SHA256 |
++|---|---|
++|305-input SOURCE.json exact bytes | `4cee9ef732e44e8c7eba1c64d44015762ee6e0be72488dfcd6bf0f44a80bcb6e` |
++|1305-member COMPILED.json exact bytes | `f42f0008bf5939f28ccb7cd038b9f462a03efa38238709c97a7daab7c98e3035` |
++|Full PACKAGE-MANIFEST.json exact bytes | `09f5f0a974cb5c33a91dc947d7b94bfb2473706e479014b4ef750a1182678fbb` |
++|Real archive,908381 compressed bytes | `4f90df04dba998f184473254bb450f9e085b9fc9d5994dc91a21a7ccf1d1d66e` |
++|48-private-asset array: UTF8 `JSON.stringify(manifest.privateAssets)` in manifest order | `c36413f257e4d7097cb659c3fa3264955f57f7b3294d4be2dfdb13f1b7c8b751` |
++|30 literal edges: UTF8 `JSON.stringify(staticEdges)` in recorded traversal order | `a5da5680297ffeb425bf3b8903b0efbd153c3009c312c07c3af86e703d898a6b` |
++|Authenticated TOOLS.json exact bytes | `eebea839e8a061259a257245540485f8e7df5b64aebc2f77d0803de0f4141aca` |
++|Fresh canonical npm file/link rows | `63310df0713c0a6d54e153f43f881ca6bd6c4d710f9fc06c756064029c9f9241` |
++
++The real archive contains **1002 regular members**, **5,021,166 summed member bytes**, and **5,784,064 decoded tar bytes**. Expected type/mode/exact compressed size and SHA256 were admitted before inflation; the same authenticated Buffer was decoded. No subsequent inflation was needed for the npm continuation.
++
++Npm canonical-row domain: UTF8 JSON of fixed-field file/link objects sorted by full POSIX-relative path UTF8 bytes. File fields are path/kind/size/mode/sha256; link fields are path/kind/mode/text/target/targetSha256/targetSize. Directories are separately enumerated. The declared and observed canonical root is:
++
++`/Users/kjopek/.nvm/versions/node/v22.22.2/lib/node_modules/npm`
++
++That root is taken from authenticated `TOOLS.json.npmRoot`, never guessed from PATH or the earlier absolute-pin map. The12 link texts, targets, target sizes and target hashes are individually recorded in the npm continuation's RESULT.json.
++
++## Meaning and limits of acceptance
++
++This acceptance establishes finite source/package/tool DATA identity and its authenticated producer provenance. It does **not** establish:
++
++- Runtime-observed npm or product module loads, fresh typecheck results, actual Worker execution or private transport semantics.
++- A complete dynamic import graph: the30-edge hash is a limited literal static-layout inventory, not dynamic closure or authorization.
++- An append-proof new census of the retained compiled candidate from pinned-member rehashing alone. The independently parsed archive membership is complete; the author's earlier candidate postguards remain historical evidence.
++- An atomic filesystem snapshot, hostile-race security, universal descendant/Worker retirement, hidden-job census, RSS, performance, native parity or full Bash semantics.
++
++Recorded strict build/consumer outcomes are authenticated historical compiler DATA. They were not rerun by either independent DATA audit. Existing public exports and zero runtime dependencies remain bound; no private wildcard/public API expansion follows from this acceptance.
++
++## Future activation gates — still UNRUN
++
++1. **Private transport60** remains UNRUN under this composed acceptance and requires the separately assigned actual runtime review/decision.
++2. **All70 integration obligations per activated layout** remain UNRUN. Any source/installed/physically-moved runtime cohort requires a fresh concrete executable preseal and explicit ROOT activation grant; this document is not that grant.
++3. Bind exact candidate/package/tool/consumer/Worker-entry bytes, physical load paths, permissions, finite process/Worker/capture/budget ceilings and owned cleanup/retirement criteria before activation. Static asset presence is not an actual load witness.
++4. Every future compressed-artifact read must admit regular type, bounded/exact compressed size and expected hash before inflation/parsing, decode the same authenticated bytes and budget concurrent buffers. No live HEAD/B35/Node overlay or implicit source substitution.
++5. Preserve raw failures, unsupported profiles and historical qualifications; do not turn source/tool identity into fresh compiler, runtime or all-green campaign claims.
++
++Supporting independent records: `REPORT.md`, `RESULT.json`, `npm-tool-closure-v2/REPORT.md` and `npm-tool-closure-v2/RESULT.json`. This publication is documentation-only; no production source, author evidence, shared ledger, compiler output, runtime fixture or foreign staging was changed.
+
+--- v7 binding recipe source anchors ---
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+import {SourceTextModule} from 'node:vm';
+const root=path.dirname(new URL(import.meta.url).pathname),parent=path.dirname(root);
+const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+const read=file=>{const stat=fs.lstatSync(file);assert(stat.isFile()&&!stat.isSymbolicLink()&&stat.size<=4194304);const bytes=fs.readFileSync(file);assert.equal(bytes.length,stat.size);return bytes;};
+const write=(name,value)=>fs.writeFileSync(root+'/'+name,typeof value==='string'?value:JSON.stringify(value,null,2)+'\n',{flag:'wx',mode:0o600});
+const sealBytes=read(parent+'/v4/EXECUTION-SEAL.json');assert.equal(sealBytes.length,351213);assert.equal(hash(sealBytes),'ea3c82e4192729f4cbd2172e9548d5e21da3d4e3d8ccbfbfa7ad591a47736301');const seal=JSON.parse(sealBytes);
+const source=read(parent+'/v4/cell-v4.mjs').toString(),dispatch=read(parent+'/v4/dispatch.mjs').toString();
+assert.equal(hash(Buffer.from(dispatch)),seal.controller.find(row=>row.path.endsWith('/dispatch.mjs')).sha256);
+const catalog=JSON.parse(read(seal.layouts[0].manifest.path));const cellPin=catalog.rows.find(row=>row.path==='harness/cell.mjs');assert.equal(hash(Buffer.from(source)),cellPin.sha256);
+const start=source.indexOf('  const cell = JSON.parse('),end=source.indexOf('} catch (error) { primaryFailed = true;');assert(start>0&&end>start);
+const body=source.slice(start,end);
+let imports=source.slice(0,source.indexOf('const [cellPath, capturePath]'));
+imports=imports.replace("import { boundFile, terminalOutcome } from './guards.mjs';","import { boundFile } from './guards.mjs';");
+const prefix=imports+`import { createEventWriter, createFailureLedger, describeFailures, FINAL_AUDIT_BYTES } from './event-writer.mjs';
+import { finalizeCell } from './finalize-cell.mjs';
+const [cellPath, capturePath] = process.argv.slice(2);
+const failures = createFailureLedger();
+const audit = createEventWriter({ descriptor: 2, byteLimit: FINAL_AUDIT_BYTES, close() {} });
+let writer;
+const emit = row => writer.emit(row);
+let observer;
+let arrays;
+let shell;
+let cellId;
+try {
+  writer = createEventWriter({ descriptor: fs.openSync(capturePath, 'wx', 0o600) });
+  emit({ event: 'startup', pid: process.pid, execPath: process.execPath });
+`;
+
+--- scoped instructions ---
+CONTRACT_HELPER_START
+{"contract":{"rows":[{"id":"C01-accepted-explicit-ROOT-author-branch","status":"PASS"},{"id":"C02-missing-binding-refused","status":"PASS"},{"id":"C03-wrong-source-or-source-review-refused","status":"PASS"},{"id":"C04-unknown-kind-refused","status":"PASS"}],"pass":4,"fail":0,"rootDecisionSha256":"172d789916e62cac03caaf18610615148e95f59cdf0ac0c8e97a7465baeaa5ea","contractSha256":"0c76c54ced4715d97859fb1598dd4c5ad769f967ac50167fb48fdfa8a90af2e9","helperSha256":"05fe714e89ff474c55e46ce873b1d004b7c870dc463b9616c440acdbdfeb47f8","product":0,"compiler":0,"pack":0},"npmKeys":["bytes","rows"],"npmRows":[{"path":"LICENSE","size":9742,"mode":420,"sha256":"7610d223851f421d315df5e77974f1c68a04b97e02060e5bbbcf13d95e3ca257","kind":"file"},{"path":"README.md","size":4043,"mode":420,"sha256":"ec67df6a6b31f9641b74bbcbea148e29e0f2bb27a1479f601de0722e28cc25b0","kind":"file"}],"oldSealKeys":["status","sourceTree","sourceInputs","archive","node","layouts","controller","deferredCells","proofQualifications","futureCaps","authorityRequired"],"firstLayout":{"name":"source-built","app":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app","packageRoot":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package","packageMembers":1305,"manifest":{"path":"/private/tmp/safe-bash-core70-v4-20260829/LAYOUT-source-built.json","size":302100,"mode":384,"sha256":"521a156f4399200ffef0192de277ded2515b959d83769eab0a871ba77bb8ac56"},"cells":[{"id":"source-built/R01","originalId":"R01","capture":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/captures/R01.jsonl","stdout":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/captures/R01.jsonl.stdout","stderr":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/captures/R01.jsonl.stderr","cwd":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app","executable":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node","argv":["--permission","--allow-fs-read=/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app","--allow-fs-write=/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/captures","--allow-worker","/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/cell.mjs","/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/cells/R01.json","/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/captures/R01.jsonl"],"env":{"PATH":"/Users/kjopek/.nvm/versions/node/v22.22.2/bin","HOME":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/home","TMPDIR":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/tmp","LC_ALL":"C","LANG":"C","TZ":"UTC"},"caseMs":30000,"retireMs":3000,"childCapture":262144,"workerStartsMaximum":1}],"wrapperRoles":[{"name":"stock","file":null},{"name":"checkpoint","file":{"path":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-checkpoint.mjs","size":1999,"mode":384,"sha256":"d809fe5b185377050a6e5bbb3ed17d6f3e48aafe778d506f8344da98da3cd9d3"}},{"name":"wrong-id","file":{"path":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-wrong-id.mjs","size":1997,"mode":384,"sha256":"4a04c9a56bc6ccefa77bf7d92f432f5b3be6e521a0a83ac73e8c032bf528b8ac"}},{"name":"wrong-operation","file":{"path":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-wrong-operation.mjs","size":2004,"mode":384,"sha256":"0cbc423f100a47a401492d2e3725a04fe1fae07043a8abf11272b86cf5f6b5ca"}},{"name":"wrong-count","file":{"path":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-wrong-count.mjs","size":2000,"mode":384,"sha256":"12c8c865cdf3c0811b11274243649d636edc4e7556e2633628e3a2cbe409625f"}},{"name":"out-of-range-span","file":{"path":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-out-of-range-span.mjs","size":2006,"mode":384,"sha256":"cf2b4fafc475f19c2f884735e734841077308bed2544fab202cc5e2096d26d2b"}},{"name":"fractional-span","file":{"path":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-fractional-span.mjs","size":2004,"mode":384,"sha256":"9b551323183379b4428a0eb5dfd440cdf64e12e8e505f066142adb862b531f9a"}},{"name":"extra-key","file":{"path":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-extra-key.mjs","size":1998,"mode":384,"sha256":"ff5ca0905ea3e6f257f38954f90bc95e15857b3f6433677c845d428a581180e0"}},{"name":"late-reply","file":{"path":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-late-reply.mjs","size":1999,"mode":384,"sha256":"957f06b4824ae46067663731f55ca4941d7f9851bf3740c0e302bcd9f19efc2d"}},{"name":"positive","file":{"path":"/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/harness/worker-positive.mjs","size":1997,"mode":384,"sha256":"20ea9cd003904cc3d42f7fa4a5c622064b546f87971f08f837b72c2119f5db3a"}}],"privateAssets":48},"oldController":[{"path":"/private/tmp/safe-bash-core70-v4-20260829/controller/owner.mjs","size":4751,"mode":384,"sha256":"247dcf01da67894bb3b8b8d09d67b2b5457e730dc5c83a3aeffdc4e95f2730a4"},{"path":"/private/tmp/safe-bash-core70-v4-20260829/controller/dispatch.mjs","size":6819,"mode":384,"sha256":"656edd0a9094b4e0ffeddca309e93e9f57f17a4b7a598a7befbf3f9d9cfcce80"}],"futureCaps":{"childMaximum":210,"coordinatorMaximum":1,"knownAdministrativeAllowance":4,"totalKnownOSMaximum":215,"peakOS":2,"workerStartsMaximum":309,"workerLiveMaximum":1,"internalLoaderStarts":0,"totalMilliseconds":7500000,"captureBytes":134217728,"workingBytes":536870912}}
+CONTRACT_HELPER_EXIT 0
+
+--- first concrete cell config ---
+{
+  "definition": {
+    "id": "R01",
+    "script": "LC_ALL=C; re='(ab)([0-9]+)'; [[ xab42y =~ $re ]]; printf '%s:<%s>:<%s>:<%s>\\n' \"$?\" \"${BASH_REMATCH[0]}\" \"${BASH_REMATCH[1]}\" \"${BASH_REMATCH[2]}\"",
+    "question": "substring start and every capture",
+    "status": "UNRUN",
+    "authority": "5892374090115369a4d052acdfae55f978aa89ade53bc7c4a7ed6bfc9a91fcd7",
+    "state": "UNRUN",
+    "basis": "ROOT project profile and frozen source reasoning, NOT native goldens",
+    "workerStartsMaximum": 1,
+    "route": "script",
+    "expected": {
+      "exitCode": 0,
+      "stdout": "0:<ab42>:<ab>:<42>\n",
+      "stderr": {
+        "exact": ""
+      }
+    }
+  },
+  "modulePath": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/index.js",
+  "worker": {
+    "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/transport/worker-entry.js",
+    "size": 1542,
+    "mode": 420,
+    "sha256": "4bf935cd0195cb94a86cd63f861d82ac2808a2df0d7b0a3cee60f0df94aaa261",
+    "optionKeys": [
+      "workerData",
+      "env",
+      "execArgv",
+      "stdout",
+      "stderr",
+      "resourceLimits"
+    ],
+    "resourceLimits": {
+      "maxOldGenerationSizeMb": 128,
+      "stackSizeMb": 4
+    },
+    "closure": [
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/errors.d.ts",
+        "size": 727,
+        "mode": 420,
+        "sha256": "1c70fc199aa3864d9e32126390d483f78a1e06b4c00b2a168ed00efb29628a69"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/errors.d.ts.map",
+        "size": 692,
+        "mode": 420,
+        "sha256": "17bb108ef309b6a0d03b5e4812a68c614196b1d1d1c700a6493fdf61b0491dd1"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/errors.js",
+        "size": 1079,
+        "mode": 420,
+        "sha256": "4e873952a3a73ae8241e537aeec1c85f07d77cf0608e89052303b4870e49253d"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/errors.js.map",
+        "size": 1029,
+        "mode": 420,
+        "sha256": "9614011e1ed05228cc9ec8b50532e58739907b310910b5a47bea66cf3d0e2a76"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/limits.d.ts",
+        "size": 707,
+        "mode": 420,
+        "sha256": "2bfcf80593e92b052a13512d5e42f06d27ead309396cd182cc56a9dc1f7cf7ee"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/limits.d.ts.map",
+        "size": 758,
+        "mode": 420,
+        "sha256": "4a3bc2ada849ad6b3f129e83e3bc7ceedf850f5166485cb8aead4fd430954143"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/limits.js",
+        "size": 3299,
+        "mode": 420,
+        "sha256": "b2a459c51289cf533fb9106c08dc24bf3932cddce0d40d4a160ac01cdb8d5da9"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/limits.js.map",
+        "size": 3665,
+        "mode": 420,
+        "sha256": "1901dc5a06d1931503ed8ca10d7b538cd2c50ddae4660e7e44e0bf56d12b7ea1"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/matcher.d.ts",
+        "size": 268,
+        "mode": 420,
+        "sha256": "66455438cadcdd60b4c6d1c57385a1e3f34f4a115f1d9dc48afa77d3c309dbe3"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/matcher.d.ts.map",
+        "size": 377,
+        "mode": 420,
+        "sha256": "ee2139d056109a925a2e13640df6617acab08276b045a0badfcc6c9c0a7c86f4"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/matcher.js",
+        "size": 9782,
+        "mode": 420,
+        "sha256": "cbf96f19e2a2b9ef6399af8a423c893dd1785a21153c213f41096490eb25c63a"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/matcher.js.map",
+        "size": 11263,
+        "mode": 420,
+        "sha256": "fc7ad65c4b2fdf2434f2bb09589aeb0b0bef549c17c68b47aabe622f98c3b7c3"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/syntax.d.ts",
+        "size": 481,
+        "mode": 420,
+        "sha256": "53fd457a78706242ea00d332655c3c68a3cff3f7eb1047cc6168034690655410"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/syntax.d.ts.map",
+        "size": 573,
+        "mode": 420,
+        "sha256": "3567cc99e0620efe6deb6441c097f0e4dd66c61e613022f7d1032fdbed5fd8ca"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/syntax.js",
+        "size": 14304,
+        "mode": 420,
+        "sha256": "4a4f12d3584eba1d06f6b4c0dc66607bf61a2f19c1d2171b1fbf834a3116f0b1"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/syntax.js.map",
+        "size": 16575,
+        "mode": 420,
+        "sha256": "270dec45a34385c2bad6895796fab92b1797f2be30b4c16fd7a9bb802856d828"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/transport/accounting.d.ts",
+        "size": 1965,
+        "mode": 420,
+        "sha256": "ed123952e01467c4939194cc1c52984a55991437104e738f13c1bf7731f22e07"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/transport/accounting.d.ts.map",
+        "size": 1806,
+        "mode": 420,
+        "sha256": "e47807969fb8884549949aad46467869828af4eb628ce670be62c3c81823173a"
+      },
+      {
+        "path": "/private/tmp/safe-bash-core70-v4-20260829/apps/source-built/app/package/dist/commands/regex-execution/ere/transport/accounting.js",
+        "size": 7041,
+        "mode": 420,
+
+--- old producer compiler context ---
+    if (add.code !== 0) throw new Error('preseal add');
+    const commit = await child('A13', git, [...gitFlags, 'commit', '--only', '-m', 'test: seal complete private ERE integration transport rebind', '--', ...files], repo);
+    if (commit.code !== 0) throw new Error('preseal commit');
+    record({ event: 'sealed', selected: rows.length, tree: source.selectedTree, npmFiles: npm.rows.filter(row => row.kind === 'file').length, npmLinks: npm.rows.filter(row => row.kind === 'link').length });
+  } else if (mode === 'produce') {
+    const seal = json(path.join(own, 'SEAL.json'));
+    for (const row of seal.fixtures) verify(row);
+    currentSource(seal);
+    identical(inventory(candidate), seal.inputInventory, 'source prebuild');
+    tools(seal);
+    const compiler = path.join(own, 'node_modules/typescript/lib/tsc.js');
+    const roots = path.join(own, 'node_modules/@types');
+    const build = await child('A15', seal.node.path, [compiler, '-p', path.join(candidate, 'tsconfig.build.json'), '--typeRoots', roots], own, { timeout: 120000 });
+    if (build.code !== 0) {
+      save('RESULT.json', { status: 'INTERFACE_BUILD_HOLD', receipts, capture, noProductionPatch: true, packageProduced: false, elapsedMs: Date.now() - begin });
+      process.exitCode = 1;
+    } else {
+      const positive = await child('A16', seal.node.path, [compiler, ...seal.flags, '--noEmit', '--typeRoots', roots, path.join(own, 'positive.mts')], own);
+      const negative = await child('A17', seal.node.path, [compiler, ...seal.flags, '--noEmit', '--typeRoots', roots, path.join(own, 'negative.mts')], own);
+      const diagnostics = bytesOf('A17').toString('utf8');
+      const codes = [...diagnostics.matchAll(/error TS(\d+):/g)].map(match => Number(match[1]));
+      const locations = [...diagnostics.matchAll(/negative\.mts\((\d+),\d+\)/g)].map(match => Number(match[1]));
+      const typesPass = positive.code === 0 && bytesOf('A16').length === 0 && negative.code === 2 && JSON.stringify(codes) === '[2322,2353,2353]' && JSON.stringify(locations) === '[4,5,6]';
+      currentSource(seal);
+
+tests/compatibility/bash-ere-runtime-integration-author-20260829/runtime-preflight-v1/v7/dispatch.mjs
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { createHash } from 'node:crypto';
+import { ownProcess } from './owner.mjs';
+const started = Date.now();
+const [sealPath, expectedSeal, grantPath, expectedGrant, collector] = process.argv.slice(2);
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+const bounded = (file, limit) => { const stat = fs.lstatSync(file); if (!stat.isFile() || stat.isSymbolicLink() || stat.size > limit) throw new Error('bounded regular file'); const bytes = fs.readFileSync(file); if (bytes.length !== stat.size) throw new Error('read drift'); return bytes; };
+for (const [descriptor, suffix] of [[1, '.stdout'], [2, '.stderr']]) { const actual = fs.fstatSync(descriptor), declared = fs.lstatSync(collector + suffix); if (!actual.isFile() || !declared.isFile() || declared.isSymbolicLink() || actual.ino !== declared.ino || actual.dev !== declared.dev) throw new Error('external collector not connected'); }
+let published = 0;
+const emit = row => { const bytes = Buffer.from(JSON.stringify(row) + '\n'); if (bytes.length > 8388608 - published) throw new Error('coordinator capture cap'); let offset = 0; while (offset < bytes.length) { const written = fs.writeSync(1, bytes, offset, bytes.length - offset); if (!Number.isSafeInteger(written) || written <= 0) throw new Error('coordinator short write'); offset += written; } published += bytes.length; };
+emit({ event: 'startup', pid: process.pid, execPath: process.execPath, started });
+const bytes = bounded(sealPath, 8388608); if (digest(bytes) !== expectedSeal) throw new Error('seal hash');
+const seal = JSON.parse(bytes), rawGrant = bounded(grantPath, 8192);
+if (digest(rawGrant) !== expectedGrant) throw new Error('root confirmed raw grant hash');
+const grant = JSON.parse(rawGrant), keys = ['action', 'sealSha256', 'rootReceipt', 'privateTransportReceipt', 'corePreexecReceipt', 'uniqueLabel', 'candidate', 'packageSha256'];
+if (Object.keys(grant).join('\0') !== keys.join('\0') || grant.action !== 'execute-core70-v7' || grant.sealSha256 !== expectedSeal || grant.candidate !== seal.sourceTree || grant.packageSha256 !== seal.archive.sha256 || !/^[A-Z0-9-]{1,80}$/.test(grant.uniqueLabel)) throw new Error('ROOT grant shape/identity');
+for (const key of ['rootReceipt', 'privateTransportReceipt', 'corePreexecReceipt']) if (typeof grant[key] !== 'string' || !/^[a-f0-9]{40}$/.test(grant[key])) throw new Error('required durable receipt absent');
+for (const key of ['childMaximum', 'totalMilliseconds', 'captureBytes', 'workerStartsMaximum', 'workingBytes']) if (!Number.isSafeInteger(seal.futureCaps[key]) || seal.futureCaps[key] < 1) throw new Error('finite runtime caps');
+if (seal.futureCaps.childMaximum !== 210 || seal.futureCaps.totalMilliseconds !== 7500000 || seal.futureCaps.captureBytes !== 134217728 || seal.futureCaps.workingBytes !== 536870912 || seal.layouts.flatMap(layout => layout.cells).length !== 210) throw new Error('fixed role/cap census');
+const deadline = started + seal.futureCaps.totalMilliseconds;
+const verifyBinding = row => { const stat = fs.lstatSync(row.path); if (!stat.isFile() || stat.isSymbolicLink() || stat.size !== row.size || (stat.mode & 511) !== row.mode) throw new Error('binding shape'); const hash = createHash('sha256'), descriptor = fs.openSync(row.path, 'r'), buffer = Buffer.alloc(65536); try { let count; while ((count = fs.readSync(descriptor, buffer))) hash.update(buffer.subarray(0, count)); } finally { fs.closeSync(descriptor); } if (hash.digest('hex') !== row.sha256) throw new Error('binding content'); };
+if (process.execPath !== seal.node.path) throw new Error('Node selection'); verifyBinding(seal.node); for (const entry of seal.controller) verifyBinding(entry);
+const state = { deadline, starts: 0, maximumStarts: 210, capture: 0, maximumCapture: 125829120, owned: [], secondary: [] };
+const outcomes = []; let workers = 0;
+for (const layout of seal.layouts) {
+  verifyBinding(layout.manifest); const manifest = JSON.parse(bounded(layout.manifest.path, 4194304));
+  const allowed = new Set(manifest.rows.map(row => row.path));
+  for (const cell of layout.cells) for (const file of [cell.capture, cell.stdout, cell.stderr]) allowed.add(path.relative(layout.app, file));
+  function verify() {
+    if (Date.now() >= deadline) throw new Error('whole-run deadline');
+    for (const row of manifest.rows) verifyBinding({ ...row, path: path.join(layout.app, row.path) });
+    const walk = directory => { for (const name of fs.readdirSync(directory)) { const file = path.join(directory, name), stat = fs.lstatSync(file); if (stat.isSymbolicLink()) throw new Error('layout symlink'); if (stat.isDirectory()) { if (!manifest.directories.includes(path.relative(layout.app, file))) throw new Error('extra directory'); walk(file); } else if (!stat.isFile() || !allowed.has(path.relative(layout.app, file))) throw new Error('extra member'); } }; walk(layout.app);
+  }
+  for (const cell of layout.cells) {
+    verify(); const receipt = await ownProcess(cell, state, emit);
+    if (!receipt.retired || state.unknownRetirement) throw new Error('unknown retirement STOP');
+    const raw = bounded(cell.capture, cell.childCapture); if (raw.length > state.maximumCapture - state.capture) throw new Error('terminal capture cap'); state.capture += raw.length;
+    const records = raw.toString('utf8').trimEnd().split('\n').map(JSON.parse), terminals = records.filter(row => row.event === 'result');
+    if (terminals.length !== 1 || terminals[0].id !== cell.originalId || !terminals[0].retired || records.some(row => row.event === 'unsafe-retirement')) throw new Error('terminal/cleanup identity');
+    const result = terminals[0];
+    const startups = records.filter(row => row.event === 'startup');
+    if (startups.length !== 1 || records[0] !== startups[0] || records.at(-1) !== result || startups[0].pid !== receipt.pid || startups[0].execPath !== seal.node.path) throw new Error('cell startup/terminal capture continuity');
+    const auditLines = bounded(cell.stderr, cell.childCapture).toString('utf8').split('\n').filter(line => line.startsWith('{"event":"cell-final",'));
+    if (auditLines.length !== 1) throw new Error('final close-audit missing/duplicate');
+    const audit = JSON.parse(auditLines[0]);
+    if (audit.id !== cell.originalId || audit.status !== result.status || audit.retired !== true || audit.failure?.present !== (audit.status === 'FAIL')) throw new Error('final close-audit status/identity');
+    const writer = audit.eventWriter;
+    if (!writer || writer.failed !== false || writer.closed !== true || writer.byteLimit !== cell.childCapture || writer.admitted !== raw.length || writer.written !== raw.length) throw new Error('event capture incomplete/cap/close failure');
+    if (!['PASS', 'FAIL'].includes(result.status) || receipt.code !== (result.status === 'PASS' ? 0 : 1) || receipt.signal !== null) throw new Error('nonzero-allPASS/malformed status');
+    if (!Array.isArray(result.workers) || result.workers.length > cell.workerStartsMaximum) throw new Error('cell Worker census'); workers += result.workers.length;
+    if (workers > seal.futureCaps.workerStartsMaximum) throw new Error('whole Worker census');
+    outcomes.push({ id: cell.id, status: result.status }); verify();
+  }
+}
+if (outcomes.length !== 210 || state.owned.some(row => !row.retired)) throw new Error('incomplete ownership/results');
+verifyBinding(seal.node); for (const entry of seal.controller) verifyBinding(entry);
+if (Date.now() >= deadline) throw new Error('final publication deadline');
+emit({ event: 'complete', outcomes, workers, children: state.starts, childCapture: state.capture, coordinatorCapture: published, elapsed: Date.now() - started });
+if (Date.now() >= deadline) throw new Error('publication exceeded deadline');
+process.exitCode = outcomes.some(row => row.status === 'FAIL') ? 1 : 0;
+
+/private/tmp/safe-bash-core70-v4-20260829/controller/owner.mjs
+import * as fs from 'node:fs';
+import { spawn } from 'node:child_process';
+
+export function validateOwner(spec, state, now) {
+  for (const [name, value] of Object.entries({ now, deadline: state.deadline, maximumStarts: state.maximumStarts, starts: state.starts, maximumCapture: state.maximumCapture, capture: state.capture, caseMs: spec.caseMs, retireMs: spec.retireMs, childCapture: spec.childCapture })) {
+    if (!Number.isSafeInteger(value) || value < 0) throw new TypeError(`invalid finite owner field: ${name}`);
+  }
+  if (spec.caseMs < 1 || spec.retireMs < 1 || now >= state.deadline || state.starts >= state.maximumStarts || state.capture > state.maximumCapture) throw new Error('owner admission limit');
+  if (!Array.isArray(state.owned) || !Array.isArray(state.secondary)) throw new TypeError('owner receipts');
+  for (const path of [spec.stdout, spec.stderr, spec.cwd]) if (typeof path !== 'string' || !path.startsWith('/private/tmp/') || path.split('/').includes('..')) throw new TypeError('noncanonical owner path');
+  if (spec.stdout === spec.stderr) throw new TypeError('capture channels must be distinct');
+}
+
+export async function ownProcess(spec, state, publish, supplied = {}) {
+  const io = { open: fs.openSync, close: fs.closeSync, write: fs.writeSync, spawn, now: Date.now, later: setTimeout, cancel: clearTimeout, ...supplied };
+  validateOwner(spec, state, io.now());
+  const descriptors = [];
+  let failed = false;
+  let reason;
+  let child;
+  let receipt;
+  let bytes = 0;
+  let timeout;
+  let retireTimeout;
+  let settled;
+  const remember = error => { if (!failed) { failed = true; reason = error; } };
+  const stop = error => {
+    remember(error);
+    if (child && receipt && !receipt.retired) {
+      try { child.kill('SIGKILL'); } catch (killError) { state.secondary.push(killError); }
+    }
+  };
+  try {
+    descriptors.push(io.open(spec.stdout, 'wx', 0o600));
+    descriptors.push(io.open(spec.stderr, 'wx', 0o600));
+    state.starts++;
+    child = io.spawn(spec.executable, spec.argv, { cwd: spec.cwd, env: spec.env, stdio: ['ignore', 'pipe', 'pipe'] });
+    receipt = { id: spec.id, pid: child.pid, retired: false, closeObserved: false };
+    state.owned.push(receipt);
+    let finish;
+    settled = new Promise(resolve => { finish = resolve; });
+    child.once('close', (code, signal) => {
+      receipt.closeObserved = true;
+      receipt.retired = true;
+      receipt.code = code;
+      receipt.signal = signal;
+      finish();
+    });
+    const remaining = state.deadline - io.now();
+    timeout = io.later(() => stop(new Error('case deadline')), Math.max(0, Math.min(spec.caseMs, remaining - spec.retireMs)));
+    retireTimeout = io.later(() => {
+      if (!receipt.closeObserved) {
+        state.unknownRetirement = true;
+        stop(new Error('unknown retirement at total deadline'));
+        finish();
+      }
+    }, Math.max(0, Math.min(spec.caseMs + spec.retireMs, remaining)));
+    child.once('error', error => { remember(error); });
+    const accept = descriptor => chunk => {
+      try {
+        if (!Buffer.isBuffer(chunk)) throw new TypeError('non-byte capture');
+        if (chunk.length > spec.childCapture - bytes || chunk.length > state.maximumCapture - state.capture) throw new Error('capture cap');
+        bytes += chunk.length;
+        state.capture += chunk.length;
+        let offset = 0;
+        while (offset < chunk.length) {
+          const written = io.write(descriptor, chunk, offset, chunk.length - offset);
+          if (!Number.isSafeInteger(written) || written <= 0 || written > chunk.length - offset) throw new Error('capture short-write failure');
+          offset += written;
+        }
+      } catch (error) { stop(error); }
+    };
+    child.stdout.on('data', accept(descriptors[0]));
+    child.stderr.on('data', accept(descriptors[1]));
+    try { publish({ event: 'owned', ...receipt }); } catch (error) { stop(error); }
+    await settled;
+    io.cancel(timeout);
+    io.cancel(retireTimeout);
+    if (!receipt.closeObserved) state.unknownRetirement = true;
+    try { publish({ event: 'settled', ...receipt, bytes }); } catch (error) { remember(error); }
+  } catch (error) {
+    remember(error);
+    if (child && receipt && !receipt.retired) {
+      stop(error);
+      if (retireTimeout !== undefined) await settled;
+      else state.unknownRetirement = true;
+    }
+  } finally {
+    if (timeout !== undefined) io.cancel(timeout);
+    if (retireTimeout !== undefined) io.cancel(retireTimeout);
+    for (const descriptor of descriptors) {
+      try { io.close(descriptor); } catch (error) { remember(error); }
+    }
+    if (io.now() >= state.deadline) remember(new Error('total deadline includes publication and cleanup'));
+  }
+  if (failed) throw reason;
+  return receipt;
+}
+AUTHOR_PRESEAL_START
+AUTHOR_PRESEAL_EXIT 0
+resume-shell-start
+2026-08-29T15:55:43Z
+build-owner-exit=1
+failure-inspection-shell-start
+failure-inspection-correction-shell-start
+failure-paths-shell-start
+exact-diagnostic-shell-start
+publication-preparation-shell-start
+failure-publication-authoring-shell-start

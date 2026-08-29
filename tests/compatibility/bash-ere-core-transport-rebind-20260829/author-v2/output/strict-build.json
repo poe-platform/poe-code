@@ -1,0 +1,45 @@
+{
+  "id": "strict-build",
+  "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+  "args": [
+    "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
+    "-p",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/source/tsconfig.build.json",
+    "--typeRoots",
+    "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/empty-types"
+  ],
+  "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/source",
+  "started": "2026-08-29T15:55:44.410Z",
+  "pid": 44913,
+  "exit": {
+    "code": 2,
+    "signal": null
+  },
+  "close": {
+    "code": 2,
+    "signal": null
+  },
+  "stdoutEOF": true,
+  "stderrEOF": true,
+  "signals": [],
+  "primaryPresent": false,
+  "primary": null,
+  "bytes": {
+    "stdout": 165,
+    "stderr": 0
+  },
+  "finished": "2026-08-29T15:55:49.284Z",
+  "stdout": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/strict-build.stdout",
+    "size": 165,
+    "mode": 384,
+    "sha256": "22d754e33e5e414d820e237c9e477c81ec8db495c45ab51f7665351a89a3c783"
+  },
+  "stderr": {
+    "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/strict-build.stderr",
+    "size": 0,
+    "mode": 384,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "retired": true
+}

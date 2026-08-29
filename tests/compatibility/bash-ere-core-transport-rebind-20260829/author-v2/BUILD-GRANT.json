@@ -1,0 +1,10 @@
+{
+  "authorizationKind": "ROOT_SOURCE_ACCEPTED_AUTHOR_BUILD",
+  "action": "BUILD_PACK_FREEZE",
+  "presealSha256": "c0ac00138f379f36a7fabb447ccda25a16788006942ee01f893b67088d3ca5c4",
+  "composition": "ff0c86a560da56b58437928c499ca7f5b9d25d70",
+  "outputRoot": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output",
+  "sourceCommit": "4abbdeec8e34de88ed2cf7bd32be9c06b413c631",
+  "sourcePureReview": "f17d8dec11190ef40ecac6c175b208a2e29c7fbf",
+  "rootAuthorBuildDecisionSha256": "172d789916e62cac03caaf18610615148e95f59cdf0ac0c8e97a7465baeaa5ea"
+}

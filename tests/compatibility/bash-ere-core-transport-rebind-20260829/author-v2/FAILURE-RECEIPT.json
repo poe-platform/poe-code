@@ -1,0 +1,257 @@
+{
+  "schema": "CORE_ROOT_AUTHOR_BUILD_V2_FAILURE",
+  "at": "2026-08-29T15:59:32.502Z",
+  "verdict": "HOLD",
+  "reason": "TS2688: selected tsconfig requires node typings but sealed compiler command uses empty typeRoots",
+  "authorizationKind": "ROOT_SOURCE_ACCEPTED_AUTHOR_BUILD",
+  "independentProducerReview": null,
+  "composition": "ff0c86a560da56b58437928c499ca7f5b9d25d70",
+  "selectedInputs": 305,
+  "unchanged": 303,
+  "overlays": 2,
+  "sourcePostcheck": "305/305 unchanged",
+  "sourceCommit": "4abbdeec8e34de88ed2cf7bd32be9c06b413c631",
+  "sourcePureReview": "f17d8dec11190ef40ecac6c175b208a2e29c7fbf",
+  "presealSha256": "c0ac00138f379f36a7fabb447ccda25a16788006942ee01f893b67088d3ca5c4",
+  "compilerAttempts": 1,
+  "compilerExit": 2,
+  "retries": 0,
+  "packAttempts": 0,
+  "archiveDecodes": 0,
+  "materializedLayouts": 0,
+  "product": 0,
+  "Workers": 0,
+  "nativeOracles": 0,
+  "installs": 0,
+  "network": 0,
+  "contract": {
+    "rows": [
+      {
+        "id": "C01-accepted-explicit-ROOT-author-branch",
+        "status": "PASS"
+      },
+      {
+        "id": "C02-missing-binding-refused",
+        "status": "PASS"
+      },
+      {
+        "id": "C03-wrong-source-or-source-review-refused",
+        "status": "PASS"
+      },
+      {
+        "id": "C04-unknown-kind-refused",
+        "status": "PASS"
+      }
+    ],
+    "pass": 4,
+    "fail": 0,
+    "rootDecisionSha256": "172d789916e62cac03caaf18610615148e95f59cdf0ac0c8e97a7465baeaa5ea",
+    "contractSha256": "0c76c54ced4715d97859fb1598dd4c5ad769f967ac50167fb48fdfa8a90af2e9",
+    "helperSha256": "05fe714e89ff474c55e46ce873b1d004b7c870dc463b9616c440acdbdfeb47f8",
+    "product": 0,
+    "compiler": 0,
+    "pack": 0
+  },
+  "childReceipts": [
+    {
+      "id": "source-blobs",
+      "executable": "/usr/bin/git",
+      "args": [
+        "cat-file",
+        "--batch"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash",
+      "started": "2026-08-29T15:55:43.921Z",
+      "pid": 44910,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "close": {
+        "code": 0,
+        "signal": null
+      },
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "signals": [],
+      "primaryPresent": false,
+      "primary": null,
+      "bytes": {
+        "stdout": 2792669,
+        "stderr": 0
+      },
+      "finished": "2026-08-29T15:55:44.267Z",
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/source-blobs.stdout",
+        "size": 2792669,
+        "mode": 384,
+        "sha256": "6433039d94543b3aa7a10a16d0d00ad2d5b479f9c8505e878665363ce86c34d8"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/source-blobs.stderr",
+        "size": 0,
+        "mode": 384,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retired": true
+    },
+    {
+      "id": "strict-build",
+      "executable": "/Users/kjopek/.nvm/versions/node/v22.22.2/bin/node",
+      "args": [
+        "/Users/kjopek/Workspace/safe-bash/node_modules/typescript/lib/tsc.js",
+        "-p",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/source/tsconfig.build.json",
+        "--typeRoots",
+        "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/empty-types"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/source",
+      "started": "2026-08-29T15:55:44.410Z",
+      "pid": 44913,
+      "exit": {
+        "code": 2,
+        "signal": null
+      },
+      "close": {
+        "code": 2,
+        "signal": null
+      },
+      "stdoutEOF": true,
+      "stderrEOF": true,
+      "signals": [],
+      "primaryPresent": false,
+      "primary": null,
+      "bytes": {
+        "stdout": 165,
+        "stderr": 0
+      },
+      "finished": "2026-08-29T15:55:49.284Z",
+      "stdout": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/strict-build.stdout",
+        "size": 165,
+        "mode": 384,
+        "sha256": "22d754e33e5e414d820e237c9e477c81ec8db495c45ab51f7665351a89a3c783"
+      },
+      "stderr": {
+        "path": "/Users/kjopek/Workspace/safe-bash/tests/compatibility/bash-ere-core-transport-rebind-20260829/author-v2/output/strict-build.stderr",
+        "size": 0,
+        "mode": 384,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retired": true
+    }
+  ],
+  "failedEmitCounts": {
+    "unchanged": 982,
+    "changed": 18,
+    "added": 0,
+    "removed": 0
+  },
+  "failedEmitFiles": 1000,
+  "evidence": [
+    {
+      "path": "PRESEAL.json",
+      "size": 7245,
+      "mode": 292,
+      "sha256": "c0ac00138f379f36a7fabb447ccda25a16788006942ee01f893b67088d3ca5c4"
+    },
+    {
+      "path": "BUILD-GRANT.json",
+      "size": 605,
+      "mode": 292,
+      "sha256": "3b2a3425fd3746d92227e23ddeee6f2abd8af08ae6128a620bc01d2312939997"
+    },
+    {
+      "path": "ROOT-DECISION.txt",
+      "size": 1326,
+      "mode": 420,
+      "sha256": "172d789916e62cac03caaf18610615148e95f59cdf0ac0c8e97a7465baeaa5ea"
+    },
+    {
+      "path": "STOP-build.json",
+      "size": 770,
+      "mode": 384,
+      "sha256": "a23f551b2c0e9fb2b9a051be01712e212f5229267ee68746b8ecaaac3f24dd86"
+    },
+    {
+      "path": "output/strict-build.json",
+      "size": 1560,
+      "mode": 384,
+      "sha256": "5ffd27299b9df06fe5eff5105e497afcb1125004540dd5a7962196d744f44db0"
+    },
+    {
+      "path": "output/strict-build.stdout",
+      "size": 165,
+      "mode": 384,
+      "sha256": "22d754e33e5e414d820e237c9e477c81ec8db495c45ab51f7665351a89a3c783"
+    },
+    {
+      "path": "output/strict-build.stderr",
+      "size": 0,
+      "mode": 384,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "output/SOURCE-ADMISSION.json",
+      "size": 56163,
+      "mode": 384,
+      "sha256": "e2a121149bfdd22277475afe80031fc209ba5eb029b88dae5e5bfd6f36c3af55"
+    },
+    {
+      "path": "output/TOOL-ADMISSION.json",
+      "size": 1160,
+      "mode": 384,
+      "sha256": "60d6311b7c615b36ecd5b9b7438cdb70103795405bfe83113923750357924e62"
+    },
+    {
+      "path": "FAILED-EMIT-DIFF.json",
+      "size": 566250,
+      "mode": 292,
+      "sha256": "fd8c088630b587bdbc396e19e410223a93314816c34d96edf0477d67c73b1c05"
+    },
+    {
+      "path": "FAILED-SOURCE-AND-EMIT-INVENTORY.json",
+      "size": 243076,
+      "mode": 292,
+      "sha256": "29c3cbd74ce2e0e4184548d3e9c7ef8ebb72c07adc376102dff309a6d8c9ab22"
+    },
+    {
+      "path": "RETAINED-INVENTORY.json",
+      "size": 267418,
+      "mode": 292,
+      "sha256": "d437267c19eefd3f653f6d99ddca78b0fc8f8c1b37c14b38798ff65c0d2e36b4"
+    }
+  ],
+  "resources": {
+    "knownStartsThroughThisCensus": 28,
+    "remainingPublicationKnownStarts": 7,
+    "conditionalFinalKnownStarts": 35,
+    "allowedKnownStarts": 56,
+    "conservativePeak": 3,
+    "allowedPeak": 3,
+    "childRetirement": "Git and compiler exit/close/both EOF observed",
+    "administrativeRetirement": "Direct tool completions; shell/helper exit established after receipt, not fabricated per-PID census",
+    "measuredAllOwnedFiles": 1361,
+    "measuredAllOwnedBytes": 14865140,
+    "measuredCaptureBytes": 3312464,
+    "publicationReserveBytes": 33554432,
+    "logicalBoundIncludingPublication": 48419572,
+    "workMaximum": 536870912,
+    "captureMaximum": 100663296,
+    "perDataFileMaximum": 16777216,
+    "exclusions": [
+      "Git internal physical storage",
+      "allocated disk blocks",
+      "RSS"
+    ],
+    "deadline": "2026-08-29T16:08:17Z"
+  },
+  "caveats": [
+    "No qualified package or CORE guard/layout rebind",
+    "Failed compiler emits retained as DATA only",
+    "Prior c73b STOP and old seals immutable",
+    "B35 finite DATA ACCEPT and review peak4/3 HOLD unchanged",
+    "Actual private T1 pending",
+    "One administrative unmatched-glob failure retained; no child launched"
+  ]
+}
